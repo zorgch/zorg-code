@@ -155,19 +155,19 @@
       $d = mysql_fetch_array($e);
 
       // check compile necessary
-      if ($d[force_compile]) {
+      if ($d['force_compile']) {
          $tpl_timestamp = 9999999999;
          $db->query("UPDATE templates SET force_compile='0' WHERE id='$tpl_name'", __FILE__, __LINE__);
       }elseif ($d) {
-         $tpl_timestamp = $d[last_update];
+         $tpl_timestamp = $d['last_update'];
       }else{
          $tpl_timestamp = 9999999999;
       }
 
       // assign tpl-infos.
-      $d[title] = stripslashes($d[title]);
-      $d[update] = $d[last_update];
-      $d[root] = $_GET[tpl];  // depricated
+      $d['title'] = stripslashes($d['title']);
+      $d['update'] = $d['last_update'];
+      $d['root'] = $_GET['tpl'];  // depricated
       array_push($_tpl_stack, $d);
 
       // load packages
@@ -285,10 +285,10 @@
       $smarty->php_handling = SMARTY_PHP_QUOTE;
 
       // php functions that can be accessed in if-statements
-      array_push($smarty->security_settings[IF_FUNCS], "tpl_permission");
-      array_push($smarty->security_settings[IF_FUNCS], "comment_permission");
-      array_push($smarty->security_settings[IF_FUNCS], "chr");
-      array_push($smarty->security_settings[IF_FUNCS], "ord");
+      array_push($smarty->security_settings['IF_FUNCS'], "tpl_permission");
+      array_push($smarty->security_settings['IF_FUNCS'], "comment_permission");
+      array_push($smarty->security_settings['IF_FUNCS'], "chr");
+      array_push($smarty->security_settings['IF_FUNCS'], "ord");
 
 
       // Ressourcen-Typ 'db:' registrieren

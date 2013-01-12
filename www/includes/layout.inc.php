@@ -134,17 +134,17 @@ function foot($author_id=3) {
 
 	// sql query tracker
 	if ($user->sql_tracker) {
-	   $_SESSION[noquerys] = $db->noquerys;
-	   $_SESSION[noquerytracks] = $db->noquerytracks;
-	   $_SESSION[query_track] = $db->query_track;
-	   $_SESSION[query_request] = $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'];
+	   $_SESSION['noquerys'] = $db->noquerys;
+	   $_SESSION['noquerytracks'] = $db->noquerytracks;
+	   $_SESSION['query_track'] = $db->query_track;
+	   $_SESSION['query_request'] = $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'];
 	   $qtracker = '<a href="smarty.php?tpl=25">[Details]</a>';
 	}else{
 	   $qtracker = "";
-	   unset($_SESSION[noquerys]);
-	   unset($_SESSION[query_track]);
-	   unset($_SESSION[query_request]);
-	   unset($_SESSION[noquerytracks]);
+	   unset($_SESSION['noquerys']);
+	   unset($_SESSION['query_track']);
+	   unset($_SESSION['query_request']);
+	   unset($_SESSION['noquerytracks']);
 	}
 
 	// tpl infos
@@ -160,11 +160,11 @@ function foot($author_id=3) {
 			' | '. smarty_sizebytes($_TPLROOT['size']).
 			' | r: '. smarty_usergroup($_TPLROOT['read_rights']).
 //			' | w: '. smarty_usergroup($_TPLROOT['write_rights']).
-			' | updated: '.$user->id2user($_TPLROOT[update_user]).', '.datename($_TPLROOT['last_update']).
+			' | updated: '.$user->id2user($_TPLROOT['update_user']).', '.datename($_TPLROOT['last_update']).
 			' | <a href="smarty.php?tpl='.$_TPLROOT['id'].'">tpl='.$_TPLROOT['id'].'</a>';
-		if ($_TPLROOT[word]) $tplinfo .= ' | word='.$_TPLROOT[word];
+		if ($_TPLROOT['word']) $tplinfo .= ' | word='.$_TPLROOT['word'];
 
-		if (tpl_permission($_TPLROOT[write_rights], $_TPLROOT[owner])) {
+		if (tpl_permission($_TPLROOT['write_rights'], $_TPLROOT['owner'])) {
    		$tplinfo .= ' | '. edit_link('[edit]', $_TPLROOT['id'], $_TPLROOT['write_rights'], $_TPLROOT['owner']);
 		}
 	}

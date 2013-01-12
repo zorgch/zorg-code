@@ -6,12 +6,12 @@
 			'fatal' => true,
 			'error' => true,
 			'warning' => true,
-			'unknown' => false),  // schaltet das wenn möglich nicht ein - z.b. auf der startseite gibt das alle 6500 (!) errors aus
+			'unknown' => true),  // schaltet das wenn möglich nicht ein - z.b. auf der startseite gibt das alle 6500 (!) errors aus
 		'errlog' => array(
 			'fatal' => true,
 			'error' => true,
 			'warning' => true,
-			'unknown' => false)  // schaltet das wenn möglich nicht ein - z.b. auf der startseite speichert das alle 6500 (!) errors im file (das gibt ca. 1MB)
+			'unknown' => true)  // schaltet das wenn möglich nicht ein - z.b. auf der startseite speichert das alle 6500 (!) errors im file (das gibt ca. 1MB)
 	);
 	// ---------------------------------------
 
