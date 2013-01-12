@@ -1,0 +1,76 @@
+<?
+/**
+ * GO Board
+ * 
+ * ...
+ * ...
+ * ...
+ *
+ * @author [z]berg, [z]domi
+ * @date nn.nn.nnnn
+ * @version 1.0
+ * @package Zorg
+ * @subpackage GO
+ * 
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @global array $smarty Array mit allen Smarty-Variablen
+ */
+/**
+ * File Includes
+ */
+//     include_once('/home/CME/z/zooomclan/www/includes/usersystem.inc.php');
+//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
+
+/**
+ * Globals
+ */
+//global $db, $user, $smarty;
+
+$gameid = $_GET[game];
+if (!is_numeric($gameid)) user_error("Invalid game supplied");
+$e = $db->query(
+		"SELECT *
+		FROM go_games g
+		WHERE g.id = '$gameid'", __FILE__, __LINE__);
+$game = $db->fetch($e);
+
+if (!$game){
+    user_error("Invalid game-ID: '$gameid'");
+    return;
+}
+
+$size = $game['size'];
+$im = draw_go_base($size);
+draw_grid($im, $size);
+draw_stardots($im, $size);
+$board = $game['data'];
+$board = str_split($board, 1);
+if ($user->id == $game['pl1'] && $game['pl1luck'] == 0 || $user->id == $game['pl2'] && $game['pl2luck'] == 0) $luck = false;
+else $luck = true;
+	    
+for ($i = 0; $i < $size; $i++) for ($j = 0; $j < $size; $j++){
+    $stone = $board[$i + $j*$size];
+    if ($stone == '1')
+      draw_go_stone($im, $i, $j, 1, $luck);
+    else if ($stone == '2')
+      draw_go_stone($im, $i, $j, 2, $luck);
+    else if ($stone == '3')
+      draw_go_stone($im, $i, $j, 3, $luck);
+    else if ($stone == '4')
+      draw_go_stone($im, $i, $j, 4, $luck);
+}
+
+if ($game['state'] == 'running'){
+    draw_go_last($im, $size, $game['last1']);
+    draw_go_last($im, $size, $game['last2']);
+}
+
+draw_go_players($im, $game);
+
+
+header("Content-Type: image/png");
+imagepng($im);
+	
+?>

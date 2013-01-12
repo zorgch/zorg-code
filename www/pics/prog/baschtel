@@ -1,0 +1,17 @@
+#!/bin/bash
+
+for i in *.JPG
+do
+	thumb=`echo $i | sed s/\.JPG/\-small\.jpg/`
+	if test -a $thumb 
+	then
+		echo $thumb gibts schon
+	else
+		echo $i '->' $thumb
+		convert -scale 25% $i $thumb
+		echo "<a href=\"$i\"><img src=\"$thumb\"></a>"  >> list
+	fi
+	cat prog/header > index.html
+	cat prog/list >> index.html
+	cat prog/footer >> index.html
+done

@@ -1,0 +1,18 @@
+Eigene baschtels, die ich im smarty-code eingefügt habe:
+
+(code-blöcke sind jeweils mit "// OWN BY biko" eingeleitet - sollten also einfach zu finden sein)
+
+Smarty.class.php:
+   - recur-check in Smarty->_smarty_include
+   - 2 variablen für die recur-check-config. 
+   - 2 globale variablen für error-redirection auf die compiler::_syntax_error()
+   - zusätzliche Member-Funktion zum manuellen kompilieren: $smarty->compile($resource)
+   - keine error msg bei manual_compile in Smarty->_compile_resource
+   
+Smarty_Compiler.class.php
+   - function _syntax_error()  für error-redirection angepasst. 
+   
+   
+
+-- 
+biko (für newbies verständlicher gemacht: IneX)

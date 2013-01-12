@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule .* /home/CME/z/zooomclan/www/index.html

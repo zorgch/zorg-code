@@ -1,0 +1,54 @@
+BODY                   { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: right; color: #CCCCCC; background-color: #666666; }
+TABLE                  { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; color: #CCCCCC; border-style: none; border-width: 0; }
+TD                     { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; border-color: #000000; border-style: solid; border-width: 1; }
+
+A:link                 { color: #BBBBBB; }
+A:visited              { color: #999999; }
+A:active               { color: #FFFFFF; }
+A:hover                { color: #FFFFFF; }
+
+/* row1 & row2 create the alternating row color effect */
+.row1                 { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: right; background-color: #000000; border-color: #333333 #222222 #222222 #333333; }
+.row2                 { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: right; background-color: #333333; border-color: #666666 #222222 #222222 #666666; }
+
+/* caption is for Overlib(DMFlags) stuff */
+.caption               { text-align: left; font-weight: bold; }
+
+/* cell1 & cell2 also create the alternating color effect */
+.cell1                 { border-color: #333333 #222222 #222222 #333333; }
+.cell2                 { border-color: #666666 #222222 #222222 #666666; }
+
+/* the gray cell headings(spectator, servername/ip, rule list headers) */
+.cellHeading           { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: center; color: #FFFFFF; background-color: #666666; border-color: #999999 #333333 #333333 #999999; border-width: 2; }
+
+/* class to highlight a row on mouse over */
+.rowHighlight          { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: right; color: #000000; background-color: #BBBBBB; }
+
+/* these colors should be set the same as the body's background color */
+.transparent           { background-color: #666666; border-color: #666666 #666666 #666666; }
+
+/* used for the empty space to the left and right of the map */
+.neutral               { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: left;  color: #CCCCCC; background-color: #333333; }
+
+/* table heading for the red team */
+.redHeading           { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: center; color: #FFFFFF; background-color: #770000; border-color: #AA0000 #440000 #440000 #AA0000; border-width: 2; }
+
+/* background color and font for the red team */
+.red                   { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: left;  color: #CCCCCC; background-color: #770000; }
+
+/* table heading for the blue team */
+.blueHeading           { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: center; color: #FFFFFF; background-color: #000066; border-color: #000099 #000033 #000033 #000099; border-width: 2; }
+
+/* background color and font for the blue team */
+.blue                  { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: left;  color: #CCCCCC; background-color: #000066; }
+
+/* Yet another set of classes for alternating the row colors */
+.name1                 { font-family: fixedsys, bitstream-terminal-iso8859-1; font-size: 10pt; font-weight: bold; border-color: #333333 #222222 #222222 #333333; }
+.name2                 { font-family: fixedsys, bitstream-terminal-iso8859-1; font-size: 10pt; font-weight: bold; border-color: #666666 #222222 #222222 #666666; }
+
+/* for text used in Overlib */
+.headingText           { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; text-align: center; color: #FFFFFF; }
+
+/* two classes for Javascript/DOM abilities */
+.drag{position:absolute;cursor:move}
+.close{cursor:pointer}

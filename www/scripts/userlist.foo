@@ -1,0 +1,49 @@
+<?
+	global $db, $smarty;
+
+
+	switch ($_GET[sort]) {
+		case "username":
+			$sort = "ORDER BY u.username";
+			break;
+		case "lastlogin":
+			$sort = "ORDER BY u.currentlogin";
+			break;
+		case "chnopf":
+			$sort = "ORDER BY u.button_use";
+			break;
+		case "lostposts":
+			$sort = "ORDER BY u.posts_lost";
+			break;
+		case "unread":
+			$sort = "ORDER BY unread";
+			break;
+		default:
+			$sort = "ORDER BY u.currentlogin";
+	}
+
+	switch ($_GET[order]) {
+		case 'ASC':
+			$order = 'ASC';
+			break;
+		case 'DESC':
+			$order = 'DESC';
+			break;
+		default:
+			$order = 'DESC';
+	}
+
+	$e = $db->query("
+					SELECT u.id, u.username, u.clan_tag, u.usertype, UNIX_TIMESTAMP(u.currentlogin) as currentlogin, u.button_use, u.posts_lost, count(c.comment_id) as unread
+					FROM user u
+					LEFT JOIN comments_unread c
+					ON u.id = c.user_id
+					GROUP by u.id $sort $order
+					", __FILE__, __LINE__);
+	$list = array();
+	while ($d = mysql_fetch_array($e)) {
+		array_push($list, $d);
+	}
+
+	$smarty->assign("userlist", $list);
+?>

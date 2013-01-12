@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^files/([0-9]+)/(.*) /getfile.php?user=$1&file=$2
