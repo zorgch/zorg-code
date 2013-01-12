@@ -183,8 +183,8 @@ class usersystem {
 			$this->menulayout = $rs[$this->field_menulayout];
 			$this->mymenu = $rs[$this->field_mymenu];
 			$this->zorger = $rs[$this->field_zorger];
-			if (usersystem::checkimage($_SESSION[user_id])) {
-			   $this->image = USER_IMGPATH.$_SESSION[user_id]."_tn.jpg";
+			if (usersystem::checkimage($_SESSION['user_id'])) {
+			   $this->image = USER_IMGPATH.$_SESSION['user_id']."_tn.jpg";
 			}else{
 			   $this->image = USER_IMGPATH."none.jpg";
 			}

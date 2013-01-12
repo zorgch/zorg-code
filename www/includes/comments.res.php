@@ -240,9 +240,9 @@ function smartyresource_comments_get_commenttree ($id) {
 			  	'{/if}'.
 			  	
 			  	'{if $user->id != 0}'.
-			  		'{if $hdepth <= 1}Reply: {/if}'.
+			  		'{if $hdepth <= 1}<label for="replyfor-'.$rs['id'].'">Reply:</label>{/if}'.
 			  		'</td><td class="forum" style="text-align: right;" width="3%">'.
-			  		'<input name="parent_id" onClick="reply()" type="radio" value="'.$rs['id'].'" '.
+			  		'<input name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" type="radio" value="'.$rs['id'].'" '.
 			  		'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked" {/if}'.
 			  		' />'.
 			  	'{/if}'

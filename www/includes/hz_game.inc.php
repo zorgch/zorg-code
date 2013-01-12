@@ -12,28 +12,39 @@
  *
  * @package Zorg
  * @subpackage HuntingZ
+ *
+ * @todo Sollte das alles hier nicht in einer Class untergebracht werden?
  */
-
-/**
- * File Includes
- */
+ 
+/** Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
+
+/** Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln) */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+
+/** Utilities einbinden für Handling diverser Spezialfunktionen (z.B. URLs erzeugen) */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+
+/** Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 
-/**
- * CONSTANTS
- */
+
+/** Pfad zu den Bildern fürs Hunting Z */
 define("IMGPATH", "/images/hz/");
-define("TURN_ADD_MONEY", 10);
-define("TURN_COUNT", 4);  // nach so vielen zügen gibts geld
-define("TURN_TIME", 60*60*24*3);
+
+/** In sovielen Hz-Spielen kann ein Spieler maximal gleichzeitig teilnehmen */
 define("MAX_HZ_GAMES", 5);
 
-/**
- * GLOBALS
- */
+/** So lange haben Spieler Zeit für ihren Spielzug */
+define("TURN_TIME", 60*60*24*3);
+
+/** Nach so vielen Zügen gibts neues Geld */
+define("TURN_COUNT", 4);
+
+/** So viel Geld gibts nach X Zügen */
+define("TURN_ADD_MONEY", 10);
+
+/** Array mit benötigten Activities-Meldungen welche durch das Hunting Z abgesetzt werden können */
 $activities_hz =
 	array(
 		 1	=>	"hat ein neues Hunting z Spiel auf der Karte $map er&ouml;ffnet.<br/><br/><a href=\"/smarty.php?tpl=103&amp;game=$game\">Am Spiel als Inspector teilnehmen</a>"
@@ -106,6 +117,19 @@ function start_new_game ($map) {
 	}
 }
 
+/**
+ * Start-Stationen der Spieler festlegen
+ * 
+ * Setzt die Spieler zu Beginn des Spiels randomized auf eine der Stationen auf der Map
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @return ID des Hunting z Spiels
+ */
 function get_start_station ($game) {
 	global $db, $user;
 	
@@ -130,6 +154,19 @@ function get_start_station ($game) {
 }
 
 
+/**
+ * Join Game
+ * 
+ * Fügt einen neuen Spieler dem Spiel hinzu
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @global array $activities_hz Array um Activity-Message für Spielbeitritt abzusetzen
+ */
 function join_game ($game) {
 	global $db, $user, $activities_hz;
 	
@@ -160,6 +197,18 @@ function join_game ($game) {
 	}
 }
 
+/**
+ * Unjoin Game
+ * 
+ * Sofern ein Spiel noch nicht gestartet ist, kann ein User das Spiel auch wieder verlassen
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ */
 function unjoin_game ($game) {
 	global $db, $user;
 	
@@ -170,7 +219,17 @@ function unjoin_game ($game) {
 	}
 }
 
-
+/**
+ * Spiel starten
+ * 
+ * Startet ein Hunting z Spiel nachdem genügend Inspectors beigetreten sind
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ */
 function start_game ($game) {
 	global $db;
 	
@@ -192,7 +251,20 @@ function start_game ($game) {
 	}
 }
 
-
+/**
+ * Ticket Map
+ * 
+ * Generiert eine HTML-Map mit den klickbaren Stationen für den Spieler, auf welche er akutell fortfahren kann
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @param array $ticket Array mit den verschiedenen Arten von Stationen
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @return HTML mit klickbaren Map-Buttons der möglichen, ansteuerbaren Stationen
+ */
 function ticket_map ($game, $ticket='all') {
 	global $db, $user;
 	
@@ -249,6 +321,17 @@ function ticket_map ($game, $ticket='all') {
 	return $ret;
 }
 
+/**
+ * Kosten pro Spielzug
+ * 
+ * Gibt die Kosten pro Station zurück
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param string $type Stations-Art um Preis zu berechnen
+ * @return Integer des Wertes für die gewählte Stations-Art
+ */
 function turn_cost ($type) {
 	switch ($type) {
 		case 'taxi': return 1; break;
@@ -260,6 +343,20 @@ function turn_cost ($type) {
 	}
 }
 
+/**
+ * Spielzug Validität prüfen
+ * 
+ * Prüft ob ein abgesetzter Spielzug eines Spielers auch valide ist und ausgeführt werden darf
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @param integer $uid ID des Users welcher den Spielzug macht
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @return Boolean (True/False) ob gewünschter Spielzug erlaubt ist oder nicht
+ */
 function turn_allowed ($game, $uid=0) {
 	global $db, $user;
 	
@@ -279,7 +376,17 @@ function turn_allowed ($game, $uid=0) {
 	return $d['allowed'];
 }
 
-function hz_turn_passing () { //automatisches stehenbleiben bei ueberschreiten der zug-zeit
+/**
+ * Spieler aussetzen
+ * 
+ * Automatisches Stehenbleiben des Spielers bei Überschreiten der Zeit für seinen Zug
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ */
+function hz_turn_passing () {
 	global $db;
 	
 	$e = $db->query(
@@ -297,6 +404,20 @@ function hz_turn_passing () { //automatisches stehenbleiben bei ueberschreiten d
 }
 
 
+/**
+ * Spielzug abschliessen
+ * 
+ * Führt alle finalen Kalkulationen, Queries und Benachrichtigungen aus, nachdem ein Spielzug durchgeführt wurde
+ * (z.B. prüft, ob das Spiel aufgrund des Spielzuges beendet wurde, etc.)
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @param integer $uid ID des Users welcher den finalen Spielzug macht
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ */
 function turn_finalize ($game, $uid=0) {
 	global $db, $user;
 	
@@ -349,6 +470,19 @@ function turn_finalize ($game, $uid=0) {
 }
 
 
+/**
+ * Spielzug "Stehenbleiben"
+ * 
+ * Führt alle Queries aus für den Spielzug "Stehenbleiben"
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @param integer $uid ID des Users welcher den Spielzug macht
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ */
 function turn_stay ($game, $uid=0) {
 	global $db, $user;
 	
@@ -384,6 +518,19 @@ function turn_stay ($game, $uid=0) {
 }
 
 
+/**
+ * Benachrichtigungen bei Spielende
+ * 
+ * Erstellt und verschickt alle notwendigen Benachrichtigungen beim Beenden eines Hunting z Spiels
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @global array $activities_hz Array mit allen notwendigen Strings für die Activities-Einträge
+ */
 function finish_mails ($game) {
 	global $db, $user, $activities_hz;
 	
@@ -425,6 +572,20 @@ function finish_mails ($game) {
 }
 
 
+/**
+ * Spielzug ausführen
+ * 
+ * Führt alle Queries aus für einen generellen Spielzug
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @param integer $ticket String mit Art der gewählten Fortbewegung
+ * @param integer $station Integer der ID der gewählten Destinations-Station
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ */
 function turn_move ($game, $ticket, $station) {
 	global $db, $user;
 	
@@ -514,6 +675,19 @@ function turn_move ($game, $ticket, $station) {
 	turn_finalize($game);
 }
 
+/**
+ * Spielzug "Station Überwachen"
+ * 
+ * Führt alle Queries aus im Falle wo ein Inspector eine Station überwachen möchte
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $game ID des Hunting z Spiels
+ * @param integer $uid ID des Users welcher den Spielzug macht
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ */
 function turn_sentinel ($game) {
 	global $user, $db;
 	
@@ -553,6 +727,18 @@ function turn_sentinel ($game) {
 }
 
 
+/**
+ * Anzahl laufender Hz Spiele
+ * 
+ * Gibt die Anzahl laufender Hunting z Spiele aus
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @return Integer mit Anzahl der laufenden Hz Spiele
+ */
 function hz_running_games () {
 	global $db, $user;
 	
@@ -567,6 +753,18 @@ function hz_running_games () {
 	return $d['anz'];
 }
 
+/**
+ * Anzahl offener Hz Spiele
+ * 
+ * Gibt die Anzahl offener Hunting z Spiele aus
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen Uservariablen
+ * @return Integer mit Anzahl der offenen Spiele
+ */
 function hz_open_games () {
 	global $db, $user;
 //		return 0; // workaround by lukas 29.09.05 13:14	
@@ -582,6 +780,17 @@ function hz_open_games () {
 }
 
 
+/**
+ * DWZ Scores aktualisieren
+ * 
+ * Aktualisiert die DWZ Punkte der Spieler eines bestimmten Hz Spiels
+ * 
+ * @author [z]biko
+ * @version 1.0
+ *
+ * @param integer $gid ID des Hunting z Spiels
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ */
 function _update_hz_dwz ($gid) {
 	global $db;
 	
