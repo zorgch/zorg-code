@@ -9,11 +9,14 @@
  * @package Zorg
  * @subpackage Peter
  */
-/**
- * File Includes
- */
+
+/** Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln) */
 include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
+
+/** Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen */
 include_once($_SERVER['DOCUMENT_ROOT']."/includes/messagesystem.inc.php");
+
+/** Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele */
 include_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
 
 
@@ -23,6 +26,8 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
  * Gibt die Anzahl ausstehenden Peter züge zurück
  * 
  * @return unknown
+ *
+ * @todo IneX, 26.12.12: Wieso ist diese Funktion nicht in der Peter-Klasse?
  */
 function peter_zuege() {
 	global $db;
@@ -77,20 +82,20 @@ class peter {
 		}	
 		
 	}
-		
+	
 	/**
 	 * Rosenverkäufer
 	 * 
-	 * Prüft und loggt den Rosenverkäufer an, gibt beim Prüfen zurück ob er angemeldet ist
+	 * Prüft und loggt den Rosenverkäufer ein, gibt beim Prüfen zurück ob er angemeldet ist
 	 * 
 	 * @return int
 	 * @param string $mode
 	 */
-	function rosenverkaufer($mode=1) {
+	function rosenverkaufer($mode='login') {
 		global $db;
 		
-		//Modus 1 = Rosenverkäufer zufällig einloggen
-		if($mode == 1) {
+		//Login Modus = Rosenverkäufer zufällig einloggen
+		if($mode == 'login') {
 			
 			//würfeln ;)
 			//srand(microtime()*1000000);
@@ -114,6 +119,7 @@ class peter {
 				WHERE id = '".$this->r_id."'";
 				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 			}
+		
 		//Modes "alles" prüfen ob der Rosenverkäufer eingeloggt ist
 		} else {
 		
@@ -123,7 +129,7 @@ class peter {
 				UNIX_TIMESTAMP(activity) as act
 			FROM user
 			WHERE 
-				id = '".$this->r_id."'
+				id = '".$r_id."'
 				AND
 				(UNIX_TIMESTAMP(activity) + ".USER_TIMEOUT.") > UNIX_TIMESTAMP(now())";
 			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
