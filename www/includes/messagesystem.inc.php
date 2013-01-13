@@ -237,7 +237,7 @@ class Messagesystem {
 			.'</textarea>'
 			.'</td></tr><tr style="font-size: x-small;"><td colspan="3" valign="middle">'
 			.'<input class="button" name="submit" tabindex="3" type="submit" value="Send">'
-			.'&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&box=inbox">Zur&uuml;ck</a>'
+			.'&nbsp;<a href="profil.php?user_id='.$user->id.'&amp;box=inbox">Zur&uuml;ck</a>'
 		;
 
 		if($delete_message_id > 0) {
