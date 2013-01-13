@@ -237,7 +237,7 @@ class Messagesystem {
 			.'</textarea>'
 			.'</td></tr><tr style="font-size: x-small;"><td colspan="3" valign="middle">'
 			.'<input class="button" name="submit" tabindex="3" type="submit" value="Send">'
-			.'&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&box=inbox">Cancel</a>'
+			.'&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&box=inbox">Zur&uuml;ck</a>'
 		;
 
 		if($delete_message_id > 0) {
@@ -279,12 +279,13 @@ class Messagesystem {
 
 		$page = ($page == '') ? 1 : $page;
 		if($box == '') $box = 'inbox';
-
+		
+	  // Neuste (isread) immer zuoberst
 	  $sql = "
 	  	SELECT *, UNIX_TIMESTAMP(date) as date
 	  	FROM messages where owner = ".$user->id ."
 	  	AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
-	  	ORDER BY ".$orderby." desc
+	  	ORDER BY isread ASC, ".$orderby." DESC
 	  	LIMIT ".($page-1) * $pagesize.",".$pagesize
 	  ;
 
@@ -324,11 +325,9 @@ class Messagesystem {
 
 		  	$html .=
 		  		'<tr>'
-		  		.'<td align="center" bgcolor="#'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'"></td>';
-		  	$html .=
-		  		($rs['isread']) ? '<td align="center" bgcolor="#'.$color.'">X</td>' : '<td align="center" bgcolor="#'.$color.'"></td>';
-		  	$html .=
-		  		'<td align="center" bgcolor="#'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
+		  		.'<td align="center" bgcolor="#'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'"></td>'
+		  	    .($rs['isread'] == 0 ? '<td align="center" bgcolor="#'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="#'.$color.'"></td>')
+		  		.'<td align="center" bgcolor="#'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
 		  		.'<td align="center" bgcolor="#'.$color.'" width="30%">';
 
 			foreach (explode(',', $rs['to_users']) as $value) {
@@ -347,9 +346,9 @@ class Messagesystem {
 
 		  $html .= '<tr><td align="left" colspan="3">';
 
-		  $html .= '<input class="button" type="submit" value="ausgew&auml;hlte Nachrichten l&ouml;schen">';
-
-		  $html .= '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><b>Neue Nachricht verfassen</b></a>';
+		  $html .= '<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><input class="button" type="button" value="Neue Nachricht"></a>';
+		  
+		  $html .= '&nbsp;&nbsp;<input class="button" type="submit" value="Markierte Nachrichten l&ouml;schen">';
 
 		  $html .= '</td><td align="right" colspan="2">';
 
