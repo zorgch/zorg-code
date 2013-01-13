@@ -47,10 +47,10 @@ define("TURN_ADD_MONEY", 10);
 /** Array mit benötigten Activities-Meldungen welche durch das Hunting Z abgesetzt werden können */
 $activities_hz =
 	array(
-		 1	=>	"hat ein neues Hunting z Spiel auf der Karte $map er&ouml;ffnet.<br/><br/><a href=\"/smarty.php?tpl=103&amp;game=$game\">Am Spiel als Inspector teilnehmen</a>"
-		,2	=>	"Wir haben als Inspectors auf <a href=\"/smarty.php?tpl=103&game=$gid\">$map</a> Mr. Z erfolgreich festgenommen!"
-		,3	=>	"ich konnt als Mr. Z in <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!"
-		,4	=>	"ist <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> als Inspector beigetreten."
+		 1	=>	'hat ein neues Hunting z Spiel auf der Karte $map er&ouml;ffnet.<br/><br/><a href=\"/smarty.php?tpl=103&amp;game=$game\">Am Spiel als Inspector teilnehmen</a>'
+		,2	=>	'Wir haben als Inspectors auf <a href=\"/smarty.php?tpl=103&game=$gid\">$map</a> Mr. Z erfolgreich festgenommen!'
+		,3	=>	'ich konnt als Mr. Z in <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!'
+		,4	=>	'ist <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> als Inspector beigetreten.'
 	);
 
 	

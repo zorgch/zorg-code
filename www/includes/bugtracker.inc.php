@@ -608,7 +608,7 @@ Class Bugtracker {
 		return $html;
 	}
 
-	function getNumOwnBugs () {
+	static function getNumOwnBugs () {
 		global $db, $user;
 
 		if ($user->typ == USER_MEMBER) {
@@ -624,7 +624,7 @@ Class Bugtracker {
 		}
 	}
 
-	function getNumOpenBugs () {
+	static function getNumOpenBugs () {
 		global $db, $user;
 
 		if ($user->typ == USER_MEMBER) {
@@ -636,7 +636,7 @@ Class Bugtracker {
 		}
 	}
 
-	function getNumNewBugs () {
+	static function getNumNewBugs () {
 		global $db, $user;
 
 		if ($user->typ == USER_MEMBER) {

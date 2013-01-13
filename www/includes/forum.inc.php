@@ -31,7 +31,7 @@ class Comment {
 	* @param unknown $board
 	* @desc Kompiliert das Template
 	*/
-	function compile_template($thread_id, $comment_id, $board='') {
+	static function compile_template($thread_id, $comment_id, $board='') {
 		global $db, $smarty;
 
 		if (!$board) $board = 'f';
@@ -70,7 +70,7 @@ class Comment {
 	* @param $text String
 	* @desc macht Textformatierungen fürs Forum
  	*/
-	function formatPost($text) {
+	static function formatPost($text) {
 
 		global $user;
 
@@ -114,7 +114,7 @@ class Comment {
 	* @param $comment_id int
 	* @desc Anzahl Kinder-Objekte zu beliebigem Post ermitteln
 	*/
-	function getNumChildposts($board, $comment_id) {
+	static function getNumChildposts($board, $comment_id) {
 	  global $db, $user;
 	  static $_cache = array();
 
@@ -132,7 +132,7 @@ class Comment {
 
 
 
-	function getParentid($comment_id, $height) {
+	static function getParentid($comment_id, $height) {
 		$i = 0;
 
 		do {
@@ -148,7 +148,7 @@ class Comment {
 	* @param $id int
 	* @desc Fetches a Post and returns its Recordset
 	*/
-	function getRecordset($id) {
+	static function getRecordset($id) {
 	  global $db;
 
 	  if(!is_numeric($id)) {
@@ -172,7 +172,7 @@ class Comment {
 	* @param $viewkeyword
 	* @desc HTML der "Additional Posts" Teile
  	*/
-	function getHTMLadditional($rs, $himages) {
+	static function getHTMLadditional($rs, $himages) {
 
 		global $db, $user, $layouttype;
 
@@ -210,7 +210,7 @@ class Comment {
 	  return $html;
 	}
 
-	function getLinkComment ($comment_id) {
+	static function getLinkComment ($comment_id) {
 		global $db;
 
 		$e = $db->query("SELECT * FROM comments WHERE id='$comment_id'", __FILE__, __LINE__);
@@ -220,7 +220,7 @@ class Comment {
 	}
 
 
-	function getBoardlink($board) {
+	static function getBoardlink($board) {
 		global $db;
 		$sql = "SELECT * FROM comments_boards WHERE board = '".$board."'";
 		$result = $db->query($sql, __FILE__, __LINE__);
@@ -228,7 +228,7 @@ class Comment {
 		return $rs;
 	}
 
-	function getLink($board, $parent_id, $id, $thread_id) {
+	static function getLink($board, $parent_id, $id, $thread_id) {
 		global $db, $boardlinks;
 
 		if(!isset($boardlinks)) {
@@ -243,7 +243,7 @@ class Comment {
 		return $boardlinks[$board]['link'].$thread_id.'&parent_id='.$parent_id.'#'.$id;
 	}
 
-	function getLinkThread($board, $thread_id) {
+	static function getLinkThread($board, $thread_id) {
 		global $db, $boardlinks;
 
 		if(!isset($boardlinks)) {
@@ -272,7 +272,7 @@ class Comment {
 
 	}
 
-	function getChildPostsFormFields($id, $parent_id, $comment_id=0, $depth=0) {
+	static function getChildPostsFormFields($id, $parent_id, $comment_id=0, $depth=0) {
 		global $db;
 
 		if($depth < 7) {
@@ -309,7 +309,7 @@ class Comment {
 	* WICHTIG! UNBEDINGT SO LASSEN!
 	*
 	*/
-	function getThreadid($board, $id) {
+	static function getThreadid($board, $id) {
 		global $db;
 	  $sql = "SELECT thread_id FROM comments WHERE board = '".$board."' AND id = ".$id;
 	  $rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
@@ -322,7 +322,7 @@ class Comment {
 	* @param $lengthoffset int
 	* @desc Den Titel eines Kommentars holen.
 	*/
-	function getTitle($text, $length=20) {
+	static function getTitle($text, $length=20) {
 
 	  $text = strip_tags($text);
 
@@ -337,7 +337,7 @@ class Comment {
 	  return $out[1];
 	}
 
-	function markasread($comment_id, $user_id) {
+	static function markasread($comment_id, $user_id) {
 		global $db, $user;
 		if($user->typ != USER_NICHTEINGELOGGT) {
 		  $sql =
@@ -359,7 +359,7 @@ class Comment {
 	 * @param $id int
 	 * @return boolean
 	 */
-	function isThread($board, $id) {
+	static function isThread($board, $id) {
 		global $db;
 		$sql = "SELECT thread_id FROM comments_threads WHERE board = '".$board."' AND comment_id = ".$id;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
@@ -368,7 +368,7 @@ class Comment {
 	}
 	
 	// Mark as unread for all users.
-	function markasunread($comment_id) {
+	static function markasunread($comment_id) {
 		global $db;
 
 		$sql =
@@ -429,7 +429,7 @@ class Comment {
 		}
 	}
 
-	function highliteKeyword($keyword,$text) {
+	static function highliteKeyword($keyword,$text) {
 	  global $tborderc;
 	  //$keyword = htmlentities($keyword);
 	  $searcher = "/$keyword/i";
@@ -438,7 +438,7 @@ class Comment {
 	}
 
 
-	function post($parent_id, $board, $user_id, $text, $msg_users="") {
+	static function post($parent_id, $board, $user_id, $text, $msg_users="") {
 
 		//global $db, $activities_f;
 		global $db;
@@ -607,7 +607,7 @@ class Comment {
 
 class Forum {
 
-	function deleteOldTemplates () {
+	static function deleteOldTemplates () {
 		global $db, $smarty;
 
 		$e = $db->query(
@@ -632,7 +632,7 @@ class Forum {
 		return $anz;
 	}
 
-	function colorfade($depth, $color) {
+	static function colorfade($depth, $color) {
 		if (substr($color,0,1) == '#') $color = substr($color, 1);
 
 		// Einstellungen
@@ -684,7 +684,7 @@ class Forum {
 		return sprintf("%02X%02X%02X", $r, $g, $b);
 	}
 
-	function getForumBoards($check) {
+	static function getForumBoards($check) {
 		global $db;
 		$sql = "SELECT * FROM comments_boards";
 		$result = $db->query($sql, __FILE__, __LINE__);
@@ -705,7 +705,7 @@ class Forum {
 		return $html;
 	}
 
-	function getFormBoardsShown($show) {
+	static function getFormBoardsShown($show) {
 		global $db;
 
 		$html .=
@@ -728,7 +728,7 @@ class Forum {
 		return $html;
 	}
 
-	function getBoards($user_id) {
+	static function getBoards($user_id) {
 		global $db;
 		$sql = "SELECT forum_boards FROM user WHERE id = ".$user_id;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
@@ -744,7 +744,7 @@ class Forum {
 	 * @param $board int
 	 * @return string
 	 */
-	function getBoardTitle($board) {
+	static function getBoardTitle($board) {
 		global $db;
 		
 		$sql = "SELECT title FROM comments_boards WHERE board = '".$board."'";
@@ -762,7 +762,7 @@ class Forum {
 	 * @param $board
 	 * @return string
 	*/
-	function getBoardTitlePrefix($board){
+	static function getBoardTitlePrefix($board){
 		switch ($board) {
 			case 'f':
 				return('im');
@@ -803,7 +803,7 @@ class Forum {
 	* @param $comment_id
 	* @desc Form for editing posts
 	*/
-	function getFormEdit($comment_id) {
+	static function getFormEdit($comment_id) {
 	  global $db, $user;
 
 	  if(!is_numeric($comment_id)) echo '$comment_id is not numeric.'.__LINE__;
@@ -859,12 +859,12 @@ class Forum {
 	  return $html;
 	}
 
-	function getFormNewPart1of2() {
+	static function getFormNewPart1of2() {
 		return '<form action="/actions/comment_new.php" method="post" name="commentform">';
 	}
 
 	/*
-	function getFormNewPart2of2($board, $thread_id, $parent_id) {
+	static function getFormNewPart2of2($board, $thread_id, $parent_id) {
 	  return
 	  	"\n"
 	  	.'<br />'
@@ -909,7 +909,7 @@ class Forum {
 	* @return String
 	* @desc gibt das HTML des Readallforms zurück
  	*/
-	function getFormReadall() {
+	static function getFormReadall() {
 		return
 			'<table>'
 			.'<form action="/actions/comments_readall.php" method="post">'
@@ -926,7 +926,7 @@ class Forum {
 	* @return String
 	* @desc gibt das HTML des Searchformszurück
  	*/
-	function getFormSearch() {
+	static function getFormSearch() {
 		return
 			'<table>'
 			.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
@@ -943,7 +943,7 @@ class Forum {
 		;
 	}
 
-	function getNumunreadposts($user_id) {
+	static function getNumunreadposts($user_id) {
 
 		global $db, $user;
 
@@ -954,7 +954,7 @@ class Forum {
 		}
 	}
 
-	function getUnreadLink() {
+	static function getUnreadLink() {
 		global $db, $user;
 
 		$sql =
@@ -983,7 +983,7 @@ class Forum {
 	* @param $thread_id int
 	* @desc Holt den letzten Kommentar eines Threads
 	*/
-	function getLastComment() {
+	static function getLastComment() {
 	  global $db;
 		$sql =
 	  	"SELECT user.clan_tag, user.username, comments.*, UNIX_TIMESTAMP(date) as date"
@@ -996,7 +996,7 @@ class Forum {
 	  return $rs;
 	}
 
-	function getNavigation($page=1, $pagesize, $numpages) {
+	static function getNavigation($page=1, $pagesize, $numpages) {
 		$html .=
 			'<table bgcolor="#'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border"  style="font-size: x-small">'
 			.'<tr><td>Page '.$page.' von '.$numpages.'</td>'
@@ -1032,14 +1032,14 @@ class Forum {
 		return $html;
 	}
 
-	function getQueryString($qstr='') {
+	static function getQueryString($qstr='') {
 		$qstr .= (!strstr($qstr, 'page') && $_GET[page] != '' ? '&page='.$_GET[page] : '');
 		$qstr .= (!strstr($qstr, 'order') && $_GET[order] != '' ? '&order='.$_GET[order] : '');
 		$qstr .= (!strstr($qstr, 'direction') && $_GET[direction] != '' ? '&direction='.$_GET[direction] : '');
 		return $qstr;
 	}
 
-	function printSearchedComments($keyword) {
+	static function printSearchedComments($keyword) {
 	  global $db, $smarty;
 	  // Volltext suche geht nicht mit InnoDB
 	  //$sql =
@@ -1072,7 +1072,7 @@ class Forum {
 	* @return String
 	* @desc Gibt eine Tabelle mit Links zu den letzten Comments
 	*/
-	function getLatestComments($num=10, $title = '', $board = '') {
+	static function getLatestComments($num=10, $title = '', $board = '') {
 
 		global $db, $user;
 
@@ -1149,7 +1149,7 @@ class Forum {
 	* @return String
 	* @desc Gibt eine Tabelle mit Links zu den letzten  eines Users
 	*/
-	function getLatestCommentsbyUser($user_id) {
+	static function getLatestCommentsbyUser($user_id) {
 
 		global $db, $user;
 
@@ -1209,7 +1209,7 @@ class Forum {
 	}
 
 
-	function getLatestThreads($num=8) {
+	static function getLatestThreads($num=8) {
 		global $db, $user;
 		$sql =
 			"SELECT"
@@ -1257,7 +1257,7 @@ class Forum {
 	* @return String
 	* @desc Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zurück
 	*/
-	function getLatestUnreadComments($title="", $board="") {
+	static function getLatestUnreadComments($title="", $board="") {
 		global $db, $user;
 
 		if (!$title) $title = "ungelesene Kommentare";
@@ -1320,7 +1320,7 @@ class Forum {
 	* @date 2004-02-08
 	*/
 
-	function get3YearOldThreads() {
+	static function get3YearOldThreads() {
 		global $db, $user;
 		$sql =
 			"SELECT"
@@ -1367,7 +1367,7 @@ class Forum {
 	/**
 	* gibt den entspr. link zum sortieren des Forums zurück
 	*/
-	function getSortlink($order) {
+	static function getSortlink($order) {
 		if($_GET['order'] == $order) {
 			$direction = ($_GET['direction'] == 'asc') ? 'desc' : 'asc';
 			return '
@@ -1383,7 +1383,7 @@ class Forum {
 	* @return String
 	* @desc Gibt das HTML des Forums zurück
  	*/
-	function getHTML($showboards, $pagesize, $sortby='') {
+	static function getHTML($showboards, $pagesize, $sortby='') {
 
 	  global $db, $user;
 
@@ -1632,7 +1632,7 @@ class Forum {
 		return $html;
 	}
 
-	function hasPostedRecently($user_id, $parent_id) {
+	static function hasPostedRecently($user_id, $parent_id) {
 		global $db;
 		$sql =
 			"select UNIX_TIMESTAMP(date) as date, parent_id from comments where user_id = ".$user_id
@@ -1648,7 +1648,7 @@ class Forum {
 	* @param $parent_id
 	* @desc Printet das "Pluggable" Commenting-System
 	*/
-	function printCommentingSystem($board, $thread_id) {
+	static function printCommentingSystem($board, $thread_id) {
 		global $db, $user, $smarty;
 
 	    if($_GET['parent_id'] == '') {
@@ -1716,7 +1716,7 @@ class Forum {
 	 * @param $thread_id default null (=kein thread gewählt)
 	 * @desc Gibt einen XML RSS-Feed zurück
 	 */
-	 function printRSS($board='f', $user_id=null, $thread_id=null) {
+	 static function printRSS($board='f', $user_id=null, $thread_id=null) {
 	 	global $db, $user;
 	 	
 	 	// where-board Bedingung für SQL-Query bilden
@@ -1905,20 +1905,20 @@ class Forum {
 				
 			} // end if $result
 		
-	} // end function printRSS()
+	} // end static function printRSS()
 
 } // end class Forum()
 
 
 class Thread {
-	function setLastSeen ($board, $thread_id) {
+	static function setLastSeen ($board, $thread_id) {
 		global $db;
 
 		$db->query("UPDATE comments_threads SET last_seen=now() WHERE board='$board' AND thread_id='$thread_id'", __FILE__, __LINE__);
 
 	}
 
-	function setRights ($board, $thread_id, $rights) {
+	static function setRights ($board, $thread_id, $rights) {
 		global $db;
 
 		$e = $db->query("SELECT * FROM comments_threads WHERE board='$board' AND thread_id='$thread_id'", __FILE__, __LINE__);
@@ -1940,7 +1940,7 @@ class Thread {
 		}
 	}
 
-	function hasRights ($board, $thread_id, $user_id) {
+	static function hasRights ($board, $thread_id, $user_id) {
 		global $db;
 
 		$sql =
@@ -1974,7 +1974,7 @@ class Thread {
 	}
 
 
-	function adjustThreadRecord($board, $thread_id) {
+	static function adjustThreadRecord($board, $thread_id) {
 		global $db;
 
 		if(Thread::hasRecords($board, $thread_id)) {
@@ -2003,7 +2003,7 @@ class Thread {
   	}
 	}
 
-	function hasRecords($board, $thread_id) {
+	static function hasRecords($board, $thread_id) {
 		global $db;
 		$sql =
 	  	"SELECT * from comments"
@@ -2024,7 +2024,7 @@ class Thread {
 	* @param $thread_id
 	* @desc Holt den letzten Kommentar eines Threads
 	*/
-	function getLastComment($board, $thread_id) {
+	static function getLastComment($board, $thread_id) {
 	  global $db;
 		$sql =
 			"SELECT user.*, comments.*, UNIX_TIMESTAMP(date) as date"
@@ -2042,7 +2042,7 @@ class Thread {
 	* @param $thread_id int
 	* @desc Holt den letzten ungelesenen Kommentar
  	*/
-	function getLastUnreadComment($board, $thread_id, $user_id) {
+	static function getLastUnreadComment($board, $thread_id, $user_id) {
 		global $db;
 		$sql =
 			"
@@ -2068,7 +2068,7 @@ class Thread {
 	* @param $thread_id int
 	* @desc returns the Thread-Title and its navigation-bar
 	*/
-	function getNavigation($board, $id, $thread_id) {
+	static function getNavigation($board, $id, $thread_id) {
 
 		$html =
 			'<table class="border forum" style="font-size: x-small;table-layout:fixed;" width="100%">'
@@ -2107,7 +2107,7 @@ class Thread {
 		}
 	}
 
-	function getNumPosts($board, $thread_id) {
+	static function getNumPosts($board, $thread_id) {
 		global $db;
 		$sql = "select * from comments where thread_id = ".$thread_id." AND board='".$board."'";
 		return $db->num($db->query($sql, __FILE__, __LINE__));
@@ -2117,7 +2117,7 @@ class Thread {
 	/*
 	 * tut nicht mehr
 	 *
-	function getNumRead($board, $thread_id) {
+	static function getNumRead($board, $thread_id) {
 		global $db;
 		$sql =
 			"select * from comments_unread where thread_id = ".$thread_id." AND board='".$board."'"
@@ -2127,7 +2127,7 @@ class Thread {
 	}
 	*/
 
-	function getNumUnread ($board, $thread_id, $user_id=0) {
+	static function getNumUnread ($board, $thread_id, $user_id=0) {
 		global $db, $user;
 
 		if (!$user_id) $user_id = $user->id;
@@ -2147,7 +2147,7 @@ class Thread {
 	* @param $id int
 	* @desc Fetches a Thread and returns its Recordset
 	*/
-	function getRecordset($board, $thread_id) {
+	static function getRecordset($board, $thread_id) {
 	  global $db;
 	  $sql =
 	  	"SELECT *, UNIX_TIMESTAMP(date) as date"
@@ -2162,7 +2162,7 @@ class Thread {
 	* @param $depth Array
 	* @desc Post-Recursion Function.
 	*/
-	function printChildPosts($board, $parent_id, $depth=array("space")) {
+	static function printChildPosts($board, $parent_id, $depth=array("space")) {
 
 	  global $db, $user;
 

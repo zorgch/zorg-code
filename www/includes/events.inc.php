@@ -79,6 +79,8 @@ class Events {
 	static function getNext() {
 		global $db, $user;
 		
+		$events = [];
+		
 		$sql = 
 			"
 			SELECT 

@@ -2,7 +2,7 @@
 
 Class Quotes {
 
-	function execActions() {
+	static function execActions() {
 
 		global $db, $user;
 
@@ -21,7 +21,7 @@ Class Quotes {
 		}
 	}
 
-	function formatQuote($rs) {
+	static function formatQuote($rs) {
 
 		global $user;
 
@@ -86,7 +86,7 @@ Class Quotes {
 		return $html;
 	}
 
-	function getScore($quote_id) {
+	static function getScore($quote_id) {
 		global $db;
 
 		$sql =
@@ -102,7 +102,7 @@ Class Quotes {
 
 
 
-	function getDailyQuote() {
+	static function getDailyQuote() {
 		global $db;
 
 		//$sql = "SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd"." FROM periodic p, quotes"." WHERE p.name='daily_quote' AND p.id=quotes.id";
@@ -117,7 +117,7 @@ Class Quotes {
 		return Quotes::formatQuote($rs);
 	}
 
-	function getNumVotes($quote_id) {
+	static function getNumVotes($quote_id) {
 		global $db;
 
 		$sql =
@@ -130,7 +130,7 @@ Class Quotes {
 		return $db->num($result, __FILE__, __LINE__);
 	}
 
-	function getScorebyUser($quote_id, $user_id) {
+	static function getScorebyUser($quote_id, $user_id) {
 		global $db;
 
 		$sql =
@@ -144,7 +144,7 @@ Class Quotes {
 		return $rs['score'];
 	}
 
-	function hasVoted($user_id, $quote_id) {
+	static function hasVoted($user_id, $quote_id) {
 		global $db;
 
 		$sql =
@@ -157,7 +157,7 @@ Class Quotes {
 		return $db->num($result, __FILE__, __LINE__);
 	}
 
-	function isDailyQuote($id) {
+	static function isDailyQuote($id) {
 		global $db;
 
 		$sql =	"SELECT * FROM periodic
@@ -168,7 +168,7 @@ Class Quotes {
 		return $rs['id'] == $id;
 	}
 
-	function newDailyQuote() {
+	static function newDailyQuote() {
 		global $db;
 
 			// anzahl quotes ermitteln

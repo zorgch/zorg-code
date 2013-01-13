@@ -55,7 +55,7 @@ class Activities
 	 *
 	 * @todo	Activity-Area wurde entfernt... ev. doch nötig?
 	 */
-	public function getActivities ($owner=0, $start=0, $limit=23, $date='')
+	static public function getActivities ($owner=0, $start=0, $limit=23, $date='')
 	{
 		global $db;
 		
@@ -105,7 +105,7 @@ class Activities
 	 * @see		checkAllowActivities()
 	 * @todo	Würde es Sinn machen, noch die Activity-Area zu speichern?
 	 */
-	public function addActivity ($fromUser, $forUser, $activity)
+	static public function addActivity ($fromUser, $forUser, $activity)
 	{
 		global $db;
 		//$activities = $_ENV['$activities_HZ']; // Globale Activity-Arrays mergen
@@ -136,7 +136,7 @@ class Activities
 	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
 	 * @return	boolean				Gibt TRUE oder FALSE zurück
 	 */
-	public function removeActivity ($activityID)
+	static public function removeActivity ($activityID)
 	{
 		global $db, $user;
 		
@@ -169,7 +169,7 @@ class Activities
 	 * @todo Modifier addslahes() für $rating könnte zu Problemen führen wegen der 20 Zeichen Begrenzung!
 	 * @todo Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
 	 */
-	public function rateActivity ($activityID, $rating)
+	static public function rateActivity ($activityID, $rating)
 	{
 		global $db, $user;
 		
@@ -209,7 +209,7 @@ class Activities
 	 *
 	 * @todo Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
 	 */
-	public function unrateActivity ($activityID)
+	static public function unrateActivity ($activityID)
 	{
 		global $db, $user;
 		
@@ -239,7 +239,7 @@ class Activities
 	 * @param	integer	$userID		Benutzer ID welcher eine Bewertung abgeben möchte
 	 * @global	array	$db			Array mit allen MySQL-Datenbankvariablen
 	 */
-	public function hasRated ($activityID, $userID)
+	static public function hasRated ($activityID, $userID)
 	{
 		global $db;
 
@@ -268,7 +268,7 @@ class Activities
 	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
 	 * @return	integer				User ID des Activity Owners
 	 */
-	public function getActivityOwner ($activityID)
+	static public function getActivityOwner ($activityID)
 	{
 		global $db;
 		
@@ -296,7 +296,7 @@ class Activities
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
 	 * @return	integer			Anzahl gefundener Activities aufgrund der Kriterien
 	 */
-	public function countActivities ($userID=0)
+	static public function countActivities ($userID=0)
 	{
 		global $db;
 		
@@ -326,7 +326,7 @@ class Activities
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
 	 * @return	boolean			Gibt TRUE oder FALSE zurück, je nach Setting des Users
 	 */
-	public function checkAllowActivities ($userID)
+	static public function checkAllowActivities ($userID)
 	{
 		global $db;
 		
@@ -356,7 +356,7 @@ class Activities
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
 	 * @return	string			Gibt das XML des zusammengebauten RSS-Feeds aus
 	 */
-	public function getActivitiesRSS ($num)
+	static public function getActivitiesRSS ($num)
 	{
 		global $db, $user;
 		
@@ -418,6 +418,6 @@ class Activities
 
 }
 
-$activities = new Activities();
+//$activities = new Activities();
 
 ?>

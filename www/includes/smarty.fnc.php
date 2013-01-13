@@ -311,7 +311,7 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
   function smarty_zorg ($params, $content, &$smarty, &$repeat) {
 	$out = "";
 	
-	$out .= head($params['menu'], $params['page_title'], true);
+	$out .= head($params['page_title'], true);
    	
    	$out .= $content;
    	
@@ -329,26 +329,26 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
    	global $smarty;
    	$vars = $smarty->get_template_vars();
 
-   	if ($params['url']) {
+   	if (isset($params['url'])) {
    		$ret = $params['url'];
-   	}elseif ($params['word']) {
+   	}elseif (isset($params['word'])) {
    		$ret = "/smarty.php?word=".$params['word'];
-   	}elseif ($params['tpl']) {
+   	}elseif (isset($params['tpl'])) {
       	$ret = "/smarty.php?tpl=".$params['tpl'];
-   	}elseif ($params['comment']) {
+   	}elseif (isset($params['comment'])) {
    		$ret = Comment::getLinkComment($params['comment']);
-   	}elseif ($params['user']) {
+   	}elseif (isset($params['user'])) {
    		if (is_numeric($params['user'])) $ret = "/profil.php?user_id=$params[user]";
    		else $ret = '/profil.php?user_id='.usersystem::user2id($params['user']);
-   	}elseif ($params['action']) {
+   	}elseif (isset($params['action'])) {
    		$ret .= "/actions/$params[action]?".url_params();
    	}else{
    		$ret = "/smarty.php?tpl=".$vars[tpl][root];
    	}
 
-      if ($params['param']) $ret .= "&".$params[param];
+      if (isset($params['param'])) $ret .= "&".$params[param];
 
-      if ($params['hash']) $ret .= '#'.$params['hash'];
+      if (isset($params['hash'])) $ret .= '#'.$params['hash'];
       return $ret;
    }
 
@@ -615,10 +615,10 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
 	{
 	   return array("page" => $_SERVER['PHP_SELF'],
                    "params" => $_SERVER['QUERY_STRING'],
-                   "url" => "$_SERVER[PHP_SELF]?$_SERVER[QUERY_STRING]",
+                   "url" => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'],
                    "tpl" => $_GET['tpl'],
-                   "_tpl" => "tpl:$_GET[tpl]",
-                   "_word" => "word:$_GET[word]");
+                   "_tpl" => 'tpl:'.$_GET['tpl'],
+                   "_word" => 'word:'.$_GET['word']);
 	}
 
 
@@ -978,7 +978,7 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
 		global $user;
 
 		if (!$repeat) {  // closing tag
-			if (!$params['group']) $params['group'] = "all";
+			if (!isset($params['group'])) $params['group'] = "all";
 			if(
 				$params['group'] == "all"
 				|| $params['group'] == "guest" && !$user->id
