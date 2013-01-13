@@ -551,7 +551,7 @@ if ($id) {
 
 	<table class="border"><tr><td>
 	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=mkUploadDir"'?> method="post">
-	Upload-Ordner erstellen (in /data/gallery/upload/incomming/):<br /><br />
+	Upload-Ordner erstellen (in /data/gallery/upload/):<br /><br />
 	<input type="text" class="text" name="frm[folder]" <?='value="'.$frm[folder].'"'?>> &nbsp; &nbsp;
 	<input type="submit" class="button" value="   erstellen   ">
 	</form>

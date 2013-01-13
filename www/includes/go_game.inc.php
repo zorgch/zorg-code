@@ -13,35 +13,37 @@
  * @subpackage GO
  */
  
- /**
- * File Includes
- */
+/** Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele */
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 
-        include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
+/** Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln) */
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
-	/**
-	 * Defines
-	 */
-        define("OFFSET_PIC", 250); // anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.
-        define("LINKRADIUS", 15); //etwas kleiner, damit es einen zwischenraum gibt
-        define("FIELDSIZE", 40);
-        define("LINEWIDTH", 2);    
-        define("STARDOTWIDTH", 10);
-        define("STONEBIGWIDTH", 190);
-        define("LASTSTONEWIDTH", 10);
-        define("GOIMGPATH", $_SERVER['DOCUMENT_ROOT'].'/images/go/');
-        define("LINE", imagecreatefrompng(GOIMGPATH."go_line.png"));
-        define("STARDOT", imagecreatefrompng(GOIMGPATH."go_stardot.png"));
-        define("BLACKSTONE", imagecreatefrompng(GOIMGPATH."go_black.png"));
-        define("WHITESTONE", imagecreatefrompng(GOIMGPATH."go_white.png"));
-        define("BLACKSTONESEMI", imagecreatefrompng(GOIMGPATH."go_black_semi.png"));
-        define("WHITESTONESEMI", imagecreatefrompng(GOIMGPATH."go_white_semi.png"));
-        define("BLACKSTONEBIG", imagecreatefrompng(GOIMGPATH."go_pl2.png"));
-        define("WHITESTONEBIG", imagecreatefrompng(GOIMGPATH."go_pl1.png"));
-        define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
+/** Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen. */
+define("OFFSET_PIC", 250);
+
+/** Etwas kleiner, damit es einen Zwischenraum gibt */
+define("LINKRADIUS", 15);
+
+/** Weitere globale Variablen fürs GO */
+define("FIELDSIZE", 40);
+define("LINEWIDTH", 2);    
+define("STARDOTWIDTH", 10);
+define("STONEBIGWIDTH", 190);
+define("LASTSTONEWIDTH", 10);
+define("GOIMGPATH", $_SERVER['DOCUMENT_ROOT'].'/images/go/');
+define("LINE", imagecreatefrompng(GOIMGPATH."go_line.png"));
+define("STARDOT", imagecreatefrompng(GOIMGPATH."go_stardot.png"));
+define("BLACKSTONE", imagecreatefrompng(GOIMGPATH."go_black.png"));
+define("WHITESTONE", imagecreatefrompng(GOIMGPATH."go_white.png"));
+define("BLACKSTONESEMI", imagecreatefrompng(GOIMGPATH."go_black_semi.png"));
+define("WHITESTONESEMI", imagecreatefrompng(GOIMGPATH."go_white_semi.png"));
+define("BLACKSTONEBIG", imagecreatefrompng(GOIMGPATH."go_pl2.png"));
+define("WHITESTONEBIG", imagecreatefrompng(GOIMGPATH."go_pl1.png"));
+define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 
 
-        function go_running_games () {
+	function go_running_games () {
 	    global $db, $user;
 	    
 	    $e = $db->query(
@@ -52,9 +54,9 @@
 			    );
 	    $d = $db->fetch($e);
 	    return $d['anz'];
-       }
-
-        function go_open_games () {
+	   }
+	
+	    function go_open_games () {
 	    global $db, $user;
 	    $e = $db->query(
 			    "SELECT count(*) anz
@@ -65,9 +67,9 @@
 	    $d = $db->fetch($e);
 	    return $d['anz'];
 	}
-
-
-
+	
+	
+	
 
 	/**
 	 * GO Spiel schliessen
