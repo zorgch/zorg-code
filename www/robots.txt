@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /actions/
+Disallow: /cron/
+Disallow: /gluv/
+Disallow: /images/
+Disallow: /img/
+Disallow: /includes/
+Disallow: /packages/
+Disallow: /scripts/
+Disallow: /smartylib/
+Disallow: /templates/
+Disallow: /gluv/
+Disallow: /util/
+Disallow: /kurse.xml
+Disallow: /karten.htm
