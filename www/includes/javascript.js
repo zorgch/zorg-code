@@ -39,7 +39,7 @@ function unreads_2_title(unreads_indicator)
 }
 
 
-function confirm(question)
+function confirmPopup(question)
 {
 	var reply = confirm(question);
 	return reply;

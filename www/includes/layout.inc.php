@@ -96,12 +96,29 @@ function head($menu, $title="", $return = 0) {
 	$out .=	'
 		<!-- Redirect to Mobile WebApp -->
 		<script type="text/javascript">
-		if (screen.width<640)
-		{
-			var check = confirm(\'Wechseln zu Mobile@Zorg?\');
-			if (check)
-				window.location="mobilezorg/"
-		}
+		var isMobile = {
+		    Android: function() {
+		        return navigator.userAgent.match(/Android/i);
+		    },
+		    BlackBerry: function() {
+		        return navigator.userAgent.match(/BlackBerry/i);
+		    },
+		    iOS: function() {
+		        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+		    },
+		    Opera: function() {
+		        return navigator.userAgent.match(/Opera Mini/i);
+		    },
+		    Windows: function() {
+		        return navigator.userAgent.match(/IEMobile/i);
+		    },
+		    any: function() {
+		        return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
+		    }
+		};
+		
+		if (isMobile.iOS() || isMobile.Android())
+			if (confirmPopup("Wechseln zu Mobile Zorg?")) window.location="mobilezorg/";
 		</script>';
 	}
 	
