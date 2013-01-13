@@ -1,9 +1,10 @@
 <?php
 
 class dbconn {
-	var $host = "localhost";
-	var $dbuser = "root";
-	var $dbpass = "root";
+	
+	/** Include MySQL Database login information file */
+	include_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql_login.inc.php");
+	
 	var $dbname;
 	var $conn;
 	
