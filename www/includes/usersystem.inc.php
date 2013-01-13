@@ -18,18 +18,18 @@ include_once($_SERVER['DOCUMENT_ROOT'].'includes/mysql.inc.php');
 /**
  * Defines
  */
-define(USER_ALLE, 0);
-define(USER_USER, 1);
-define(USER_MEMBER, 2);
-define(USER_SPECIAL, 3);
-//define(USER_EINGELOGGT, 0);define(USER_MEMBER, 1);
-//define(USER_NICHTEINGELOGGT, 2);
-//define(USER_ALLE, 3);
-define(USER_IMGPATH, "/images/userimages/");
-define(USER_TIMEOUT, 200);
-define(USER_OLD_AFTER, 60*60*24*30*3); // 3 Monate
-define(DEFAULT_MAXDEPTH, 10);
-define(AUSGESPERRT_BIS, "ausgesperrt_bis");
+define("USER_ALLE", 0);
+define("USER_USER", 1);
+define("USER_MEMBER", 2);
+define("USER_SPECIAL", 3);
+//define("USER_EINGELOGGT", 0);define("USER_MEMBER", 1);
+//define("USER_NICHTEINGELOGGT", 2);
+//define("USER_ALLE", 3);
+define("USER_IMGPATH", "/images/userimages/");
+define("USER_TIMEOUT", 200);
+define("USER_OLD_AFTER", 60*60*24*30*3); // 3 Monate
+define("DEFAULT_MAXDEPTH", 10);
+define("AUSGESPERRT_BIS", "ausgesperrt_bis");
 
 
 /**
@@ -149,7 +149,7 @@ class usersystem {
 		
 		
 		// Session init'en
-		if($_GET['z'] != '' || $_POST['z'] != '' || $_COOKIE['z'] != '') {
+		if((isset($_GET['z']) && $_GET['z'] != '') || (isset($_POST['z']) && $_POST['z'] != '') || (isset($_COOKIE['z']) && $_COOKIE['z'] != '')) {
 			session_start();
 			$sql = "SELECT *, UNIX_TIMESTAMP(".$this->field_activity.") as ".$this->field_activity.",
 			UNIX_TIMESTAMP(".$this->field_lastlogin.") as ".$this->field_lastlogin.",
@@ -720,7 +720,7 @@ class usersystem {
       		   $_users[$id] = $rs;
       		}
    		}
-   		$us = $_users[$id][username];
+   		$us = $_users[$id]['username'];
    		if($clantag == TRUE) {
    			$us = $_users[$id]['clan_tag'].$us;
    		}

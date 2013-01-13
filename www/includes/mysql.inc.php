@@ -2,8 +2,8 @@
 
 class dbconn {
 	var $host = "localhost";
-	var $user = "root";
-	var $pass = "root";
+	var $dbuser = "root";
+	var $dbpass = "root";
 	var $dbname;
 	var $conn;
 	
@@ -20,8 +20,8 @@ class dbconn {
  	*/
 	function dbconn($dbname="zooomclan") {
 		$this->dbname = $dbname;
-		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->user,$this->pass);
-		$this->conn = @mysql_connect($this->host,$this->user,$this->pass);
+		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
+		$this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
 		if(!$this->conn)
 			die("<b>mySQL: Can't connect to server</b><br /><b></b>");
 		if(!@mysql_select_db($this->dbname,$this->conn))
@@ -40,7 +40,7 @@ class dbconn {
 	   
 	   $this->noquerys++;
 	   
-	   if ($user->sql_tracker) {
+	   if ($user && $user->sql_tracker) {
          $this->noquerytracks++;
 	      $qfile = $file;
    	   $qline = $line;

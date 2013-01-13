@@ -5,7 +5,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 
 Class Rezepte {
 
-	function getRezept($rezept_id) {
+	static function getRezept($rezept_id) {
 		global $db;
 
 		$sql =
@@ -28,7 +28,7 @@ Class Rezepte {
 		return $db->fetch($result);
 	}
 
-	function getRezeptNewest() {
+	static function getRezeptNewest() {
 		global $db;
 
 		$sql =
@@ -48,7 +48,7 @@ Class Rezepte {
 		return $db->fetch($result);
 	}
 
-	function getRezepte($category) {
+	static function getRezepte($category) {
 		global $db;
 
 		$rezepte = array();
@@ -75,7 +75,7 @@ Class Rezepte {
 		return $rezepte;
 	}
 
-	function getNumNewRezepte() {
+	static function getNumNewRezepte() {
 		global $db, $user;
 
 		if($user->lastlogin > 0) {
@@ -96,7 +96,7 @@ Class Rezepte {
 		}
 	}
 
-	function getCategories() {
+	static function getCategories() {
 		global $db;
 
 		$categories = array();
@@ -120,7 +120,7 @@ Class Rezepte {
 		return $categories;
 	}
 
-	function getScore($rezept_id) {
+	static function getScore($rezept_id) {
 		global $db;
 
 		$sql =
@@ -134,7 +134,7 @@ Class Rezepte {
 		return round($rs['score'], 1);
 	}
 
-	function getNumVotes($rezept_id) {
+	static function getNumVotes($rezept_id) {
 		global $db;
 
 		$sql =
@@ -147,7 +147,7 @@ Class Rezepte {
 		return $db->num($result, __FILE__, __LINE__);
 	}
 
-	function hasVoted($user_id, $rezept_id) {
+	static function hasVoted($user_id, $rezept_id) {
 		global $db;
 
 		$sql =

@@ -5,7 +5,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 
 class Events {
 	
-	function getEvent($event_id) {
+	static function getEvent($event_id) {
 		global $db;
 		
 		$sql =	
@@ -27,7 +27,7 @@ class Events {
 		return $db->fetch($result);
 	}
 	
-	function getEventNewest() {
+	static function getEventNewest() {
 		global $db;
 		
 		$sql =	
@@ -49,7 +49,7 @@ class Events {
 		return $db->fetch($result);
 	}
 	
-	function getEvents($year) {
+	static function getEvents($year) {
 		global $db;
 		
 		$events = array();
@@ -76,7 +76,7 @@ class Events {
 		return $events;
 	}
 	
-	function getNext() {
+	static function getNext() {
 		global $db, $user;
 		
 		$sql = 
@@ -104,7 +104,7 @@ class Events {
 		return $events;
 	}
 	
-	function getNumNewEvents() {
+	static function getNumNewEvents() {
 		global $db, $user;
 		
 		if($user->lastlogin > 0) {
@@ -125,7 +125,7 @@ class Events {
 		}
 	}
 	
-	function getVisitors($event_id) {
+	static function getVisitors($event_id) {
 		global $db;
 		$visitors = array();
 		
@@ -145,7 +145,7 @@ class Events {
 		return $visitors;
 	}
 	
-	function getYears() {
+	static function getYears() {
 		global $db;
 		
 		$years = array();
@@ -170,7 +170,7 @@ class Events {
 		return $years;
 	}
 	
-	function hasJoined($user_id, $event_id) {
+	static function hasJoined($user_id, $event_id) {
 		global $db;
 		
 		$sql = 
@@ -195,7 +195,7 @@ class Events {
 	 * @param $event_id int
 	 * @return String mit Eventname
 	 */
-	function getEventName($event_id) {
+	static function getEventName($event_id) {
 		global $db;
 		
 		$sql =	"SELECT id, name FROM events WHERE id = ".$event_id; 
@@ -214,7 +214,7 @@ class Events {
 	 * @param $length int
 	 * @return String mit Event Kurzbeschreibung
 	 */
-	function getEventExcerpt($text, $length=50) {
+	static function getEventExcerpt($text, $length=50) {
 		
 		$text = strip_tags($text);
 		

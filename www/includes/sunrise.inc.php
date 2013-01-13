@@ -257,7 +257,7 @@ class Astro_Sunrise {
     $Q /= sqrt(-$Q * $Q + 1);
     $Q = atan2($Q, 1);
 
-    $S = $R - sin($Q) * sin($E);
+    $S = $this->R - sin($Q) * sin($E);
     $S /= cos($Q) * cos($E);
 
     if (abs($S) > 1)
@@ -349,14 +349,14 @@ if($cur_time > strtotime($suncalc->getSunset()) || $cur_time < strtotime($suncal
 	$sun = "down";
 	$layouttype = "night";
 }
-if($_GET['tschau']) {
+if(isset($_GET['tschau'])) {
 	$_SESSION['tschau'] = $_GET['tschau'];
 	header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
 }
-if($_SESSION['tschau'] == "day") {
+if(isset($_SESSION) && $_SESSION['tschau'] == "day") {
 	$sun = "up";
 }
-if($_SESSION['tschau'] == "night") {
+if(isset($_SESSION) && $_SESSION['tschau'] == "night") {
 	$sun = "down";
 }
 
