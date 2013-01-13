@@ -1964,12 +1964,12 @@ class Smarty
 		// $params[smarty_include_tpl_file]:  the file-parameter without ' or "
 		// $params[smarty_include_vars]:      associative array with var=>value
 		static $_recur_pages = array();
-		if ($params[smarty_include_tpl_file] != $this->recur_handler && !in_array($params[smarty_include_tpl_file], $this->recur_allowed_tpls)) {
-        	if (in_array($params[smarty_include_tpl_file], $_recur_pages)) {
-        		$params[smarty_include_vars][recur_denied_tpl] = $params[smarty_include_tpl_file];
-        		$params[smarty_include_tpl_file] = $this->recur_handler;
+		if ($params['smarty_include_tpl_file'] != $this->recur_handler && !in_array($params['smarty_include_tpl_file'], $this->recur_allowed_tpls)) {
+        	if (in_array($params['smarty_include_tpl_file'], $_recur_pages)) {
+        		$params[smarty_include_vars][recur_denied_tpl] = $params['smarty_include_tpl_file'];
+        		$params['smarty_include_tpl_file'] = $this->recur_handler;
         	}else{
-        		array_push($_recur_pages, $params[smarty_include_tpl_file]);
+        		array_push($_recur_pages, $params['smarty_include_tpl_file']);
         	}
 		}
 		// OWN END

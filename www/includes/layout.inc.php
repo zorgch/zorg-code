@@ -50,7 +50,7 @@ define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
 
 
 ### HEADER ###
-function head($menu, $title="", $return = 0) {
+function head($title="", $return = 0) {
 	global $starttime, $user, $smarty, $sun, $country, $db, $layouttype;
 
 	//rosenverkäufer

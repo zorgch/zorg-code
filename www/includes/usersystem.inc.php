@@ -767,6 +767,8 @@ class usersystem {
 		global $db;
 		static $_users = array();
 		
+		$us = '';
+		
 		if ($displayName) {
 	   		if (!isset($_users[$id])) {
 	      		$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
@@ -915,16 +917,16 @@ class usersystem {
 }
 
 $user = new usersystem();
-if($_POST['username'] != '') {
+if(isset($_POST['username']) && $_POST['username'] != '') {
 	$_POST['cookie'] ? $auto = TRUE : $auto = FALSE;
 	$login_error = $user->login($_POST['username'], $_POST['password'], $auto);
 }
 // LOGIN mit cookie (autologin)
-if($_COOKIE['autologin_id'] != '' && !$_SESSION['user_id']) {
+if(isset($_COOKIE['autologin_id']) && $_COOKIE['autologin_id'] != '' && !$_SESSION['user_id']) {
 	$login_error = $user->login($_COOKIE['autologin_id'],"",1);
 }
 // LOGOUT?
-if($_POST['logout']) {
+if(isset($_POST['logout'])) {
 	$user->logout();
 }
 ?>

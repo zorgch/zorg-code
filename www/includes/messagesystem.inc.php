@@ -402,7 +402,7 @@ class Messagesystem {
 	 * @global $user Globales Array mit den User-Variablen
 	 * @return integer
 	 */
-	function getNumNewMessages()
+	static function getNumNewMessages()
 	{
 		global $db, $user;
 
