@@ -1,13 +1,16 @@
 <?php
+/** Include MySQL Database login information file */
+include_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql_login.inc.php");
 
+/**
+ * MySQL Database Connection Class
+ *
+ * @package Zorg
+ * @subpackage MySQL
+ */
 class dbconn {
 	
-	/** Include MySQL Database login information file */
-	include_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql_login.inc.php");
-	
-	var $dbname;
 	var $conn;
-	
 	var $noquerys = 0;
 	var $noquerytracks = 0;
 	var $nolog = 0;
@@ -15,26 +18,27 @@ class dbconn {
 	var $query_track = array();
 	
 	/**
-	* @return dbconn class
-	* @param $dbname string
-	* @desc Klassenkonstruktor
+	* Verbindungsaufbau
+	*
+	* @param MYSQL_DBNAME string
  	*/
-	function dbconn($dbname="zooomclan") {
-		$this->dbname = $dbname;
+	function dbconn($database) {
+		//$this->dbname = $dbname;
 		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
-		$this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
+		$this->conn = @mysql_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS);
 		if(!$this->conn)
 			die("<b>mySQL: Can't connect to server</b><br /><b></b>");
-		if(!@mysql_select_db($this->dbname,$this->conn))
+		if(!@mysql_select_db($database, $this->conn))
 			die($this->msg());
 	}
 
 	/**
+	* Führt ein SQL-Query aus
+	*
 	* @return object resource or primarykey of insert
 	* @param $sql string SQL
 	* @param $file string Filename
 	* @param $line int Linenumber
-	* @desc F?hrt ein SQL-Query aus
  	*/
 	function query ($sql, $file="", $line="", $funktion="") {
 	   global $user; 
@@ -63,11 +67,12 @@ class dbconn {
 	}
 
 	/**
+	* Gibt die Errormeldungen formatiert zur?ck
+	* 
 	* @return string html
 	* @param $sql string SQL
 	* @param $file string Filename
 	* @param $line int Linenumber
-	* @desc Gibt die Errormeldungen formatiert zur?ck
  	*/
 	function msg($sql="",$file="",$line="",$funktion="") {
 		$num = mysql_errno($this->conn);
@@ -89,12 +94,13 @@ class dbconn {
 	}
 	
 	/**
+	* Speichert SQL-Errors in der DB
+	* 
 	* @return void
 	* @param $msg string SQL-Error
 	* @param $sql string SQL-Query
 	* @param $file string Filename
 	* @param $line int Linenumber
-	* @desc Speichert SQL-Errors in der DB
  	*/
 	function saveerror($msg,$sql,$file="",$line="",$funktion="") {
 		$msg = addslashes($msg);
@@ -161,7 +167,7 @@ class dbconn {
 	* @desc Gibt s?mtliche Tabellennamen einer DB als Array zur?ck
  	*/
 	function tables() {
-		$tables = @mysql_list_tables($this->dbname,$this->conn);
+		$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn);
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
@@ -194,14 +200,15 @@ class dbconn {
    }
    
    /**
+   * Ändert eine Row ein einer DB-Table, ähnlich insert
+   * 
+   * @author biko
    * @param $table (String) Tabelle, in der ge?ndert werden soll
    * @param $id (Array) $id[0]: Name des Prim?rschl?sselfeldes / $id[1+] Rows, die ge?ndert werden sollen
    * @param $id (int) Row, die ge?ndert werden soll, nimmt Prim?rschl?sselfeld als 'id' an
    * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
    * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
    * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
-   * @desc ?ndert eine Row ein einer DB-Table, ?hnlich insert
-   * @author biko
    */
    function update($table, $id, $values, $file="", $line="") {
       if (!is_array($values)) {
@@ -227,7 +234,7 @@ class dbconn {
    }
 }
 
-// Grad einen bauen damit er includet ist...
-$db = new dbconn("zooomclan");
+// Grad eine Verbindung bauen, damit sie includet ist...
+$db = new dbconn(MYSQL_DBNAME);
 
 ?>
