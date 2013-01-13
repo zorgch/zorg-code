@@ -2,8 +2,8 @@
 
 class dbconn {
 	var $host = "localhost";
-	var $dbuser = "root";
-	var $dbpass = "root";
+	var $dbuser = "zooomclan";
+	var $dbpass = "Be3zahsh";
 	var $dbname;
 	var $conn;
 	

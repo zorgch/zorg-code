@@ -64,7 +64,7 @@ function peter_zuege() {
 class peter {
 	
 	//zorg user id des Rosenverkäufers
-	public $r_id = 439;
+	static $r_id = 439;
 	
 	/**
 	 * Peter Klassenkonstruktor
@@ -91,7 +91,7 @@ class peter {
 	 * @return int
 	 * @param string $mode
 	 */
-	function rosenverkaufer($mode='login') {
+	static function rosenverkaufer($mode='login') {
 		global $db;
 		
 		//Login Modus = Rosenverkäufer zufällig einloggen
@@ -109,14 +109,14 @@ class peter {
 				$sql = "
 				UPDATE user 
 				set lastlogin = currentlogin
-				WHERE id = '".$this->r_id."'";
+				WHERE id = '".peter::$r_id."'";
 				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 				
 				$sql = "
 				UPDATE user 
 				set currentlogin = now(),
 				activity = now()
-				WHERE id = '".$this->r_id."'";
+				WHERE id = '".peter::$r_id."'";
 				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 			}
 		
@@ -129,7 +129,7 @@ class peter {
 				UNIX_TIMESTAMP(activity) as act
 			FROM user
 			WHERE 
-				id = '".$r_id."'
+				id = '".peter::$r_id."'
 				AND
 				(UNIX_TIMESTAMP(activity) + ".USER_TIMEOUT.") > UNIX_TIMESTAMP(now())";
 			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
