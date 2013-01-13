@@ -540,8 +540,8 @@ class Comment {
 				
 				// Activity Eintrag auslösen (ausser bei der Bärbel, die trollt zuviel)
 				// if ($user_id != 59) { Activities::addActivity($user_id, 0, $activities_f[1]); }
-				if ($user_id != 59) { Activities::addActivity($user_id, 0, 'hat <a href="'.Comment::getLink($board, $parent_id, $rs['id'], $thread_id).'">einen Comment</a> '.Forum::getBoardTitlePrefix($rs['board']).' '.Forum::getBoardTitle($rs['board']).' geschrieben.<br/><p><small>
-				&nbsp;&nbsp;<a href="'.Comment::getLink($board, $parent_id, $rs['id'], $thread_id).'">"'.Comment::getTitle($text, 100).'..."</a></small></p>'); }
+				if ($user_id != 59) { Activities::addActivity($user_id, 0, 'hat <a href="'.Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']).'">einen Comment</a> '.Forum::getBoardTitlePrefix($rs['board']).' '.Forum::getBoardTitle($rs['board']).' geschrieben.<br/><p><small>
+				&nbsp;&nbsp;<a href="'.Comment::getLink($board, $$rs['parent_id'], $rs['id'], $rs['thread_id']).'">"'.Comment::getTitle($text, 100).'..."</a></small></p>'); }
 				
 				
 				// Message an alle gewünschten senden
