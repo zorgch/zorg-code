@@ -304,7 +304,7 @@ function spaceweather_ticker() {
 function get_apod_id() {
 	global $db;
 	
-	$sql = "SELECT * FROM gallery_pics WHERE album = APOD_GALLERY_ID ORDER by id DESC LIMIT 0,1";
+	$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
 
