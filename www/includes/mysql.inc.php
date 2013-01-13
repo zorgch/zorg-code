@@ -53,7 +53,7 @@ class dbconn {
    	   if (is_object($qfile)) $qfile = "?";  // weil irgend jemand auf die idee kam, ein object zu ?bergeben (tststs)
    	   if (!$qline) $qline = "?";
    	   if (!isset($this->query_track[$qfile])) $this->query_track[$qfile] = array();
-   	   $this->query_track[$qfile]["line $qline"]++;
+   	   $this->query_track[$qfile]['line '.$qline]++;
 	   }
 	   
 		$result = @mysql_query($sql, $this->conn);
