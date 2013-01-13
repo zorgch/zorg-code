@@ -1,2 +1,2 @@
 # Ignore MySQL Database login information file
-# mysql_login.inc.php
+mysql_login.inc.php
