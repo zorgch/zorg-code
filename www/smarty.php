@@ -1,7 +1,4 @@
 <?
-ini_set('display_errors',1);
-error_reporting(E_ALL);	
-
 //global $zorg, $zooomclan, $db;
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
