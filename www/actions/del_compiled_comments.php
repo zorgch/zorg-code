@@ -3,7 +3,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
 	require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 	
-	$path = $_SERVER['DOCUMENT_ROOT']."/smartylib/templates_c/";
+	$path = $_SERVER['DOCUMENT_ROOT']."/../data/smartylib/templates_c/";
 	
 	if ($user->typ == USER_MEMBER) {
 		$handle = opendir($path);

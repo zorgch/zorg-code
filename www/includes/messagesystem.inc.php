@@ -273,7 +273,7 @@ class Messagesystem {
 	 * @global $user Globales Array mit den User-Variablen
 	 * @return string
 	 */
-	function getInboxHTML($box, $pagesize=11, $page=1)
+	function getInboxHTML($box, $pagesize=11, $page=1, $orderby='date')
 	{
 		global $db, $user;
 
@@ -284,7 +284,7 @@ class Messagesystem {
 	  	SELECT *, UNIX_TIMESTAMP(date) as date
 	  	FROM messages where owner = ".$user->id ."
 	  	AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
-	  	ORDER BY date desc
+	  	ORDER BY ".$orderby." desc
 	  	LIMIT ".($page-1) * $pagesize.",".$pagesize
 	  ;
 
@@ -303,6 +303,7 @@ class Messagesystem {
 	  	.'<tr><td>'
 	  	.'<input class="button" onClick="selectAll();" type="button" value="Alle">'
 	  	.'</td>'
+	  	.'<td>New</td>'
 	  	.'<td>Sender</td>'
 	  	.'<td>Empfänger</td>'
 	  	.'<td>Subject</td>'
@@ -323,14 +324,14 @@ class Messagesystem {
 
 		  	$html .=
 		  		'<tr>'
-		  		.'<td align="center" bgcolor="#'.$color.'">'
-		  		.'<input name="message_id[]" type="checkbox" value="'.$rs['id'].'">'
-		  		.'</td>'
-		  		.'<td align="center" bgcolor="#'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
-		  		.'<td align="center" bgcolor="#'.$color.'" width="30%">'
-		  	;
+		  		.'<td align="center" bgcolor="#'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'"></td>';
+		  	$html .=
+		  		($rs['isread']) ? '<td align="center" bgcolor="#'.$color.'">X</td>' : '<td align="center" bgcolor="#'.$color.'"></td>';
+		  	$html .=
+		  		'<td align="center" bgcolor="#'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
+		  		.'<td align="center" bgcolor="#'.$color.'" width="30%">';
 
-				foreach (explode(',', $rs['to_users']) as $value) {
+			foreach (explode(',', $rs['to_users']) as $value) {
 		  		$html .= usersystem::link_userpage($value).' ';
 		  	}
 

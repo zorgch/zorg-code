@@ -417,6 +417,8 @@ function gmt_diff($date) {
 /**
 * Funktion prüft, ob der Client ein Mobile-Client ist (iPhone, BB, etc.)
 *
+* @deprecated
+* @todo Funktion entfernen, wird via JavaScript erledigt
 * @author IneX
 * @date 23.04.2009
 * @param string $userAgent

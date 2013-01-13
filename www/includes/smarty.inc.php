@@ -11,19 +11,23 @@
  *
  */
 
-	//$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
-   include_once($_SERVER['DOCUMENT_ROOT'].'/smartylib/Smarty.class.php');
-   //$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
-   //$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
-   include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-	//$prof->stopTimer( "smarty.inc.php: include_once usersystem.inc.php" );
-	//$prof->startTimer( "smarty.inc.php: include_once comments.res.php" );
-   include_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.res.php');
-   //$prof->stopTimer( "smarty.inc.php: include_once comments.res.php" );
+/** Pfad zu den Smarty Ordnern */
+define('SMARTY_DIR', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/');
+define('SMARTY_TEMPLATES_HTML', $_SERVER['DOCUMENT_ROOT'].'/templates/');
+define('SMARTY_CACHE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/cache/');
+define('SMARTY_COMPILE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/templates_c/');
 
 
+//$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
+include_once($_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/Smarty.class.php');
+//$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
+//$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+//$prof->stopTimer( "smarty.inc.php: include_once usersystem.inc.php" );
+//$prof->startTimer( "smarty.inc.php: include_once comments.res.php" );
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.res.php');
+//$prof->stopTimer( "smarty.inc.php: include_once comments.res.php" );
 
-   //$prof->startTimer( "smarty.inc.php: all functions" );
 
 	$_tpl_stack = array();
 
@@ -275,11 +279,11 @@
       $smarty->security = true;
 
       // directories
-      $smarty->template_dir = $_SERVER['DOCUMENT_ROOT'].'/templates/';
-      $smarty->compile_dir = $_SERVER['DOCUMENT_ROOT'].'/smartylib/templates_c/';
-      $smarty->cache_dir = $_SERVER['DOCUMENT_ROOT'].'/smartylib/cache/';
+      $smarty->template_dir = SMARTY_TEMPLATES_HTML;
+      $smarty->compile_dir = SMARTY_COMPILE;
+      $smarty->cache_dir = SMARTY_CACHE;
       $smarty->trusted_dir = array($_SERVER['DOCUMENT_ROOT'].'/scripts/');
-      $smarty->secure_dir = array($_SERVER['DOCUMENT_ROOT'].'/templates/');
+      $smarty->secure_dir = array(SMARTY_TEMPLATES_HTML);
 
       // don't execute {php} tag
       $smarty->php_handling = SMARTY_PHP_QUOTE;

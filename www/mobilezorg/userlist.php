@@ -102,7 +102,7 @@ if ($_GET['user_id'] == '') {
 
 	$user_id = $_GET['user_id'];
 	
-	define(USER_IMGPATH, $_SERVER['DOCUMENT_ROOT'].'/images/userimages/');
+	//define(USER_IMGPATH, $_SERVER['DOCUMENT_ROOT'].'/images/userimages/'); -> wird global im usersystem.inc.php definiert
 		
 	/**
 	 * User Bild

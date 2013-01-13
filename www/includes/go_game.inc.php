@@ -30,7 +30,6 @@
         define("STONEBIGWIDTH", 190);
         define("LASTSTONEWIDTH", 10);
         define("GOIMGPATH", $_SERVER['DOCUMENT_ROOT'].'/images/go/');
-        define("USERPICPATH", $_SERVER['DOCUMENT_ROOT'].'/images/userimages/');
         define("LINE", imagecreatefrompng(GOIMGPATH."go_line.png"));
         define("STARDOT", imagecreatefrompng(GOIMGPATH."go_stardot.png"));
         define("BLACKSTONE", imagecreatefrompng(GOIMGPATH."go_black.png"));
@@ -867,7 +866,7 @@ function draw_go_players(&$im, $game){
 
 function get_userpic($user_id){
     
-    $image = imagecreatefromjpeg(USERPICPATH.$user_id.'.jpg');
+    $image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
     
     $w = imagesx($image);
     $h = imagesy($image);

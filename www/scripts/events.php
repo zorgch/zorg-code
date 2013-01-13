@@ -15,7 +15,7 @@
 	}
 	$smarty->assign("galleries", $galleries);
 	$smarty->assign("gallery_ids", $gallery_ids);
-	$smarty->assign("galelry_names", $gallery_names);
+	$smarty->assign("gallery_names", $gallery_names);
 	
 	
 	

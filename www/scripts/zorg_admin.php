@@ -25,7 +25,7 @@
 	
 	
 	// comment force compile infos
-	$path = $_SERVER['DOCUMENT_ROOT']."/smartylib/templates_c/";
+	$path = $_SERVER['DOCUMENT_ROOT']."/../data/smartylib/templates_c/";
 	$handle = opendir($path);
 
 	$comments = 0;

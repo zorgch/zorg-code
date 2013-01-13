@@ -4,6 +4,8 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
+define("TAUSCHARTIKEL_IMGPATH", $_SERVER['DOCUMENT_ROOT']."../data/tauschboerse/");
+
 if($_POST['do'] == 'new') {
   $sql =
   	"
@@ -40,19 +42,19 @@ if($_POST['do'] == 'new') {
 		   exit;
 		}
 
-		$tmpfile = $_SERVER['DOCUMENT_ROOT']."images/tauschboerse/upload/".mysql_insert_id().".jpg";
+		$tmpfile = TAUSCHARTIKEL_IMGPATH.mysql_insert_id().".jpg";
 		if (!move_uploaded_file($_FILES['image']['tmp_name'], $tmpfile)) {
 		  echo "Bild konnte nicht bearbeitet werden.".__FILE__.__LINE__;
 		  exit;
 		}
 
-		$e = createPic($tmpfile, $_SERVER['DOCUMENT_ROOT']."images/tauschboerse/".mysql_insert_id()."_tn.jpg", 100, 100, array(0,0,0));
+		$e = createPic($tmpfile, TAUSCHARTIKEL_IMGPATH.mysql_insert_id()."_tn.jpg", 100, 100, array(0,0,0));
 		if ($e['error']) {
 		  echo $e['error'].__FILE__.__LINE__;
 		  exit;
 		}
 
-		$e = createPic($tmpfile, $_SERVER['DOCUMENT_ROOT']."images/tauschboerse/".mysql_insert_id().".jpg", 500, 500);
+		$e = createPic($tmpfile, TAUSCHARTIKEL_IMGPATH.mysql_insert_id().".jpg", 500, 500);
 		if ($e['error']) {
 		  echo $e['error'].__FILE__.__LINE__;
 		  exit;

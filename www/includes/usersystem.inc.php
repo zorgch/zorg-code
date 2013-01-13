@@ -25,7 +25,7 @@ define("USER_SPECIAL", 3);
 //define("USER_EINGELOGGT", 0);define("USER_MEMBER", 1);
 //define("USER_NICHTEINGELOGGT", 2);
 //define("USER_ALLE", 3);
-define("USER_IMGPATH", "/images/userimages/");
+define("USER_IMGPATH", "/../data/userimages/");
 define("USER_TIMEOUT", 200);
 define("USER_OLD_AFTER", 60*60*24*30*3); // 3 Monate
 define("DEFAULT_MAXDEPTH", 10);
@@ -514,7 +514,7 @@ class usersystem {
 				
 				$html .= 
 					'<table bgcolor="#'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
-					.'<img border="0" src="/images/userimages/'.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
+					.'<img border="0" src="'.USER_IMGPATH.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
 					.'</a></td></tr>'
 					.'<tr>'
 					.'<td align="center">'

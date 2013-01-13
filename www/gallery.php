@@ -2,9 +2,8 @@
 /**
  * Picture Gallery
  * 
- * Die Bilder der Gallery liegen in ../data/gallery/
- * (Ausnahme APOD: /images/apod/) und in der Datenbank
- * gehören folgende Tables zur Gallery:
+ * Die Bilder der Gallery liegen in ../data/gallery/ und in der Datenbank
+ * Folgende Tables gehören zur Gallery:
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
  *
  * @author [z]biko

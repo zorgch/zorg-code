@@ -1,16 +1,48 @@
-<?PHP
+<?php
+/**
+ * APOD & Spaceweather
+ * 
+ * Holt und speichert die Astronomy Pictures of the Day (APOD)
+ * sowie das aktuelle Spaceweather.
+ *
+ * @author [z]biko
+ * @date 01.01.2004
+ * @version 1
+ * @package Zorg
+ * @subpackage APOD
+ */
+/** File includes */
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 
-$apod_gal_id = 41;
-$url = "http://antwrp.gsfc.nasa.gov/apod/";
+/** Pfad zum initialen Download des aktuellen APOD-Bildes */
+define("APOD_TEMP_IMGPATH",$_SERVER['DOCUMENT_ROOT']."../data/temp/"); 
+
+/** ID der APOD-Gallery in der Datenbank */
+define("APOD_GALLERY_ID", 41);
+
+/** Source-URL von wo die APOD-Bilder heruntergeladen werden */
+define("APOD_SOURCE", "http://antwrp.gsfc.nasa.gov/apod/astropix.html");
+
+/** Source-URL von wo die Daten für das Spaceweather abgefragt werden */
+define("SPACEWEATHER_SOURCE", "http://www.spaceweather.com/");
+
+
+/**
+ * Astronomy Picture of the Day (APOD)
+ * 
+ * Holt und speichert das neus Astronomy Pic of the Day (APOD).
+ * APOD Bild wird via Funktion createPic() nach /data/gallery/41/ kopiert!
+ * (kann also aus dem APOD Temp img-Ordner gelöscht werden danach)
+ *
+ * @todo Wenn die Funktion createPic() erfolgreich ausgeführt wurde (= APOD Bild kopiert) soll das Original-Bild aus dem /data/temp/ Ordner gelöscht werden.
+ */
 function get_apod() {
-	global $db, $MAX_PIC_SIZE, $apod_gal_id, $url;
-	$source = "http://antwrp.gsfc.nasa.gov/apod/astropix.html";
+	global $db, $MAX_PIC_SIZE;
 	//$source = "http://antwrp.gsfc.nasa.gov/apod/ap041209.html";
-	$file = @file($source);
+	$file = @file(APOD_SOURCE);
 	if($file) {
 		$html = join("",$file);
 		$html = strip_tags($html,"<img> <a> <b>");
@@ -49,14 +81,14 @@ function get_apod() {
 			fclose($fp);
 			
 			//write image
-			$img_src = $_SERVER['DOCUMENT_ROOT']."images/apod/".date("Ymd").extension($img_url);
+			$img_src = APOD_TEMP_IMGPATH.date("Ymd").extension($img_url);
 			$fp = fopen($img_src,"w");
 			fwrite($fp,$image);
 			fclose($fp);
 			
 			//gallery id
-			$id = $apod_gal_id;
-			$picid = $db->insert("gallery_pics", array("album"=>$id, "extension"=>extension($img_src)), __FILE__, __LINE__);
+			//$id = $apod_gal_id;
+			$picid = $db->insert("gallery_pics", array("album"=>APOD_GALLERY_ID, "extension"=>extension($img_src)), __FILE__, __LINE__);
 			 
 			 // create pic
 			 createPic($img_src, picPath($id, $picid, extension($img_src)), $MAX_PIC_SIZE[picWidth], $MAX_PIC_SIZE[picHeight]);
@@ -77,8 +109,8 @@ function get_apod() {
 
 function get_spaceweather() {
 	global $db;
-	$source = "http://www.spaceweather.com/";
-	$file = @file($source);
+	//$source = "http://www.spaceweather.com/";
+	$file = @file(SPACEWEATHER_SOURCE);
 	if($file) {
 		$html_source = join("",$file);
 		
@@ -263,10 +295,16 @@ function spaceweather_ticker() {
 	return $spw;
 }
 
+
+/**
+ * Aktuelleste APOD Bild-ID
+ * 
+ * Holt das aktuellste APOD Bild aus der Datenbank
+ */
 function get_apod_id() {
-	global $db, $apod_gal_id;	
+	global $db;
 	
-	$sql = "SELECT * FROM gallery_pics WHERE album = $apod_gal_id ORDER by id DESC LIMIT 0,1";
+	$sql = "SELECT * FROM gallery_pics WHERE album = APOD_GALLERY_ID ORDER by id DESC LIMIT 0,1";
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
 
