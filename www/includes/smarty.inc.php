@@ -12,14 +12,14 @@
  */
 
 /** Pfad zu den Smarty Ordnern */
-define('SMARTY_DIR', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/');
+define('SMARTY_DIR', $_SERVER['DOCUMENT_ROOT'].'/smartylib/');
 define('SMARTY_TEMPLATES_HTML', $_SERVER['DOCUMENT_ROOT'].'/templates/');
 define('SMARTY_CACHE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/cache/');
 define('SMARTY_COMPILE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/templates_c/');
 
 
 //$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
-include_once($_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/Smarty.class.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/smartylib/Smarty.class.php');
 //$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
 //$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
