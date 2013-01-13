@@ -17,7 +17,7 @@
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 
 /** Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln) */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
 /** Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen. */
 define("OFFSET_PIC", 250);
@@ -925,7 +925,8 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 	
 	function get_userpic($user_id)
 	{    
-	    $image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
+	    //$image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
+	    $image = imagecreatefromjpeg($_SERVER['DOCUMENT_ROOT'].'../data/userimages/'.$user_id.'.jpg');
 	    
 	    $w = imagesx($image);
 	    $h = imagesy($image);
