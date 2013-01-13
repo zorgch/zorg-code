@@ -1,6 +1,6 @@
 <?
-include_once('/home/CME/z/zooomclan/www/includes/usersystem.inc.php');
-include_once('/home/CME/z/zooomclan/www/includes/hz_map.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
 	
         if (!is_numeric($_GET['id'])) user_error("nuet isch", E_USER_ERROR);
         $gameid = $_GET['id'];

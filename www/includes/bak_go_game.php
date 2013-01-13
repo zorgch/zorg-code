@@ -44,7 +44,7 @@ function draw_go_base ($size) {
 //        imagerectangle($im, 0, 0, $imgsize-1, $imgsize-1, COLOR_BORDER);
     
  //       draw_grid($im, $size);
-    imagecopy($im, imagecreatefrompng("/home/CME/zooomclan/www/images/go/go_black.png"), 0, 0, 0, 0, 20, 20);
+    imagecopy($im, imagecreatefrompng($_SERVER['DOCUMENT_ROOT']."/images/go/go_black.png"), 0, 0, 0, 0, 20, 20);
 //ImageString ($im, 3, 0,0, GOIMGPATH, COLOR_TEXT);
     
     //    $im=  
