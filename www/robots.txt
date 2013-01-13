@@ -1,6 +1,8 @@
 User-agent: *
 Disallow: /actions/
 Disallow: /cron/
+Disallow: /data/
+Disallow: /files/
 Disallow: /gluv/
 Disallow: /images/
 Disallow: /img/
