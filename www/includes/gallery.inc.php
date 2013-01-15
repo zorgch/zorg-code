@@ -358,7 +358,7 @@ function pic ($id) {
 	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
 	if ($last) echo '<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$last[id].'">previous</a>';
 	else echo '&lt;- last';
-	echo '</td><td style="text-align:center"><a href="'.$_SERVER[PHP_SELF].'?show=albumThumbs&albID='.$cur[album].'&page='.$page.'">up</a></td>';
+	echo '</td><td style="text-align:center"><a href="'.$_SERVER[PHP_SELF].'?show=albumThumbs&albID='.$cur[album].'&page='.$page.'">overview</a></td>';
 	echo '<td style="text-align:right" width="30%">';
 	if ($next) {
 		echo '<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$next[id].'">next</a>';
