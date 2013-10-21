@@ -85,3 +85,12 @@ function swisstimeJS()
 	
 	document.write(wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + " " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit);
 }
+
+// Bild als MyPic markieren
+// @author IneX
+// @date 21.10.2013
+function markAsMypic()
+{
+  var conf = confirm(unescape("W%F6tsch du DICH SELBER w%FCrklich uf dem Bild markiere%3F"));
+  if (conf) { return true; } else { return false; }
+}

@@ -37,13 +37,14 @@ echo menu("gallery");
 if ($_GET['do'] && $user->typ == USER_NICHTEINGELOGGT) user_error("Permission denied for <i>".$_GET['do']."</i>", E_USER_ERROR);
 switch ($_GET['do']) {
 	case "benoten":
-		//if ($user->typ >= USER_USER) {
-  	 	doBenoten($_POST[picID], $_POST[score]);
-  	 	//}
+  	 	doBenoten($_POST['picID'], $_POST['score']);
   	 	break;
+  	 	
   	 case "mypic":
-  	 	if ($_POST[picID] > 0 && $_POST[mypic_x] <> "" && $_POST[mypic_y] <> "") {
-  	 		doMyPic($_POST[picID], $_POST[mypic_x], $_POST[mypic_y]);
+  	 	// Ein <input type="image" ...> übergibt die X & Y Positionen via "inputName_x" & "inputName_y"
+  	 	if ($_POST['picID'] > 0 && $_POST['mypic_x'] <> "" && $_POST['mypic_y'] <> "") {
+  	 		//DEBUGGING: print_r($_POST);
+  	 		doMyPic($_POST['picID'], $_POST['mypic_x'], $_POST['mypic_y']);
   	 	}
   	 	break;
 }

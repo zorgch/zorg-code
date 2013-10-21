@@ -436,9 +436,8 @@ if($_SESSION['user_id']) {
 		echo(
 			'<table class="case" width="100%">'
 			.'<tr><td style="text-align: center" valign="top">'
-			.'<p><img src="'.usersystem::userImage($_GET[user_id], 1).'">'
-			.'<br />'
-			.'<font size="6"><b>'.$rs['clan_tag'].$rs['username'].'</b></font></p>'
+			.'<h1>'.$rs['clan_tag'].$rs['username'].'</h1>'
+			.'<img src="'.usersystem::userImage($_GET[user_id], 1).'">'
 			.'</td><td style="text-align: left" valign="top">'
 			.$smarty->fetch("tpl:211")
 			.'</td></tr>'
@@ -474,7 +473,12 @@ if($_SESSION['user_id']) {
 			'<br />'
 			.Forum::getLatestCommentsbyUser($_GET['user_id'])
 			.'</td></tr>'
-			."</table>"
+			.'</table>'
+		;
+		
+		echo
+			'<br />'
+			.getUserPics($_GET['user_id'], 0)
 		;
 	}
 

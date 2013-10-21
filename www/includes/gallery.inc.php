@@ -253,6 +253,20 @@ function albumThumbs ($id, $page=0) {
 }
 
 
+/**
+ * Bild anzeigen
+ *
+ * @author Zorg, IneX
+ * @date 21.10.2013
+ * @version 2.0
+ * @since 1.0
+ * @package Zorg
+ * @subpackage Gallery
+ *
+ * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
+ * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
+ * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
+ */
 function pic ($id) {
 	global $user, $db, $THUMBPAGE;
 	
@@ -371,7 +385,24 @@ function pic ($id) {
 	getUsersOnPic($cur[id]); // MyPic Markierungen laden
 	echo '</div></td></tr>';
 	*/
-	echo '<tr><td colspan="3"><img border="0" src="'. imgsrcPic($id). '"></td></tr>';
+	
+	// Wenn User noch nicht auf Bild markiert ist, Formular anzeigen...
+	if (!checkUserToPic($user->id, $id))
+	{
+		printf('<tr><td colspan="3">
+		<form action="%1$s" method="post" onsubmit="return markAsMypic()">
+			<input type="hidden" name="picID" value="%2$s" />
+			<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" />
+		</form>
+		</td></tr>'
+				,$_SERVER['PHP_SELF'].'?do=mypic&amp;'.url_params()
+				,$id
+				,imgsrcPic($id)
+		);
+	// ...sonst Bild normal ohne Markierungs-Formular ausgeben
+	} else {
+		echo '<tr><td colspan="3"><img border="0" src="'. imgsrcPic($id). '"></td></tr>';
+	}
 	
 	/*echo '<tr><td clspan="3">';
 	getUsersOnPic($cur[id]);  // MyPic Markierungen laden
@@ -808,31 +839,39 @@ if ($d[zensur]) {
  * @package Zorg
  * @subpackage Gallery
  *
- * @param integer $picID ID des betroffenen Bildes
+ * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $pic_x X-Koordinaten wo der User geklickt hat
  * @param integer $pic_y Y-Koordinaten wo der User geklickt hat
  * @global array $db Array mit allen MySQL-Datenbankvariablen
  * @global array $user Array mit allen Benutzervariablen
  */
-function doMyPic($picID, $pic_x, $pic_y) {
+function doMyPic($pic_id, $pic_x, $pic_y) {
 	global $db, $user;
 	
-	if (!$picID) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
-	$sql =
-		"
-		REPLACE INTO
-			gallery_pics_users 
-			(pic_id, user_id, pos_x, pos_y, datum)
-		VALUES (
-			$picID,
-			".$user->id.",
-			$pic_x,
-			$pic_y,
-			now()
-		)";
-			
+	if (!$pic_id) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
+	
+	// Sicherstellen dass nur eingeloggte markieren
+	if ($user->typ >= USER_USER) {
+		$sql =
+			"
+			REPLACE INTO
+				gallery_pics_users 
+				(pic_id, user_id, pos_x, pos_y, datum)
+			VALUES (
+				$pic_id,
+				".$user->id.",
+				$pic_x,
+				$pic_y,
+				now()
+			)";
+				
 		$db->query($sql, __FILE__, __LINE__);
-		//header("Location: /smarty.php?".url_params());
+			
+		// Activity Eintrag auslösen (ausser bei der Bärbel)
+		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>'); }
+	} else {
+		user_error("Das dörfsch DU nöd - isch nur für igloggti User!", E_USER_ERROR);
+	}
 }
 
 	
@@ -845,7 +884,7 @@ function doMyPic($picID, $pic_x, $pic_y) {
  * @deprecated 2.0
  * @see doMyPic
  */
-function doMark ($picID) {
+/*function doMark ($picID) {
 	global $db, $user;
 	if (!$picID) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
 
@@ -866,7 +905,8 @@ function doMark ($picID) {
 		$query = $db->query($sql);
 		$result = $db->fetch($query);
 	}
-}
+}*/
+
 
 /**
  * Check User<-->Bild Verknüpfung
@@ -882,18 +922,18 @@ function doMark ($picID) {
  *
  * @param integer $picID ID des betroffenen Bildes
  * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Benutzervariablen
- * @return string Gibt Ausgabe anhand des Queries zurück
  *
- * @todo return sollte als boolean rausgehen
+ * @return boolean Gibt true/false zurück, je nachdem ob User<->Bild Verknüpfung gefunden wurde
  */
-function checkUserToPic($picID){
-	global $db, $user;
+function checkUserToPic($userID, $picID)
+{
+	global $db;
 	
-	$sql = "SELECT * FROM gallery_user WHERE user_id = '$user->id' AND pic_id = '$picID'";
+	$sql = "SELECT * FROM gallery_pics_users WHERE user_id = '$userID' AND pic_id = '$picID'";
 	$result = $db->query($sql, __FILE__, __LINE__);
-	return $db->fetch($query);
+	//return $db->fetch($query);
 	
+	return ($db->num($result) > 0 ? true : false);
 }
 
 
@@ -935,6 +975,90 @@ function getUsersOnPic($pic_id) {
 	
 	return $usersonpic;
 	//echo $html;
+}
+
+
+/**
+ * Alle Bilder eines Users
+ * 
+ * Markierte Bilder eines bestimmten Benutzers ausgeben
+ *
+ * @author IneX <IneX@gmx.net>
+ * @date 18.10.2013
+ * @version 1.0
+ * @since 2.0
+ * @package Zorg
+ * @subpackage Gallery
+ * 
+ * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
+ * @param integer $limit Maximale Anzahl von Bildern
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen User-Variablen 
+ * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
+ */
+function getUserPics($userid, $limit=1)
+{
+	global $db, $user;
+	
+	$html_out = '';
+	$i = 1;
+	$table_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; text-align: center;';
+	$td_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; padding: 10px;';
+	
+	if ($userid > 0) {
+		
+		$sql =
+			"
+			SELECT *
+			FROM gallery_pics_users
+			WHERE user_id=$userid
+			ORDER BY id ASC"
+			.($limit > 0 ? "LIMIT ".$limit : "");
+		;
+		$result = $db->query($sql, __FILE__, __LINE__);
+		
+		$html_out .=
+				'<table style="'.$table_style.'" width="100%">'
+				.'	<thead>'
+				.'	<tr><th colspan="4">'.usersystem::id2user($userid, FALSE).'\'s Pics</th></tr>'
+				.'	</thead>';
+		
+		while($rs = $db->fetch($result)) {
+			$img_id = $rs['pic_id'];
+			$img_name = imgName($img_id);
+			$file = imgsrcThum($img_id);
+			
+			if ($i == 1) {
+				$html_out .= '<tr>';
+			}
+			
+			$html_out .=
+					'	<td style="'.$td_style.'">'
+					.'		<a href="/gallery.php?show=pic&picID='.$img_id.'">'
+			;
+			
+			$html_out .=
+					'		<img border="0" src="'.$file.'" /><br />'
+			;
+			if ($img_name) {
+				$html_out .= $img_name.'</a>';
+			}
+			
+			$html_out .= '	</td>';
+			
+			$i++;
+			
+			if ($i == 4) {
+				$html_out .='</tr>';
+				$i = 1;
+			}
+		}
+		
+		$html_out .= '</table>';
+		
+		return $html_out;
+		
+	}
 }
 /*====================================================
 *|                    END MyPic

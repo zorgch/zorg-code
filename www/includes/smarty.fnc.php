@@ -110,6 +110,7 @@ $smarty->register_function("random_pic", "getRandomThumb");  // {random_pic}  di
 $smarty->register_function("daily_pic", "getDailyThumb");    // {daily_pic}   displays the pic of the day
 $smarty->register_function("random_albumpic", "smarty_get_randomalbumpic");
 $smarty->register_function("top_pics", "smarty_top_pics");
+$smarty->register_function("user_pics", "smarty_user_pics");
 $smarty->register_function("assign_users_on_pic", "smarty_assign_users_on_pic");
 
 
@@ -290,7 +291,7 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
 
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
 
 
 
@@ -1061,7 +1062,7 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
 		else
 			return number_format($number, $num_decimal_places, $dec_seperator, $thousands_seperator);
 	}
-
+	
 	mt_srand();
 	function smarty_rand ($params, &$smarty) {
 		if (isset($params['min']) && isset($params['max'])) $z = mt_rand($params['min'], $params['max']);
@@ -1072,15 +1073,23 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
 		if (isset($params['assign'])) $smarty->assign($params['assign'], $z);
 		else return $z;
 	}
-
+	
 	function smarty_apod ($params, &$smarty) {
 		$rs = get_apod_id();
 		return formatGalleryThumb($rs);
 	}
 	
 	
-	function smarty_top_pics ($params) {
-	   	
+	/**
+	 * Smarty Function "top_pics"
+	 * 
+	 * Returns a specific amount of best rated images from a given gallery
+	 * Usage: {top_pics album=41 limit=1}
+	 *
+	 * @author IneX <IneX@gmx.net>
+	 */
+	function smarty_top_pics ($params)
+	{
 	   	$album_id = ($params['album'] == '' ? 0 : $params['album']);
 	   	
 	   	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
@@ -1091,6 +1100,27 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
    		//print('Album-ID: '.$album_id.'<br />Limit: '.$limit.'<br />');
    		
    		return getTopPics($album_id, $limit, $options);
+	}
+	
+	
+	/**
+	 * Smarty Function "user_pics"
+	 * 
+	 * Returns a specific amount of Gallery Pictures on which a given User has been tagged
+	 * Usage: {user_pics user=41 limit=1}
+	 *
+	 * @author IneX <IneX@gmx.net>
+	 * @date 18.10.2013
+	 */
+	function smarty_user_pics($params)
+	{
+		$userid = ($params['user'] == '' ? 0 : $params['user']);
+	   	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
+	   	//$options = ($params['options'] == '' ? '' : $params['options']);
+   		
+   		error_log("Call: getUserPics($userid, $limit, $options) in ".__FILE__,0);
+   		//return getUserPics($userid, $limit, $options);
+   		return getUserPics($userid, $limit);
 	}
 	
 
