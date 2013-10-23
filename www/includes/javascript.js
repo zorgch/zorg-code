@@ -3,11 +3,11 @@ function onoff(id)
 	layer = document.getElementById("layer" + id)
 	image = "img" + id;
 	if(layer.style.visibility == "hidden") {
-		document.images[image].src = "/images/forum/'.$layouttype.'/minus.gif";
+		document.images[image].src = "/images/forum/" + layout + "/minus.gif";
 		layer.style.display = "block";
 		layer.style.visibility = "visible";
 	} else {
-		document.images[image].src = "/images/forum/'.$layouttype.'/plus.gif";
+		document.images[image].src = "/images/forum/" + layout + "/plus.gif";
 		layer.style.display = "none";
 		layer.style.visibility = "hidden";
 	}
