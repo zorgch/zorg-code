@@ -1115,10 +1115,9 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
 	function smarty_user_pics($params)
 	{
 		$userid = ($params['user'] == '' ? 0 : $params['user']);
-	   	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
+	   	$limit = ($params['limit'] == '' ? 0 : $params['limit']);
 	   	//$options = ($params['options'] == '' ? '' : $params['options']);
    		
-   		error_log("Call: getUserPics($userid, $limit, $options) in ".__FILE__,0);
    		//return getUserPics($userid, $limit, $options);
    		return getUserPics($userid, $limit);
 	}
