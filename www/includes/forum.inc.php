@@ -255,17 +255,21 @@ class Comment {
 			$boardlinks[$board] = $rs;
 		}
 
-		if ($board == 'f') {
+		if ($board == 'f') { // Forum
 			$rs = Comment::getRecordset($thread_id);
 			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.Comment::getTitle($rs['text']).'</a>';
-		} else if($board == 'i') {
+		} else if($board == 'i') { // Pictures
 			$sql = "select name from gallery_pics where id = '$thread_id'";
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 			if($rs['name'] != '') {
-				return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">Pic: '.substr($rs['name'], 0, 20).'</a>';
+				return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Pic] '.substr($rs['name'], 0, 20).'</a>';
 			} else {
 				return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
 			}
+		} else if ($board == 'e') { // Events
+			$sql = "select name from events where id = '$thread_id'";
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>';
 		} else {
 			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
 		}
