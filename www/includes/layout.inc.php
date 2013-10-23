@@ -88,7 +88,7 @@ function head($title="", $return = 0) {
 		';
 	
 	// Wenn es ein eingeloggter User ist, wird im Fenstertitel die Anzahl Unreads angezeigt...
-	$out .= $user->islogged_in() ? "<body onload=\"unreads_2_title(document.getElementById('unreads'))\">" : "<body>";
+	$out .= $user->islogged_in() ? "<body onload=\"init()\">" : "<body>";
 	
 	// Wenn die Startseite von einem Mobile Device aufgerufen wird, frage ob zu Mobile Zorg gewechselt werden soll
 	if (str_replace('/','',$_SERVER['PHP_SELF']) == 'index.php')

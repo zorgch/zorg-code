@@ -86,11 +86,38 @@ function swisstimeJS()
 	document.write(wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + " " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit);
 }
 
+
 // Bild als MyPic markieren
 // @author IneX
 // @date 21.10.2013
 function markAsMypic()
 {
-  var conf = confirm(unescape("W%F6tsch du DICH SELBER w%FCrklich uf dem Bild markiere%3F"));
-  if (conf) { return true; } else { return false; }
+	var conf = confirm(unescape("W%F6tsch du DICH SELBER w%FCrklich uf dem Bild markiere%3F"));
+	if (conf) { return true; } else { return false; }
+}
+
+
+// Usernamen markierter Personen auf Bild zeichen
+// @author IneX
+// @date 21.10.2013
+/*function drawUsernameOnPic(username, x, y)
+{
+	var canvas = document.getElementById("zpic");
+	var con = canvas.getContext("2d");
+	
+	//clear background
+	//con.fillStyle = "white";
+	//con.fillRect(0,0, 200, 200);
+	//con.globalAlpha = 0.5;
+	// draw font in red
+	con.fillStyle = "rgb(255,255,255)";
+	con.font = "20pt sans-serif";
+	con.fillText(username, x, y);
+}*/
+
+
+function init()
+{
+	unreads_2_title(document.getElementById('unreads'));
+	//drawUsernameOnPic('Username Test Drawing', 200, 300);
 }
