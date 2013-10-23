@@ -1013,7 +1013,7 @@ function getUserPics($userid, $limit=1)
 			FROM gallery_pics_users
 			WHERE user_id=$userid
 			ORDER BY id ASC"
-			.($limit > 0 ? "LIMIT ".$limit : "");
+			.($limit > 0 ? " LIMIT ".$limit : ""); // LIMIT only when LIMIT Parameter given; 0 = all pics
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
