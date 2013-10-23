@@ -270,6 +270,8 @@ class Comment {
 			$sql = "select name from events where id = '$thread_id'";
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>';
+		} else if ($board == 'g') { // GO Game
+			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[GO] '.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
 		} else {
 			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
 		}
