@@ -49,8 +49,29 @@ define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
 
 
 
-### HEADER ###
-function head($title="", $return = 0) {
+/**
+ * HEADER
+ * 
+ * @author [z]biko, IneX
+ * @date 23.10.2013
+ * @version 3.0
+ * @since 1.0
+ * @package Zorg
+ * @subpackage Layout
+ *
+ * @param integer $author_id ID des Autors der jeweiligen Seite (muss manuell beim Function-Call gesetzt werden - voll phehinderet!)
+ * @param string $title Titel der Seite, welcher auch im HTML ausgegeben wird
+ * @param boolean $return Legt fest ob das ganze HTML returned oder direkt ausgegben wird (und dann returned false). Muss nämlich im smarty.fnc.php unterbunden werden!
+ * 
+ * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global array $user Array mit allen User-Variablen
+ * @global string $sun Enthält den Sonnen-Status (up/down)
+ * @global array $smart Array mit allen Smarty-Variablen
+ * @global string $layouttype Entweder "day" oder "night" (hängt mit der $sun zusammen)
+ * @global string $country Enthält den Country-Namen der für den aktuellen Benutzer ermittelt wurde
+ * @global datetime $starttime Keine Ahnung...
+ */
+function head($author_id=0, $title="", $return = 0) {
 	global $starttime, $user, $smarty, $sun, $country, $db, $layouttype;
 
 	//rosenverkäufer
@@ -74,6 +95,7 @@ function head($title="", $return = 0) {
 		<link rel="stylesheet" type="text/css" href="includes/'.$style_array[$sun].'" >
 		<link rel="shortcut icon" href="'.$favicon[$sun].'"  type="image/x-icon">
 		<script type="text/javascript" src="includes/javascript.js"></script>
+		<script type="text/javascript">var layout = "'.str_replace(".css", "", $style_array[$sun]).'";</script>
 		
 		<!-- RSS Feeds -->
 		<link rel="alternate" type="application/rss+xml" title="RSS @ zorg.ch" href="http://www.zorg.ch/forum.php?layout=rss" />

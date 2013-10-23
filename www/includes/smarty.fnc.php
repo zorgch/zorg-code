@@ -312,7 +312,7 @@ $smarty->register_modifier("print_array", "print_array");					// {print_array ar
   function smarty_zorg ($params, $content, &$smarty, &$repeat) {
 	$out = "";
 	
-	$out .= head($params['page_title'], true);
+	$out .= head(117, $params['page_title'], true);
    	
    	$out .= $content;
    	
