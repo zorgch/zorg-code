@@ -27,7 +27,7 @@ if ($_GET['layout'] == '') {
     
     
     if($user->typ == USER_NICHTEINGELOGGT) {
-    	echo Forum::getHTML(array('f', 'i'), 23, $_GET['sortby']);
+    	echo Forum::getHTML(array('f', 't', 'e'), 23, $_GET['sortby']); // Boards: f=forum, t=templates, e=events
     } else {
     	
     	echo Forum::getHTML(Forum::getBoards($user->id), 23, $_GET['sortby']);
