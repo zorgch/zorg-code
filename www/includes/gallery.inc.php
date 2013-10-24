@@ -386,23 +386,26 @@ function pic ($id) {
 	echo '</div></td></tr>';
 	*/
 	
-	// Wenn User noch nicht auf Bild markiert ist, Formular anzeigen...
-	if (!checkUserToPic($user->id, $id))
+	echo '<tr><td colspan="3">';
+	
+	// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
+	if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
 	{
-		printf('<tr><td colspan="3">
+		printf('
 		<form action="%1$s" method="post" onsubmit="return markAsMypic()">
 			<input type="hidden" name="picID" value="%2$s" />
 			<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" />
-		</form>
-		</td></tr>'
+		</form>'
 				,$_SERVER['PHP_SELF'].'?do=mypic&amp;'.url_params()
 				,$id
 				,imgsrcPic($id)
 		);
-	// ...sonst Bild normal ohne Markierungs-Formular ausgeben
+	// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
 	} else {
-		echo '<tr><td colspan="3"><img border="0" src="'. imgsrcPic($id). '"></td></tr>';
+		echo '<img border="0" src="'. imgsrcPic($id). '">';
 	}
+	
+	echo '</td></tr>';
 	
 	/*echo '<tr><td clspan="3">';
 	getUsersOnPic($cur[id]);  // MyPic Markierungen laden
@@ -437,24 +440,6 @@ function pic ($id) {
 		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur[id].'">'
 		.'</form></td></tr></table>';
 	}
-	
-	
-	// if ($user->typ == USER_USER || $user->typ == USER_MEMBER) { // is user logged in?
-	// $_SESSION['user_id']
-	if ($user->id == 52){
-		$onPic = checkUserToPic($id);
-		
-		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br />';
-		if ($onPic) {
-	 	echo '<font color="red">Du bist auf diesem Bild markiert</font>';
-	 	$val = "Markierung aufheben";
-		}else{
-	 	echo '<font color="green">Du bist nicht auf diesem Bild markiert</font>';
-	 	$val = "Markieren";
-		}
-		echo '</td><td valign="top"><br /><form action="'.$_SERVER[PHP_SELF].'?do=markieren&show=pic&picID='.$cur[id].'" method="post">'
-			.'<input type="submit" class="button" value="'.$val.'"></form></td></tr></table>';
-	 }
 }
 
 
