@@ -30,7 +30,7 @@ function addsymbol(symbol)
 
 function unreads_2_title(unreads_indicator)
 {
-	if (unreads_indicator != null) var unreads_data = document.unreads_indicator.firstChild.data;
+	if (unreads_indicator != null) var unreads_data = unreads_indicator.firstChild.data;
 	else return
 	
 	if (unreads_data != null) {
