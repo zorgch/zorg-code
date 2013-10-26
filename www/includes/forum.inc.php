@@ -581,27 +581,29 @@ class Comment {
 					." AND board='".$board."'"
 				;
 			  $result = $db->query($sql, __FILE__, __LINE__);
-			  while($rs2 = $db->fetch($result)) {
-			  	Messagesystem::sendMessage(
-						59,
-						$rs2['user_id'],
-						addslashes(stripslashes('[Forum] Reply to post #'.$parent_id)),
-						addslashes(
-							stripslashes(
-								'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
-								.Comment::getTitle($rs['text'])
-								.'</a>'
-								.' &raquo;</a>'
-								.' by '
-								.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-								.' @ '
-								.datename($rs['date'])
+			  if($db->num($result) > 0) {
+				  while($rs2 = $db->fetch($result)) {
+				  	Messagesystem::sendMessage(
+							59,
+							$rs2['user_id'],
+							addslashes(stripslashes('[Forum] Reply to post #'.$parent_id)),
+							addslashes(
+								stripslashes(
+									'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
+									.Comment::getTitle($rs['text'])
+									.'</a>'
+									.' &raquo;</a>'
+									.' by '
+									.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
+									.' @ '
+									.datename($rs['date'])
+								)
 							)
-						)
-					);
-			  }
+						);
+				   }
+			}
 
-				return $commentlink;
+			return $commentlink;
 
 		} else {
 			echo "Permission denied for posting on thread '$board / $thread_id'";
