@@ -14,6 +14,7 @@
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		messages
  *
+ * @version		1.0
  * @package		Zorg
  * @subpackage	Messagesystem
  */
@@ -94,7 +95,8 @@ class Messagesystem {
 				$to_users=implode(',', $to_users),
 				1
 			);*/
-
+			
+			// Wieso wird hier die deleteMessage-Funktion aufgerufen in der "sendmessage"-Aktion? Inex/28.10.2013
 			if($_POST['delete_message_id'] > 0) {
 				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
 			}
@@ -126,6 +128,50 @@ class Messagesystem {
 			header("Location: ".base64_decode($_POST['url']));
 			//exit;
 		}
+		
+		
+		if($_POST['do'] == 'messages_as_unread') {
+			
+			// Change Message Status to UNREAD
+			for ($i=0; $i < count($_POST['message_id']); $i++) {
+				Messagesystem::doMessagesUnread($_POST['message_id'][$i], $user->id);
+			}
+
+			if(count($_POST['message_id']) == 1) {
+				$msgid = Messagesystem::getPrevMessageid($_POST['message_id'][0]);
+				if($msgid > 0) {
+					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id());
+					//exit;
+				} else {
+					header("Location: profil.php?user_id=".$user->id."&".session_name()."=".session_id());
+					//exit;
+				}
+			}
+
+			header("Location: ".base64_decode($_POST['url']));
+			//exit;
+		}
+		
+		
+		if($_POST['do'] == 'mark_all_as_read') {
+			
+			// Mark all Messages as read
+			Messagesystem::doMarkAllAsRead($user->id);
+
+			if(count($_POST['message_id']) == 1) {
+				$msgid = Messagesystem::getPrevMessageid($_POST['message_id'][0]);
+				if($msgid > 0) {
+					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id());
+					//exit;
+				} else {
+					header("Location: profil.php?user_id=".$user->id."&".session_name()."=".session_id());
+					//exit;
+				}
+			}
+
+			header("Location: ".base64_decode($_POST['url']));
+			//exit;
+		}
 	}
 	
 	
@@ -135,7 +181,6 @@ class Messagesystem {
 	 * Löscht ausgewählte Nachrichten von der Inbox/Outbox
 	 * 
 	 * @author [z]milamber
-	 * @date 
 	 * @version 1.0
 	 *
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
@@ -146,7 +191,7 @@ class Messagesystem {
 	{
 		global $db;
 
-		$sql = "SELECT *, UNIX_TIMESTAMP(date) as date FROM messages where id = ".$messageid;
+		$sql = "SELECT id, owner FROM messages where id = ".$messageid;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
 		if($rs['owner'] == $deleter_userid) {
@@ -155,6 +200,54 @@ class Messagesystem {
 	  	;
 	  	$db->query($sql, __FILE__, __LINE__);
 		}
+	}
+
+
+	/**
+	 * Nachrichten als ungelesen ändern
+	 * 
+	 * @author IneX
+	 * @date 28.10.2013
+	 * @since 1.0
+	 * @version 1.0
+	 *
+	 * @param integer $messageid ID der ausgewählten Nachricht(en)
+	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 */
+	function doMessagesUnread($messageid, $userid)
+	{
+		global $db;
+		
+		if ($messageid > 0 && $messageid != '' && $userid > 0 && $userid != '') // ok man könnte auch noch auf $user->id checken
+		{
+	  		$sql =
+	  			"UPDATE messages SET isread='0' WHERE isread='1' AND id=$messageid AND owner=$userid";
+	  		$db->query($sql, __FILE__, __LINE__);
+	  	}
+	}
+	
+	
+	/**
+	 * Alle Nachrichten als gelesen markieren
+	 * 
+	 * @author IneX
+	 * @date 28.10.2013
+	 * @since 1.0
+	 * @version 1.0
+	 *
+	 * @param integer $userid User-ID welcher alle Nachricht(en) als gelesen markieren möchte
+	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 */
+	function doMarkAllAsRead($userid)
+	{
+		global $db;
+		
+		if ($userid > 0 && $userid != '') // man könnte auch noch auf $user->id checken
+		{
+	  		$sql =
+	  			"UPDATE messages SET isread='1' WHERE isread='0' AND owner=$userid";
+	  			$db->query($sql, __FILE__, __LINE__);
+	  	}
 	}
 	
 	
@@ -262,9 +355,10 @@ class Messagesystem {
 	 * 
 	 * Baut das HTML um die Nachrichten-Verwaltung anzuzeigen
 	 * 
-	 * @author [z]milamber
+	 * @author [z]milamber, IneX
 	 * @date 
-	 * @version 1.0
+	 * @version 2.0
+	 * @since 1.0
 	 *
 	 * @param string $box Darstellung des Ein- oder Ausgangs (inbox|outbox)
 	 * @param integer $pagesize Anzahl Nachrichten pro Seite (Default: 11, wegen Farbwechsel)
@@ -292,21 +386,22 @@ class Messagesystem {
 	  $result = $db->query($sql, __FILE__, __LINE__);
 	  $html .=
 	  	'<form name="inboxform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="POST">'
-	  	.'<input name="do" type="hidden" value="delete_messages">'
+	  	//.'<input name="do" type="hidden" value="delete_messages">'
 	  	.'<input type="hidden" name="url" value="'.base64_encode(getURL()).'">'
 	  	.'<table class="border" width="100%">'
-	  	.'<tr><td align="center" colspan="5"><b>Persönliche Nachrichten</b>'
+	  	.'<tr><th align="center" colspan="6"><b>Pers&ouml;nliche Nachrichten</b>'
 	  	.' '
 	  	.($box == "inbox" ? 'Empfangen' : '<a href="'.getChangedURL('box=inbox').'">Empfangen</a>')
 	  	.' / '
 	  	.($box == "outbox" ? 'Gesendet' : '<a href="'.getChangedURL('box=outbox').'">Gesendet</a>')
+	  	.'<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><button name="button_newMessage" class="button" type="button" style="float:right;">Neue Nachricht</button></a>'
 	  	.'</td></tr>'
 	  	.'<tr><td>'
 	  	.'<input class="button" onClick="selectAll();" type="button" value="Alle">'
-	  	.'</td>'
+	  	.'</th>'
 	  	.'<td>New</td>'
 	  	.'<td>Sender</td>'
-	  	.'<td>Empfänger</td>'
+	  	.'<td>Empf&auml;nger</td>'
 	  	.'<td>Subject</td>'
 	  	.'<td>Datum</td>'
 	  	.'</tr>'
@@ -325,7 +420,7 @@ class Messagesystem {
 
 		  	$html .=
 		  		'<tr>'
-		  		.'<td align="center" bgcolor="#'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'"></td>'
+		  		.'<td align="center" bgcolor="#'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
 		  	    .($rs['isread'] == 0 ? '<td align="center" bgcolor="#'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="#'.$color.'"></td>')
 		  		.'<td align="center" bgcolor="#'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
 		  		.'<td align="center" bgcolor="#'.$color.'" width="30%">';
@@ -346,11 +441,16 @@ class Messagesystem {
 
 		  $html .= '<tr><td align="left" colspan="3">';
 
-		  $html .= '<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><input class="button" type="button" value="Neue Nachricht"></a>';
 		  
-		  $html .= '&nbsp;&nbsp;<input class="button" type="submit" value="Markierte Nachrichten l&ouml;schen">';
+		  $html .= '<button id="do_mark_all_as_read" name="do" class="button" type="submit" value="mark_all_as_read">ALLE als gelesen markieren</button>';
+		  
+		  
+		  $html .= '<button id="do_messages_as_unread" name="do" class="button" type="submit" value="messages_as_unread" disabled>Markierte als ungelesen</button>';
 
-		  $html .= '</td><td align="right" colspan="2">';
+		  
+		  $html .= '<button id="do_delete_messages" name="do" class="button" type="submit" value="delete_messages" disabled>Markierte Nachrichten l&ouml;schen</button>';
+		  
+		  $html .= '</td><td align="right" colspan="3">';
 
 		  $sql =
 		  	"
