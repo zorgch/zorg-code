@@ -90,7 +90,7 @@ function head($author_id=0, $title="", $return = 0) {
 		<meta name="geo.region" content="CH-SG">
 		<meta name="geo.placename" content="St. Gallen">
 		<meta name="ICBM" content="47.4233, 9.37" />
-		<title>'.$title.'@zorg.ch</title>
+		<title>'.$title.' - zorg.ch</title>
 		<link rel="prefetch" href="forum.php">
 		<link rel="stylesheet" type="text/css" href="includes/'.$style_array[$sun].'" >
 		<link rel="shortcut icon" href="'.$favicon[$sun].'"  type="image/x-icon">
