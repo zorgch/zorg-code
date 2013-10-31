@@ -1,4 +1,3 @@
-
 <?php
 //=============================================================================
 // includes
@@ -184,13 +183,13 @@ if($user->id && $_GET['do'] == "view" && !$_GET['user_id']) {
 
 
 if(!$_GET['do']) {
-	echo head(24);
+	echo head(24, usersystem::id2user($_GET['user_id'], TRUE));
 } elseif($_SESSION['user_id']) {
-	echo head(25);
+	echo head(25, usersystem::id2user($_GET['user_id'], TRUE));
 } elseif($_GET['regcode']) {
 	echo head(13);
 } else {
-	echo head(13);
+	echo head(13, 'Userlist');
 }
 
 echo menu("zorg");
