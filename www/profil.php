@@ -475,10 +475,11 @@ if($_SESSION['user_id']) {
 			.'</table>'
 		;
 		
+		if ($user->typ != USER_NICHTEINGELOGGT) {
 		echo
 			'<br />'
 			.getUserPics($_GET['user_id'], 0)
-		;
+		; }
 	}
 
 
