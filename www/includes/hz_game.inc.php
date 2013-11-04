@@ -110,7 +110,7 @@ function start_new_game ($map) {
 		$db->query("INSERT INTO hz_players (game, user, station) VALUES ($game, $user->id, ".get_start_station($game).")", __FILE__, __LINE__);
 		
 		// Activity Eintrag auslösen
-		Activities::addActivity($user->id, 0, "hat ein neues Hunting z Spiel auf der Karte ".$d['name']." er&ouml;ffnet.<br/><br/><a href=\"/smarty.php?tpl=103&amp;game=$game\">Am Spiel als Inspector teilnehmen</a>");
+		Activities::addActivity($user->id, 0, "hat ein neues Hunting z Spiel auf der Karte ".$d['name']." er&ouml;ffnet.<br/><br/><a href=\"/smarty.php?tpl=103&amp;game=$game\">Am Spiel als Inspector teilnehmen</a>", 'hz');
 		
 	}else{
 		user_error("Invalid map '$map'", E_USER_ERROR);
@@ -184,7 +184,7 @@ function join_game ($game) {
 			$db->query("INSERT INTO hz_players (game, user, type, station) VALUES ($game, $user->id, '$d[numplayers]', ".get_start_station($game).")", __FILE__, __LINE__);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, "ist <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> als Inspector beigetreten.");
+			Activities::addActivity($user->id, 0, "ist <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> als Inspector beigetreten.", 'hz');
 			
 			if ($d['numplayers'] == $d['awaitingplayers']) {
 				start_game ($game);
@@ -549,7 +549,7 @@ function finish_mails ($game) {
 			$text = "Du hast <a href='/smarty.php?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Mister z <b>gewonnen</b>.";
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, "ich konnt als Mr. Z in <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!");
+			Activities::addActivity($user->id, 0, "ich konnt als Mr. Z in <a href=\"/smarty.php?tpl=103&game=$game\">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!", 'hz');
 			
 		}elseif ($d['winner'] == 'players' && $d['type'] == 'z') {
 			$text = "Du hast <a href='/smarty.php?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Mister z <b>verloren</b>.";
@@ -559,7 +559,7 @@ function finish_mails ($game) {
 			$text = "Wir haben <a href='/smarty.php?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Inspectors <b>gewonnen</b>.";
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, "Wir haben als Inspectors auf <a href=\"/smarty.php?tpl=103&game=$gid\">$map</a> Mr. Z erfolgreich festgenommen!");
+			Activities::addActivity($user->id, 0, "Wir haben als Inspectors auf <a href=\"/smarty.php?tpl=103&game=$gid\">$map</a> Mr. Z erfolgreich festgenommen!", 'hz');
 		}
 		if ($text) {
 			Messagesystem::sendMessage($user->id, $d['user'], "Hunting z (autom. Nachricht)", $text);

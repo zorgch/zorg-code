@@ -204,7 +204,7 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 					 __FILE__, __LINE__);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, $game['pl2'], "hat ".$user->id2user($game['pl2'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>");
+			Activities::addActivity($user->id, $game['pl2'], "hat ".$user->id2user($game['pl2'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');
 			
 	    } else {
 			$e = $db->query("UPDATE go_games
@@ -214,7 +214,7 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 					 __FILE__, __LINE__);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, $game['pl1'], "hat ".$user->id2user($game['pl1'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>");	
+			Activities::addActivity($user->id, $game['pl1'], "hat ".$user->id2user($game['pl1'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');	
 	    }
 	}
 
@@ -248,7 +248,7 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 					 __FILE__, __LINE__);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, $game['pl2'], "hat sich bei ".$user->id2user($game['pl2'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>");
+			Activities::addActivity($user->id, $game['pl2'], "hat sich bei ".$user->id2user($game['pl2'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
 			
 	    }
 	    else {
@@ -259,7 +259,7 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 					 __FILE__, __LINE__);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, $game['pl1'], "hat sich bei ".$user->id2user($game['pl1'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>");
+			Activities::addActivity($user->id, $game['pl1'], "hat sich bei ".$user->id2user($game['pl1'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
 			
 	    }
 	}

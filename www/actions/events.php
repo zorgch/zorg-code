@@ -31,7 +31,7 @@ if($_POST['action'] == 'new') {
   $idNewEvent = mysql_insert_id();
   
   // Activity Eintrag auslösen
-  Activities::addActivity($user->id, 0, 'hat den Event <a href="'.base64_decode($_POST['url']).'&event_id='.$idNewEvent.'">'.$_POST['name'].'</a> erstellt.<br/><br/>');
+  Activities::addActivity($user->id, 0, 'hat den Event <a href="'.base64_decode($_POST['url']).'&event_id='.$idNewEvent.'">'.$_POST['name'].'</a> erstellt.<br/><br/>', 'ev');
   
   header('Location: '.base64_decode($_POST['url']).'&event_id='.$idNewEvent);
   exit;
@@ -65,7 +65,7 @@ else if (isset($_GET['join']) && is_numeric($_GET['join'])) { // User besucht Ev
 	
 	// Activity Eintrag auslösen
 	//Activities::addActivity($user->id, 0, "nimmt am Event <a href=\"".base64_decode($_GET['url'])."\">".$_GET['join']."</a> teil.<br/><br/>");
-	Activities::addActivity($user->id, 0, 'nimmt an <a href="'.base64_decode($_GET['url']).'">'.Events::getEventName($_GET['join']).'</a> teil.');
+	Activities::addActivity($user->id, 0, 'nimmt an <a href="'.base64_decode($_GET['url']).'">'.Events::getEventName($_GET['join']).'</a> teil.', 'ev');
 	
 	header('Location: '.base64_decode($_GET['url']).'&event_id='.$_GET['join']);
 	exit;

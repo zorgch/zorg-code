@@ -105,7 +105,7 @@ class Activities
 	 * @see		checkAllowActivities()
 	 * @todo	Würde es Sinn machen, noch die Activity-Area zu speichern?
 	 */
-	static public function addActivity ($fromUser, $forUser, $activity)
+	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL)
 	{
 		global $db;
 		//$activities = $_ENV['$activities_HZ']; // Globale Activity-Arrays mergen
@@ -115,7 +115,7 @@ class Activities
 			$sql = "INSERT INTO activities
 						(date, activity_area, from_user_id, owner, activity)
 					VALUES
-						(now(), '', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
+						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
 					";
 			$db->query($sql, __FILE__, __LINE__);
 		//}

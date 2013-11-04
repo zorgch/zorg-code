@@ -853,7 +853,7 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 		$db->query($sql, __FILE__, __LINE__);
 			
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
-		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>'); }
+		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 	} else {
 		user_error("Das dörfsch DU nöd - isch nur für igloggti User!", E_USER_ERROR);
 	}
@@ -1087,7 +1087,7 @@ function doBenoten($pic_id, $score) {
 	//return array('state'=>"Pic $pic_id benotet");
 	
 	// Activity Eintrag auslösen (ausser bei der Bärbel)
-	if ($user_id != 59) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit der Note <b>'.$score.'/6</b> bewertet.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>'); }
+	if ($user_id != 59) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit der Note <b>'.$score.'/6</b> bewertet.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 }
 
 
