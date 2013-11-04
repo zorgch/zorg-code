@@ -752,7 +752,7 @@ class Messagesystem {
 		if ($to_user_id != 0 && $to_user_id <> '')
 		{
 			// Nur, wenn User E-Mailbenachrichtigung aktiviert hat...!
-			if ($empfaengerMail = usersystem::id2useremail($to_user_id)) {
+			if (($empfaengerMail = usersystem::id2useremail($to_user_id)) != false) {
 				$empfaengerName = usersystem::id2user($to_user_id, TRUE);
 				$senderName = usersystem::id2user($from_user_id, TRUE);
 				

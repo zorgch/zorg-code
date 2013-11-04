@@ -834,17 +834,17 @@ class usersystem {
 	/**
 	* ID zu User E-Mail
 	* 
-	* Gibt aufgrund einer User ID dessen E-Mailadresse zurück
+	* Gibt aufgrund einer User ID dessen E-Mailadresse zurück, falls der User E-Mailbenachrichtigung erlaubt hat
 	* 
 	* @return string email
 	* @param $id int User ID
 	*/
 	function id2useremail($id) {
 		global $db;
-		$sql = "SELECT email FROM user WHERE id = ".$id." AND email_notification = 1"; // Nur wenn User E-Mail Notification aktiviert hat!
+		$sql = "SELECT email, email_notification FROM user WHERE id = $id";
 		$result = $db->query($sql, __FILE__, __LINE__);
 		$rs = $db->fetch($result);
-		return $rs['email'];
+		return ($rs['email_notification'] > 0 ? $rs['email'] : false);
 	}
 	
 	
