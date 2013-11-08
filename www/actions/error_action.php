@@ -8,10 +8,10 @@ if(count($_POST) > 0) {
 	if($_POST['del']) {
 		$sql_del = "UPDATE sql_error set status = 0 WHERE id = '".$_GET['id']."'";
 		$db->query($sql_del,__FILE__,__LINE__);
-		header("Location: http://www.zooomclan.org/smarty.php?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+		header("Location: /smarty.php?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
 	} 
 	if($_POST['query']) {
-		header("Location: http://www.zooomclan.org/smarty.php?tpl=".$_GET['tpl']."&id=".$_GET['id']."&query=".base64_encode($_POST['query'])."&".session_name()."=".session_id());
+		header("Location: /smarty.php?tpl=".$_GET['tpl']."&id=".$_GET['id']."&query=".base64_encode($_POST['query'])."&".session_name()."=".session_id());
 	} 
 	if(@count($_POST['to_del']) > 0) {
 		$sql = "UPDATE sql_error set status = 0 WHERE id in(";
@@ -20,11 +20,11 @@ if(count($_POST) > 0) {
 		}
 		$sql .= "0)";
 		$db->query($sql,__FILE__,__LINE__);
-		header("Location: http://www.zooomclan.org/smarty.php?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+		header("Location: /smarty.php?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
 	}
 	if($_POST['num']) {
 		$_SESSION['error_num'] = $_POST['num'];
-		header("Location: http://www.zooomclan.org/smarty.php?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+		header("Location: /smarty.php?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
 	}
 }
 

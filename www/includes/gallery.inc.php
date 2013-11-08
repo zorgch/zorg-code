@@ -28,7 +28,7 @@ set_time_limit(600);
 /**
  * Konstante FTP_UPDIT
  */
-define("FTP_UPDIR", "ftp://zooomclan@www.zooomclan.org/data/gallery/upload/incoming/");
+define("FTP_UPDIR", "ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/");
 /**
  * Konstante DIR
  */

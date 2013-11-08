@@ -16,7 +16,7 @@
 {/if}
 
 <nobr>| updated: {$tpl.update_user|username}, {$tpl.update|datename}</nobr>
-<nobr>| <a href="http://www.zooomclan.org/smarty.php?tpl={$tpl.id}">tpl={$tpl.id}</a></nobr>
+<nobr>| <a href="/smarty.php?tpl={$tpl.id}">tpl={$tpl.id}</a></nobr>
 
 {if tpl_permission($tpl.write_rights, $tpl.owner)}
    <nobr>| {edit_link}[edit]{/edit_link}</nobr>

@@ -743,6 +743,8 @@ class Messagesystem {
 	 * @param string $titel Titel der ursprünglichen Nachricht
 	 * @param string $text Ursprünglicher Text
 	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 *
+	 * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
 	 */
 	function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
 	{
@@ -770,8 +772,8 @@ class Messagesystem {
 				$header  = 'MIME-Version: 1.0' . "\n";
 				$header .= 'Content-type: text/html; charset=iso-8859-1' . "\n";
 				//$header  = 'From: '.$senderName.' <info@zooomclan.org>'."\n";
-				$header  = 'From: Zorg.ch <info@zooomclan.org>'."\n";
-			    $header .= 'Reply-To: info@zooomclan.org'."\n";
+				$header  = 'From: Zorg.ch <info@zorg.ch>'."\n";
+			    $header .= 'Reply-To: info@zorg.ch'."\n";
 			    $header .= 'X-Mailer: PHP/'.phpversion();
 				
 				// Vesende E-Mail an User

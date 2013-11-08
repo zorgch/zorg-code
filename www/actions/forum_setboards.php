@@ -10,5 +10,5 @@ for($i = 0; $i < count($_POST['boards']); $i++) {
 $sql =	"UPDATE user SET forum_boards = '".$boards."' WHERE id = ".$user->id;
 $db->query($sql, __FILE__, __LINE__);
 
-header("Location: http://www.zooomclan.org/forum.php");
+header("Location: /forum.php");
 ?>

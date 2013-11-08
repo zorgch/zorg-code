@@ -382,11 +382,10 @@ class usersystem {
 					$body = "Neues Passwort fuer den Benutzer: ".$rs['username']."\
 					Passwort: ".$new_pass."\n
 					Dieses Passwort kannst du auf unserer Website unter mein Profil wieder aendern.\n
-					Weiterhin wuenschen wir dir viel Spass auf www.zooomclan.org\n
-					zooomclan.org";
+					Weiterhin wuenschen wir dir viel Spass auf Zorg";
 
 					//versende email
-					@mail($email,"Neues Passwort",$body,"From: info@zooomclan.org\n");
+					@mail($email,"Neues Passwort",$body,"From: info@zorg.ch\n");
 					$error = "Ein neues Passwort wurde generiert und dir zugestellt!";
 
 				} else {
@@ -409,6 +408,8 @@ class usersystem {
 	 * @param $pw string Passwort
 	 * @param $pw2 string Passwortwiederholung
 	 * @param $email string E-Mail
+	 *
+	 * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
 	 */
 	function create_newuser($username, $pw, $pw2, $email) {
 		global $db;
@@ -453,11 +454,11 @@ class usersystem {
 							mkdir($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
 							chmod($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
 
-							$body = "Willkommen bei www.zooomclan.org, deine Benutzerdaten sind:\n
+							$body = "Willkommen auf Zorg, deine Benutzerdaten sind:\n
 							Benutzername: ".$username."
 							Passwort: ".$pw."\n
 							Wir bitten dich deinen Account noch freizuschalten, dazu musst du lediglich folgende Website aufrufen:
-							http://www.zooomclan.org/profil.php?menu_id=13&regcode=".$key."\n
+							http://www.zorg.ch/profil.php?menu_id=13&regcode=".$key."\n
 
 							Wir wünschen dir viel Spass!\n
 

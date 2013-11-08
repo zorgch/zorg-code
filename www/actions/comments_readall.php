@@ -11,7 +11,7 @@ if($user->id > 0) {
 	$sql = "UPDATE user set button_use = button_use + 1, posts_lost = posts_lost + $num WHERE id = '$user->id'";
 	$db->query($sql,__FILE__,__LINE__);
 	
-	header("Location: http://www.zooomclan.org/forum.php?".session_name()."=".session_id());
+	header("Location: /forum.php?".session_name()."=".session_id());
 	exit;
 	
 } else {

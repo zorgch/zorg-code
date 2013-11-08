@@ -1,6 +1,6 @@
 <?PHP
 // get contents of a file into a string
-$somecontent = @file_get_contents('http://www.zooomclan.org/forum.php');
+$somecontent = @file_get_contents('http://www.zorg.ch/forum.php');
 
 $filename = $_SERVER['DOCUMENT_ROOT'].'/forum.html';
 

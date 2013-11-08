@@ -10,9 +10,9 @@ if($_POST['submit'] && $_SESSION['user_id']) {
     $content = "Es gibt keine korrekten Antworten.\n"
                             ."Die Zukunft haengt von den Entscheidungen ab, die Sie und ich in den naechsten Stunde, in der naechsten Woche, im naechsten "
                             ."Jahrzehnt treffen werden.\n"
-                            ."Die genaue Auswertung ist mit dem noetigen Geschick auf www.zooomclan.org zu finden!";
+                            ."Die genaue Auswertung ist mit dem noetigen Geschick auf www.zorg.ch zu finden!";
 
-    $header = "From: zorgsche kollektiv intelligenz <illuminatus@zooomclan.org>\n";
+    $header = "From: zorgsche kollektiv intelligenz <illuminatus@zorg.ch>\n";
     $sql = "SELECT * FROM user WHERE id = '$_SESSION[user_id]'";
     $result = $db->query($sql,__FILE__,__LINE__);
     $rs = $db->fetch($result);

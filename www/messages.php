@@ -33,7 +33,7 @@ if($_SESSION['user_id']) {
 				$_POST['mailto'], 
 				$_POST['subject'], 
 				$_POST['message'], 
-				"From: ".$user->username." <".$user->username."@zooomclan.org>\n"
+				"From: ".$user->username." <".$user->username."@zorg.ch>\n"
 			);
 			echo "<b>Nachricht gesendet!</b><br />";
 			echo imapStatic::getOverview($imap);

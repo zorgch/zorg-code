@@ -287,6 +287,8 @@ function overview() {
  * @param integer $id ID des Addle Spiels
  * @param integer $choose ID des Feldes innerhalb des Addle Spiels $id
  * @global array $db Array mit allen MySQL-Datenbankvariablen
+ *
+ * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
  */
 function doplay($id, $choose) {
   global $db;
@@ -373,7 +375,7 @@ function doplay($id, $choose) {
                   		$msg_from,
                   		$msg_to, 
                   		'-- Addle -- (autom. Nachricht)', 
-                  		'<a href="http://www.zooomclan.org/addle.php?show=play&id='.$id.'">Unser Addle-Game ging untentschieden aus.</a>'
+                  		'<a href="http://www.zorg.ch/addle.php?show=play&id='.$id.'">Unser Addle-Game ging unentschieden aus.</a>'
                   	);
               	}
               }

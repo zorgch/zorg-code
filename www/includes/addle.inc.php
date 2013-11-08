@@ -56,6 +56,8 @@ function getOpenAddleGames($userID) {
  * @version 1.0
  *
  * @global array $db Array mit allen MySQL-Datenbankvariablen
+ *
+ * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
  */
 function addle_remove_old_games () {
 	global $db;
@@ -77,14 +79,14 @@ function addle_remove_old_games () {
 			$winner,
 			$looser, 
 			'-- Addle -- (autom. Nachricht)', 
-			'<a href="http://www.zooomclan.org/addle.php?show=play&id='.$d['id'].'">'
+			'<a href="http://www.zorg.ch/addle.php?show=play&id='.$d['id'].'">'
 				.'Du hast unser Addle-Game verloren, weil du nicht mehr weiter gespielt hast.</a>'
 		);
 		Messagesystem::sendMessage(
 			$looser,
 			$winner, 
 			'-- Addle -- (autom. Nachricht)', 
-			'<a href="http://www.zooomclan.org/addle.php?show=play&id='.$d['id'].'">'
+			'<a href="http://www.zorg.ch/addle.php?show=play&id='.$d['id'].'">'
 				.'Du hast unser Addle-Game gewonnen, weil ich nicht mehr weiter gespielt habe.</a>'
 		);
 		$db->query("UPDATE addle SET finish='1', $winner_score=1, $looser_score=0 WHERE id=$d[id]", __FILE__, __LINE__);
