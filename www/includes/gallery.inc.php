@@ -90,10 +90,10 @@ function galleryOverview ($state="", $error="") {
 		SELECT
 			a.*
 			, COUNT(p.id) anz
-		FROM gallery_albums a, gallery_pics p
+		FROM gallery_albums a, gallery_pics p, UNIX_TIMESTAMP(created) AS created_at
 		WHERE p.album = a.id ".ZENSUR."
 		GROUP BY p.album
-		ORDER BY id DESC
+		ORDER BY created_at DESC, name ASC
 		"
 	;
 	$e = $db->query($sql, __FILE__, __LINE__);
