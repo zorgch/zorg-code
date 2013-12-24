@@ -90,7 +90,8 @@ function galleryOverview ($state="", $error="") {
 		SELECT
 			a.*
 			, COUNT(p.id) anz
-		FROM gallery_albums a, gallery_pics p, UNIX_TIMESTAMP(created) AS created_at
+			, UNIX_TIMESTAMP(created) AS created_at
+		FROM gallery_albums a, gallery_pics p
 		WHERE p.album = a.id ".ZENSUR."
 		GROUP BY p.album
 		ORDER BY created_at DESC, name ASC
