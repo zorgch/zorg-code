@@ -94,7 +94,7 @@ function galleryOverview ($state="", $error="") {
 		FROM gallery_albums a, gallery_pics p
 		WHERE p.album = a.id ".ZENSUR."
 		GROUP BY p.album
-		ORDER BY created_at DESC, name ASC
+		ORDER BY name ASC, created_at DESC
 		"
 	;
 	$e = $db->query($sql, __FILE__, __LINE__);
