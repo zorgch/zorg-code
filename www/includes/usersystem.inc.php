@@ -37,6 +37,7 @@ define("AUSGESPERRT_BIS", "ausgesperrt_bis");
  * 
  * @author [z]biko
  * @version 2.0
+ * @since 1.0
  * @package Zorg
  * @subpackage Usersystem
  */
@@ -710,35 +711,67 @@ class usersystem {
 	}
 	
 	
-	function id2user($id, $clantag=FALSE, $pic=FALSE) {
+	/**
+	* Convert ID to Username/Userpic
+	* 
+	* Konvertiert eine ID zum entsprechenden Username (wahlweise inkl. Clantag oder ohne), oder dem HTML-Code zur Anzeige des Userpics
+	* 
+	* @version 2.0
+	* @since 1.0
+	* @author IneX
+	*
+	* @param $id int User ID
+	* @param $clantag boolean Username mit Clantag true/false
+	* @param $pic boolean Anstatt Username das Userpic HTML-Code ausgeben true/false
+	* @see userImage
+	* @return string Username (mit/ohne Clantag) oder Userpic HTML-Code
+	*/
+	function id2user($id, $clantag=FALSE, $pic=FALSE)
+	{
 		global $db, $zorg, $zooomclan;
 		static $_users = array();
 		
-   		if (!isset($_users[$id])) {
-      		$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
-      		$result = $db->query($sql, __FILE__, __LINE__);
-      		while ($rs = mysql_fetch_array($result)) {
-      		   $_users[$id] = $rs;
-      		}
-   		}
-   		$us = $_users[$id]['username'];
-   		if($clantag == TRUE) {
-   			$us = $_users[$id]['clan_tag'].$us;
-   		}
-   		
-   		
+		if (!empty($id) && !is_numeric($id)) die('<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>');
+		
+		if (!isset($_users[$id]))
+		{
+			if ($clantag == TRUE) {
+				$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
+			} else {
+				$sql = "SELECT username FROM user WHERE id='$id'";
+			}
+	  		$result = $db->query($sql, __FILE__, __LINE__);
+	  		while ($rs = mysql_fetch_array($result)) {
+	  		   $_users[$id] = $rs;
+	  		}
+		}
+		
+		// Set string with Username
+		$us = $_users[$id]['username'];
+		
+		// If applicable, prefix Username with the Clantag
+		if ($clantag == TRUE)
+		{
+			// ...but only if the user really HAS a Clantag!
+			if (!empty($_users[$id]['clan_tag'])) {
+				$us = $_users[$id]['clan_tag'].$us;
+			}
+		}
+		
+		// Return Userpic HTML
 		if($pic == TRUE) {
-   			$us = 
-   				'<img alt="'.$us.'" border="0" src="'.usersystem::userImage($id).'" title="'.$us.'"'
-   			;
-   			
-   			if ($zorg == true) {
-   				$us .= ' height="65">';
-   			} else {
-   				$us .= '>';
-   			}
-   		}
-   		return $us;
+			$us = 
+				'<img alt="'.$us.'" border="0" src="'.usersystem::userImage($id).'" title="'.$us.'"'
+			;
+			
+			if ($zorg == true) {
+				$us .= ' height="65">';
+			} else {
+				$us .= '>';
+			}
+		}
+		
+		return $us;
 	}
 	
 	
@@ -842,10 +875,10 @@ class usersystem {
 	*/
 	function id2useremail($id) {
 		global $db;
-		$sql = "SELECT email, email_notification FROM user WHERE id = $id";
+		$sql = "SELECT email, email_notification FROM user WHERE id = '$id'";
 		$result = $db->query($sql, __FILE__, __LINE__);
 		$rs = $db->fetch($result);
-		return ($rs['email_notification'] > 0 ? $rs['email'] : false);
+		return (!empty($rs['email_notification']) ? $rs['email'] : false);
 	}
 	
 	

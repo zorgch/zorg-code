@@ -751,27 +751,28 @@ class Messagesystem {
 		global $db;
 		
 		// E-Mailnachricht bauen
-		if ($to_user_id != 0 && $to_user_id <> '')
+		if ($to_user_id != 0 && $to_user_id <> '' && is_numeric($to_user_id))
 		{
 			// Nur, wenn User E-Mailbenachrichtigung aktiviert hat...!
-			if (($empfaengerMail = usersystem::id2useremail($to_user_id)) != false) {
+			if (usersystem::id2useremail($to_user_id) != false)
+			{
+				$empfaengerMail = usersystem::id2useremail($to_user_id);
 				$empfaengerName = usersystem::id2user($to_user_id, TRUE);
 				$senderName = usersystem::id2user($from_user_id, TRUE);
 				
-				$subject = "Neue Nachricht auf Zorg.ch";
+				$subject = 	"Neue Nachricht auf Zorg.ch";
 				
 				$body =		"Du hast eine neue Nachricht in deinem Posteingang auf http://www.zorg.ch/\r\n";
 				$body .=	"\r\n";
 				$body .=	"Titel:	$titel\n";
 				$body .=	"Von:	$senderName\n";
-				$body .=	"Auszug: ".text_width(remove_html($text), 75, '...')."\r\n";
+				$body .=	"Auszug: ".text_width(remove_html($text), 140, '...')."\r\n";
 				$body .=	"\r\n";
 				$body .=	"------------\n";
 				$body .=	"Zorg.ch";
 				
 				$header  = 'MIME-Version: 1.0' . "\n";
 				$header .= 'Content-type: text/html; charset=iso-8859-1' . "\n";
-				//$header  = 'From: '.$senderName.' <info@zooomclan.org>'."\n";
 				$header  = 'From: Zorg.ch <info@zorg.ch>'."\n";
 			    $header .= 'Reply-To: info@zorg.ch'."\n";
 			    $header .= 'X-Mailer: PHP/'.phpversion();
