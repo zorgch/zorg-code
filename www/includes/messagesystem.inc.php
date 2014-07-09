@@ -771,11 +771,11 @@ class Messagesystem {
 				$body .=	"------------\n";
 				$body .=	"Zorg.ch";
 				
-				$header  = 'MIME-Version: 1.0' . "\n";
-				$header .= 'Content-type: text/html; charset=iso-8859-1' . "\n";
-				$header  = 'From: Zorg.ch <info@zorg.ch>'."\n";
-			    $header .= 'Reply-To: info@zorg.ch'."\n";
-			    $header .= 'X-Mailer: PHP/'.phpversion();
+				$header  = 	"MIME-Version: 1.0\n";
+				$header .= 	"Content-type: text/html; charset=iso-8859-1\n";
+				$header .= 	"From: Zorg.ch <info@zorg.ch>\n";
+			    $header .= 	"Reply-To: info@zorg.ch\n";
+			    $header .= 	"X-Mailer: PHP/".phpversion();
 				
 				// Vesende E-Mail an User
 				mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
