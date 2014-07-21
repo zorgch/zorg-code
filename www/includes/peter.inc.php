@@ -102,22 +102,36 @@ class peter {
 			//$rand = rand(1,5000);
 			$rand = rand(1,100);
 			
-			//Wenn 23 gewürfelt wird
-			if($rand == 23) {
-				
-				//Rosenverkäufer einloggen
+			//Wenn 23 gewürfelt wird...
+			if($rand == 23)
+			{
+				//...und Rosenverkäufer heute noch nicht online war
 				$sql = "
-				UPDATE user 
-				set lastlogin = currentlogin
-				WHERE id = '".peter::$r_id."'";
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				SELECT
+					UNIX_TIMESTAMP(lastlogin) as lastlogin
+				FROM
+					user
+				WHERE
+					id = '".peter::$r_id."'
+					AND UNIX_TIMESTAMP(lastlogin) < UNIX_TIMESTAMP(CAST(NOW() - INTERVAL 1 DAY AS DATE))";
+				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 				
-				$sql = "
-				UPDATE user 
-				set currentlogin = now(),
-				activity = now()
-				WHERE id = '".peter::$r_id."'";
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				if ($db->num($result) != FALSE)
+				{
+					//...Rosenverkäufer einloggen
+					$sql = "
+					UPDATE user 
+					SET
+						lastlogin = currentlogin,
+						currentlogin = now(),
+						activity = now()
+					WHERE id = '".peter::$r_id."'";
+					$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+					
+				} else {
+					// Return 0 so nothing will happen...
+					return 0;
+				}
 			}
 		
 		//Modes "alles" prüfen ob der Rosenverkäufer eingeloggt ist
@@ -696,11 +710,11 @@ class peter {
 	function auto_nextplayer() {
 		global $db;
 		
-		//Rosen prüfer
+		//Prüfen ob der Rosenverkäufer da ist
 		$rosen = $this->rosenverkaufer("check");
 		
 		//Wenn der Rosenverkäufer da ist
-		if(!$rosen == 1) {
+		if($rosen == 1) {
 			$sql = "
 			SELECT
 				*
@@ -708,27 +722,64 @@ class peter {
 			LEFT JOIN peter p
 				ON p.card_id = pc.card_id
 			WHERE
-				pc.game_id = ".$this->game_id."
-				AND
-				pc.status = 'nicht gelegt'
-				AND
-				p.value > ".$this->lc['value'];
-		}
+				game_id = ".$this->game_id."
+			AND
+				status = 'nicht gelegt'
+			AND
+				col = 2
+			AND
+				user_id <> ".$this->lc['user_id'];
+			/*
+			SQL-Query erklärt:
+			
+				game_id = aktuelles Spiel
+				status	= nur nicht gelegte Karten der Spieler
+				col		= color (Farbe) nur Rosen (color '2')
+				user_id	= nicht der gleiche wie die letzte Karte gelegt hat
+			*/
+			
 		
+		//Wenn der Rosenverkäufer NICHT da ist
+		} else {
+			$sql = "
+			SELECT
+				*
+			FROM peter_cardsets pc
+			LEFT JOIN peter p
+				ON p.card_id = pc.card_id
+			WHERE
+				game_id = ".$this->game_id."
+				AND
+				status = 'nicht gelegt'
+				AND
+				value > ".$this->lc['value'];
+			/*
+			SQL-Query erklärt:
+			
+				game_id = aktuelles Spiel
+				status	= nur nicht gelegte Karten der Spieler
+				value	= nur wer eine Karte mit GRÖSSEREM Wert als der letzte Spieler hat
+			*/
+			
+		}
+		// Query ausführen
 		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 		
 		//Wenn niemand eine höhere Karte hat
-		if(!$db->num($result)) {
-			//Spieler nochmals aktivieren
+		//(respektive auch keine Rosen wenn der Rosenverkäufer da ist...)
+		if($db->num($result) == FALSE)
+		{
+			//Letzten Spieler nochmals aktivieren
 			$sql = "
 			UPDATE peter_games set next_player = '".$this->lc['user_id']."', last_activity = now()
 			WHERE game_id = ".$this->game_id;
 			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			
-			//Karten Daten neu laden
-			$this->lc = $this->lastcard();
 		}
+		
+		//Karten Daten für die "Letzte gelegte Karte" neu laden
+		$this->lc = $this->lastcard();
 	}
+	
 	/**
 	 * @return bool
 	 * @param $card_id Card_ID
