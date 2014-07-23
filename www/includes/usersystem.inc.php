@@ -691,6 +691,7 @@ class usersystem {
 		$sql = 
 			"SELECT id, clan_tag, username FROM user"
 			." WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(now())-".(USER_OLD_AFTER*2).")"
+			." OR z_gremium = '1' OR vereinsmitglied = '1'"
 			." ORDER BY clan_tag DESC, username ASC"
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
