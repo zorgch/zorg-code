@@ -879,7 +879,8 @@ class usersystem {
 		$sql = "SELECT email, email_notification FROM user WHERE id = '$id'";
 		$result = $db->query($sql, __FILE__, __LINE__);
 		$rs = $db->fetch($result);
-		return (!empty($rs['email_notification']) ? $rs['email'] : false);
+		$value = (!empty($rs['email_notification']) ? $rs['email'] : false);
+		return $value;
 	}
 	
 	
