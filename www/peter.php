@@ -6,9 +6,23 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/peter.inc.php");
 
 $peter = new peter($_GET['game_id']);
 
-if($_SESSION['user_id'] && !$_GET['img']) {
+if($_GET['img'] == "karten") {
+	
+	if($_GET['game_id']) {
+		
+		header("Content-Type: Image/PNG");
+		header("Cache-Control: no-cache, no-store, must-revalidate");
+		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+		header("Cache-Control: post-check=0, pre-check=0", false);
+		header("Pragma: no-cache");
+	
+		imagepng($peter->kartenberg());
+	}
+	
+} elseif(!$_GET['img']) {
 	//ob_start(); // Startet das Output-Buffering - damit die header() funktion nicht an oberster Stelle des Codes stehen muss
-	echo head();
+	echo head(117, 'Peter');
 	echo menu("zorg");
 	echo menu("games");
 	echo menu("peter");
@@ -41,8 +55,13 @@ if($_SESSION['user_id'] && !$_GET['img']) {
 	
 	} elseif(!$_GET['view']) {
 		
-		echo $peter->offene_spiele();
-		echo "<br />";
+		if ($user->typ != USER_NICHTEINGELOGGT)
+		{
+			echo $peter->offene_spiele();
+			echo "<br />";
+			echo $peter->meine_laufende_spiele($user->id);
+			echo "<br />";
+		}
 		echo $peter->laufende_spiele();
 		
 	} else {
@@ -52,19 +71,6 @@ if($_SESSION['user_id'] && !$_GET['img']) {
 	echo foot(1);
 	//ob_end_flush(); // Beendet das Output-Buffering
 	
-} elseif($_GET['img'] == "karten") {
-	
-	if($_GET['game_id']) {
-		
-		header("Content-Type: Image/PNG");
-		header("Cache-Control: no-cache, no-store, must-revalidate");
-		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-		header("Cache-Control: post-check=0, pre-check=0", false);
-		header("Pragma: no-cache");
-	
-		imagepng($peter->kartenberg());
-	}
 }
 
 ob_end_flush(); // Beendet das Output-Buffering ?>

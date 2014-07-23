@@ -56,8 +56,8 @@ function peter_zuege() {
  * 
  * Dies ist die Hauptklasse zum Peter Spiel
  * 
- * @author [z]Duke, [z]domi
- * @version 1.0
+ * @author [z]Duke, [z]domi, IneX
+ * @version 2.0
  * @package Zorg
  * @subpackage Peter
  */
@@ -489,7 +489,7 @@ class peter {
 				</td></tr>";
 			} else {
 				$html .= "
-				</td><td bgcolor='#".BACKGROUNDCOLOR."'>&nbsp;</td></tr>";
+				</td><td bgcolor='#".BACKGROUNDCOLOR."'><i>Du spielst hier mit!</i></td></tr>";
 			}
 		}
 		$html .= "
@@ -506,19 +506,27 @@ class peter {
 	/**
 	 * Laufende Spiele
 	 * 
-	 * Gibt die Laufenden Spiele zurück
+	 * Gibt alle laufenden Spiele zurück
 	 * 
+	 * @since 1.0
+	 * @version 2.0
+	 * @author [z]Duke, [z]domi, IneX
+	 * 
+	 * @global $db Datenbank Model
+	 * @global $user User Model
 	 * @return unknown
 	*/
 	function laufende_spiele() {
-		global $db;
+		global $db, $user;
 		
 		$html = "
 		<table cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr><td align='center' class='title' colspan='2' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
-		Spiele
+		<tr><td align='center' class='title' colspan='3' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		Alle laufenden Spiele
 		</td></tr>
 		<tr><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		Spiel ID
+		</td><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
 		Spieler
 		</td><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
 		am Zug
@@ -527,44 +535,123 @@ class peter {
 		$sql = "
 		SELECT
 			pg.game_id,
-			pg.next_player,
-			u.username
+			pg.next_player
 		FROM peter_players pp
 		LEFT JOIN peter_games pg
 			ON pg.game_id = pp.game_id
-		LEFT JOIN user u
-			ON u.id = pg.next_player
 		WHERE 
 			pg.status = 'lauft'
-			AND
-			pp.user_id = '$_SESSION[user_id]'";
+		GROUP BY pg.game_id";
 		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 		while($rs = $db->fetch($result)) {
-			$game = "";
+			$spieler = "";
 			$sql = "
 			SELECT
-				u.username
+				pp.user_id
 			FROM peter_players pp
-			LEFT JOIN user u
-				ON u.id = pp.user_id
 			WHERE 
 				pp.game_id = $rs[game_id]
 			ORDER by pp.join_id ASC";
 			$resulti = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 			while($rsi = $db->fetch($resulti)) {
-				$game .= $rsi['username']." ";
+				$spieler .= $user->link_userpage($rsi['user_id']).", ";
 			}
-			$col = ($rs['next_player'] == $_SESSION['user_id']) ? "<b style='color: #FF0000;'>" : "<b>";
 			
 			$html .= "
-			<tr align='left' bgcolor='#".BACKGROUNDCOLOR."'><td>
-			<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>".$col.$game."</b></a>
-			</td>
-			<td bgcolor='#".BACKGROUNDCOLOR."'>".$rs['username']."</td></tr>";
+			<tr align='left' bgcolor='".BACKGROUNDCOLOR."'>
+				<td>
+					<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a>
+				</td>
+				<td>$spieler</td>
+				<td bgcolor='#".BACKGROUNDCOLOR."'>
+					".$user->link_userpage($rs['next_player'])."
+				</td>
+			</tr>";
 		}
 		$html .= "</table>";	
 		
 		return $html;
+		
+	}
+	
+	/**
+	 * Meine offene Spiele
+	 * 
+	 * Gibt die laufenden Spiele eines Benutzers zurück
+	 * 
+	 * @since 2.0
+	 * @version 1.0
+	 * @author IneX
+	 * 
+	 * @global $db Datenbank Model
+	 * @global $user User Model
+	 * @return string
+	*/
+	function meine_laufende_spiele($user_id) {
+		global $db, $user;
+		
+		if ($user_id <> '' && $user_id != NULL)
+		{
+			$html = "
+			<table cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
+			<tr><td align='center' class='title' colspan='3' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			Meine Spiele
+			</td></tr>
+			<tr><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			Spiel ID
+			<td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			Spieler
+			</td><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			am Zug
+			</td></tr>";
+			
+			$sql = "
+			SELECT
+				pg.game_id,
+				pg.next_player
+			FROM peter_players pp
+			LEFT JOIN peter_games pg
+				ON pg.game_id = pp.game_id
+			WHERE 
+				pg.status = 'lauft'
+				AND
+				pp.user_id = $user_id";
+			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			while($rs = $db->fetch($result)) {
+				$spieler = "";
+				$sql = "
+				SELECT
+					pp.user_id
+				FROM peter_players pp
+				WHERE 
+					pp.game_id = $rs[game_id]
+				ORDER by pp.join_id ASC";
+				$resulti = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				while($rsi = $db->fetch($resulti)) {
+					$spieler .= $user->link_userpage($rsi['user_id']).", ";
+				}
+				$col = ($rs['next_player'] == $user_id) ? '#FF0000' : '#'.BACKGROUNDCOLOR;
+				
+				$html .= "
+				<tr align='left' bgcolor='$col'>
+					<td>
+						<strong><a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a></strong>
+					</td>
+					<td>
+						$spieler
+					</td>
+					<td bgcolor='#".BACKGROUNDCOLOR."'>
+						".$user->link_userpage($rs['next_player'])."
+					</td>
+				</tr>";
+			}
+			$html .= "</table>";	
+			
+			return $html;
+			
+		} else {
+			return false;
+		}
 		
 	}
 	
