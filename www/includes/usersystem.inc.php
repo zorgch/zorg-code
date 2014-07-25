@@ -26,6 +26,9 @@ define("USER_SPECIAL", 3);
 //define("USER_NICHTEINGELOGGT", 2);
 //define("USER_ALLE", 3);
 define("USER_IMGPATH", "/../data/userimages/");
+define("USER_IMGPATH_PUBLIC", $_SERVER['SERVER_NAME']."/data/userimages/");
+define("USER_IMGSIZE_LARGE", 427);
+define("USER_IMGSIZE_SMALL", 150);
 define("USER_TIMEOUT", 200);
 define("USER_OLD_AFTER", 60*60*24*30*3); // 3 Monate
 define("DEFAULT_MAXDEPTH", 10);
@@ -36,8 +39,7 @@ define("AUSGESPERRT_BIS", "ausgesperrt_bis");
  * Usersystem Klasse
  * 
  * @author [z]biko
- * @version 2.0
- * @since 1.0
+ * @version 3.0
  * @package Zorg
  * @subpackage Usersystem
  */
@@ -653,6 +655,7 @@ class usersystem {
 	* 
 	* Überprüft ob ein Bild zum User existiert
 	* 
+	* @see USER_IMGPATH
 	* @return bool
 	* @param $id int User ID
 	*/
@@ -670,17 +673,40 @@ class usersystem {
 	* 
 	* Gibt den Pfad zum Bild des Users. Falls kein Bild: none.jpg
 	* 
-	* @return string Pfad zum Bild des Users
-	* @param $id int User ID
+	* @version 2.0
+	* @since 1.0
+	* 
+	* @see usersystem::checkimage(), usersystem::get_gravatar(), USER_IMGPATH
+	* @param int $id User ID
+	* @param boolean $large Large image true/false
+	* @return string URL-Pfad zum Bild des Users
 	*/
 	function userImage($id, $large=0) {
-	   if (usersystem::checkimage($id)) {
-	   	if ($large) return USER_IMGPATH.$id.'.jpg';
-	   	else return USER_IMGPATH.$id.'_tn.jpg';
-	   }else{
-	      return USER_IMGPATH."none.jpg";
-	   }
+		global $user;
+		
+		if (usersystem::checkimage($id)) {
+			if ($large) {
+				return usersystem::get_gravatar(
+					usersystem::id2useremail($id)
+					,USER_IMGSIZE_LARGE
+					,USER_IMGPATH_PUBLIC.$id.'.jpg'
+				);
+			} else {
+				return usersystem::get_gravatar(
+					usersystem::id2useremail($id)
+					,USER_IMGSIZE_SMALL
+					,USER_IMGPATH_PUBLIC.$id.'_tn.jpg'
+				);
+			}
+		} else {
+			return usersystem::get_gravatar(
+				usersystem::id2useremail($id)
+				,USER_IMGSIZE_SMALL
+				,USER_IMGPATH_PUBLIC.$id.'none.jpg'
+			);
+		}
 	}
+	
 	
 	function getFormFieldUserlist($name, $size, $users_selected=0, $tabindex=10) {
 		global $db;
@@ -721,10 +747,10 @@ class usersystem {
 	* @since 1.0
 	* @author IneX
 	*
+	* @see usersystem::userImage()
 	* @param $id int User ID
 	* @param $clantag boolean Username mit Clantag true/false
 	* @param $pic boolean Anstatt Username das Userpic HTML-Code ausgeben true/false
-	* @see userImage
 	* @return string Username (mit/ohne Clantag) oder Userpic HTML-Code
 	*/
 	function id2user($id, $clantag=FALSE, $pic=FALSE)
@@ -792,6 +818,7 @@ class usersystem {
 	 * @author IneX
 	 * @date 02.10.2009
 	 * 
+	 * @see usersystem::userImage()
 	 * @param	$id				User-ID
 	 * @param	$displayName	Zeigt Usernamen unter dem Bild an
 	 * @return	string			Link zum Userpic
@@ -826,6 +853,45 @@ class usersystem {
 		;
 		
    		return $us;
+	}
+	
+	
+	/**
+	 * Gravatar Userpic
+	 * 
+	 * Get either a Gravatar URL or complete image tag for a specified email address.
+	 *
+	 * @source http://gravatar.com/site/implement/images/php/
+	 * @date 24.07.2014
+	 * @author IneX
+	 * @since 3.0
+	 * @version 1.0
+	 * 
+	 * @param string $email The email address
+	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
+	 * @param string $d Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
+	 * @param string $r Maximum rating (inclusive) [ g | pg | r | x ]
+	 * @param boole $img True to return a complete IMG tag False for just the URL
+	 * @param array $atts Optional, additional key/value attributes to include in the IMG tag
+	 * @return String containing either just a URL or a complete image tag
+	 */
+	function get_gravatar( $email, $s = 150, $d = 'mm', $r = 'x', $img = false, $atts = array() )
+	{
+		$url = 'http://www.gravatar.com/avatar/';
+		$url .= md5( strtolower( trim( $email ) ) );
+		$url .= "?s=$s&d=$d&r=$r";
+		$url_check = @get_headers($url); // Get response headers of $url
+		$url_parse = parse_url(trim($d)); // For eventual fallback: parse URL of Default image
+		$url_path_only = explode('/', $url_parse['path'], 2); // Extract the URL domain & path into an array
+		if(strpos($url_check[0],'200')===false) return $url_path_only[1]; // If $url response header is NOT 200, fallback to local image
+		if ( $img )
+		{
+			$url = '<img src="' . $url . '"';
+			foreach ( $atts as $key => $val )
+				$url .= ' ' . $key . '="' . $val . '"';
+			$url .= ' />';
+		}
+		return $url;
 	}
 	
 	
