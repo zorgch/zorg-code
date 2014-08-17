@@ -1221,8 +1221,8 @@ function doRotatePic($picID, $direction) {
 						break;
 
 					/*case 180:
-						//$imgDest = ImageFlip( $origimage, $backupimage, IMAGE_FLIP_BOTH );
-						if (ImageFlip( $origimage, $backupimage, IMAGE_FLIP_BOTH )) {
+						//$imgDest = doImageFlip( $origimage, $backupimage, IMAGE_FLIP_BOTH );
+						if (doImageFlip( $origimage, $backupimage, IMAGE_FLIP_BOTH )) {
 							return array('state'=>"Bild '$newimage' wurde gedreht");
 						}
 						break;*/
@@ -1716,7 +1716,15 @@ function doEditFotoTitle ($picID, $frm) {
 	unset($_GET['editFotoTitle']);
 }
 
-function ImageFlip($imgsrc, $imgout, $type) {
+/**
+ * Flip an image vertically/horizontally
+ *
+ * @todo use native PHP Image Flip function! http://php.net/manual/function.imageflip.php
+ *
+ * @see http://php.net/manual/function.imageflip.php
+ * @see doRotatePic()
+ */
+function doImageFlip($imgsrc, $imgout, $type) {
    $width = imagesx($imgsrc);
    $height = imagesy($imgsrc);
 
