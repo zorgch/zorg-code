@@ -54,7 +54,7 @@ define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
  * 
  * @author [z]biko, IneX
  * @date 23.10.2013
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  * @package Zorg
  * @subpackage Layout
@@ -74,8 +74,8 @@ define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
 function head($author_id=0, $title="", $return = 0) {
 	global $starttime, $user, $smarty, $sun, $country, $db, $layouttype;
 
-	//rosenverkäufer
-	peter::rosenverkaufer();
+	// Rosenverkäufer einloggen
+	if ($user->typ >= USER_USER) peter::rosenverkaufer();
 
 	$style_array = array("up" => "day.css", "down" => "night.css");
 	$favicon = array("up" => "fav_day.ico","down" => "fav_night.ico");
