@@ -4,8 +4,8 @@ require_once( (file_exists('../includes/mysql_login.inc.local.php') ? '../includ
 return array(
     'server'   => 'localhost',
     'port'     => 6667,
-    'name'     => '[z]Barbara_Harris',
-    'nick'     => '[z]Barbara_Harris',
+    'name'     => 'TheArchitect',
+    'nick'     => 'TheArchitect',
     'channels' => array(
         '#zooomclan'
     ),
