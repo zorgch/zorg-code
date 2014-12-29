@@ -1,6 +1,11 @@
 <?php
-/** Include MySQL Database login information file */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql_login.inc.php");
+/**
+ * Include MySQL Database login information file
+ *
+ * Wenn lokal entwickelt wird, muss manuell eine Kopie der DB-Info-Datei mit folgendem Namen angelegt werden:
+ * "mysql_login.inc.local.php"
+ */
+require_once( (file_exists('mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
 
 /**
  * MySQL Database Connection Class
@@ -9,14 +14,14 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql_login.inc.php");
  * @subpackage MySQL
  */
 class dbconn {
-	
+
 	var $conn;
 	var $noquerys = 0;
 	var $noquerytracks = 0;
 	var $nolog = 0;
 	var $display_error = 1;
 	var $query_track = array();
-	
+
 	/**
 	* Verbindungsaufbau
 	*
@@ -27,7 +32,7 @@ class dbconn {
 		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
 		$this->conn = @mysql_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS);
 		if(!$this->conn)
-			die("<b>mySQL: Can't connect to server</b><br /><b></b>");
+			die("MySQL: can't connect to server");
 		if(!@mysql_select_db($database, $this->conn))
 			die($this->msg());
 	}
@@ -41,10 +46,10 @@ class dbconn {
 	* @param $line int Linenumber
  	*/
 	function query ($sql, $file="", $line="", $funktion="") {
-	   global $user; 
-	   
+	   global $user;
+
 	   $this->noquerys++;
-	   
+
 	   if ($user && $user->sql_tracker) {
          $this->noquerytracks++;
 	      $qfile = $file;
@@ -55,7 +60,7 @@ class dbconn {
    	   if (!isset($this->query_track[$qfile])) $this->query_track[$qfile] = array();
    	   $this->query_track[$qfile]['line '.$qline]++;
 	   }
-	   
+
 		$result = @mysql_query($sql, $this->conn);
       if (strtolower(substr($sql,0,7)) == "insert ") {
          return mysql_insert_id($this->conn);
@@ -68,7 +73,7 @@ class dbconn {
 
 	/**
 	* Gibt die Errormeldungen formatiert zur?ck
-	* 
+	*
 	* @return string html
 	* @param $sql string SQL
 	* @param $file string Filename
@@ -92,10 +97,10 @@ class dbconn {
 		}
 		return $ausg;
 	}
-	
+
 	/**
 	* Speichert SQL-Errors in der DB
-	* 
+	*
 	* @return void
 	* @param $msg string SQL-Error
 	* @param $sql string SQL-Query
@@ -106,14 +111,14 @@ class dbconn {
 		$msg = addslashes($msg);
 		$sql = addslashes($sql);
 		$sql = "
-		INSERT 
-			into sql_error 
+		INSERT
+			into sql_error
 			(user_id, ip, page, query, msg, date, file, line, referer, status, function)
-			VALUES 
+			VALUES
 			('".$_SESSION['user_id']."','".$_SERVER['REMOTE_ADDR']."',
-			'".$_SERVER['REQUEST_URI']."','$sql', '$msg', now(), 
+			'".$_SERVER['REQUEST_URI']."','$sql', '$msg', now(),
 			'$file', '$line', '".$_SERVER['HTTP_REFERER']."',1, '$funktion')";
-		@mysql_query($sql,$this->conn);	
+		@mysql_query($sql,$this->conn);
 	}
 
 	/**
@@ -133,7 +138,7 @@ class dbconn {
 	function lastid() {
 		return @mysql_insert_id($this->conn);
 	}
-	
+
 	/**
 	* @return int numrows
 	* @param $result object SQL-Resultat
@@ -142,7 +147,7 @@ class dbconn {
 	function num($result,$errorchk=TRUE) {
 		return @mysql_num_rows($result);
 	}
-	
+
 	/**
 	* @return object
 	* @param $result object SQL-Resultat
@@ -154,14 +159,14 @@ class dbconn {
 	}
 
 	/**
-	* @return int 
+	* @return int
 	* @param $result object SQL-Resultat
 	* @desc Gibt die Anzahl betroffener Felder zur?ck
  	*/
 	function numfields($result) {
 		return @mysql_num_fields($result);
 	}
-	
+
 	/**
 	* @return array
 	* @desc Gibt s?mtliche Tabellennamen einer DB als Array zur?ck
@@ -175,7 +180,7 @@ class dbconn {
 		}
 		return $tab;
 	}
- 
+
    /**
    * @return Prim?rschl?ssel des neuen Eintrags
    * @param $table (String) Tabelle, in die eingef?gt werden soll
@@ -189,8 +194,8 @@ class dbconn {
       if (!is_array($values)) {
       	user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
       }
-      
-      $sql = 
+
+      $sql =
       	"INSERT INTO ".$table." ("
       	.implode(",", array_keys($values)).") VALUES ('"
       	.implode("','", $values)."')"
@@ -198,10 +203,10 @@ class dbconn {
       $id = $this->query($sql, $file, $line);
       return $id;
    }
-   
+
    /**
    * Ändert eine Row ein einer DB-Table, ähnlich insert
-   * 
+   *
    * @author biko
    * @param $table (String) Tabelle, in der ge?ndert werden soll
    * @param $id (Array) $id[0]: Name des Prim?rschl?sselfeldes / $id[1+] Rows, die ge?ndert werden sollen
@@ -219,7 +224,7 @@ class dbconn {
          $tmp = $id;
          $id = array("id", $tmp);
       }
-      
+
       $sql = "UPDATE ".$table." SET ";
       foreach ($values as $key => $val) {
          $sql .= $key."='".$val."', ";
