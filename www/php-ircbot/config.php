@@ -10,7 +10,7 @@ return array(
         '#zooomclan'
     ),
     'max_reconnects' => 3,
-    'log_file'       => $_SERVER['DOCUMENT_ROOT'].'/../data/errlog/php_ircbot-log_',
+    'log_file'       => '/var/data/errlog/php_ircbot-log_',
     'timezone'		 => 'Europe/Zurich',
     'quit_message'	 => '',
     'db_server'		 => MYSQL_HOST,
