@@ -17,3 +17,4 @@ Disallow: /util/
 Disallow: /kurse.xml
 Disallow: /karten.htm
 Disallow: /bugtracker.php
+Disallow: /php-ircbot/
