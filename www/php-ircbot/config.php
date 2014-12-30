@@ -26,7 +26,8 @@ return array(
         'Command\Timeout' => array(),
         'Command\Quit'    => array(),
         'Command\Restart' => array(),
-        'Command\Zchat'    => array()
+        'Command\Zchat'    => array(),
+        'Command\Webchat'    => array(),
     ),
     'listeners' => array(),
 );
