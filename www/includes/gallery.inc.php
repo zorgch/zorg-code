@@ -688,11 +688,12 @@ global $db, $MAX_PIC_SIZE;
 if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
 if (!is_array($frm)) user_error("Wrong Parameter-type <i>frm</i>", E_USER_ERROR);
 
-if (countFiles(UPDIR.$frm[folder]) == 0) return array("error"=>"Gew?hlter Ordner '$frm[folder]' ist leer");
+if (countFiles(UPDIR.$frm[folder]) == 0) return array("error"=>"Gew&auml;hlter Ordner '$frm[folder]' ist leer");
 if (countFiles(UPDIR.$frm[folder]) == -1) return array('error'=>"Keine Rechte auf den Ordner '$frm[folder]'");
 
-if (!is_dir(DIR.$id)) system("mkdir ".DIR.$id." -m 0775");
-system("chmod 0775 ".UPDIR.$frm[folder]);
+if (!is_dir(DIR.$id)) mkdir(DIR.$id, 0775); //system("mkdir ".DIR.$id." -m 0775");
+//system("chmod 0775 ".UPDIR.$frm[folder]);
+chmod(UPDIR.$frm[folder], 0775);
 
 $directory = opendir(UPDIR.$frm[folder]);
 $notDone = "";
@@ -705,9 +706,9 @@ while (false !== ($file = readdir ($directory))) {
 	if ($file=="." || $file=="..") continue;
 
 	if (!isPic(UPDIR.$frm[folder].$file)) {
-	$notDone .= "- $file (ist kein g?ltiges Bild)<br />";
+	$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br />";
 	if ($frm[delFiles]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel?scht werden<br />";
+		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
 	}
 	continue;
 	}
@@ -721,7 +722,7 @@ while (false !== ($file = readdir ($directory))) {
 	$db->query("DELETE FROM gallery_pics WHERE id=$picid");
 	$notDone .= "- $file ";
 	if ($frm[delFiles]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gelöscht werden<br />";
+		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
 	}
 
 	$notDone .= "(".$t[error].")<br />";
@@ -737,7 +738,7 @@ while (false !== ($file = readdir ($directory))) {
 	unlink(picPath($id, $picid, extension($file)));
 	$notDone .= "- $file (keine Rechte) <br />";
 	if ($frm[delFiles]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gelöscht werden<br />";
+		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
 	}
 	continue;
 	}else{
@@ -749,7 +750,7 @@ while (false !== ($file = readdir ($directory))) {
 
 	// del uploaded pic, if requested
 	if ($frm[delPics]) {
-	if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gelöscht werden<br />";
+	if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
 	}
 
 	$done .= "- $file <br />";
@@ -759,7 +760,7 @@ closedir($directory);
 // delete directory if empty
 if (countFiles(UPDIR.$frm[folder]) == 0) {
 	if (!@rmdir(UPDIR.$frm[folder]))
-	$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gelöscht werden <br />";
+	$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gel&ouml;scht werden <br />";
 }
 
 if ($notDone) $notDone = "Folgende Files konnten nicht indiziert werden:<br />".$notDone;
@@ -779,15 +780,15 @@ global $db;
 if (!$id) user_error("Missing Parameter <i>$id</i>", E_USER_ERROR);
 
 if (strtolower($del) != "ok") {
-	return array('show'=>"editAlbum", 'error'=>"L&ouml;schen wurde nicht bestätigt <br/>Album wurde nicht gelöscht");
+	return array('show'=>"editAlbum", 'error'=>"L&ouml;schen wurde nicht best&auml;tigt <br/>Album wurde nicht gel&ouml;scht");
 }
 
 $db->query("DELETE FROM gallery_pics WHERE album='$id'", __FILE__, __LINE__);
 $db->query("DELETE FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__);
 
-if (!delDir(DIR.$id)) return array('show'=>"", 'error'=>"Verzeichnis <i>".DIR.$id."</i> konnte nicht gelöscht werden.");
+if (!delDir(DIR.$id)) return array('show'=>"", 'error'=>"Verzeichnis <i>".DIR.$id."</i> konnte nicht gel&ouml;scht werden.");
 
-return array('show'=>"", 'state'=>"Album wurde gel?scht");
+return array('show'=>"", 'state'=>"Album wurde gel&ouml;scht");
 }
 
 
@@ -1099,10 +1100,10 @@ function doDelPic ($id) {
 	
 	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__);
 	$d = mysql_fetch_array($e);
-	if (!@unlink(picPath($d[album], $id, $d[extension]))) return array('error'=>"Bild konnte nicht gelöscht werden");
+	if (!@unlink(picPath($d[album], $id, $d[extension]))) return array('error'=>"Bild konnte nicht gel&ouml;scht werden");
 	@unlink(tnPath($d[album], $id, $d[extension]));
 	$db->query("DELETE FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__);
-	return array('state'=>"Pic $id gel?scht");
+	return array('state'=>"Pic $id gel&ouml;scht");
 }
 
 
@@ -1116,9 +1117,9 @@ function doDelUploadDir($folder) {
 	}
 	
 	if (@delDir(UPDIR.$folder)) {
-		return array('state'=>"Ordner '$folder' wurde gel?scht");
+		return array('state'=>"Ordner '$folder' wurde gel&ouml;scht");
 	}else{
-		return array('error'=>"Ordner '$folder' konnte nicht gelöscht werden");
+		return array('error'=>"Ordner '$folder' konnte nicht gel&ouml;scht werden");
 	}
 }
 
@@ -1136,7 +1137,8 @@ function doMkUploadDir ($frm) {
 	if (file_exists(UPDIR.$frm[folder]))
 		return array('frm'=>$frm, 'error'=>"Ordner '$frm[folder]' existiert schon.");
 	
-	system("mkdir ".UPDIR.$frm[folder]." -m 0775");
+	//system("mkdir ".UPDIR.$frm[folder]." -m 0775");
+	mkdir(UPDIR.$frm[folder], 0775);
 	if (!is_dir(UPDIR.$frm[folder]))
 		return array('frm'=>$frm, 'error'=>"Ordner '$frm[folder]' konnte nicht erstellt werden.");
 	
@@ -1401,7 +1403,8 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 	
 	if ($ext == ".jpg") ImageJPEG($dst, $dstFile);
 	elseif ($ext == ".gif") ImageGIF($dst, $dstFile);
-	system("chmod 0664 ".$dstFile);
+	//system("chmod 0664 ".$dstFile);
+	chmod($dstFile, 0664);
 	
 	ImageDestroy($src);
 	ImageDestroy($dst);
