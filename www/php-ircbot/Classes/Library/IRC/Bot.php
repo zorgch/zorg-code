@@ -191,7 +191,8 @@ class Bot {
 
             // Check for some special situations and react:
             // The nickname is in use, create a now one using a counter and try again.
-            if (stripos( $data, 'Nickname is already in use.' ) !== false) {
+            if (stripos( $data, 'Nickname is already in use.' ) !== false && $this->getUserNickName($data) == 'NickServ')
+            {
                 $this->nickToUse = $this->nick . (++$this->nickCounter);
                 $this->sendDataToServer( 'NICK ' . $this->nickToUse );
             }
@@ -253,6 +254,11 @@ class Bot {
                 // $source finds the channel or user that the command originated.
                 $source = substr( trim( \Library\FunctionCollection::removeLineBreaks( $args[2] ) ), 0 );
                 $command = substr( trim( \Library\FunctionCollection::removeLineBreaks( $args[3] ) ), 1 );
+                
+                // Someone PMed me? Oh noes.
+                if ($source == $this->nickToUse && $args[1] == 'PRIVMSG')
+                    $source = $this->getUserNickName($args[0]);
+                
                 $arguments = array_slice( $args, 4 );
                 unset( $args );
 
@@ -271,7 +277,20 @@ class Bot {
             }
         } while (true);
     }
-
+	
+	/**
+     * Get the nickname from the data string.
+     *
+     * @param string $data The data to extract the nickname from.
+     */
+    public function getUserNickName($data) {
+        $result = preg_match('/:([a-zA-Z0-9_]+)!/', $data, $matches);
+        if ($result !== false) {
+            return $matches[1];
+        }
+        return false;
+    }
+	
     /**
      * Adds a single command to the bot.
      *

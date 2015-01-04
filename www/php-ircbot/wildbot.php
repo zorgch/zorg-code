@@ -32,13 +32,12 @@
 
 	// Full list with valid timezones can be found here:
 	// http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-	// DISABLED due to the error on server:
-	// PHP Fatal error:  Can't use function return value in write context in /var/www/php-ircbot/wildbot.php on line 35
-	/*if (empty(ini_get('date.timezone'))) {
+    $timezone = ini_get('date.timezone');
+    if (empty($timezone)) {
         if (empty($config['timezone']))
-            $config['timezone'] = 'Etc/GMT+1';
+            $config['timezone'] = 'UTC';
         date_default_timezone_set($config['timezone']);
-    }*/
+    }
 
     spl_autoload_register( 'Autoloader::load' );
 
