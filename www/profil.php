@@ -485,19 +485,29 @@ if($_SESSION['user_id']) {
 
 if(!$user->id) {
 	if(!$_GET['regcode'] && !$_SESSION['user_id'] && $_GET['do'] == "anmeldung")  {
-		//captcha laden (inkl. keys)
-		require_once('scripts/recaptchalib.php');
-		$privatekey = "6Ld_MgYAAAAAADDFApargrMpDLE0g1m4X-q0oOL-";
-		$publickey = "6Ld_MgYAAAAAAMiFFL65_-QSB8P2e4Zz2FbSHfUv";
+		
+		// reCAPTCHA v2 initialisieren (inkl. keys)
+		require('includes/g-recaptcha-src/autoload.php');
+		$siteKey = '6Ld_MgYAAAAAAMiFFL65_-QSB8P2e4Zz2FbSHfUv';
+		$secret = '6Ld_MgYAAAAAADDFApargrMpDLE0g1m4X-q0oOL-';
+		$lang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
+		$recaptcha = new \ReCaptcha\ReCaptcha($secret);
+		
 		//captcha validieren
-		if (!$_POST["recaptcha_response_field"] == "") {
-			$resp = recaptcha_check_answer ($privatekey, $_SERVER["REMOTE_ADDR"], $_POST["recaptcha_challenge_field"], $_POST["recaptcha_response_field"]);
-			//captcha ungültig
-			if (!$resp->is_valid) {
-				$error = "<font color='red'><b>Das reCAPTCHA wurde FALSCH eingegeben. Geh zur&uuml;ck und versuchs nochmal.</b></font>";//."(reCAPTCHA sagte: " . $resp->error . ")";
-			//captcha valide
-			} else {
+		if (isset($_POST['g-recaptcha-response']))
+		{
+			$recaptcha = new \ReCaptcha\ReCaptcha($secret);
+			$resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
+			
+			//captcha VALID
+			if ($resp->isSuccess()) {
 				$error = "<b class='small'>".$user->create_newuser(htmlentities($_POST['new_username']), $_POST['new_password'],$_POST['new_password2'],$_POST['new_email'])."</b>";
+			
+			//captcha UNGÜLTIG
+			} else {
+				//foreach ($resp->getErrorCodes() as $code) {
+                	$error = "<font color='red'><b>Das reCAPTCHA wurde FALSCH eingegeben oder leer gelassen.<br />Bitte versuch es nochmal!</b></font>";//."<br />(reCAPTCHA error codes: " . $code . ")";
+            	//}
 			}
 		}
 		echo "<form action='$_SERVER[PHP_SELF]?do=anmeldung' method='post'>";
@@ -529,11 +539,13 @@ if(!$user->id) {
 			</td><td align='left'>
 			<input type='text' name='new_email' class='text' size='30' value='$_POST[new_email]'>
 			</td></tr>";
-		//captcha
-		echo "<tr><td align='left' colspan='2'>
-			<b>Bist du ein Mensch?</b><br />"
-			.recaptcha_get_html($publickey)
-			."</td></tr>";
+		// reCAPTCHA v2 form
+		echo '<tr><td align="left" colspan="2">
+			<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$siteKey.'"></div>
+            <script type="text/javascript"
+                    src="https://www.google.com/recaptcha/api.js?hl='.$lang.'">
+            </script>
+            </td></tr>';
 		//submit button
 		echo "<tr><td align='left' colspan='2'>
 			<input type='submit' name='newuser' class='button' value='absenden'>
