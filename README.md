@@ -187,6 +187,8 @@ To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folge
      */
     ...
 
+### Und so sieht unsere Zorg Code Doku damit dann aus: [Zorg Code phpDocumentor Doku](http://www.zorg.ch/zorgcode/)
+
 
 [1]: https://confluence.atlassian.com/pages/viewpage.action?pageId=269981802 "Set up Git and Mercurial (Mac OS X)"
 [2]: https://confluence.atlassian.com/display/BITBUCKET/Set+up+Git+and+Mercurial "Set up Git and Mercurial (Windows)"
@@ -197,4 +199,5 @@ To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folge
 [7]: http://www.zorg.ch/profil.php?user_id=117 "IneX Profil"
 [8]: https://confluence.atlassian.com/pages/viewpage.action?pageId=271942986 "Fork a Repo, Compare Code, and Create a Pull Request (Mac OSX/Linux)"
 [9]: https://bitbucket.org/rnatau/zorg.ch/src/3dd86099c6445a606c4fa81882f06b6567633baf/www/includes/mysql_login.inc.php?at=master "mysql_login.inc.php"
-[10]: http://en.wikipedia.org/wiki/PHPDoc
+[10]: http://en.wikipedia.org/wiki/PHPDoc "PHPDoc auf Wikipedia"
+[11]: http://www.zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
