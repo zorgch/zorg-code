@@ -98,6 +98,97 @@ Unter OS X findet sich die Datei hier:
 ### Teste das mit [http://zorg.local/](http://zorg.local)
 
 
+* * *
+
+
+## Code Anpassungen oder Erweiterungen? Dokumentation nicht vergessen!
+Damit auch anderen nachvollziehen können, was für Anpassungen am Zorg Code Du vorgenommen hast und was die Intention dahinter ist, dokumentiere alles bitte entsprechend! (Fast) jeder Kommentar ist besser, als keiner... Um es Dir auch möglichst einfach zu machen, findest Du folgend entsprechende Schnipsel, die Du für die Dokumentation im Code adaptieren kannst.
+
+Da wir dem [phpDoc Standard][10] folgen, können wir daraus nämlich auch laufend eine schöne Webseite der gesamten Dokumentation automatisch generieren lassen!
+
+### Klassen dokumentieren
+    /**
+     * Titel meiner Klasse
+     * 
+     * Lange Beschreibung meiner tollen
+     * Klasse. Hier kann ich auf mehreren
+     * Zeilen schreiben, was ich will.
+     * Natürlich müssen nicht alle Parameter
+     * für die Doku verwendet werden.
+     * 
+     * @author Wer hats gemacht?
+     * @date 23.23.2023
+     * @version 1.0
+     * @package Zorg
+     * @subpackage Kategorie (z.B. "Addle", "Events", o.ä.)
+     */
+    class MeineKlasse
+    {
+        ...
+    }
+
+### Funktionen dokumentieren
+    /**
+     * Titel meiner Funktion
+     * 
+     * Lange Beschreibung meiner tollen
+     * Funktion. Hier kann ich auf mehreren
+     * Zeilen schreiben, was ich will.
+     * 
+     * @author Wer hats gemacht?
+     * @version 1.0 (Version meiner Funktion)
+     * @since 1.0 (aktuelle Version der übergeordneten Klasse)
+     *
+     * @param integer $user_id Eine User-ID muss der Funktion übergeben werden
+     * @global array Datenbank-Informationen in {$db}
+     * @global array User-Informationen in {$user}
+     * @return string/boolean/integer/array
+     */
+    function MeineFunktion($user_id)
+    {
+        global $db, $user; // Für DB Operationen & User Variablen
+        
+        // Code...
+    }
+
+Achtung: wenn eine Funktion AUSSERHALB einer Klasse geschrieben wird, bitte noch folgende 2 Zeilen in der Beschreibung ergänzen (bei Funktionen innerhalb von Klassen sollte dieser Kontext bereits gegeben sein):
+
+     * @package Zorg
+     * @subpackage Kategorie (z.B. "Addle", "Events", o.ä.)
+
+
+### Variablen in Klassen dokumentieren
+    /**
+     * Beschreibung meiner Variable mit Angabe des Typs
+     *
+     * @var array
+     */
+    ...
+
+### Konstanten dokumentieren
+    /**
+     * Beschreibung meiner Konstante
+     */
+    ...
+
+### Alles andere dokumentieren
+
+#### Unfertige Stellen / offene Arbeiten
+To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folgender Zeile:
+
+    * @ToDo Hier habe ich noch etwas zu erledigen, und zwar...
+
+#### Inline Kommentare
+    // Kommentar einer einfachen Abfrage, Variable, usw.
+
+#### Includes / Requires
+    /**
+     * File Includes
+     */
+    ...
+
+### Und so sieht unsere Zorg Code Doku damit dann aus: [Zorg Code phpDocumentor Doku](http://www.zorg.ch/zorgcode/)
+
 
 [1]: https://confluence.atlassian.com/pages/viewpage.action?pageId=269981802 "Set up Git and Mercurial (Mac OS X)"
 [2]: https://confluence.atlassian.com/display/BITBUCKET/Set+up+Git+and+Mercurial "Set up Git and Mercurial (Windows)"
@@ -108,3 +199,5 @@ Unter OS X findet sich die Datei hier:
 [7]: http://www.zorg.ch/profil.php?user_id=117 "IneX Profil"
 [8]: https://confluence.atlassian.com/pages/viewpage.action?pageId=271942986 "Fork a Repo, Compare Code, and Create a Pull Request (Mac OSX/Linux)"
 [9]: https://bitbucket.org/rnatau/zorg.ch/src/3dd86099c6445a606c4fa81882f06b6567633baf/www/includes/mysql_login.inc.php?at=master "mysql_login.inc.php"
+[10]: http://en.wikipedia.org/wiki/PHPDoc "PHPDoc auf Wikipedia"
+[11]: http://www.zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
