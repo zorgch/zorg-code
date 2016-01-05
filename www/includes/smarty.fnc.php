@@ -74,7 +74,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 			    								,'sunset' => $sunset //sunrise
 			    								,'sunrise' => $sunrise //sunrise
 			    								,'country' => $country //sunrise
-			    								,'country_image' => "images/country/flags/$image_code.png" //sunrise
+			    								,'country_image' => IMAGES_DIR."country/flags/$image_code.png" //sunrise
 			    								,'request' => var_request() //system, associative array:  page = requested page / params = url parameter / url = page+params
 			    								,'url' => getURL() //system
 			    								,'self' => $_SERVER['PHP_SELF'] //system, Self = Aktuelle Seiten-URL
@@ -84,17 +84,17 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 			    								,'user_ip' => $user->last_ip
 			    								,'comments_default_maxdepth' => DEFAULT_MAXDEPTH
 			    								,'online_users' => var_online_users()
-												
-												
+
+
 											),
     							'members' => array( // Format: [Smarty TPL Array Name] => [PHP Array]
 
 	    										 'num_new_events' => Events::getNumNewEvents()
-	    										
+
 
 											)
 								);
-	
+
 	/**
 	 * PHP Functions as Modifiers for Smarty Functions
 	 *
@@ -156,8 +156,8 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 									,'smarty_substr' => 'substr' // {substr from=2 to=-1}text{/substr}  // gleich wie php-fnc substr(text, from, to)
 									,'smarty_trim' => 'trim' // text modification
 									,'smarty_member' => 'member' // {member}..{/member}   {member noborder=1}..{/member}
-									
-									
+
+
 								);
 
 	/**
@@ -267,7 +267,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 		{
 		  $smarty->assign($smarty_array_key, $array_value);
 		}
-		
+
 		// Restricted Functions, for logged in Users only
 		if($user != null) // nur für eingeloggte
 		{
@@ -276,7 +276,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 				$smarty->assign($smarty_array_key, $array_value);
 			}
 		}
-		
+
 		natcasesort($php_arrays_array['all_users']); // Sort the Array from A-Z
 		$smarty->assign('smartyarrays_public', $php_arrays_array['all_users']); // {smartyarrays_public} Lists all available Smarty Arrays for all Users
 		$smarty->assign('smartyarrays_members', $php_arrays_array['members']); // {smartyarrays_members} Lists all available Smarty Arrays for logged in Users
@@ -307,7 +307,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 			if (empty($smarty_modifier)) $smarty_modifier = $php_modifier_function;
 			$smarty->register_modifier($smarty_modifier, $php_modifier_function);
 		}
-		
+
 		natcasesort($php_modifiers_array); // Sort the Array from A-Z
 		$smarty->assign('smartymodifiers', $php_modifiers_array); // {smartyarrays_members} Lists all available Smarty Arrays for logged in Users
 	}
@@ -331,14 +331,14 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 	{
 		// Globals
 		global $smarty, $user;
-		
+
 		//console output would be: year 2012
 		foreach ($php_blocks_array as $php_block_function => $smarty_block)
 		{
 			if (empty($smarty_block)) $smarty_block = $php_block_function;
 			$smarty->register_block($smarty_block, $php_block_function);
 		}
-		
+
 		natcasesort($php_blocks_array); // Sort the Array from A-Z
 		$smarty->assign('smartyblocks', $php_blocks_array); // {smartyarrays_public} Lists all available Smarty Arrays for all Users
 	}
@@ -387,7 +387,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 			if (empty($smarty_compiler_function)) $smarty_compiler_function = $php_compiler_function;
 			$smarty->register_compiler_function($smarty_compiler_function, $php_compiler_function, false);
 		}
-		
+
 		natcasesort($php_functions_array['all_users']); // Sort the Array from A-Z
 		natcasesort($php_functions_array['members']); // Sort the Array from A-Z
 		$smarty->assign('smartyfunctions_public', $php_functions_array['all_users']); // {smartyarrays_public} Lists all available Smarty Arrays for all Users
@@ -522,7 +522,7 @@ function var_request ()
 	function smarty_strip_anchor($url) {
 		return substr($url, 0, strpos($url, "#"));
 	}
-	
+
 	/**
 	 * User Information
 	 */
@@ -573,16 +573,16 @@ function var_request ()
 	 */
 	function smarty_zorg ($params, $content, &$smarty, &$repeat) {
 		$out = "";
-	
+
 		$out .= head(117, $params['page_title'], true);
-	
+
 	   	$out .= $content;
-	
+
 	  	$out .= foot(0);
-	
+
 	   	return $out;
 	}
-	
+
 	/**
 	 * String, Integer, Date und Array HTML-Ausgabe
 	 */
@@ -624,7 +624,7 @@ function var_request ()
          	$url .= '&'.$params[param];
       	}
       }
-      
+
       $ret = '<form method="post" action="'.$url.'" ';
 
       if ($params[upload]) {
@@ -640,7 +640,7 @@ function var_request ()
 
       return $ret;
     }
-	
+
 	function smarty_table ($params, $content, &$smarty, &$repeat) {
 		global $table_color, $tr_count, $table_align, $table_valign;
 
@@ -772,7 +772,7 @@ function var_request ()
 			return $out;
 		}
 	}
-	
+
 	function smarty_member ($params, $content, &$smarty, &$repeat) {
 		global $user;
 
@@ -797,7 +797,7 @@ function var_request ()
 			}
 		}
 	}
-	
+
 	/**
 	 * Menu
 	 */
@@ -846,7 +846,7 @@ function var_request ()
 			}
 		}
 	}
-	
+
 	/**
 	 * Smarty Templates
 	 */
@@ -874,16 +874,16 @@ function var_request ()
 	}
 		function edit_link ($text='', $tpl=0, $rights=0, $owner=0) {
 			global $db;
-	
+
 			if (!$text) $text = '[edit]';
 			if (!$tpl) $tpl = $_GET['tpl'];
-	
+
 			if ($tpl && (!$rights || !$owner)) {
 				$d = $db->fetch($db->query("SELECT * FROM templates WHERE id='$tpl'", __FILE__, __LINE__));
 				$rights = $d['write_rights'];
 				$owner = $d['owner'];
 			}
-	
+
 		   if ($tpl && tpl_permission($rights, $owner)) {
 				return "<a href='".edit_link_url($tpl)."'>$text</a>";
 		   }else{
@@ -980,7 +980,7 @@ function var_request ()
       if (!isset($params[anzahl])) $params[anzahl] = 5;
       return highscore_dwz($params[anzahl]);
     }*/
-    
+
     /**
 	 * Quotes
 	 */
@@ -990,14 +990,14 @@ function var_request ()
 	function smarty_getdailyquote ($params) {
 		return Quotes::getDailyQuote();
 	}
-	
+
     /**
 	 * Polls
 	 */
 	function smarty_poll ($params) {
 		return getPoll($params['id']);
 	}
-	
+
 	/**
 	 * APOD
 	 */
@@ -1005,7 +1005,7 @@ function var_request ()
 		$rs = get_apod_id();
 		return formatGalleryThumb($rs);
 	}
-	
+
 	/**
 	 * Events
 	 */
@@ -1026,7 +1026,7 @@ function var_request ()
 		global $user;
 		return Events::hasJoined($user->id, $params['event_id']);
 	}
-	
+
 	/**
 	 * Rezepte
 	 */
@@ -1050,7 +1050,7 @@ function var_request ()
     function smarty_sql_errors($params) {
    		return  get_sql_errors($params['num'],$params['order'],$params['oby']);
 	}
-	
+
 	/**
 	 * URL Handling
 	 */
@@ -1059,7 +1059,7 @@ function var_request ()
 	    // if parameter button is set, the link is shown as a button.
 	   	global $smarty;
 	   	$vars = $smarty->get_template_vars();
-	
+
 	   	if (isset($params['url'])) {
 	   		$ret = $params['url'];
 	   	}elseif (isset($params['word'])) {
@@ -1078,7 +1078,7 @@ function var_request ()
 	   	}
 
         if (isset($params['param'])) $ret .= "&".$params[param];
-		
+
         if (isset($params['hash'])) $ret .= '#'.$params['hash'];
         return $ret;
     }
@@ -1092,7 +1092,7 @@ function var_request ()
     function smarty_space ($params) { // inserts &nbsp;
         return str_repeat("&nbsp;", $params[i]);
     }
-    
+
     /**
 	 * String, Integer, Date and Array Functions
 	 */
@@ -1110,7 +1110,7 @@ function var_request ()
 		if (isset($params['assign'])) $smarty->assign($params['assign'], $z);
 		else return $z;
 	}
-    
+
     /**
 	 * Files
 	 */
@@ -1185,14 +1185,14 @@ function var_request ()
 		                 '</td></tr><tr><td>';
 		            Forum::printCommentingSystem($params['board'], $params['thread_id']);
 		            echo '</td></tr></table>';
-	
+
 		            return "";
 		         }else{
 		            return '<p><font color="green"><i><b>Kommentare</b> werden in Includes ausgeblendent. '
 		                  .'Klick <a href="smarty.php?tpl='.$tplvars['tpl']['id'].'">hier</a>,'
 		                  .'um sie zu sehen</i></font></p>';
 		         }
-	
+
 		      }else{
 		         return '<table cellspacing="0" width="100%"><tr><td width="100%" class="small" align="right">'.
 		                '<font color="green"><b>Kommentare</b> sind zur Zeit ausgeblendet. '.
@@ -1213,7 +1213,7 @@ function var_request ()
 	function smarty_unread_comments ($params) {
 	   return Forum::getLatestUnreadComments($params[title], $params[board]);
 	}
-	
+
 	/**
 	 * IMAP
 	 */
@@ -1222,7 +1222,7 @@ function var_request ()
 
 		return ImapStatic::getNumnewmessages($user);
 	}
-	
+
 	/**
 	 * Smarty Information
 	 */
@@ -1259,9 +1259,9 @@ function var_request ()
 		 */
 		function getLatestUpdates($params = array()) {
 			global $db, $user;
-	
+
 			if (!$params['anzahl']) $params['anzahl'] = 5;
-	
+
 			$sql =
 				"SELECT *, UNIX_TIMESTAMP(last_update) as date"
 				." FROM templates"
@@ -1269,13 +1269,13 @@ function var_request ()
 				." LIMIT 0, $params[anzahl]"
 			;
 			$result = $db->query($sql, __FILE__, __LINE__);
-	
+
 			$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
 			while($rs = $db->fetch($result)) {
 		    $i++;
-	
+
 				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-	
+
 		    $html .=
 		      '<tr class="small"><td align="left" bgcolor="#'.$color.'">'
 		      .'<a href="/smarty.php?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
@@ -1285,13 +1285,13 @@ function var_request ()
 		      .datename($rs[date])
 		      .'</nobr></td></tr>'
 		    ;
-	
+
 		  }
 		  $html .= '</table>';
-	
+
 		  return $html;
 		}
-	
+
 	/**
 	 * Menu
 	 */
@@ -1326,13 +1326,13 @@ function var_request ()
 	}
 		function smarty_menuname_exec ($name) {
 			global $db, $smarty;
-	
+
 			$vars = $smarty->get_template_vars();
 			$tpl = $vars['tpl']['id'];
-	
+
 			$name = htmlentities($name, ENT_QUOTES);
 			$name = explode(" ", $name);
-	
+
 			for ($i=0; $i<sizeof($name); $i++) {
 				if ($it) {
 					$menu = $db->fetch($db->query("SELECT * FROM menus WHERE name='$name[$i]'", __FILE__, __LINE__));
@@ -1340,7 +1340,7 @@ function var_request ()
 					unset($name[$i]);
 				}
 			}
-	
+
 			$db->query("DELETE FROM menus WHERE tpl_id='$tpl'", __FILE__, __LINE__);
 			foreach ($name as $it) {
 				$db->query("INSERT INTO menus (tpl_id, name) VALUES ($tpl, '$it')", __FILE__, __LINE__);
@@ -1368,14 +1368,14 @@ function var_request ()
 		function smarty_top_pics ($params)
 		{
 		   	$album_id = ($params['album'] == '' ? 0 : $params['album']);
-	
+
 		   	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
-	
+
 		   	$options = ($params['options'] == '' ? '' : $params['options']);
-	
+
 	   		//Nur zum kontrollieren...
 	   		//print('Album-ID: '.$album_id.'<br />Limit: '.$limit.'<br />');
-	
+
 	   		return getTopPics($album_id, $limit, $options);
 		}
 		/**
@@ -1392,11 +1392,11 @@ function var_request ()
 			$userid = ($params['user'] == '' ? 0 : $params['user']);
 		   	$limit = ($params['limit'] == '' ? 0 : $params['limit']);
 		   	//$options = ($params['options'] == '' ? '' : $params['options']);
-	
+
 	   		//return getUserPics($userid, $limit, $options);
 	   		return getUserPics($userid, $limit);
 		}
-	
+
 	/**
 	 * Chat
 	 */
@@ -1440,7 +1440,7 @@ function var_request ()
 
 /**
  * Compiler Functions
- * 
+ *
  * ACHTUNG: compiler-funktionen müssen php-code zurückgeben!
  */
 function smarty_menuname ($name, &$smarty) {

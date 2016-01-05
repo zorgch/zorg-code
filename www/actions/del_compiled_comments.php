@@ -1,17 +1,17 @@
 <?
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-	
-	$path = $_SERVER['DOCUMENT_ROOT']."/../data/smartylib/templates_c/";
-	
+require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
+
+	//$path = $_SERVER['DOCUMENT_ROOT']."/../data/smartylib/templates_c/";
+
 	if ($user->typ == USER_MEMBER) {
-		$handle = opendir($path);
+		$handle = opendir(SMARTY_COMPILE);
 
 		$ctr = array("found" => 0, "deleted" => 0, "not_deleted" => 0);
 		while (false !== ($file = readdir ($handle))) {
-			if (preg_match("/comments/", $file)) {
-				if (@unlink($path.$file)) {
+			if (preg_match("%comments%", $file)) { // Filename scheme: %%FF^FFF^FFFD1F46%%comments%3A6855.php
+				if (@unlink(SMARTY_COMPILE.$file)) {
 					$ctr['deleted']++;
 				}else{
 					$ctr['not_deleted']++;
@@ -19,12 +19,12 @@ require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
 			}
 		}
 		closedir($handle);
-		
+
 		$ctr['found'] = $ctr['deleted'] + $ctr['not_deleted'];
-		
+
 		$smarty->assign("state_del_comments", $ctr);
 		$smarty->display("file:main.html");
-		
+
 	}else{
 		user_error("access denied", E_USER_ERROR);
 	}

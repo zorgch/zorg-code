@@ -1,10 +1,33 @@
 <?PHP
 error_reporting(E_ALL ^ E_NOTICE);
-//=============================================================================
-// includes
-//=============================================================================
 
+//=============================================================================
+// Defines
+//=============================================================================
+// Set locale to German, Switzerland
 setlocale(LC_TIME,"de_CH");
+
+// bodysettings wird verwendet, um den div nach den menüs wieder zu öffnen.
+define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
+
+// Site Settings
+define('TLD', $_SERVER['SERVER_NAME']); 		// Extract the Top Level Domain
+define('SITE_PROTOCOL', 'http'); 				// TCP/IP Protocol used: HTTP or HTTPS
+define('SITE_URL', SITE_PROTOCOL.'://'.TLD); 	// Complete HTTP-URL to the website
+define('PAGETITLE_SUFFIX', ' - '.TLD); 			// General suffix for <title>...[suffix]</title> on every page
+
+// Site Paths (ending with a / slash!)
+define('INCLUDES_DIR', '/includes/'); 	// File includes directory
+define('IMAGES_DIR', '/images/'); 		// Images directory
+define('ACTIONS_DIR', '/actions/'); 	// Actions directory
+define('SCRIPTS_DIR', '/scripts/'); 	// Scripts directory
+define('UTIL_DIR', '/util/'); 			// Utilities directory
+
+
+
+//=============================================================================
+// File includes
+//=============================================================================
 
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/sunrise.inc.php');
@@ -24,6 +47,13 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/peter.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
 
 
+
+//=============================================================================
+// Functions
+//=============================================================================
+
+/* DEPRECATED 05.01.2016/IneX
+   Folgender Code wurde wahrscheinlich fr�her benutzt, als man auf zorg.ch/[username] verlinken konnte...
 $username = $_SERVER['QUERY_STRING'];
 $sql = "SELECT id FROM user WHERE username = '$username'";
 $result = $db->query($sql,__FILE__,__LINE__);
@@ -31,27 +61,12 @@ if($db->num($result)) {
 	$rs = $db->fetch($result);
 	header("Location: profil.php?user_id=".$rs['id']);
 }
-
-
-
-
-//=============================================================================
-// Defines
-//=============================================================================
-
-// bodysettings wird verwendet, um den div nach den menüs wieder zu öffnen.
-define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
-
-
-//=============================================================================
-// Functions
-//=============================================================================
-
+*/
 
 
 /**
  * HEADER
- * 
+ *
  * @author [z]biko, IneX
  * @date 23.10.2013
  * @version 4.0
@@ -62,7 +77,7 @@ define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
  * @param integer $author_id ID des Autors der jeweiligen Seite (muss manuell beim Function-Call gesetzt werden - voll phehinderet!)
  * @param string $title Titel der Seite, welcher auch im HTML ausgegeben wird
  * @param boolean $return Legt fest ob das ganze HTML returned oder direkt ausgegben wird (und dann returned false). Muss nämlich im smarty.fnc.php unterbunden werden!
- * 
+ *
  * @global array $db Array mit allen MySQL-Datenbankvariablen
  * @global array $user Array mit allen User-Variablen
  * @global string $sun Enthält den Sonnen-Status (up/down)
@@ -90,28 +105,28 @@ function head($author_id=0, $title="", $return = 0) {
 		<meta name="geo.region" content="CH-SG">
 		<meta name="geo.placename" content="St. Gallen">
 		<meta name="ICBM" content="47.4233, 9.37" />
-		<title>'.$title.' - zorg.ch</title>
+		<title>'.$title.PAGETITLE_SUFFIX.'</title>
 		<link rel="prefetch" href="forum.php">
-		<link rel="stylesheet" type="text/css" href="includes/'.$style_array[$sun].'" >
-		<link rel="shortcut icon" href="'.$favicon[$sun].'"  type="image/x-icon">
-		<script type="text/javascript" src="includes/javascript.js"></script>
+		<link rel="stylesheet" type="text/css" href="'.INCLUDES_DIR.$style_array[$sun].'" >
+		<link rel="shortcut icon" href="'.$favicon[$sun].'" type="image/x-icon">
+		<script type="text/javascript" src="'.INCLUDES_DIR.'javascript.js"></script>
 		<script type="text/javascript">var layout = "'.str_replace(".css", "", $style_array[$sun]).'";</script>
-		
+
 		<!-- RSS Feeds -->
-		<link rel="alternate" type="application/rss+xml" title="RSS @ zorg.ch" href="http://www.zorg.ch/forum.php?layout=rss" />
-		<link rel="alternate" type="application/rss+xml" title="Forum Feed @ zorg.ch" href="http://www.zorg.ch/forum.php?layout=rss&board=f" />
-		<link rel="alternate" type="application/rss+xml" title="Events Feed @ zorg.ch" href="http://www.zorg.ch/forum.php?layout=rss&board=e" />
-		<link rel="alternate" type="application/rss+xml" title="Gallery Feed @ zorg.ch" href="http://www.zorg.ch/forum.php?layout=rss&board=i" />
-		<link rel="alternate" type="application/rss+xml" title="Rezepte Feed @ zorg.ch" href="http://www.zorg.ch/forum.php?layout=rss&board=r" />
-		<link rel="alternate" type="application/rss+xml" title="Neuste Activities @ zorg.ch" href="http://www.zorg.ch/activities.php?layout=rss" />
-		
+		<link rel="alternate" type="application/rss+xml" title="RSS @ zorg.ch" href="'.SITE_URL.'/forum.php?layout=rss" />
+		<link rel="alternate" type="application/rss+xml" title="Forum Feed @ zorg.ch" href="'.SITE_URL.'/forum.php?layout=rss&board=f" />
+		<link rel="alternate" type="application/rss+xml" title="Events Feed @ zorg.ch" href="'.SITE_URL.'/forum.php?layout=rss&board=e" />
+		<link rel="alternate" type="application/rss+xml" title="Gallery Feed @ zorg.ch" href="'.SITE_URL.'/forum.php?layout=rss&board=i" />
+		<link rel="alternate" type="application/rss+xml" title="Rezepte Feed @ zorg.ch" href="'.SITE_URL.'/forum.php?layout=rss&board=r" />
+		<link rel="alternate" type="application/rss+xml" title="Neuste Activities @ zorg.ch" href="'.SITE_URL.'/activities.php?layout=rss" />
+
 		</head>
-		
+
 		';
-	
+
 	// Wenn es ein eingeloggter User ist, wird im Fenstertitel die Anzahl Unreads angezeigt...
 	$out .= $user->islogged_in() ? "<body onload=\"init()\">" : "<body>";
-	
+
 	// Wenn die Startseite von einem Mobile Device aufgerufen wird, frage ob zu Mobile Zorg gewechselt werden soll
 	if (str_replace('/','',$_SERVER['PHP_SELF']) == 'index.php')
 	{
@@ -138,12 +153,12 @@ function head($author_id=0, $title="", $return = 0) {
 		        return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
 		    }
 		};
-		
+
 		if (isMobile.iOS() || isMobile.Android())
 			if (confirmPopup("Wechseln zu Mobile Zorg?")) window.location="mobilezorg/";
 		</script>';
 	}
-	
+
 	$out .=	'
 		<center>
 
@@ -245,7 +260,7 @@ function foot($author_id=3) {
 ### FOOTER FÜR ZORG.CH ###
 function zorg_foot($author_id=3) {
 	global $starttime, $user, $db, $smarty, $_TPLROOT;
-	
+
 
 	// tpl infos
 	$tplinfo = "";
@@ -357,19 +372,19 @@ function menu ($name) {
 
 /**
  * RSS Page
- * 
+ *
  * Zeigt eine XML kompatible RSS Seite an
- * 
+ *
  * @author IneX
  * @date 16.03.2008
  * @return String
  */
 function rss ($title, $link, $desc, $feeds) {
-	
+
 	// Text-codierung an den header senden, damit Umlaute korrekt angezeigt werden
 	//header("Content-Type: text/xml; charset=UTF-8");
 	header("Content-Type: text/xml; charset=iso-8859-1");
-	
+
 	// xml header erstellen
 	$xml =
 		'<?xml version="1.0" encoding="iso-8859-1" ?>
@@ -385,17 +400,17 @@ function rss ($title, $link, $desc, $feeds) {
 			<language>de-DE</language>
 			<lastBuildDate>'.date('D, d M Y H:i:s').' GMT</lastBuildDate>'//' '.gmt_diff(time()).'</lastBuildDate>
 		;
-	
+
 	// xml <item>s zum feed hinzufügen
 	$xml .=
 			$feeds;
-	
+
 	// xml abschliessen
 	$xml .= '
 			</channel>
 		</rss>'
 	;
-	
+
 	// xml ausgeben
 	return $xml;
 }
