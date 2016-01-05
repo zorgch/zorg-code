@@ -329,8 +329,8 @@ $result = $db->query($sql,__FILE__,__LINE__);
 $rs = $db->fetch($result);
 $lat = $rs['lat'];
 $lon = $rs['lon'];
-$country = strtolower($rs['country']);
-$image_code = strtoupper($rs['image_code']);
+$country = (!empty($rs['country']) ? strtolower($rs['country']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
+$image_code = (!empty($rs['image_code']) ? strtoupper($rs['image_code']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
 
 $suncalc = new Astro_Sunrise();
 $suncalc->setCoords($lat, $lon);
