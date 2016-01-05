@@ -28,6 +28,21 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.res.php');
 //$prof->stopTimer( "smarty.inc.php: include_once comments.res.php" );
 
+	/**
+    * OWN BY BIKO
+    * Veranlasst den trigger_fatal_error den fehler nicht auszugeben, sondern in $_last_fatal_error zu speichern.
+    *
+    * @var boolean
+    */
+    $_manual_compiler_active = 0;
+
+
+    /** OWN BY BIKO
+    * trigger_fatal_error speichert den Fehler hier rein, falls $_redirect_fatal_error = true
+    *
+    * @var string
+    */
+    $_manual_compiler_errors = array();
 
 	$_tpl_stack = array();
 
@@ -271,8 +286,11 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.res.php');
    function startSmarty () {
       // start smarty
       $smarty = new Smarty;
-
-      $smarty->force_compile = false;    // sollte ausgeschaltet sein. kann zu debug-zwecken eingeschaltet werden.
+      $smarty->child = new ZorgSmarty; // Smarty-Klasse mit eigenen Baschtels von [z]biko erweitern
+      $smarty->child = new ZorgSmarty_Compiler; // Smarty-Klasse mit eigenen Baschtels von [z]biko erweitern
+      
+	  $smarty->debugging = false; // sollte ausgeschaltet sein. kann zu debug-zwecken eingeschaltet werden.
+      $smarty->force_compile = false; // sollte ausgeschaltet sein. kann zu debug-zwecken eingeschaltet werden.
 
 
       // security
@@ -328,8 +346,164 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.res.php');
       return $smarty;
    }
 
+   
+	 /**
+	  * Erweiterungen der Smarty Klasse für Zorg
+	  *
+	  * @author IneX
+	  * @date 03.01.2016
+	  * @version 1.0
+	  * @package Zorg
+	  * @subpackage Smarty
+	  */
+    class ZorgSmarty extends Smarty
+    {
+	    /**
+	     * OWN BY BIKO
+	     * Templates that can be called recursive
+	     * used in function $this->_smarty_include
+	     *
+	     * @var string-array
+	     */
+	    var $recur_allowed_tpls = array();
 
-   //$prof->stopTimer( "smarty.inc.php: all functions" );
+	    /**
+	     * OWN BY BIKO
+	     * Template that is called if a recursion was detected
+	     * used in function $this->_smarty_include
+	     *
+	     * @var string
+	     */
+	    var $recur_handler = "";
+
+	    /**
+	     * The class constructor.
+	     */
+	    //public function __construct(){}
+
+    	/** OWN BY BIKO **************************************************************************************
+	     * compile a template manualy.
+	     *
+	     * @param string $template: Ressource, die kompiliert werden soll
+	     * @param string &$errormsg: Da wird die Fehlermeldung (falls es eine gibt) hingeschrieben
+	     * @return boolean
+	     */
+	     public function compile ($template, &$errors) {
+	        //$this->_redirect_fatal_error = true;
+	        global $_manual_compiler_active, $_manual_compiler_errors, $smarty;
+
+	        $old_force_compile = $this->force_compile;
+
+	        $this->force_compile = true;
+
+	        $_manual_compiler_active = 1;
+
+	        $result = $this->fetch($template);
+
+	        if (sizeof($_manual_compiler_errors)) {
+	           $errors = $_manual_compiler_errors;
+	           $ret = false;
+	        }else{
+	           	$ret = true;
+	        }
+
+	        $_manual_compiler_errors = array();
+	        $_manual_compiler_active = 0;
+	        $this->force_compile = $old_force_compile;
+
+	        return $ret;
+	     }
+
+
+	     /**
+	     * compile the template
+	     *
+	     * @param string $resource_name
+	     * @param string $compile_path
+	     * @return boolean
+	     */
+	    public function _compile_resource($resource_name, $compile_path)
+	    {
+
+	        $_params = array('resource_name' => $resource_name);
+	        if (!$this->_fetch_resource_info($_params)) {
+	            return false;
+	        }
+
+	        $_source_content = $_params['source_content'];
+	        $_cache_include    = substr($compile_path, 0, -4).'.inc';
+
+	        if ($this->_compile_source($resource_name, $_source_content, $_compiled_content, $_cache_include)) {
+	            // if a _cache_serial was set, we also have to write an include-file:
+	            if ($this->_cache_include_info) {
+	                require_once(SMARTY_CORE_DIR . 'core.write_compiled_include.php');
+	                smarty_core_write_compiled_include(array_merge($this->_cache_include_info, array('compiled_content'=>$_compiled_content, 'resource_name'=>$resource_name)),  $this);
+	            }
+
+	            $_params = array('compile_path'=>$compile_path, 'compiled_content' => $_compiled_content);
+	            require_once(SMARTY_CORE_DIR . 'core.write_compiled_resource.php');
+	            smarty_core_write_compiled_resource($_params, $this);
+
+	            return true;
+	        } else {
+
+
+	        	// OWN BY BIKO -----------------
+		    	  // weil wenn ein manual compile error passiert eine leere error msg kommt.
+		    	  global $_manual_compiler_active;
+		    	  if ($_manual_compiler_active) return false;
+		    	// END OWN -------------
+
+
+
+	            return false;
+	        }
+
+	    }
+
+	    /** END OWN BY BIKO **********************************************************************************/
+	}
+
+	 /**
+	  * Erweiterungen der Smarty Compiler Klasse für Zorg
+	  *
+	  * @author IneX
+	  * @date 03.01.2016
+	  * @version 1.0
+	  * @package Zorg
+	  * @subpackage Smarty
+	  */
+	Class ZorgSmarty_Compiler extends Smarty
+	{
+		/**
+	     * The class constructor.
+	     */
+	    //public function __construct(){}
+
+		/**
+	     * display Smarty syntax error
+	     *
+	     * @param string $error_msg
+	     * @param integer $error_type
+	     * @param string $file
+	     * @param integer $line
+	     */
+	    public function _syntax_error($error_msg, $error_type = E_USER_ERROR, $file=null, $line=null)
+	    {
+	        // OWN BY biko
+			global $_manual_compiler_active, $_manual_compiler_errors;
+
+			if ($_manual_compiler_active) {
+				array_push($_manual_compiler_errors, "smarty syntax error on line ".$this->_current_line_no.": $error_msg");
+			}else{
+				$this->_trigger_fatal_error("smarty syntax error: $error_msg", $this->_current_file, $this->_current_line_no, $file, $line, $error_type);
+			}
+			//original code:
+	        //$this->_trigger_fatal_error("syntax error: $error_msg", $this->_current_file, $this->_current_line_no, $file, $line, $error_type);
+	    	// END OWN
+	    	
+	    }
+	}
 
 
    if (!isset($smarty)) $smarty = startSmarty();
