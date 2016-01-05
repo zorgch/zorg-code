@@ -1,6 +1,9 @@
-# Zorg Code - Checkout und lokale Instanz inkl. Datenbank aufsetzen
+# Inhaltsverzeichnis
+[TOC]
 
-## VORAUSSETZUNGEN
+# Zorg Code in lokale Instanz inkl. Datenbank aufsetzen
+
+## Voraussetzungen
 
 * Lokal muss ein Apache-Webserver mit **PHP5+** sowie **MySQL** vorhanden sein:
 Am einfachsten geht das mittels [MAMP (Mac)](http://www.mamp.info/en/downloads/), [WAMP (Windows)](http://www.wampserver.com/en/) und [LAMP (Linux)](http://www.turnkeylinux.org/lampstack)
