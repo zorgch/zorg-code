@@ -20,17 +20,17 @@
  *
  * For questions, help, comments, discussion, etc., please join the
  * Smarty mailing list. Send a blank e-mail to
- * smarty-discussion-subscribe@googlegroups.com 
+ * smarty-discussion-subscribe@googlegroups.com
  *
  * @link http://www.smarty.net/
  * @copyright 2001-2005 New Digital Group, Inc.
  * @author Monte Ohrt <monte at ohrt dot com>
  * @author Andrei Zmievski <andrei@php.net>
  * @package Smarty
- * @version 2.6.25
+ * @version 2.6.29
  */
 
-/* $Id: Smarty.class.php 3149 2009-05-23 20:59:25Z monte.ohrt $ */
+/* $Id$ */
 
 /**
  * DIR_SEP isn't used anymore, but third party apps might
@@ -58,26 +58,6 @@ define('SMARTY_PHP_QUOTE',      1);
 define('SMARTY_PHP_REMOVE',     2);
 define('SMARTY_PHP_ALLOW',      3);
 
-
-
-   /** 
-   * OWN BY BIKO
-   * Veranlasst den trigger_fatal_error den fehler nicht auszugeben, sondern in $_last_fatal_error zu speichern. 
-   *
-   * @var boolean
-   */
-   $_manual_compiler_active = 0;
-   
-   
-   /** OWN BY BIKO
-   * trigger_fatal_error speichert den Fehler hier rein, falls $_redirect_fatal_error = true
-   *
-   * @var string
-   */
-   $_manual_compiler_errors = array();
-
-
-
 /**
  * @package Smarty
  */
@@ -86,29 +66,7 @@ class Smarty
     /**#@+
      * Smarty Configuration Section
      */
-	
-	
-	
-	/**
-     * OWN BY BIKO
-     * Templates that can be called recursive
-     * used in function $this->_smarty_include
-     *
-     * @var string-array
-     */
-    var $recur_allowed_tpls = array();
-    
-    /**
-     * OWN BY BIKO
-     * Template that is called if a recursion was detected
-     * used in function $this->_smarty_include
-     *
-     * @var string
-     */
-    var $recur_handler = "";
-	
-	
-	
+
     /**
      * The name of the directory where templates are located.
      *
@@ -507,7 +465,7 @@ class Smarty
      *
      * @var string
      */
-    var $_version              = '2.6.25';
+    var $_version              = '2.6.29';
 
     /**
      * current template inclusion depth
@@ -603,34 +561,15 @@ class Smarty
      * @var string
      */
     var $_cache_including = false;
-	
-     /**
-     * array of super globals internally
-     *
-     * @var array
-     */
-    var $_supers = array();
-
 
     /**#@-*/
     /**
      * The class constructor.
      */
-    function Smarty()
+    public function __construct()
     {
       $this->assign('SCRIPT_NAME', isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME']
                     : @$GLOBALS['HTTP_SERVER_VARS']['SCRIPT_NAME']);
-    
-      $this->_supers['get'] = $this->request_use_auto_globals ? $_GET : $GLOBALS['HTTP_GET_VARS'];
-      $this->_supers['post'] = $this->request_use_auto_globals ? $_POST : $GLOBALS['HTTP_POST_VARS'];
-      $this->_supers['server'] = $this->request_use_auto_globals ? $_SERVER : $GLOBALS['HTTP_SERVER_VARS'];
-      if(isset($_SESSION))
-        $this->_supers['session'] = $this->request_use_auto_globals ? $_SESSION : $GLOBALS['HTTP_SESSION_VARS'];
-      else
-        $this->_supers['session'] = array();
-      $this->_supers['request'] = $this->request_use_auto_globals ? $_REQUEST : $GLOBALS['HTTP_REQUEST_VARS'];
-      $this->_supers['cookies'] = $this->request_use_auto_globals ? $_COOKIE : $GLOBALS['HTTP_COOKIE_VARS'];
-      $this->_supers['env'] = $this->request_use_auto_globals ? $_ENV : $GLOBALS['HTTP_ENV_VARS'];
     }
 
     /**
@@ -1119,7 +1058,7 @@ class Smarty
         } else {
             // var non-existant, return valid reference
             $_tmp = null;
-            return $_tmp;   
+            return $_tmp;
         }
     }
 
@@ -1151,7 +1090,8 @@ class Smarty
      */
     function trigger_error($error_msg, $error_type = E_USER_WARNING)
     {
-        trigger_error("Smarty error: $error_msg", $error_type);
+        $msg = htmlentities($error_msg);
+        trigger_error("Smarty error: $msg", $error_type);
     }
 
 
@@ -1178,7 +1118,7 @@ class Smarty
     function fetch($resource_name, $cache_id = null, $compile_id = null, $display = false)
     {
         static $_cache_info = array();
-        
+
         $_smarty_old_error_level = $this->debugging ? error_reporting() : error_reporting(isset($this->error_reporting)
                ? $this->error_reporting : error_reporting() & ~E_NOTICE);
 
@@ -1462,48 +1402,6 @@ class Smarty
         }
     }
 
-
-
-    /** OWN BY BIKO **************************************************************************************
-     * compile a template manualy. 
-     *
-     * @param string $template: Ressource, die kompiliert werden soll
-     * @param string &$errormsg: Da wird die Fehlermeldung (falls es eine gibt) hingeschrieben
-     * @return boolean
-     */
-     
-     function compile ($template, &$errors) {
-        //$this->_redirect_fatal_error = true;
-        global $_manual_compiler_active, $_manual_compiler_errors, $smarty;
-        
-        $old_force_compile = $this->force_compile;
-        
-        $this->force_compile = true;
-        
-        $_manual_compiler_active = 1;
-        
-        $result = $this->fetch($template);
-        
-        if (sizeof($_manual_compiler_errors)) {
-           $errors = $_manual_compiler_errors;
-           $ret = false;
-        }else{
-           	$ret = true;
-        }
-        
-        $_manual_compiler_errors = array();
-        $_manual_compiler_active = 0;
-        $this->force_compile = $old_force_compile;
-        
-        return $ret;
-     }
-     
-     
-    /** END OWN BY BIKO **********************************************************************************/
-
-
-
-
    /**
      * compile the template
      *
@@ -1535,16 +1433,6 @@ class Smarty
 
             return true;
         } else {
-        
-        
-        	// OWN BY BIKO -----------------
-	    	  // weil wenn ein manual compile error passiert eine leere error msg kommt. 
-	    	  global $_manual_compiler_active;
-	    	  if ($_manual_compiler_active) return false;
-	    	// END OWN -------------
-	    	
-        
-        
             return false;
         }
 
@@ -1957,25 +1845,6 @@ class Smarty
 
     function _smarty_include($params)
     {
-    
-    
-    
-    	// OWN BY biko
-		// $params[smarty_include_tpl_file]:  the file-parameter without ' or "
-		// $params[smarty_include_vars]:      associative array with var=>value
-		static $_recur_pages = array();
-		if ($params['smarty_include_tpl_file'] != $this->recur_handler && !in_array($params['smarty_include_tpl_file'], $this->recur_allowed_tpls)) {
-        	if (in_array($params['smarty_include_tpl_file'], $_recur_pages)) {
-        		$params[smarty_include_vars][recur_denied_tpl] = $params['smarty_include_tpl_file'];
-        		$params['smarty_include_tpl_file'] = $this->recur_handler;
-        	}else{
-        		array_push($_recur_pages, $params['smarty_include_tpl_file']);
-        	}
-		}
-		// OWN END
-    	
-    
-    
         if ($this->debugging) {
             $_params = array();
             require_once(SMARTY_CORE_DIR . 'core.get_microtime.php');
@@ -2065,10 +1934,10 @@ class Smarty
     {
         return eval($code);
     }
-    
+
     /**
      * Extracts the filter name from the given callback
-     * 
+     *
      * @param callback $function
      * @return string
      */
@@ -2083,7 +1952,7 @@ class Smarty
 			return $function;
 		}
 	}
-  
+
     /**#@-*/
 
 }
