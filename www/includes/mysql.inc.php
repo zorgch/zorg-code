@@ -5,7 +5,7 @@
  * Wenn lokal entwickelt wird, muss manuell eine Kopie der DB-Info-Datei mit folgendem Namen angelegt werden:
  * "mysql_login.inc.local.php"
  */
-require_once( (file_exists($_SERVER['DOCUMENT_ROOT'].'/includes/mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
+require_once( (file_exists('mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
 
 /**
  * MySQL Database Connection Class
