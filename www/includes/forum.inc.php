@@ -355,7 +355,7 @@ class Comment {
 		  $db->query($sql, __FILE__, __LINE__);
 	  }
 	}
-	
+
 	/**
 	 * Prüft, ob der Comment im therads-table eingetragen ist (= thread start)
 	 * @author IneX
@@ -369,10 +369,10 @@ class Comment {
 		global $db;
 		$sql = "SELECT thread_id FROM comments_threads WHERE board = '".$board."' AND comment_id = ".$id;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-		
+
 		return $rs;
 	}
-	
+
 	// Mark as unread for all users.
 	static function markasunread($comment_id) {
 		global $db;
@@ -382,7 +382,7 @@ class Comment {
 			SELECT
 				c.thread_id,
 				c.board,
-				ct.rights				
+				ct.rights
 			FROM comments c
 			LEFT JOIN comments_threads ct
 				ON (ct.board = c.board AND ct.thread_id = c.thread_id)
@@ -391,10 +391,10 @@ class Comment {
 			"
 		;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-		
+
 		if($rs['rights'] == '') $rs['rights'] = 0;
-		
-		
+
+
 		if($rs['rights'] < USER_SPECIAL) {
 			$sql =
 				"
@@ -402,10 +402,10 @@ class Comment {
 					SELECT
 						id,
 						".$comment_id."
-					
-						
+
+
 					FROM user
-					
+
 					WHERE user.usertype >= ".$rs['rights']."
 					AND (UNIX_TIMESTAMP(lastlogin)+".USER_OLD_AFTER.") > UNIX_TIMESTAMP(NOW())
 					AND forum_boards_unread LIKE '%".$rs['board']."%'
@@ -416,7 +416,7 @@ class Comment {
 						WHERE tignore.thread_id = ".$rs['thread_id']."
 						AND tignore.user_id = user.id
 						)*/
-					
+
 			;
 			$data = $db->fetch($db->query($sql, __FILE__, __LINE__));
 		} else {
@@ -488,7 +488,7 @@ class Comment {
 			  ;
 			  $db->query($sql, __FILE__, __LINE__);
 			  $comment_id = mysql_insert_id();
-				
+
 			  // Falls parent_id = 1, thread_id = id. Für Forum->neue Threads.
 			  $sql = "
 			  	UPDATE comments
@@ -542,14 +542,14 @@ class Comment {
 
 				// Mark comment as read for this user.
 				Comment::markasread($rs['id'], $user_id);
-				
-				
+
+
 				// Activity Eintrag ausl�sen (ausser bei der B�rbel, die trollt zuviel)
 				// if ($user_id != 59) { Activities::addActivity($user_id, 0, $activities_f[1]); }
 				if ($user_id != 59) { Activities::addActivity($user_id, 0, 'hat <a href="'.Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']).'">einen Comment</a> '.Forum::getBoardTitlePrefix($rs['board']).' '.Forum::getBoardTitle($rs['board']).' geschrieben.<br/><p><small>
 				&nbsp;&nbsp;<a href="'.Comment::getLink($board, $$rs['parent_id'], $rs['id'], $rs['thread_id']).'">"'.Comment::getTitle($text, 100).'..."</a></small></p>', 'c'); }
-				
-				
+
+
 				// Message an alle gew�nschten senden
 				if(count($msg_users) > 0) {
 					for ($i=0; $i < count($msg_users); $i++) {
@@ -700,10 +700,10 @@ class Forum {
 		while($rs = $db->fetch($result)) {
 			$html .=
 				'<td>'
-				.'<input name="boards[]" type="checkbox" value="'.$rs['board'].'" '.
+				.'<input name="boards[]" type="checkbox" value="'.$rs['board'].'" id="'.$rs['board'].'" '.
 				(in_array($rs['board'], $check) ? 'checked' : '').'>'
 				.'</td><td valign="middle">'
-				.$rs['title'].'&nbsp;'
+				.'<label for="'.$rs['board'].'">'.$rs['title'].'</label>&nbsp;'
 				.'</td>'
 			;
 		}
@@ -743,7 +743,7 @@ class Forum {
 
 		return explode(',', $rs['forum_boards']);
 	}
-	
+
 	/**
 	 * Board Titel ausgeben
 	 * @author IneX
@@ -754,14 +754,14 @@ class Forum {
 	 */
 	static function getBoardTitle($board) {
 		global $db;
-		
+
 		$sql = "SELECT title FROM comments_boards WHERE board = '".$board."'";
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-		
+
 		return $rs['title'];
 	}
-	
-	
+
+
 	/**
 	 * Board Prefix f�r Activities Text ausgeben
 	 * @author IneX
@@ -804,8 +804,8 @@ class Forum {
 				break;
 		}
     }
-	
-	
+
+
 	/**
 	* @return String
 	* @param $comment_id
@@ -1087,7 +1087,7 @@ class Forum {
 		if (!$num) $num = 10;
 
 		$wboard = $board ? "comments.board='".$board."'" : "1";
-	        
+
 	    //beschr�nkt auf 365 tage, da sonst unglaublich lahm
 		$sql ="SELECT
 			 comments.*,
@@ -1112,7 +1112,7 @@ class Forum {
 			 AND (user.usertype >= ct.rights
 			   OR ct.rights=".USER_SPECIAL."
 			 AND ctr.user_id IS NOT NULL)
-			 AND DATEDIFF(now(), date) < 365 
+			 AND DATEDIFF(now(), date) < 365
 			ORDER BY date desc
 			LIMIT 0,".$num
 		;
@@ -1397,23 +1397,32 @@ class Forum {
 
 	  // Sortieren
 	  //if($sortby == '') $sortby = 'ct.sticky DESC, ct.last_comment_id';
-	  if($sortby == '') $sortby = 'ct.last_comment_id';
-	  //if($sortby == '') $sortby = 'last_post_date';
-	  
-	  switch ($_GET[order]) {
-		case 'ASC':
-			$order = 'ASC';
-			$new_order = 'DESC';
-			break;
-		case 'DESC':
-			$order = 'DESC';
-			$new_order = 'ASC';
-			break;
-		default:
-			$order = 'DESC';
-			$new_order = 'ASC';
+	  //if($sortby == '') $sortby = 'ct.last_comment_id';
+	  if($sortby == '') $sortby = 'last_post_date';
+
+	  // "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
+	  // ...pr�fen, ob wir eine numerische/datum Spalte sortieren wollen
+	  if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
+	  {
+		  switch ($_GET['order']) {
+			case 'ASC':
+				$order = 'ASC';
+				$new_order = 'DESC';
+				break;
+			case 'DESC':
+				$order = 'DESC';
+				$new_order = 'ASC';
+				break;
+			default:
+				$order = 'DESC';
+				$new_order = 'ASC';
+		  }
+	  } else {
+		  // Wenn wir Textspalten sortieren, immer "DESC" als Sortierreihenfolge verwenden
+		  $order = 'DESC';
+		  $new_order = 'ASC';
 	  }
-	  
+
 
 	  // Blättern...
 	  $page = ($_GET['page'] == '') ? 1 : $_GET['page'];
@@ -1433,7 +1442,7 @@ class Forum {
 			UNIX_TIMESTAMP(t.date) thread_date
 
 	  	, IF(ISNULL(tfav.thread_id ), 0, 1) AS isfavorite
-	  	
+
 	  	, IF(ISNULL(tignore.thread_id ), 0, 1) AS ignoreit
 
 			, count(DISTINCT cnum.id) numposts
@@ -1469,13 +1478,13 @@ class Forum {
 
 			GROUP BY ct.thread_id
 
-			ORDER BY ".$sortby." DESC"//.$order --- DEAKTIVIERT WEIL IMMER EIN "id is not numeric, Zeile 140"-Fehler kommt 
+			ORDER BY ".$sortby." ".$order
 	   ;
-	  
-	  
+
+
 	  $numpages = floor($db->num($db->query($sql, __FILE__, __LINE__)) / $pagesize); // number of pages
-	  
-	  
+
+
 	  // biko: auskommentieren im query tut nicht. musst es php-mässig auskommentieren.
 	  $sql =
 	  	$sql."
@@ -1483,7 +1492,7 @@ class Forum {
 	  	"
 	  ;
 	  $result = $db->query($sql, __FILE__, __LINE__);
-	  
+
 
 	  // Ausgabe ----------------------------------------------------------------
 	  $html .=
@@ -1493,10 +1502,10 @@ class Forum {
 			.'<td align="left" width="25%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
 			.'<td align="left" class="small" width="16%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=tu_username&amp;order='.$new_order.'">&nbsp;&nbsp;&nbsp;Thread starter</a></td>'
 			.'<td align="center"><a href="'.$_SERVER['PHP_SELF'].'?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
-			.'<td align="center"><a href="'.$_SERVER['PHP_SELF'].'?sortby=last_post_date&amp;order='.$new_order.'">Datum</a></td>'
-			.'<td align="left" width="25%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=ct.last_comment_id&amp;order='.$new_order.'">Last Post</a></td>'
+			.'<td align="center"><a href="'.$_SERVER['PHP_SELF'].'?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
+			.'<td align="left" width="25%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=last_post_date&amp;order='.$new_order.'">Last Post</a></td>'
 	  ;
-	  
+
 	  $html .= '</tr>';
 
 	  $i = 0;
@@ -1532,12 +1541,12 @@ class Forum {
 
 		// alles was jetzt kommt, steht im feld rechtsbündig
 		$html .=	'<span style="float: right">';
-		
+
     	if($user->id > 0) {
-	    
+
 	    // links ganz rechts ausrichten
 	    $html .=	'<span style="float: right">';
-	    
+
 	    	### Favorite or unfavorite Thread
 	    	if($rs['isfavorite'] == 1) {
     			$html .=
@@ -1550,8 +1559,8 @@ class Forum {
 	    			.$rs['thread_id'].'">[fav]</a>'
 	    		;
 	    	}
-	  	
-			
+
+
 			### Ignore or Unignore Thread
 	    	if($rs['ignoreit'] == 1) {
     			$html .=
@@ -1564,19 +1573,19 @@ class Forum {
 	    			.$rs['thread_id'].'">[ignore]</a>'
 	    		;
 	    	}
-	    	
+
 	    	//$html .=	'&nbsp;&nbsp;&nbsp;</span>';
 	  	}
-	  	
-	  	### RSS Feed Thread 
+
+	  	### RSS Feed Thread
 	  	$html .=
 					' <a href="http://www.zorg.ch/forum.php?layout=rss&board='.$rs['board'].'&thread_id='
     				.$rs['thread_id'].'">[rss]</a>'
     	;
-    	
+
     	// rechtsbündig-span-element schliessen
     	$html .=	'</span>';
-	  	
+
 
 	    $html .= '</td><td align="left" bgcolor="#'.$color.'" class="small">&nbsp;&nbsp;&nbsp;'
 	      .usersystem::userpagelink($rs['tu_id'], $rs['tu_clan_tag'], $rs['tu_username'])
@@ -1715,7 +1724,7 @@ class Forum {
 	    	}
 		}
 	}
-	
+
 	/**
 	 * RSS functionality for Zorg Boards
 	 * @return string
@@ -1726,27 +1735,27 @@ class Forum {
 	 */
 	 static function printRSS($board='f', $user_id=null, $thread_id=null) {
 	 	global $db, $user;
-	 	
+
 	 	// where-board Bedingung für SQL-Query bilden
 		$wboard = $board ? "comments.board='".$board."'" : "1";
-		
+
 		$num = 15;		// Anzahl auszugebender Datensätze
-		
+
 	 	$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
-		
+
 		/**
 		 * Ausgabe evaluieren und entsprechendes SQL holen
 		 * @author IneX
 		 */
 		// nicht eingeloggter User...
 		if (is_null($user_id)) {
-			
+
 			// Feed für forum board
 			if ($board == 'f') {
-			
+
 				// keine thread_id übergeben
 				if (is_null($thread_id)) {
-					
+
 					$sql =
 						"SELECT"
 						." comments.*"
@@ -1761,10 +1770,10 @@ class Forum {
 						." ORDER BY date desc"
 						." LIMIT 0,".$num
 					;
-				
+
 				// thread_id vorhanden
 				} else {
-					
+
 					$sql =
 						"SELECT user.*, comments.*, UNIX_TIMESTAMP(date) as date"
 						." FROM comments"
@@ -1773,12 +1782,12 @@ class Forum {
 						." ORDER BY date DESC"
 						." LIMIT 0,".$num
 					;
-					
+
 				}
-				
+
 			// feed für anderes board
 			} else {
-				
+
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
 				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
@@ -1798,18 +1807,18 @@ class Forum {
 					ORDER BY date desc
 					LIMIT 0,".$num
 				;
-				
+
 			}
-			
+
 		// User ist eingeloggt
 		} else {
-		
+
 			// Feed für forum board
 			if ($board == 'f') {
-			
+
 				// keine thread_id übergeben
 				if (is_null($thread_id)) {
-					
+
 					$sql =
 						"SELECT"
 						." comments.*"
@@ -1824,10 +1833,10 @@ class Forum {
 						." ORDER BY date desc"
 						." LIMIT 0,".$num
 					;
-					
+
 				// thread_id vorhanden
 				} else {
-					
+
 					$sql =
 						"SELECT user.*, comments.*, UNIX_TIMESTAMP(date) as date"
 						." FROM comments"
@@ -1836,12 +1845,12 @@ class Forum {
 						." ORDER BY date DESC"
 						." LIMIT 0,".$num
 					;
-					
+
 				}
-			
+
 			// Feed für ein anderes board
 			} else {
-				
+
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
 				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
@@ -1862,20 +1871,20 @@ class Forum {
 					LIMIT 0,".$num
 				;
 			}
-			
+
 		} // end if is_null($user_id)
-			
-			
+
+
 			/**
 			* Feed bauen
 			* @author IneX
 			*/
 			// Query mit $sql
 			if ($result = $db->query($sql, __FILE__, __LINE__)) {
-				
-				// Datensätze auslesen	
+
+				// Datensätze auslesen
 				while($rs = $db->fetch($result)) {
-					
+
 					// Assign Values
 					$xmlitem_title = ( Comment::isThread($rs['board'], $rs['id']) ? Comment::getTitle($rs['text']) : 'Comment zu '.remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id']))) );
 					$xmlitem_link = 'http://www.zorg.ch'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
@@ -1891,7 +1900,7 @@ class Forum {
 						$xmlitem_description .= (strlen($desc) > $limit ? substr($desc, 0, $limit - 3) . '...' : $desc);
 						$xmlitem_description .= ']]>';
 					$xmlitem_content = $rs['text'];
-					
+
 					// XML Feed items schreiben
 					$xmlfeed .=
 						'<item>
@@ -1905,14 +1914,14 @@ class Forum {
 							<content:encoded><![CDATA['.$xmlitem_content.']]></content:encoded>
 						</item>
 						';
-			
+
 				} // end while $rs
-				
+
 				// Return XML
 				return $xmlfeed;
-				
+
 			} // end if $result
-		
+
 	} // end static function printRSS()
 
 } // end class Forum()
