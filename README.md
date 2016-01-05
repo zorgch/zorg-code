@@ -42,7 +42,7 @@ Detailliertere Anleitungen zur Installation von Git & Mercurial gibt es auch hie
 1. Das Terminal (OS X) resp. Git Bash (Windows) starten
 2. Folgenden Befehl ausführen um das Zorg Repository auf Deinen Computer zu clonen:
 
-        git clone https://bitbucket.org/rnatau/zorg.ch.git /pfad/zum/lokalen/apache/webroot/
+        git clone https://bitbucket.org/zorgvorstand/zorg.ch.git /pfad/zum/lokalen/apache/webroot/
 
 3. Im Apache Web-Root (auch "*htdocs/*" oder "*www/*") befindet sich jetzt eine Kopie des Zorg www-Verzeichnis mit sämtlichen Dateien von Zorg.
 
@@ -51,10 +51,10 @@ Detailliertere Anleitungen zur Installation von Git & Mercurial gibt es auch hie
 
 ## Pull-Request des Zorg Repository erstellen (für lokale Entwicklung)
 
-1. Erstelle im Zorg Repository einen neuen [Pull Request](https://bitbucket.org/rnatau/zorg.ch/pull-request/new)
+1. Erstelle im Zorg Repository einen neuen [Pull Request](https://bitbucket.org/zorgvorstand/zorg.ch/pull-request/new)
 2. Alternativ geht das auch via Terminal/Git Bash mit folgendem Befehl:
 
-        git pull https://bitbucket.org/rnatau/zorg.ch.git
+        git pull https://bitbucket.org/zorgvorstand/zorg.ch.git
 
 *Bevor Zorg aber lokal geöffnet werden kann muss zuerst noch [die Datenbank](#z-db-setup) eingerichtet werden!*
 
@@ -101,7 +101,11 @@ Unter OS X findet sich die Datei hier:
 * * *
 
 
-## Code Anpassungen oder Erweiterungen? Dokumentation nicht vergessen!
+# Code Anpassungen oder Erweiterungen?
+
+## 1. BEVOR Änderungen eingecheckt werden, **immer zuerst ein "*git pull*"** vom aktuellsten Code Stand machen!
+
+## 2. Dokumentation nicht vergessen!
 Damit auch anderen nachvollziehen können, was für Anpassungen am Zorg Code Du vorgenommen hast und was die Intention dahinter ist, dokumentiere alles bitte entsprechend! (Fast) jeder Kommentar ist besser, als keiner... Um es Dir auch möglichst einfach zu machen, findest Du folgend entsprechende Schnipsel, die Du für die Dokumentation im Code adaptieren kannst.
 
 Da wir dem [phpDoc Standard][10] folgen, können wir daraus nämlich auch laufend eine schöne Webseite der gesamten Dokumentation automatisch generieren lassen!
@@ -156,7 +160,6 @@ Achtung: wenn eine Funktion AUSSERHALB einer Klasse geschrieben wird, bitte noch
      * @package Zorg
      * @subpackage Kategorie (z.B. "Addle", "Events", o.ä.)
 
-
 ### Variablen in Klassen dokumentieren
     /**
      * Beschreibung meiner Variable mit Angabe des Typs
@@ -187,17 +190,69 @@ To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folge
      */
     ...
 
-### Und so sieht unsere Zorg Code Doku damit dann aus: [Zorg Code phpDocumentor Doku](http://www.zorg.ch/zorgcode/)
+## Und so sieht unsere Zorg Code Doku damit dann aus: [Zorg Code phpDocumentor Doku](11)
+
+
+* * *
+
+# Zorg Code Pull auf xoli
+Irgendwie muss ja der Zorg Code vom Bitbucket Repository auch auf xoli, den www-Server, gelangen :) Grundsätzlich funktioniert das gleich, wie wenn man es lokal auf seinem Entwicklungsrechner macht, nur halt dass wir auf dem Server mittels Console arbeiten müssen.
+
+## Git serverseitig konfigurieren
+Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System User ```su``` erfolgen!
+
+### Verzeichnisse
+* Grundsätzlich ist das Git Repo auf dem Server unter folgenden Pfad gecloned worden:
+
+        /var/www
+
+* Um Git Einstellungen oder eben Pull Requests zu machen, arbeitet man daher direkt im /var/ Verzeichnis
+(*nicht* in /var/www !)
+* An dieser Stelle sei noch erwähnt, dass das ```/var/data```-Verzeichnis unverzichtbar ist für zorg.ch, aber nicht der Git-Codeversionierung auf Bitbucket unterliegt!
+
+### Git Konfigurationen
+* Bestehende Repo Verknüpfung(en) auflisten
+
+        $ git remote -v
+
+* Repo Verknüpfung aktualisieren (z.B. neue URL, User/PW hat geändert, usw.)
+
+        $ git remote set-url origin https://zorgvorstand:API_TOKEN@bitbucket.org/zorgvorstand/zorg.ch.git
+
+* Der API-Token für den Tem-User "ZorgVorstand" kann nur ein Administrator dieses Bitbucket-Teams [auslesen bzw. neu generieren](https://bitbucket.org/account/user/zorgvorstand/api-key/) wenn notwendig
+
+## Code vom Repo auf xoli pullen (synchronisieren)
+Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [www.zorg.ch](http://www.zorg.ch) vorhanden sind. Das geht wie folgt:
+
+* Mit Deinem persönlichen User mittels SSH auf den Server (xoli) verbinden
+
+        $ ssh username@zorg.ch
+
+* Von dort nun den ```su``` User starten
+
+        $ su
+        $ [Passwort]
+
+* Nach erfolgreichem login ins /var/ Verzeichnis wechseln
+
+        $ cd /var/
+
+* Git Pull-Request im /var/ auslösen
+
+        $ git pull
+
+* **DONE** - die Änderungen müssten jetzt auch auf [www.zorg.ch](http://www.zorg.ch) aktiv sein.
 
 
 [1]: https://confluence.atlassian.com/pages/viewpage.action?pageId=269981802 "Set up Git and Mercurial (Mac OS X)"
 [2]: https://confluence.atlassian.com/display/BITBUCKET/Set+up+Git+and+Mercurial "Set up Git and Mercurial (Windows)"
 [3]: https://confluence.atlassian.com/pages/viewpage.action?pageId=269982882 "Set up Git and Mercurial (Linux)"
-[4]: https://bitbucket.org/rnatau/zorg.ch "zorg.ch - Bitbucket"
-[5]: http://www.zorg.ch/profil.php?user_id=8 "[z]bert Profil"
-[6]: http://www.zorg.ch/profil.php?user_id=52 "[z]keep3r Profil"
-[7]: http://www.zorg.ch/profil.php?user_id=117 "IneX Profil"
+[4]: https://bitbucket.org/zorgvorstand/zorg.ch "zorg.ch - Bitbucket"
+[5]: https://bitbucket.org/rnatau/ "Bert"
+[6]: https://bitbucket.org/nicoraschle/ "Nico"
+[7]: https://bitbucket.org/oraduner/ "Oliver"
 [8]: https://confluence.atlassian.com/pages/viewpage.action?pageId=271942986 "Fork a Repo, Compare Code, and Create a Pull Request (Mac OSX/Linux)"
-[9]: https://bitbucket.org/rnatau/zorg.ch/src/3dd86099c6445a606c4fa81882f06b6567633baf/www/includes/mysql_login.inc.php?at=master "mysql_login.inc.php"
+[9]: https://bitbucket.org/zorgvorstand/zorg.ch/src/3dd86099c6445a606c4fa81882f06b6567633baf/www/includes/mysql_login.inc.php?at=master "mysql_login.inc.php"
 [10]: http://en.wikipedia.org/wiki/PHPDoc "PHPDoc auf Wikipedia"
 [11]: http://www.zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
+[12]: https://bitbucket.org/account/user/zorgvorstand/api-key/ "ZorgVorstand Bitbucket API Key verwalten"
