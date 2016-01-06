@@ -1,7 +1,7 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
+//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php'); // brauchts hier nicht
 
 if(!($user->id > 0)) {
 	echo 'Du bist nicht eingeloggt.';
@@ -24,11 +24,11 @@ if(Forum::hasPostedRecently($user->id, $_POST['parent_id'])) {
 }
 
 if(
-	$commentlink = 
+	$commentlink =
 		Comment::post(
-			$_POST['parent_id'], 
-			$_POST['board'], 
-			$user->id, 
+			$_POST['parent_id'],
+			$_POST['board'],
+			$user->id,
 			$_POST['text'],
 			$_POST['msg_users']
 		)

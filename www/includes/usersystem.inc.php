@@ -1,9 +1,9 @@
 <?php
 /**
  * Zorg Usersystem
- * 
+ *
  * Enthält alle User Funktionen von Zorg
- * 
+ *
  * @author [z]biko
  * @package Zorg
  * @subpackage Usersystem
@@ -37,7 +37,7 @@ define("AUSGESPERRT_BIS", "ausgesperrt_bis");
 
 /**
  * Usersystem Klasse
- * 
+ *
  * @author [z]biko
  * @version 3.0
  * @package Zorg
@@ -77,7 +77,7 @@ class usersystem {
 	$user->id = user_ID
 	$user->mail_userpw = Message User Passwort
 	$user->mail_username = Message Username ohne Umlaute und so
-	$user->addle = ob user addle spielen will. 
+	$user->addle = ob user addle spielen will.
 	$user->menulayout = welches menu layout der user eingestellt hat.
 	$user->zorger = hat der user zooomclan.org gewählt? sonst zorg.ch anzeigen
 	$user->is_mobile = wenn 1, dann nutzt User einen mobilen Browser, bei 0 = Desktop-Browser
@@ -137,20 +137,20 @@ class usersystem {
 	// =========================================================================
 	// CONSTRUCTOR
 	// =========================================================================
-	
+
 	/**
 	 * CONSTRUCTOR
-	 * 
+	 *
 	 * Klassen Konstruktor
-	 * 
+	 *
 	 * @return usersystem
 	 */
 	function usersystem() {
 		global $db;
 		session_name("z");
 		$this->typ = USER_ALLE;
-		
-		
+
+
 		// Session init'en
 		if((isset($_GET['z']) && $_GET['z'] != '') || (isset($_POST['z']) && $_POST['z'] != '') || (isset($_COOKIE['z']) && $_COOKIE['z'] != '')) {
 			session_start();
@@ -191,10 +191,10 @@ class usersystem {
 			}else{
 			   $this->image = USER_IMGPATH."none.jpg";
 			}
-			
+
 			$this->forum_boards = explode(",", $rs['forum_boards']);
 			$this->forum_boards_unread = explode(",", $rs['forum_boards_unread']);
-			
+
 			$this->mail_userpw = $rs[$this->field_mail_userpw];
 			$this->mail_username = $rs[$this->field_mail_username];
 
@@ -203,7 +203,7 @@ class usersystem {
 			}
 
 			$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
-			
+
 			// User Agent suchen - Loginart (normal / mobile) festlegen - wird nur in Session geadded, nicht in DB gespeichert
 			//isMobileClient($_SERVER['HTTP_USER_AGENT']) <> '' ? $this->is_mobile = 1 : $this->is_mobile = 0;
 			$this->from_mobile = isMobileClient($_SERVER['HTTP_USER_AGENT']);
@@ -220,9 +220,9 @@ class usersystem {
 	// =========================================================================
 	/**
 	 * User Login
-	 * 
+	 *
 	 * Erstellt eine Session (login)
-	 * 
+	 *
 	 * @return string error
 	 * @param $username string Benutzername
 	 * @param $password string Passwort
@@ -247,16 +247,16 @@ class usersystem {
 			}
 
 			//erstellt sql string fuer passwort ueberpruefung
-			$sql = 
+			$sql =
 				"
-					SELECT 
+					SELECT
 						id
-						, ".$this->field_user_active." 
+						, ".$this->field_user_active."
 						, UNIX_TIMESTAMP(".AUSGESPERRT_BIS.") as ".AUSGESPERRT_BIS."
-					FROM ".$this->table_name." 
+					FROM ".$this->table_name."
 					WHERE "
-							.$this->field_username." = '".$username."' 
-						AND 
+							.$this->field_username." = '".$username."'
+						AND
 							".$this->field_userpw." = '".$crypted_pw."'
 				"
 			;
@@ -268,33 +268,33 @@ class usersystem {
 
 				// ueberpruefe ob user aktiviert wurde
 				if($rs[$this->field_user_active]) {
-					
+
 					// überprüfe ob User nicht ausgesperrt ist
 					if($rs[AUSGESPERRT_BIS] < time()) {
 						session_start();
 						$_SESSION['user_id'] = $rs['id'];
-	
+
 						//wenn cookie aktiviert und user gewuenscht
 						if($this->use_cookie == TRUE && $use_cookie) {
-	
+
 							//autologin cookies setzen
 							setcookie("autologin_id",$username,time()+(86400*14));
 							setcookie("autologin_pw",$crypted_pw,time()+(86400*14));
 						}
-	
+
 						//Last Login update
 						$sql = "UPDATE ".$this->table_name."
 						set ".$this->field_lastlogin." = ".$this->field_currentlogin."
 						WHERE id = '".$rs['id']."'";
 						$db->query($sql, __FILE__, __LINE__);
-	
+
 						//current login update
 						$sql = "UPDATE ".$this->table_name."
 						set ".$this->field_currentlogin." = now(),
 						".$this->field_last_ip." = '".$_SERVER['REMOTE_ADDR']."'
 						WHERE id = '".$rs['id']."'";
 						$db->query($sql, __FILE__, __LINE__);
-	
+
 						header("Location: ".$_SERVER['PHP_SELF']."?". session_name(). "=". session_id());
 					} else {
 						echo "Du bist ausgesperrt! (bis ".date("d.m.Y", $rs[AUSGESPERRT_BIS]).")";
@@ -309,13 +309,13 @@ class usersystem {
 		} else { $error = "Dieser Benutzer existiert nicht!"; }
 		return $error;
 	}
-	
-	
+
+
 	/**
 	 * User Logout
-	 * 
+	 *
 	 * Logt einen User aus!
-	 * 
+	 *
 	 * @return void
 	 */
 	function logout() {
@@ -329,11 +329,11 @@ class usersystem {
 
 		header("Location: ". $_SERVER['PHP_SELF']);
 	}
-	
-	
+
+
 	function set_page_style($user_id, $zorg=TRUE, $zooomclan=FALSE) {
 		global $db, $zorg, $zooomclan;
-		
+
 		if ($zorg == true) {
 			$sql = "UPDATE ".$this->table_name."
 					set ".$this->field_zorger." = 1
@@ -346,13 +346,13 @@ class usersystem {
 					$db->query($sql, __FILE__, __LINE__);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Neues Passwort
-	 * 
+	 *
 	 * Generiert ein Passwort für einen bestehenden User
-	 * 
+	 *
 	 * @return string error
 	 * @param $email string E-Mail
 	 */
@@ -371,7 +371,7 @@ class usersystem {
 
 					//generiere passwort
 					$new_pass = $this->password_gen($rs['username']);
-				
+
 					//verschl?ssle passwort
 					$crypted = $this->crypt_pw($new_pass);
 
@@ -403,9 +403,9 @@ class usersystem {
 
 	/**
 	 * Benutzer erstellen
-	 * 
+	 *
 	 * Erstellt einen Neuen Benutzer
-	 * 
+	 *
 	 * @return string error
 	 * @param $username string Benutzername
 	 * @param $pw string Passwort
@@ -490,12 +490,12 @@ class usersystem {
 	// =========================================================================
 	// MISC FUNCTIONS
 	// =========================================================================
-	
+
 	/**
 	 * Online Users
-	 * 
+	 *
 	 * Gibt Online Users als HTML aus
-	 * 
+	 *
 	 * @return string html
 	 * @param $sec int Sekunden
 	 */
@@ -503,7 +503,7 @@ class usersystem {
 		global $db, $sun;
 		$sql = "
 			SELECT id, username, clan_tag
-			FROM user 
+			FROM user
 			WHERE	UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - ".USER_TIMEOUT.")
 			ORDER by activity DESC
 		";
@@ -515,8 +515,8 @@ class usersystem {
 				$html .= '<a href="/profil.php?user_id='.$rs['id'].'">'.$rs['clan_tag'].$rs['username'].'</a>';
 				if(($i+1) < $db->num($result)) $html .= ', ';
 			} else {
-				
-				$html .= 
+
+				$html .=
 					'<table bgcolor="#'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
 					.'<img border="0" src="'.USER_IMGPATH.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
 					.'</a></td></tr>'
@@ -533,9 +533,9 @@ class usersystem {
 
 	/**
 	 * Passwort encryption
-	 * 
+	 *
 	 * Verschlüsselt ein Passwort
-	 * 
+	 *
 	 * @return string crypted Passwort
 	 * @param $password string Plaintext Passwort
 	 */
@@ -545,9 +545,9 @@ class usersystem {
 
 	/**
 	 * E-Mailadresse prüfen
-	 * 
+	 *
 	 * Überprüft eine E-Mail Adresse
-	 * 
+	 *
 	 * @return bool
 	 * @param $email string E-Mail
 	 */
@@ -559,9 +559,9 @@ class usersystem {
 
 	/**
 	 * User aktivieren
-	 * 
+	 *
 	 * Aktiviert einen User
-	 * 
+	 *
 	 * @return string error
 	 * @param $regcode string RegistrationsCode
 	 */
@@ -586,9 +586,9 @@ class usersystem {
 
 	/**
 	 * Error loggen
-	 * 
+	 *
  	 * Speichert ein Fehler des Users in der DB ab.
-	 * 
+	 *
 	 * @return void
 	 * @param $do int Aktion
 	 * @param $user_id int User ID
@@ -607,9 +607,9 @@ class usersystem {
 
 	/**
 	 * Registrationscode generieren
-	 * 
+	 *
 	 * Erstellt einen Registrationscode für einen Benutzer
-	 * 
+	 *
 	 * @return string hash
 	 * @param $username string
 	 */
@@ -620,9 +620,9 @@ class usersystem {
 
 	/**
 	* Pürfen ob User eingeloggt
-	* 
+	*
 	* Überprüft ob der User eingeloggt ist
-	* 
+	*
 	* @return bool
 	*/
 
@@ -636,9 +636,9 @@ class usersystem {
 
 	/**
 	* Passwort-Generator
-	* 
+	*
 	* Erstellt ein zufälliges Passwort
-	* 
+	*
 	* @return string Passwort
 	* @param $username string Benutzername
 	*/
@@ -652,9 +652,9 @@ class usersystem {
 
 	/**
 	* Userpic prüfen
-	* 
+	*
 	* Überprüft ob ein Bild zum User existiert
-	* 
+	*
 	* @see USER_IMGPATH
 	* @return bool
 	* @param $id int User ID
@@ -666,16 +666,16 @@ class usersystem {
 			return FALSE;
 		}
 	}
-	
-	
+
+
 	/**
 	* Userpic Pfad
-	* 
+	*
 	* Gibt den Pfad zum Bild des Users. Falls kein Bild: none.jpg
-	* 
+	*
 	* @version 2.0
 	* @since 1.0
-	* 
+	*
 	* @see usersystem::checkimage(), usersystem::get_gravatar(), USER_IMGPATH
 	* @param int $id User ID
 	* @param boolean $large Large image true/false
@@ -683,7 +683,7 @@ class usersystem {
 	*/
 	function userImage($id, $large=0) {
 		global $user;
-		
+
 		if (usersystem::checkimage($id)) {
 			if ($large) {
 				return usersystem::get_gravatar(
@@ -706,25 +706,25 @@ class usersystem {
 			);
 		}
 	}
-	
-	
+
+
 	function getFormFieldUserlist($name, $size, $users_selected=0, $tabindex=10) {
 		global $db;
-		
+
 		// Wenn User ganz neue Message schreibt
 		if ($users_selected == 0) $users_selected = Array();
-		
-		$sql = 
+
+		$sql =
 			"SELECT id, clan_tag, username FROM user"
 			." WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(now())-".(USER_OLD_AFTER*2).")"
 			." OR z_gremium = '1' OR vereinsmitglied = '1'"
 			." ORDER BY clan_tag DESC, username ASC"
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
-		
+
 		$html = '<select multiple="multiple" name="'.$name.'" size="'.$size.'" tabindex="'.$tabindex.'">';
 		while ($rs = mysql_fetch_array($result)) {
-			$html .= 
+			$html .=
 				'<option value="'.$rs['id'].'"'
 				//.(in_array($rs['id'], $users_selected) ? ' selected="selected"' : '')
 				.($rs['id'] == $users_selected[0] ? ' selected="selected"' : '')
@@ -733,16 +733,16 @@ class usersystem {
 			;
 		}
 		$html .= '</select>';
-		
+
 		return $html;
 	}
-	
-	
+
+
 	/**
 	* Convert ID to Username/Userpic
-	* 
+	*
 	* Konvertiert eine ID zum entsprechenden Username (wahlweise inkl. Clantag oder ohne), oder dem HTML-Code zur Anzeige des Userpics
-	* 
+	*
 	* @version 2.0
 	* @since 1.0
 	* @author IneX
@@ -757,9 +757,9 @@ class usersystem {
 	{
 		global $db, $zorg, $zooomclan;
 		static $_users = array();
-		
+
 		if (!empty($id) && !is_numeric($id)) die('<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>');
-		
+
 		if (!isset($_users[$id]))
 		{
 			if ($clantag == TRUE) {
@@ -772,10 +772,10 @@ class usersystem {
 	  		   $_users[$id] = $rs;
 	  		}
 		}
-		
+
 		// Set string with Username
 		$us = $_users[$id]['username'];
-		
+
 		// If applicable, prefix Username with the Clantag
 		if ($clantag == TRUE)
 		{
@@ -784,24 +784,24 @@ class usersystem {
 				$us = $_users[$id]['clan_tag'].$us;
 			}
 		}
-		
+
 		// Return Userpic HTML
 		if($pic == TRUE) {
-			$us = 
+			$us =
 				'<img alt="'.$us.'" border="0" src="'.usersystem::userImage($id).'" title="'.$us.'"'
 			;
-			
+
 			if ($zorg == true) {
 				$us .= ' height="65">';
 			} else {
 				$us .= '>';
 			}
 		}
-		
+
 		return $us;
 	}
-	
-	
+
+
 	function user2id ($username) {
 		global $db;
 		$e = $db->query("SELECT id FROM user WHERE username='$username' LIMIT 1", __FILE__, __LINE__);
@@ -809,28 +809,28 @@ class usersystem {
 		if ($d) return $d['id'];
 		else return 0;
 	}
-	
-	
+
+
 	/**
 	 *
 	 * Userpic (klein) ausgeben
 	 *
 	 * @author IneX
 	 * @date 02.10.2009
-	 * 
+	 *
 	 * @see usersystem::userImage()
 	 * @param	$id				User-ID
 	 * @param	$displayName	Zeigt Usernamen unter dem Bild an
 	 * @return	string			Link zum Userpic
-	 * 
+	 *
 	 */
 	function userpic($id, $displayName=FALSE)
 		{
 		global $db;
 		static $_users = array();
-		
+
 		$us = '';
-		
+
 		if ($displayName) {
 	   		if (!isset($_users[$id])) {
 	      		$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
@@ -844,21 +844,21 @@ class usersystem {
 	   			$us = $_users[$id]['clan_tag'].$us;
 	   		}
 	   	}
-   		
-   		
+
+
 		$us =
 			'<a href="/profil.php?user_id='.$id.'">'.
 			'<img alt="'.$us.'" border="0" src="'.usersystem::userImage($id).'" title="'.$us.'" height="65">'.
 			'</a>'
 		;
-		
+
    		return $us;
 	}
-	
-	
+
+
 	/**
 	 * Gravatar Userpic
-	 * 
+	 *
 	 * Get either a Gravatar URL or complete image tag for a specified email address.
 	 *
 	 * @source http://gravatar.com/site/implement/images/php/
@@ -866,7 +866,7 @@ class usersystem {
 	 * @author IneX
 	 * @since 3.0
 	 * @version 1.0
-	 * 
+	 *
 	 * @param string $email The email address
 	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
 	 * @param string $d Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
@@ -893,13 +893,13 @@ class usersystem {
 		}
 		return $url;
 	}
-	
-	
+
+
 	/**
 	* User Mobile Agent
-	* 
+	*
 	* Prüft eine User-ID, ob der User von einem Mobilen Browser zugreift
-	* 
+	*
 	* @return string last Mobile Useragent
 	* @param $id int User ID
 	*/
@@ -911,14 +911,14 @@ class usersystem {
 		if ($d) return $d['from_mobile'];
 		else return '';
 	}
-	
-	
+
+
 
 	/**
 	* ID zu Username
-	* 
+	*
 	* Wandelt eine User ID in Username um
-	* 
+	*
 	* @return string username
 	* @param $id int User ID
 	*/
@@ -929,33 +929,33 @@ class usersystem {
 		$rs = $db->fetch($result);
 		return $rs['mail_username'];
 	}
-	
 
-	
+
+
 	/**
 	* ID zu User E-Mail
-	* 
+	*
 	* Gibt aufgrund einer User ID dessen E-Mailadresse zurück, falls der User E-Mailbenachrichtigung erlaubt hat
-	* 
+	*
 	* @return string email
 	* @param $id int User ID
 	*/
 	function id2useremail($id) {
 		global $db;
-		$sql = "SELECT email, email_notification FROM user WHERE id = '$id'";
+		$sql = "SELECT email, email_notification FROM user WHERE id = $id";
 		$result = $db->query($sql, __FILE__, __LINE__);
 		$rs = $db->fetch($result);
 		$value = (!empty($rs['email_notification']) ? $rs['email'] : false);
 		return $value;
 	}
-	
-	
-	
+
+
+
 	/**
 	* Link zum Userprofil
-	* 
+	*
 	* Gibt eine User ID als link zur userpage aus
-	* 
+	*
 	* @return string html
 	* @param $user_id int User ID
 	* @param $image bool
@@ -972,23 +972,23 @@ class usersystem {
 		return $html;
 	}
 
-	
+
 	function userpagelink($userid, $clantag, $username) {
 		$name = $clantag.$username;
-		
+
 		// Dreadwolfs spezieller Nick
 		//if($userid == 307) $name = '<b style="background-color: green; color: white;">&otimes; '.$name.' &oplus;</b>';
-		
+
 		return '<a href="/profil.php?user_id='.$userid.'">'.$name.'</a>';
 	}
 
 	/**
 	* User Quote (?)
-	* 
+	*
 	* Gibt ein random Quote zurück.
 	* Falls mit user_id wird es ein quote dieses users sein<br><br>
 	* <b>Milamber: Warum ist dies nicht im quotes.inc.php? Und wir brauchen das nicht mal?!</b>
-	* 
+	*
 	* @return string quote
 	* @param $user_id int User ID
 	*/
@@ -1013,7 +1013,7 @@ class usersystem {
 			return $quote;
 		}
 	}
-	
+
 	function userSelectBox() {
 	}
 }

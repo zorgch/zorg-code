@@ -6,6 +6,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/sunrise.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
 
 /**
  * GLOBALS
