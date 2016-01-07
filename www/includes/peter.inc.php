@@ -438,13 +438,13 @@ class peter {
 		$html = "
 		<br />
 		<table cellpadding='5'><tr valign='top'><td>
-		<table width='500' cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr><td colspan='4' class='title' align='center' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		<table width='500' cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr><td colspan='4' class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		<b>Offene Spiele</b></td></tr>
 		<tr>
-		<td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>Spiel</td>
-		<td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>Spieler</td>
-		<td class='title' colspan='2' bgcolor='#".TABLEBACKGROUNDCOLOR."'>Anzahl Spieler</td>
+		<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>Spiel</td>
+		<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>Spieler</td>
+		<td class='title' colspan='2' bgcolor='".TABLEBACKGROUNDCOLOR."'>Anzahl Spieler</td>
 		</tr>";
 		
 		$sql = "
@@ -457,9 +457,9 @@ class peter {
 		while($rs = $db->fetch($result)) {
 			$html .= "
 			<tr>
-				<td bgcolor='#".BACKGROUNDCOLOR."'>
+				<td bgcolor='".BACKGROUNDCOLOR."'>
 				".$rs['game_id']."
-				</td><td bgcolor='#".BACKGROUNDCOLOR."'>";
+				</td><td bgcolor='".BACKGROUNDCOLOR."'>";
 			$sql = "
 			SELECT
 				*
@@ -480,16 +480,16 @@ class peter {
 			}	
 			
 			$html .= "
-			<td bgcolor='#".BACKGROUNDCOLOR."'>".$rs['players']."</td>";
+			<td bgcolor='".BACKGROUNDCOLOR."'>".$rs['players']."</td>";
 			
 			if($gejoint == FALSE) {
 				$html .= "
-				</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+				</td><td bgcolor='".BACKGROUNDCOLOR."'>
 				<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]' class='button'><B>join</B></a>
 				</td></tr>";
 			} else {
 				$html .= "
-				</td><td bgcolor='#".BACKGROUNDCOLOR."'><i>Du spielst hier mit!</i></td></tr>";
+				</td><td bgcolor='".BACKGROUNDCOLOR."'><i>Du spielst hier mit!</i></td></tr>";
 			}
 		}
 		$html .= "
@@ -520,15 +520,15 @@ class peter {
 		global $db, $user;
 		
 		$html = "
-		<table cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr><td align='center' class='title' colspan='3' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr><td align='center' class='title' colspan='3' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Alle laufenden Spiele
 		</td></tr>
-		<tr><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Spiel ID
-		</td><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Spieler
-		</td><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		am Zug
 		</td></tr>";
 		
@@ -563,7 +563,7 @@ class peter {
 					<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a>
 				</td>
 				<td>$spieler</td>
-				<td bgcolor='#".BACKGROUNDCOLOR."'>
+				<td bgcolor='".BACKGROUNDCOLOR."'>
 					".$user->link_userpage($rs['next_player'])."
 				</td>
 			</tr>";
@@ -593,15 +593,15 @@ class peter {
 		if ($user_id <> '' && $user_id != NULL)
 		{
 			$html = "
-			<table cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-			<tr><td align='center' class='title' colspan='3' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+			<tr><td align='center' class='title' colspan='3' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 			Meine Spiele
 			</td></tr>
-			<tr><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 			Spiel ID
-			<td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 			Spieler
-			</td><td class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+			</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 			am Zug
 			</td></tr>";
 			
@@ -640,7 +640,7 @@ class peter {
 					<td>
 						$spieler
 					</td>
-					<td bgcolor='#".BACKGROUNDCOLOR."'>
+					<td bgcolor='".BACKGROUNDCOLOR."'>
 						".$user->link_userpage($rs['next_player'])."
 					</td>
 				</tr>";
@@ -781,9 +781,9 @@ class peter {
 		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 		
 		$html = "
-		<table cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'><tr>";
+		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'><tr>";
 		while($rs = $db->fetch($result)) {
-			$html .= "<td bgcolor='#".TABLEBACKGROUNDCOLOR."'>".$rs['username']." : <b>".$rs['num_cards']."</b> Karten</td>";
+			$html .= "<td bgcolor='".TABLEBACKGROUNDCOLOR."'>".$rs['username']." : <b>".$rs['num_cards']."</b> Karten</td>";
 		}	
 		$html .= "</tr></table>";
 		
@@ -1166,14 +1166,14 @@ class peter {
 		
 		$html = "
 		<form action='$_SERVER[PHP_SELF]' method='post'>
-		<table  cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr><td colspan='2' align='center' class='title' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		<table  cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr><td colspan='2' align='center' class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Neues Spiel
-		</td></tr><tr><td bgcolor='#".BACKGROUNDCOLOR."'>
+		</td></tr><tr><td bgcolor='".BACKGROUNDCOLOR."'>
 		Anzahl Spieler: 
-		</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+		</td><td bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='text' name='players' class='text' size='4'>
-		</td></tr><tr><td colspan='2' align='right' bgcolor='#".BACKGROUNDCOLOR."'>
+		</td></tr><tr><td colspan='2' align='right' bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='submit' name='maach' class='button' value='starten'>
 		</td></tr></table>
 		</form>	";
@@ -1239,15 +1239,15 @@ class peter {
 		
 		$html = "
 		<br /><br />
-		<table cellpadding='2' cellspacing='1'  bgcolor='#".BORDERCOLOR."'>
-		<tr><td colspan='3' class='title' align='center' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		<table cellpadding='2' cellspacing='1'  bgcolor='".BORDERCOLOR."'>
+		<tr><td colspan='3' class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Haiskor
 		</td></tr>
-		<tr><td class='title' align='center' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		<tr><td class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Spieler
-		</td><td class='title' align='center' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		</td><td class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Anzahl Spiele
-		</td><td class='title' align='center' bgcolor='#".TABLEBACKGROUNDCOLOR."'>
+		</td><td class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
 		Gewonnen
 		</td></tr>";
 		
@@ -1290,11 +1290,11 @@ class peter {
 		
 		while($rs = $db->fetch($result)) {
 			$html .= "
-			<tr><td bgcolor='#".BACKGROUNDCOLOR."'>
+			<tr><td bgcolor='".BACKGROUNDCOLOR."'>
 			".$rs['username']."
-			</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+			</td><td bgcolor='".BACKGROUNDCOLOR."'>
 			".$rs['num_games_played']."
-			</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+			</td><td bgcolor='".BACKGROUNDCOLOR."'>
 			".$rs['num_games']."
 			</td></tr>";	
 		}
@@ -1315,17 +1315,17 @@ class peter {
 	
 		$html = "
 		<form action='$_SERVER[PHP_SELF]?game_id=".$this->game_id."' method='post'>
-		<table cellpadding='2' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr><td bgcolor='#".BACKGROUNDCOLOR."'>
+		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr><td bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='radio' name='wunsch' value='Eichel'> Eichel
-		</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+		</td><td bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='radio' name='wunsch' value='Rosen'> Rosen
-		</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+		</td><td bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='radio' name='wunsch' value='Schellen'> Schellen
-		</td><td bgcolor='#".BACKGROUNDCOLOR."'>
+		</td><td bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='radio' name='wunsch' value='Schilten'> Schilten
-		</td></tr bgcolor='#".BACKGROUNDCOLOR."'>
-		<tr><td colspan='4' align='right' bgcolor='#".BACKGROUNDCOLOR."'>
+		</td></tr bgcolor='".BACKGROUNDCOLOR."'>
+		<tr><td colspan='4' align='right' bgcolor='".BACKGROUNDCOLOR."'>
 		<input type='submit' value='wünschen' class='button'>
 		</td></tr>
 		</table>

@@ -517,7 +517,7 @@ class usersystem {
 			} else {
 
 				$html .=
-					'<table bgcolor="#'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
+					'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
 					.'<img border="0" src="'.USER_IMGPATH.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
 					.'</a></td></tr>'
 					.'<tr>'

@@ -189,11 +189,11 @@ class wetten {
 		$result = $db->query($sql,__FILE__,__LINE__);
 		echo "
 		<br />
-		<table width='700' cellpadding='4' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr align='center'  bgcolor='#".BORDERCOLOR."'><td colspan='6'>
+		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr align='center'  bgcolor='".BORDERCOLOR."'><td colspan='6'>
 		<b>Offene Wetten</b>
 		</td></tr>
-		<tr align='left'  bgcolor='#".BORDERCOLOR."'><td>
+		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
 		<b>Wettstarter</b>
 		</td><td>
 		<b>Titel</b>
@@ -229,7 +229,7 @@ class wetten {
 			}
 
 			echo "
-			<tr bgcolor='#".TABLEBACKGROUNDCOLOR."'><td>
+			<tr bgcolor='".TABLEBACKGROUNDCOLOR."'><td>
 			".$rs['clan_tag'].$rs['username']."
 			</td><td>
 			<a href='?id=".$rs['id']."'>".stripslashes($rs['titel'])."</a>
@@ -274,11 +274,11 @@ class wetten {
 		$result = $db->query($sql,__FILE__,__LINE__);
 		echo "
 		<br />
-		<table width='700' cellpadding='4' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr align='center'  bgcolor='#".BORDERCOLOR."'><td colspan='6'>
+		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr align='center'  bgcolor='".BORDERCOLOR."'><td colspan='6'>
 		<b>Laufende Wetten</b>
 		</td></tr>
-		<tr align='left'  bgcolor='#".BORDERCOLOR."'><td>
+		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
 		<b>Wettstarter</b>
 		</td><td>
 		<b>Titel</b>
@@ -314,7 +314,7 @@ class wetten {
 			}
 
 			echo "
-			<tr bgcolor='#".TABLEBACKGROUNDCOLOR."'><td>
+			<tr bgcolor='".TABLEBACKGROUNDCOLOR."'><td>
 			".$rs['clan_tag'].$rs['username']."
 			</td><td>
 			<a href='?id=".$rs['id']."'>".stripslashes($rs['titel'])."</a>
@@ -360,11 +360,11 @@ class wetten {
 		$result = $db->query($sql,__FILE__,__LINE__);
 		echo "
 		<br />
-		<table width='700' cellpadding='4' cellspacing='1' bgcolor='#".BORDERCOLOR."'>
-		<tr align='center'  bgcolor='#".BORDERCOLOR."'><td colspan='6'>
+		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+		<tr align='center'  bgcolor='".BORDERCOLOR."'><td colspan='6'>
 		<b>Geschlossen Wetten</b>
 		</td></tr>
-		<tr align='left'  bgcolor='#".BORDERCOLOR."'><td>
+		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
 		<b>Wettstarter</b>
 		</td><td>
 		<b>Titel</b>
@@ -400,7 +400,7 @@ class wetten {
 			}
 
 			echo "
-			<tr bgcolor='#".TABLEBACKGROUNDCOLOR."'><td>
+			<tr bgcolor='".TABLEBACKGROUNDCOLOR."'><td>
 			".$rs['clan_tag'].$rs['username']."
 			</td><td>
 			<a href='?id=".$rs['id']."'>".stripslashes($rs['titel'])."</a>

@@ -162,8 +162,8 @@ function head($author_id=0, $title="", $return = 0) {
 	$out .=	'
 		<center>
 
-		<table height="97%" bgcolor="#'.BODYBACKGROUNDCOLOR.'" cellspacing="0" cellpadding="0" width="860">
-		<tr><td valign="top" bgcolor="#'.BACKGROUNDCOLOR.'" height="100%">';
+		<table height="97%" bgcolor="'.BODYBACKGROUNDCOLOR.'" cellspacing="0" cellpadding="0" width="860">
+		<tr><td valign="top" bgcolor="'.BACKGROUNDCOLOR.'" height="100%">';
 
 	$out .= $smarty->fetch( $user->zorger ? "tpl:56" : "tpl:672" ); // holt das main header (TPL #679)
 
@@ -231,7 +231,7 @@ function foot($author_id=3) {
 
 		</td></tr>
       <tr>
-         <td width="100%" align="center" valign="center" class="small" bgcolor="#'.TABLEBACKGROUNDCOLOR.'"
+         <td width="100%" align="center" valign="center" class="small" bgcolor="'.TABLEBACKGROUNDCOLOR.'"
       		style="padding: 2px; border-top-style: solid; border-top-width: 1px; border-top-color: #'.BORDERCOLOR.';"
       	>'.
             //'<a href="/wiki.php?word=impressum">Impressum</a> | <a href="/wiki.php?word=privacy">Privacy-Policy</a> |'.
@@ -290,7 +290,7 @@ function zorg_foot($author_id=3) {
 
 		</td></tr>
       <tr>
-         <td width="100%" align="center" valign="center" class="small" bgcolor="#'.TABLEBACKGROUNDCOLOR.'"
+         <td width="100%" align="center" valign="center" class="small" bgcolor="'.TABLEBACKGROUNDCOLOR.'"
       		style="padding: 2px; border-top-style: solid; border-top-width: 1px; border-top-color: #'.BORDERCOLOR.';"
       	>'
       		.$tplinfo.'

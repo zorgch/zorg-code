@@ -467,7 +467,7 @@ function play($id=0) {
         <? if($d['player'.$d['nextturn']] == $d['player1']) {
         		$piccolor = "red";
             }else{
-            	$piccolor = "#".BORDERCOLOR;
+            	$piccolor = BORDERCOLOR;
             }
             ?>
         	<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150">
@@ -487,7 +487,7 @@ function play($id=0) {
            <? if($d['player'.$d['nextturn']] == $d['player2']) {
            	$piccolor = "red";
            }else{
-           	$piccolor = "#".BORDERCOLOR;
+           	$piccolor = BORDERCOLOR;
            }
            ?>
         	<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150">
@@ -500,7 +500,7 @@ function play($id=0) {
       <tr><td style="text-align: center;">
       
   
-  <table cellspacing='0' cellpadding='2' style="border-collapse:collapse;" bgcolor='#<?=TABLEBORDERCOLOR?>'>  <?
+  <table cellspacing='0' cellpadding='2' style="border-collapse:collapse;" bgcolor='<?=TABLEBORDERCOLOR?>'>  <?
      for ($y=0; $y<8; $y++) {
         ?><tr><?
         for ($x=0; $x<8; $x++) {
@@ -509,7 +509,7 @@ function play($id=0) {
            }else{
               $bgcolor = TABLEBACKGROUNDCOLOR;
            } ?>
-           <td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='#<?=$bgcolor?>'>   <?
+           <td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='<?=$bgcolor?>'>   <?
               $act = substr($d[data], ($y*8+$x), 1);
               if ($act == '.') {
               	if ($d['last_pick_data']) {
@@ -644,7 +644,7 @@ function highscore() {
      </tr> <?
      for ($i=0; $i<sizeof($usr); $i++) {
         if ($i%2 == 0) {
-           $bgcolor = "bgcolor='#". TABLEBACKGROUNDCOLOR ."'";
+           $bgcolor = "bgcolor='". TABLEBACKGROUNDCOLOR ."'";
         } else {
            $bgcolor = "";
         }?>
@@ -716,7 +716,7 @@ function archiv () {
            $gegner = 1;
         }
         if ($i%2 == 0) {
-           $bgcolor = "bgcolor='#". TABLEBACKGROUNDCOLOR. "'";
+           $bgcolor = "bgcolor='". TABLEBACKGROUNDCOLOR. "'";
         }else{
            $bgcolor = "";
         }

@@ -106,9 +106,9 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 		while($rs = $db->fetch($result)) {
 			
 			if(($i % 2) == 0) {	
-				$add = " bgcolor=#".TABLEBACKGROUNDCOLOR." "; 
+				$add = " bgcolor=".TABLEBACKGROUNDCOLOR." "; 
 			} else { 
-				$add = " bgcolor=#".BACKGROUNDCOLOR." "; 
+				$add = " bgcolor=".BACKGROUNDCOLOR." "; 
 			}
 			
 			$i++;

@@ -145,9 +145,9 @@ function highscore_dwz ($anzahl) {
 		
 	   
 	   if ( $i == 22 || $i == 4 ) {
-           	   $bgcolor = "bgcolor='#ff7777'";
+           	   $bgcolor = "bgcolor='ff7777'";
 	   } elseif ($i%2 == 0) {
-	      $bgcolor = "bgcolor='#". TABLEBACKGROUNDCOLOR ."'";
+	      $bgcolor = "bgcolor='". TABLEBACKGROUNDCOLOR ."'";
        } else {
 	      $bgcolor = "";
 	   }

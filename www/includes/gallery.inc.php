@@ -1499,7 +1499,7 @@ function getTopPics($album_id, $limit, $options) {
 			
 			if ($options == 'ranking-list') {
 				$html_out .=
-					'<tr bgcolor="#'.$color.'">'
+					'<tr bgcolor="'.$color.'">'
 					.'<td align="left">'.$i.'.</td>'
 					.'<td align="center">';
 			}
@@ -1568,7 +1568,7 @@ function getTopPics($album_id, $limit, $options) {
 			
 			if ($options == 'ranking-list') {
 				$html_out .=
-					'<tr bgcolor="#'.$color.'">'
+					'<tr bgcolor="'.$color.'">'
 					.'<td align="left">'.$i.'.</td>'
 					.'<td align="center">';
 			}
@@ -1627,7 +1627,7 @@ function getTopPics($album_id, $limit, $options) {
 			
 			if ($options == 'ranking-list') {
 				$html_out .=
-					'<tr bgcolor="#'.$color.'">'
+					'<tr bgcolor="'.$color.'">'
 					.'<td align="left">'.$i.'.</td>'
 					.'<td align="center">';
 			}

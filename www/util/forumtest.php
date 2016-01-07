@@ -79,22 +79,22 @@ while($rs = $db->fetch($result)) {
 
 	    echo
 	      '<tr>'
-	      .'<td align="left" bgcolor="#'.$color.'">'
+	      .'<td align="left" bgcolor="'.$color.'">'
 	      .Comment::getLinkThread($rs['board'], $rs['thread_id'])
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .usersystem::userpagelink($rs['tu_id'], $rs['tu_clan_tag'], $rs['tu_username'])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 	      .$rs['numposts']
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 	      .datename($rs['thread_date'])
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
 	      .Comment::getTitle($rs['last_post_text'])
 	      .'</a>'
 	      .' &raquo;</a>'
 	      .' by '
 	      .usersystem::userpagelink($rs['lu_id'], $rs['lu_clan_tag'], $rs['lu_username'])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 	      .datename($rs['last_post_date'])
 	      .'</td>'
 	      .'</tr>'

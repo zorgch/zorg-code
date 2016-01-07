@@ -210,7 +210,7 @@ class ImapStatic {
 		$imap->getMails(1);
 		for($i=0;$i < $imap->data['id'][0];$i++) {	
 			if(($i % 2) == 0) {				
-				$bgcol = " bgcolor=#".TABLEBACKGROUNDCOLOR." ";			
+				$bgcol = " bgcolor=".TABLEBACKGROUNDCOLOR." ";			
 			} else {				
 				$bgcol = "";			
 			}			
@@ -280,7 +280,7 @@ class ImapStatic {
 		.$imap->data['to']		
 		."</td></tr><tr><td align='left'><b>Datum: </b>"		
 		.date("d.m.Y - H:i",$imap->data['date'])		
-		."</td></tr><tr><td align='left' bgcolor='#".TABLEBACKGROUNDCOLOR."'>"		
+		."</td></tr><tr><td align='left' bgcolor='".TABLEBACKGROUNDCOLOR."'>"		
 		//.nl2br(imap_qprint($imap->data['body']))		
 		.nl2br($imap->data['body'])		
 		."</td></tr></table>";				

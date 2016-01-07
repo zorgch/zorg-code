@@ -38,7 +38,7 @@
 		}
 			
 		$ret .= 
-			"<table cellspacing=2 cellpadding=0 class='border' width=204 bgcolor='#".BACKGROUNDCOLOR."'>".
+			"<table cellspacing=2 cellpadding=0 class='border' width=204 bgcolor='".BACKGROUNDCOLOR."'>".
 				"<tr><td align='left'><small><b>$poll[text]</b> ".
 				"<br />(".$user->id2user($poll['user']).", ".datename($poll['date']);
 		if ($poll['type'] == "member") $ret .= ", <nobr>Member only</nobr>";

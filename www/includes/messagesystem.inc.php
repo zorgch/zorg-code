@@ -316,8 +316,8 @@ class Messagesystem {
 	  }
 
 	  $html .=
-			'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'"><td colspan="3"><b>Nachricht senden</b></td></tr>'
-			.'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'
+			'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'"><td colspan="3"><b>Nachricht senden</b></td></tr>'
+			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
 			.'<td width="70"><b>An:</b></td>'
 			.'<td><b>Betreff:</b></td>'
 			.'<td width="80%">'
@@ -420,10 +420,10 @@ class Messagesystem {
 
 		  	$html .=
 		  		'<tr>'
-		  		.'<td align="center" bgcolor="#'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
-		  	    .($rs['isread'] == 0 ? '<td align="center" bgcolor="#'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="#'.$color.'"></td>')
-		  		.'<td align="center" bgcolor="#'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
-		  		.'<td align="center" bgcolor="#'.$color.'" width="30%">';
+		  		.'<td align="center" bgcolor="'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
+		  	    .($rs['isread'] == 0 ? '<td align="center" bgcolor="'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="'.$color.'"></td>')
+		  		.'<td align="center" bgcolor="'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
+		  		.'<td align="center" bgcolor="'.$color.'" width="30%">';
 
 			foreach (explode(',', $rs['to_users']) as $value) {
 		  		$html .= usersystem::link_userpage($value).' ';
@@ -431,10 +431,10 @@ class Messagesystem {
 
 		  	$html .=
 		  		'</td>'
-		  		.'<td align="center" bgcolor="#'.$color.'">'
+		  		.'<td align="center" bgcolor="'.$color.'">'
 		  		.'<a href="/messagesystem.php?message_id='.$rs['id'].'">'.str_pad($rs['subject'], 60, ' . ', STR_PAD_BOTH).'</a>'
 		  		.'</td>'
-		  		.'<td align="center" bgcolor="#'.$color.'">'.datename($rs['date']).'</td>'
+		  		.'<td align="center" bgcolor="'.$color.'">'.datename($rs['date']).'</td>'
 		  		.'</tr>'
 		  	;
 		  }
@@ -548,7 +548,7 @@ class Messagesystem {
 	  if ($rs['owner'] == $user->id) {
 		  $html .=
 		  	'<table class="border" width="100%">'
-		  	.'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'" height="30">'
+		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="30">'
 		  	.'<td align="left" width="80">'
 				.(Messagesystem::getNextMessageid($rs['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getNextMessageid($rs['id']).'"><-- </a> | ' : '')
 				.(Messagesystem::getPrevMessageid($rs['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getPrevMessageid($rs['id']).'"> --></a>' : '')
@@ -559,15 +559,15 @@ class Messagesystem {
 		  	.'<td align="right" rowspan="5">'.usersystem::link_userpage($rs['from_user_id'], TRUE).'</td>'
 		  	.'</tr>'
 
-		  	.'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'
+		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
 		  	.'<td align="left"><b>From</b></td>'
 		  	.'<td align="left">'.$rs['from_user'].'</td>'
 		  	.'</tr>'
 
-		  	.'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'
+		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
 		  	.'<td align="left"><b>Date</b></td>'
 		  	.'<td align="left">'.datename($rs['date']).'</td></tr>'
-		  	.'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'"><td align="left"><b>To</b></td>'
+		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'"><td align="left"><b>To</b></td>'
 		  	.'<td align="left">'
 		  ;
 
@@ -579,7 +579,7 @@ class Messagesystem {
 		  	'</td>'
 		  	.'</tr>'
 
-		  	.'<tr bgcolor="#'.TABLEBACKGROUNDCOLOR.'" height="40">'
+		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="40">'
 		  	.'<td align="left" valign="top"><b>Subject</b></td>'
 		  	.'<td align="left" valign="top" width="70%">'.$rs['subject'].'</td>'
 		  	.'</tr>'

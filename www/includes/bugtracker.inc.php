@@ -454,25 +454,25 @@ Class Bugtracker {
 		while($rs = $db->fetch($result)) {
 			$html .=
 				'<tr>'
-				.'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'.$rs['priority'].'</td>'
-				.'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'.$rs['category_title'].'</td>'
-				.'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'
+				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['priority'].'</td>'
+				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['category_title'].'</td>'
+				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
 				.'<a href="/bugtracker.php?bug_id='.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a>'
 				.'</td>'
-				.'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'.$rs['reportedby'].'</td>'
-				.'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'.$rs['assignedto'].'</td>'
+				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['reportedby'].'</td>'
+				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['assignedto'].'</td>'
 			;
 			if ($rs['resolved_date'] > 0) { // wenn der Bug resolved wurde...
 				$html .=
-					'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'.datename($rs['resolved_date']).'</td>'
+					'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.datename($rs['resolved_date']).'</td>'
 				;
 			} elseif ($rs['denied_date'] > 0) { // wenn der Bug denied wurde...
 				$html .=
-					'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'">Denied @ '.datename($rs['denied_date']).'</td>'
+					'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">Denied @ '.datename($rs['denied_date']).'</td>'
 				;
 			} else { // wenn der Bug noch offen ist...
 				$html .=
-					'<td align="left" bgcolor="#'.TABLEBACKGROUNDCOLOR.'"></td>'
+					'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'"></td>'
 				;
 			}
 			$html .=

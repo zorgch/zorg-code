@@ -191,7 +191,7 @@ function smartyresource_comments_get_commenttree ($id) {
 			 	.'{assign var=comment_color value=$color.background}'
 			 .'{/if}'
 			 .'{capture assign="sizeof_hdepth"}{sizeof array=$hdepth}{/capture}'
-			 .'<table bgcolor="#{comment_colorfade depth=$sizeof_hdepth color=$comment_color}"'
+			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}"'
 			 .' style="table-layout:fixed;" width="100%">'
 			 .'<tr style="font-size: x-small;">'
 				.'<td class="forum" width="75%">'
@@ -334,7 +334,7 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 				.'<td align="left" class="border forum">'
 				
 				
-			 .'<table bgcolor="#{comment_colorfade depth=$sizeof_hdepth color=$color.newcomment}" class="forum">'
+			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$color.newcomment}" class="forum">'
 			 .'<tr>'
 				.'<td bgcolor="{$color.newcomment}" valign="top">'
 			 .'<a href="{get_changed_url change="parent_id='.$parent_id.'"}">'

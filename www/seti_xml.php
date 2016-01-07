@@ -43,15 +43,15 @@ if($_GET['update'] == 1) {
 	$group = $db->fetch($result);
 	
 	echo "
-	<table width='80%' cellpadding='3' cellspacing='1' bgcolor=#".TABLEBACKGROUNDCOLOR.">
-	<tr><td align='center' colspan='6' bgcolor=#".BORDERCOLOR."><b>SETI - zooomclan.org</b></td></tr>
-	<tr><td align='left' colspan='3' bgcolor=#".BACKGROUNDCOLOR."><B>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></B></td>
-	<td align='left' colspan='3' bgcolor=#".BACKGROUNDCOLOR."><B>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</B></td></tr>
-	<tr><td align='left' bgcolor=#".BACKGROUNDCOLOR." colspan='2'><b>Name</b></td>
-	<td align='left' bgcolor=#".BACKGROUNDCOLOR."><b>Units</b></td>
-	<td align='left' bgcolor=#".BACKGROUNDCOLOR."><b>CPU Zeit</b></td>
-	<td align='left' bgcolor=#".BACKGROUNDCOLOR."><b>Durchschn. Zeit</b></td>
-	<td align='left' bgcolor=#".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
+	<table width='80%' cellpadding='3' cellspacing='1' bgcolor=".TABLEBACKGROUNDCOLOR.">
+	<tr><td align='center' colspan='6' bgcolor=".BORDERCOLOR."><b>SETI - zooomclan.org</b></td></tr>
+	<tr><td align='left' colspan='3' bgcolor=".BACKGROUNDCOLOR."><B>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></B></td>
+	<td align='left' colspan='3' bgcolor=".BACKGROUNDCOLOR."><B>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</B></td></tr>
+	<tr><td align='left' bgcolor=".BACKGROUNDCOLOR." colspan='2'><b>Name</b></td>
+	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Units</b></td>
+	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>CPU Zeit</b></td>
+	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Durchschn. Zeit</b></td>
+	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
 	
 	$secadd = (date("I",time()) ? 7200 : 3600);
 	$sql = "
@@ -79,13 +79,13 @@ if($_GET['update'] == 1) {
 	$i = 1;
 	while($rs = $db->fetch($result)) {
 		if(($i % 2) == 0) {	
-			$add = " bgcolor=#".TABLEBACKGROUNDCOLOR." "; 
+			$add = " bgcolor=".TABLEBACKGROUNDCOLOR." "; 
 		} else { 
-			$add = " bgcolor=#".BACKGROUNDCOLOR." "; 
+			$add = " bgcolor=".BACKGROUNDCOLOR." "; 
 		}
 		if($rs['num_results'] > $rs['last_num']) {
 			$add2 = "<sup>+".($rs['num_results'] - $rs['last_num'])."</sup>";
-			$add = " bgcolor=#".MENUCOLOR2." ";
+			$add = " bgcolor=".MENUCOLOR2." ";
 		} else {
 			$add2 = "";
 		}

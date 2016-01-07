@@ -199,7 +199,7 @@ class Comment {
   		.'</a>'
 	  	.'</td>'
 	  	.'<td align="left" class="border forum">'
-	  	.'<table bgcolor="#'.Forum::colorfade($hdepth, $color).'" class="forum">'
+	  	.'<table bgcolor="'.Forum::colorfade($hdepth, $color).'" class="forum">'
 	    .'<tr>'
 	  	.'<td bgcolor="'.$color.'" valign="top">'
 	    .'<a href="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'&parent_id='.$rs['parent_id'].'">'
@@ -1007,7 +1007,7 @@ class Forum {
 
 	static function getNavigation($page=1, $pagesize, $numpages) {
 		$html .=
-			'<table bgcolor="#'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border"  style="font-size: x-small">'
+			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border"  style="font-size: x-small">'
 			.'<tr><td>Page '.$page.' von '.$numpages.'</td>'
 		;
 
@@ -1134,15 +1134,15 @@ class Forum {
 			}
 
 	    $html .=
-	      '<tr class="small"><td align="left" bgcolor="#'.$color.'">'
+	      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
 		  	.'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
 		  	.Comment::getTitle($rs['text'])
 		  	.'</a>'
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .datename($rs[date])
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .Comment::getLinkThread($rs['board'], $rs['thread_id'])
 	      .'</td></tr>'
 	    ;
@@ -1200,13 +1200,13 @@ class Forum {
 			}
 
 	    $html .=
-	      '<tr class="small"><td align="left" bgcolor="#'.$color.'" width="40%">'
+	      '<tr class="small"><td align="left" bgcolor="'.$color.'" width="40%">'
 	      .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
 		  	.Comment::getTitle($rs['text'])
 		  	.'</a>'
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small" width="20%">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="20%">'
 	      .datename($rs[date])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small" width="20%">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="20%">'
 	      .Comment::getLinkThread($rs['board'], $rs['thread_id'])
 	      .'</td></tr>'
 	    ;
@@ -1245,13 +1245,13 @@ class Forum {
 			}
 
 	    $html .=
-	      '<tr><td align="left" bgcolor="#'.$color.'" class="small" width="40%">'
+	      '<tr><td align="left" bgcolor="'.$color.'" class="small" width="40%">'
 		  	.'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
 		  	.Comment::getTitle($rs['text'])
 		  	.'</a>'
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small" width="30%">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small" width="30%">'
 	      .usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small" width="30%">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="30%">'
 	      .datename($rs[date])
 	      .'</td></tr>'
 	    ;
@@ -1303,13 +1303,13 @@ class Forum {
 					}
 
 			    $html .=
-			      '<tr><td align="left" bgcolor="#'.$color.'" width="40%">'
+			      '<tr><td align="left" bgcolor="'.$color.'" width="40%">'
 						.'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
 				  	.Comment::getTitle($rs['text'])
 				  	.'</a>'
-			      .'</td><td align="left" bgcolor="#'.$color.'" width="30%">'
+			      .'</td><td align="left" bgcolor="'.$color.'" width="30%">'
 			      .usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-			      .'</td><td align="center" bgcolor="#'.$color.'" width="30%">'
+			      .'</td><td align="center" bgcolor="'.$color.'" width="30%">'
 			      .datename($rs[date])
 			      .'</td></tr>'
 			    ;
@@ -1356,13 +1356,13 @@ class Forum {
 			}
 
 	    $html .=
-	      '<tr><td align="left" bgcolor="#'.$color.'" class="small" width="40%">'
+	      '<tr><td align="left" bgcolor="'.$color.'" class="small" width="40%">'
 		  	.'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
 		  	.Comment::getTitle($rs['text'])
 		  	.'</a>'
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small" width="30%">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small" width="30%">'
 	      .usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small" width="30%">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="30%">'
 	      .datename($rs[date])
 	      .'</td></tr>'
 	    ;
@@ -1522,7 +1522,7 @@ class Forum {
 	    $html .=
 	      '<tr style="font-size: 9px;">'
 	      /*.'<td>'.$rs['sticky'].'</td>'*/
-	      .'<td align="left" bgcolor="#'.$color.'"><span style="float: left">'
+	      .'<td align="left" bgcolor="'.$color.'"><span style="float: left">'
 	      .Comment::getLinkThread($rs['board'], $rs['thread_id'])
 	      .'</span>'
 	    ;
@@ -1588,20 +1588,20 @@ class Forum {
     	$html .=	'</span>';
 
 
-	    $html .= '</td><td align="left" bgcolor="#'.$color.'" class="small">&nbsp;&nbsp;&nbsp;'
+	    $html .= '</td><td align="left" bgcolor="'.$color.'" class="small">&nbsp;&nbsp;&nbsp;'
 	      .usersystem::userpagelink($rs['tu_id'], $rs['tu_clan_tag'], $rs['tu_username'])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 	      .$rs['numposts']
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 	      .datename($rs['thread_date'])
-	      .'</td><td align="left" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
 	      .str_pad(Comment::getTitle($rs['last_post_text']), 25, ' . ', STR_PAD_RIGHT)
 	      .'</a>'
 	      .' &raquo;</a>'
 	      .' by '
 	      .usersystem::userpagelink($rs['lu_id'], $rs['lu_clan_tag'], $rs['lu_username'])
-	      .'</td><td align="center" bgcolor="#'.$color.'" class="small">'
+	      .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 	      .datename($rs['last_post_date'])
 	      .'</td>'
 	    ;
@@ -1609,7 +1609,7 @@ class Forum {
 	    	$lastp = Thread::getLastUnreadComment($rs['board'], $rs['thread_id'], $user->id);
 	    	if($lastp) {
 	    		$html .=
-			    	'<td align="left" bgcolor="#'.NEWCOMMENTCOLOR.'">'
+			    	'<td align="left" bgcolor="'.NEWCOMMENTCOLOR.'">'
 			      .'<a href="'.Comment::getLink($lastp['board'], $lastp['parent_id'], $lastp['id'], $lastp['thread_id']).'">'
 			      .Comment::getTitle($lastp['text'])
 			      .'</a>'
@@ -2112,7 +2112,7 @@ class Thread {
 
 			// Additional Posts
 			$html .=
-				'<table bgcolor="#'.Forum::colorfade(0, TABLEBACKGROUNDCOLOR).'" class="border forum"  style="table-layout:fixed;" width="100%">'
+				'<table bgcolor="'.Forum::colorfade(0, TABLEBACKGROUNDCOLOR).'" class="border forum"  style="table-layout:fixed;" width="100%">'
 		    .'<tr>'
 		  	.'<td bgcolor="'.$color.'" valign="top"><nobr>'
 		    .'<a href="'.getChangedURL('parent_id='.Comment::getParentid($id)).'">'

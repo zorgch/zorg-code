@@ -9,13 +9,13 @@ echo(
 	'<table height="100%" width="400">'
 	.'<tr>'
 	
-	.'<td bgcolor="#'.NEWCOMMENTCOLOR.'">'
+	.'<td bgcolor="'.NEWCOMMENTCOLOR.'">'
 	.'NEWCOMMENTCOLOR ('.NEWCOMMENTCOLOR.')</td>'
 	
-	.'<td bgcolor="#'.OWNCOMMENTCOLOR.'">'
+	.'<td bgcolor="'.OWNCOMMENTCOLOR.'">'
 	.'OWNCOMMENTCOLOR ('.OWNCOMMENTCOLOR.')</td>'
 	
-	.'<td bgcolor="#'.TABLEBACKGROUNDCOLOR.'">'
+	.'<td bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
 	.'TABLEBACKGROUNDCOLOR ('.TABLEBACKGROUNDCOLOR.')</td>'
 	
 	.'</tr>'
@@ -24,11 +24,11 @@ echo(
 for($i = 0; $i < 30; $i++) {
 	echo(
 		'<tr>'
-		.'<td bgcolor="#'.Forum::colorfade($i, NEWCOMMENTCOLOR).'">'
+		.'<td bgcolor="'.Forum::colorfade($i, NEWCOMMENTCOLOR).'">'
 		.Forum::colorfade($i, NEWCOMMENTCOLOR).'</td>'
-		.'<td bgcolor="#'.Forum::colorfade($i, OWNCOMMENTCOLOR).'">'
+		.'<td bgcolor="'.Forum::colorfade($i, OWNCOMMENTCOLOR).'">'
 		.Forum::colorfade($i, OWNCOMMENTCOLOR).'</td>'
-		.'<td bgcolor="#'.Forum::colorfade($i, TABLEBACKGROUNDCOLOR).'">'
+		.'<td bgcolor="'.Forum::colorfade($i, TABLEBACKGROUNDCOLOR).'">'
 		.Forum::colorfade($i, TABLEBACKGROUNDCOLOR).'</td>'
 		.'</tr>'
 	);
