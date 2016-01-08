@@ -25,7 +25,7 @@
  * @global string $sunset
  * @global string $sunrise
  * @global string $country
- * @global string $image_code
+ * @global string $country_code
  * @global integer $layouttype
  */
 /**
@@ -38,7 +38,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 /**
  * Globals
  */
-global $user, $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $image_code, $layouttype;
+global $user, $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $layouttype;
 
 
 /**
@@ -330,7 +330,7 @@ $rs = $db->fetch($result);
 $lat = $rs['lat'];
 $lon = $rs['lon'];
 $country = (!empty($rs['country']) ? strtolower($rs['country']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
-$image_code = (!empty($rs['image_code']) ? strtoupper($rs['image_code']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
+$country_code = (!empty($rs['image_code']) ? strtoupper($rs['image_code']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
 
 $suncalc = new Astro_Sunrise();
 $suncalc->setCoords($lat, $lon);
