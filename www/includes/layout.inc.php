@@ -311,10 +311,18 @@ function zorg_foot($author_id=3) {
 }
 
 
-
+/**
+ * Ausgabe Loginform HTML
+ * Neu als Smarty-Template "/templates/loginform.tpl" verfügbar!
+ * Usage im Smarty Template: {include file='file:loginform.tpl'}
+ * 
+ * @DEPRECATED
+ * @author IneX
+ * @date 12.01.2016
+ */
 function loginform() {
 
-	global $user, $login_error;
+	/*global $user, $login_error;
 
 	if($user->islogged_in()) {
 
@@ -348,7 +356,8 @@ function loginform() {
 			'
 		;
 
-	}
+	}*/
+	$smarty->display("file:loginform.tpl");
 }
 
 
