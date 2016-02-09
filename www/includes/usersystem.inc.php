@@ -25,7 +25,7 @@ define("USER_SPECIAL", 3);
 //define("USER_EINGELOGGT", 0);define("USER_MEMBER", 1);
 //define("USER_NICHTEINGELOGGT", 2);
 //define("USER_ALLE", 3);
-define("USER_IMGPATH", "/../data/userimages/");
+define("USER_IMGPATH", rtrim($_SERVER['DOCUMENT_ROOT'],'/\\')."/../data/userimages/");
 define("USER_IMGPATH_PUBLIC", $_SERVER['SERVER_NAME']."/data/userimages/");
 define("USER_IMGSIZE_LARGE", 427);
 define("USER_IMGSIZE_SMALL", 150);
@@ -33,7 +33,7 @@ define("USER_TIMEOUT", 200);
 define("USER_OLD_AFTER", 60*60*24*30*3); // 3 Monate
 define("DEFAULT_MAXDEPTH", 10);
 define("AUSGESPERRT_BIS", "ausgesperrt_bis");
-
+//if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 /**
  * Usersystem Klasse
@@ -655,12 +655,14 @@ class usersystem {
 	*
 	* Überprüft ob ein Bild zum User existiert
 	*
+	* @ToDo this function is f*cking SLOW!!!! // Jan 2016, IneX
+	*
 	* @see USER_IMGPATH
 	* @return bool
 	* @param $id int User ID
 	*/
 	function checkimage($id) {
-		if(file_exists($_SERVER['DOCUMENT_ROOT'].USER_IMGPATH.$id.".jpg")) {
+		if(file_exists(USER_IMGPATH.$id.".jpg")) {
 			return TRUE;
 		} else {
 			return FALSE;
@@ -683,24 +685,24 @@ class usersystem {
 	*/
 	function userImage($id, $large=0) {
 		global $user;
-
-		if (usersystem::checkimage($id)) {
+		
+		if ($user->checkimage($id)) {
 			if ($large) {
-				return usersystem::get_gravatar(
-					usersystem::id2useremail($id)
+				return $user->get_gravatar(
+					$user->id2useremail($id)
 					,USER_IMGSIZE_LARGE
 					,USER_IMGPATH_PUBLIC.$id.'.jpg'
 				);
 			} else {
-				return usersystem::get_gravatar(
-					usersystem::id2useremail($id)
+				return $user->get_gravatar(
+					$user->id2useremail($id)
 					,USER_IMGSIZE_SMALL
 					,USER_IMGPATH_PUBLIC.$id.'_tn.jpg'
 				);
 			}
 		} else {
-			return usersystem::get_gravatar(
-				usersystem::id2useremail($id)
+			return $user->get_gravatar(
+				$user->id2useremail($id)
 				,USER_IMGSIZE_SMALL
 				,USER_IMGPATH_PUBLIC.$id.'none.jpg'
 			);
@@ -1015,6 +1017,30 @@ class usersystem {
 	}
 
 	function userSelectBox() {
+	}
+	
+	/**
+	 * User specific /data/files/
+	 * Check if User's /files/{$user_id}/ Directory exists, if not, create it
+	 *
+	 * @author IneX
+	 * @date 27.01.2016
+	 * @since 3.0
+	 * @version 1.0
+	 */
+	function get_and_create_user_files_dir($user_id)
+	{
+		$files_dir = rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/';
+		$user_files_dir = $files_dir.$user_id.'/'; //FILES_DIR.$user_id.'/';
+		if (!file_exists($user_files_dir)) { // User Files folder doesn't exist yet...
+			if (mkdir($user_files_dir, 0775)) { // ...so create it!
+				return $user_files_dir;
+			} else {
+				return false;
+			}
+		} else {
+			return $user_files_dir; // User Files folder already exists, return it!
+		}
 	}
 }
 
