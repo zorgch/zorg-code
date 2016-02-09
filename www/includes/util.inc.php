@@ -32,7 +32,7 @@ function datename ($timestamp) {
 	// Letztes Jahr und älter
 	} else {
 		//return date("j.m.y", $timestamp); // "altes" Format
-		return date("j.m.y H:i", $timestamp);
+		return date("d. M Y H:i", $timestamp);
 	}
 }
 
