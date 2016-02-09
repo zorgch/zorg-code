@@ -16,7 +16,8 @@
 					pass <input tabindex="2" size="15" type="password" name="password" class="text" />&nbsp;
 						<input tabindex="4" type="submit" value="login" class="button" /><br />
 					</form>
-					{if $login_error <> ""}<span class="error small">{$login_error}</span>{/if}
+					{*if $login_error <> ""}<span class="error small">{$login_error}</span>{/if*}
+					{error msg=$login_error}
 				</td>
 			</tr>
 		</table>
