@@ -71,14 +71,12 @@ Es hat sich gezeigt, dass eine lokale Zorg Installation nicht sauber funktionier
 1. Im lokalen Apache Verzeichnis die Apache-Konfigurationsdatei "*httpd.conf*" in einem Editor öffnen
 2. Sicherstellen, dass die Zeile "NameVirtualHost *:80" aktiviert ist (ggf. "#" am Anfang der Zeile entfernen!)
 3. Folgenden VirtualHost in der "*httpd.conf*" Datei für den Zorg www-Ordner festlegen:
-
         
         ServerAdmin admin@mail.com
         DocumentRoot "http://www.zorg.ch/pfad/zum/lokalen/apache/webroot/zorg.ch/www/"
         ServerName localhost
         ServerAlias zorg.local *.zorg.local
     
-
 4. Nun musst Du lokal noch den Hostnamen "*zorg.local*" in die hosts-Datei schreiben:
 Unter OS X findet sich die Datei hier:
 
@@ -202,7 +200,7 @@ To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folge
 Irgendwie muss ja der Zorg Code vom Bitbucket Repository auch auf xoli, den www-Server, gelangen :) Grundsätzlich funktioniert das gleich, wie wenn man es lokal auf seinem Entwicklungsrechner macht, nur halt dass wir auf dem Server mittels Console arbeiten müssen.
 
 ## Git serverseitig konfigurieren
-Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System User ```su``` erfolgen!
+**Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System User ```su``` erfolgen!**
 
 ### Verzeichnisse
 * Grundsätzlich ist das Git Repo auf dem Server unter folgenden Pfad gecloned worden:
@@ -224,9 +222,7 @@ Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System Use
 
 * Der API-Token für den Tem-User "ZorgVorstand" kann nur ein Administrator dieses Bitbucket-Teams [auslesen bzw. neu generieren](https://bitbucket.org/account/user/zorgvorstand/api-key/) wenn notwendig
 
-## Code vom Repo auf xoli pullen (synchronisieren)
-Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [www.zorg.ch](http://www.zorg.ch) vorhanden sind. Das geht wie folgt:
-
+## Code vom Bitbucket-Repo auf xoli pullen
 * Mit Deinem persönlichen User mittels SSH auf den Server (xoli) verbinden
 
         $ ssh username@zorg.ch
@@ -239,6 +235,50 @@ Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurde
 * Nach erfolgreichem login ins /var/ Verzeichnis wechseln
 
         $ cd /var/
+
+### **Initiales Setup**: Repo EINMALIG auf xoli runterladen
+* Git installieren
+
+        $ apt-get update
+        $ apt-get install git
+
+* Zorg Code Repo herunterladen:
+
+        $ git init .
+        $ git remote add origin https://zorgvorstand:API_TOKEN@bitbucket.org/zorgvorstand/zorg.ch.git
+        $ git pull origin master
+
+* Berechtigungen auf die Verzeichnisse richtig setzen
+
+    * ```/www/```-Verzeichnis
+        $ chmod 755 /var/www
+
+    * ```/data/files/```-Verzeichnis
+
+        $ chgrp www-data /var/data/files
+        $ chmod g+s /var/data/files
+        $ chmod 755 /var/data/files
+        $ chmod 755 /var/data/files/*
+
+    * ```/data/upload/```-Verzeichnis
+        $ chgrp www-data /var/data/upload
+        $ chmod g+s /var/data/upload
+        $ chmod 755 /var/data/upload
+
+    * ```/smartylib/```-Verzeichnisse
+        $ chgrp www-data /var/data/smartylib/*
+        $ chmod g+s /var/data/smartylib/*
+        $ chmod 755 /var/data/smartylib/templates_c
+        $ chmod 755 /var/data/smartylib/cache
+
+* Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
+    * /etc/apache2/sites-available/**000-default.conf**: https://bitbucket.org/snippets/zorgvorstand/AdMq8
+    * Testen der Konfiguration mittels:
+
+        $ apachectl configtest
+
+### **Regelmässig**: den Codestand AKTUALISIEREN
+Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [www.zorg.ch](http://www.zorg.ch) vorhanden sind. Das geht wie folgt:
 
 * Git Pull-Request im /var/ auslösen
 
