@@ -237,39 +237,45 @@ Irgendwie muss ja der Zorg Code vom Bitbucket Repository auch auf xoli, den www-
         $ cd /var/
 
 ### **Initiales Setup**: Repo EINMALIG auf xoli runterladen
-* Git installieren
+#### Git installieren
 
         $ apt-get update
         $ apt-get install git
 
-* Zorg Code Repo herunterladen:
+#### Zorg Code Repo herunterladen:
 
         $ git init .
         $ git remote add origin https://zorgvorstand:API_TOKEN@bitbucket.org/zorgvorstand/zorg.ch.git
         $ git pull origin master
 
-* Berechtigungen auf die Verzeichnisse richtig setzen (der apache2-Prozess läuft standardmässig als root)
+#### Berechtigungen auf die Verzeichnisse richtig setzen (der apache2-Prozess läuft standardmässig als root)
 
-    * ```/www/```-Verzeichnis
+```/www/```-Verzeichnis
+
         $ chmod 755 $(find /var/www/ -type d)
         $ chmod 644 $(find /var/www/ -type f)
 
-    * ```/data/files/```-Verzeichnis und Files
+```/data/files/```-Verzeichnis und Files
+
         $ chmod 755 $(find /var/data/files/ -type d)
         $ chmod 644 $(find /var/data/files/ -type f)
 
-    * ```/data/upload/```-Verzeichnis
+```/data/upload/```-Verzeichnis
+
         $ chmod 755 /var/data/upload/
 
-    * ```/smartylib/```-Verzeichnisse (Smarty braucht 777!)
+```/smartylib/```-Verzeichnisse (Smarty braucht 777!)
+
         $ chmod 777 /var/data/smartylib/templates_c
         $ chmod 777 /var/data/smartylib/cache
 
-* Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
-    * /etc/apache2/sites-available/**000-default.conf**: https://bitbucket.org/snippets/zorgvorstand/AdMq8
-    * Testen der Konfiguration mittels:
+Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
+
+* /etc/apache2/sites-available/**000-default.conf**: https://bitbucket.org/snippets/zorgvorstand/AdMq8
+* Testen der Konfiguration mittels:
 
         $ apachectl configtest
+
 
 ### **Regelmässig**: den Codestand AKTUALISIEREN
 Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [www.zorg.ch](http://www.zorg.ch) vorhanden sind. Das geht wie folgt:
