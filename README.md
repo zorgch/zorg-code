@@ -248,28 +248,22 @@ Irgendwie muss ja der Zorg Code vom Bitbucket Repository auch auf xoli, den www-
         $ git remote add origin https://zorgvorstand:API_TOKEN@bitbucket.org/zorgvorstand/zorg.ch.git
         $ git pull origin master
 
-* Berechtigungen auf die Verzeichnisse richtig setzen
+* Berechtigungen auf die Verzeichnisse richtig setzen (der apache2-Prozess läuft standardmässig als root)
 
     * ```/www/```-Verzeichnis
-        $ chmod 755 /var/www
+        $ chmod 755 $(find /var/www/ -type d)
+        $ chmod 644 $(find /var/www/ -type f)
 
-    * ```/data/files/```-Verzeichnis
-
-        $ chgrp www-data /var/data/files
-        $ chmod g+s /var/data/files
-        $ chmod 755 /var/data/files
-        $ chmod 755 /var/data/files/*
+    * ```/data/files/```-Verzeichnis und Files
+        $ chmod 755 $(find /var/data/files/ -type d)
+        $ chmod 644 $(find /var/data/files/ -type f)
 
     * ```/data/upload/```-Verzeichnis
-        $ chgrp www-data /var/data/upload
-        $ chmod g+s /var/data/upload
-        $ chmod 755 /var/data/upload
+        $ chmod 755 /var/data/upload/
 
-    * ```/smartylib/```-Verzeichnisse
-        $ chgrp www-data /var/data/smartylib/*
-        $ chmod g+s /var/data/smartylib/*
-        $ chmod 755 /var/data/smartylib/templates_c
-        $ chmod 755 /var/data/smartylib/cache
+    * ```/smartylib/```-Verzeichnisse (Smarty braucht 777!)
+        $ chmod 777 /var/data/smartylib/templates_c
+        $ chmod 777 /var/data/smartylib/cache
 
 * Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
     * /etc/apache2/sites-available/**000-default.conf**: https://bitbucket.org/snippets/zorgvorstand/AdMq8
