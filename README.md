@@ -257,7 +257,7 @@ Irgendwie muss ja der Zorg Code vom Bitbucket Repository auch auf xoli, den www-
 
 ```/data/files/```-Verzeichnis und Files
 
-        $ chmod 755 $(find /var/data/files/ -type d)
+        $ chmod 777 $(find /var/data/files/ -type d)
         $ chmod 644 $(find /var/data/files/ -type f)
 
 ```/data/upload/```-Verzeichnis
