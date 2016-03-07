@@ -10,12 +10,12 @@ $from_mobile = $json_data->{'from_mobile'};
 $location = str_replace(' ', '', $json_data->{'location'});
 
 if(!empty($location) && $user->id > 0)
-{ error_log('[DEBUG] '.$location);//debug
+{
 	$mobilezChat->postGoogleMapsLocation($user->id, $location, $from_mobile);
-	exit();
+	error_log('[INFO] Location saved: '.$location);
+	//header("Location: ".SITE_URL."/mobilezorg-v2/"); // Reload Chat -> solved in JS
 } else {
-	exit('Location ist empty: '.$location);
+	// In case the $_POST-values are empty or this Script was called directly...
+	error_log('[WARN] Location is empty');
+	exit('Location is empty');
 }
-
-// In case this Script was called directly...
-header("Location: ".SITE_URL."/mobilezorg-v2/");
