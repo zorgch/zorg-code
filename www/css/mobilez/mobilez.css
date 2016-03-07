@@ -52,7 +52,7 @@ div.ui-footer
  * Custom Icons
  */
 .ui-btn-b.ui-icon-desktop:after { background-image: url("/images/mobilez/icons-png-custom/desktop-white.png"); background-size: 16px; }
-.ui-btn-a.ui-icon-desktop:after { background-image: url("/images/mobilez/icons-png-custom/desktop-black.png"); background-size: 16px; }
+.ui-btn-a.ui-icon-desktop:after { background-image: url("/images/mobilez/icons-png-custom/desktop-white.png"); background-size: 16px; }
 
 .ui-icon-refresh-gif-a, .ui-icon-refresh-gif-b {
 	background-size: 20px 20px;
@@ -118,6 +118,7 @@ div.message.me {
   float: right;
   background-color: #1289fe;
   color: white;
+  text-shadow: 0 1px 0 #5a5a5a;
 }
 div.message.me::after {
   content: "";
