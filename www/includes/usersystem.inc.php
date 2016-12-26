@@ -304,9 +304,11 @@ class usersystem {
 				} else { $error = "Dein Account wurde noch nicht aktiviert"; }
 			} else {
 				$this->logerror(1,$rs['id']);
-				$error = "Dieses Passwort ist falsch!";
+				$error = "Benutzer/Passwort Kombination falsch!"; // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
 			}
-		} else { $error = "Dieser Benutzer existiert nicht!"; }
+		} else {
+			$error = "Benutzer/Passwort Kombination falsch!"; // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
+		}
 		return $error;
 	}
 
