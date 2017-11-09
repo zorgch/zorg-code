@@ -26,8 +26,9 @@ if(isset($_POST['message']) && $user->id > 0)
 	 * CHAT MESSAGE
 	 */
 	} else {
+		$debugMode = FALSE;
 		$fake_user_id_arr = array(1,2,3,7,8,9,10,11,13,14,15,16,17,18,22,26,30,37,51,52,59,117);
-		$user_id = array_rand($fake_user_id_arr, 1);//$user->id;
+		$user_id = (($debugMode) ? array_rand($fake_user_id_arr, 1) : $user->id);
 		$mobilezChat->postChatMessage($user_id, $_POST['message'], $from_mobile);
 	}
 } else {

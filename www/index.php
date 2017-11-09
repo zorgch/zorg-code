@@ -1,5 +1,5 @@
 <?php
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 if (!isset($_GET['tpl']) && !isset($_GET['word'])) {
 	$_GET['tpl'] = 23;

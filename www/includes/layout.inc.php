@@ -1,5 +1,5 @@
 <?PHP
-error_reporting(E_ALL ^ E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE);
 
 //=============================================================================
 // Defines
@@ -164,7 +164,7 @@ function head($author_id=0, $title="", $return = 0) {
 
 
 
-### FOOTER FÃœR ZOOOMCLAN.ORG ###
+### FOOTER F†R ZOOOMCLAN.ORG ###
 function foot($author_id=3) {
 	global $starttime, $user, $db, $smarty, $_TPLROOT;
 
@@ -239,7 +239,7 @@ function foot($author_id=3) {
 
 
 
-### FOOTER FÃœR ZORG.CH ###
+### FOOTER F†R ZORG.CH ###
 function zorg_foot($author_id=3) {
 	global $starttime, $user, $db, $smarty, $_TPLROOT;
 
@@ -304,9 +304,11 @@ function zorg_foot($author_id=3) {
  */
 function loginform() {
 
-	/*global $user, $login_error;
+	global $user, $login_error, $smarty;
 
-	if($user->islogged_in()) {
+	$smarty->display("file:loginform.tpl");
+
+	/*if($user->islogged_in()) {
 
 		return '
 			<td align="right" valign="middle">
@@ -339,7 +341,6 @@ function loginform() {
 		;
 
 	}*/
-	$smarty->display("file:loginform.tpl");
 }
 
 
@@ -373,12 +374,12 @@ function menu ($name) {
 function rss ($title, $link, $desc, $feeds) {
 
 	// Text-codierung an den header senden, damit Umlaute korrekt angezeigt werden
-	//header("Content-Type: text/xml; charset=UTF-8");
-	header("Content-Type: text/xml; charset=iso-8859-1");
+	header("Content-Type: text/xml; charset=UTF-8");
+	//header("Content-Type: text/xml; charset=iso-8859-1");
 
 	// xml header erstellen
 	$xml =
-		'<?xml version="1.0" encoding="iso-8859-1" ?>
+		'<?xml version="1.0" encoding="utf-8" ?>
 		<rss version="2.0"
 			xmlns:content="http://purl.org/rss/1.0/modules/content/"
 			xmlns:wfw="http://wellformedweb.org/CommentAPI/"

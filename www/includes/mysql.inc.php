@@ -25,6 +25,10 @@ class dbconn {
 	/**
 	* Verbindungsaufbau
 	*
+	* @author IneX
+	* @date 28.02.2016
+	* @version 2.0
+	*
 	* @param MYSQL_DBNAME string
  	*/
 	function dbconn($database) {
@@ -35,6 +39,7 @@ class dbconn {
 			die("MySQL: can't connect to server");
 		if(!@mysql_select_db($database, $this->conn))
 			die($this->msg());
+		mysql_set_charset('utf8', $this->conn);
 	}
 
 	/**

@@ -102,7 +102,8 @@ var loadmoreIconClass = 'ui-btn-icon-refresh-{$layoutReverse}';
 $('#btnLoadmore').click(function(e){
 	$(this).buttonMarkup({ icon: loadmoreIconClass });
 	var previousdate = '';
-	$.getJSON('ajax_get_messages.php?lastentry_id=' + $('#messages div:last-child').attr('data-id'), function(data){
+	var lastMessageId = $('#messages div:last-child').attr('data-id');
+	$.getJSON('ajax_get_messages.php?lastentry_id=' + lastMessageId, function(data){
         $.each(data, function(index) {
 	        var previousdateString = new Date(previousdate*1000).setHours(0,0,0,0);
 	        var dateString = new Date(data[index].date*1000).setHours(0,0,0,0);
@@ -127,7 +128,9 @@ $('#btnLoadmore').click(function(e){
 			{/if}{literal}
 			$('#messages div:last').after(newMessageDiv);
         });
-    });
+    }).fail(function(d, textStatus, error) {
+	    console.error('getJSON failed, status: ' + textStatus + ', error: ' + error)
+	});
 	$(this).buttonMarkup({ icon: 'ui-icon-refresh' });
 });
 
