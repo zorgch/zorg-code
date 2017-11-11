@@ -1517,7 +1517,7 @@ class peter {
 		}
 		else
 		{
-			$img = imagecreatefromgif($_SERVER['DOCUMENT_ROOT']."images/peter/jassteppich.gif");
+			$img = imagecreatefromgif($_SERVER['DOCUMENT_ROOT']."/images/peter/jassteppich.gif");
 		}
 		
 		return $img;

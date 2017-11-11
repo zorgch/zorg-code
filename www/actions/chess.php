@@ -1,8 +1,8 @@
 <?
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/usersystem.inc.php');
-	include_once($_SERVER['DOCUMENT_ROOT'].'includes/chess.inc.php');
-	include_once($_SERVER['DOCUMENT_ROOT'].'includes/util.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/chess.inc.php');
+	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 
 	// move
 	if ($_GET['game'] && $_GET['from'] && $_GET['to']) {

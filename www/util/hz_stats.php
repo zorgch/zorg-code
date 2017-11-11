@@ -1,6 +1,6 @@
 <?
-	require_once($_SERVER['DOCUMENT_ROOT'].'includes/mysql.inc.php');
-	require_once($_SERVER['DOCUMENT_ROOT'].'includes/util.inc.php');
+	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 	
 	$ge = $db->query(
 		"SELECT g.id, if(sum(a.score)-g.z_score > g.z_score, 'i', 'z') winner, u.username mrz

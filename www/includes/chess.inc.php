@@ -2,7 +2,7 @@
 // TODO: x open chess games (im header)
 // TODO: Game-Schluss-Meldungen (x hat gewonnen, x hat aufgegeben, remis, patt, matt)
 
-require_once($_SERVER['DOCUMENT_ROOT'].'includes/usersystem.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
 define("CHESS_DWZ_BASE_POINTS", 1600);
 define("CHESS_DWZ_MAX_POINTS_TRANSFERABLE", 32);

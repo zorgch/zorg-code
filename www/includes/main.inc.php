@@ -13,7 +13,6 @@ elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED
 }
 define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'), true);
 
-
 /**
 * Define preferred Hostname where zorg.ch is accessible on
 * @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../")
@@ -27,6 +26,12 @@ define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
 define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME, true);
 
 /**
+* Set a constant for the Site's Document Root
+* @const SITE_ROOT Automatically extract's the configured Document Root WITHOUT a trailing slash /
+*/
+define('SITE_ROOT', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/', true);
+
+/**
 * Define a global SENDER e-mail addresses (From:)
 * @const ZORG_EMAIL A valid e-mailadress such as info@zooomclan.org
 * @const SERVER_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
@@ -37,7 +42,7 @@ define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
 /**
  * Include important scripts
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/errlog.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once(SITE_ROOT.'/includes/errlog.inc.php');
+require_once(SITE_ROOT.'/includes/mysql.inc.php');
+require_once(SITE_ROOT.'/includes/usersystem.inc.php');
 ?>

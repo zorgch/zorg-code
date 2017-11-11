@@ -11,9 +11,9 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/colors.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/util.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/mysql.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/colors.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 
 /**
  * Defines
