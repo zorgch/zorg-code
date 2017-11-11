@@ -101,8 +101,9 @@ class Messagesystem {
 				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
 			}
 
-			//header("Location: http://www.zorg.ch/profil.php?user_id=".$user->id."&sent=successful&".session_name()."=".session_id());
-			header("Location: profil.php?user_id=".$user->id."&box=outbox&sent=successful".session_name()."=".session_id());
+			//header("Location: profil.php?user_id=".$user->id."&box=outbox&sent=successful".session_name()."=".session_id());
+			$headerLocation = sprintf('Location: %s/profil.php?user_id=%d&box=outbox&sent=successful%s%s', SITE_URL, $user->id, session_name(), session_id());
+			header($headerLocation);
 
 			//exit;
 		}
@@ -743,8 +744,6 @@ class Messagesystem {
 	 * @param string $titel Titel der ursprünglichen Nachricht
 	 * @param string $text Ursprünglicher Text
 	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
-	 *
-	 * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
 	 */
 	function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
 	{
@@ -762,7 +761,7 @@ class Messagesystem {
 				
 				$subject = 	"Neue Nachricht auf Zorg.ch";
 				
-				$body =		"Du hast eine neue Nachricht in deinem Posteingang auf http://www.zorg.ch/\r\n";
+				$body =		"Du hast eine neue Nachricht in deinem Posteingang auf " . SITE_URL . "\r\n";
 				$body .=	"\r\n";
 				$body .=	"Titel:	$titel\n";
 				$body .=	"Von:	$senderName\n";
@@ -773,8 +772,8 @@ class Messagesystem {
 				
 				$header  = 	"MIME-Version: 1.0\n";
 				$header .= 	"Content-type: text/html; charset=iso-8859-1\n";
-				$header .= 	"From: Zorg.ch <info@zorg.ch>\n";
-			    $header .= 	"Reply-To: info@zorg.ch\n";
+				$header .= 	"From: Zorg.ch <".ZORG_EMAIL.">\n";
+			    $header .= 	"Reply-To: ".ZORG_EMAIL."\n";
 			    $header .= 	"X-Mailer: PHP/".phpversion();
 				
 				// Vesende E-Mail an User

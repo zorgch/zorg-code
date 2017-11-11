@@ -51,7 +51,7 @@ class wetten {
 					)";
 				$db->query($sql,__FILE__,__LINE__);
 
-				header("Location: http://www.zorg.ch/wetten.php?eintrag=1");
+				header("Location: ".SITE_URL."/wetten.php?eintrag=1");
 			}
 
 			if ($_GET['id'] && $_POST['start'] && $_POST['dauer']) {

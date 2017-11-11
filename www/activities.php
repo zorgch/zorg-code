@@ -24,7 +24,7 @@ if($_GET['layout'] = 'rss') {
 	
 		// RSS Feed ein ganzes Board
 		//rss ($title, $link, $desc, $feeds) <-- layout.inc.php
-		echo rss( 'Activities - zorg.ch', 'http://www.zorg.ch/', 'Letzte Activities auf zorg.ch', Activities::getActivitiesRSS(25) );
+		echo rss( 'Activities - zorg.ch', SITE_URL, 'Letzte Activities auf zorg.ch', Activities::getActivitiesRSS(25) );
 
 } // end if layout = rss
 

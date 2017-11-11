@@ -73,7 +73,7 @@ Es hat sich gezeigt, dass eine lokale Zorg Installation nicht sauber funktionier
 3. Folgenden VirtualHost in der "*httpd.conf*" Datei für den Zorg www-Ordner festlegen:
         
         ServerAdmin admin@mail.com
-        DocumentRoot "http://www.zorg.ch/pfad/zum/lokalen/apache/webroot/zorg.ch/www/"
+        DocumentRoot "/pfad/zum/lokalen/apache/webroot/zorg.ch/www/"
         ServerName localhost
         ServerAlias zorg.local *.zorg.local
     
@@ -278,13 +278,13 @@ Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
 
 
 ### **Regelmässig**: den Codestand AKTUALISIEREN
-Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [www.zorg.ch](http://www.zorg.ch) vorhanden sind. Das geht wie folgt:
+Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [zorg.ch](https://zorg.ch) vorhanden sind. Das geht wie folgt:
 
 * Git Pull-Request im /var/ auslösen
 
         $ git pull
 
-* **DONE** - die Änderungen müssten jetzt auch auf [www.zorg.ch](http://www.zorg.ch) aktiv sein.
+* **DONE** - die Änderungen müssten jetzt auch auf [zorg.ch](https://zorg.ch) aktiv sein.
 
 
 [1]: https://confluence.atlassian.com/pages/viewpage.action?pageId=269981802 "Set up Git and Mercurial (Mac OS X)"
@@ -297,5 +297,5 @@ Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurde
 [8]: https://confluence.atlassian.com/pages/viewpage.action?pageId=271942986 "Fork a Repo, Compare Code, and Create a Pull Request (Mac OSX/Linux)"
 [9]: https://bitbucket.org/zorgvorstand/zorg.ch/src/3dd86099c6445a606c4fa81882f06b6567633baf/www/includes/mysql_login.inc.php?at=master "mysql_login.inc.php"
 [10]: http://en.wikipedia.org/wiki/PHPDoc "PHPDoc auf Wikipedia"
-[11]: http://www.zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
+[11]: https://zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
 [12]: https://bitbucket.org/account/user/zorgvorstand/api-key/ "ZorgVorstand Bitbucket API Key verwalten"

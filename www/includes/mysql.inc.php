@@ -34,12 +34,20 @@ class dbconn {
 	function dbconn($database) {
 		//$this->dbname = $dbname;
 		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
-		$this->conn = @mysql_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS);
-		if(!$this->conn)
-			die("MySQL: can't connect to server");
-		if(!@mysql_select_db($database, $this->conn))
-			die($this->msg());
-		mysql_set_charset('utf8mb4', $this->conn);
+		try {
+			$this->conn = @mysql_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // DEPRECATED - PHP5 only
+			//$this->conn = @mysqli_connect( MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS, $database); // PHP7.x ready
+			if(!$this->conn)
+				header("Location: ".SITE_URL."/error_static.html");
+				//die("MySQL: can't connect to server");
+			if(!@mysql_select_db($database, $this->conn)) // DEPRECATED - PHP5 only
+				die($this->msg());
+			mysql_set_charset('utf8mb4', $this->conn); // DEPRECATED - PHP5 only
+			//mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
+		}
+		catch (Exception $e) {
+			throw $e;
+		}
 	}
 
 	/**
@@ -66,7 +74,8 @@ class dbconn {
    	   $this->query_track[$qfile]['line '.$qline]++;
 	   }
 
-		$result = @mysql_query($sql, $this->conn);
+		$result = @mysql_query($sql, $this->conn); // DEPRECATED - PHP5 only
+		//$result = @mysqli_query($this->conn, $sql); // PHP7.x ready
       if (strtolower(substr($sql,0,7)) == "insert ") {
          return mysql_insert_id($this->conn);
 	   }elseif (!$result && $this->display_error == 1) {
@@ -85,8 +94,10 @@ class dbconn {
 	* @param $line int Linenumber
  	*/
 	function msg($sql="",$file="",$line="",$funktion="") {
-		$num = mysql_errno($this->conn);
-		$msg = mysql_error($this->conn);
+		$num = mysql_errno($this->conn); // DEPRECATED - PHP5 only
+		$msg = mysql_error($this->conn); // DEPRECATED - PHP5 only
+		//$num = mysqli_errno($this->conn); // PHP7.x ready
+		//$msg = mysqli_errno($this->conn); // PHP7.x ready
 		$ausg = "<table cellpadding='5' align='center' cellspacing='0' bgcolor='#FFFFFF' width='800' style='font-family: verdana; font-size:12px; color:black;'>
 		<tr><td align='center' width='800' colspan='2'
 		style='border-bottom-style:solid; border-bottom-color:#000000; border-bottom-width:1px;'>
@@ -123,7 +134,8 @@ class dbconn {
 			('".$_SESSION['user_id']."','".$_SERVER['REMOTE_ADDR']."',
 			'".$_SERVER['REQUEST_URI']."','$sql', '$msg', now(),
 			'$file', '$line', '".$_SERVER['HTTP_REFERER']."',1, '$funktion')";
-		@mysql_query($sql,$this->conn);
+		@mysql_query($sql,$this->conn); // DEPRECATED - PHP5 only
+		//@mysqli_query($sql,$this->conn); // PHP7.x ready
 	}
 
 	/**
@@ -133,7 +145,8 @@ class dbconn {
  	*/
 	function fetch($result) {
 		global $sql;
-		return @mysql_fetch_array($result);
+		return @mysql_fetch_array($result); // DEPRECATED - PHP5 only
+		//return @mysqli_fetch_array($result); // PHP7.x ready
 	}
 
 	/**
@@ -141,7 +154,8 @@ class dbconn {
 	* @desc gibt die letzte Autoincrement ID zur?ck
  	*/
 	function lastid() {
-		return @mysql_insert_id($this->conn);
+		return @mysql_insert_id($this->conn); // DEPRECATED - PHP5 only
+		//return @mysqli_insert_id($this->conn); // PHP7.x ready
 	}
 
 	/**
@@ -150,7 +164,8 @@ class dbconn {
 	* @desc Gibt die Anzahl betroffener Datens?tze zur?ck
  	*/
 	function num($result,$errorchk=TRUE) {
-		return @mysql_num_rows($result);
+		return @mysql_num_rows($result); // DEPRECATED - PHP5 only
+		//return @mysqli_num_rows($result); // PHP7.x ready
 	}
 
 	/**
@@ -160,7 +175,8 @@ class dbconn {
 	* @desc Setzt den Zeiger auf einen Datensatz
  	*/
 	function seek($result,$rownum) {
-		return @mysql_data_seek($result,$rownum);
+		return @mysql_data_seek($result,$rownum); // DEPRECATED - PHP5 only
+		//return @mysqli_data_seek($result, $rownum); // PHP7.x ready
 	}
 
 	/**
@@ -169,7 +185,8 @@ class dbconn {
 	* @desc Gibt die Anzahl betroffener Felder zur?ck
  	*/
 	function numfields($result) {
-		return @mysql_num_fields($result);
+		return @mysql_num_fields($result); // DEPRECATED - PHP5 only
+		//return @mysqli_field_count($this->conn); // PHP7.x ready
 	}
 
 	/**
@@ -177,11 +194,15 @@ class dbconn {
 	* @desc Gibt s?mtliche Tabellennamen einer DB als Array zur?ck
  	*/
 	function tables() {
-		$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn);
+		$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
+		//$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
-			$tab[$i] = @mysql_tablename($tables,$i);
+			$tab[$i] = @mysql_tablename($tables,$i); // DEPRECATED - PHP5 only
+			//@mysqli_data_seek($tables,$i); // PHP7.x ready
+			//$f = mysql_fetch_array($tables); // PHP7.x ready
+			//$tab[$i] = $f[0]; // PHP7.x ready
 		}
 		return $tab;
 	}
