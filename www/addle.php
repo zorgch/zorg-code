@@ -287,8 +287,6 @@ function overview() {
  * @param integer $id ID des Addle Spiels
  * @param integer $choose ID des Feldes innerhalb des Addle Spiels $id
  * @global array $db Array mit allen MySQL-Datenbankvariablen
- *
- * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
  */
 function doplay($id, $choose) {
   global $db;
@@ -359,23 +357,23 @@ function doplay($id, $choose) {
               	if ($d['score'.$nextturn] > $d['score'.$d[nextturn]]) {
                   	Messagesystem::sendMessage(
                   		$msg_from, 
-                  		$msg_to, 
-                  		'-- Addle -- (autom. Nachricht)', 
-                  		'<a href="/addle.php?show=play&id='.$id.'">Du hast unser Addle-Game gewonnen.</a>'
+                  		$msg_to,
+                  		'-- Addle -- (autom. Nachricht)',
+                  		sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game gewonnen.</a>', SITE_URL, $id)
                   	);
               	}elseif ($d['score'.$nextturn] < $d['score'.$d[nextturn]]) {
               		Messagesystem::sendMessage(
                   		$msg_from,
-                  		$msg_to, 
-                  		'-- Addle -- (autom. Nachricht)', 
-                  		'<a href="/addle.php?show=play&id='.$id.'">Du hast unser Addle-Game verloren.</a>'
+                  		$msg_to,
+                  		'-- Addle -- (autom. Nachricht)',
+                  		sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game verloren.</a>', SITE_URL, $id)
                   	);
               	}else{
               		Messagesystem::sendMessage(
                   		$msg_from,
-                  		$msg_to, 
-                  		'-- Addle -- (autom. Nachricht)', 
-                  		'<a href="http://www.zorg.ch/addle.php?show=play&id='.$id.'">Unser Addle-Game ging unentschieden aus.</a>'
+                  		$msg_to,
+                  		'-- Addle -- (autom. Nachricht)',
+                  		sprintf('<a href="%s/addle.php?show=play&id=%d">Unser Addle-Game ging unentschieden aus.</a>', SITE_URL, $id)
                   	);
               	}
               }

@@ -26,16 +26,14 @@ if(isset($_POST['message']) && $user->id > 0)
 	 * CHAT MESSAGE
 	 */
 	} else {
-		$user_id = $user->id;
-		if (isset($_GET['debug'])) // DEBUG MODE
-		{
-			error_log('[INFO] DEBUG ON');
-			$fake_user_id_arr = array(1,2,3,7,8,9,10,11,13,14,15,16,17,18,22,26,30,37,51,52,59,117);
-			$user_id = array_rand($fake_user_id_arr, 1);
-		}
+		$debugMode = FALSE;
+		$fake_user_id_arr = array(1,2,3,7,8,9,10,11,13,14,15,16,17,18,22,26,30,37,51,52,59,117);
+		$user_id = (($debugMode) ? array_rand($fake_user_id_arr, 1) : $user->id);
 		$mobilezChat->postChatMessage($user_id, $_POST['message'], $from_mobile);
 	}
 } else {
-	// In case the $_POST-values are empty or this Script was called directly...
 	header("Location: ".SITE_URL."/mobilezorg-v2/?error_msg=Message%20is%20empty%21");
 }
+
+// In case this Script was called directly...
+header("Location: ".SITE_URL."/mobilezorg-v2/");

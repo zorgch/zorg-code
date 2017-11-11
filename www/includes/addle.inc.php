@@ -56,8 +56,6 @@ function getOpenAddleGames($userID) {
  * @version 1.0
  *
  * @global array $db Array mit allen MySQL-Datenbankvariablen
- *
- * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
  */
 function addle_remove_old_games () {
 	global $db;
@@ -77,17 +75,15 @@ function addle_remove_old_games () {
 		}
 		Messagesystem::sendMessage(
 			$winner,
-			$looser, 
-			'-- Addle -- (autom. Nachricht)', 
-			'<a href="http://www.zorg.ch/addle.php?show=play&id='.$d['id'].'">'
-				.'Du hast unser Addle-Game verloren, weil du nicht mehr weiter gespielt hast.</a>'
+			$looser,
+			'-- Addle -- (autom. Nachricht)',
+			sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game verloren, weil du nicht mehr weiter gespielt hast.</a>', SITE_URL, $d['id'])
 		);
 		Messagesystem::sendMessage(
 			$looser,
-			$winner, 
-			'-- Addle -- (autom. Nachricht)', 
-			'<a href="http://www.zorg.ch/addle.php?show=play&id='.$d['id'].'">'
-				.'Du hast unser Addle-Game gewonnen, weil ich nicht mehr weiter gespielt habe.</a>'
+			$winner,
+			'-- Addle -- (autom. Nachricht)',
+			sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game gewonnen, weil ich nicht mehr weiter gespielt habe.</a>', SITE_URL, $d['id'])
 		);
 		$db->query("UPDATE addle SET finish='1', $winner_score=1, $looser_score=0 WHERE id=$d[id]", __FILE__, __LINE__);
 		_update_dwz($d['id']);

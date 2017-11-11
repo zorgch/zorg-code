@@ -733,7 +733,7 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 					$user->id,
 					$game['nextturn'],
 					'[Go] Du bist dran!',
-					'<i>Ich habe meinen GO-Zug gemacht, du bist jetzt dran in <a href="http://www.zorg.ch/smarty.php?tpl=699&game='.$game['id'].'">unserem GO Spiel</a></i>',
+					sprintf('<i>Ich habe meinen GO-Zug gemacht, du bist jetzt dran in <a href="%s/smarty.php?tpl=699&game=%d">unserem GO Spiel</a></i>', SITE_URL, $game['id']),
 					$game['nextturn']
 				);
 			}

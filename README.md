@@ -71,14 +71,12 @@ Es hat sich gezeigt, dass eine lokale Zorg Installation nicht sauber funktionier
 1. Im lokalen Apache Verzeichnis die Apache-Konfigurationsdatei "*httpd.conf*" in einem Editor öffnen
 2. Sicherstellen, dass die Zeile "NameVirtualHost *:80" aktiviert ist (ggf. "#" am Anfang der Zeile entfernen!)
 3. Folgenden VirtualHost in der "*httpd.conf*" Datei für den Zorg www-Ordner festlegen:
-
         
         ServerAdmin admin@mail.com
-        DocumentRoot "http://www.zorg.ch/pfad/zum/lokalen/apache/webroot/zorg.ch/www/"
+        DocumentRoot "/pfad/zum/lokalen/apache/webroot/zorg.ch/www/"
         ServerName localhost
         ServerAlias zorg.local *.zorg.local
     
-
 4. Nun musst Du lokal noch den Hostnamen "*zorg.local*" in die hosts-Datei schreiben:
 Unter OS X findet sich die Datei hier:
 
@@ -202,7 +200,7 @@ To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folge
 Irgendwie muss ja der Zorg Code vom Bitbucket Repository auch auf xoli, den www-Server, gelangen :) Grundsätzlich funktioniert das gleich, wie wenn man es lokal auf seinem Entwicklungsrechner macht, nur halt dass wir auf dem Server mittels Console arbeiten müssen.
 
 ## Git serverseitig konfigurieren
-Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System User ```su``` erfolgen!
+**Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System User ```su``` erfolgen!**
 
 ### Verzeichnisse
 * Grundsätzlich ist das Git Repo auf dem Server unter folgenden Pfad gecloned worden:
@@ -224,9 +222,7 @@ Vorab: sämtliche der folgend beschriebenen Aktionen kann nur mittels System Use
 
 * Der API-Token für den Tem-User "ZorgVorstand" kann nur ein Administrator dieses Bitbucket-Teams [auslesen bzw. neu generieren](https://bitbucket.org/account/user/zorgvorstand/api-key/) wenn notwendig
 
-## Code vom Repo auf xoli pullen (synchronisieren)
-Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [www.zorg.ch](http://www.zorg.ch) vorhanden sind. Das geht wie folgt:
-
+## Code vom Bitbucket-Repo auf xoli pullen
 * Mit Deinem persönlichen User mittels SSH auf den Server (xoli) verbinden
 
         $ ssh username@zorg.ch
@@ -240,11 +236,55 @@ Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurde
 
         $ cd /var/
 
+### **Initiales Setup**: Repo EINMALIG auf xoli runterladen
+#### Git installieren
+
+        $ apt-get update
+        $ apt-get install git
+
+#### Zorg Code Repo herunterladen:
+
+        $ git init .
+        $ git remote add origin https://zorgvorstand:API_TOKEN@bitbucket.org/zorgvorstand/zorg.ch.git
+        $ git pull origin master
+
+#### Berechtigungen auf die Verzeichnisse richtig setzen (der apache2-Prozess läuft standardmässig als root)
+
+```/www/```-Verzeichnis
+
+        $ chmod 755 $(find /var/www/ -type d)
+        $ chmod 644 $(find /var/www/ -type f)
+
+```/data/files/```-Verzeichnis und Files
+
+        $ chmod 777 $(find /var/data/files/ -type d)
+        $ chmod 644 $(find /var/data/files/ -type f)
+
+```/data/upload/```-Verzeichnis
+
+        $ chmod 755 /var/data/upload/
+
+```/smartylib/```-Verzeichnisse (Smarty braucht 777!)
+
+        $ chmod 777 /var/data/smartylib/templates_c
+        $ chmod 777 /var/data/smartylib/cache
+
+Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
+
+* /etc/apache2/sites-available/**000-default.conf**: https://bitbucket.org/snippets/zorgvorstand/AdMq8
+* Testen der Konfiguration mittels:
+
+        $ apachectl configtest
+
+
+### **Regelmässig**: den Codestand AKTUALISIEREN
+Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurden, müssen diese serverseitig natürlich noch heruntergeladen werden damit diese auch auf [zorg.ch](https://zorg.ch) vorhanden sind. Das geht wie folgt:
+
 * Git Pull-Request im /var/ auslösen
 
         $ git pull
 
-* **DONE** - die Änderungen müssten jetzt auch auf [www.zorg.ch](http://www.zorg.ch) aktiv sein.
+* **DONE** - die Änderungen müssten jetzt auch auf [zorg.ch](https://zorg.ch) aktiv sein.
 
 
 [1]: https://confluence.atlassian.com/pages/viewpage.action?pageId=269981802 "Set up Git and Mercurial (Mac OS X)"
@@ -257,5 +297,5 @@ Wenn Änderungen ins Zorg Code Repository auf Bitbucket committed & pushed wurde
 [8]: https://confluence.atlassian.com/pages/viewpage.action?pageId=271942986 "Fork a Repo, Compare Code, and Create a Pull Request (Mac OSX/Linux)"
 [9]: https://bitbucket.org/zorgvorstand/zorg.ch/src/3dd86099c6445a606c4fa81882f06b6567633baf/www/includes/mysql_login.inc.php?at=master "mysql_login.inc.php"
 [10]: http://en.wikipedia.org/wiki/PHPDoc "PHPDoc auf Wikipedia"
-[11]: http://www.zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
+[11]: https://zorg.ch/zorgcode/ "Zorg Code phpDocumentor Doku"
 [12]: https://bitbucket.org/account/user/zorgvorstand/api-key/ "ZorgVorstand Bitbucket API Key verwalten"

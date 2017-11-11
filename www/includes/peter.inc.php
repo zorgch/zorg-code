@@ -299,7 +299,7 @@ class peter {
 					'Du Peter, spiel mol din Peter Zug!',
 					'Blah blah blah isch din Zug im Peter blah blah',
 					'Spiel Peter oder i segs dim Mami!');
-		$text = 'I ha min Zug gmacht i &uuml;sem Peter Spiel, etz bisch du wieder dra!<br/><br/>&#8594; <a href="http://www.zorg.ch/peter.php?game_id='.$this->game_id.'">Mach doooo!</a>';
+		$text = 'I ha min Zug gmacht i &uuml;sem Peter Spiel, etz bisch du wieder dra!<br/><br/>&#8594; <a href="'.SITE_URL.'/peter.php?game_id='.$this->game_id.'">Mach doooo!</a>';
 		$rand_subject = array_rand($subject,1);
 		Messagesystem::sendMessage($act_player, $rr['user_id'], $subject[$rand_subject], $text);
 		
@@ -1130,7 +1130,8 @@ class peter {
 			$rsi = $db->fetch($resulti);
 			
 			// Wenn noch offene Züge, dann direkt ins nächste Spiel weiterleiten
-			if ($db->num($result)) header("Location: http://www.zorg.ch/peter.php?game_id=$rs[game_id]");
+			$locationHeader = 'Location: '.SITE_URL.'/peter.php?game_id='.$rs[game_id];
+			if ($db->num($result)) header($locationHeader);
 
 		}
 		
@@ -1516,7 +1517,7 @@ class peter {
 		}
 		else
 		{
-			$img = imagecreatefromgif($_SERVER['DOCUMENT_ROOT']."images/peter/jassteppich.gif");
+			$img = imagecreatefromgif($_SERVER['DOCUMENT_ROOT']."/images/peter/jassteppich.gif");
 		}
 		
 		return $img;

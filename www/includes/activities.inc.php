@@ -381,7 +381,7 @@ class Activities
 				// Assign Values
 				$activityFromUser = usersystem::id2user($activity['from_user_id']);
 				$xmlitem_title = 'Neue Activity von '.$activityFromUser;
-				$xmlitem_link = 'http://www.zorg.ch/';
+				$xmlitem_link = SITE_URL;
 				$xmlitem_pubDate = date('D, d M Y H:i:s', $activity['datum']);
 				$xmlitem_author = $activityFromUser;
 				$xmlitem_category = 'Activity';

@@ -1,5 +1,5 @@
 <?PHP
-error_reporting(E_ALL ^ E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE);
 
 //=============================================================================
 // Defines
@@ -11,13 +11,13 @@ setlocale(LC_TIME,"de_CH");
 if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
 
 // Site Settings
-if (!defined('TLD')) define('TLD', $_SERVER['SERVER_NAME']); 		// Extract the Top Level Domain
-if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', 'http'); 				// TCP/IP Protocol used: HTTP or HTTPS
-if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL.'://'.TLD); 	// Complete HTTP-URL to the website
-if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.TLD); 			// General suffix for <title>...[suffix]</title> on every page
+//if (!defined('TLD')) define('TLD', $_SERVER['SERVER_NAME']); 		// Extract the Top Level Domain => neu in main.inc.php
+//if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', 'http'); 	// TCP/IP Protocol used: HTTP or HTTPS => neu in main.inc.php
+//if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL.'://'.TLD); // Complete HTTP-URL to the website => neu in main.inc.php
+if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.SITE_HOSTNAME); // General suffix for <title>...[suffix]</title> on every page
 
 // Site Paths (ending with a / slash!)
-if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', '/includes/'); 	// File includes directory
+if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', '/includes/'); // File includes directory
 if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/'); 		// Images directory
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/'); 	// Actions directory
 if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/'); 	// Scripts directory
@@ -164,7 +164,7 @@ function head($author_id=0, $title="", $return = 0) {
 
 
 
-### FOOTER FÃœR ZOOOMCLAN.ORG ###
+### FOOTER F†R ZOOOMCLAN.ORG ###
 function foot($author_id=3) {
 	global $starttime, $user, $db, $smarty, $_TPLROOT;
 
@@ -239,7 +239,7 @@ function foot($author_id=3) {
 
 
 
-### FOOTER FÃœR ZORG.CH ###
+### FOOTER F†R ZORG.CH ###
 function zorg_foot($author_id=3) {
 	global $starttime, $user, $db, $smarty, $_TPLROOT;
 
@@ -304,9 +304,11 @@ function zorg_foot($author_id=3) {
  */
 function loginform() {
 
-	/*global $user, $login_error;
+	global $user, $login_error, $smarty;
 
-	if($user->islogged_in()) {
+	$smarty->display("file:loginform.tpl");
+
+	/*if($user->islogged_in()) {
 
 		return '
 			<td align="right" valign="middle">
@@ -339,7 +341,6 @@ function loginform() {
 		;
 
 	}*/
-	$smarty->display("file:loginform.tpl");
 }
 
 
@@ -373,12 +374,12 @@ function menu ($name) {
 function rss ($title, $link, $desc, $feeds) {
 
 	// Text-codierung an den header senden, damit Umlaute korrekt angezeigt werden
-	//header("Content-Type: text/xml; charset=UTF-8");
-	header("Content-Type: text/xml; charset=iso-8859-1");
+	header("Content-Type: text/xml; charset=UTF-8");
+	//header("Content-Type: text/xml; charset=iso-8859-1");
 
 	// xml header erstellen
 	$xml =
-		'<?xml version="1.0" encoding="iso-8859-1" ?>
+		'<?xml version="1.0" encoding="utf-8" ?>
 		<rss version="2.0"
 			xmlns:content="http://purl.org/rss/1.0/modules/content/"
 			xmlns:wfw="http://wellformedweb.org/CommentAPI/"

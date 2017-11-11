@@ -11,9 +11,9 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/colors.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/util.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'includes/mysql.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/colors.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 
 /**
  * Defines
@@ -304,9 +304,11 @@ class usersystem {
 				} else { $error = "Dein Account wurde noch nicht aktiviert"; }
 			} else {
 				$this->logerror(1,$rs['id']);
-				$error = "Dieses Passwort ist falsch!";
+				$error = "Benutzer/Passwort Kombination falsch!"; // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
 			}
-		} else { $error = "Dieser Benutzer existiert nicht!"; }
+		} else {
+			$error = "Benutzer/Passwort Kombination falsch!"; // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
+		}
 		return $error;
 	}
 
@@ -388,7 +390,7 @@ class usersystem {
 					Weiterhin wuenschen wir dir viel Spass auf Zorg";
 
 					//versende email
-					@mail($email,"Neues Passwort",$body,"From: info@zorg.ch\n");
+					@mail($email,"Neues Passwort",$body,"From: ".ZORG_EMAIL."\n");
 					$error = "Ein neues Passwort wurde generiert und dir zugestellt!";
 
 				} else {
@@ -411,8 +413,6 @@ class usersystem {
 	 * @param $pw string Passwort
 	 * @param $pw2 string Passwortwiederholung
 	 * @param $email string E-Mail
-	 *
-	 * @todo in der Nachricht wird fix www.zorg.ch als URL mitgegeben - müsste dynamischen Hostnamen mitgeben
 	 */
 	function create_newuser($username, $pw, $pw2, $email) {
 		global $db;
@@ -461,14 +461,14 @@ class usersystem {
 							Benutzername: ".$username."
 							Passwort: ".$pw."\n
 							Wir bitten dich deinen Account noch freizuschalten, dazu musst du lediglich folgende Website aufrufen:
-							http://www.zorg.ch/profil.php?menu_id=13&regcode=".$key."\n
+							".SITE_URL."/profil.php?menu_id=13&regcode=".$key."\n
 
 							Wir wünschen dir viel Spass!\n
 
 							zooomclan.org";
 
 							//email versenden
-							@mail($email,"Benutzerdaten zooomclan.org",$body,"From: info@zooomclan.org\n");
+							@mail($email,"Benutzerdaten zooomclan.org",$body,"From: ".ZORG_EMAIL."\n");
 
 							$error = "Dein Account wurde erfolgreich erstellt, du wirst in k&uuml;rze eine E-Mail mit weiteren Informationen bekommen!";
 						} else {

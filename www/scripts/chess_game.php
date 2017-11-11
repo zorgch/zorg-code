@@ -1,5 +1,5 @@
 <?
-	include_once($_SERVER['DOCUMENT_ROOT'].'includes/chess.inc.php');
+	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/chess.inc.php');
 
 	global $db, $user, $smarty;
 

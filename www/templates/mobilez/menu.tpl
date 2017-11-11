@@ -4,7 +4,7 @@
 <div class="ui-btn ui-btn-right" data-role="controlgroup" data-type="horizontal">
 	{if $errors || $smarty.get.error_msg}<a href="#popupError" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-alert ui-btn-icon-notext">Errors</a>{/if}
 	{if $user->id > 0}<a href="#popupBugtracker" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-bug ui-btn-icon-notext">Bugs</a>{/if}
-	<a href="http://www.zorg.ch/" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-nosvg ui-icon-desktop">Desktop</a>
+	<a href="https://zorg.ch/" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-nosvg ui-icon-desktop">Desktop</a>
 	<a href="{if $user->id > 0}#popupLogout{else}#popupLogin{/if}" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-user ui-btn-icon-notext {if $errors}ui-disabled{/if}">User</a>
 </div>
 

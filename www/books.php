@@ -238,35 +238,39 @@ if($_GET['do'] == "") {
 		echo ("</ul>");
   	}
   	echo "</td></tr></table><br>";
+  	
 
-	// Eingabe Screen f?r neue Kategorie
-	echo ("Neue Kategorie<br><br>"
-  	     ."<form action='$_SERVER[PHP_SELF]' method='post' enctype='multipart/form-data'>"
-  		 .'<input type="hidden" name="do" value="insert_titel">'
-         ."<table cellpadding=\"1\" cellspacing=\"1\" width=\"400\" class=\"border\" align=\"center\">"
-         ."<tr><td align=\"left\" style=\"font-weight: 600;\">"
-
-	     ."Name"
-	     ."</td><td align=\"left\" style=\"color:#".FONTCOLOR."; background-color:#".BACKGROUNDCOLOR.";border-bottom-style: solid; border-bottom-color: #".BORDERCOLOR."; border-bottom-width: 1px; border-left-style: solid; border-left-color: #".BORDERCOLOR."; border-left-width: 1px;\">"
-	     ."<input class='text' size='60' type=\"text\" name=\"titel\">"
-	     ."</td><tr>"
-	     ."<td align=\"left\" style=\"font-weight: 600;\">"
-
-	     ."Einf?gen als"
-	     ."</td><td align=\"left\" style=\"color:#".FONTCOLOR."; background-color:#".BACKGROUNDCOLOR.";border-bottom-style: solid; border-bottom-color: #".BORDERCOLOR."; border-bottom-width: 1px; border-left-style: solid; border-left-color: #".BORDERCOLOR."; border-left-width: 1px;\">"
-	     ."<select name=\"parent_id\">"
-		 ."<option value=\"new\">Hauptkategorie</option>");
-
-	$sql = "SELECT * FROM books_title WHERE parent_id = 0";
-  	$result = $db->query($sql, __FILE__, __LINE__);
-
-	while($rs2 = $db->fetch($result, __FILE__, __LINE__)) {
-		echo ("<option value=\"".$rs2["id"]."\">Unterpunkt von".$rs2["typ"]."</option>");
+  	if($user->id > 0) { // Ists ein angemeldeter User?
+  	
+		// Eingabe Screen f?r neue Kategorie
+		echo ("Neue Kategorie<br><br>"
+	  	     ."<form action='$_SERVER[PHP_SELF]' method='post' enctype='multipart/form-data'>"
+	  		 .'<input type="hidden" name="do" value="insert_titel">'
+	         ."<table cellpadding=\"1\" cellspacing=\"1\" width=\"400\" class=\"border\" align=\"center\">"
+	         ."<tr><td align=\"left\" style=\"font-weight: 600;\">"
+	
+		     ."Name"
+		     ."</td><td align=\"left\" style=\"color:#".FONTCOLOR."; background-color:#".BACKGROUNDCOLOR.";border-bottom-style: solid; border-bottom-color: #".BORDERCOLOR."; border-bottom-width: 1px; border-left-style: solid; border-left-color: #".BORDERCOLOR."; border-left-width: 1px;\">"
+		     ."<input class='text' size='60' type=\"text\" name=\"titel\">"
+		     ."</td><tr>"
+		     ."<td align=\"left\" style=\"font-weight: 600;\">"
+	
+		     ."Einf?gen als"
+		     ."</td><td align=\"left\" style=\"color:#".FONTCOLOR."; background-color:#".BACKGROUNDCOLOR.";border-bottom-style: solid; border-bottom-color: #".BORDERCOLOR."; border-bottom-width: 1px; border-left-style: solid; border-left-color: #".BORDERCOLOR."; border-left-width: 1px;\">"
+		     ."<select name=\"parent_id\">"
+			 ."<option value=\"new\">Hauptkategorie</option>");
+	
+		$sql = "SELECT * FROM books_title WHERE parent_id = 0";
+	  	$result = $db->query($sql, __FILE__, __LINE__);
+	
+		while($rs2 = $db->fetch($result, __FILE__, __LINE__)) {
+			echo ("<option value=\"".$rs2["id"]."\">Unterpunkt von".$rs2["typ"]."</option>");
+		}
+	
+		echo ("</select></td></tr></table>"
+		     ."<input type='submit' class='button' name='send' value='speichern'>"
+	    	 ."</form>");
 	}
-
-	echo ("</select></td></tr></table>"
-	     ."<input type='submit' class='button' name='send' value='speichern'>"
-    	 ."</form>");
 
 // Buch ansehen
 } elseif($_GET['do'] == "show") {

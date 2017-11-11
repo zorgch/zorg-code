@@ -1580,7 +1580,7 @@ class Forum {
 
 	  	### RSS Feed Thread
 	  	$html .=
-					' <a href="http://www.zorg.ch/forum.php?layout=rss&board='.$rs['board'].'&thread_id='
+					' <a href="'.SITE_URL.'/forum.php?layout=rss&board='.$rs['board'].'&thread_id='
     				.$rs['thread_id'].'">[rss]</a>'
     	;
 
@@ -1888,13 +1888,13 @@ class Forum {
 
 					// Assign Values
 					$xmlitem_title = ( Comment::isThread($rs['board'], $rs['id']) ? Comment::getTitle($rs['text']) : 'Comment zu '.remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id']))) );
-					$xmlitem_link = 'http://www.zorg.ch'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
+					$xmlitem_link = SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
 					$xmlitem_pubDate = date('D, d M Y H:i:s', $rs[date]);//.' '.gmt_diff($rs[date]);
 					$xmlitem_author = $rs['clan_tag'].$rs['username'];
 					$xmlitem_category = '<![CDATA[';
 						$xmlitem_category .= remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id'])));
 						$xmlitem_category .= ']]>';
-					$xmlitem_guid = 'http://www.zorg.ch'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
+					$xmlitem_guid = SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
 					$xmlitem_description = '<![CDATA[';
 						$desc = $rs['text'];
 						$limit = 360;

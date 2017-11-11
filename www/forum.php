@@ -154,18 +154,18 @@ if($_GET['layout'] == 'rss') {
 		// eine thread_id wurde übergeben
 		if ($_GET['thread_id'] <> '') {
 			// RSS Feed für einen einzelnen Thread
-			echo rss(remove_html(Comment::getLinkThread($_GET['board'], Comment::getThreadid($_GET['board'], $_GET['thread_id'])))." @ zorg.ch", "http://www.zorg.ch/forum.php", "Zorg RSS Feed", Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
+			echo rss(remove_html(Comment::getLinkThread($_GET['board'], Comment::getThreadid($_GET['board'], $_GET['thread_id'])))." @ zorg.ch", SITE_URL . "/forum.php", "Zorg RSS Feed", Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
 		
 		// keine thread_id vorhanden
 		} else {
 			// RSS Feed ein ganzes Board
-			echo rss(Forum::getBoardTitle($_GET['board'])." @ zorg.ch", "http://www.zorg.ch/forum.php", "Zorg RSS Feed", Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
+			echo rss(Forum::getBoardTitle($_GET['board'])." @ zorg.ch", SITE_URL . "/forum.php", "Zorg RSS Feed", Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
 		}
 
 	// kein board vorhanden
 	} else {
 		// genereller Zorg RSS Feed
-		echo rss("RSS @ zorg.ch", "http://www.zorg.ch/", "zorg.ch RSS Feed - Forum, Events, Gallery and more", Forum::printRSS(null, $_SESSION['user_id']));
+		echo rss("RSS @ zorg.ch", SITE_URL, "zorg.ch RSS Feed - Forum, Events, Gallery and more", Forum::printRSS(null, $_SESSION['user_id']));
 	}
 } // end if layout = rss
 

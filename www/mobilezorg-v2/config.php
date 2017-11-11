@@ -28,10 +28,17 @@ if (!defined('IMG_PREV_SUFFIX')) define('IMG_PREV_SUFFIX', '_m'); 			// Filename
 if (!defined('IMG_FULL_SUFFIX')) define('IMG_FULL_SUFFIX', '_l'); 			// Filename suffix for full size images (large)
 
 // Site Settings
-if (!defined('TLD')) define('TLD', $_SERVER['SERVER_NAME']); 				// Extract the Top Level Domain
-if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', 'http'); 			// TCP/IP Protocol used: HTTP or HTTPS
-if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL.'://'.TLD); 		// Complete HTTP-URL to the website
-if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.TLD); 	// General suffix for <title>...[suffix]</title> on every page
+$isSecure = false;
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+    $isSecure = true;
+}
+elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+    $isSecure = true;
+}
+define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'), true);				// TCP/IP Protocol used: HTTP or HTTPS
+if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']); 		// Extract the Top Level Domain
+if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL.'://'.SITE_HOSTNAME); 		// Complete HTTP-URL to the website
+if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.SITE_HOSTNAME); 		// General suffix for <title>...[suffix]</title> on every page
 if (!defined('BARBARA')) define('BARBARA', 59); 							// [z]Barbara Harris User-ID
 if (!defined('BUG_CATEGORY_ID')) define('BUG_CATEGORY_ID', 23); 			// General Bug Category ID to tag new Bugs with (23 = Chat)
 if (!defined('BUG_PRIORITY')) define('BUG_PRIORITY', 3); 					// General Bug Priority to tag new Bugs with (4 = Niedrig, 3 = Normal, 2 = Hoch, 1 = Sehr hoch)
@@ -49,4 +56,3 @@ if (!defined('FILES_DIR')) define('FILES_DIR', '/files/'); 					// Files directo
  */
 if (!require_once ERROR_HANDLER_INC) die('Requiring ERROR_HANDLER_INC failed!');
 if (!require_once MYSQL_DB_INC) die('Including MYSQL_DB_INC failed!');
-
