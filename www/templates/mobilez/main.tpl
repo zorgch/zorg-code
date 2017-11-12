@@ -25,8 +25,9 @@
 	<link rel="icon" type="image/png" href="/images/favicons/favicon-96x96.png" sizes="96x96">
 	<link rel="icon" type="image/png" href="/images/favicons/android-chrome-192x192.png" sizes="192x192">
 	<link rel="stylesheet" href="/css/mobilez/mobilez.css">
-	<script src="/js/mobilez/jquery-1.10.1.min.js"></script>{*<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>*}
-	<script src="/js/mobilez/jquery.mobile-1.4.5.min.js"></script>
+	<script src="/js/mobilez/jquery-3.2.1.min.js"></script>{*<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>*}
+	<script>$.mobileBackCompat = false;</script>
+	<script src="/js/mobilez/jquery.mobile-1.5.0-alpha1.min.js"></script>
 	<script src="/js/date-format.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?v=3"></script>
 	<script src="/js/dropzone.js"></script>
@@ -63,9 +64,9 @@
 		{assign var='layoutReverse' value='a'}
 		{assign var='btnIconOptions' value='ui-btn-b ui-nodisc-icon'}
 	{/if}
-	<div data-role="page" id="{assign var='pageId' value='mobilezorg-main'}{$pageId}">
+	<div data-ui-role="page" id="{assign var='pageId' value='mobilezorg-main'}{$pageId}">
 	
-		<div data-role="header" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
+		<div data-ui-role="header" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
 			<h1 style="display: none;">Mobile [z]</h1>
 			{include file='file:mobilez/menu.tpl'}
 		</div>
@@ -74,13 +75,13 @@
 			 {include file='file:mobilez/messages.tpl'}
 		</div>
  
-		{if $user->id > 0}<div data-role="footer" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
+		{if $user->id > 0}<div data-ui-role="footer" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
 				{include file='file:mobilez/chat_input.tpl'}
 		</div>{/if}
 		
 		{if $user->id == ''}{include file='file:mobilez/login.tpl'}{/if}
 		
-		{if $errors || $smarty.get.error_msg}<div data-role="popup" id="popupError" data-theme="{$layout}" class="popupError">
+		{if $errors || $smarty.get.error_msg}<div data-ui-role="popup" id="popupError" data-theme="{$layout}" class="popupError">
 			{if $smarty.get.error_msg <> ''}
 				<p>{$smarty.get.error_msg}</p>
 			{else}
