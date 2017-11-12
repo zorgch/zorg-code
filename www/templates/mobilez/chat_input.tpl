@@ -1,10 +1,10 @@
 <form id="formNewMessage" data-ajax="true" method="post" action="ajax_post_message.php{$debugParam}">
-	<input type="hidden" name="from_mobile" id="from_mobile" value="1{*$user_mobile*}">
-	<input type="text" name="message" id="message" data-clear-btn="true" placeholder="Nachricht" autocomplete="off">
+	<input type="hidden" data-ui-role="hidden" name="from_mobile" id="from_mobile" value="1{*$user_mobile*}">
+	<input type="text" data-ui-role="text" name="message" id="message" data-clear-btn="true" placeholder="Nachricht" autocomplete="off">
 </form>
 <div class="chatinputs">
 	<div class="buttons">
-		<a href="#" name="btnShareLocation" id="btnShareLocation" data-role="button" data-inline="true" data-mini="false" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-icon-location">Standort</a> <a href="#" name="btnShareImage" id="btnShareImage" data-role="button" data-inline="true" data-mini="false" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-icon-camera">Bild</a>
+		<a href="#" name="btnShareLocation" id="btnShareLocation" data-ui-role="button" data-inline="true" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-icon-location">Standort</a> <a href="#" name="btnShareImage" id="btnShareImage" data-ui-role="button" data-inline="true" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-icon-camera">Bild</a>
 	</div>
 	<div id="droparea" class="dz-message"></div>
 	<div id="dropzone-previews" class="dropzone-previews"></div>

@@ -12,7 +12,7 @@
 	{/foreach}
 	</div>
 	<div id="divLoadmore" class="button loadmore">
-		<a name="btnLoadmore" id="btnLoadmore" href="#" class="ui-btn {$btnIconOptions} ui-shadow ui-corner-all ui-btn-icon-left ui-icon-refresh">Mehr anzeigen</a>
+		<a name="btnLoadmore" id="btnLoadmore" href="#" class="ui-btn {$btnIconOptions} ui-shadow ui-corner-all ui-widget-icon-floatbeginning ui-icon-refresh">Mehr anzeigen</a>
 	</div>
 {*else}
 	<div class="background text">
