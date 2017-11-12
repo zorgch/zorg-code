@@ -4,7 +4,7 @@
 <div class="ui-btn ui-btn-right" data-role="controlgroup" data-type="horizontal">
 	{if $errors || $smarty.get.error_msg}<a href="#popupError" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-alert ui-btn-icon-notext">Errors</a>{/if}
 	{if $user->id > 0}<a href="#popupBugtracker" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-bug ui-btn-icon-notext">Bugs</a>{/if}
-	<a href="https://zorg.ch/" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-nosvg ui-icon-desktop">Desktop</a>
+	<a href="https://zorg.ch/" rel="external" data-ajax="false" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-nosvg ui-icon-desktop">Desktop</a>
 	<a href="{if $user->id > 0}#popupLogout{else}#popupLogin{/if}" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-user ui-btn-icon-notext {if $errors}ui-disabled{/if}">User</a>
 </div>
 
@@ -54,6 +54,7 @@ $(document).on("pagecreate", "#{$pageId}", function(){ldelim}
 		<label for="description" class="ui-hidden-accessible">Beschreibung:</label>
 		<textarea name="description" id="description" cols="" rows="" placeholder="Beschreibung" data-theme="a"></textarea>
 		<button type="button" name="buttonReportBug" id="buttonReportBug" value="Eintragen" class="ui-btn ui-corner-all ui-nodisc-icon ui-btn-b ui-btn-icon-right ui-icon-mail">Melden</button>
+		<a href="../bugtracker.php" rel="external" data-ajax="false" target="_blank" data-role="button" name="buttonBugtrackerOpen" id="buttonBugtrackerOpen" class="ui-btn ui-corner-all ui-nodisc-icon ui-btn-b ui-btn-icon-right ui-icon-arrow-r">Bugtracker &ouml;ffnen</a>
 	</form>
 </div>
 <div data-role="popup" id="popupLogout" data-theme="{$layout}" class="ui-content" data-dismissible="false">
