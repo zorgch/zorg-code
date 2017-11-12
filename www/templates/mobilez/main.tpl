@@ -1,5 +1,7 @@
 <!doctype html>
 <html>
+{assign var='debugMode' value='false'}
+{if $debugMode == 'true'}{assign var='debugParam' value='?debug=true'}{/if}
 <head>
 	<title>Mobile [z]</title>
 	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">

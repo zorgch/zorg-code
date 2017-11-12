@@ -466,8 +466,30 @@ class mobilezChat
 			$img = imagecreatefromstring($fcontents);
 			$width = imagesx($img);
 			$height = imagesy($img);
+			
+			// Crop & resize the Thumbnail
+			// Source: https://www.gidforums.com/t-21016.html
+			$width_ratio = $width / IMG_THUMB_W; // Width Ratio (source:destination)
+			$height_ratio = $height / IMG_THUMB_H; // Height Ratio (source:destination)
+			$crop_x = 0; // Crop X (source offset left)
+			$crop_y = 0; // Crop Y (source offset top)
+			
+			// If the width ratio equals the height ratio, the dimensions stay the same!
+			if ($height_ratio < $width_ratio) // Height is the limiting dimension; adjust Width
+			{
+				$orig_width = $width; // Old Source Width (temp)
+				$height = IMG_THUMB_W * $height_ratio; // New virtual Source Width
+				$crop_x = ($orig_width - $width) / 2; // Crops source width; focus remains centered
+			}
+			if ($width_ratio < $height_ratio) // Width is the limiting dimension; adjust Height
+			{
+				$orig_height = $height; // Old Source Height (temp)
+				$height = IMG_THUMB_H * $width_ratio; // New virtual Source Height
+				$crop_y = ($orig_height - $height) / 2; // Crops source height; focus remains centered
+			}
+			
 			$img_thumb = imagecreatetruecolor(IMG_THUMB_W, IMG_THUMB_H);
-			imagecopyresized($img_thumb, $img, 0, 0, 0, 0, IMG_THUMB_W, IMG_THUMB_H, $width, $height);
+			imagecopyresized($img_thumb, $img, 0, 0, $crop_x, $crop_y, IMG_THUMB_W, IMG_THUMB_H, $width, $height);
 			imagejpeg($img_thumb, $full_file_savepath); //save image as jpg
 			imagedestroy($img_thumb); 
 			imagedestroy($img);

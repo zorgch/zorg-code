@@ -1,4 +1,4 @@
-<form id="formNewMessage" data-ajax="true" method="post" action="ajax_post_message.php">
+<form id="formNewMessage" data-ajax="true" method="post" action="ajax_post_message.php{$debugParam}">
 	<input type="hidden" name="from_mobile" id="from_mobile" value="1{*$user_mobile*}">
 	<input type="text" name="message" id="message" data-clear-btn="true" placeholder="Nachricht" autocomplete="off">
 </form>
@@ -69,7 +69,7 @@ $('#btnShareLocation').click(function(){
 				window.location.reload(true);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-	           alert(textStatus + ' ' + errorThrown);
+	           console.log(textStatus + ' ' + errorThrown);
 	        }
 		});
 	}
