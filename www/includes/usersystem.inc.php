@@ -879,7 +879,7 @@ class usersystem {
 	 */
 	function get_gravatar( $email, $s = 150, $d = 'mm', $r = 'x', $img = false, $atts = array() )
 	{
-		$url = 'http://www.gravatar.com/avatar/';
+		$url = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
 		$url .= md5( strtolower( trim( $email ) ) );
 		$url .= "?s=$s&d=$d&r=$r";
 		$url_check = @get_headers($url); // Get response headers of $url
