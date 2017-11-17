@@ -172,6 +172,7 @@ Achtung: wenn eine Funktion AUSSERHALB einer Klasse geschrieben wird, bitte noch
 ### Konstanten dokumentieren
     /**
      * Beschreibung meiner Konstante
+     * @const WEBROOT Contains the absolute path to the Webroot directory
      */
     ...
 
@@ -187,7 +188,13 @@ To-Dos in Codeblöcken können einfach im PHPDoc Block ergänzt werden mit folge
 
 #### Includes / Requires
     /**
-     * File Includes
+     * Kurzbeschreibung der eingebundenen Datei.
+     * @include	Funktion: _include_
+     */
+    ...
+    /**
+     * Kurzbeschreibung der eingebundenen Datei.
+     * @include	Funktion: _require_once_
      */
     ...
 
