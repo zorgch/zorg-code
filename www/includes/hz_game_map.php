@@ -83,7 +83,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
 			__FILE__, __LINE__
 		);
 		while ($t = $db->fetch($e)) {
-			draw_z_seen(&$im, $t['x'], $t['y'], 0);
+			draw_z_seen($im, $t['x'], $t['y'], 0);
 		}
 		
 		if ($d['state'] == "finished") {
@@ -94,7 +94,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
 				__FILE__, __LINE__
 			);
 			$f = $db->fetch($e);
-			if ($d) draw_z_seen(&$im, $f['x'], $f['y'], 1);
+			if ($d) draw_z_seen($im, $f['x'], $f['y'], 1);
 		}		
 		
 		
