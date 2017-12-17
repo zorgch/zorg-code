@@ -8,8 +8,8 @@ function write_css() {
 		html, body { height: 100%; }
 		 
 		body {
-		  background-color: #'.BODYBACKGROUNDCOLOR.';
-		  color: #'.FONTCOLOR.';
+		  background-color: '.BODYBACKGROUNDCOLOR.';
+		  color: '.FONTCOLOR.';
 			font-family: Verdana, Sans-Serif;
 			font-size: 13px;
 
@@ -17,21 +17,21 @@ function write_css() {
 		}
 
 		table {
-			background-color: #'.TABLEBACKGROUNDCOLOR.'
+			background-color: '.TABLEBACKGROUNDCOLOR.'
 			font-family: Verdana, Sans-Serif;
 			font-size: 12px;
 		}
 		table.header {
-			background-color: #'.HEADERBACKGROUNDCOLOR.';
+			background-color: '.HEADERBACKGROUNDCOLOR.';
 			margin:0px;
 		}
 	
 		table.shadedcells td {
-			background-color: #'.TABLEBACKGROUNDCOLOR.';
+			background-color: '.TABLEBACKGROUNDCOLOR.';
 		}
 		
 		a {
-		  color: #'.LINKCOLOR.';
+		  color: '.LINKCOLOR.';
 		  text-decoration: none;
 		}
 
@@ -40,7 +40,7 @@ function write_css() {
 		}
 		
 		.border {
-	    border-color: #'.BORDERCOLOR.';
+	    border-color: '.BORDERCOLOR.';
 			border-style: solid;
 			border-width: 1px;
 		}
@@ -48,12 +48,34 @@ function write_css() {
 		.bottom_border {
 			border-bottom-style: solid;
 			border-bottom-width: 1px;
-			border-bottom-color: #'.BORDERCOLOR.';
+			border-bottom-color: '.BORDERCOLOR.';
 		}
 	
 		.title {	
 			height: 20px;
 			font-weight: bold;
+		}
+		
+		blockquote {
+		  font: 13px/22px normal;
+		  margin-top: 10px;
+		  margin-bottom: 10px;
+		  margin-left: 50px;
+		  padding-left: 15px;
+		  border-left: 3px solid #CBBA79;
+		}
+		
+		code { word-wrap: break-word; }
+		
+		pre {
+		  background-color: #23241f;
+		  color: #f8f8f2;
+		  overflow: visible;
+		  white-space: pre-wrap;
+		  margin-bottom: 5px;
+		  margin-top: 5px;
+		  padding: 5px 10px;
+		  border-radius: 3px;
 		}
 		'
 
@@ -62,10 +84,10 @@ function write_css() {
 		// New menu
 		.'
 		div.menu {
-			background-color: #'.MENUCOLOR1.'; /* EDF2F2 */
+			background-color: '.MENUCOLOR1.'; /* EDF2F2 */
 			
 			border-bottom-style: solid;
-			border-bottom-color: #'.BORDERCOLOR.'; /* ddd */
+			border-bottom-color: '.BORDERCOLOR.'; /* ddd */
 			border-bottom-width: 1px;	
 			
 			border-top-style: solid;
@@ -80,10 +102,10 @@ function write_css() {
 		}
 		
 		table.dreid {
-			background-color: #'.TABLEBGCOLOR.'; /* EDF2F2 */
+			background-color: '.TABLEBGCOLOR.'; /* EDF2F2 */
 			
 			border-bottom-style: solid;
-			border-bottom-color: #'.BORDERCOLOR.'; /* ddd */
+			border-bottom-color: '.BORDERCOLOR.'; /* ddd */
 			border-bottom-width: 1px;	
 		
 			border-left-style: solid;
@@ -91,7 +113,7 @@ function write_css() {
 			border-left-width: 1px;
 		
 			border-right-style: solid;
-			border-right-color: #'.BORDERCOLOR.'; /* ddd */
+			border-right-color: '.BORDERCOLOR.'; /* ddd */
 			border-right-width: 1px;	
 			
 			border-top-style: solid;
@@ -100,13 +122,13 @@ function write_css() {
 		}
 		
 		div.menu a {	
-			background-color: #'.MENUCOLOR1.'; /* EDF2F2 */
+			background-color: '.MENUCOLOR1.'; /* EDF2F2 */
 		
-			border-bottom:	1px solid #'.BORDERCOLOR.'; /* DDD */
+			border-bottom:	1px solid '.BORDERCOLOR.'; /* DDD */
 			border-left:		1px solid #FFF;
-			border-right:		1px solid #'.BORDERCOLOR.'; /* DDD */
+			border-right:		1px solid '.BORDERCOLOR.'; /* DDD */
 		
-			color: #'.LINKCOLOR.';		
+			color: '.LINKCOLOR.';		
 		
 			padding-bottom: 1px;
 			padding-left: 15px;
@@ -117,12 +139,12 @@ function write_css() {
 		}
 		
 		div.menu a:hover {
-			background: #'.MENUCOLOR2.';
+			background: '.MENUCOLOR2.';
 			text-decoration: none;
 		}
 		
 		div.menu a.left {
-			background-color: #'.MENUCOLOR1.'; /* EDF2F2 */
+			background-color: '.MENUCOLOR1.'; /* EDF2F2 */
 			border-left-style: none;
 			padding-left: 0px;
 			padding-right: 1px;
@@ -132,7 +154,7 @@ function write_css() {
 		}
 		
 		div.menu a.right {
-			background-color: #'.MENUCOLOR1.'; /* EDF2F2 */
+			background-color: '.MENUCOLOR1.'; /* EDF2F2 */
 			border-right-style: none;
 			padding-left: 1px;
 			padding-right: 0px;
@@ -200,9 +222,9 @@ function write_css() {
 		select { 
 			border-style: groove;
 			border-width: 2px;
-			border-color: #'.BORDERCOLOR.';		
+			border-color: '.BORDERCOLOR.';		
 			font-family: Verdana;
-			color: #'.FONTCOLOR.';
+			color: '.FONTCOLOR.';
 			background-color: #'.BACKGROUNDCOLOR.';
 			font-size: 10px;
 		}
@@ -210,7 +232,7 @@ function write_css() {
 		option {
 			font-family: verdana;
 			font-size: 10px;
-			color: #'.FONTCOLOR.';
+			color: '.FONTCOLOR.';
 			background-color: #'.BACKGROUNDCOLOR.';
 		
 		}
@@ -218,11 +240,11 @@ function write_css() {
 		.text, textarea {
 			border-style: solid;
 			border-width: 1px;
-			border-color: #'.BORDERCOLOR.';
+			border-color: '.BORDERCOLOR.';
 			font-size: 10px;
 			font-family: verdana;
-			color: #'.FONTCOLOR.';
-			background-color: #'.IBG.';
+			color: '.FONTCOLOR.';
+			background-color: '.IBG.';
 		}
 
 		.text:focus, textarea:focus {
@@ -235,18 +257,18 @@ function write_css() {
 			border-width: 2px;
 			border-color: #'.BACKGROUNDCOLOR.';
 			margin: 2px;
-			background-color: #'.MENUCOLOR1.';
+			background-color: '.MENUCOLOR1.';
 		}
 		
 		.button {
 			border-style: outset;
 			border-width: 1px;
-			border-color: #'.BORDERCOLOR.';
+			border-color: '.BORDERCOLOR.';
 			font-size: 11px;
 			font-family: verdana;
-			font-style: bold;
-			color: #'.FONTCOLOR.';
-			background-color: #'.HEADERBACKGROUNDCOLOR.';
+			font-weight: bold;
+			color: '.FONTCOLOR.';
+			background-color: '.HEADERBACKGROUNDCOLOR.';
 		}
 
 		.button:hover{
@@ -268,7 +290,7 @@ function write_css() {
     .'
     td.addletd {
        border-style:solid;
-       border-color: #'. TABLEBORDERC .';
+       border-color: '. TABLEBORDERC .';
        border-width:1px;
        font-size: 22px;
 		   text-align: center;

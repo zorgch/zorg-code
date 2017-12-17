@@ -24,8 +24,8 @@ define("MENUCOLOR1", "#BDCFF5");
 define("MENUCOLOR2", "#9DAFD5");
 
 //Inputs
-define("IFC","000000");
-define("IBG","FFFFFF");
+define("IFC","#000000");
+define("IBG","#FFFFFF");
 
 // hunting z 
 define("HZ_BG_COLOR", "#C8C8C8");
