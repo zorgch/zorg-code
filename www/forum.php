@@ -31,12 +31,13 @@ if ($_GET['layout'] == '') {
     } else {
     	
     	echo Forum::getHTML(Forum::getBoards($user->id), 23, $_GET['sortby']);
-    	echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : '');
+    	//echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : ''); @DEPRECATED
 			//echo Forum::getFormNewPart2of2('f', 1, 0);
 			$smarty->assign("board", "f");
 			$smarty->assign("thread_id", 1);
 			$smarty->assign("parent_id", 0);
-			$smarty->display("tpl:194");
+			//$smarty->display("tpl:194"); @DEPRECATED
+			$smarty->display("file:commentform.tpl");
     }
     
     
@@ -48,7 +49,7 @@ if ($_GET['layout'] == '') {
 		echo head(4, "thread");
 		echo menu("zorg");
 		
-		if($_SESSION['user_id']) echo Forum::getFormNewPart1of2();
+		//if($_SESSION['user_id']) echo Forum::getFormNewPart1of2(); @DEPRECATED
 		
 		$rsparent = Comment::getRecordset($id);
 		$parent_id = $rsparent['parent_id'];
@@ -103,7 +104,8 @@ if ($_GET['layout'] == '') {
 				$smarty->assign("board", "f");
 				$smarty->assign("thread_id", Comment::getThreadid('f', $id));
 				$smarty->assign("parent_id", $id);
-				$smarty->display("tpl:194");
+				//$smarty->display("tpl:194"); @DEPRECATED
+				$smarty->display("file:commentform.tpl");
 				
 			}
 		}
