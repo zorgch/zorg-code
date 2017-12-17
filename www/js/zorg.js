@@ -17,15 +17,15 @@ function onoff(id)
 function reply()
 {
 	location.hash = "reply";
-	document.commentform.text.focus();
+	quill.focus();//document.commentform.text.focus();
 }
 
 
-function addsymbol(symbol)
+/*function addsymbol(symbol)
 {
 	document.commentform.text.value = document.commentform.text.value + symbol;
 	document.commentform.text.focus();
-}
+}*/
 	
 
 function unreads_2_title(unreads_indicator)
@@ -120,4 +120,7 @@ function init()
 {
 	unreads_2_title(document.getElementById('unreads'));
 	//drawUsernameOnPic('Username Test Drawing', 200, 300);
+	
+	// Highlight.js - http://highlightjs.org
+	//hljs.initHighlightingOnLoad()
 }
