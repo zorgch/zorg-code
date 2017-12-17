@@ -1,6 +1,38 @@
 <?php
 /**
- * INCLUDES
+ * Forum
+ * 
+ * Das Forum Modul enthält 3 Klassen für alle Features:
+ * - Forum
+ * - Thread
+ * - Comment
+ * Mit diesen drei Bestandteilen wird das ganze Forum,
+ * dessen Threads und das Commenting dazu - oder auch
+ * eigenständige Commenting-Instanzen für Templates
+ * erzeugt und abgehandelt.
+ *
+ * Diese Klassen benutzen folgende Tabellen aus der DB:
+ * - comments_boards
+ * - comments_threads
+ * - comments
+ * - comments_subscriptions
+ * - comments_threads_favorites
+ * - comments_threads_ignore
+ * - comments_threads_rights
+ * - comments_unread
+ *
+ * @version		1.0
+ * @package		Zorg
+ * @subpackage	Forum
+ */
+
+/**
+ * File Includes
+ * @include	Smarty
+ * @include	Usersystem
+ * @include	Utilities
+ * @include	Sunrise
+ * @include	Messagesystem
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
@@ -10,12 +42,12 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
 
 /**
  * GLOBALS
+ * @const THREAD_TPL_TIMEOUT wenn ein thread x tage nicht mehr angeschaut wurde, werden seine tpl's gel√∂scht. (speicherplatz sparen)
  */
-// wenn ein thread x tage nicht mehr angeschaut wurde, werden seine tpl's gelöscht. (speicherplatz sparen)
 define('THREAD_TPL_TIMEOUT', 30);  // in tagen
 
 /**
- * Aktivit�ten-Array bauen (mit Aktitiv�tsmeldungen die abgesetzt werden k�nnen)
+ * Aktivitäten-Array bauen (mit Aktitivätsmeldungen die abgesetzt werden können)
  * @deprecated
 $activities_f =
 	array(
@@ -23,6 +55,16 @@ $activities_f =
 	);
 */
 
+/**
+ * Comment Class
+ * 
+ * In dieser Klasse befinden sich alle Funktionen zum Commenting-System
+ *
+ * @author		[z]milamber, IneX
+ * @version		1.0
+ * @package		Zorg
+ * @subpackage	Forum
+ */
 class Comment {
 
 	/**
@@ -69,7 +111,7 @@ class Comment {
 	/**
 	* @return String
 	* @param $text String
-	* @desc macht Textformatierungen fürs Forum
+	* @desc macht Textformatierungen f√ºrs Forum
  	*/
 	static function formatPost($text) {
 
@@ -78,7 +120,7 @@ class Comment {
 		// in eigene funktion packen
 
 
-	  // Falls Post HTML beinhaltet, schauen ob was böses[tm] drin ist.
+	  // Falls Post HTML beinhaltet, schauen ob was b√∂ses[tm] drin ist.
 	  $illegalhtml = false;
 
 
@@ -334,7 +376,7 @@ class Comment {
 	  $text = strip_tags($text);
 
 	  // was macht das?
-	  $pattern = "(((\w|\d|[äöüèéàîê])(\w|\d|\s|[äöüèéàîê]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
+	  $pattern = "(((\w|\d|[√§√∂√º√®√©√†√Æ√™])(\w|\d|\s|[√§√∂√º√®√©√†√Æ√™]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
 	  preg_match($pattern, $text, $out);
 	  if(strlen($out[1]) > $length) {
 	  	$out[1] = substr($out[1], 0, $length);
@@ -358,10 +400,10 @@ class Comment {
 	}
 
 	/**
-	 * Prüft, ob der Comment im therads-table eingetragen ist (= thread start)
+	 * Pr√ºft, ob der Comment im therads-table eingetragen ist (= thread start)
 	 * @author IneX
 	 * @date 16.03.2008
-	 * @desc Prüft ob der Comment ein Thread ist
+	 * @desc Pr√ºft ob der Comment ein Thread ist
 	 * @param $board
 	 * @param $id int
 	 * @return boolean
@@ -490,7 +532,7 @@ class Comment {
 			  $db->query($sql, __FILE__, __LINE__);
 			  $comment_id = mysql_insert_id();
 
-			  // Falls parent_id = 1, thread_id = id. Für Forum->neue Threads.
+			  // Falls parent_id = 1, thread_id = id. F√ºr Forum->neue Threads.
 			  $sql = "
 			  	UPDATE comments
 			  	SET thread_id = id
@@ -545,13 +587,13 @@ class Comment {
 				Comment::markasread($rs['id'], $user_id);
 
 
-				// Activity Eintrag ausl�sen (ausser bei der B�rbel, die trollt zuviel)
+				// Activity Eintrag auslösen (ausser bei der Bärbel, die trollt zuviel)
 				// if ($user_id != 59) { Activities::addActivity($user_id, 0, $activities_f[1]); }
 				if ($user_id != 59) { Activities::addActivity($user_id, 0, 'hat <a href="'.Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']).'">einen Comment</a> '.Forum::getBoardTitlePrefix($rs['board']).' '.Forum::getBoardTitle($rs['board']).' geschrieben.<br/><p><small>
 				&nbsp;&nbsp;<a href="'.Comment::getLink($board, $$rs['parent_id'], $rs['id'], $rs['thread_id']).'">"'.Comment::getTitle($text, 100).'..."</a></small></p>', 'c'); }
 
 
-				// Message an alle gew�nschten senden
+				// Message an alle gewünschten senden
 				if(count($msg_users) > 0) {
 					for ($i=0; $i < count($msg_users); $i++) {
 						Messagesystem::sendMessage(
@@ -614,6 +656,18 @@ class Comment {
 
 }
 
+
+/**
+ * Forum Class
+ * 
+ * In dieser Klasse befinden sich die Hauptfunktionen zum Forum-System
+ * inkl. Boards und Board-Management
+ *
+ * @author		[z]milamber, IneX
+ * @version		1.0
+ * @package		Zorg
+ * @subpackage	Forum
+ */
 class Forum {
 
 	static function deleteOldTemplates () {
@@ -675,7 +729,7 @@ class Forum {
 		$offsetswitcher[15] = 1;
 		$depthoffset = $offsetswitcher[$tempdepth];
 
-		// Farben heller/dünkler machen
+		// Farben heller/d√ºnkler machen
 		$r = $r + $depthoffset * $coloroffset;
 		$g = $g + $depthoffset * $coloroffset;
 		$b = $b + $depthoffset * $coloroffset;
@@ -749,7 +803,7 @@ class Forum {
 	 * Board Titel ausgeben
 	 * @author IneX
 	 * @date 16.03.2008
-	 * @desc Query für den Board Titel
+	 * @desc Query f√ºr den Board Titel
 	 * @param $board int
 	 * @return string
 	 */
@@ -764,10 +818,10 @@ class Forum {
 
 
 	/**
-	 * Board Prefix f�r Activities Text ausgeben
+	 * Board Prefix für Activities Text ausgeben
 	 * @author IneX
 	 * @date 18.08.2012
-	 * @desc Ermittelt den korrekten, deutschen Prefix zur erw�hnung des Board Titels in einem Text (z.B. Acitivities ;))
+	 * @desc Ermittelt den korrekten, deutschen Prefix zur erwähnung des Board Titels in einem Text (z.B. Acitivities ;))
 	 * @param $board
 	 * @return string
 	*/
@@ -811,6 +865,8 @@ class Forum {
 	* @return String
 	* @param $comment_id
 	* @desc Form for editing posts
+	*
+	* @TODO merge Forum::getFormEdit() into tpl/commentform.tpl
 	*/
 	static function getFormEdit($comment_id) {
 	  global $db, $user;
@@ -867,11 +923,27 @@ class Forum {
 	  ';
 	  return $html;
 	}
-
+	
+	/**
+	 * Start Ausgabe Commentform Form HTML-Tag
+	 * Neu als Smarty-Template "/templates/commentform.tpl" verfügbar!
+	 * Usage im Smarty Template: {include file='file:commentform.tpl'}
+	 * 
+	 * @DEPRECATED
+	 * @author unknown
+	 * @see printCommentingSystem()
+	 */
 	static function getFormNewPart1of2() {
 		return '<form action="/actions/comment_new.php" method="post" name="commentform">';
 	}
-
+	
+	/**
+	 * Ausgabe Commentforms HTML
+	 * 
+	 * @DEPRECATED
+	 * @author unknown
+	 * @see printCommentingSystem()
+	 */
 	/*
 	static function getFormNewPart2of2($board, $thread_id, $parent_id) {
 	  return
@@ -885,7 +957,7 @@ class Forum {
 	  	.'<input type="hidden" name="thread_id" value="'.$thread_id.'">'
 	    .'<table width="400" class="border" align="center">'
 	    .'<tr>'.'<td align="left" colspan="3" valign="middle">'
-	    .'Neuen Kommentar hinzufügen:'
+	    .'Neuen Kommentar hinzuf√ºgen:'
 	  	.'</td>'
 	  	.'<td align="right">'
 	  	//.($board != 'f' ? '<input name="parent_id" style="visibility: hidden;" type="radio" value="'.$parent_id.'" checked="checked" />' : '')
@@ -896,9 +968,9 @@ class Forum {
 	    .'<textarea class="text" cols="80" name="text" rows="20" tabindex="1"></textarea>'
 	    .'</td>'
 	    .'<td valign="top" width="100"><small><nobr>'
-	    .'<br />ä = <a href="javascript:addsymbol(\'&amp;auml;\');">&amp;auml;</a>'
-	    .'<br />ö = <a href="javascript:addsymbol(\'&amp;ouml;\');">&amp;ouml;</a>'
-	    .'<br />ü = <a href="javascript:addsymbol(\'&amp;uuml;\');">&amp;uuml;</a>'
+	    .'<br />√§ = <a href="javascript:addsymbol(\'&amp;auml;\');">&amp;auml;</a>'
+	    .'<br />√∂ = <a href="javascript:addsymbol(\'&amp;ouml;\');">&amp;ouml;</a>'
+	    .'<br />√º = <a href="javascript:addsymbol(\'&amp;uuml;\');">&amp;uuml;</a>'
 	    .'<br />& = <a href="javascript:addsymbol(\'&amp;amp;\');">&amp;amp;</a>'
 	    .'<br />&lt; = <a href="javascript:addsymbol(\'&amp;lt;\');">&amp;lt;</a>'
 	    .'<br />&gt; = <a href="javascript:addsymbol(\'&amp;gt;\');">&amp;gt;</a>'
@@ -916,7 +988,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc gibt das HTML des Readallforms zurück
+	* @desc gibt das HTML des Readallforms zur√ºck
  	*/
 	static function getFormReadall() {
 		return
@@ -933,7 +1005,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc gibt das HTML des Searchformszurück
+	* @desc gibt das HTML des Searchformszur√ºck
  	*/
 	static function getFormSearch() {
 		return
@@ -1012,7 +1084,7 @@ class Forum {
 		;
 
 		if($page > 10) {
-			$html .= '<td><a href="'.getChangedURL('page=1').'">« First</a></td>';
+			$html .= '<td><a href="'.getChangedURL('page=1').'">¬´ First</a></td>';
 		}
 
 		if($page > 1) {
@@ -1033,7 +1105,7 @@ class Forum {
 		}
 
 		if($page < ($numpages-10)) {
-			$html .=	'<td><a href="'.getChangedURL('page='.$numpages).'">Last »</a></td>';
+			$html .=	'<td><a href="'.getChangedURL('page='.$numpages).'">Last ¬ª</a></td>';
 		}
 
 		$html .= '</tr></table>';
@@ -1089,7 +1161,7 @@ class Forum {
 
 		$wboard = $board ? "comments.board='".$board."'" : "1";
 
-	    //beschr�nkt auf 365 tage, da sonst unglaublich lahm
+	    //beschr‰nkt auf 365 tage, da sonst unglaublich lahm
 		$sql ="SELECT
 			 comments.*,
 			 IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread,
@@ -1264,7 +1336,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zurück
+	* @desc Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zur√ºck
 	*/
 	static function getLatestUnreadComments($title="", $board="") {
 		global $db, $user;
@@ -1324,7 +1396,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc Gibt eine Tabelle mit Threads zurück, welche genau vor 3 Jahren erstellt wurden
+	* @desc Gibt eine Tabelle mit Threads zur√ºck, welche genau vor 3 Jahren erstellt wurden
 	* @autor Grischa Ebinger
 	* @date 2004-02-08
 	*/
@@ -1346,7 +1418,7 @@ class Forum {
 
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
-		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>Jaja, früher...</b></td></tr>';
+		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>Jaja, fr√ºher...</b></td></tr>';
 		while($rs = $db->fetch($result)) {
 	    $i++;
 			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
@@ -1374,7 +1446,7 @@ class Forum {
 	}
 
 	/**
-	* gibt den entspr. link zum sortieren des Forums zurück
+	* gibt den entspr. link zum sortieren des Forums zur√ºck
 	*/
 	static function getSortlink($order) {
 		if($_GET['order'] == $order) {
@@ -1390,7 +1462,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc Gibt das HTML des Forums zurück
+	* @desc Gibt das HTML des Forums zur√ºck
  	*/
 	static function getHTML($showboards, $pagesize, $sortby='') {
 
@@ -1402,7 +1474,7 @@ class Forum {
 	  if($sortby == '') $sortby = 'last_post_date';
 
 	  // "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
-	  // ...pr�fen, ob wir eine numerische/datum Spalte sortieren wollen
+	  // ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen
 	  if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
 	  {
 		  switch ($_GET['order']) {
@@ -1425,7 +1497,7 @@ class Forum {
 	  }
 
 
-	  // Blättern...
+	  // Bl√§ttern...
 	  $page = ($_GET['page'] == '') ? 1 : $_GET['page'];
 	  $limit = ($page-1) * $pagesize.",".$pagesize;
 	  $sql = "
@@ -1486,7 +1558,7 @@ class Forum {
 	  $numpages = floor($db->num($db->query($sql, __FILE__, __LINE__)) / $pagesize); // number of pages
 
 
-	  // biko: auskommentieren im query tut nicht. musst es php-mässig auskommentieren.
+	  // biko: auskommentieren im query tut nicht. musst es php-m√§ssig auskommentieren.
 	  $sql =
 	  	$sql."
 	  	LIMIT $limit
@@ -1540,7 +1612,7 @@ class Forum {
     		}
     	}*/
 
-		// alles was jetzt kommt, steht im feld rechtsbündig
+		// alles was jetzt kommt, steht im feld rechtsb√ºndig
 		$html .=	'<span style="float: right">';
 
     	if($user->id > 0) {
@@ -1584,7 +1656,7 @@ class Forum {
     				.$rs['thread_id'].'">[rss]</a>'
     	;
 
-    	// rechtsbündig-span-element schliessen
+    	// rechtsb√ºndig-span-element schliessen
     	$html .=	'</span>';
 
 
@@ -1674,11 +1746,12 @@ class Forum {
 	    }
 
 		if (Thread::hasRights($board, $thread_id, $user->id)) {
-		   // damit man die älteren kompilierten comments löschen kann (speicherplatz sparen)
+		   // damit man die √§lteren kompilierten comments l√∂schen kann (speicherplatz sparen)
 			Thread::setLastSeen($$board, $thread_id);
 
-
-			if($user->typ != USER_NICHTEINGELOGGT) echo Forum::getFormNewPart1of2();
+			// @DEPRECATED
+			// @SEE $smarty->display("file:commentform.tpl");
+			//if($user->typ != USER_NICHTEINGELOGGT) echo Forum::getFormNewPart1of2();
 
 			// Subscribed_Comments Array Bauen
 			$comments_subscribed = array();
@@ -1719,9 +1792,10 @@ class Forum {
 	    	if($user->typ != USER_NICHTEINGELOGGT) {
 	    		//echo Forum::getFormNewPart2of2($board, $thread_id, $_GET['parent_id']);
 	    		$smarty->assign("board", $board);
-					$smarty->assign("thread_id", $thread_id);
-					$smarty->assign("parent_id", $_GET['parent_id']);
-					$smarty->display("tpl:194");
+				$smarty->assign("thread_id", $thread_id);
+				$smarty->assign("parent_id", $_GET['parent_id']);
+				//$smarty->display("tpl:194"); @DEPRECATED
+				$smarty->display("file:commentform.tpl");
 	    	}
 		}
 	}
@@ -1731,18 +1805,18 @@ class Forum {
 	 * @return string
 	 * @param $board default f (=forum)
 	 * @param user_id default null (=nicht eingeloggt)
-	 * @param $thread_id default null (=kein thread gewählt)
-	 * @desc Gibt einen XML RSS-Feed zurück
+	 * @param $thread_id default null (=kein thread gew√§hlt)
+	 * @desc Gibt einen XML RSS-Feed zur√ºck
 	 */
 	 static function printRSS($board='f', $user_id=null, $thread_id=null) {
 	 	global $db, $user;
 
-	 	// where-board Bedingung für SQL-Query bilden
+	 	// where-board Bedingung f√ºr SQL-Query bilden
 		$wboard = $board ? "comments.board='".$board."'" : "1";
 
-		$num = 15;		// Anzahl auszugebender Datensätze
+		$num = 15;		// Anzahl auszugebender Datens√§tze
 
-	 	$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
+	 	$xmlfeed = '';	// Ausgabestring f√ºr XML Feed initialisieren
 
 		/**
 		 * Ausgabe evaluieren und entsprechendes SQL holen
@@ -1751,10 +1825,10 @@ class Forum {
 		// nicht eingeloggter User...
 		if (is_null($user_id)) {
 
-			// Feed für forum board
+			// Feed f√ºr forum board
 			if ($board == 'f') {
 
-				// keine thread_id übergeben
+				// keine thread_id √ºbergeben
 				if (is_null($thread_id)) {
 
 					$sql =
@@ -1786,11 +1860,11 @@ class Forum {
 
 				}
 
-			// feed für anderes board
+			// feed f√ºr anderes board
 			} else {
 
-				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
-				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
+				// f√ºr den Moment wird hier einfach ein Query √ºber alle neuen Sachen gemacht.... IneX, 16.3.08
+				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles √ºber s board gesteuert wird). IneX, 16.3.08
 				$sql =
 					"
 					SELECT
@@ -1814,10 +1888,10 @@ class Forum {
 		// User ist eingeloggt
 		} else {
 
-			// Feed für forum board
+			// Feed f√ºr forum board
 			if ($board == 'f') {
 
-				// keine thread_id übergeben
+				// keine thread_id √ºbergeben
 				if (is_null($thread_id)) {
 
 					$sql =
@@ -1849,11 +1923,11 @@ class Forum {
 
 				}
 
-			// Feed für ein anderes board
+			// Feed f√ºr ein anderes board
 			} else {
 
-				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
-				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
+				// f√ºr den Moment wird hier einfach ein Query √ºber alle neuen Sachen gemacht.... IneX, 16.3.08
+				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles √ºber s board gesteuert wird). IneX, 16.3.08
 				$sql =
 					"
 					SELECT
@@ -1883,7 +1957,7 @@ class Forum {
 			// Query mit $sql
 			if ($result = $db->query($sql, __FILE__, __LINE__)) {
 
-				// Datensätze auslesen
+				// Datens√§tze auslesen
 				while($rs = $db->fetch($result)) {
 
 					// Assign Values
@@ -1928,6 +2002,16 @@ class Forum {
 } // end class Forum()
 
 
+/**
+ * Thread Class
+ * 
+ * In dieser Klasse befinden sich alle Funktionen zum Thread-System
+ *
+ * @author		[z]milamber, IneX
+ * @version		1.0
+ * @package		Zorg
+ * @subpackage	Forum
+ */
 class Thread {
 	static function setLastSeen ($board, $thread_id) {
 		global $db;

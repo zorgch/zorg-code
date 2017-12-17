@@ -8,7 +8,7 @@
  * @author ?
  * @author IneX
  * @since ?
- * @version 1.1
+ * @version 1.2
  * 
  * @link http://zorg.ch/files/1/Bild1.png
  * @param integer	$_GET['user']	user-id from db
@@ -17,7 +17,6 @@
  * @return file
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 
 // Check for user-id and file-name in URL-Params
 if ($_GET['user'] && $_GET['file']) {

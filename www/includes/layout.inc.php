@@ -22,6 +22,8 @@ if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/'); 		// Images direct
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/'); 	// Actions directory
 if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/'); 	// Scripts directory
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/'); 			// Utilities directory
+if (!defined('JS_DIR')) define('JS_DIR', '/js/'); 					// JavaScripts directory
+if (!defined('CSS_DIR')) define('CSS_DIR', '/css/'); 					// CSS directory
 
 
 
@@ -107,9 +109,12 @@ function head($author_id=0, $title="", $return = 0) {
 		<meta name="ICBM" content="47.4233, 9.37" />
 		<title>'.$title.PAGETITLE_SUFFIX.'</title>
 		<link rel="prefetch" href="forum.php">
-		<link rel="stylesheet" type="text/css" href="'.INCLUDES_DIR.$style_array[$sun].'" >
 		<link rel="shortcut icon" href="'.$favicon[$sun].'" type="image/x-icon">
-		<script type="text/javascript" src="'.INCLUDES_DIR.'javascript.js"></script>
+		<link rel="stylesheet" type="text/css" href="'.INCLUDES_DIR.$style_array[$sun].'" >
+		<link rel="stylesheet" href="'.CSS_DIR.'/fileicon.min.css">
+		<script type="text/javascript" src="'.JS_DIR.'zorg.js"></script>
+		<script src="'.JS_DIR.'highlight-js/highlight.pack.js"></script>
+		<link class="codestyle" rel="stylesheet" href="'.JS_DIR.'/highlight-js/styles/github-gist.css">
 		<script type="text/javascript">var layout = "'.str_replace(".css", "", $style_array[$sun]).'";</script>
 
 		<!-- RSS Feeds -->

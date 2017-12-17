@@ -18,6 +18,22 @@ if($_POST['parent_id'] == '') {
 	exit;
 }
 
+// Validate msg_users is REALLY set
+if(isset($_POST['msg_users']) && $_POST['msg_users'] != ' ' && !empty(array_filter($_POST['msg_users'])))
+{
+	$msg_users = $_POST['msg_users'];
+	
+	// Let's check if it's just a comma-separated String, or an Array
+	if (strpos($msg_users, ',') !== false && !is_array($msg_users))
+	{
+		// make an Array, if necessary
+		$msg_users = explode(',', $_POST['msg_users']);
+	}
+	
+	// Remove any duplicate User-IDs
+	$msg_users = array_unique($msg_users);
+}
+
 if(Forum::hasPostedRecently($user->id, $_POST['parent_id'])) {
 	echo 'Du hast vor wenigen Sekunden bereits gepostet, du musst noch warten.';
 	exit;
@@ -30,7 +46,7 @@ if(
 			$_POST['board'],
 			$user->id,
 			$_POST['text'],
-			$_POST['msg_users']
+			$msg_users
 		)
 ) {
 	header("Location: ".$commentlink);
