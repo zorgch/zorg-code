@@ -27,11 +27,11 @@ Class Quotes {
 
 		$html .=
 			'<table cellpadding="1" cellspacing="1" width="100%">'
-			.'<tr><td align="center" width="100%">'
-			.'<i>'.nl2br(htmlentities($rs["text"])).'</i>'
+			.'<tr><td style="text-align:left;width:100%">'
+			.'<blockquote><i>'.nl2br(htmlentities($rs["text"])).'</i>'
 			.' - '
 			.$user->id2user($rs["user_id"], 0)
-			.'</td></tr>'
+			.'</blockquote></td></tr>'
 		;
 
 		if($user->typ != USER_NICHTEINGELOGGT && Quotes::hasVoted($user->id, $rs['id'])) {
