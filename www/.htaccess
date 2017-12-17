@@ -1,10 +1,10 @@
-RewriteEngine On
-RewriteBase /
+# Both directives are now part of the Apache Configs!
+#RewriteEngine On
 
 # Enforce "zorg.ch" (WITHOUT "www.")
-RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+#RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+#RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
 
 # Redirect file requests to the getfile.php Script
 # See getfile.php for more information
-RewriteRule ^files/([0-9]+)/(.*) /getfile.php?user=$1&file=$2
+#RewriteRule ^files/([0-9]+)/(.*) /getfile.php?user=$1&file=$2
