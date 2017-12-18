@@ -111,10 +111,10 @@ function head($author_id=0, $title="", $return = 0) {
 		<link rel="prefetch" href="forum.php">
 		<link rel="shortcut icon" href="'.$favicon[$sun].'" type="image/x-icon">
 		<link rel="stylesheet" type="text/css" href="'.INCLUDES_DIR.$style_array[$sun].'" >
-		<link rel="stylesheet" href="'.CSS_DIR.'/fileicon.min.css">
+		<link rel="stylesheet" href="'.CSS_DIR.'fileicon.min.css">
 		<script type="text/javascript" src="'.JS_DIR.'zorg.js"></script>
 		<script src="'.JS_DIR.'highlight-js/highlight.pack.js"></script>
-		<link class="codestyle" rel="stylesheet" href="'.JS_DIR.'/highlight-js/styles/github-gist.css">
+		<link class="codestyle" rel="stylesheet" href="'.JS_DIR.'highlight-js/styles/github-gist.css">
 		<script type="text/javascript">var layout = "'.str_replace(".css", "", $style_array[$sun]).'";</script>
 
 		<!-- RSS Feeds -->
