@@ -12,6 +12,7 @@
  * File Includes
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
 /**
  * Konstante ANFICKER_USER_ID
@@ -53,7 +54,7 @@ Class Anficker {
 		// nur Anfick speichern, wenn Spresim trainiert werden soll:
 		//if ($spresim_trainieren == TRUE)
 		//{
-			if($text != '' && $user->id)
+			if($text != '' && !empty($user_id))//usersystem::id2user($user_id)))
 			{
 				$sql = 
 					"INSERT IGNORE
@@ -79,6 +80,10 @@ Class Anficker {
 				
 			//}
 		//}
+		
+		// DEBUGGING
+		//error_log('[DEBUG] ' . __FILE__ . ':' . __LINE__ . ' mysql_insert_id() = ' . mysql_insert_id());
+		//error_log('[DEBUG] ' . __FILE__ . ':' . __LINE__ . ' Anficker::getId($text) = `' . $text . '`');
 		
 		$anfick_id = (mysql_insert_id() > 0 ? mysql_insert_id() : Anficker::getId($text));
 		
