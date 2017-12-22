@@ -13,7 +13,7 @@ if($_POST['do'] == 'anficken') {
 		
 	// Benoten NUR wenn spresim-trainieren gewählt wird
 		// und eine Note vorhanden ist
-	if($_POST['spresim-trainieren'] && (is_numeric($_POST['note'] && $_POST['note'] > 0)) {
+	if($_POST['spresim-trainieren'] && (is_numeric($_POST['note']) && $_POST['note'] > 0)) {
 		Anficker::vote($_POST['anfick_id'], $_POST['note']);
 	}
 	
