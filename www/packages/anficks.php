@@ -17,9 +17,8 @@
  * File Includes
  */
 require_once($_SERVER['DOCUMENT_ROOT']."/includes/anficker.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql.inc.php");
+require_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
 require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 
 global $db, $smarty, $user;
 
@@ -27,6 +26,11 @@ if($_GET['del'] != 'no') {
 	Anficker::deleteLog($user->id);
 }
 
-$smarty->assign("anficks", Anficker::getLog($user->id));
-$smarty->assign("anfickstats", Anficker::getNumAnficks());
+if ($user->typ != USER_NICHTEINGELOGGT)
+{
+	$smarty->assign("anficks", Anficker::getLog($user->id));
+	$smarty->assign("anfickstats", Anficker::getNumAnficks());
+} else {
+	echo '<h2 style="font-size:large; font-weight: bold">Wenn du <a href="'.SITE_URL.'/profil.php?do=anmeldung" title="Account für Zorg.ch erstellen">eingeloggt</a> wärst könntest du gegen Spresim batteln.</h2><img border="0" src="/files/396/aficks.jpg">';
+}
 ?>
