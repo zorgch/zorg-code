@@ -704,7 +704,7 @@ class usersystem {
 			return $user->get_gravatar(
 				$user->id2useremail($id)
 				,USER_IMGSIZE_SMALL
-				,USER_IMGPATH_PUBLIC.$id.'none.jpg'
+				,USER_IMGPATH_PUBLIC.'none.jpg'
 			);
 		}
 	}

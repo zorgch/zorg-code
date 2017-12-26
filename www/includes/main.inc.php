@@ -32,6 +32,13 @@ define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME, true);
 define('SITE_ROOT', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/', true);
 
 /**
+* Set a constant for the custom Error Log path
+* @const ERRORLOG_DIR sets the directory for logging the custom user_errors as in
+* @see errlog.inc.php zorgErrorHandler()
+*/
+define('ERRORLOG_DIR', SITE_ROOT . '../data/errlog/', true);
+
+/**
 * Define a global SENDER e-mail addresses (From:)
 * @const ZORG_EMAIL A valid e-mailadress such as info@zooomclan.org
 * @const SERVER_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config

@@ -56,7 +56,7 @@
 		}
 		if ($errlog_settings['errlog'][$errtype]) {
 			$filename = date("Y-m-d") . '.log';
-			error_log($str, 3, $_SERVER['DOCUMENT_ROOT'].'/../data/errlog/'.$filename);
+			error_log($str, 3, ERRORLOG_DIR.$filename);
 		}
 		
 		if ($errno == FATAL) exit(1);
