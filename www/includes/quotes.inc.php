@@ -171,6 +171,7 @@ Class Quotes {
 	static function newDailyQuote() {
 		global $db;
 
+		try {
 			// anzahl quotes ermitteln
 			$result = $db->query("SELECT * FROM quotes", __FILE__, __LINE__);
 			$count = $db->num($result);
@@ -194,6 +195,14 @@ Class Quotes {
 			// Quote in die daily tabelle tun
 			$sql = "REPLACE INTO periodic (name, id, date) VALUES ('daily_quote', ".$rs['id'].", NOW())";
 			$db->query($sql, __FILE__, __LINE__);
+			
+			return true;
+		}
+		catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_ERROR);
+			
+			return false;
+		}
 	}
 }
 ?>

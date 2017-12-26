@@ -60,33 +60,42 @@ function getOpenAddleGames($userID) {
 function addle_remove_old_games () {
 	global $db;
 	
-	$e = $db->query("SELECT * FROM addle WHERE finish='0' and unix_timestamp(now()) - date > (60*60*24*7*15)", __FILE__, __LINE__);
-	while ($d = $db->fetch($e)) {
-		if ($d['nextturn'] == 1) {
-			$winner = $d['player2'];
-			$looser = $d['player1'];
-			$winner_score = "score2";
-			$looser_score = "score1";
-		}else{
-			$winner = $d['player1'];
-			$looser = $d['player2'];
-			$winner_score = "score1";
-			$looser_score = "score2";
+	try {
+		$e = $db->query("SELECT * FROM addle WHERE finish='0' and unix_timestamp(now()) - date > (60*60*24*7*15)", __FILE__, __LINE__);
+		while ($d = $db->fetch($e)) {
+			if ($d['nextturn'] == 1) {
+				$winner = $d['player2'];
+				$looser = $d['player1'];
+				$winner_score = "score2";
+				$looser_score = "score1";
+			}else{
+				$winner = $d['player1'];
+				$looser = $d['player2'];
+				$winner_score = "score1";
+				$looser_score = "score2";
+			}
+			Messagesystem::sendMessage(
+				$winner,
+				$looser,
+				'-- Addle -- (autom. Nachricht)',
+				sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game verloren, weil du nicht mehr weiter gespielt hast.</a>', SITE_URL, $d['id'])
+			);
+			Messagesystem::sendMessage(
+				$looser,
+				$winner,
+				'-- Addle -- (autom. Nachricht)',
+				sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game gewonnen, weil ich nicht mehr weiter gespielt habe.</a>', SITE_URL, $d['id'])
+			);
+			$db->query("UPDATE addle SET finish='1', $winner_score=1, $looser_score=0 WHERE id=$d[id]", __FILE__, __LINE__);
+			_update_dwz($d['id']);
 		}
-		Messagesystem::sendMessage(
-			$winner,
-			$looser,
-			'-- Addle -- (autom. Nachricht)',
-			sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game verloren, weil du nicht mehr weiter gespielt hast.</a>', SITE_URL, $d['id'])
-		);
-		Messagesystem::sendMessage(
-			$looser,
-			$winner,
-			'-- Addle -- (autom. Nachricht)',
-			sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game gewonnen, weil ich nicht mehr weiter gespielt habe.</a>', SITE_URL, $d['id'])
-		);
-		$db->query("UPDATE addle SET finish='1', $winner_score=1, $looser_score=0 WHERE id=$d[id]", __FILE__, __LINE__);
-		_update_dwz($d['id']);
+		
+		return true;
+	}
+	catch (Exception $e) {
+		user_error($e->getMessage(), E_USER_ERROR);
+		
+		return false;
 	}
 }
 

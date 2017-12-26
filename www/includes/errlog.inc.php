@@ -33,23 +33,24 @@
 			case FATAL: 
 				$prefix = "FATAL Error";
 				$errtype = 'fatal';
-		   	break;
-		  	case ERROR: 
-		  		$prefix = "Error";
-		  		$errtype = 'error';
-		   	break;
-		  	case WARNING: 
-		  		$prefix = "Warning";
-		  		$errtype = 'warning';
-		   	break;
-		  	default: 
-		  		$prefix = "Unkown error type";
-		   	$errtype = 'unknown';
-		   	break;
+			break;
+			case ERROR: 
+				$prefix = "Error";
+				$errtype = 'error';
+			break;
+			case WARNING: 
+				$prefix = "Warning";
+				$errtype = 'warning';
+			break;
+			default: 
+				$prefix = "Unkown error type";
+				$errtype = 'unknown';
+			break;
 		}
 		
 		$time = date("Y-m-d H:i:s");
-		$str = "[$time] $prefix: [$errno] $errstr. ($errfile : $errline) \n ";
+		$errstr = str_replace(array("\r", "\n"), '', $errstr); // Remove all line breaks from $errstr
+		$str = "[$time] [$prefix<$errno>] $errstr ($errfile : $errline)\n";
 		
 		if ($errlog_settings['display'][$errtype]) {
 			echo $str . '<br />';
