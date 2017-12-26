@@ -709,17 +709,34 @@ class usersystem {
 		}
 	}
 
-
+	/**
+	 * Retrieve list of Users for Notification-Messages in Comments or Personal Messages
+	 * 
+	 * @author IneX
+	 * @date 26.12.2017
+	 * 
+	 * @TODO remove this function 'getFormFieldUserlist()' & make sure to remove all references in corresponding files pointing to it
+	 * 
+	 * @DEPRECATED
+	*/
 	function getFormFieldUserlist($name, $size, $users_selected=0, $tabindex=10) {
 		global $db;
 
 		// Wenn User ganz neue Message schreibt
 		if ($users_selected == 0) $users_selected = Array();
 
+		// check and make an Array, if necessary
+		if (strpos($users_selected, ',') !== false && !is_array($users_selected))
+		{
+			$users_selected = explode(',', $users_selected);
+		}
+		// Remove any duplicate User-IDs
+		$users_selected = array_unique($users_selected);
+
 		$sql =
 			"SELECT id, clan_tag, username FROM user"
 			." WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(now())-".(USER_OLD_AFTER*2).")"
-			." OR z_gremium = '1' OR vereinsmitglied = '1'"
+			." OR z_gremium = '1' OR (vereinsmitglied != '0' AND vereinsmitglied != '')"
 			." ORDER BY clan_tag DESC, username ASC"
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
@@ -728,8 +745,8 @@ class usersystem {
 		while ($rs = mysql_fetch_array($result)) {
 			$html .=
 				'<option value="'.$rs['id'].'"'
-				//.(in_array($rs['id'], $users_selected) ? ' selected="selected"' : '')
-				.($rs['id'] == $users_selected[0] ? ' selected="selected"' : '')
+				.(in_array($rs['id'], $users_selected) || $rs['id'] == $users_selected[0] ? ' selected' : '')
+				//.($rs['id'] == $users_selected[0] ? ' selected="selected"' : '')
 				.'>'
 				.$rs['clan_tag'].$rs['username'].'</option>'
 			;

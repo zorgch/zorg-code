@@ -457,7 +457,11 @@ if($_SESSION['user_id']) {
 		if($user->id > 0) {
 			if($_GET['user_id'] == $user->id) { // User ist der eigene
 				if(isset($_GET['newmsg'])) { // User will eine neue Message senden
-					echo Messagesystem::getFormSend(0,'','');
+					if(isset($_GET['msgusers']) && isset($_GET['msgsubject'])) {
+						echo Messagesystem::getFormSend($_GET['msgusers'],$_GET['msgsubject'],'');
+					} else {
+						echo Messagesystem::getFormSend(0,'','');
+					}
 				} else { // User will Inbox sehen
 					echo Messagesystem::getInboxHTML($_GET['box'], $pagesize=11, $_GET['page']);
 				}
