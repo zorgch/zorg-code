@@ -30,7 +30,7 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	//setiathome::tagesabschluss();
 	
 	// alte kompilierte comments löschen (um speicherplatz zu sparen)
-	$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done\n' : 'deleteOldTemplates: ERROR\n';
+	$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done\n' : 'deleteOldTemplates: ERROR\n' );
 	
 	// addle-games älter als 15 wochen löschen. spieler, der nicht gezogen hat, verliehrt
 	$status_html .= ( addle_remove_old_games() ? 'addle_remove_old_games: done\n' : 'addle_remove_old_games: ERROR\n' );
