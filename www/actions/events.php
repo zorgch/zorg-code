@@ -1,8 +1,15 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/events.inc.php');
+
+
+// Validate & escape event fields
+$eventName = ( isset($_POST['name']) && !empty($_POST['name']) ? escape_text($_POST['name']) : user_error('Event: invalid Name "' . $_POST['name'] . '"', E_USER_WARNING) );
+$eventLocation = ( !empty($_POST['location']) ? escape_text($_POST['location']) : '' );
+$eventLink = ( !empty($_POST['link']) ? escape_text(remove_html($_POST['link'])) : '' );
+$eventReviewlink = ( !empty($_POST['review_url']) ? escape_text(remove_html($_POST['review_url'])) : '' );
+$eventDescription = ( !empty($_POST['description']) ? escape_text($_POST['description']) : '' );
+$eventGallery = ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0 ? $_POST['gallery_id'] : user_error('Event: invalid Gallery-ID "' . $_POST['gallery_id'] . '"', E_USER_WARNING) );
 
 
 if($_POST['action'] == 'new') {
@@ -13,16 +20,16 @@ if($_POST['action'] == 'new') {
   		(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url) 
   	VALUES 
   		(
-	  		'".$_POST[name]."'
-	  		, '".$_POST[location]."'
-	  		, '".$_POST[link]."'
-	  		, '".$_POST[description]."'
+	  		'".$eventName."'
+	  		, '".$eventLocation."'
+	  		, '".$eventLink."'
+	  		, '".$eventDescription."'
   			, '".$_POST['startYear']."-".$_POST['startMonth']."-".$_POST['startDay']." ".$_POST['startHour'].":00'
   			, '".$_POST['endYear']."-".$_POST['endMonth']."-".$_POST['endDay']." ".$_POST['endHour'].":00'
-  			, ".$_POST['gallery_id']."
+  			, ".$eventGallery."
   			, ".$user->id."
   			, now()
-  			, '".$_POST['review_url']."'
+  			, '".$eventReviewlink."'
   		)
   	"
   ;
@@ -42,14 +49,14 @@ else if($_POST['action'] == 'edit' ) {
 	 "
 		UPDATE `events` 
 	 	SET 
-			name = '".$_POST['name']."'
-			, location = '".$_POST['location']."'
-			, description = '".$_POST['description']."'
-			, link = '".$_POST['link']."'
+			name = '".$eventName."'
+			, location = '".$eventLocation."'
+			, link = '".$eventLink."'
+			, description = '".$eventDescription."'
 			, startdate = '".$_POST['startYear']."-".$_POST['startMonth']."-".$_POST['startDay']." ".$_POST['startHour'].":00'
 	 		, enddate = '".$_POST['endYear']."-".$_POST['endMonth']."-".$_POST['endDay']." ".$_POST['endHour'].":00'
-	 		, gallery_id = ".$_POST['gallery_id']."
-	 		, review_url = '".$_POST['review_url']."'
+	 		, gallery_id = ".$eventGallery."
+	 		, review_url = '".$eventReviewlink."'
 		WHERE id = ".$_POST['id']."
 	"
 	;

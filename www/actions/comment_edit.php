@@ -28,6 +28,13 @@ if(strlen($_POST['board']) != 1) {
 	exit;
 }
 
+// Text escapen
+if($_POST['text'] == '') {
+	echo 'keine leeren Posts erlaubt.';
+	exit;
+} else {
+	$commentText = escape_text($_POST['text']);
+}
 
 // Existiert der Parent-Post?
 $sql = 
@@ -75,7 +82,7 @@ $sql =
 	"
 	UPDATE comments 
 	SET
-		text='".$_POST['text']."'
+		text='".$commentText."'
 		, board='".$_POST['board']."'
 		, parent_id='".$_POST['parent_id']."'
 		, thread_id='".$_POST['thread_id']."'
@@ -122,7 +129,7 @@ if(count($_POST['msg_users']) > 0) {
 			, addslashes(
 					stripslashes(
 						usersystem::id2user($user->id).' hat geschrieben: <br /><i>'
-						.$_POST['text']
+						.$commentText
 						.'</i><br /><br /><a href="'.Comment::getLink($_POST['board'], $_POST['parent_id'], $_POST['id'], $_POST['thread_id'])
 						.'">--> zum Post</a>'
 					)

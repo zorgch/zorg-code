@@ -392,6 +392,19 @@ function remove_html($html) {
 }
 
 
+/**
+ * Escape alle nicht sicheren Zeichen eines Strings
+ * @author IneX
+ * @date 27.12.2017
+ * @see comment_new.php, comment_edit.php, Comment:post()
+ * @param $string String Input which shall be escaped
+ * @return string
+ */
+function escape_text($string) {
+   $s = addslashes(stripslashes($string));
+   return $s;
+}
+
 
 /**
 * Funktion liefert den Zeitunterschied zur GMT basis

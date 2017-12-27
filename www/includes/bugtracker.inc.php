@@ -29,18 +29,24 @@ Class Bugtracker {
 		global $db, $user;
 
 		if($_GET['action'] == 'new') {
+			// Validate & escape fields
+			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
+			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
+			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description']) : '' );
+			
 			$sql =
 				"
 				INSERT INTO
 					bugtracker_bugs (category_id, reporter_id, priority, reported_date, title, description)
 				VALUES
 					(
-						".$_GET['category_id']."
+						".$bugCategory."
 						, ".$user->id."
-						, ".$_GET['priority']."
+						, ".$bugPriority."
 						, now()
-						, '".$_GET['title']."'
-						, '".$_GET['description']."'
+						, '".$bugTitle."'
+						, '".$bugDescription."'
 					)
 				"
 			;
@@ -50,11 +56,11 @@ Class Bugtracker {
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
 			// Benachrichtigungs-Message
-			if(count($_POST['msg_users']) > 0) {
-				for ($i=0; $i < count($_POST['msg_users']); $i++) {
+			if(count($_GET['msg_users']) > 0) {
+				for ($i=0; $i < count($_GET['msg_users']); $i++) {
 					Messagesystem::sendMessage(
 						$user->id
-						, $_POST['msg_users'][$i]
+						, $_GET['msg_users'][$i]
 						, addslashes(
 								stripslashes(
 								'[Bugreport] von '.usersystem::id2user($user->id)
@@ -62,13 +68,13 @@ Class Bugtracker {
 							)
 						, addslashes(
 								stripslashes(
-									'<a href="/bugtracker.php?bug_id="'.$rs['id'].'">'.$_GET['title'].'</a>'
+									'<a href="/bugtracker.php?bug_id="'.$rs['id'].'">'.$bugTitle.'</a>'
 									.'<br /><i>'
-									.$_GET['description']
+									.$bugDescription
 									.'</i>'
 								)
 							)
-						, (is_array($_POST['msg_users']) ? implode(',', $_POST['msg_users']) : $_POST['msg_users'])
+						, (is_array($_GET['msg_users']) ? implode(',', $_GET['msg_users']) : $_GET['msg_users'])
 					);
 				}
 			}
@@ -78,13 +84,15 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'assign') {
-			$rs = Bugtracker::getBugRS($_GET['bug_id']);
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			
+			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0) {
 				$sql =
 					"UPDATE bugtracker_bugs"
 					." SET assignedto_id=".$user->id
 					." , assigned_date = now()"
-					." WHERE id = ".$_GET['bug_id']
+					." WHERE id = ".$bugId
 				;
 				$db->query($sql, __FILE__, __LINE__);
 			}
@@ -93,13 +101,15 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'klauen') {
-			$rs = Bugtracker::getBugRS($_GET['bug_id']);
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			
+			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0 OR $rs['assignedto_id'] > 0) {
 				$sql =
 					"UPDATE bugtracker_bugs"
 					." SET assignedto_id=".$user->id
 					." , assigned_date = now()"
-					." WHERE id = ".$_GET['bug_id']
+					." WHERE id = ".$bugId
 				;
 				$db->query($sql, __FILE__, __LINE__);
 			}
@@ -108,14 +118,14 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'reopen') {
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			
 			$sql =
-				"
-				UPDATE bugtracker_bugs
+				"UPDATE bugtracker_bugs
 				SET
 					resolved_date = 0
 					, denied_date = 0
-				WHERE id = ".$_GET['bug_id']."
-				"
+				WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 
@@ -137,11 +147,12 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'resign') {
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			
 			$sql =
-				"UPDATE bugtracker_bugs"
-				." SET assignedto_id = 0"
-				." , assigned_date = 0"
-				." WHERE id = ".$_GET['bug_id']
+				"UPDATE bugtracker_bugs
+				SET assignedto_id = 0, assigned_date = 0
+				WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 			header("Location: ".base64_decode($_GET['url']));
@@ -149,19 +160,21 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'resolve') {
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			
 			$sql =
-				"UPDATE bugtracker_bugs"
-				." SET resolved_date = now()"
-				." WHERE id = ".$_GET['bug_id']
+				"UPDATE bugtracker_bugs
+				SET resolved_date = now()
+				WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 
-			$rs = Bugtracker::getBugRS($_GET['bug_id']);
+			$rs = Bugtracker::getBugRS($bugId);
 			if($user->id != $rs['reporter_id']) {
 				Messagesystem::sendMessage(
 					$user->id,
 					$rs['reporter_id'],
-					'[Bugtracker] Bug '.$_GET['bug_id'].' resolved',
+					'[Bugtracker] Bug '.$bugId.' resolved',
 					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a> '
 					.'<br />'
 					.$rs['description']
@@ -174,13 +187,20 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'edit') {
+			// Validate & escape fields
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
+			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
+			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description']) : '' );
+			
 			$sql =
 				"UPDATE bugtracker_bugs"
-				." SET title = '".$_GET['title']."'"
-				." , description = '".$_GET['description']."'"
-				.",  category_id = ".$_GET['category_id'].""
-				.",  priority = ".$_GET['priority'].""
-				." WHERE id = ".$_GET['bug_id']
+				." SET title = '".$bugTitle."'"
+				." , description = '".$bugDescription."'"
+				.",  category_id = ".$bugCategory.""
+				.",  priority = ".$bugPriority.""
+				." WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 			header("Location: ".base64_decode($_GET['url']));
@@ -191,16 +211,16 @@ Class Bugtracker {
 			$sql =
 				"UPDATE bugtracker_bugs"
 				." SET denied_date = now()"
-				." WHERE id = ".$_GET['bug_id']
+				." WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 
-			$rs = Bugtracker::getBugRS($_GET['bug_id']);
+			$rs = Bugtracker::getBugRS($bugId);
 			if($user->id != $rs['reporter_id']) {
 				Messagesystem::sendMessage(
 					$user->id,
 					$rs['reporter_id'],
-					'[Bugtracker] Bug '.$_GET['bug_id'].' denied',
+					'[Bugtracker] Bug '.$bugId.' denied',
 					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a>'
 					.'<br />'
 					.$rs['description']
@@ -213,9 +233,11 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'newcategory') {
+			$categoryTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			
 			$sql =
 				"INSERT INTO bugtracker_categories (title)"
-				." VALUES('".$_GET['title']."')"
+				." VALUES('".$categoryTitle."')"
 			;
 			$db->query($sql, __FILE__, __LINE__);
 			header("Location: ".base64_decode($_GET['url']));
@@ -266,7 +288,7 @@ Class Bugtracker {
 			.'</tr>'
 
 			.'<tr>'
-			.'<td align="left">Priorität:</td>'
+			.'<td align="left">Priorit&auml;t:</td>'
 			.'<td align="left">'
 			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldPriority($rs['priority']) : $rs['priority'].' ('.Bugtracker::getPriorityDescription($rs['priority']).')' )
 			.'</td>'
@@ -485,7 +507,7 @@ Class Bugtracker {
 	}
 
 	/**
-	* Formular für neuen Bug generieren
+	* Formular fÃ¼r neuen Bug generieren
 	* 
 	* @return string HTML-Code der Seite
 	*/
@@ -516,7 +538,7 @@ Class Bugtracker {
 			.'Titel: '.Bugtracker::getFormFieldTitle()
 			.'</td></tr>'
 			.'<tr><td>'
-			.'Priorität: '
+			.'Priorit&auml;t: '
 			.Bugtracker::getFormFieldPriority()
 			.'</td></tr>'
 			.'<tr><td>'
@@ -540,7 +562,7 @@ Class Bugtracker {
 			.'<input name="action" type="hidden" value="newcategory">'
 			.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
 			.'<tr><td>'
-			.'<b>Neue Kategorie hinzufügen:'
+			.'<b>Neue Kategorie hinzuf&uuml;gen:'
 			.'</td></tr>'
 			.'<tr><td>'
 			.'<input class="text" name="title" maxlength="40" size="40" type="text" value="'.$rs['title'].'">'
@@ -588,7 +610,7 @@ Class Bugtracker {
 			} else { // Bereits fertig --------------------
 	
 				if($rs['assignedto_id'] == $user->id) { // mein bug --------------------
-					$html .= '<option value="reopen">neu eröffnen</option>';
+					$html .= '<option value="reopen">neu erÃ¶ffnen</option>';
 				}
 			}
 	

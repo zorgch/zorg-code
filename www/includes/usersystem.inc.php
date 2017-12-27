@@ -777,7 +777,7 @@ class usersystem {
 		global $db, $zorg, $zooomclan;
 		static $_users = array();
 
-		if (!empty($id) && !is_numeric($id)) die('<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>');
+		if (!empty($id) && !is_numeric($id)) user_error('<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>', E_USER_WARNING);
 
 		if (!isset($_users[$id]))
 		{

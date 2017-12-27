@@ -43,7 +43,7 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	//spaceweather --> wird doch eigentlich schon im apod Cron erledigt?? IneX, 8.6.08
 	//$status_html .= get_spaceweather() ? "get_spaceweather: done\n" : "get_spaceweather: ERROR\n" ;
 
-	user_error('[INFO] ' . $status_html, E_USER_NOTICE);
+	user_error($status_html, E_USER_NOTICE);
 
 	// E-Mailbenachrichtigung
 	/*

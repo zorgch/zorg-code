@@ -1,7 +1,6 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php'); // brauchts hier nicht
 
 if(!($user->id > 0)) {
 	echo 'Du bist nicht eingeloggt.';
@@ -11,6 +10,8 @@ if(!($user->id > 0)) {
 if($_POST['text'] == '') {
 	echo 'keine leeren Posts erlaubt.';
 	exit;
+} else {
+	$commentText = escape_text($_POST['text']);
 }
 
 if($_POST['parent_id'] == '') {
@@ -45,7 +46,7 @@ if(
 			$_POST['parent_id'],
 			$_POST['board'],
 			$user->id,
-			$_POST['text'],
+			$commentText,
 			$msg_users
 		)
 ) {

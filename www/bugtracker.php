@@ -3,9 +3,7 @@
 // Libraries
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/bugtracker.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
 
 // Aktionen ausführen

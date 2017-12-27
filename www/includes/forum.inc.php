@@ -515,20 +515,14 @@ class Comment {
 
 		// Rechte checken
 		if (Thread::hasRights($board, $thread_id, $user_id)) {
-
-				// Comment in die DB abspeichern
+			
+			  // Text escapen
+			  $text = escape_text($text);
+			  
+			  // Comment in die DB abspeichern
 			  $sql =
 			  	"INSERT INTO comments (user_id, parent_id, thread_id, text, date, board, error)"
-			  	." VALUES ("
-			  	.$user_id
-			  	.", ".$parent_id
-			  	.", ".$thread_id
-			  	.",'".addslashes(stripslashes($text))
-			  	."', now()"
-			  	.", '".$board."'"
-			  	.", '$comment_error'"
-			  	.")"
-			  ;
+			  	."VALUES ( $user_id, $parent_id, $thread_id, '$text', now(), '$board', '$comment_error' )";
 			  $db->query($sql, __FILE__, __LINE__);
 			  $comment_id = mysql_insert_id();
 
