@@ -491,7 +491,7 @@ function turn_stay ($game, $uid=0) {
 	if (!turn_allowed($game, $uid)) user_error("Du bist nicht an der Reihe", E_USER_ERROR);
 	
 	$e = $db->query(//look up the round in the game the player is in
-		"SELECT g.round round, p.type playertye
+		"SELECT g.round round, p.type playertype
 		 FROM hz_games g 
 		 JOIN hz_players p
 		   ON p.game=g.id
