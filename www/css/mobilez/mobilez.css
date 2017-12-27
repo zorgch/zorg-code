@@ -1,6 +1,6 @@
-@import "jquery.mobile-1.4.5.min.css";
+@import "jquery.mobile-1.5.0-alpha1.min.css";
 @import "jqm-icon-pack-fa.css";
-@import "jquery.mobile-1.4.5.hacks.css";
+/*@import "jquery.mobile-1.4.5.hacks.css";*/
 
 /* Swipe works with mouse as well but often causes text selection. */
 /* We'll deny text selecton on everything but INPUTs and TEXTAREAs. */
