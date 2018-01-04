@@ -11,9 +11,9 @@
    $username = $user->id2user($user->id, true);
 
    $smarty->assign("rgroupids", array(0,1,2,3));
-   $smarty->assign("rgroupnames", array("Alle (auch nicht eingeloggte)", "Normale User (eingeloggt)", "Member und Schöne", "Nur $username"));
+   $smarty->assign("rgroupnames", array("Alle (auch nicht eingeloggte)", "Normale User (eingeloggt)", "Member und Sch&ouml;ne", "Nur $username"));
    $smarty->assign("wgroupids", array(1,2,3));
-   $smarty->assign("wgroupnames", array("Normale User", "Member und Schöne", "Nur $username"));
+   $smarty->assign("wgroupnames", array("Normale User", "Member und Sch&ouml;ne", "Nur $username"));
    $smarty->assign("bordertypids", array(0,1,2));
    $smarty->assign("bordertypnames", array("kein Rahmen", "Rahmen mit Footer", "Rahmen ohne Footer"));
    
