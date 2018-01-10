@@ -204,8 +204,10 @@ function albumThumbs ($id, $page=0) {
 		LEFT JOIN events e ON e.gallery_id=g.id
 		WHERE g.id=$id", __FILE__, __LINE__);
 	$d = mysql_fetch_array($e);
-	echo '<br />';
-	echo titlebar($d['eventname'] ? $d['eventname'] : $d['name']);
+	echo '<br /><table width="80%" align="center"><tr>
+	<td align="center" class="bottom_border"><b class="titlebar">'
+	.($d['eventname'] ? $d['eventname'] : $d['name'])
+	.'</b></div></td></tr></table><br /><br />';
 	
 	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=$id ".ZENSUR." ORDER BY p.id LIMIT ".($page*$pagepics).", $pagepics", __FILE__, __LINE__);
 	echo '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
@@ -294,8 +296,10 @@ function pic ($id) {
 				GROUP BY album", __FILE__, __LINE__);
 	$d = mysql_fetch_array($e);
 	$page = floor($d[anz] / ($THUMBPAGE[width] * $THUMBPAGE[height]));
-	echo '<br />';
-	echo titlebar($d['eventname'] ? $d['eventname'] : $d['name']);
+	echo '<br /><table width="80%" align="center"><tr>
+	<td align="center" class="bottom_border"><b class="titlebar">'
+	.($d['eventname'] ? $d['eventname'] : $d['name'])
+	.'</b></div></td></tr></table><br /><br />';
 	
 	if ($cur[zensur] && $user->typ != USER_MEMBER) {
 		echo '<b><font color="red">Access denied for this picture</font></b><br /><br />';
@@ -501,9 +505,11 @@ if ($id) {
 	$e = $db->query("SELECT * FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__);
 	$frm = mysql_fetch_array($e);
 
-	echo titlebar("Album #$id bearbeiten");
+	echo '<table width="80%" align="center"><tr>
+	<td align="center" class="bottom_border"><b class="titlebar">Album #'.$id.' bearbeiten</b></div></td></tr></table><br /><br />';
 }else {
-	echo titlebar("Neues Album erstellen");
+	echo '<table width="80%" align="center"><tr>
+	<td align="center" class="bottom_border"><b class="titlebar">Neues Album erstellen</b></div></td></tr></table><br /><br />';
 	$id = 0;
 }
 
@@ -559,8 +565,8 @@ if ($id) {
 	<?
 
 
-	echo '<br/><br/>';
-	echo titlebar("Picture Upload");
+	echo '<br/><br/><table width="80%" align="center"><tr>
+	<td align="center" class="bottom_border"><b class="titlebar">Picture Upload</b></div></td></tr></table><br /><br />';
 
 	if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br /><br />";
 	if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br /><br />";

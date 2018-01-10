@@ -349,16 +349,3 @@ if($cur_time > strtotime($suncalc->getSunset()) || $cur_time < strtotime($suncal
 	$sun = "down";
 	$layouttype = "night";
 }
-if(isset($_GET['tschau'])) {
-	$_SESSION['tschau'] = $_GET['tschau'];
-	header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
-}
-if(isset($_SESSION) && $_SESSION['tschau'] == "day") {
-	$sun = "up";
-}
-if(isset($_SESSION) && $_SESSION['tschau'] == "night") {
-	$sun = "down";
-}
-
-
-?>

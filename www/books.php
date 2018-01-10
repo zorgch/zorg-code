@@ -1,9 +1,10 @@
 <?php
 //coded by [z]keep3r
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
-echo head(35, "books");
+//echo head(35, "books");
+$smarty->assign('tplroot', array('page_title' => 'books'));
+$smarty->display('file:layout/head.tpl');
 echo menu('main');
 echo menu('user');
 echo menu('books');
@@ -634,5 +635,6 @@ if($_GET['do'] == "") {
 
 }
 
-echo foot(52);
+//echo foot(52);
+$smarty->display('file:layout/footer.tpl');
 ?>

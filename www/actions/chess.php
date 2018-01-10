@@ -1,8 +1,6 @@
 <?
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/chess.inc.php');
-	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/chess.inc.php');
 
 	// move
 	if ($_GET['game'] && $_GET['from'] && $_GET['to']) {
@@ -20,7 +18,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		) {
 			unset($_GET['from']);
 			unset($_GET['to']);
-			header('Location: /smarty.php?'.url_params());
+			header('Location: /?'.url_params());
 		}else{
 			echo "Invalid chess move: <br /> game = $_GET[game] <br /> from = $_GET[from] <br /> to = $_GET[to]";
 			exit;
@@ -34,7 +32,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		if ($d) {
 			Chess::do_offer_remis($_GET['game']);
 			unset($_GET['do']);
-			header("Location: /smarty.php?".url_params());
+			header("Location: /?".url_params());
 		}else{
 			echo "'offer remis' is not allowed.";
 			exit;
@@ -53,7 +51,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		if ($d) {
 			Chess::do_remis($_GET['game']);
 			unset($_GET['do']);
-			header("Location: /smarty.php?".url_params());
+			header("Location: /?".url_params());
 		}else{
 			echo "'accept remis' is not allowed.";
 			exit;
@@ -71,7 +69,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		$d = $db->fetch($e);
 		if ($d) {
 			Chess::deny_remis($_GET['game']);
-			header("Location: /smarty.php?".url_params());
+			header("Location: /?".url_params());
 		}else{
 			echo "'deny remis' is not allowed";
 			exit;
@@ -81,7 +79,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 	// start new game
 	if ($_POST['formid'] == 'chess_start') {
 		if (Chess::new_game($_POST['user'])) {
-			header("Location: /smarty.php?tpl=139");
+			header("Location: /?tpl=139");
 		}else{
 			echo "invalid chess_start: <br /> user = $_POST[user]";
 			exit;
@@ -93,6 +91,6 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		Chess::aufgabe($_GET['game']);
 		
 		unset($_GET['do']);
-		header("Location: /smarty.php?tpl=141".url_params());
+		header("Location: /?tpl=141".url_params());
 	}
 ?>

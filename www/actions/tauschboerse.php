@@ -81,7 +81,7 @@ if($_GET['do'] == 'old') {
   	"
   ;
   $db->query($sql, __FILE__, __LINE__);
-  header('Location: /smarty.php?tpl=190');
+  header('Location: /?tpl=190');
   exit;
 }
 ?>

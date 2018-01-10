@@ -44,7 +44,7 @@
 			if ($parent >= 0) $menu_tabs[$parent]->subtrees[] = $id;
 			
 			if ($tpl) {
-				$this->link = "/smarty.php?tpl=$tpl";
+				$this->link = "/?tpl=$tpl";
 			}else{
 				$this->link = $link;
 			}

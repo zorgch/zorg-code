@@ -64,7 +64,7 @@
 			
 			$img_map .= '<area shape="rect" coords="'.($it['x']-20).','
 		      .($it['y']-15).','.($it['x']+20).','.($it['y']+15).'" '.
-				'href="/smarty.php?'.url_params().'&station_checker='.$it['id'].'" />'
+				'href="/?'.url_params().'&station_checker='.$it['id'].'" />'
 			;
 		}
 		

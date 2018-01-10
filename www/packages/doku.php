@@ -17,8 +17,8 @@
       $nav = "";
       if (isset($params[up]) || isset($params[home])) {
          $nav = '<tr><td align="left">';
-         if (isset($params[home])) $nav .= '<a href="/smarty.php?tpl='.$params[home].'">home</a> | ';
-         if (isset($params[up])) $nav .= '<a href="/smarty.php?tpl='.$params[up].'">up</a> | ';
+         if (isset($params[home])) $nav .= '<a href="/?tpl='.$params[home].'">home</a> | ';
+         if (isset($params[up])) $nav .= '<a href="/?tpl='.$params[up].'">up</a> | ';
          $nav = substr($nav, 0, -3);
          $nav .= '<br /><br /></td></tr>';
       }
@@ -56,7 +56,7 @@
    
    function doku_entry ($params, $content, &$smarty, &$repeat) {
       if (isset($params[tpl])) {
-         $params[title] = '<a href="/smarty.php?tpl='.$params[tpl].'">'.$params[title].'</a>';
+         $params[title] = '<a href="/?tpl='.$params[tpl].'">'.$params[title].'</a>';
       }
       
       return '<table>'.

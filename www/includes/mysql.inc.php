@@ -58,7 +58,7 @@ class dbconn {
 	* @param $file string Filename
 	* @param $line int Linenumber
  	*/
-	function query ($sql, $file="", $line="", $funktion="") {
+	function query ($sql, $file="", $line=0, $funktion="") {
 	   global $user;
 
 	   $this->noquerys++;
@@ -267,5 +267,3 @@ class dbconn {
 
 // Grad eine Verbindung bauen, damit sie includet ist...
 $db = new dbconn(MYSQL_DBNAME);
-
-?>

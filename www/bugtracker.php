@@ -3,11 +3,12 @@
 // Libraries
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/bugtracker.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
 
 
 // Aktionen ausführen
 Bugtracker::execActions();
+
+
 
 // Bugliste ausgeben
 if($_GET['bug_id'] == '') {
@@ -44,8 +45,9 @@ if($_GET['bug_id'] == '') {
 	}
 
 
-	echo head(1, "Bugtracker");
-
+	$smarty->assign('tplroot', array('page_title' => 'Bugtracker'));
+	$smarty->display('file:layout/head.tpl');
+	
 	echo menu("zorg");
 	echo menu("utilities");
 	echo menu("admin");
@@ -118,8 +120,12 @@ if($_GET['bug_id'] == '') {
 
 // Bug ausgeben
 } else {
-	echo head(1, "Bugtracker");
+	//echo head(1, "Bugtracker");
+	$smarty->assign('tplroot', array('page_title' => 'Bugtracker'));
+	$smarty->display('file:layout/head.tpl');
+	
 	echo menu("zorg");
+	echo menu("utilities");
 	echo menu("admin");
 	echo '<h1>Bugtracker</h1>';
 
@@ -132,6 +138,6 @@ if($_GET['bug_id'] == '') {
 
 }
 
-echo foot();
-
+//echo foot();
+$smarty->display('file:layout/footer.tpl');
 ?>

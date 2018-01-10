@@ -2,15 +2,14 @@
 //coded by [z]keep3r
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
 
 // Form-Aktionen ausf?hren	
 //Quotes::execActions();
 
-echo head(40, "dreamjournal");
+//echo head(40, "dreamjournal");
+$smarty->assign('tplroot', array('page_title' => 'dreamjournal'));
+$smarty->display('file:layout/head.tpl');
 echo menu('main');
 echo menu('user');
 
@@ -55,5 +54,6 @@ echo menu('user');
   }
   echo dream_add_form();
   
-echo foot(52);
+//echo foot(52);
+$smarty->display('file:layout/footer.tpl');
 ?>

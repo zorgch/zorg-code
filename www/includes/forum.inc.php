@@ -42,7 +42,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
 
 /**
  * GLOBALS
- * @const THREAD_TPL_TIMEOUT wenn ein thread x tage nicht mehr angeschaut wurde, werden seine tpl's gel√∂scht. (speicherplatz sparen)
+ * @const THREAD_TPL_TIMEOUT wenn ein thread x tage nicht mehr angeschaut wurde, werden seine tpl's gelöscht. (speicherplatz sparen)
  */
 define('THREAD_TPL_TIMEOUT', 30);  // in tagen
 
@@ -111,7 +111,7 @@ class Comment {
 	/**
 	* @return String
 	* @param $text String
-	* @desc macht Textformatierungen f√ºrs Forum
+	* @desc macht Textformatierungen fürs Forum
  	*/
 	static function formatPost($text) {
 
@@ -120,7 +120,7 @@ class Comment {
 		// in eigene funktion packen
 
 
-	  // Falls Post HTML beinhaltet, schauen ob was b√∂ses[tm] drin ist.
+	  // Falls Post HTML beinhaltet, schauen ob was böses[tm] drin ist.
 	  $illegalhtml = false;
 
 
@@ -376,7 +376,7 @@ class Comment {
 	  $text = strip_tags($text);
 
 	  // was macht das?
-	  $pattern = "(((\w|\d|[√§√∂√º√®√©√†√Æ√™])(\w|\d|\s|[√§√∂√º√®√©√†√Æ√™]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
+	  $pattern = "(((\w|\d|[äöü√®√©√†√Æ√™])(\w|\d|\s|[äöü√®√©√†√Æ√™]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
 	  preg_match($pattern, $text, $out);
 	  if(strlen($out[1]) > $length) {
 	  	$out[1] = substr($out[1], 0, $length);
@@ -400,10 +400,10 @@ class Comment {
 	}
 
 	/**
-	 * Pr√ºft, ob der Comment im therads-table eingetragen ist (= thread start)
+	 * Prüft, ob der Comment im therads-table eingetragen ist (= thread start)
 	 * @author IneX
 	 * @date 16.03.2008
-	 * @desc Pr√ºft ob der Comment ein Thread ist
+	 * @desc Prüft ob der Comment ein Thread ist
 	 * @param $board
 	 * @param $id int
 	 * @return boolean
@@ -526,7 +526,7 @@ class Comment {
 			  $db->query($sql, __FILE__, __LINE__);
 			  $comment_id = mysql_insert_id();
 
-			  // Falls parent_id = 1, thread_id = id. F√ºr Forum->neue Threads.
+			  // Falls parent_id = 1, thread_id = id. Für Forum->neue Threads.
 			  $sql = "
 			  	UPDATE comments
 			  	SET thread_id = id
@@ -723,7 +723,7 @@ class Forum {
 		$offsetswitcher[15] = 1;
 		$depthoffset = $offsetswitcher[$tempdepth];
 
-		// Farben heller/d√ºnkler machen
+		// Farben heller/dünkler machen
 		$r = $r + $depthoffset * $coloroffset;
 		$g = $g + $depthoffset * $coloroffset;
 		$b = $b + $depthoffset * $coloroffset;
@@ -797,7 +797,7 @@ class Forum {
 	 * Board Titel ausgeben
 	 * @author IneX
 	 * @date 16.03.2008
-	 * @desc Query f√ºr den Board Titel
+	 * @desc Query für den Board Titel
 	 * @param $board int
 	 * @return string
 	 */
@@ -951,7 +951,7 @@ class Forum {
 	  	.'<input type="hidden" name="thread_id" value="'.$thread_id.'">'
 	    .'<table width="400" class="border" align="center">'
 	    .'<tr>'.'<td align="left" colspan="3" valign="middle">'
-	    .'Neuen Kommentar hinzuf√ºgen:'
+	    .'Neuen Kommentar hinzufügen:'
 	  	.'</td>'
 	  	.'<td align="right">'
 	  	//.($board != 'f' ? '<input name="parent_id" style="visibility: hidden;" type="radio" value="'.$parent_id.'" checked="checked" />' : '')
@@ -962,9 +962,9 @@ class Forum {
 	    .'<textarea class="text" cols="80" name="text" rows="20" tabindex="1"></textarea>'
 	    .'</td>'
 	    .'<td valign="top" width="100"><small><nobr>'
-	    .'<br />√§ = <a href="javascript:addsymbol(\'&amp;auml;\');">&amp;auml;</a>'
-	    .'<br />√∂ = <a href="javascript:addsymbol(\'&amp;ouml;\');">&amp;ouml;</a>'
-	    .'<br />√º = <a href="javascript:addsymbol(\'&amp;uuml;\');">&amp;uuml;</a>'
+	    .'<br />ä = <a href="javascript:addsymbol(\'&amp;auml;\');">&amp;auml;</a>'
+	    .'<br />ö = <a href="javascript:addsymbol(\'&amp;ouml;\');">&amp;ouml;</a>'
+	    .'<br />ü = <a href="javascript:addsymbol(\'&amp;uuml;\');">&amp;uuml;</a>'
 	    .'<br />& = <a href="javascript:addsymbol(\'&amp;amp;\');">&amp;amp;</a>'
 	    .'<br />&lt; = <a href="javascript:addsymbol(\'&amp;lt;\');">&amp;lt;</a>'
 	    .'<br />&gt; = <a href="javascript:addsymbol(\'&amp;gt;\');">&amp;gt;</a>'
@@ -982,7 +982,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc gibt das HTML des Readallforms zur√ºck
+	* @desc gibt das HTML des Readallforms zurück
  	*/
 	static function getFormReadall() {
 		return
@@ -999,7 +999,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc gibt das HTML des Searchformszur√ºck
+	* @desc gibt das HTML des Searchformszurück
  	*/
 	static function getFormSearch() {
 		return
@@ -1330,7 +1330,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zur√ºck
+	* @desc Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zurück
 	*/
 	static function getLatestUnreadComments($title="", $board="") {
 		global $db, $user;
@@ -1390,7 +1390,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc Gibt eine Tabelle mit Threads zur√ºck, welche genau vor 3 Jahren erstellt wurden
+	* @desc Gibt eine Tabelle mit Threads zurück, welche genau vor 3 Jahren erstellt wurden
 	* @autor Grischa Ebinger
 	* @date 2004-02-08
 	*/
@@ -1412,7 +1412,7 @@ class Forum {
 
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
-		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>Jaja, fr√ºher...</b></td></tr>';
+		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>Jaja, früher...</b></td></tr>';
 		while($rs = $db->fetch($result)) {
 	    $i++;
 			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
@@ -1440,7 +1440,7 @@ class Forum {
 	}
 
 	/**
-	* gibt den entspr. link zum sortieren des Forums zur√ºck
+	* gibt den entspr. link zum sortieren des Forums zurück
 	*/
 	static function getSortlink($order) {
 		if($_GET['order'] == $order) {
@@ -1456,7 +1456,7 @@ class Forum {
 
 	/**
 	* @return String
-	* @desc Gibt das HTML des Forums zur√ºck
+	* @desc Gibt das HTML des Forums zurück
  	*/
 	static function getHTML($showboards, $pagesize, $sortby='') {
 
@@ -1491,7 +1491,7 @@ class Forum {
 	  }
 
 
-	  // Bl√§ttern...
+	  // Blättern...
 	  $page = ($_GET['page'] == '') ? 1 : $_GET['page'];
 	  $limit = ($page-1) * $pagesize.",".$pagesize;
 	  $sql = "
@@ -1552,7 +1552,7 @@ class Forum {
 	  $numpages = floor($db->num($db->query($sql, __FILE__, __LINE__)) / $pagesize); // number of pages
 
 
-	  // biko: auskommentieren im query tut nicht. musst es php-m√§ssig auskommentieren.
+	  // biko: auskommentieren im query tut nicht. musst es php-mässig auskommentieren.
 	  $sql =
 	  	$sql."
 	  	LIMIT $limit
@@ -1606,7 +1606,7 @@ class Forum {
     		}
     	}*/
 
-		// alles was jetzt kommt, steht im feld rechtsb√ºndig
+		// alles was jetzt kommt, steht im feld rechtsbündig
 		$html .=	'<span style="float: right">';
 
     	if($user->id > 0) {
@@ -1646,11 +1646,11 @@ class Forum {
 
 	  	### RSS Feed Thread
 	  	$html .=
-					' <a href="'.SITE_URL.'/forum.php?layout=rss&board='.$rs['board'].'&thread_id='
+					' <a href="'.RSS_URL.'&amp;type=forum&amp;board='.$rs['board'].'&amp;thread_id='
     				.$rs['thread_id'].'">[rss]</a>'
     	;
 
-    	// rechtsb√ºndig-span-element schliessen
+    	// rechtsbündig-span-element schliessen
     	$html .=	'</span>';
 
 
@@ -1740,7 +1740,7 @@ class Forum {
 	    }
 
 		if (Thread::hasRights($board, $thread_id, $user->id)) {
-		   // damit man die √§lteren kompilierten comments l√∂schen kann (speicherplatz sparen)
+		   // damit man die älteren kompilierten comments löschen kann (speicherplatz sparen)
 			Thread::setLastSeen($$board, $thread_id);
 
 			// @DEPRECATED
@@ -1799,18 +1799,18 @@ class Forum {
 	 * @return string
 	 * @param $board default f (=forum)
 	 * @param user_id default null (=nicht eingeloggt)
-	 * @param $thread_id default null (=kein thread gew√§hlt)
-	 * @desc Gibt einen XML RSS-Feed zur√ºck
+	 * @param $thread_id default null (=kein thread gewählt)
+	 * @desc Gibt einen XML RSS-Feed zurück
 	 */
 	 static function printRSS($board='f', $user_id=null, $thread_id=null) {
 	 	global $db, $user;
 
-	 	// where-board Bedingung f√ºr SQL-Query bilden
+	 	// where-board Bedingung für SQL-Query bilden
 		$wboard = $board ? "comments.board='".$board."'" : "1";
 
-		$num = 15;		// Anzahl auszugebender Datens√§tze
+		$num = 15;		// Anzahl auszugebender Datensätze
 
-	 	$xmlfeed = '';	// Ausgabestring f√ºr XML Feed initialisieren
+	 	$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
 
 		/**
 		 * Ausgabe evaluieren und entsprechendes SQL holen
@@ -1819,10 +1819,10 @@ class Forum {
 		// nicht eingeloggter User...
 		if (is_null($user_id)) {
 
-			// Feed f√ºr forum board
+			// Feed für forum board
 			if ($board == 'f') {
 
-				// keine thread_id √ºbergeben
+				// keine thread_id übergeben
 				if (is_null($thread_id)) {
 
 					$sql =
@@ -1854,11 +1854,11 @@ class Forum {
 
 				}
 
-			// feed f√ºr anderes board
+			// feed für anderes board
 			} else {
 
-				// f√ºr den Moment wird hier einfach ein Query √ºber alle neuen Sachen gemacht.... IneX, 16.3.08
-				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles √ºber s board gesteuert wird). IneX, 16.3.08
+				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
+				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
 					"
 					SELECT
@@ -1882,10 +1882,10 @@ class Forum {
 		// User ist eingeloggt
 		} else {
 
-			// Feed f√ºr forum board
+			// Feed für forum board
 			if ($board == 'f') {
 
-				// keine thread_id √ºbergeben
+				// keine thread_id übergeben
 				if (is_null($thread_id)) {
 
 					$sql =
@@ -1917,11 +1917,11 @@ class Forum {
 
 				}
 
-			// Feed f√ºr ein anderes board
+			// Feed für ein anderes board
 			} else {
 
-				// f√ºr den Moment wird hier einfach ein Query √ºber alle neuen Sachen gemacht.... IneX, 16.3.08
-				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles √ºber s board gesteuert wird). IneX, 16.3.08
+				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
+				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
 					"
 					SELECT
@@ -1951,38 +1951,36 @@ class Forum {
 			// Query mit $sql
 			if ($result = $db->query($sql, __FILE__, __LINE__)) {
 
-				// Datens√§tze auslesen
+				// Datensätze auslesen
 				while($rs = $db->fetch($result)) {
 
 					// Assign Values
 					$xmlitem_title = ( Comment::isThread($rs['board'], $rs['id']) ? Comment::getTitle($rs['text']) : 'Comment zu '.remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id']))) );
-					$xmlitem_link = SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
+					$xmlitem_link = str_replace('&', '&amp;amp;', SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id'])); // &amp;amp; for xml-compatibility
 					$xmlitem_pubDate = date('D, d M Y H:i:s', $rs[date]);//.' '.gmt_diff($rs[date]);
 					$xmlitem_author = $rs['clan_tag'].$rs['username'];
 					$xmlitem_category = '<![CDATA[';
 						$xmlitem_category .= remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id'])));
 						$xmlitem_category .= ']]>';
-					$xmlitem_guid = SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
+					$xmlitem_guid = str_replace('&', '&amp;amp;', SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id'])); // &amp;amp; for xml-compatibility
 					$xmlitem_description = '<![CDATA[';
 						$desc = $rs['text'];
 						$limit = 360;
 						$xmlitem_description .= (strlen($desc) > $limit ? substr($desc, 0, $limit - 3) . '...' : $desc);
 						$xmlitem_description .= ']]>';
-					$xmlitem_content = $rs['text'];
+					$xmlitem_content = remove_html($rs['text']);
 
 					// XML Feed items schreiben
-					$xmlfeed .=
-						'<item>
-							<title>'.$xmlitem_title.'</title>
-							<link>'.$xmlitem_link.'</link>
-							<pubDate>'.$xmlitem_pubDate.'</pubDate>
-							<author>'.$xmlitem_author.'</author>
-							<category>'.$xmlitem_category.'</category>
-							<guid isPermaLink="false">'.$xmlitem_guid.'</guid>
-							<description>'.$xmlitem_description.'</description>
-							<content:encoded><![CDATA['.$xmlitem_content.']]></content:encoded>
-						</item>
-						';
+					$xmlfeed[] = [
+							'xmlitem_title' => $xmlitem_title,
+							'xmlitem_link' => $xmlitem_link,
+							'xmlitem_pubDate' => $xmlitem_pubDate,
+							'xmlitem_author' => $xmlitem_author,
+							'xmlitem_category' => $xmlitem_category,
+							'xmlitem_guid' => $xmlitem_guid,
+							'xmlitem_description' => $xmlitem_description,
+							'xmlitem_content' => $xmlitem_content
+						];
 
 				} // end while $rs
 

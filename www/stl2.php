@@ -1,6 +1,5 @@
 <?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 /*==================================================================
 mySQL Tables:
 
@@ -1139,7 +1138,9 @@ if($_SESSION['user_id']) {
 			if($_GET['shoot']) {
 				$stl->shoot();
 			}
-			echo head(46, "Shoot the Lamber");
+			//echo head(46, "Shoot the Lamber");
+			$smarty->assign('tplroot', array('page_title' => 'Shoot the Lamber'));
+			$smarty->display('file:layout/head.tpl');
 			echo $stl->data['game'];
 			echo $stl->data['legende'];
 		} else {
@@ -1161,7 +1162,8 @@ if($_SESSION['user_id']) {
 		}
 	}
 	if($_GET['do'] == "overview" || !isset($_GET['do'])) {
-		echo head(45, "Shoot the Lamber");
+		$smarty->assign('tplroot', array('page_title' => 'Shoot the Lamber'));
+		$smarty->display('file:layout/head.tpl');
 		echo $stl->data['overview'];	
 		echo $stl->data['legende'];
 	}
@@ -1181,10 +1183,12 @@ if($_SESSION['user_id']) {
 		$db->query($sql,__FILE__,__LINE__);
 		header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());	
 	}
-	echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 } else {
-	echo head(45, "Shoot the Lamber");
+	$smarty->assign('tplroot', array('page_title' => 'Shoot the Lamber'));
+	$smarty->display('file:layout/head.tpl');
 	echo "<b style='font-size:20px; color:#FF0000;'>Access denied!</b>";
-	echo foot(1);
+	//echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 }
 ?>

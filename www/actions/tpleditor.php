@@ -1,9 +1,6 @@
 <?
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/util.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/tpleditor.inc.php");
+require_once($_SERVER['DOCUMENT_ROOT']."/includes/tpleditor.inc.php");
 
 	$error = "";
 	$state = "";
@@ -63,7 +60,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 		   	$db->query("INSERT INTO templates_backup SELECT * FROM templates WHERE id='$frm[id]'", __FILE__, __LINE__);
 		
 		      $_GET['tplupd'] = $frm['id'];
-		      $_GET['location'] = base64_encode("/smarty.php?tpl=$frm[id]");
+		      $_GET['location'] = base64_encode("/?tpl=$frm[id]");
 		      $smarty->assign("tplupdnew", 1);
 		      $state = "Neue Seite wurde erstellt. ID: $frm[id].<br />";
 		      
@@ -92,7 +89,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 		if (!$error) {
 			tpleditor_unlock($_GET['tplupd']);
 			
-			if (!$_GET['location']) $_GET['location'] = base64_encode("/smarty.php?tpl=$_GET[tplupd]");
+			if (!$_GET['location']) $_GET['location'] = base64_encode("/?tpl=$_GET[tplupd]");
 			
 			unset($_GET['tplupd']);
 			unset($_GET['tpleditor']);
@@ -109,11 +106,9 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 		   $smarty->assign("tpleditor_frm", $frm);
 		   $smarty->assign("tpleditor_state", $state);
 	   
-			$smarty->display("file:main.html");
+			$smarty->display("file:layout/layout.tpl");
 		}	   
    
 	}else{
    	user_error($access_error, E_USER_ERROR);
    }
-
-?>

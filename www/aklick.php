@@ -1,6 +1,18 @@
-<?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
+<?php
+/**
+ * Aficks Admin
+ *
+ * Neui Aficks-Wörter und neui Afick-Sprüch
+ *
+ * @author ?
+ * @package Zorg
+ * @subpackage Anficker
+ */
+
+/**
+ * File Includes
+ */
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 if(count($_POST)>0) {
 	if($_POST['edit_wort'] && ($_POST['edit_user'] == $_SESSION['user_id'] || $user->typ == 2)) {
@@ -72,7 +84,9 @@ if(count($_POST)>0) {
 	
 }
 
-echo head(20);
+//echo head(20);
+$smarty->assign('tplroot', array('page_title' => 'Aficks'));
+$smarty->display('file:layout/head.tpl');
 echo menu("zorg");
 echo menu("games");
 echo "<h2>Aficks</h2><br />";
@@ -167,7 +181,5 @@ if($_SESSION['query']) {
 }
 
 
-echo foot(1);
-
-
-?>
+//echo foot(1);
+$smarty->display('file:layout/footer.tpl');

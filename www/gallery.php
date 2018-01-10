@@ -20,15 +20,14 @@
  * File Includes
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 
 
 
 // fuer mod_rewrite solltes
 //header("Cache-Control: no-store, no-cache, must-revalidate");
-echo head(29, 'gallery');
+//echo head(29, 'gallery');
+$smarty->assign('tplroot', array('page_title' => 'gallery'));
+$smarty->display('file:layout/head.tpl');
 
 echo menu("zorg");
 echo menu("gallery");
@@ -111,5 +110,6 @@ if ($user->typ == USER_NICHTEINGELOGGT)
 
 }
 
-echo foot(7);
+//echo foot(7);
+$smarty->display('file:layout/footer.tpl');
 ?>

@@ -3,7 +3,7 @@
 		 
 		body {
 		  background-color: #000000;
-		  color: #000000;
+		  color: #FFFFFF;
 			font-family: Verdana, Sans-Serif;
 			font-size: 13px;
 
@@ -11,21 +11,21 @@
 		}
 
 		table {
-			background-color: #DDDDDD
+			background-color: #242424
 			font-family: Verdana, Sans-Serif;
 			font-size: 12px;
 		}
 		table.header {
-			background-color: #FFFFFF;
+			background-color: #000000;
 			margin:0px;
 		}
 	
 		table.shadedcells td {
-			background-color: #DDDDDD;
+			background-color: #242424;
 		}
 		
 		a {
-		  color: #344586;
+		  color: #CBBA79;
 		  text-decoration: none;
 		}
 
@@ -34,7 +34,7 @@
 		}
 		
 		.border {
-	    border-color: #CCCCCC;
+	    border-color: #CBBA79;
 			border-style: solid;
 			border-width: 1px;
 		}
@@ -42,7 +42,7 @@
 		.bottom_border {
 			border-bottom-style: solid;
 			border-bottom-width: 1px;
-			border-bottom-color: #CCCCCC;
+			border-bottom-color: #CBBA79;
 		}
 	
 		.title {	
@@ -73,10 +73,10 @@
 		}
 		
 		div.menu {
-			background-color: #BDCFF5; /* EDF2F2 */
+			background-color: #42300A; /* EDF2F2 */
 			
 			border-bottom-style: solid;
-			border-bottom-color: #CCCCCC; /* ddd */
+			border-bottom-color: #CBBA79; /* ddd */
 			border-bottom-width: 1px;	
 			
 			border-top-style: solid;
@@ -91,10 +91,10 @@
 		}
 		
 		table.dreid {
-			background-color: #E5E5E5; /* EDF2F2 */
+			background-color: #141414; /* EDF2F2 */
 			
 			border-bottom-style: solid;
-			border-bottom-color: #CCCCCC; /* ddd */
+			border-bottom-color: #CBBA79; /* ddd */
 			border-bottom-width: 1px;	
 		
 			border-left-style: solid;
@@ -102,7 +102,7 @@
 			border-left-width: 1px;
 		
 			border-right-style: solid;
-			border-right-color: #CCCCCC; /* ddd */
+			border-right-color: #CBBA79; /* ddd */
 			border-right-width: 1px;	
 			
 			border-top-style: solid;
@@ -111,13 +111,13 @@
 		}
 		
 		div.menu a {	
-			background-color: #BDCFF5; /* EDF2F2 */
+			background-color: #42300A; /* EDF2F2 */
 		
-			border-bottom:	1px solid #CCCCCC; /* DDD */
+			border-bottom:	1px solid #CBBA79; /* DDD */
 			border-left:		1px solid #FFF;
-			border-right:		1px solid #CCCCCC; /* DDD */
+			border-right:		1px solid #CBBA79; /* DDD */
 		
-			color: #344586;		
+			color: #CBBA79;		
 		
 			padding-bottom: 1px;
 			padding-left: 15px;
@@ -128,12 +128,12 @@
 		}
 		
 		div.menu a:hover {
-			background: #9DAFD5;
+			background: #62502A;
 			text-decoration: none;
 		}
 		
 		div.menu a.left {
-			background-color: #BDCFF5; /* EDF2F2 */
+			background-color: #42300A; /* EDF2F2 */
 			border-left-style: none;
 			padding-left: 0px;
 			padding-right: 1px;
@@ -143,7 +143,7 @@
 		}
 		
 		div.menu a.right {
-			background-color: #BDCFF5; /* EDF2F2 */
+			background-color: #42300A; /* EDF2F2 */
 			border-right-style: none;
 			padding-left: 1px;
 			padding-right: 0px;
@@ -198,59 +198,59 @@
 				
 		input:focus {
 			border-style: inset;
-			border-color: ##F2F2F2;
+			border-color: #141414;
 		}
 		
 		select { 
 			border-style: groove;
 			border-width: 2px;
-			border-color: #CCCCCC;		
+			border-color: #CBBA79;		
 			font-family: Verdana;
-			color: #000000;
-			background-color: ##F2F2F2;
+			color: #FFFFFF;
+			background-color: #141414;
 			font-size: 10px;
 		}
 		
 		option {
 			font-family: verdana;
 			font-size: 10px;
-			color: #000000;
-			background-color: ##F2F2F2;
+			color: #FFFFFF;
+			background-color: #141414;
 		
 		}
 
 		.text, textarea {
 			border-style: solid;
 			border-width: 1px;
-			border-color: #CCCCCC;
+			border-color: #CBBA79;
 			font-size: 10px;
 			font-family: verdana;
-			color: #000000;
-			background-color: #FFFFFF;
+			color: #FFFFFF;
+			background-color: #000000;
 		}
 
 		.text:focus, textarea:focus {
 			border-style: inset;
-			border-color: ##F2F2F2;
+			border-color: #141414;
 		}
 		
 		input[type=checkbox], input[type=radio] {
 			border-style: inset;
 			border-width: 2px;
-			border-color: ##F2F2F2;
+			border-color: #141414;
 			margin: 2px;
-			background-color: #BDCFF5;
+			background-color: #42300A;
 		}
 		
 		.button {
 			border-style: outset;
 			border-width: 1px;
-			border-color: #CCCCCC;
+			border-color: #CBBA79;
 			font-size: 11px;
 			font-family: verdana;
 			font-weight: bold;
-			color: #000000;
-			background-color: #FFFFFF;
+			color: #FFFFFF;
+			background-color: #000000;
 		}
 
 		.button:hover{
@@ -268,7 +268,7 @@
 		}
     td.addletd {
        border-style:solid;
-       border-color: #CCCCCC;
+       border-color: #CBBA79;
        border-width:1px;
        font-size: 22px;
 		   text-align: center;

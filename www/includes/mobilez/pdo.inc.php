@@ -2,7 +2,7 @@
 /**
  * Include MySQL Database login information file
  */
-require_once( (file_exists(WWWROOT_DIR.'/includes/mysql_login.inc.local.php') ? WWWROOT_DIR.'/includes/mysql_login.inc.local.php' : WWWROOT_DIR.'/includes/mysql_login.inc.php') );
+require_once( (file_exists(SITE_ROOT.'/includes/mysql_login.inc.local.php') ? SITE_ROOT.'/includes/mysql_login.inc.local.php' : SITE_ROOT.'/includes/mysql_login.inc.php') );
 
 /**
  * Database Connection Class

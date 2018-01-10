@@ -1,7 +1,6 @@
 <?
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 
 unset($_GET['tplupd']);
 
@@ -44,5 +43,5 @@ if ($_GET['action']=='count'){
 }
 
 unset($_GET['action']);
-header("Location: /smarty.php?".url_params());
-?>
+header("Location: /?".url_params());
+die();

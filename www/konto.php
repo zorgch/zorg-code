@@ -1,6 +1,5 @@
-<?
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+<?php
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 
 function transaktionParse($source) {
@@ -31,10 +30,12 @@ function transaktionParse($source) {
 	}
 }
 
+$smarty->assign('tplroot', array('page_title' => 'Konto'));
+$smarty->display('file:layout/head.tpl');
+echo menu('main');
 
-if($_SESSION['user_id']) {
-	echo head(63);
-	echo menu('main');
+if($_SESSION['user_id'] && $user->typ != USER_NICHTEINGELOGGT) {
+	//echo head(63);
 	
 	if($_SESSION['user_id'] == 1) {
 		if($_POST['trans']) {
@@ -82,5 +83,9 @@ if($_SESSION['user_id']) {
 	}
 	
 	echo "</table>";
-	echo foot();	
+	//echo foot();
+} else {
+	user_error('<h3 style="color:red;">Access denied!</h3>', E_USER_NOTICE);
 }
+
+$smarty->display('file:layout/footer.tpl');

@@ -1,10 +1,10 @@
 <?php
 //coded by [z]keep3r
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
-echo head(40);
+//echo head(40);
+$smarty->assign('tplroot', array('page_title' => 'pimp db'));
+$smarty->display('file:layout/head.tpl');
 
 // pimp in db speichern
 function insert_pimp($prefix, $suffix,$db) {
@@ -78,5 +78,6 @@ for ($i=0;$i<500;$i++){
     insert_pimp($pimp[1],$pimp[2],$db);
 }
 
-echo foot(52);
+//echo foot(52);
+$smarty->display('file:layout/footer.tpl');
 ?>

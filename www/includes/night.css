@@ -198,7 +198,7 @@
 				
 		input:focus {
 			border-style: inset;
-			border-color: #141414;
+			border-color: ##141414;
 		}
 		
 		select { 
@@ -207,7 +207,7 @@
 			border-color: #CBBA79;		
 			font-family: Verdana;
 			color: #FFFFFF;
-			background-color: #141414;
+			background-color: ##141414;
 			font-size: 10px;
 		}
 		
@@ -215,7 +215,7 @@
 			font-family: verdana;
 			font-size: 10px;
 			color: #FFFFFF;
-			background-color: #141414;
+			background-color: ##141414;
 		
 		}
 
@@ -231,13 +231,13 @@
 
 		.text:focus, textarea:focus {
 			border-style: inset;
-			border-color: #141414;
+			border-color: ##141414;
 		}
 		
 		input[type=checkbox], input[type=radio] {
 			border-style: inset;
 			border-width: 2px;
-			border-color: #141414;
+			border-color: ##141414;
 			margin: 2px;
 			background-color: #42300A;
 		}

@@ -4,8 +4,8 @@
  */
 if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'userfiles')
 {
+	http_response_code(400); // Set response code 400 (bad request) and exit.
 	die('Invalid or missing POST-Parameter');
-	return false;
 }
 
 /**
@@ -27,8 +27,10 @@ try {
 	   	'fileType' => $rs['mime']
 	   ];
 	}
+	http_response_code(200); // Set response code 200 (OK)
 	echo json_encode($images);
 }
 catch(Exception $e) {
+	http_response_code(500); // Set response code 500 (internal server error)
 	echo json_encode($e);
 }

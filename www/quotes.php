@@ -1,17 +1,17 @@
 <?php
 //coded by [z]keep3r
 
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once(SITE_ROOT.'/includes/quotes.inc.php');
 
 
 // Form-Aktionen ausf?hren	
 Quotes::execActions();
 
 
-echo head(40, "quotes");
+//echo head(40, "quotes");
+$smarty->assign('tplroot', array('page_title' => 'quotes'));
+$smarty->display('file:layout/head.tpl');
 echo menu('main');
 echo menu('quotes');
 
@@ -166,5 +166,6 @@ if($_GET['do'] == "" || $_GET['do'] == "my" ) {
 	     ."<a href=$PHP_SELF?site=$_GET[site]>nein</a>");
 	     
 }
-echo foot(52);
+//echo foot(52);
+$smarty->display('file:layout/footer.tpl');
 ?>

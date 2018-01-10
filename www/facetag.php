@@ -14,10 +14,10 @@
  * File Includes
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php");
 
-echo head(117, 'Fresse Tagging', true);
+//echo head(117, 'Fresse Tagging', true);
+$smarty->assign('tplroot', array('page_title' => 'Fresse Tagging'));
+$smarty->display('file:layout/head.tpl');
 
 echo menu("zorg");
 echo menu("gallery");
@@ -65,4 +65,5 @@ if ($user->typ == USER_NICHTEINGELOGGT)
 	}
 }
 
-echo foot(117);
+//echo foot(117);
+$smarty->display('file:layout/footer.tpl');

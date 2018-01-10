@@ -1,13 +1,12 @@
 <?php
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 Messagesystem::execActions();
 
-echo head(24).menu("zorg").'<br />';
-
+//echo head(24).menu("zorg").'<br />';
+$smarty->assign('tplroot', array('page_title' => 'Messagesystem'));
+$smarty->display('file:layout/head.tpl');
+menu("zorg")
 
 if($_GET['message_id'] == "") {
 	echo 'Keine Nachricht angegeben!';
@@ -46,7 +45,7 @@ if($rs['owner'] == $user->id) {
 	echo '<b>Du darfst diese Message nicht lesen!</b>';
 }
 
-
-echo foot();
+//echo foot();
+$smarty->display('file:layout/footer.tpl');
 
 ?>

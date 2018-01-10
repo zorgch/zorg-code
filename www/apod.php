@@ -1,7 +1,8 @@
 <?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/apod.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once(SITE_ROOT.'/includes/apod.inc.php');
+include_once(SITE_ROOT.'/includes/spaceweather.inc.php');
+
 if($_GET['pw'] == "schmelzigel") {
 	get_spaceweather();
 }

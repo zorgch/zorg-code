@@ -21,7 +21,7 @@ if($_POST['do'] == 'anficken') {
 	
 	Anficker::addAnfick(max(0, $user->id), $textEscaped, $_POST['spresim-trainieren']);
 	
-	header("Location: /smarty.php?tpl=175&del=no&spresimtrainieren=".$_POST['spresim-trainieren']."#anficker");
+	header("Location: /?tpl=175&del=no&spresimtrainieren=".$_POST['spresim-trainieren']."#anficker");
 	
 	exit;
 }

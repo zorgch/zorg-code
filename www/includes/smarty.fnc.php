@@ -10,7 +10,6 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/stockbroker.inc.php');
@@ -153,7 +152,7 @@ function var_request ()
 	   switch ($groupid) {
 	      case 0: return "Alle"; break;
 	      case 1: return "Normale User"; break;
-	      case 2: return "Member &amp; Schöne"; break;
+	      case 2: return "Member &amp; Sch&ouml;ne"; break;
 	      case 3: return "Nur Besitzer"; break;
 	      default: return "unknown_usergroup";
 	   }
@@ -186,21 +185,6 @@ function var_request ()
  *
  * PHP Function Output to be reused in Smarty Templates
  */
-	/**
-	 * Seitenausgabe ZORG
-	 */
-	function smarty_zorg ($params, $content, &$smarty, &$repeat) {
-		$out = "";
-
-		$out .= head(117, $params['page_title'], true);
-
-	   	$out .= $content;
-
-	  	$out .= foot(0);
-
-	   	return $out;
-	}
-
 	/**
 	 * String, Integer, Date und Array HTML-Ausgabe
 	 */
@@ -237,7 +221,7 @@ function var_request ()
       }elseif ($params['action']) {
       	$url = "/actions/$params[action]?".url_params();
       }else{
-      	$url = "/smarty.php?".url_params();
+      	$url = "/?".url_params();
       	if ($params[param]) {
          	$url .= '&'.$params[param];
       	}
@@ -473,7 +457,7 @@ function var_request ()
 
 		$vars = $smarty->get_template_vars();
 
-		return '<a href="/smarty.php?tpleditor=1&tplupd=new&location='.base64_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
+		return '<a href="/?tpleditor=1&tplupd=new&location='.base64_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
 	}
 	function smarty_edit_link ($params, $content, &$smarty, &$repeat) {
 
@@ -490,24 +474,24 @@ function var_request ()
 			return edit_link($content, $tpl, $rights, $owner);
 		}
 	}
-		function edit_link ($text='', $tpl=0, $rights=0, $owner=0) {
-			global $db;
+	function edit_link ($text='', $tpl=0, $rights=0, $owner=0) {
+		global $db;
 
-			if (!$text) $text = '[edit]';
-			if (!$tpl) $tpl = $_GET['tpl'];
+		if (!$text) $text = '[edit]';
+		if (!$tpl) $tpl = $_GET['tpl'];
 
-			if ($tpl && (!$rights || !$owner)) {
-				$d = $db->fetch($db->query("SELECT * FROM templates WHERE id='$tpl'", __FILE__, __LINE__));
-				$rights = $d['write_rights'];
-				$owner = $d['owner'];
-			}
-
-		   if ($tpl && tpl_permission($rights, $owner)) {
-				return "<a href='".edit_link_url($tpl)."'>$text</a>";
-		   }else{
-		   	return "";
-		   }
+		if ($tpl && (!$rights || !$owner)) {
+			$d = $db->fetch($db->query("SELECT * FROM templates WHERE id='$tpl'", __FILE__, __LINE__));
+			$rights = $d['write_rights'];
+			$owner = $d['owner'];
 		}
+
+		if ($tpl && tpl_permission($rights, $owner)) {
+			return '<a href="'.edit_link_url($tpl).'">'.$text.'</a>';
+		}else{
+			return "";
+		}
+	}
 
 
 /**
@@ -681,9 +665,9 @@ function var_request ()
 	   	if (isset($params['url'])) {
 	   		$ret = $params['url'];
 	   	}elseif (isset($params['word'])) {
-	   		$ret = "/smarty.php?word=".$params['word'];
+	   		$ret = "/?word=".$params['word'];
 	   	}elseif (isset($params['tpl'])) {
-	      	$ret = "/smarty.php?tpl=".$params['tpl'];
+	      	$ret = "/?tpl=".$params['tpl'];
 	   	}elseif (isset($params['comment'])) {
 	   		$ret = Comment::getLinkComment($params['comment']);
 	   	}elseif (isset($params['user'])) {
@@ -692,7 +676,7 @@ function var_request ()
 	   	}elseif (isset($params['action'])) {
 	   		$ret .= "/actions/$params[action]?".url_params();
 	   	}else{
-	   		$ret = "/smarty.php?tpl=".$vars[tpl][root];
+	   		$ret = "/?tpl=".$vars[tpl][root];
 	   	}
 
         if (isset($params['param'])) $ret .= "&".$params[param];
@@ -807,7 +791,7 @@ function var_request ()
 		            return "";
 		         }else{
 		            return '<p><font color="green"><i><b>Kommentare</b> werden in Includes ausgeblendent. '
-		                  .'Klick <a href="smarty.php?tpl='.$tplvars['tpl']['id'].'">hier</a>,'
+		                  .'Klick <a href="?tpl='.$tplvars['tpl']['id'].'">hier</a>,'
 		                  .'um sie zu sehen</i></font></p>';
 		         }
 
@@ -866,7 +850,7 @@ function var_request ()
 		return edit_link_url($params['tpl']);
 	}
 		function edit_link_url ($tpl) {
-			return "/smarty.php?tpleditor=1&tplupd=$tpl&location=".base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
+			return "/?tpleditor=1&tplupd=$tpl&location=".base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
 		}
 		/**
 		 * Letze Smarty Updates
@@ -896,7 +880,7 @@ function var_request ()
 
 		    $html .=
 		      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
-		      .'<a href="/smarty.php?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
+		      .'<a href="/?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
 		      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 		      .$user->link_userpage($rs['update_user'])
 		      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
@@ -1177,6 +1161,68 @@ function smarty_menuname ($name, &$smarty) {
 
 		$smarty->assign($var, $value);
 	}
+	
+	/**
+	 * Smarty |rendertime modifier function
+	 *
+	 * Type:	Modifier
+	 * Name:	timer --> geändert zu "rendertime" damit es verständlicher ist, 07.01.2017/IneX
+	 * Date:	Sat Nov 01, 2003
+	 * Author:	boots
+	 *
+	 * Assuming you do little or nothing after display()
+	 * and that you do minimal work before starting the timer,
+	 * this technique should be close to actual processing time
+	 * close enough that it is splitting hairs, IMHO
+	 * Usage:
+	 * - in index.php
+	 *    util::timer('begin', 'Page'); // starts a timer block with the message 'Page' 
+	 *    // other code
+	 *    echo 'history: '.util::timer('list'); // returns a history of timed block results 
+	 * - in template.tpl
+	 *    {"begin"|timer:"template block"}
+	 *    template stuff...
+	 *    {"end"|timer:true}
+	 *    {"stop"|timer:true|nl2br}
+	 * Call : $smarty->register_modifier('rendertime', 'rendertime');
+	 *
+	 * @link https://www.smarty.net/forums/viewtopic.php?p=5750&sid=ede53d9870b3a4cd1fd6a4cfd8cfae1b#5750 Smarty '|timer' modifier function
+	 */
+	function smarty_modifier_rendertime($mode='begin')
+	{
+		global $_timer_blocks, $_timer_history;
+		switch ($mode) {
+		case 'begin':
+			$_timer_blocks[] =array(microtime(true));
+			break;
+	
+		case 'end':
+			$last = array_pop($_timer_blocks);
+			$_start = $last[0];
+			list($a_micro, $a_int) = explode(' ', $_start);
+			list($b_micro, $b_int) = explode(' ', microtime(true));
+			$elapsed = ($b_int - $a_int) + ($b_micro - $a_micro);
+			$_timer_history[] = [ $elapsed ];
+			return $elapsed;
+			break;
+	
+		case 'list':
+			$o = '';
+			foreach ($_timer_history as $mark) {
+				$o .= $mark[2] . " \n";
+			}
+			return $o;
+			break;
+	
+		case 'stop':
+			$result = '';
+			while(!empty($_timer_blocks)) {
+				$result .= smarty_modifier_rendertime('end');
+			}
+			return $result;
+			break;
+		}
+	}
 
 
 /**
@@ -1272,7 +1318,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_implode' => array('implode', 'Variablen', 'String glue', false)
 								,'smarty_floor' => array('floor', 'Mathematische Funktionen', 'util', false)
 								,'print_array' => array('print_array', 'Variablen', '{print_array arr=$hans} gibt die Elemente eines Smarty {$array} aus', false)
-								
+								,'rendertime' => array('smarty_modifier_rendertime', 'System', 'Smarty Template Rendering-Time', false, true)
 
 								);
 
@@ -1366,8 +1412,6 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_assign_event_hasjoined' => array('assign_event_hasjoined', 'Events', 'events', true, false)
 								,'smarty_event_hasjoined' => array('event_hasjoined', 'Events', 'events', true, false)
 								,'smarty_assign_rezept_voted' => array('assign_rezept_voted', 'Rezepte', 'rezepte', true)
-								
-								
 							);
 		
 	
@@ -1428,7 +1472,7 @@ function smarty_menuname ($name, &$smarty) {
 		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
 			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
 			if ($data[3] && $user != null) $smarty->register_modifier($smarty_name, $function_name);
-			if (!$data[3]) $smarty->register_modifier($smarty_name, $function_name);
+			elseif (!$data[3]) $smarty->register_modifier($smarty_name, $function_name);
 			$documentation['{$var|'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
@@ -1461,7 +1505,7 @@ function smarty_menuname ($name, &$smarty) {
 		{ // Format: 'smarty_zorg' => array('zorg', 'Layout', '{zorg title="Titel"}...{/zorg}	displays the zorg layout (including header, menu and footer)', false)
 			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
 			if ($data[3] && $user != null) $smarty->register_block($smarty_name, $function_name);
-			if (!$data[3]) $smarty->register_block($smarty_name, $function_name);
+			elseif (!$data[3]) $smarty->register_block($smarty_name, $function_name);
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
@@ -1495,8 +1539,8 @@ function smarty_menuname ($name, &$smarty) {
 		{ // Format: 'smarty_apod' => array('apod', 'APOD', 'Astronomy Picture of the Day (APOD)', false)
 			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
 			if ($data[3] && $user != null && !$data[4]) $smarty->register_function($smarty_name, $function_name);
-			if (!$data[3] && !$data[4]) $smarty->register_function($smarty_name, $function_name);
-			if ($data[4]) $smarty->register_compiler_function($smarty_name, $function_name, false); // Compiler Functions
+			elseif (!$data[3] && !$data[4]) $smarty->register_function($smarty_name, $function_name);
+			elseif ($data[4]) $smarty->register_compiler_function($smarty_name, $function_name, false); // Compiler Functions
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3], 'compiler_function' => $data[4]);
 		}
 		
@@ -1513,4 +1557,3 @@ register_php_arrays($zorg_php_vars);
 register_php_blocks($zorg_php_blocks);
 register_php_modifiers($zorg_php_modifiers);
 register_php_functions($zorg_php_functions);
-?>

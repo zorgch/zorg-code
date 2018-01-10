@@ -1,8 +1,6 @@
 <?php ob_start(); // Startet das Output-Buffering - damit die header() funktion nicht an oberster Stelle des Codes stehen muss
 
-error_reporting(E_ALL);
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/peter.inc.php");
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 $peter = new peter($_GET['game_id']);
 
@@ -21,8 +19,9 @@ if($_GET['img'] == "karten") {
 	}
 	
 } elseif(!$_GET['img']) {
-	//ob_start(); // Startet das Output-Buffering - damit die header() funktion nicht an oberster Stelle des Codes stehen muss
-	echo head(117, 'Peter');
+	//echo head(117, 'Peter');
+	$smarty->assign('tplroot', array('page_title' => 'Peter'));
+	$smarty->display('file:layout/head.tpl');
 	echo menu("zorg");
 	echo menu("games");
 	echo menu("peter");
@@ -68,9 +67,10 @@ if($_GET['img'] == "karten") {
 		
 		echo $peter->peterscore();
 	}
-	echo foot(1);
-	//ob_end_flush(); // Beendet das Output-Buffering
+	//echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 	
 }
 
-ob_end_flush(); // Beendet das Output-Buffering ?>
+ob_end_flush(); // Beendet das Output-Buffering
+?>

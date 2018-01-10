@@ -17,9 +17,6 @@
  * File Includes
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/messagesystem.inc.php");
 
 
 /**
@@ -249,7 +246,9 @@ function games() {
 function overview() {
   global $db;
   
-  echo head(0, 'Addle');
+  //echo head(0, 'Addle');
+  $smarty->assign('tplroot', array('page_title' => 'Addle'));
+  $smarty->display('file:layout/head.tpl');
   echo menu("zorg");
   echo menu("games");
   echo menu("addle");
@@ -419,7 +418,9 @@ function play($id=0) {
   );
   if ($db->num($e) != 1) {http_error(404);exit;}
   $d = mysql_fetch_array($e);
-  echo head(0, "Addle");
+  //echo head(0, "Addle");
+  $smarty->assign('tplroot', array('page_title' => 'Addle'));
+  $smarty->display('file:layout/head.tpl');
   echo menu("zorg");
   echo menu("games");
   echo menu("addle");
@@ -572,7 +573,9 @@ if ($_SESSION[user_id] == 52){
 function highscore() {
   global $db, $user;
   
-  echo head(0, 'Addle');
+  //echo head(0, 'Addle');
+  $smarty->assign('tplroot', array('page_title' => 'Addle'));
+  $smarty->display('file:layout/head.tpl');
   echo menu("zorg");
   echo menu("games");
   echo menu("addle");
@@ -677,7 +680,9 @@ function archiv () {
   if (!$_GET[uid]) $uid = $user->id;
   else $uid = $_GET[uid];
   
-  echo head(0, 'Addle');
+  //echo head(0, 'Addle');
+  $smarty->assign('tplroot', array('page_title' => 'Addle'));
+  $smarty->display('file:layout/head.tpl');
   echo menu("zorg");
   echo menu("games");
   echo menu("addle");
@@ -756,7 +761,9 @@ switch ($_GET['show']) {
   case "play": play($_GET[id]); break;
   //case "howto": echo head("Addle: Anleitung"); howto(); break;
   case "howto": 
-  	echo head(0, 'Addle'); 
+  	//echo head(0, 'Addle'); 
+  	$smarty->assign('tplroot', array('page_title' => 'Addle'));
+  	$smarty->display('file:layout/head.tpl');
   	echo menu("zorg");
       echo menu("games");
       echo menu("addle");
@@ -766,7 +773,9 @@ switch ($_GET['show']) {
   	highscore(); 
   	break;
   case "dwz": 
-  	echo head(0, 'Addle'); 
+  	//echo head(0, 'Addle');
+  	$smarty->assign('tplroot', array('page_title' => 'Addle'));
+  	$smarty->display('file:layout/head.tpl');
   	echo menu("zorg");
       echo menu("games");
       echo menu("addle");
@@ -780,7 +789,8 @@ switch ($_GET['show']) {
      $d = mysql_fetch_array($e);
      play($d[id]);
 }
-echo foot(7);
+//echo foot(7);
+$smarty->display('file:layout/footer.tpl');
 
 ob_end_flush();
 ?>

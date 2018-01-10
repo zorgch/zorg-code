@@ -335,49 +335,6 @@ function maxwordlength($text, $max) {
    	}
    }
 
-/**
-* Datum in schwiizerdütsch usgeh
-*/
-function swisstime($timestamp = NULL, $mode=0) {
-	if($timestamp == NULL) {
-		$timestamp = time();
-	}
-
-	$tage = array("Sunntig", "M&auml;ntig","Zischtig","Mittwoch","Donnschtig","Fritig","Samschtig");
-	$monate = array("","Januar","Februar","M&auml;rz","April","Mai","Juni", "Juli","Auguscht","Sept&auml;mber","Oktober","Nov&auml;mber","Dez&auml;mber");
-	$stunden = array("Zw&ouml;lfi i d&auml; Nacht", "Eis i d&auml; Nacht","Zwei i d&auml; Nacht", "Dr&uuml;&uuml; i d&auml; Nacht",
-	"Vi&auml;ri i d&auml; Nacht", "F&uuml;fi am morg&auml; fr&uuml;&auml;",
-	"S&auml;chsi am morg&auml; fr&uuml;&auml;", "Sibni am morg&auml;", "Achti am morg&auml;",
-	"N&uuml;ni am morg&auml;","Z&auml;ni am morg&auml;", "Elfi am morg&auml;", "Zw&ouml;lfi am Mittag",
-	"Eis am Nomitag","Zwei am Nomitag", "Dr&uuml;&uuml; am Nomitag", "Vi&auml;ri am Nomitag",
-	"F&uuml;fi am Nomitag","Sechsi am Obig","Sibni am Obig", "Achti am Obig", "N&uuml;ni am Obig",
-	"Z&auml;ni i d&auml; Nacht", "Elfi i d&auml; Nacht");
-	$minuten = array("","F&uuml;f ab","Z&auml; ab","Vi&auml;rtel ab","Zwanzg ab","F&uuml;f vor halbi","halbi",
-	"F&uuml;f ab halbi","Zwanzg vor","Vi&auml;rtel vor","Z&auml; vor","F&uuml;f vor");
-
-	$zuweisung = array(0,0,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,
-	8,8,9,9,9,9,9,10,10,10,10,10,11,11,11,11,11,0,0);
-
-
-
-	$monat_time = date("n", $timestamp);
-	$tage_time = strftime("%w",$timestamp);
-	$stunde_time = date("G",$timestamp);
-	$minute_time = strftime("%M",$timestamp);
-
-	if($minute_time >= 23) {
-		$stunde_time++;
-		if($stunde_time == 24) {
-			$stunde_time = 0;
-		}
-	}
-	if($mode == 1) {
-		return $tage[$tage_time]." ".date("j",$timestamp).". ".$monate[$monat_time]." ".$minuten[$zuweisung[$minute_time]]." ".$stunden[$stunde_time];
-	} else {
-		return $minuten[$zuweisung[$minute_time]]." ".$stunden[$stunde_time];
-	}
-}
-
 
 /**
 * Funktion entfernt alle HTML-Tags aus einem String
@@ -428,15 +385,16 @@ function gmt_diff($date) {
 
 
 /**
-* Funktion prüft, ob der Client ein Mobile-Client ist (iPhone, BB, etc.)
-*
-* @deprecated
-* @todo Funktion entfernen, wird via JavaScript erledigt
-* @author IneX
-* @date 23.04.2009
-* @param string $userAgent
-* @return string Enthält den Namen des mobilen User Agents oder nichts
-*/
+ * Funktion prüft, ob der Client ein Mobile-Client ist (iPhone, BB, etc.)
+ *
+ * @deprecated
+ * @todo Funktion entfernen, wird via JavaScript erledigt
+ * @author IneX
+ * @date 23.04.2009
+ * @see usersystem::usersystem()
+ * @param string $userAgent
+ * @return string Enthält den Namen des mobilen User Agents oder nichts
+ */
 function isMobileClient($userAgent)
 {
 	
@@ -486,4 +444,3 @@ function isMobileClient($userAgent)
 	return '';
 }
 
-?>

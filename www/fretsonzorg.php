@@ -1,9 +1,10 @@
 <?php
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
 
-echo head(35, "fretsonzorg");
+//echo head(35, "fretsonzorg");
+$smarty->assign('tplroot', array('page_title' => 'fretsonzorg'));
+$smarty->display('file:layout/head.tpl');
 echo menu('main');
 echo menu('games');
 echo menu('fretsonzorg');
@@ -33,7 +34,8 @@ print_score_table("twibmpg",0);
 
 echo "<td></tr></table>";
 
-echo foot();
+//echo foot();
+$smarty->display('file:layout/footer.tpl');
 
 function print_stars($stars) {
 

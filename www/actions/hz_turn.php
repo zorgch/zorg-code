@@ -33,7 +33,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		    turn_stay($_GET['game']);
 		}
 	    }
-	    header("Location: /smarty.php?tpl=103&game=$_GET[game]");
+	    header("Location: /?tpl=103&game=$_GET[game]");
 	}
         else user_error("Nice try :-)");
 ?>

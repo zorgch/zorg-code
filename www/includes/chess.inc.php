@@ -667,7 +667,7 @@ class Chess {
 		
 		$e = $db->query(
 			"SELECT IF(g.white='$user->id', b.username, w.username) player, IF(g.next_turn='$user->id', 1, 0) my_turn, 
-			concat('/smarty.php?tpl=141&game=', g.id) link
+			concat('/?tpl=141&game=', g.id) link
 			FROM chess_games g, user b, user w
 			WHERE (g.black='$user->id' OR g.white='$user->id') AND b.id=g.black AND w.id=g.white
 			ORDER BY g.last_turn DESC",

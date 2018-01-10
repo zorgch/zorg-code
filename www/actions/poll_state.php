@@ -20,5 +20,5 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 	unset($_GET['poll']);
 	unset($_GET['state']);
 	
-	header("Location: /smarty.php?".url_params());
+	header("Location: /?".url_params());
 ?>

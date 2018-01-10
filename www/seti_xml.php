@@ -1,6 +1,5 @@
 <?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php');
 
 
@@ -9,7 +8,9 @@ if($_GET['update'] == 1) {
 	header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
 } else {
 	
-	echo head(63);
+	//echo head(63);
+	$smarty->assign('tplroot', array('page_title' => 'SETI@Home'));
+	$smarty->display('file:layout/head.tpl');
 	echo menu('main');
 	echo menu('mischt');
 	echo menu('seti');
@@ -101,7 +102,8 @@ if($_GET['update'] == 1) {
 	}
 	echo "</table>";
 
-	echo foot(1);
+	//echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 }
 
 

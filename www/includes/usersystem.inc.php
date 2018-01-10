@@ -518,7 +518,7 @@ class usersystem {
 
 				$html .=
 					'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
-					.'<img border="0" src="'.USER_IMGPATH.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
+					.'<img border="0" src="'.USER_IMGPATH_PUBLIC.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
 					.'</a></td></tr>'
 					.'<tr>'
 					.'<td align="center">'
@@ -767,6 +767,9 @@ class usersystem {
 	* @author IneX
 	*
 	* @see usersystem::userImage()
+	* @global Object $db
+	* @global Object $zorg
+	* @global Object $zooomclan
 	* @param $id int User ID
 	* @param $clantag boolean Username mit Clantag true/false
 	* @param $pic boolean Anstatt Username das Userpic HTML-Code ausgeben true/false
@@ -820,7 +823,19 @@ class usersystem {
 		return $us;
 	}
 
-
+	/**
+	* Get User ID based on Username
+	*
+	* Konvertiert einen Username zur dazugehörigen User ID
+	*
+	* @version 2.0
+	* @since 1.0
+	* @author IneX
+	*
+	* @global Object $db
+	* @param $username string Username
+	* @return int User ID oder 0
+	*/
 	function user2id ($username) {
 		global $db;
 		$e = $db->query("SELECT id FROM user WHERE username='$username' LIMIT 1", __FILE__, __LINE__);

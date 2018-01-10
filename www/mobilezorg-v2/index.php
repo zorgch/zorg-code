@@ -9,7 +9,7 @@ function shutdown(){
  */
 if (!require_once 'config.php') die('ERROR: Configurations could NOT be loaded!'); // Load the general configurations
 if (!require_once PHP_INCLUDES_DIR.'mobilez/mobilez.smarty.inc.php') die('ERROR: Smarty could NOT be loaded!'); // Load Smarty
-include_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php'; // The main Chat class and methods
+if (!require_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php') die('ERROR: Chat could NOT be loaded!'); // The main Chat class and methods
 
 /**
  * DO THE MAGIC STUFF

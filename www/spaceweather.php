@@ -1,6 +1,5 @@
 <?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/apod.inc.php');
 
 
@@ -152,7 +151,9 @@ $asteroids =
 </td></tr>
 </table>";
 
-echo head(85);
+//echo head(85);
+$smarty->assign('tplroot', array('page_title' => 'Spacewetter'));
+$smarty->display('file:layout/head.tpl');
 echo menu('main');
 echo menu('mischt');
 
@@ -172,6 +173,7 @@ echo $asteroids;
 echo "</td></tr>";
 echo "<tr><td align='center' colspan='2'><small><a href='http://www.spaceweather.com' target='_blank'>www.spaceweather.com</a></small></td></tr>";
 echo "</table>";
-echo foot(1);
+//echo foot(1);
+$smarty->display('file:layout/footer.tpl');
 
 ?>

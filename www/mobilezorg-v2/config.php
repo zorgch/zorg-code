@@ -8,11 +8,11 @@
 setlocale(LC_TIME,"de_CH"); // Set locale to German, Switzerland
 
 // PHP Files and Folder Paths
-if (!defined('WWWROOT_DIR')) define('WWWROOT_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\')); // Document Root to /www/ directory
-if (!defined('PHP_INCLUDES_DIR')) define('PHP_INCLUDES_DIR', WWWROOT_DIR.'/includes/'); // /includes/ directory
-if (!defined('ERROR_HANDLER_INC')) define('ERROR_HANDLER_INC', WWWROOT_DIR.'/includes/mobilez/error_handler.inc.php'); // MySQL DB Connection Class file
-if (!defined('MYSQL_DB_INC')) define('MYSQL_DB_INC', WWWROOT_DIR.'/includes/mobilez/pdo.inc.php'); // MySQL DB Connection Class file
-if (!defined('USER_FILES_DIR')) define('USER_FILES_DIR', WWWROOT_DIR.'/../data/files/'); // /data/files/ directory outside the WWW-Root
+if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\')); // Document Root to /www/ directory
+if (!defined('PHP_INCLUDES_DIR')) define('PHP_INCLUDES_DIR', SITE_ROOT.'/includes/'); // /includes/ directory
+if (!defined('ERROR_HANDLER_INC')) define('ERROR_HANDLER_INC', SITE_ROOT.'/includes/mobilez/error_handler.inc.php'); // MySQL DB Connection Class file
+if (!defined('MYSQL_DB_INC')) define('MYSQL_DB_INC', SITE_ROOT.'/includes/mobilez/pdo.inc.php'); // MySQL DB Connection Class file
+if (!defined('USER_FILES_DIR')) define('USER_FILES_DIR', SITE_ROOT.'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 // MySQL Settings
 if (!defined('MYSQL_CHARSET')) define('MYSQL_CHARSET', 'utf8mb4');			// Charset for the PDO MySQL-Connection

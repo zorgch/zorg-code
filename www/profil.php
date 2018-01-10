@@ -3,10 +3,6 @@
 // includes
 //=============================================================================
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
 
 $geaechtet = array();
 
@@ -182,16 +178,16 @@ if($user->id && $_GET['do'] == "view" && !$_GET['user_id']) {
 }
 
 
-if(!$_GET['do']) {
-	echo head(24, usersystem::id2user($_GET['user_id'], TRUE));
-} elseif($_SESSION['user_id']) {
-	echo head(25, usersystem::id2user($_GET['user_id'], TRUE));
+if(!$_GET['do'] || $_SESSION['user_id']) {
+	$pagetitle = usersystem::id2user($_GET['user_id'], TRUE);
 } elseif($_GET['regcode']) {
-	echo head(13);
+	$pagetitle = 'Account bestätigung';
 } else {
-	echo head(13, 'Userlist');
+	$pagetitle = 'Userlist';
 }
 
+$smarty->assign('tplroot', array('page_title' => $pagetitle));
+$smarty->display('file:layout/head.tpl');
 echo menu("zorg");
 echo menu("user");
 echo "<br />";
@@ -588,6 +584,7 @@ if(!$user->id) {
 		echo "<b>".$new_user."</b>";
 	}
 }
-echo foot(1);
+//echo foot(1);
+$smarty->display('file:layout/footer.tpl');
 
 ?>

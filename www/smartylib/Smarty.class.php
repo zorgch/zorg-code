@@ -235,8 +235,8 @@ class Smarty
                                                                'true', 'false', 'null'),
                                     'INCLUDE_ANY'     => false,
                                     'PHP_TAGS'        => false,
-                                    'MODIFIER_FUNCS'  => array('count'),
-                                    'ALLOW_CONSTANTS'  => false,
+                                    'MODIFIER_FUNCS'  => array('count','round','ceil'),
+                                    'ALLOW_CONSTANTS'  => true,
                                     'ALLOW_SUPER_GLOBALS' => true
                                    );
 

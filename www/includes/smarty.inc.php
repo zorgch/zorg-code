@@ -1,5 +1,4 @@
 <?
-
 /* File: includes/smarty.inc.php
  * ====================================
  *
@@ -11,6 +10,7 @@
  *
  */
 
+
 /** Pfad zu den Smarty Ordnern */
 define('SMARTY_DIR', $_SERVER['DOCUMENT_ROOT'].'/smartylib/');
 define('SMARTY_TEMPLATES_HTML', $_SERVER['DOCUMENT_ROOT'].'/templates/');
@@ -19,7 +19,7 @@ define('SMARTY_COMPILE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/templates
 
 
 //$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
-include_once($_SERVER['DOCUMENT_ROOT'].'/smartylib/Smarty.class.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/smartylib/Smarty.class.php');
 //$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
 //$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
@@ -106,7 +106,11 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
 
 
 
-// tpl resource
+/*
+ * tpl resource
+ * @TODO Funktion so überarbeiten, dass 'border == 1' schönen Output hat (tplfoot.html soll obsolet werden)
+ * @TODO Views aus dem Code entfernen
+ */
 function smartyresource_tpl_get_template ($tpl_name, &$tpl_source, &$smarty) {
   // Datenbankabfrage um unser Template zu laden,
   // und '$tpl_source' zuzuweisen
@@ -206,7 +210,11 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj) {
   // nicht verwendet; funktion muss aber existieren
 }
 
-
+/**
+ * Load a PHP-Package file required for a Smarty-Template
+ * 
+ * @author biko
+ */
 function load_packages ($packages) {
   $packs = explode("; ", $packages);
   foreach ($packs as $p) {
@@ -220,17 +228,37 @@ function load_packages ($packages) {
   }
 }
 
-// word resource
-function smartyresource_word_get_template ($tpl_name, &$tpl_source, &$smarty) {
-  // Datenbankabfrage um unser Template zu laden,
-  // und '$tpl_source' zuzuweisen
+/**
+ * Return a Smarty Menu Template
+ * based on a name => tpl-id lookup from the database
+ *
+ * @author biko
+ * @global Object $smarty
+ * @return Array
+ */
+function menu ($name) {
+	global $smarty;
+	return smarty_menu(array('name'=>$name), $smarty);
+}
+
+/**
+ * Get Templates based on word
+ *
+ * Datenbankabfrage um Word-Template zu laden und '$tpl_source' zuzuweisen
+ * based on a word => tpl-id lookup from the database
+ *
+ * @author biko
+ * @global Object $db
+ * @return boolean
+ */
+function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty) {
   global $db;
 
   $e = $db->query("SELECT id FROM templates WHERE word='$tpl_name'");
   $d = mysql_fetch_array($e);
 
   if ($d) {
-     smartyresource_tpl_get_template($d[id], $tpl_source, $smarty);
+     smartyresource_tpl_get_template($d['id'], $tpl_source, $smarty);
   }else{
      $tpl_source = '<table class="border"><tr><td>{error msg="[<b>Error:</b> tpl '.$tpl_name.' existiert nicht.]"}</td></tr></table>';
   }
@@ -238,17 +266,24 @@ function smartyresource_word_get_template ($tpl_name, &$tpl_source, &$smarty) {
   return true;
 }
 
-// word resource
+/**
+ * Get Templates based on word
+ *
+ * Datenbankabfrage um '$tpl_timestamp' zuzuweisen
+ * zusätzlich lokale tpl-infos setzen (smarty-variable $tpl)
+ * based on a word => tpl-id lookup from the database
+ *
+ * @author biko
+ * @global Object $db
+ * @return boolean
+ */
 function smartyresource_word_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty) {
-  // Datenbankabfrage um '$tpl_timestamp' zuzuweisen
-  // zusätzlich lokale tpl-infos setzen (smarty-variable $tpl)
-
   global $db;
 
   $e = $db->query("SELECT id FROM templates WHERE word='$tpl_name'", __FILE__, __LINE__);
   $d = mysql_fetch_array($e);
 
-  smartyresource_tpl_get_timestamp($d[id], $ts, $smarty);
+  smartyresource_tpl_get_timestamp($d['id'], $ts, $smarty);
 
 
   return true;
@@ -513,9 +548,7 @@ Class ZorgSmarty_Compiler extends Smarty
 if (!isset($smarty)) $smarty = startSmarty();
 
 
-// includes for smarty register
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.fnc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty_menu.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.fnc.php');
-
-?>
+// required smarty files for registering all smarty features etc.
+require_once(SITE_ROOT.'/includes/smarty.fnc.php');
+require_once(SITE_ROOT.'/includes/smarty_menu.php');
+require_once(SITE_ROOT.'/includes/comments.fnc.php');

@@ -1,13 +1,15 @@
 <?php
 
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/wetten.inc.php");
+require_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
+include_once(SITE_ROOT.'/includes/wetten.inc.php');
 
 
 //Post actions ausführen/entgegennehmen
 wetten::exec();
 
-echo head("zorg", "Wettbüro"); //head($menu, $title)
+//echo head("zorg", "Wettbüro"); //head($menu, $title)
+$smarty->assign('tplroot', array('page_title' => 'Wettbüro'));
+$smarty->display('file:layout/head.tpl');
 echo menu("zorg");
 if ($user->typ != USER_NICHTEINGELOGGT) echo menu("eingeloggte_user");
 echo menu("user");
@@ -33,7 +35,7 @@ if(!$_GET['id']) {
 	wetten::get_wette($_GET['id']);
 }
 
-
-echo foot(1);
+//echo foot(1);
+$smarty->display('file:layout/footer.tpl');
 
 ?>

@@ -214,7 +214,7 @@ Class Stockbroker {
 					, $rs['user_id']
 					, '[Stockbroker] Warning: '.$symbol
 					, 
-						'<a href="/smarty.php?tpl=173&symbol='.$symbol.'">Stock Information für '.$symbol.'</a>'
+						'<a href="/?tpl=173&symbol='.$symbol.'">Stock Information für '.$symbol.'</a>'
 						.'<br />'
 						.$symbol.' ist '.$rs['comparison'].' '.$rs['kurs'].' (aktueller Kurs: '.$kurs.')'
 					, $rs['user_id']

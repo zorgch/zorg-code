@@ -54,16 +54,16 @@ function swisstimeJS()
 	var tag_i_dae_woche = jetzt.getDay();
 	var johr = jetzt.getFullYear();
 	var minute = Math.floor(jetzt.getMinutes());
-	 var stund = "";
+	var stund = "";
 	if (minute <= 25) stund = jetzt.getHours();
 	else  stund = jetzt.getHours()+1;
 	var tagesziit = "";
-	
+
 	var minute_text = new Array("F&uuml;f ab", "Z&auml;h ab", "Viertel ab", "Zwanzg ab", "F&uuml;f vor halbi", "halbi", "F&uuml;f ab halbi", "Zwanzg vor", "Viertel vor", "Z&auml;h vor", "F&uuml;f vor", "");
 	var stunde_text = new Array("Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi", "Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi");
 	var wochetag = new Array("Sunntig", "M&auml;ntig", "Ziistig", "Mittwoch", "Donschtig", "Friitig", "Samschtig");
 	var moenet = new Array("Januar", "Februar", "M&auml;rz", "April", "Mai", "Juni", "Juli", "Auguscht", "September", "Oktober", "November", "Dezember");
-	
+
 	if (minute > 2 && minute <= 7) minute_ziit = 0;
 	else if (minute > 7 && minute <= 12) minute_ziit = 1;
 	else if (minute > 12 && minute <= 17) minute_ziit = 2;
@@ -76,14 +76,20 @@ function swisstimeJS()
 	else if (minute > 47 && minute <= 52) minute_ziit = 9;
 	else if (minute > 52 && minute <= 57) minute_ziit = 10;
 	else if (minute > 57 || minute <= 2) minute_ziit = 11;
-	
+
 	if (stund >= 5 && stund < 12) tagesziit = "am Morg&auml;"
 	else if (stund >= 12 && stund < 18) tagesziit = "am Nomitag"
 	else if (stund >= 18 && stund <= 23) tagesziit = "am Abig"
 	else if (stund >= 0 && stund < 5) tagesziit = "i d&auml; Nacht"
-	
-	
-	document.write(wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + " " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit);
+
+	aktuelli_schwiizerziit = wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + " " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit;
+	htmltag = document.getElementById('swisstime');
+
+	if (typeof htmltag !== 'undefined') {
+	  htmltag.innerHTML = aktuelli_schwiizerziit;
+	} else {
+	  console.log('HTML Element ' + htmltag + ' not found.');
+	}
 }
 
 

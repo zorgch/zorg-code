@@ -20,16 +20,16 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 $e = $db->query("SELECT * FROM gallery_pics WHERE id=$_GET[id]", __FILE__, __LINE__);
 $d = mysql_fetch_array($e);
 
-if (!$d[zensur] || $d[zensur] && $user->typ == USER_MEMBER) {
+if (!$d['zensur'] || $d['zensur'] && $user->typ == USER_MEMBER) {
   
-  if ($_GET[type] == "tn") {
+  if ($_GET['type'] == "tn") {
      $type = "tn_";
   }else{
      $type = "pic_";
   }
   
   
-  switch ($d[extension]) {
+  switch ($d['extension']) {
      case ".jpg": 
      case ".jpeg": $mime = "image/jpeg"; break;
      case ".gif": $mime = "image/gif"; break;
@@ -41,7 +41,7 @@ if (!$d[zensur] || $d[zensur] && $user->typ == USER_MEMBER) {
  
   // Falls das Last_Modified Feld vom Client mit dem vom Server uebereinstimmt
   // Bild nicht senden sondern HTTP 304 Not Modified (wird fuer caching benoetigt)
-  $if_modified_since = preg_replace('/;.*$/', '', $_SERVER[HTTP_IF_MODIFIED_SINCE]);
+  $if_modified_since = preg_replace('/;.*$/', '', $_SERVER['HTTP_IF_MODIFIED_SINCE']);
   $gmdate_mod = gmdate('D, d M Y H:i:s', $lastmod) . ' GMT';
 
   if ($if_modified_since == $gmdate_mod) {

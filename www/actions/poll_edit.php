@@ -1,8 +1,5 @@
 <?
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-	include_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-	include_once($_SERVER['DOCUMENT_ROOT']."/includes/util.inc.php");
 	
 	if (!$user->id) user_error("Access denied", E_USER_ERROR);
 	
@@ -38,13 +35,13 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 		if (trim($frm['aw10'])) $db->query("INSERT INTO poll_answers (poll, text) VALUES ($poll, '$frm[aw10]')", __FILE__, __LINE__);
 
 		$_GET['tpl'] = 109;
-		header("Location: /smarty.php?".url_params());
+		header("Location: /?".url_params());
 	}else{
 		foreach ($frm as $key => $val) $frm[$key] = stripslashes($val);
 		
 		$smarty->assign("frm", $frm);
 		$smarty->assign("poll_error", $error);
-		$smarty->display("file:main.html");
+		$smarty->display("file:layout/layout.tpl");
 	}
 	
 ?>

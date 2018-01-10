@@ -1,5 +1,5 @@
 <?PHP
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 $sql = "SELECT * FROM sql_error	WHERE status = 1";
 $num_errors = $db->num($db->query($sql));

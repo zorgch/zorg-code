@@ -1,6 +1,5 @@
 <?PHP	
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/graph.inc.php");
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 $monate = array(1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr", 5 => "Mai", 6 => "Jun", 7 => "Jul", 8 => "Aug", 9 => "Sep", 10 => "Okt", 11 => "Nov", 12 => "Dez");
 

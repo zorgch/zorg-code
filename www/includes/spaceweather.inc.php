@@ -1,7 +1,6 @@
 <?PHP
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 
-
 function get_spaceweather() {
 	global $db;
 	$source = "http://www.spaceweather.com/";
@@ -147,9 +146,9 @@ function spaceweather_ticker() {
 	$add['solarflares_24hr_time'][0] = 0;
 	$add['solarflares_24hr_date'][0] = 0;
 	$add['sunspot_number'][0] = "relative Anzahl Sonnenflecken";
-	$add['magnetfield_btotal'][0] = "Magnetfeldstärke";
+	$add['magnetfield_btotal'][0] = "Magnetfeldst&auml;rke";
 	$add['magnetfield_btotal'][1] = "nT";
-	$add['magnet_bz_value'][0] = "Magnetfeldrichtungsstärke";
+	$add['magnet_bz_value'][0] = "Magnetfeldrichtungsst&auml;rke";
 	$add['magnet_bz_value'][1] = "nT";
 	$add['magnet_z_unit'][0] = "Magnetfeldrichtung";
 	$add['solarflares_percent_24hr_M_percent'][0] = 0;
@@ -168,25 +167,26 @@ function spaceweather_ticker() {
 	$add['magstorm_high_minor_48hr'][0] = 0;
 	$add['magstorm_high_severe_24hr'][0] = 0;
 	$add['magstorm_high_severe_48hr'][0] = 0;
-	$add['PHA'][0] = "Potentiel gefährliche Asteroiden";
-		
-	$sql = "SELECT * FROM spaceweather";
-	$result = $db->query($sql,__LINE__,__FILE__);
-	while($rs = $db->fetch($result)) {
-		if($rs['wert'] == "") {
-			$rs['wert'] = "unbekannt";
-		}
-		if(strlen($add[$rs['name']][0]) > 2) {
-			$sw[$rs['name']] = $add[$rs['name']][0].": ".$rs['wert']." ".$add[$rs['name']][1];
-		}
-	}
+	$add['PHA'][0] = "Potenziell gef&auml;hrliche Asteroiden";
 	
-	shuffle($sw);
-	for($i=0;$i<=2;$i++) {
-		$spw .= $sw[$i]." | ";	
-		
+	try {
+		$sql = "SELECT * FROM spaceweather";
+		$result = $db->query($sql,__LINE__,__FILE__);
+		while($rs = $db->fetch($result)) {
+			if($rs['wert'] == "") {
+				$rs['wert'] = "unbekannt";
+			}
+			if(strlen($add[$rs['name']][0]) > 2) {
+				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert']." ".$add[$rs['name']][1] ];
+			}
+		}
+
+		shuffle($sw); // Randomize Speachweather infos
+		return $sw;
 	}
-	$spw .= "<a href='spaceweather.php'>more ".htmlentities(">>")."</a>";
-	return $spw;
+	catch(Exception $e) {
+		user_error($e->getMessage(), E_USER_NOTICE);
+		return $e->getMessage();
+	}
 }
 ?>

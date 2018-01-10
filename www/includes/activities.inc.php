@@ -22,9 +22,8 @@
 /**
  * File Includes
  */
-//include_once($_SERVER['DOCUMENT_ROOT']."/includes/colors.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
 /**
  * Activities Class
@@ -360,7 +359,7 @@ class Activities
 	{
 		global $db, $user;
 		
-		$xmlfeed = '';	// Ausgabestring f√ºr XML Feed initialisieren
+		$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
 		
 		/**
 		 * Ausgabe evaluieren und Daten holen
@@ -373,45 +372,43 @@ class Activities
 		* @author IneX
 		*/
 		if (count($activityFeed) > 0) {
-			
-			// Datens√§tze ausgeben	
+
+			// Datensätze ausgeben	
 			foreach($activityFeed as $activity)
 			{
-				
+
 				// Assign Values
 				$activityFromUser = usersystem::id2user($activity['from_user_id']);
 				$xmlitem_title = 'Neue Activity von '.$activityFromUser;
-				$xmlitem_link = SITE_URL;
+				$xmlitem_link = str_replace('&', '&amp;amp;', SITE_URL); // &amp;amp; for xml-compatibility
 				$xmlitem_pubDate = date('D, d M Y H:i:s', $activity['datum']);
 				$xmlitem_author = $activityFromUser;
 				$xmlitem_category = 'Activity';
-				$xmlitem_guid = $activity['id'];
+				$xmlitem_guid = str_replace('&', '&amp;amp;', $activity['id']); // &amp;amp; for xml-compatibility
 				$xmlitem_description = '<![CDATA[';
 					$desc = $activityFromUser.' '.$activity['activity'];
 					$limit = 360;
 					$xmlitem_description .= (strlen($desc) > $limit ? substr($desc, 0, $limit - 3) . '...' : $desc);
 					$xmlitem_description .= ']]>';
-				$xmlitem_content = $activityFromUser.' '.$activity['activity'];
-				
+				$xmlitem_content = remove_html($activityFromUser.' '.$activity['activity']);
+
 				// XML Feed items schreiben
-				$xmlfeed .=
-					'<item>'
-					.'	<title>'.$xmlitem_title.'</title>'
-					.'	<link>'.$xmlitem_link.'</link>'
-					.'	<pubDate>'.$xmlitem_pubDate.'</pubDate>'
-					.'	<author>'.$xmlitem_author.'</author>'
-					.'	<category>'.$xmlitem_category.'</category>'
-					.'	<guid isPermaLink="false">'.$xmlitem_guid.'</guid>'
-					.'	<description>'.$xmlitem_description.'</description>'
-					.'	<content:encoded><![CDATA['.$xmlitem_content.']]></content:encoded>'
-					.'</item>
-					';
-		
+				$xmlfeed[] = [
+						'xmlitem_title' => $xmlitem_title,
+						'xmlitem_link' => $xmlitem_link,
+						'xmlitem_pubDate' => $xmlitem_pubDate,
+						'xmlitem_author' => $xmlitem_author,
+						'xmlitem_category' => $xmlitem_category,
+						'xmlitem_guid' => $xmlitem_guid,
+						'xmlitem_description' => $xmlitem_description,
+						'xmlitem_content' => $xmlitem_content
+					];
+
 			} // end foreach $activityFeed
-			
+
 			// Return XML
 			return $xmlfeed;
-			
+
 		} // end if count()	
 
 	}

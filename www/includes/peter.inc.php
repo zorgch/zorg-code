@@ -1618,4 +1618,6 @@ class peter {
 		}
 	}
 }
-?>
+
+// Rosenverkäufer einloggen
+if ($user->typ >= USER_USER) peter::rosenverkaufer();

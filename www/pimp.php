@@ -1,10 +1,10 @@
 <?php
 //coded by [z]keep3r
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
-echo head(47, "pimp");
+//echo head(47, "pimp");
+$smarty->assign('tplroot', array('page_title' => 'pimp'));
+$smarty->display('file:layout/head.tpl');
 
 
 function PostToHost($host, $path, $referer, $data_to_send) {
@@ -125,5 +125,6 @@ echo ("<center><table><tr><form name='pimpform' action='$_SERVER[PHP_SELF]' meth
      ."<input type='submit' class='button' name='send' value='pimp me'>"
 	 ."</td></tr></table></center>");
 
-echo foot(52);
+//echo foot(52);
+$smarty->display('file:layout/footer.tpl');
 ?>

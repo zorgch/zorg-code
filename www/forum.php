@@ -2,18 +2,11 @@
 //=============================================================================
 // Includes
 //=============================================================================
-
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 
 //=============================================================================
 // Output
 //=============================================================================
-
-
 if ($_GET['layout'] == '') {
 	
 	$id = ($_GET['parent_id'] > 1) ? $_GET['parent_id'] : $_GET['thread_id'];
@@ -21,7 +14,9 @@ if ($_GET['layout'] == '') {
   if ($id <= 1) { // Forumübersicht ausgeben
   	
     $parent_id = 1;
-    echo head(4, "forum");
+    //echo head(4, "forum");
+    $smarty->assign('tplroot', array('page_title' => 'forum'));
+	$smarty->display('file:layout/head.tpl');
     echo menu("zorg");
     
     
@@ -46,7 +41,9 @@ if ($_GET['layout'] == '') {
   	
 		//$rs = Comment::getRecordset(Comment::getThreadid($_GET[parent_id]));
 		
-		echo head(4, "thread");
+		//echo head(4, "thread");
+		$smarty->assign('tplroot', array('page_title' => 'thread'));
+		$smarty->display('file:layout/head.tpl');
 		echo menu("zorg");
 		
 		//if($_SESSION['user_id']) echo Forum::getFormNewPart1of2(); @DEPRECATED
@@ -111,18 +108,19 @@ if ($_GET['layout'] == '') {
 		}
   }
 	
-  echo foot();
+  //echo foot();
+  $smarty->display('file:layout/footer.tpl');
 }
 
 // Forumsuche ----------------------------------------------------------------
 if($_GET['layout'] == 'search') {
-	echo(
-		head(4, "commentsearch")
-		.menu("zorg")
-		.Forum::getFormSearch()
-	);
+	$smarty->assign('tplroot', array('page_title' => 'commentsearch'));
+	$smarty->display('file:layout/head.tpl');
+	echo menu("zorg");
+	echo Forum::getFormSearch();
 	echo Forum::printSearchedComments($_GET['keyword']);
-	echo foot();
+	//echo foot();
+	$smarty->display('file:layout/footer.tpl');
 }
 
 // Editseite ------------------------------------------------------------------
@@ -133,42 +131,8 @@ if($_GET['layout'] == 'edit' && $_SESSION['user_id']) {
 	if($_SESSION['user_id'] == $rs['user_id']) {
   	echo Forum::getFormEdit($_GET['id']);
 	}
-	echo foot();
+	//echo foot();
+	$smarty->display('file:layout/footer.tpl');
 }
-
-
-/**
-  * RSS Feed
-  * @author IneX
-  * @date 16.03.2008
-  * @desc RSS Feed für einzelne Boards oder für alles
-  * @param $_GET['layout'] string
-  * @param $_GET['board'] string
-  * @param $_GET['thread_id'] int
-  * @param $_SESSION['user_id'] int
-  */
-// RSS soll angezeigt werden
-if($_GET['layout'] == 'rss') {
-	
-	// ein board wurde übergeben
-	if ($_GET['board'] <> '') {
-	
-		// eine thread_id wurde übergeben
-		if ($_GET['thread_id'] <> '') {
-			// RSS Feed für einen einzelnen Thread
-			echo rss(remove_html(Comment::getLinkThread($_GET['board'], Comment::getThreadid($_GET['board'], $_GET['thread_id'])))." @ zorg.ch", SITE_URL . "/forum.php", "Zorg RSS Feed", Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
-		
-		// keine thread_id vorhanden
-		} else {
-			// RSS Feed ein ganzes Board
-			echo rss(Forum::getBoardTitle($_GET['board'])." @ zorg.ch", SITE_URL . "/forum.php", "Zorg RSS Feed", Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
-		}
-
-	// kein board vorhanden
-	} else {
-		// genereller Zorg RSS Feed
-		echo rss("RSS @ zorg.ch", SITE_URL, "zorg.ch RSS Feed - Forum, Events, Gallery and more", Forum::printRSS(null, $_SESSION['user_id']));
-	}
-} // end if layout = rss
 
 ?>
