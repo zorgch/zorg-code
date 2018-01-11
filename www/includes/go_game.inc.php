@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * GO Funktionen
  * 
@@ -12,12 +12,10 @@
  * @package Zorg
  * @subpackage GO
  */
- 
-/** Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-
-/** Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln) */
-//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+/**
+ * File includes
+ */
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 /** Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen. */
 define("OFFSET_PIC", 250);
@@ -1079,5 +1077,3 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 	    
 	}
 
-
-?>
