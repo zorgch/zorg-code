@@ -25,8 +25,8 @@ define("USER_SPECIAL", 3);
 //define("USER_EINGELOGGT", 0);define("USER_MEMBER", 1);
 //define("USER_NICHTEINGELOGGT", 2);
 //define("USER_ALLE", 3);
-define("USER_IMGPATH", rtrim($_SERVER['DOCUMENT_ROOT'],'/\\')."/../data/userimages/");
-define("USER_IMGPATH_PUBLIC", $_SERVER['SERVER_NAME']."/data/userimages/");
+define("USER_IMGPATH", rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/userimages/');
+define("USER_IMGPATH_PUBLIC", '/data/userimages/');
 define("USER_IMGSIZE_LARGE", 427);
 define("USER_IMGSIZE_SMALL", 150);
 define("USER_TIMEOUT", 200);
@@ -187,9 +187,9 @@ class usersystem {
 			$this->mymenu = $rs[$this->field_mymenu];
 			$this->zorger = $rs[$this->field_zorger];
 			if (usersystem::checkimage($_SESSION['user_id'])) {
-			   $this->image = USER_IMGPATH.$_SESSION['user_id']."_tn.jpg";
+			   $this->image = USER_IMGPATH_PUBLIC.$_SESSION['user_id']."_tn.jpg";
 			}else{
-			   $this->image = USER_IMGPATH."none.jpg";
+			   $this->image = USER_IMGPATH_PUBLIC."none.jpg";
 			}
 
 			$this->forum_boards = explode(",", $rs['forum_boards']);
@@ -896,10 +896,10 @@ class usersystem {
 	 * Get either a Gravatar URL or complete image tag for a specified email address.
 	 *
 	 * @source http://gravatar.com/site/implement/images/php/
-	 * @date 24.07.2014
+	 * @date 24.07.2014, 11.01.2017
 	 * @author IneX
 	 * @since 3.0
-	 * @version 1.0
+	 * @version 2.0
 	 *
 	 * @param string $email The email address
 	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
@@ -916,8 +916,7 @@ class usersystem {
 		$url .= "?s=$s&d=$d&r=$r";
 		$url_check = @get_headers($url); // Get response headers of $url
 		$url_parse = parse_url(trim($d)); // For eventual fallback: parse URL of Default image
-		$url_path_only = explode('/', $url_parse['path'], 2); // Extract the URL domain & path into an array
-		if(strpos($url_check[0],'200')===false) return $url_path_only[1]; // If $url response header is NOT 200, fallback to local image
+		if(strpos($url_check[0],'200')===false) return $url_parse['path']; // If $url response header is NOT 200, fallback to local image
 		if ( $img )
 		{
 			$url = '<img src="' . $url . '"';

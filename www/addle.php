@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Addle (Game)
  * 
@@ -574,7 +574,7 @@ function highscore() {
   global $db, $user;
   
   //echo head(0, 'Addle');
-  $smarty->assign('tplroot', array('page_title' => 'Addle'));
+  $smarty->assign('tplroot', array('page_title' => 'Addle Highscores'));
   $smarty->display('file:layout/head.tpl');
   echo menu("zorg");
   echo menu("games");
@@ -674,14 +674,14 @@ function highscore() {
  * @global array $db Array mit allen MySQL-Datenbankvariablen
  * @global array $user Array mit allen Uservariablen
  */
-function archiv () {
+function archiv() {
   global $db, $user;
 
   if (!$_GET[uid]) $uid = $user->id;
   else $uid = $_GET[uid];
   
   //echo head(0, 'Addle');
-  $smarty->assign('tplroot', array('page_title' => 'Addle'));
+  $smarty->assign('tplroot', array('page_title' => 'Addle Archiv'));
   $smarty->display('file:layout/head.tpl');
   echo menu("zorg");
   echo menu("games");
@@ -762,7 +762,7 @@ switch ($_GET['show']) {
   //case "howto": echo head("Addle: Anleitung"); howto(); break;
   case "howto": 
   	//echo head(0, 'Addle'); 
-  	$smarty->assign('tplroot', array('page_title' => 'Addle'));
+  	$smarty->assign('tplroot', array('page_title' => 'Addle How-to'));
   	$smarty->display('file:layout/head.tpl');
   	echo menu("zorg");
       echo menu("games");
@@ -774,7 +774,7 @@ switch ($_GET['show']) {
   	break;
   case "dwz": 
   	//echo head(0, 'Addle');
-  	$smarty->assign('tplroot', array('page_title' => 'Addle'));
+  	$smarty->assign('tplroot', array('page_title' => 'Addle DWZ'));
   	$smarty->display('file:layout/head.tpl');
   	echo menu("zorg");
       echo menu("games");
@@ -793,4 +793,3 @@ switch ($_GET['show']) {
 $smarty->display('file:layout/footer.tpl');
 
 ob_end_flush();
-?>

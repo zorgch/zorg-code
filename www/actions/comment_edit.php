@@ -5,36 +5,39 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
 
 // Error-Checking -------------------------------------------------------------
 
-if($_POST['board'] == '') {
-	echo '$_POST[board] ist leer!';
-	exit;
+// Board checken und validieren
+if($_POST['board'] == '' || empty($_POST['board']) || strlen($_POST['board']) != 1) {
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	user_error('Board nicht angegeben!', E_USER_WARNING);
+	die();
 }
 	
 // Parent id checken
-if(!is_numeric($_POST['parent_id'])) {
-	echo 'Deine parent_id ('.$_POST['parent_id'].') ist keine Nummer!';
-	exit;
+if($_POST['parent_id'] == '' || empty($_POST['parent_id']) || $_POST['parent_id'] == '0' || !is_numeric($_POST['parent_id']))
+{
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	user_error('Parent id leer oder ungültig: ' . $_POST['parent_id'], E_USER_WARNING);
+	die();
 }
 
 // Thread id checken
-if(!is_numeric($_POST['thread_id'])) {
-	echo 'Deine thread_id ('.$_POST['thread_id'].') ist keine Nummer!';
-	exit;
-}
-
-// Parent id checken
-if(strlen($_POST['board']) != 1) {
-	echo 'Das angegebene board ('.$_POST['board'].') existiert nicht!';
-	exit;
+if($_POST['thread_id'] == '' || empty($_POST['thread_id']) || $_POST['thread_id'] == '0' || !is_numeric($_POST['thread_id']))
+{
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	user_error('Thread id leer oder ungültig: ' . $_POST['thread_id'], E_USER_WARNING);
+	die();
 }
 
 // Text escapen
-if($_POST['text'] == '') {
-	echo 'keine leeren Posts erlaubt.';
-	exit;
+if($_POST['text'] == '' || empty($_POST['text']) || !isset($_POST['text']))
+{
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	user_error('keine leeren Posts erlaubt.', E_USER_WARNING);
+	die();
 } else {
 	$commentText = escape_text($_POST['text']);
 }
+
 
 // Existiert der Parent-Post?
 $sql = 
@@ -55,14 +58,16 @@ if($rs == FALSE) {
 		
 		$rs = $db->fetch($db->query("SELECT * FROM comments WHERE id = ".$_POST['id'], __FILE__, __LINE__));
 		if($rs['parent_id'] != $_POST['parent_id']) {
-			echo 'Du darfst per Edit keine neuen Threads erstellen';
-			exit;
+			http_response_code(403); // Set response code 400 (bad request) and exit.
+			user_error('Du darfst per Edit keine neuen Threads erstellen', E_USER_WARNING);
+			die();
 		}
 	}
 	
 	if($_POST['board'] != 'f' && $_POST['parent_id'] != $_POST['thread_id']) { // top level, nicht im forum!
-		echo 'Die Parent ID existiert nicht.';
-		exit;
+		http_response_code(400); // Set response code 400 (bad request) and exit.
+		user_error('Die Parent ID existiert nicht.', E_USER_WARNING);
+		die();
 	}
 }
 
@@ -71,8 +76,9 @@ if($rs == FALSE) {
 $rs = Comment::getRecordset($_POST['id']);
 // Besitzer checken
 if($_SESSION['user_id'] != $rs['user_id']) {
-	echo 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!';
-	exit;
+	http_response_code(403); // Set response code 400 (bad request) and exit.
+	user_error('Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!', E_USER_WARNING);
+	die();
 }
 	
 
@@ -142,5 +148,4 @@ if(count($_POST['msg_users']) > 0) {
 
 // redirecten
 header("Location: ".base64_decode($_POST['url']));
-
-?>
+die();

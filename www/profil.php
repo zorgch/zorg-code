@@ -156,7 +156,7 @@ function exec_uploadimage() {
 	}
 
 	@unlink($tmpfile);
-	$user->image = USER_IMGPATH.$user->id."_tn.jpg";
+	$user->image = USER_IMGPATH_PUBLIC.$user->id."_tn.jpg";
 	$error[0] = true;
 	return $error;
 }
@@ -432,7 +432,7 @@ if($_SESSION['user_id']) {
 			'<table class="case" width="100%">'
 			.'<tr><td style="text-align: center" valign="top">'
 			.'<h1>'.$rs['clan_tag'].$rs['username'].'</h1>'
-			.'<img src="'.usersystem::userImage($_GET[user_id], 1).'">'
+			.'<img src="'.usersystem::userImage($_GET['user_id'], 1).'">'
 			.'</td><td style="text-align: left" valign="top">'
 			.$smarty->fetch("tpl:211")
 			.'</td></tr>'

@@ -125,7 +125,9 @@ if($_GET['layout'] == 'search') {
 
 // Editseite ------------------------------------------------------------------
 if($_GET['layout'] == 'edit' && $_SESSION['user_id']) {
-	echo head(4, "commentedit");
+	//echo head(4, "commentedit");
+	$smarty->assign('tplroot', array('page_title' => 'commentedit'));
+	$smarty->display('file:layout/head.tpl');
 	echo menu("zorg");
 	$rs = Comment::getRecordset($_GET['id']);
 	if($_SESSION['user_id'] == $rs['user_id']) {

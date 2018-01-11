@@ -1,15 +1,14 @@
-<?
-
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
-
+<?php
+/**
+ * File Includes
+ */
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 /**
  * @return string
  * @param string $str
  * @desc Check's the html syntax of $str
 */
-
 function html_syntax_check ($str) {   	
    	$res = array();
       $err = "";
@@ -102,7 +101,6 @@ function html_syntax_check ($str) {
    * @param int $id
    * @desc Unlock the Template
    */
-   
    function tpleditor_unlock ($id) {
    	global $db, $user;
    	
@@ -119,7 +117,6 @@ function html_syntax_check ($str) {
     * @param string $error
     * @desc Prüft Zugriffsberechtigung und falls gegeben, lockt das Template. Fehler wird in $error gespeichert
     */
-   
    function tpleditor_access_lock ($id, &$error) {
    	global $db, $user;
    	
@@ -139,4 +136,3 @@ function html_syntax_check ($str) {
 	   }
    }
    
-?>

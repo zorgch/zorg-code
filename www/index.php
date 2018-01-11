@@ -31,7 +31,7 @@ if (!empty(key($_GET)))
 			break;
 	}
 }
-if ($_GET['layout'] != 'rss' && !isset($_GET['tpl']) && !isset($_GET['word']) && empty($tpl_source)) $_GET['tpl'] = 23;
+if ($_GET['layout'] != 'rss' && !isset($_GET['tpl']) && !isset($_GET['word'])) $_GET['tpl'] = 23;
 
 
 /**
