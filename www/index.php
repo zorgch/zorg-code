@@ -31,7 +31,10 @@ if (!empty(key($_GET)))
 			break;
 	}
 }
-if ($_GET['layout'] != 'rss' && !isset($_GET['tpl']) && !isset($_GET['word'])) $_GET['tpl'] = 23;
+/**
+ * Standardtemplate setzen, wenn tpl oder word nicht oder leer übergeben wurden
+ */
+if ($_GET['layout'] != 'rss' && ((!isset($_GET['tpl']) && !isset($_GET['word'])) || (empty($_GET['tpl']) && empty($_GET['word'])) || ($_GET['tpl'] <= 0 || is_numeric($_GET['word'])))) $_GET['tpl'] = 23;
 
 
 /**

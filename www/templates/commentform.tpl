@@ -137,8 +137,16 @@ showHtml.addEventListener('click', function() {
 // https://stackoverflow.com/questions/27273444/save-and-load-input-values-using-local-storage
 var Delta = Quill.import('delta');
 var QuillEditorId = 'dinimuetter';
-var pageId = encodeURI(window.location.pathname).replace('/', '-').replace('.', '-');
-var localStoreId = 'z_commentform_draft' + pageId;
+//var pageId = encodeURI(window.location.pathname).replace('/', '-').replace('.', '-');
+var pageId = {/literal}'{$tplroot.page_title}';{literal}
+//if (pageId == undefined || pageId == 'undefined' || pageId == null || pageId == '') {
+//  pageId = new URLSearchParams(window.location.search).get('tpl');
+//    if (pageId == undefined || pageId == 'undefined' || pageId == null || pageId == '') {
+//      pageId = encodeURI(window.location.pathname).replace('/', '-').replace('.', '-');
+//    }
+//  }
+//}
+var localStoreId = 'z_commentform_draft-' + pageId.toLowerCase();
 var localDraft = localStorage[localStoreId];
 // Load Draft
 function loadDraft(key) {
@@ -155,8 +163,10 @@ function loadDraft(key) {
 function deleteDraft(key) {
   if (typeof(Storage) !== 'undefined') {
     if (key !== undefined && key !== 'undefined' && key !== null && key !== '') {
-      console.info('Deleting draft... ' + key);
-      localStorage.removeItem(key);
+      if (localStorage.removeItem(key)) {
+	    console.info('Deleting draft... ' + key);
+	  	clearInterval(autoSaveOn); // stop Save periodically
+	  }
     }
   }
 }
@@ -185,7 +195,7 @@ autoSaveOn = setInterval(function() {
 // Check for unsaved data
 window.onbeforeunload = function() {
   if (change.length() > 0) {
-  return 'There are unsaved changes. Are you sure you want to leave?';
+  return 'Du hesch en Comment wo nonig gspeicheret isch. Wötsch würkli abhaue?';
   }
 }
 
@@ -266,7 +276,7 @@ function addUserIdNotification(userid) {
   //console.info('allUserMentions[] adding: ' + userid);
   allUserMentions.push(userid);
   // Remove duplicate UserIDs - https://stackoverflow.com/a/40482714/5750030
-  var usersToNotify = allUserMentions.reduce(function(hash){
+  usersToNotify = allUserMentions.reduce(function(hash){
     return function(prev,curr){
       !hash[curr] && (hash[curr]=prev.push(curr));
       return prev;
@@ -327,6 +337,7 @@ document.getElementById('schickenaaab').onclick = function() {
     replyToId = document.querySelector('input[name=parent_id]:checked').value;
     form.querySelector('input[name=parent_id]').value = replyToId;
   }
+  change = new Delta();
   clearInterval(autoSaveOn); // stop Save periodically
   deleteDraft(localStoreId);
   return true;//false;

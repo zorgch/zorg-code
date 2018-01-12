@@ -923,8 +923,8 @@ define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
 	
 	function get_userpic($user_id)
 	{    
-	    //$image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
-	    $image = imagecreatefromjpeg($_SERVER['DOCUMENT_ROOT'].'../data/userimages/'.$user_id.'.jpg');
+	    $image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
+	    //$image = imagecreatefromjpeg($_SERVER['DOCUMENT_ROOT'].'../data/userimages/'.$user_id.'.jpg');
 	    
 	    $w = imagesx($image);
 	    $h = imagesy($image);
