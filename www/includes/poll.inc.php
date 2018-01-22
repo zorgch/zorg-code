@@ -112,7 +112,7 @@
 				$ret .= "</td></tr>";
 				$ret .= 
 					"<tr><td><table cellspacing=0 cellpadding=0><tr>".
-					"<td background='/images/poll_bar.gif'><img src='/images/spc.gif' height='6' width='$wdt'</td>".
+					"<td background='/images/poll_bar.gif' style='background-repeat:repeat-x;'><img src='/images/spc.gif' height='6' width='$wdt'</td>".
 					"<td><img src='/images/spc.gif' height='1' width='$swdt'></td>".
 					"</tr></table></td></tr>"
 				;
