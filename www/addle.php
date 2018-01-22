@@ -89,13 +89,13 @@ if(is_array($valuearray)) {
  * @global array $user Array mit allen Uservariablen
  */
 function newgame($player) {
-  global $db, $user;
+  global $db, $user, $smarty;
 
   $anz = $db->fetch($db->query(
   	"SELECT count(*) anz FROM addle WHERE finish=0 AND ((player1='$user->id' AND player2='$player') OR (player1='$player' AND player2='$user->id'))",
   	__FILE__, __LINE__
   ));
-  if ($anz['anz'] > MAX_ADDLE_GAMES) user_error("No more games versus '$player' possible", E_USER_ERROR);
+  if ($anz['anz'] > MAX_ADDLE_GAMES) user_error("No more games versus '$player' possible", E_USER_NOTICE);
   
   $e = $db->query("SELECT addle FROM user WHERE id='$player'", __FILE__, __LINE__);
   $d = $db->fetch($e);
@@ -166,6 +166,17 @@ function newgame($player) {
   /*========================================
      Addle KI - end
   ========================================*/
+  
+  /**
+   * Notification - New Game
+   */
+  try {
+	  $messageSubject = '-- New Addle Game -- (autom. Nachricht)';
+	  $messageText = sprintf('Ich habe Dich zu <a href="%s/addle.php?show=play&id=%d">einem neuen Addle-Game</a> herausgefordert!', SITE_URL, $gameid);
+	  Messagesystem::sendMessage($user->id, $player, $messageSubject, $messageText);
+  } catch (Exception $e) {
+  	  user_error($e->getMessage(), E_USER_ERROR);
+  }
   
   header("Location: /addle.php?show=play&id=$gameid");
 }
@@ -244,7 +255,7 @@ function games() {
  * @global array $db Array mit allen MySQL-Datenbankvariablen
  */
 function overview() {
-  global $db;
+  global $db, $smarty;
   
   //echo head(0, 'Addle');
   $smarty->assign('tplroot', array('page_title' => 'Addle'));
@@ -403,7 +414,7 @@ function doplay($id, $choose) {
  * @global array $user Array mit allen Uservariablen
  */
 function play($id=0) {
-  global $db, $user;
+  global $db, $user, $smarty;
   
   if (!$id) {overview();}
   else{
@@ -571,7 +582,7 @@ if ($_SESSION[user_id] == 52){
  * @global array $user Array mit allen Uservariablen
  */
 function highscore() {
-  global $db, $user;
+  global $db, $user, $smarty;
   
   //echo head(0, 'Addle');
   $smarty->assign('tplroot', array('page_title' => 'Addle Highscores'));
@@ -675,7 +686,7 @@ function highscore() {
  * @global array $user Array mit allen Uservariablen
  */
 function archiv() {
-  global $db, $user;
+  global $db, $user, $smarty;
 
   if (!$_GET[uid]) $uid = $user->id;
   else $uid = $_GET[uid];
