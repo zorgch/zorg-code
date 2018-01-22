@@ -1,275 +1,358 @@
+@charset "UTF-8";
+html, body { height: 100%; }
+ 
+body {
+  background-color: #000000;
+  color: #FFFFFF;
+	font-family: Verdana, Sans-Serif;
+	font-size: 13px;
+	margin: 2px;
+}
 
-		html, body { height: 100%; }
-		 
-		body {
-		  background-color: #000000;
-		  color: #FFFFFF;
-			font-family: Verdana, Sans-Serif;
-			font-size: 13px;
+table {
+	/*background-color: #242424;*/
+	font-family: Verdana, Sans-Serif;
+	font-size: 12px;
+}
+table.header {
+	background-color: #000000;
+	margin:0px;
+}
 
-			margin: 2px;
-		}
+table.shadedcells td {
+	background-color: #242424;
+}
 
-		table {
-			background-color: #242424
-			font-family: Verdana, Sans-Serif;
-			font-size: 12px;
-		}
-		table.header {
-			background-color: #000000;
-			margin:0px;
-		}
+a {
+  color: #CBBA79;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.border {
+border-color: #CBBA79;
+	border-style: solid;
+	border-width: 1px;
+}
+
+.bottom_border {
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: #CBBA79;
+}
+
+.title {	
+	height: 20px;
+	font-weight: bold;
+}
+
+blockquote {
+  font: 13px/22px normal;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: 50px;
+  padding-left: 15px;
+  border-left: 3px solid #CBBA79;
+}
+
+code { word-wrap: break-word; }
+
+pre {
+  background-color: #23241f;
+  color: #f8f8f2;
+  overflow: visible;
+  white-space: pre-wrap;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  padding: 5px 10px;
+  border-radius: 3px;
+}
+
+div.menu {
+	background-color: #42300A; /* EDF2F2 */
 	
-		table.shadedcells td {
-			background-color: #242424;
-		}
-		
-		a {
-		  color: #CBBA79;
-		  text-decoration: none;
-		}
-
-		a:hover {
-		  text-decoration: underline;
-		}
-		
-		.border {
-	    border-color: #CBBA79;
-			border-style: solid;
-			border-width: 1px;
-		}
-
-		.bottom_border {
-			border-bottom-style: solid;
-			border-bottom-width: 1px;
-			border-bottom-color: #CBBA79;
-		}
+	border-bottom-style: solid;
+	border-bottom-color: #CBBA79; /* ddd */
+	border-bottom-width: 1px;	
 	
-		.title {	
-			height: 20px;
-			font-weight: bold;
-		}
-		
-		blockquote {
-		  font: 13px/22px normal;
-		  margin-top: 10px;
-		  margin-bottom: 10px;
-		  margin-left: 50px;
-		  padding-left: 15px;
-		  border-left: 3px solid #CBBA79;
-		}
-		
-		code { word-wrap: break-word; }
-		
-		pre {
-		  background-color: #23241f;
-		  color: #f8f8f2;
-		  overflow: visible;
-		  white-space: pre-wrap;
-		  margin-bottom: 5px;
-		  margin-top: 5px;
-		  padding: 5px 10px;
-		  border-radius: 3px;
-		}
-		
-		div.menu {
-			background-color: #42300A; /* EDF2F2 */
-			
-			border-bottom-style: solid;
-			border-bottom-color: #CBBA79; /* ddd */
-			border-bottom-width: 1px;	
-			
-			border-top-style: solid;
-			border-top-color: #FFF;
-			border-top-width: 1px;
-		
-			letter-spacing: 1px;
-			
-			/* Innenabstand */ 
-			padding-bottom: 1px;
-			padding-top: 1px;
-		}
-		
-		table.dreid {
-			background-color: #141414; /* EDF2F2 */
-			
-			border-bottom-style: solid;
-			border-bottom-color: #CBBA79; /* ddd */
-			border-bottom-width: 1px;	
-		
-			border-left-style: solid;
-			border-left-color: #FFF;
-			border-left-width: 1px;
-		
-			border-right-style: solid;
-			border-right-color: #CBBA79; /* ddd */
-			border-right-width: 1px;	
-			
-			border-top-style: solid;
-			border-top-color: #FFF;
-			border-top-width: 1px;
-		}
-		
-		div.menu a {	
-			background-color: #42300A; /* EDF2F2 */
-		
-			border-bottom:	1px solid #CBBA79; /* DDD */
-			border-left:		1px solid #FFF;
-			border-right:		1px solid #CBBA79; /* DDD */
-		
-			color: #CBBA79;		
-		
-			padding-bottom: 1px;
-			padding-left: 15px;
-			padding-right: 15px;
-			padding-top: 1px;
-			
-			text-decoration: none;
-		}
-		
-		div.menu a:hover {
-			background: #62502A;
-			text-decoration: none;
-		}
-		
-		div.menu a.left {
-			background-color: #42300A; /* EDF2F2 */
-			border-left-style: none;
-			padding-left: 0px;
-			padding-right: 1px;
-		}
-		
-		div.menu a.left:hover {
-		}
-		
-		div.menu a.right {
-			background-color: #42300A; /* EDF2F2 */
-			border-right-style: none;
-			padding-left: 1px;
-			padding-right: 0px;
-		}
-		
-		div.menu a.right:hover {
-		}		
-		
-		table.forum {
-			border-collapse:collapse;
-			/* table-layout:fixed; */
-			width:100%;
-		}
-		
-		td.forum {
-			margin: 0px;
-			padding: 0px;
-		}
-		
-		img.forum {
-			heigth: 16px;
-			width: 16px;
-		}
-		
-		td.end {
-			background-image: url("/images/forum/end.gif");
-			background-repeat: no-repeat;
-		  height: 16px;
-			margin: 0px;
-			padding: 0px;
-		  width: 16px;
-		  vertical-align: top;
-		}
-		
-		td.space {
-		  background-image: url("/images/forum/space.gif");
-		  height: 16px;
-			margin: 0px;
-			padding: 0px;
-		  width: 16px;
-		  vertical-align: top;
-		}
-		
-		td.vertline {
-		  background-image: url("/images/forum/vertline.gif");
-		  height: 16px;
-			margin: 0px;
-			padding: 0px;
-		  width: 16px;
-		  vertical-align: top;
-		}
-				
-		input:focus {
-			border-style: inset;
-			border-color: #141414;
-		}
-		
-		select { 
-			border-style: groove;
-			border-width: 2px;
-			border-color: #CBBA79;		
-			font-family: Verdana;
-			color: #FFFFFF;
-			background-color: #141414;
-			font-size: 10px;
-		}
-		
-		option {
-			font-family: verdana;
-			font-size: 10px;
-			color: #FFFFFF;
-			background-color: #141414;
-		
-		}
+	border-top-style: solid;
+	border-top-color: #FFF;
+	border-top-width: 1px;
 
-		.text, textarea {
-			border-style: solid;
-			border-width: 1px;
-			border-color: #CBBA79;
-			font-size: 10px;
-			font-family: verdana;
-			color: #FFFFFF;
-			background-color: #000000;
-		}
+	letter-spacing: 1px;
+	
+	/* Innenabstand */ 
+	padding-bottom: 1px;
+	padding-top: 1px;
+}
 
-		.text:focus, textarea:focus {
-			border-style: inset;
-			border-color: #141414;
-		}
+table.dreid {
+	background-color: #141414; /* EDF2F2 */
+	
+	border-bottom-style: solid;
+	border-bottom-color: #CBBA79; /* ddd */
+	border-bottom-width: 1px;	
+
+	border-left-style: solid;
+	border-left-color: #FFF;
+	border-left-width: 1px;
+
+	border-right-style: solid;
+	border-right-color: #CBBA79; /* ddd */
+	border-right-width: 1px;	
+	
+	border-top-style: solid;
+	border-top-color: #FFF;
+	border-top-width: 1px;
+}
+
+div.menu a {	
+	background-color: #42300A; /* EDF2F2 */
+
+	border-bottom:	1px solid #CBBA79; /* DDD */
+	border-left:		1px solid #FFF;
+	border-right:		1px solid #CBBA79; /* DDD */
+
+	color: #CBBA79;		
+
+	padding-bottom: 1px;
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-top: 1px;
+	
+	text-decoration: none;
+}
+
+div.menu a:hover {
+	background: #62502A;
+	text-decoration: none;
+}
+
+div.menu a.left {
+	background-color: #42300A; /* EDF2F2 */
+	border-left-style: none;
+	padding-left: 0px;
+	padding-right: 1px;
+}
+
+div.menu a.left:hover {
+}
+
+div.menu a.right {
+	background-color: #42300A; /* EDF2F2 */
+	border-right-style: none;
+	padding-left: 1px;
+	padding-right: 0px;
+}
+
+div.menu a.right:hover {
+}		
+
+table.forum {
+	border-collapse:collapse;
+	/* table-layout:fixed; */
+	width:100%;
+}
+
+td.forum {
+	margin: 0px;
+	padding: 0px;
+}
+
+img.forum {
+	height: 16px;
+	width: 16px;
+}
+
+td.end {
+	background-image: url("/images/forum/end.gif");
+	background-repeat: no-repeat;
+  height: 16px;
+	margin: 0px;
+	padding: 0px;
+  width: 16px;
+  vertical-align: top;
+}
+
+td.space {
+  background-image: url("/images/forum/space.gif");
+  height: 16px;
+	margin: 0px;
+	padding: 0px;
+  width: 16px;
+  vertical-align: top;
+}
+
+td.vertline {
+  background-image: url("/images/forum/vertline.gif");
+  height: 16px;
+	margin: 0px;
+	padding: 0px;
+  width: 16px;
+  vertical-align: top;
+}
 		
-		input[type=checkbox], input[type=radio] {
-			border-style: inset;
-			border-width: 2px;
-			border-color: #141414;
-			margin: 2px;
-			background-color: #42300A;
-		}
-		
-		.button {
-			border-style: outset;
-			border-width: 1px;
-			border-color: #CBBA79;
-			font-size: 11px;
-			font-family: verdana;
-			font-weight: bold;
-			color: #FFFFFF;
-			background-color: #000000;
-		}
+input:focus {
+	border-style: inset;
+	border-color: #141414;
+}
 
-		.button:hover{
-			border-style: inset;
-		}
+select { 
+	border-style: groove;
+	border-width: 2px;
+	border-color: #CBBA79;		
+	font-family: Verdana;
+	color: #FFFFFF;
+	background-color: #141414;
+	font-size: 10px;
+}
 
-		.small{
-			font-size: 9px;
-		}
+option {
+	font-family: verdana;
+	font-size: 10px;
+	color: #FFFFFF;
+	background-color: #141414;
 
-		.titlebar{
-			font-size: 20px;
-			font-stretch: expanded;
-			letter-spacing: 5px;
-		}
-    td.addletd {
-       border-style:solid;
-       border-color: #CBBA79;
-       border-width:1px;
-       font-size: 22px;
-		   text-align: center;
-    }
+}
+
+.text, textarea {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #CBBA79;
+	font-size: 10px;
+	font-family: verdana;
+	color: #FFFFFF;
+	background-color: #000000;
+}
+
+.text:focus, textarea:focus {
+	border-style: inset;
+	border-color: #141414;
+}
+
+input[type=checkbox], input[type=radio] {
+	border-style: inset;
+	border-width: 2px;
+	border-color: #141414;
+	margin: 2px;
+	background-color: #42300A;
+}
+
+.button, dialog button {
+	border-style: outset;
+	border-width: 1px;
+	border-color: #CBBA79;
+	font-size: 11px;
+	font-family: verdana;
+	font-weight: bold;
+	color: #FFFFFF;
+	background-color: #000000;
+}
+
+.button:hover, dialog button:hover {
+	border-style: inset;
+}
+
+.small{
+	font-size: 9px;
+}
+
+.titlebar{
+	font-size: 20px;
+	font-stretch: expanded;
+	letter-spacing: 5px;
+}
+td.addletd {
+border-style:solid;
+border-color: #CBBA79;
+border-width:1px;
+font-size: 22px;
+   text-align: center;
+}
+
+/* HTML5.2 Modial Dialog */
+dialog {
+  padding: 0;
+  border: 0;
+  border-radius: 0.6rem;
+  color: inherit;
+  -webkit-box-shadow: 0 0 1em black;
+          box-shadow: 0 0 1em black;
+}
+
+/* native backdrop */
+dialog::-webkit-backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* polyfill backdrop */
+dialog + .backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+dialog[open] {
+  -webkit-animation: slide-up 0.4s ease-out;
+          animation: slide-up 0.4s ease-out;
+}
+
+/* The following styles are for older browsers when using
+   the polyfill. These aren’t necessary for Chrome/Firefox. */
+dialog {
+  display: none;
+  position: absolute;
+  margin: 0 auto;
+  /* should center it, but not working in Safari */
+  max-width: 80vw;
+  color: inherit;
+  background-color: #42300A;
+}
+
+dialog[open] {
+  display: block;
+}
+
+/* prettying things up a bit */
+.close {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.3em;
+  line-height: 0.6;
+  color: red;
+  background-color: transparent;
+  border: 0;
+}
+
+.modal-header,
+.modal-body,
+.modal-footer {
+  padding: 1em;
+}
+
+.modal-header {
+  margin: 0;
+  padding-bottom: 0.6em;
+  padding-right: 2.5em;
+  background-color: #42300A;
+  border-top-left-radius: 0.6rem;
+  border-top-right-radius: 0.6rem;
+}
+
+.modal-footer {
+  border: 0;
+}
+
+.modal-footer button:last-child {
+  float:right;
+}

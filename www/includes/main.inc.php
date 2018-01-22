@@ -98,7 +98,6 @@ if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top
  * (PHP execution cannot be continued without these files)
  *
  * @include	colors.inc.php 	Colors
- * @include	css.inc.php 	CSS
  * @include errlog.inc.php 	Errorlogging
  * @include mysql.inc.php 	MySQL-DB Connection and Functions
  * @include smarty.inc.php 	Smarty Template-Engine
@@ -107,7 +106,6 @@ if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top
  * @include util.inc.php 	Various Helper Functions
  */
 require_once(SITE_ROOT.'/includes/colors.inc.php');
-require_once(SITE_ROOT.'/includes/css.inc.php');
 require_once(SITE_ROOT.'/includes/errlog.inc.php');
 require_once(SITE_ROOT.'/includes/mysql.inc.php');
 require_once(SITE_ROOT.'/includes/smarty.inc.php');
