@@ -31,7 +31,6 @@
 		<script type="text/javascript" src="{$smarty.const.JS_DIR}zorg.js"></script>
 		<script src="{$smarty.const.JS_DIR}highlight-js/highlight.pack.js"></script>
 		<link class="codestyle" rel="stylesheet" href="{$smarty.const.JS_DIR}highlight-js/styles/github-gist.css">
-		{if $tplroot.page_title == 'Home'}<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>{/if}
 		
 		<!-- RSS Feeds -->
 		<link rel="alternate" type="application/rss+xml" title="RSS{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum" />

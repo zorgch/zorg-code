@@ -1,7 +1,14 @@
 <?php
-
+/**
+ * File includes
+ */
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/activities.inc.php');
+
+/**
+ *
+ */
+if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
 
 /**
 * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
@@ -59,6 +66,32 @@ function emailusername($username) {
 	$username = str_replace("ü", "ue", $username);
 	$username = preg_replace("/([^[:alnum:]])/sU", "", $username);
 	return $username;
+}
+
+/**
+ * Passwort encryption
+ *
+ * Verschlüsselt ein Passwort
+ *
+ * @return string crypted Passwort
+ * @param $password string Plaintext Passwort
+ */
+function crypt_pw($password) {
+	return crypt($password, CRYPT_SALT);
+}
+
+/**
+ * E-Mailadresse prüfen
+ *
+ * Überprüft eine E-Mail Adresse
+ *
+ * @return bool
+ * @param $email string E-Mail
+ */
+function check_email($email) {
+	if(eregi("^[a-z0-9\._-]+@+[a-z0-9\._-]+\.+[a-z]{2,3}$", $email)) return TRUE;
+	else return FALSE;
+
 }
 
 /**

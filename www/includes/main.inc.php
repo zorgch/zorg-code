@@ -120,11 +120,17 @@ require_once(SITE_ROOT.'/includes/util.inc.php');
  * @include	activities.inc.php 	Activities Functions and Stream
  * @include	addle.inc.php 		Addle Functions
  * @include	forum.inc.php 		Forum and Commenting Functions
+ * @include gallery.inc.php 	Gallery and Pic functions
+ * @include go_game.inc.php 	Go Game functions
+ * @include graph.inc.php 		Image Graph Stats functions
  * @include imap.inc.php 		IMAP functions (DEPRECATED)
- * @include messagesystem.inc.php 	Messagesystem Functions
+ * @include messagesystem.inc.php Messagesystem Functions
  * @include peter.inc.php 		Peter Game functions
+ * @include quotes.inc.php 		Quotes functions
  * @include rezepte.inc.php 	Rezepte Datenbank functions
- * @include schach.inc.php  	Schach Game functions
+ * @include schach.inc.php  	Schach Game functions (DEPRECATED)
+ * @include spaceweather.inc.php Spaceweather functions
+ * @include telegrambot.inc.php Telegram Messenger Bot functions
  */
 include_once(SITE_ROOT.'/includes/activities.inc.php');
 include_once(SITE_ROOT.'/includes/addle.inc.php');
@@ -136,7 +142,7 @@ include_once(SITE_ROOT.'/includes/graph.inc.php');
 include_once(SITE_ROOT.'/includes/messagesystem.inc.php');
 include_once(SITE_ROOT.'/includes/peter.inc.php');
 include_once(SITE_ROOT.'/includes/quotes.inc.php');
-include_once(SITE_ROOT.'/includes/rezepte.inc.php');
+include_once(SITE_ROOT.'/includes/rezepte.inc.php'); // "Call to undefined function getOpenChessGames()" ["file"]=> string(48) "/Users/or/Sites/zooomclan/www/scripts/header.php" ["line"]=> int(18)
 include_once(SITE_ROOT.'/includes/schach.inc.php');
 include_once(SITE_ROOT.'/includes/spaceweather.inc.php');
 include_once(SITE_ROOT.'/includes/telegrambot.inc.php');

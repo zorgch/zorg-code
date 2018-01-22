@@ -11,9 +11,9 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/colors.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+include_once( __DIR__ .'/colors.inc.php');
+require_once( __DIR__ .'/util.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
 
 /**
  * Defines
@@ -39,7 +39,8 @@ define("AUSGESPERRT_BIS", "ausgesperrt_bis");
  * Usersystem Klasse
  *
  * @author [z]biko
- * @version 3.0
+ * @author IneX
+ * @version 4.0
  * @package Zorg
  * @subpackage Usersystem
  */
@@ -95,7 +96,6 @@ class usersystem {
 	var $field_lastlogin = "lastlogin";
 	var $field_maxdepth = "forummaxthread";
 	var $field_usertyp = "usertype";
-	var $crypt_salt = "CRYPT_BLOWFISH";
 
 	//pugin vars
 	var $field_bild = "image";
@@ -223,6 +223,7 @@ class usersystem {
 	 *
 	 * Erstellt eine Session (login)
 	 *
+	 * @see crypt_pw()
 	 * @return string error
 	 * @param $username string Benutzername
 	 * @param $password string Passwort
@@ -241,7 +242,7 @@ class usersystem {
 			$rs = $db->fetch($result);
 
 			//verschluesslet uebergebenes passwort
-			$crypted_pw = $this->crypt_pw($password);
+			$crypted_pw = crypt_pw($password);
 			if($_COOKIE['autologin_pw'] != '' && $password == "") {
 				$crypted_pw = $_COOKIE['autologin_pw'];
 			}
@@ -355,6 +356,7 @@ class usersystem {
 	 *
 	 * Generiert ein Passwort für einen bestehenden User
 	 *
+	 * @see crypt_pw()
 	 * @return string error
 	 * @param $email string E-Mail
 	 */
@@ -362,8 +364,8 @@ class usersystem {
 		global $db;
 		if($email) {
 
-			//?berp?fe email
-			if($this->check_email($email)) {
+			// E-mailadresse validieren
+			if(check_email($email)) {
 				$sql = "SELECT id, username FROM user WHERE email = '$email'";
 				$result = $db->query($sql, __FILE__, __LINE__);
 
@@ -375,7 +377,7 @@ class usersystem {
 					$new_pass = $this->password_gen($rs['username']);
 
 					//verschl?ssle passwort
-					$crypted = $this->crypt_pw($new_pass);
+					$crypted = crypt_pw($new_pass);
 
 					//trage aktion in errors ein
 					$this->logerror(3,$rs['id']);
@@ -408,6 +410,7 @@ class usersystem {
 	 *
 	 * Erstellt einen Neuen Benutzer
 	 *
+	 * @see crypt_pw()
 	 * @return string error
 	 * @param $username string Benutzername
 	 * @param $pw string Passwort
@@ -423,11 +426,11 @@ class usersystem {
 			$this->field_mail_username." = '$email_name'";
 			$result = $db->query($sql, __FILE__, __LINE__);
 
-			//?berpr?fe ob user bereits existiert
+			//überprüfe ob user bereits existiert
 			if(!$db->num($result)) {
 
-				//?berpr?fe korrektheit der mail adresse
-				if($this->check_email($email)) {
+				// E-mailadresse validieren
+				if(check_email($email)) {
 					$sql = "SELECT id FROM ".$this->table_name."
 					WHERE ".$this->field_email." = '$email'";
 					$result = $db->query($sql, __FILE__, __LINE__);
@@ -442,7 +445,7 @@ class usersystem {
 							$key = $this->regcode_gen($username);
 
 							//verschl?ssle passwort
-							$crypted_pw = $this->crypt_pw($pw);
+							$crypted_pw = crypt_pw($pw);
 
 							//user eintragen
 							$sql = "INSERT into ".$this->table_name."
@@ -529,32 +532,6 @@ class usersystem {
 			$i++;
 		}
 		return $html;
-	}
-
-	/**
-	 * Passwort encryption
-	 *
-	 * Verschlüsselt ein Passwort
-	 *
-	 * @return string crypted Passwort
-	 * @param $password string Plaintext Passwort
-	 */
-	function crypt_pw($password) {
-		return crypt($password,$this->crypt_salt);
-	}
-
-	/**
-	 * E-Mailadresse prüfen
-	 *
-	 * Überprüft eine E-Mail Adresse
-	 *
-	 * @return bool
-	 * @param $email string E-Mail
-	 */
-	function check_email($email) {
-		if(eregi("^[a-z0-9\._-]+@+[a-z0-9\._-]+\.+[a-z]{2,3}$", $email)) return TRUE;
-		else return FALSE;
-
 	}
 
 	/**
@@ -1046,9 +1023,6 @@ class usersystem {
 			return $quote;
 		}
 	}
-
-	function userSelectBox() {
-	}
 	
 	/**
 	 * User specific /data/files/
@@ -1073,9 +1047,32 @@ class usersystem {
 			return $user_files_dir; // User Files folder already exists, return it!
 		}
 	}
+	
+	/**
+	* Get User Telegram Chat-ID
+	*
+	* Prüft ob der User-ID einen Telegram Messenger Chat-ID eingetragen hat
+	*
+	* @author IneX
+	* @date 22.01.2017
+	* @since 4.0
+	* @version 1.0
+	*
+	* @param $user_id interger User-ID
+	* @return integer The User's Telegram Chat-ID
+	*/
+	function userHasTelegram($user_id)
+	{
+		global $db;
+		$query = $db->query('SELECT telegram_chat_id FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__);
+		$result = $db->fetch($query);
+		if ($result) return $result['telegram_chat_id'];
+		else return false;
+	}
 }
 
 $user = new usersystem();
+
 if(isset($_POST['username']) && $_POST['username'] != '') {
 	$_POST['cookie'] ? $auto = TRUE : $auto = FALSE;
 	$login_error = $user->login($_POST['username'], $_POST['password'], $auto);
@@ -1088,4 +1085,3 @@ if(isset($_COOKIE['autologin_id']) && $_COOKIE['autologin_id'] != '' && !$_SESSI
 if(isset($_POST['logout'])) {
 	$user->logout();
 }
-?>

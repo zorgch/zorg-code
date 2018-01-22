@@ -35,7 +35,7 @@ class UserManagement
 			$rs = $db->fetch($result);
 
 			//verschluesslet uebergebenes passwort
-			$crypted_pw = $this->crypt_pw($password);
+			$crypted_pw = crypt_pw($password);
 			if($_COOKIE['autologin_pw'] != '' && $password == "") {
 				$crypted_pw = $_COOKIE['autologin_pw'];
 			}

@@ -13,11 +13,11 @@ $geaechtet = array();
 function exec_newpassword() {
 	global $db, $user;
 	if($_POST['old_pass'] && $_POST['new_pass'] && $_POST['new_pass_2']) {
-		$crypted_old_pass = $user->crypt_pw($_POST['old_pass']);
+		$crypted_old_pass = crypt_pw($_POST['old_pass']);
 
 		if($crypted_old_pass == $user->userpw) {
 			if($_POST['new_pass'] == $_POST['new_pass_2']) {
-				$crypted_new_pass = $user->crypt_pw($_POST['new_pass']);
+				$crypted_new_pass = crypt_pw($_POST['new_pass']);
 				$sql = "UPDATE user set userpw = '$crypted_new_pass'
 				WHERE id = '$_SESSION[user_id]'";
 				$db->query($sql, __FILE__, __LINE__);
@@ -36,7 +36,7 @@ function exec_changeprofile() {
 	global $db, $user, $geaechtet;
 	$error[0] = FALSE;
 	if(count($_POST) && $_POST['email']) {
-		if($user->check_email($_POST['email']) && !$geaechtet[$_SESSION['user_id']]) {
+		if(check_email($_POST['email']) && !$geaechtet[$_SESSION['user_id']]) {
 			if (!$_POST['addle']) $_POST['addle'] = '0';
 			if (!$_POST['chess']) $_POST['chess'] = '0';
 			if (!$_POST['zorger']) $_POST['zorger'] = '0';
@@ -442,7 +442,7 @@ if($_SESSION['user_id']) {
 		if ($user->id > 0 && $_GET['user_id'] != $user->id && $rs['addle']) {
 			?>
 			<br />
-			<form action="addle.php?show=overview&do=new" method='post'>
+			<form action="/addle.php?show=overview&do=new" method='post'>
 				<INPUT type="hidden" name="id" value="<?=$_GET['user_id']?>">
 				<input type='submit' class='button' value=" <?=$rs[username]?> zum Addle herausfordern ">
 			</FORM>
