@@ -803,8 +803,7 @@ class Messagesystem {
 					FROM
 						user
 					WHERE
-						telegram_chat_id IS NOT NULL AND
-						telegram_chat_id > 0
+						telegram_chat_id IS NOT NULL
 					" . (isset($userid) && $userid > 0 && is_numeric($userid) ? 'AND id = ' . $userid : '' );
 			$result = $db->query($sql, __FILE__, __LINE__);
 
