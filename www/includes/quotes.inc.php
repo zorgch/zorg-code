@@ -182,7 +182,7 @@ Class Quotes {
 
 			// Quote fetchen
 			$sql = "
-				SELECT quotes.id, avg( score ) score
+				SELECT quotes.id, avg( score ) score, quotes.text, quotes.user_id
 				FROM `quotes`
 				LEFT JOIN quotes_votes ON ( quote_id = quotes.id )
 				GROUP BY quotes.id
@@ -195,6 +195,9 @@ Class Quotes {
 			// Quote in die daily tabelle tun
 			$sql = "REPLACE INTO periodic (name, id, date) VALUES ('daily_quote', ".$rs['id'].", NOW())";
 			$db->query($sql, __FILE__, __LINE__);
+			
+			// Notification auslösen
+			Messagesystem::sendTelegramNotification( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.usersystem::id2user($rs['user_id'], TRUE).'</i>' );
 			
 			return true;
 		}

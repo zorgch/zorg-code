@@ -30,16 +30,16 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	//setiathome::tagesabschluss();
 	
 	// alte kompilierte comments löschen (um speicherplatz zu sparen)
-	$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done\n' : 'deleteOldTemplates: ERROR\n' );
+	$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done' : 'deleteOldTemplates: ERROR' ) . "\r\n";
 	
 	// addle-games älter als 15 wochen löschen. spieler, der nicht gezogen hat, verliehrt
-	$status_html .= ( addle_remove_old_games() ? 'addle_remove_old_games: done\n' : 'addle_remove_old_games: ERROR\n' );
+	$status_html .= ( addle_remove_old_games() ? 'addle_remove_old_games: done' : 'addle_remove_old_games: ERROR' ) . "\r\n";
 	
 	// Neuer Quote of the Day machen.
-	$status_html .= ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done\n' : 'Quotes::newDailyQuote: ERROR\n' );
+	$status_html .= ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done' : 'Quotes::newDailyQuote: ERROR' ) . "\r\n";
 	//Quotes::newDailyQuote();
 	//$status_html .=  'Quotes::newDailyQuote: done\n';
-	
+
 	//spaceweather --> wird doch eigentlich schon im apod Cron erledigt?? IneX, 8.6.08
 	//$status_html .= get_spaceweather() ? "get_spaceweather: done\n" : "get_spaceweather: ERROR\n" ;
 

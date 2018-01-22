@@ -108,7 +108,7 @@ function galleryOverview ($state="", $error="") {
 		//.'<tr class="title"><td align="center"colspan="4">Galleries</td></tr><tr>'
 	;
 	while ($d = mysql_fetch_array($e)) {
-		$seen[$i++] = $d[id];
+		$seen[$i++] = $d['id'];
 		$out .= '<td align="center"
 		style="border-collapse: collapse; border-width:1px; border-style: solid; border-color: #'.BORDERCOLOR.'; padding: 10px;"
 		valign="middle" width="25%">';
@@ -124,8 +124,8 @@ function galleryOverview ($state="", $error="") {
 		$out .= '</b>';
 		$out .= '<br />';
 		//$out .= '<tr><td align="center" valign="middle" width="'.($MAX_PIC_SIZE[tnWidth]+2*$THUMBPAGE[padding]).'">';
-		$out .= getAlbumLinkRandomThumb($d[id]);
-		//('.$d[anz].' Pics)
+		$out .= getAlbumLinkRandomThumb($d['id']);
+		//('.$d['anz'].' Pics)
 		//$out .= '</td></tr>';
 		//$out .= '</table>';
 		$out .= '</td>';
@@ -164,8 +164,8 @@ function galleryOverview ($state="", $error="") {
 		while ($d = mysql_fetch_array($e)) {
 		$newexists = 1;
 		$out .= '<tr>';
-		$out .= '<td align="left">- '.$d[name].' &nbsp; &nbsp; </td>';
-		$out .= '<td align="left"><a href="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$d[id].'">[EDIT]</a></td>';
+		$out .= '<td align="left">- '.$d['name'].' &nbsp; &nbsp; </td>';
+		$out .= '<td align="left"><a href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$d['id'].'">[EDIT]</a></td>';
 		$out .= '</tr>';
 		}
 		$out .= '</table><br/>';
@@ -196,7 +196,7 @@ function albumThumbs ($id, $page=0) {
 	$pagepics = $THUMBPAGE[width] * $THUMBPAGE[height];
 	$e = $db->query("SELECT count(id) anz FROM gallery_pics p WHERE album=$id ".ZENSUR." GROUP BY album", __FILE__, __LINE__);
 	$d = mysql_fetch_array($e);
-	$anz = $d[anz];
+	$anz = $d['anz'];
 	
 	$e = $db->query(
 		"SELECT g.*, e.name eventname
@@ -220,7 +220,7 @@ function albumThumbs ($id, $page=0) {
 	
 		if ($rows==0) echo '<tr>';
 		echo '<td class="border" cellpadding="'.$THUMBPAGE[padding].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
-		.'<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$d[id].'">'.($d['name']?"$d[name]<br />":'').'<img border="0" src="'.imgsrcThum($d[id]).'">';
+		.'<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br />':'').'<img border="0" src="'.imgsrcThum($d['id']).'">';
 	
 		if ($comments) {
 			echo "<br />$comments Comments ";
@@ -245,7 +245,7 @@ function albumThumbs ($id, $page=0) {
 		if ($page==$i) {
 		echo '<b>['.($i+1).']</b> &nbsp; ';
 		}else{
-		echo '<a href="'.$_SERVER[PHP_SELF].'?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a> &nbsp; ';
+		echo '<a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a> &nbsp; ';
 		}
 	}
 	
@@ -295,7 +295,7 @@ function pic ($id) {
 				WHERE p.id<='$id' AND p.album=$cur[album] AND a.id=$cur[album] ".ZENSUR."
 				GROUP BY album", __FILE__, __LINE__);
 	$d = mysql_fetch_array($e);
-	$page = floor($d[anz] / ($THUMBPAGE[width] * $THUMBPAGE[height]));
+	$page = floor($d['anz'] / ($THUMBPAGE[width] * $THUMBPAGE[height]));
 	echo '<br /><table width="80%" align="center"><tr>
 	<td align="center" class="bottom_border"><b class="titlebar">'
 	.($d['eventname'] ? $d['eventname'] : $d['name'])
@@ -307,22 +307,22 @@ function pic ($id) {
 	}
 	
 	if ($_GET['editFotoTitle'] && $user->typ == USER_MEMBER) {
-		echo "<form method='post' action='$_SERVER[PHP_SELF]?do=editFotoTitle&".url_params()."'>";
-			echo "Foto-Titel: <input name=frm[name] size=30 class='text' value='$cur[name]'> ";
-			echo "<input type='submit' value=' OK ' class='button'>";
+		echo '<form method="post" action="'.$_SERVER['PHP_SELF'].'?do=editFotoTitle&'.url_params().'">';
+			echo 'Foto-Titel: <input name="'.frm['name'].'" size="30" class="text" value="'.$cur['name'].'"> ';
+			echo '<input type="submit" value=" OK " class="button">';
 		echo "</form>";
 	} else {
 		if (!$cur['name']) {
-			echo "<form method='post' action='$_SERVER[PHP_SELF]?do=editFotoTitle&".url_params()."'>";
-				echo "Foto-Titel: <input name=frm[name] size=30 class='text'>";
-				echo "<input type='submit' value=' OK ' class='button'>";
+			echo '<form method="post" action="'.$_SERVER['PHP_SELF'].'?do=editFotoTitle&'.url_params().'">';
+				echo 'Foto-Titel: <input name="'.frm['name'].'" size="30" class="text">';
+				echo '<input type="submit" value=" OK " class="button">';
 			echo "</form>";
 		}elseif ($cur['name']) {
-			echo "<h2>$cur[name]</h2>";
+			echo '<h2>'.$cur['name'].'</h2>';
 		}
 	
 		if ($cur['name'] && $user->typ == USER_MEMBER) {
-			echo "<small><a href='$_SERVER[PHP_SELF]?editFotoTitle=1&".url_params()."'>[edit Foto-Titel]</a></small>";
+			echo '<small><a href="'.$_SERVER['PHP_SELF'].'?editFotoTitle=1&'.url_params().'">[edit Foto-Titel]</a></small>';
 		}
 	}
 	
@@ -337,7 +337,7 @@ function pic ($id) {
 	
 	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.
 	/*if ($user->typ == USER_MEMBER) {
-		echo "<form method='post' action='$_SERVER[PHP_SELF]?do=doRotatePic&".url_params()."'><p>";
+		echo "<form method='post' action='$_SERVER['PHP_SELF']?do=doRotatePic&".url_params()."'><p>";
 			echo "<input type='radio' class='text' name='rotatedir' value='left' checked /> 90&deg; links&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 			echo "<input type='radio' class='text' name='rotatedir' value='right' /> 90&deg; rechts&nbsp;&nbsp;";
 			echo "<input type='submit' class='button' name='rotatebutton' value='Bild drehen' /></p>";
@@ -347,14 +347,14 @@ function pic ($id) {
 	
 	## PIC SCORE FORMULAR ##
 	if ($user->typ >= USER_USER) {
-		if (hasVoted($user->id, $cur[id])) {
-			$anz_votes = getNumVotes($cur[id]);
+		if (hasVoted($user->id, $cur['id'])) {
+			$anz_votes = getNumVotes($cur['id']);
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			echo '<p>Bild Note: '.getScore($cur[id]).' <small>('.$votes.')</small></p>';
+			echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 		} else {
 			echo '
-			<br /><form action="'.$_SERVER[PHP_SELF].'?do=benoten&amp;'.url_params().'" method="post" name="f_benoten">
-			<input name="picID" type="hidden" value="'.$cur[id].'">
+			<br /><form action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" method="post" name="f_benoten">
+			<input name="picID" type="hidden" value="'.$cur['id'].'">
 			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="1">1
 			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="2">2
 			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="3">3
@@ -366,28 +366,28 @@ function pic ($id) {
 			';
 		}
 	} else {
-		$anz_votes = getNumVotes($cur[id]);
+		$anz_votes = getNumVotes($cur['id']);
 		$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-		echo '<p>Bild Note: '.getScore($cur[id]).' <small>('.$votes.')</small></p>';
+		echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 	}
 	
 	
 	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0" '.$cur[picsize].'>';
 	
 	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
-	if ($last) echo '<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$last[id].'">previous</a>';
+	if ($last) echo '<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$last['id'].'">previous</a>';
 	else echo '&lt;- last';
-	echo '</td><td style="text-align:center"><a href="'.$_SERVER[PHP_SELF].'?show=albumThumbs&albID='.$cur[album].'&page='.$page.'">overview</a></td>';
+	echo '</td><td style="text-align:center"><a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur[album].'&page='.$page.'">overview</a></td>';
 	echo '<td style="text-align:right" width="30%">';
 	if ($next) {
-		echo '<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$next[id].'">next</a>';
+		echo '<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$next['id'].'">next</a>';
 	} else {
 		echo 'next';
 	}
 	echo '</td></tr>';
 	/* die DIVs machen mich verrückt... damn
 	echo '<tr><td colspan="3"><div style="position:static; width:800; height:600;"><div name="thepic" style="position:absolute;"><img border="0" src="'. imgsrcPic($id). '"></div>';
-	getUsersOnPic($cur[id]); // MyPic Markierungen laden
+	getUsersOnPic($cur['id']); // MyPic Markierungen laden
 	echo '</div></td></tr>';
 	*/
 	
@@ -413,7 +413,7 @@ function pic ($id) {
 	echo '</td></tr>';
 	
 	/*echo '<tr><td clspan="3">';
-	getUsersOnPic($cur[id]);  // MyPic Markierungen laden
+	getUsersOnPic($cur['id']);  // MyPic Markierungen laden
 	while($i < count($theusers))
 		{
 			echo $theusers[$i].', ';
@@ -437,12 +437,12 @@ function pic ($id) {
 		echo '<font color="green">Bild ist nicht zensiert</font>';
 		$val = "zensieren";
 		}
-		echo '</td><td valign="top"><br /><form action="'.$_SERVER[PHP_SELF].'?do=zensur&show=pic&picID='.$cur[id].'" method="post">'
+		echo '</td><td valign="top"><br /><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
 		.'<input type="submit" class="button" value="'.$val.'"></form></td>';
 	
 		echo '<td valign="top" style="text-align:right" width="250"><br />'
-		.'<form action="'.$_SERVER[PHP_SELF].'?do=delPic&show=albumThumbs&albID='.$cur[album].'" method="post">'
-		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur[id].'">'
+		.'<form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur[album].'" method="post">'
+		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
 		.'</form></td></tr></table>';
 	}
 }
@@ -528,7 +528,7 @@ if ($editError) echo "<font color='red'><b>$editError</b></font><br /><br />";
 echo "<a href='/gallery.php?albID=$id&show=albumThumbs'>go to Album</a><br /><br />";
 ?>
 <table class="border" cellspacing="3">
-<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=editAlbum"'?> method="post">
+<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=editAlbum"'?> method="post">
 	<?
 	?>
 	<tr>
@@ -537,7 +537,7 @@ echo "<a href='/gallery.php?albID=$id&show=albumThumbs'>go to Album</a><br /><br
 	</tr>
 	<tr>
 	<td align="left">Name: </td>
-	<td align="left"><input type="text" class="text" size="50" name="frm[name]" value="<?=$frm[name]?>"></td>
+	<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?=$frm['name']?>"></td>
 	</tr>
 	<tr>
 	<td colspan='2' align="center">
@@ -555,7 +555,7 @@ echo "<a href='/gallery.php?albID=$id&show=albumThumbs'>go to Album</a><br /><br
 if ($id) {
 	?>
 	<table class="border"><tr><td>
-	<form <?='action="'.$SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
+	<form <?='action="'.$SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
 	Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best?tigen)<br /><br />
 		<input class="text" name="del" value="" size="4"> &nbsp;
 		<input type="submit" class="button" value="   l&ouml;schen   ">
@@ -573,7 +573,7 @@ if ($id) {
 	?>
 
 	<table class="border"><tr><td>
-	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=mkUploadDir"'?> method="post">
+	<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=mkUploadDir"'?> method="post">
 	Upload-Ordner erstellen (in /data/gallery/upload/):<br /><br />
 	<input type="text" class="text" name="frm[folder]" <?='value="'.$frm[folder].'"'?>> &nbsp; &nbsp;
 	<input type="submit" class="button" value="   erstellen   ">
@@ -620,7 +620,7 @@ if ($id) {
 	?>
 
 	<table class="border"><tr><td>
-	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
+	<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
 	Upload-Ordner l&ouml;schen:<br /><br />
 	<select size="1" class="text" name="frm[folder]">
 		<?
@@ -633,12 +633,12 @@ if ($id) {
 	</form>
 	</td></tr>
 	<tr><td style="text-align:right">
-	<a <?='href="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
+	<a <?='href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 	</td></tr></table>
 	<br />
 
 	<table class="border"><tr><td align="left" width="450">
-	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
+	<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
 	Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
 	Rechte 0664 gibst.
 	(<?='<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br /><br />
@@ -659,7 +659,7 @@ if ($id) {
 	</form>
 	</td></tr>
 	<tr><td style="text-align:right">
-	<a <?='href="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
+	<a <?='href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 	</td></tr></table>
 	<br />
 	<?
@@ -861,7 +861,7 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 		$db->query($sql, __FILE__, __LINE__);
 			
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
-		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 	} else {
 		user_error("Das dörfsch DU nöd - isch nur für igloggti User!", E_USER_ERROR);
 	}
@@ -962,7 +962,7 @@ function getUsersOnPic($pic_id) {
 		array_push($usersonpic, usersystem::link_userpage($mp[user_id], FALSE));
 		/* für DIV basierte positionierung/Ausgabe:
 		$html .= '
-		<div name="'.usersystem::id2user($mp[user_id], FALSE, FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp[id].'">'.usersystem::id2user($mp[user_id], FALSE, FALSE).'<div>
+		<div name="'.usersystem::id2user($mp[user_id], FALSE, FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.usersystem::id2user($mp[user_id], FALSE, FALSE).'<div>
 		';*/
 	}
 	
@@ -1095,7 +1095,7 @@ function doBenoten($pic_id, $score) {
 	//return array('state'=>"Pic $pic_id benotet");
 	
 	// Activity Eintrag auslösen (ausser bei der Bärbel)
-	if ($user_id != 59) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit der Note <b>'.$score.'/6</b> bewertet.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+	if ($user_id != 59) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit der Note <b>'.$score.'/6</b> bewertet.<br/><br /><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 }
 
 
@@ -1332,7 +1332,7 @@ function imgName($id) {
 	$e = $db->query("SELECT id, name FROM gallery_pics WHERE id = $id", __FILE__, __LINE__);
 	$cur = mysql_fetch_array($e);
 	
-	return $cur[name];
+	return $cur['name'];
 }
 
 
@@ -1423,7 +1423,7 @@ function getAlbumLinkRandomThumb($album_id) {
 
 	$result = $db->query("SELECT * FROM gallery_pics p WHERE album=".$album_id." ".ZENSUR." ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
 	$rs = $db->fetch($result, __FILE__, __LINE__);
-	$file = imgsrcThum($rs[id]);
+	$file = imgsrcThum($rs['id']);
 
 	$html =
 		'<a href="/gallery.php?show=albumThumbs&albID='.$album_id.'">'
@@ -1454,10 +1454,14 @@ function getDailyThumb () {
 							WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__);
 	$d = $db->fetch($e);
 
-	if (!$d || $d[upd]) {
+	if (!$d || $d['upd']) {
 		$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
 		$d = $db->fetch($e);
-		$db->query("REPLACE INTO periodic (name, id, date) VALUES ('$name', $d[id], NOW())", __FILE__, __LINE__);
+		$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__);
+		
+		// Notification auslösen
+		// url = URL to the Pic, caption = "Daily Pic(: Title - if available)"
+		Messagesystem::sendTelegramPhoto( array('url' => SITE_URL.imgsrcThum($d['id']), 'caption' => 'Daily Pic' . ( !picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']) ) ) );
 	}
 
 	return formatGalleryThumb($d);
@@ -1496,12 +1500,12 @@ function getTopPics($album_id, $limit, $options) {
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
 		while($rs = $db->fetch($result)) {
-			$file = imgsrcThum($rs[pic_id]);
+			$file = imgsrcThum($rs['pic_id']);
 			
 			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 			
-			//$anz_votes = getNumVotes($rs[pic_id]);
-			$anz_votes = $rs[numVotes];
+			//$anz_votes = getNumVotes($rs['pic_id']);
+			$anz_votes = $rs['numVotes'];
 			
 			if ($options == 'ranking-list') {
 				$html_out .=
@@ -1511,10 +1515,10 @@ function getTopPics($album_id, $limit, $options) {
 			}
 			
 			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs[pic_id].'">'
+					'<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">'
 			;
 			
-			$pic_name = imgName($rs[pic_id]);
+			$pic_name = imgName($rs['pic_id']);
 			if ($pic_name) {
 				$html_out .=
 					$pic_name.'<br />'
@@ -1523,7 +1527,7 @@ function getTopPics($album_id, $limit, $options) {
 			
 			$html_out .=
 					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs[avgScore],1).' '
+					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
 			;
 			
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
@@ -1564,13 +1568,13 @@ function getTopPics($album_id, $limit, $options) {
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
 		while($rs = $db->fetch($result)) {
-			//$file = imgsrcThum($rs[id]);
-			$file = imgsrcThum($rs[pic_id]);
+			//$file = imgsrcThum($rs['id']);
+			$file = imgsrcThum($rs['pic_id']);
 			
 			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 			
-			//$anz_votes = getNumVotes($rs[pic_id]);
-			$anz_votes = $rs[numVotes];
+			//$anz_votes = getNumVotes($rs['pic_id']);
+			$anz_votes = $rs['numVotes'];
 			
 			if ($options == 'ranking-list') {
 				$html_out .=
@@ -1580,18 +1584,18 @@ function getTopPics($album_id, $limit, $options) {
 			}
 			
 			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs[pic_id].'">'
+					'<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">'
 			;
 			
-			if ($rs[name]) {
+			if ($rs['name']) {
 				$html_out .=
-					$rs[name].'<br />'
+					$rs['name'].'<br />'
 				;
 			}
 			
 			$html_out .=
 					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs[avgScore],1).' '
+					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
 			;
 			
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
@@ -1624,12 +1628,12 @@ function getTopPics($album_id, $limit, $options) {
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
 		while($rs = $db->fetch($result)) {
-			$file = imgsrcThum($rs[pic_id]);
+			$file = imgsrcThum($rs['pic_id']);
 			
 			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 			
-			//$anz_votes = getNumVotes($rs[pic_id]);
-			$anz_votes = $rs[numVotes];
+			//$anz_votes = getNumVotes($rs['pic_id']);
+			$anz_votes = $rs['numVotes'];
 			
 			if ($options == 'ranking-list') {
 				$html_out .=
@@ -1639,10 +1643,10 @@ function getTopPics($album_id, $limit, $options) {
 			}
 			
 			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs[pic_id].'">'
+					'<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">'
 			;
 			
-			$pic_name = imgName($rs[pic_id]);
+			$pic_name = imgName($rs['pic_id']);
 			if ($pic_name) {
 				$html_out .=
 					$pic_name.'<br />'
@@ -1651,7 +1655,7 @@ function getTopPics($album_id, $limit, $options) {
 			
 			$html_out .=
 					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs[avgScore],1).' '
+					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
 			;
 			
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
@@ -1683,7 +1687,7 @@ function getTopPics($album_id, $limit, $options) {
 function formatGalleryThumb ($rs) {
 	global $db, $user;
 
-	$file = imgsrcThum($rs[id]);
+	$file = imgsrcThum($rs['id']);
 
 	if ($user->typ == USER_MEMBER) { // schauen dass wirs nur bei membern machen...
 		if (!$user_id) { $user_id = $user->id; }
@@ -1691,27 +1695,27 @@ function formatGalleryThumb ($rs) {
 		$e = $db->query(
 		"SELECT count(c.id) anz
 		FROM comments c, comments_unread u
-		WHERE c.board = 'i' AND c.thread_id=".$rs[id]." AND u.comment_id=c.id AND u.user_id=".$user_id,
+		WHERE c.board = 'i' AND c.thread_id=".$rs['id']." AND u.comment_id=c.id AND u.user_id=".$user_id,
 		__FILE__, __LINE__
 		);
 		$d = $db->fetch($e);
 
-		if ($d[anz] > 0) {
+		if ($d['anz'] > 0) {
 			return
-			'<a href="/gallery.php?show=pic&picID='.$rs[id].'">'
-			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs[id]).' Comments</a>'
-			.' <small>('.$d[anz].' unread)</small>'
+			'<a href="/gallery.php?show=pic&picID='.$rs['id'].'">'
+			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs['id']).' Comments</a>'
+			.' <small>('.$d['anz'].' unread)</small>'
 			;
 		} else {
 			return
-			'<a href="/gallery.php?show=pic&picID='.$rs[id].'">'
-			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs[id]).' Comments</a>'
+			'<a href="/gallery.php?show=pic&picID='.$rs['id'].'">'
+			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs['id']).' Comments</a>'
 			;
 		}
 	} else { // wenns ein Gast ist...
 		return
-		'<a href="/gallery.php?show=pic&picID='.$rs[id].'">'
-		.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs[id]).' Comments</a>'
+		'<a href="/gallery.php?show=pic&picID='.$rs['id'].'">'
+		.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs['id']).' Comments</a>'
 		;
 	}
 }
@@ -1723,6 +1727,26 @@ function doEditFotoTitle ($picID, $frm) {
 	$db->update('gallery_pics', $picID, $frm, __FILE__, __LINE__);
 
 	unset($_GET['editFotoTitle']);
+}
+
+/**
+ * Checks if Pic has a Title
+ *
+ * @author IneX
+ * @date 21.01.2017
+ *
+ * @global object $db	Database Class Object
+ * @return string 		If set, returns the Pic's title
+ */
+function picHasTitle($picID) {
+	global $db;
+
+	if (is_numeric($picID) && $picID > 0) {
+		$e = $db->query("SELECT name FROM gallery_pics WHERE id='$picID' LIMIT 1", __FILE__, __LINE__);
+		$d = $db->fetch($e);
+	}
+	if ($d) return $d['name'];
+	else return false;
 }
 
 /**

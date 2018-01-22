@@ -444,3 +444,22 @@ function isMobileClient($userAgent)
 	return '';
 }
 
+
+/**
+ * Test if a URL returns status code 200 OK
+ *
+ * @author Inex
+ * @date 21.01.2017
+ * @link https://stackoverflow.com/a/39811033/5750030
+ *
+ * @param string $url 	The URL to validate
+ * @return boolean		Returns true or false indicating the validity of the given URL
+ */ 
+function urlExists($url)
+{
+	if (@file_get_contents($url,false,NULL,0,1))
+    {
+        return true;
+    }
+    return false;
+}

@@ -22,8 +22,7 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once( __DIR__ .'/main.inc.php');
 
 /**
  * Activities Class
@@ -117,6 +116,8 @@ class Activities
 						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
 					";
 			$db->query($sql, __FILE__, __LINE__);
+			
+			Messagesystem::sendTelegramNotification( '<b>' . usersystem::id2user($fromUser, TRUE) . '</b> ' . $activity );
 		//}
 		
 	}

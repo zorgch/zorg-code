@@ -55,6 +55,9 @@ Class Bugtracker {
 			$sql = "SELECT MAX(id) AS id FROM bugtracker_bugs";
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
+			// Activity Eintrag auslösen
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$bugTitle.'</a> gemeldet.<br/><br/>', 'bu');
+
 			// Benachrichtigungs-Message
 			if(count($_GET['msg_users']) > 0) {
 				for ($i=0; $i < count($_GET['msg_users']); $i++) {
@@ -129,6 +132,9 @@ Class Bugtracker {
 			;
 			$db->query($sql, __FILE__, __LINE__);
 
+			// Activity Eintrag auslösen
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a> wieder eröffnet.<br/><br/>', 'bu');
+
 			if($user->id != $rs['reporter_id']) {
 				Messagesystem::sendMessage(
 					$user->id,
@@ -168,8 +174,11 @@ Class Bugtracker {
 				WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
-
 			$rs = Bugtracker::getBugRS($bugId);
+
+			// Activity Eintrag auslösen
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$bugId.'">'.$rs['title'].'</a> gelöst.<br/><br/>', 'bu');
+
 			if($user->id != $rs['reporter_id']) {
 				Messagesystem::sendMessage(
 					$user->id,
@@ -214,8 +223,11 @@ Class Bugtracker {
 				." WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
-
 			$rs = Bugtracker::getBugRS($bugId);
+
+			// Activity Eintrag auslösen
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$bugId.'">'.$rs['title'].'</a> abgelehnt.<br/><br/>', 'bu');
+
 			if($user->id != $rs['reporter_id']) {
 				Messagesystem::sendMessage(
 					$user->id,

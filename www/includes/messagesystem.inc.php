@@ -14,17 +14,15 @@
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		messages
  *
- * @version		1.0
+ * @version		2.0
  * @package		Zorg
  * @subpackage	Messagesystem
- */
- 
+ */ 
+
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/colors.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+require_once( __DIR__ . '/main.inc.php');
 
 /**
  * Messagesystem Class
@@ -783,6 +781,207 @@ class Messagesystem {
 			
 	}
 
-}
+	/**
+	 * Get List of Users Telegram Messenger Chat-ID where available
+	 *
+	 * @author	IneX
+	 * @date	21.01.2017
+	 * @version	1.0
+	 * @since	2.0
+	 *
+	 * @param 	integer $userid (Optional) User-ID dessen Chat-ID ermittelt werden soll
+	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
+	 * @return	array			Returns list with Telegram Chat-IDs from User-Table
+	 */
+	static public function getAllUserTelegramChatIds($userid='')
+	{
+		global $db;
+		
+		try {
+			$sql = "SELECT
+						telegram_chat_id
+					FROM
+						user
+					WHERE
+						telegram_chat_id IS NOT NULL AND
+						telegram_chat_id > 0
+					" . (isset($userid) && $userid > 0 && is_numeric($userid) ? 'AND id = ' . $userid : '' );
+			$result = $db->query($sql, __FILE__, __LINE__);
 
-?>
+			while($rs = $db->fetch($result)) {
+				$telegramChatIds[] = $rs['telegram_chat_id'];
+			}
+
+			return $telegramChatIds;
+
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_WARNING);
+		}
+	}
+
+	/**
+	 * Notfication via Telegram Messenger
+	 * Schickt eine Notification an die Telegram Chats von Usern
+	 *
+	 * @author	IneX
+	 * @date	21.01.2017
+	 * @version	1.0
+	 * @since	2.0
+	 *
+	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
+	 *
+	 * @see Messagesystem::getAllUserTelegramChatIds()
+	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
+	 * @param	integer	$to_user_id			(Optional) User-Id des Empfängers
+	 * @param	string	$sendPhoto			(Optional) Picture with URL to an Image & Caption, to send along the Message
+	 * @global	array	$db					Array mit allen MySQL-Datenbankvariablen
+	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
+	 */
+	static public function sendTelegramNotification($notificationText, $to_user_id='', $sendPhoto='')
+	{
+		global $db, $botconfigs;
+		
+		// Make sure a proper Notification Text is passed & the Telegram Bot-Configs exist
+		if ((!empty($notificationText) && strlen($notificationText) > 0) && (isset($botconfigs) && is_array($botconfigs)))
+		{
+			// Encode Notification Text
+				// Fix missing Server address in Links
+				if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
+				
+				// Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre>
+				$notificationText = str_replace(array("\r", "\n", "&nbsp;"), '', $notificationText);
+				$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
+				//$notificationText = str_replace('IneX', '<a href="tg://user?id=28563309">IneX</a>', $notificationText);
+				$notificationText = html_entity_decode($notificationText);
+
+			// Get the Telegram Chat-IDs
+			$telegramChatIds = Messagesystem::getAllUserTelegramChatIds( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
+
+			// When we got at least 1 Chat-ID...
+			if(is_array($telegramChatIds))
+			{
+				// ...send the Telegram Message to each of them
+				foreach ($telegramChatIds as $chatId)
+				{
+					$data = [
+					    'chat_id' => $chatId,
+					    'parse_mode' => 'html',
+					    'text' => $notificationText,
+					];
+					file_get_contents( TELEGRAM_API_URI . '/sendMessage?' . http_build_query($data) );
+					
+					// Check if an Image URL has been passed, too
+					
+					if (isset($picUrl) && strlen($picUrl) > 0 && strpos($picUrl, 'http'))
+					{
+						if (urlExists($picUrl)) {
+							$data = [
+							    'chat_id' => $chatId,
+							    'caption' => 'html',
+							    'text' => $notificationText,
+							];
+						}
+					}
+				}
+			}
+		} else {
+			user_error('Notification Text is empty or otherwise invalid', E_USER_NOTICE);
+		}
+	}
+
+
+	/**
+	 * Send a Photo via Telegram Messenger
+	 * Schickt eine Photo-Notification an die Telegram Chats von Usern
+	 *
+	 * @author	IneX
+	 * @date	21.01.2017
+	 * @version	1.0
+	 * @since	2.0
+	 *
+	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
+	 *
+	 * @see Messagesystem::getAllUserTelegramChatIds()
+	 * @param	array	$imageData			Image data: URL to an Image & Caption text
+	 * @param	integer	$to_user_id			(Optional) User-Id des Empfängers
+	 * @global	array	$db					Array mit allen MySQL-Datenbankvariablen
+	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
+	 */
+	static public function sendTelegramPhoto($imageData, $to_user_id='')
+	{
+		global $db, $botconfigs;
+		
+		// Make sure a proper Image Data Array is passed & the Telegram Bot-Configs exist
+		if (is_array($imageData) && (isset($imageData['url']) && strlen($imageData['url']) > 0) && (isset($botconfigs) && is_array($botconfigs)))
+		{
+			$image_url = $imageData['url'];
+			$image_caption = (isset($imageData['caption']) && strlen($imageData['caption']) > 0 ? $imageData['caption'] : '');
+			
+			error_log('[DEBUG] '.$image_url);
+			
+			// Encode Image Caption Text
+				// Fix missing Server address in Links
+				if (strpos($image_url, 'href="/') > 0) $image_url = str_replace('href="/', 'href="' . SITE_URL . '/', $image_url);
+			
+				// Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre>
+				$image_caption = str_replace(array("\r", "\n", "&nbsp;"), '', $image_caption);
+				$image_caption = strip_tags($image_caption, '<b><i><a><code><pre>');
+				$image_caption = html_entity_decode($image_caption);
+
+			// Test if the Image URL is valid:
+			if (urlExists($image_url))
+			{
+				// Get the Telegram Chat-IDs
+				$telegramChatIds = Messagesystem::getAllUserTelegramChatIds( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
+
+				// When we got at least 1 Chat-ID...
+				if(is_array($telegramChatIds))
+				{
+					// ...send the Telegram Message to each of them
+					foreach ($telegramChatIds as $chatId)
+					{
+						$data = [
+						    'chat_id' => $chatId,
+						    'caption' => $image_caption,
+						    'photo' => $image_url
+						];
+						file_get_contents( TELEGRAM_API_URI . '/sendPhoto?' . http_build_query($data) );
+						
+						/* Source: https://stackoverflow.com/a/4247082/5750030
+						define('MULTIPART_BOUNDARY', '--------------------------'.microtime(true));
+						$header = 'Content-Type: multipart/form-data; boundary='.MULTIPART_BOUNDARY;
+						define('FORM_FIELD', 'uploaded_file'); 
+						$file_contents = file_get_contents($image_url);    
+						
+						$content =  "--".MULTIPART_BOUNDARY."\r\n".
+						            "Content-Disposition: form-data; name=\"".FORM_FIELD."\"; filename=\"".basename($image_url)."\"\r\n".
+						            "Content-Type: image/jpeg\r\n\r\n".
+						            $file_contents."\r\n";
+						
+						// add some POST fields to the request too: $_POST['foo'] = 'bar'
+						$content .= "--".MULTIPART_BOUNDARY."\r\n".
+						            "Content-Disposition: form-data; name=\"".$image_caption."\"\r\n\r\n".
+						            $image_caption."\r\n";
+						
+						// signal end of request (note the trailing "--")
+						$content .= "--".MULTIPART_BOUNDARY."--\r\n";
+						$context = stream_context_create(array(
+						    'http' => array(
+						          'method' => 'POST',
+						          'header' => $header,
+						          'content' => $content,
+						    )
+						));
+						file_get_contents('http://url/to/upload/handler', false, $context);
+						*/
+					}
+				}
+			} else {
+				user_error('Image URL is not reachable or invalid', E_USER_NOTICE);
+			}
+		} else {
+			user_error('Image Data is empty or otherwise invalid', E_USER_NOTICE);
+		}
+	}
+
+}

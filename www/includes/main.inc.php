@@ -141,6 +141,7 @@ include_once(SITE_ROOT.'/includes/quotes.inc.php');
 include_once(SITE_ROOT.'/includes/rezepte.inc.php');
 include_once(SITE_ROOT.'/includes/schach.inc.php');
 include_once(SITE_ROOT.'/includes/spaceweather.inc.php');
+include_once(SITE_ROOT.'/includes/telegrambot.inc.php');
 
 /**
  * Globals
