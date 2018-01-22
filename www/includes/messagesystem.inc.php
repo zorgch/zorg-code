@@ -22,7 +22,8 @@
 /**
  * File Includes
  */
-require_once( __DIR__ . '/main.inc.php');
+//require_once( __DIR__ . '/main.inc.php');
+require_once( __DIR__ . '/util.inc.php');
 
 /**
  * Messagesystem Class
@@ -304,7 +305,7 @@ class Messagesystem {
 	  global $user;
 
 	  $html =
-	    '<form name="sendform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="post">'
+	    '<form name="sendform" action="/profil.php?'.$_SERVER['QUERY_STRING'].'" method="post">'
 	    .'<input type="hidden" name="action" value="sendmessage">'
 	  	.'<input type="hidden" name="url" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
 	    .'<table width="'.FORUMWIDTH.'" class="border" align="center">'
@@ -723,8 +724,25 @@ class Messagesystem {
 		// Sende E-Mail Notification an Users (einzeln, nur sofern erlaubt)
 		//for ($i=0; $i<count($to_users); $i++) --> auf $owner gehen!
 			//{
+		try {
 			if ($owner != $from_user_id) Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_ERROR);
+		}
 		//}
+		
+		/**
+		 * Send Telegram Notification
+		 */
+		if ($owner != $from_user_id && usersystem::userHasTelegram($owner))
+		{
+			try {
+				$message = sprintf('Neue <a href="%s/user/%d">Nachricht</a> von <b>%s</b> auf %s: %s', SITE_URL, $owner, usersystem::id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...'));
+				Messagesystem::sendTelegramNotification($message, $owner);
+			} catch (Exception $e) {
+				user_error($e->getMessage(), E_USER_ERROR);
+			}
+		}
 	  	
 	}
 	
@@ -915,8 +933,6 @@ class Messagesystem {
 		{
 			$image_url = $imageData['url'];
 			$image_caption = (isset($imageData['caption']) && strlen($imageData['caption']) > 0 ? $imageData['caption'] : '');
-			
-			error_log('[DEBUG] '.$image_url);
 			
 			// Encode Image Caption Text
 				// Fix missing Server address in Links
