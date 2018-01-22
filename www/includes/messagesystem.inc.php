@@ -829,6 +829,9 @@ class Messagesystem {
 				$telegramChatIds[] = $rs['telegram_chat_id'];
 			}
 
+			// Cleanup Array by removing possible duplicate Chat-IDs
+			$telegramChatIds = array_unique($telegramChatIds);
+			
 			return $telegramChatIds;
 
 		} catch (Exception $e) {
