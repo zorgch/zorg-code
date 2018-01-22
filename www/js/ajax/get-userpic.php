@@ -1,11 +1,5 @@
 <?php
 /**
- * FILE INCLUDES
- */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php"); // zu lange Ladezeiten
-
-/**
  * AJAX Request validation
  */
 if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'getpic')
@@ -15,6 +9,12 @@ if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'getp
 	exit;
 }
 $index = ((isset($_GET['index']) && $_GET['index'] >= 0 && is_numeric($_GET['index'])) || strlen($_GET['index'] == '0') || (!empty($_GET['index']) && is_numeric($_GET['index'])) ? $_GET['index'] : 'false' );
+
+/**
+ * FILE INCLUDES
+ */
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+//require_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php"); // zu lange Ladezeiten
 
 /**
  * Get records from database

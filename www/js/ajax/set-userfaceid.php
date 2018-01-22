@@ -1,10 +1,5 @@
 <?php
 /**
- * FILE INCLUDES
- */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-
-/**
  * AJAX Request validation
  */
 header('Content-type:application/json;charset=utf-8');
@@ -24,6 +19,11 @@ if ( !isset($_POST['userid']) || empty($_POST['userid']) || $_POST['userid'] <= 
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	die(json_encode('Invalid or missing POST-Parameter (Error 3)'));
 }
+
+/**
+ * FILE INCLUDES
+ */
+require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 
 /**
  * Add user_id to faceplusplus DB-table
