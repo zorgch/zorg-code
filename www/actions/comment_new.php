@@ -23,7 +23,7 @@ if($_POST['text'] == '' || empty($_POST['text']) || !isset($_POST['text']))
 	$commentText = escape_text($_POST['text']);
 }
 
-if($_POST['parent_id'] == '' || empty($_POST['parent_id']) || $_POST['parent_id'] == '0' || !is_numeric($_POST['parent_id']))
+if($_POST['parent_id'] == '' || !is_numeric($_POST['parent_id']))
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	user_error('Parent id leer oder ungültig: ' . $_POST['parent_id'], E_USER_WARNING);
