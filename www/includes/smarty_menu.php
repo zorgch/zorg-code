@@ -1,5 +1,5 @@
-<?
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
+<?php
+	require_once( __DIR__ .'/../includes/smarty.inc.php');
 
 	/**
 	 * da php keine pointers kennt, müssen alle MenuTree-objekte mit ihrer id über dieses
@@ -173,4 +173,3 @@
 	
 	$smarty->register_block("menu_old", "smarty_menu_old");
 	$smarty->register_block("mtab", "smarty_mtab");
-?>

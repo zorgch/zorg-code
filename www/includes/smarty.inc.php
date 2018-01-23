@@ -12,20 +12,21 @@
 
 
 /** Pfad zu den Smarty Ordnern */
-define('SMARTY_DIR', $_SERVER['DOCUMENT_ROOT'].'/smartylib/');
-define('SMARTY_TEMPLATES_HTML', $_SERVER['DOCUMENT_ROOT'].'/templates/');
-define('SMARTY_CACHE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/cache/');
-define('SMARTY_COMPILE', $_SERVER['DOCUMENT_ROOT'].'/../data/smartylib/templates_c/');
+define('WEB_ROOT',  __DIR__ .'/..');
+define('SMARTY_DIR',  WEB_ROOT.'/smartylib/');
+define('SMARTY_TEMPLATES_HTML',  WEB_ROOT.'/templates/');
+define('SMARTY_CACHE',  WEB_ROOT.'/../data/smartylib/cache/');
+define('SMARTY_COMPILE', WEB_ROOT.'/../data/smartylib/templates_c/');
 
 
 //$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
-require_once($_SERVER['DOCUMENT_ROOT'].'/smartylib/Smarty.class.php');
+require_once(SMARTY_DIR . 'Smarty.class.php');
 //$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
 //$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+include_once(WEB_ROOT . '/includes/usersystem.inc.php');
 //$prof->stopTimer( "smarty.inc.php: include_once usersystem.inc.php" );
 //$prof->startTimer( "smarty.inc.php: include_once comments.res.php" );
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/comments.res.php');
+include_once(WEB_ROOT . '/includes/comments.res.php');
 //$prof->stopTimer( "smarty.inc.php: include_once comments.res.php" );
 
 /**
@@ -549,6 +550,6 @@ if (!isset($smarty)) $smarty = startSmarty();
 
 
 // required smarty files for registering all smarty features etc.
-require_once(SITE_ROOT.'/includes/smarty.fnc.php');
-require_once(SITE_ROOT.'/includes/smarty_menu.php');
-require_once(SITE_ROOT.'/includes/comments.fnc.php');
+require_once(WEB_ROOT.'/includes/smarty.fnc.php');
+require_once(WEB_ROOT.'/includes/smarty_menu.php');
+require_once(WEB_ROOT.'/includes/comments.fnc.php');

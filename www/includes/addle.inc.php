@@ -12,8 +12,8 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+include_once( __DIR__ .'/messagesystem.inc.php');
+include_once( __DIR__ .'/mysql.inc.php');
 
 /**
  * Konstante MAX_ADDLE_GAMES

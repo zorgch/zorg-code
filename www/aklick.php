@@ -12,7 +12,7 @@
 /**
  * File Includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/includes/main.inc.php');
 
 if(count($_POST)>0) {
 	if($_POST['edit_wort'] && ($_POST['edit_user'] == $_SESSION['user_id'] || $user->typ == 2)) {

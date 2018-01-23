@@ -1,6 +1,6 @@
 <?php ob_start(); // Startet das Output-Buffering - damit die header() funktion nicht an oberster Stelle des Codes stehen muss
 
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/includes/main.inc.php');
 
 $peter = new peter($_GET['game_id']);
 

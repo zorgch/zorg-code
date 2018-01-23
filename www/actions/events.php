@@ -1,18 +1,17 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/events.inc.php');
-
-
-// Validate & escape event fields
-$eventName = ( isset($_POST['name']) && !empty($_POST['name']) ? escape_text($_POST['name']) : user_error('Event: invalid Name "' . $_POST['name'] . '"', E_USER_WARNING) );
-$eventLocation = ( !empty($_POST['location']) ? escape_text($_POST['location']) : '' );
-$eventLink = ( !empty($_POST['link']) ? escape_text(remove_html($_POST['link'])) : '' );
-$eventReviewlink = ( !empty($_POST['review_url']) ? escape_text(remove_html($_POST['review_url'])) : '' );
-$eventDescription = ( !empty($_POST['description']) ? escape_text($_POST['description']) : '' );
-$eventGallery = ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0 ? $_POST['gallery_id'] : user_error('Event: invalid Gallery-ID "' . $_POST['gallery_id'] . '"', E_USER_WARNING) );
+require_once( __DIR__ .'/../includes/main.inc.php');
+require_once( __DIR__ .'/../includes/events.inc.php');
 
 
 if($_POST['action'] == 'new') {
+	// Validate & escape event fields
+	$eventName = ( isset($_POST['name']) && !empty($_POST['name']) ? escape_text($_POST['name']) : user_error('Event: invalid Name "' . $_POST['name'] . '"', E_USER_WARNING) );
+	$eventLocation = ( !empty($_POST['location']) ? escape_text($_POST['location']) : '' );
+	$eventLink = ( !empty($_POST['link']) ? escape_text(remove_html($_POST['link'])) : '' );
+	$eventReviewlink = ( !empty($_POST['review_url']) ? escape_text(remove_html($_POST['review_url'])) : '' );
+	$eventDescription = ( !empty($_POST['description']) ? escape_text($_POST['description']) : '' );
+	$eventGallery = ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0 ? $_POST['gallery_id'] : user_error('Event: invalid Gallery-ID "' . $_POST['gallery_id'] . '"', E_USER_WARNING) );
+
   $sql = 
   	"
   	INSERT INTO 
@@ -45,6 +44,14 @@ if($_POST['action'] == 'new') {
 }
 
 else if($_POST['action'] == 'edit' ) {
+	// Validate & escape event fields
+	$eventName = ( isset($_POST['name']) && !empty($_POST['name']) ? escape_text($_POST['name']) : user_error('Event: invalid Name "' . $_POST['name'] . '"', E_USER_WARNING) );
+	$eventLocation = ( !empty($_POST['location']) ? escape_text($_POST['location']) : '' );
+	$eventLink = ( !empty($_POST['link']) ? escape_text(remove_html($_POST['link'])) : '' );
+	$eventReviewlink = ( !empty($_POST['review_url']) ? escape_text(remove_html($_POST['review_url'])) : '' );
+	$eventDescription = ( !empty($_POST['description']) ? escape_text($_POST['description']) : '' );
+	$eventGallery = ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0 ? $_POST['gallery_id'] : user_error('Event: invalid Gallery-ID "' . $_POST['gallery_id'] . '"', E_USER_WARNING) );
+	
 	$sql =
 	 "
 		UPDATE `events` 
@@ -86,4 +93,3 @@ else if (isset($_GET['unjoin']) && is_numeric($_GET['unjoin'])) { // User besuch
 	header('Location: '.base64_decode($_GET['url']).'&event_id='.$_GET['unjoin']);
 	exit;
 }
-?>

@@ -3,7 +3,7 @@
  * File Includes
  * @include	Sunrise Class
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/sunrise.inc.php');
+include_once( __DIR__ .'/sunrise.inc.php');
 
 /**
  * Define colors for day layout

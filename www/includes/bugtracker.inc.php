@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /**
  * Bugtracker Includes
  *
@@ -10,9 +10,9 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+include_once( __DIR__ .'/messagesystem.inc.php');
+include_once( __DIR__ .'/usersystem.inc.php');
+include_once( __DIR__ .'/util.inc.php');
 
 /**
  * Bugtracker Klasse
@@ -784,4 +784,3 @@ Class Bugtracker {
 		return $descr;
 	}
 }
-?>

@@ -1,10 +1,10 @@
-<?
+<?php
 
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/sunrise.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/colors.inc.php");
+require_once( __DIR__ ."/smarty.inc.php");
+require_once( __DIR__ ."/forum.inc.php");
+require_once( __DIR__ ."/usersystem.inc.php");
+require_once( __DIR__ ."/sunrise.inc.php");
+require_once( __DIR__ ."/colors.inc.php");
 
 
 
@@ -353,4 +353,3 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 	return $html;
 }
 
-?>

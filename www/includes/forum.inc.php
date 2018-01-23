@@ -34,11 +34,11 @@
  * @include	Sunrise
  * @include	Messagesystem
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/sunrise.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
+require_once( __DIR__ .'/smarty.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
+require_once( __DIR__ .'/util.inc.php');
+require_once( __DIR__ .'/sunrise.inc.php');
+require_once( __DIR__ .'/messagesystem.inc.php');
 
 /**
  * GLOBALS
@@ -2321,4 +2321,3 @@ class Thread {
 	}
 
 }
-?>

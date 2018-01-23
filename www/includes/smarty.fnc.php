@@ -1,26 +1,26 @@
-<?
+<?php
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/apod.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/bugtracker.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/events.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/stockbroker.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/poll.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/stl.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/error.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/peter.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
-//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/chat.inc.php');
+include_once( __DIR__ .'/addle.inc.php');
+include_once( __DIR__ .'/apod.inc.php');
+include_once( __DIR__ .'/bugtracker.inc.php');
+require_once( __DIR__ .'/events.inc.php');
+include_once( __DIR__ .'/forum.inc.php');
+include_once( __DIR__ .'/gallery.inc.php');
+include_once( __DIR__ .'/hz_game.inc.php');
+include_once( __DIR__ .'/go_game.inc.php');
+include_once( __DIR__ .'/quotes.inc.php');
+include_once( __DIR__ .'/smarty.inc.php');
+include_once( __DIR__ .'/stockbroker.inc.php');
+include_once( __DIR__ .'/usersystem.inc.php');
+include_once( __DIR__ .'/util.inc.php');
+include_once( __DIR__ .'/poll.inc.php');
+include_once( __DIR__ .'/stl.inc.php');
+include_once( __DIR__ .'/error.inc.php');
+include_once( __DIR__ .'/peter.inc.php');
+include_once( __DIR__ .'/rezepte.inc.php');
+//include_once( __DIR__ .'/chat.inc.php');
 
 
 /**

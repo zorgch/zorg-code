@@ -11,8 +11,8 @@
 /**
  * File Includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
 
 /**
  * Konstante ANFICKER_USER_ID
@@ -326,4 +326,3 @@ Class Anficker {
 	}
 	
 }
-?>

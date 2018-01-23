@@ -2,7 +2,10 @@
 /**
  * File Includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+//require_once( __DIR__ .'/../includes/main.inc.php');
+require_once( __DIR__ .'/../includes/forum.inc.php');
+require_once( __DIR__ .'/../includes/usersystem.inc.php');
+require_once( __DIR__ .'/../includes/util.inc.php');
 
 if(!($user->id > 0) || !is_numeric($user->id))
 {

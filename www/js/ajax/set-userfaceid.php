@@ -23,7 +23,7 @@ if ( !isset($_POST['userid']) || empty($_POST['userid']) || $_POST['userid'] <= 
 /**
  * FILE INCLUDES
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+require_once( __DIR__ .'/../../includes/mysql.inc.php');
 
 /**
  * Add user_id to faceplusplus DB-table

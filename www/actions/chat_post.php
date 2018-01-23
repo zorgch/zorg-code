@@ -1,5 +1,5 @@
 <?PHP
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/../includes/main.inc.php');
 //require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 //require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 
@@ -11,4 +11,4 @@ $sql = "INSERT INTO chat (user_id, date, from_mobile, text) VALUES ($user->id, n
 $db->query($sql, __FILE__, __LINE__);
 
 header("Location: ".base64_decode($_POST['url']));
-?>
+exit;

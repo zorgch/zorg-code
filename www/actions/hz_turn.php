@@ -1,7 +1,7 @@
-<?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+<?php
+//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/../includes/hz_game.inc.php');
+require_once( __DIR__ .'/../includes/usersystem.inc.php');
 	
 	
 	// actions
@@ -34,6 +34,6 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
 		}
 	    }
 	    header("Location: /?tpl=103&game=$_GET[game]");
+	    die();
 	}
         else user_error("Nice try :-)");
-?>

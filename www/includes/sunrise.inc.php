@@ -31,9 +31,9 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+include_once( __DIR__ .'/usersystem.inc.php');
+include_once( __DIR__ .'/mysql.inc.php');
+include_once( __DIR__ .'/util.inc.php');
 
 /**
  * Globals

@@ -12,11 +12,11 @@
  * @subpackage APOD
  */
 /** File includes */
-require_once(SITE_ROOT.'/includes/mysql.inc.php');
-require_once(SITE_ROOT.'/includes/forum.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/forum.inc.php');
 
 /** Pfad zum initialen Download des aktuellen APOD-Bildes */
-define("APOD_TEMP_IMGPATH", SITE_ROOT."../data/temp/"); 
+define("APOD_TEMP_IMGPATH", __DIR__."/../../data/temp/"); 
 
 /** ID der APOD-Gallery in der Datenbank */
 define("APOD_GALLERY_ID", 41);
@@ -119,4 +119,3 @@ function get_apod_id() {
 
 	return $rs;
 }
-?>

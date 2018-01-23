@@ -2,7 +2,7 @@
 /**
  * File Includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/tpleditor.inc.php');
+require_once( __DIR__ .'/../includes/tpleditor.inc.php');
 
 $error = "";
 $state = "";

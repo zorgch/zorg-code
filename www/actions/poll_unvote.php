@@ -1,8 +1,8 @@
 <?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-	include_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-	include_once($_SERVER['DOCUMENT_ROOT']."/includes/poll.inc.php");
+//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ ."/../includes/usersystem.inc.php");
+//	include_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
+require_once( __DIR__ ."/../includes/poll.inc.php");
 	
 	
 	if(!is_numeric($user->id) ) user_error("Du bist nicht eingeloggt.", E_USER_ERROR);
@@ -19,4 +19,4 @@ include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 	
 	
 	header("Location: ".base64_decode($_GET['redirect']));
-?>
+	exit;

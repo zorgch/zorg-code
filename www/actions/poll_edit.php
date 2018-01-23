@@ -1,5 +1,5 @@
-<?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+<?php
+require_once( __DIR__ .'/../includes/main.inc.php');
 	
 	if (!$user->id) user_error("Access denied", E_USER_ERROR);
 	
@@ -36,6 +36,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
 		$_GET['tpl'] = 109;
 		header("Location: /?".url_params());
+		die();
 	}else{
 		foreach ($frm as $key => $val) $frm[$key] = stripslashes($val);
 		
@@ -43,5 +44,3 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 		$smarty->assign("poll_error", $error);
 		$smarty->display("file:layout/layout.tpl");
 	}
-	
-?>

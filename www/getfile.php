@@ -16,27 +16,30 @@
  * @param integer	$_GET['id']		file-id from db
  * @return file
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+/**
+ * File includes
+ */
+require_once( __DIR__ .'/includes/main.inc.php');
 
 // Check for user-id and file-name in URL-Params
 if ($_GET['user'] && $_GET['file']) {
 	if (is_numeric($_GET['user'])) {
-		$e = $db->query("SELECT * FROM files WHERE user='$_GET[user]' AND name='".addslashes($_GET[file])."'", __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM files WHERE user=' . $_GET['user'] . ' AND name="' . addslashes($_GET['file']) .'"', __FILE__, __LINE__);
 		$d = $db->fetch($e);
 	}
 }else{	// Else check for file-id in URL-Params
 	if (is_numeric($_GET['id'])) {
-		$e = $db->query("SELECT * FROM files WHERE id='$_GET[id]'", __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM files WHERE id=' . $_GET['id'], __FILE__, __LINE__);
 		$d = $db->fetch($e);
 	}
 }
 
 // Only if the DB-Query returned a result...
 if ($d) {
-	$lastmod = filemtime($_SERVER['DOCUMENT_ROOT']."/../data/files/$d[user]/$d[name]");
+	$lastmod = filemtime( FILES_DIR . $d['user'] . DIRECTORY_SEPARATOR . $d['name']);
 
-	header("Content-Type: $d[mime]");
-	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastmod) ." GMT");
+	header('Content-Type: ' . $d['mime']);
+	header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastmod) . ' GMT');
 
 
 	/*
@@ -46,10 +49,9 @@ if ($d) {
 	   header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate");
 	   */
 
-	readfile($_SERVER['DOCUMENT_ROOT']."/../data/files/$d[user]/$d[name]");
+	readfile( FILES_DIR . $d['user'] . DIRECTORY_SEPARATOR . $d['name']);
 }else{ // Else return a 404-not found error
 	header('HTTP/1.0 404 Not Found'); // set HTTP response header
 	echo "File not found or not linked in database.";
 	die; // Make sure to quit, due to error
 }
-?>

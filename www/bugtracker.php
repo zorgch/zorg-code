@@ -1,8 +1,8 @@
 <?PHP
 
 // Libraries
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/bugtracker.inc.php');
+require_once( __DIR__ .'/includes/main.inc.php');
+include_once( __DIR__ .'/includes/bugtracker.inc.php');
 
 
 // Aktionen ausführen

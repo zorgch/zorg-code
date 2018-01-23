@@ -1,7 +1,7 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+require_once( __DIR__ .'/smarty.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
+require_once( __DIR__ .'/util.inc.php');
 
 Class Rezepte {
 
@@ -164,5 +164,3 @@ Class Rezepte {
 
 
 }
-
-?>

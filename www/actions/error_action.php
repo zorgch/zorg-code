@@ -1,5 +1,5 @@
-<?PHP
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+<?php
+require_once( __DIR__ .'/../includes/main.inc.php');
 
 
 if(count($_POST) > 0) {
@@ -19,9 +19,11 @@ if(count($_POST) > 0) {
 		$sql .= "0)";
 		$db->query($sql,__FILE__,__LINE__);
 		header("Location: /?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+		die();
 	}
 	if($_POST['num']) {
 		$_SESSION['error_num'] = $_POST['num'];
 		header("Location: /?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+		die();
 	}
 }

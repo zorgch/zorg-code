@@ -1,8 +1,7 @@
 <?php
 //coded by [z]keep3r
-
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once(SITE_ROOT.'/includes/quotes.inc.php');
+require_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/includes/quotes.inc.php');
 
 
 // Form-Aktionen ausf?hren	
@@ -168,4 +167,3 @@ if($_GET['do'] == "" || $_GET['do'] == "my" ) {
 }
 //echo foot(52);
 $smarty->display('file:layout/footer.tpl');
-?>

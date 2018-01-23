@@ -1,7 +1,7 @@
-<?
+<?php
 //coded by [z]keep3r
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/setistats.inc.php');
+require_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/includes/setistats.inc.php');
 
 //echo head(40, "seti");
 $smarty->assign('tplroot', array('page_title' => 'seti'));
@@ -35,4 +35,3 @@ $seti->viewStats('Workunits');
 
 //echo foot(52);
 $smarty->display('file:layout/footer.tpl');
-?>

@@ -1,8 +1,7 @@
 <?php
 
 // Includes -------------------------------------------------------------------
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
+require_once( __DIR__ .'/../includes/main.inc.php');
 
 
 // Error-Checking -------------------------------------------------------------
@@ -64,5 +63,3 @@ if($rs['board'] != 'f' || $rs['parent_id'] > 1) {
 // todo: wenns ein thread war, redirecten auf die Übersicht oder Startseite
 header("Location: ".base64_decode($_POST['url']));	  
 exit;
-
-?>

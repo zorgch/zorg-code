@@ -1,10 +1,8 @@
-<?PHP
+<?php
 
 // Includes --------------------------------------------------------------------
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/anficker.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once( __DIR__ .'/../includes/main.inc.php');
+require_once( __DIR__ .'/../includes/anficker.inc.php');
 
 
 // Anficken -------------------------------------------------------------------
@@ -21,9 +19,7 @@ if($_POST['do'] == 'anficken') {
 	
 	Anficker::addAnfick(max(0, $user->id), $textEscaped, $_POST['spresim-trainieren']);
 	
-	header("Location: /?tpl=175&del=no&spresimtrainieren=".$_POST['spresim-trainieren']."#anficker");
-	
+	header("Location: /?tpl=175&del=no&spresimtrainieren=".$_POST['spresim-trainieren']."#anficker");	
 	exit;
 }
 
-?>

@@ -15,7 +15,7 @@
 /**
  * File includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/main.inc.php');
 
 /** Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen. */
 define("OFFSET_PIC", 250);

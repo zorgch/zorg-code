@@ -39,17 +39,18 @@ define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
 define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME, true);
 
 /**
-* Set a constant for the Site's Document Root
-* @const SITE_ROOT Automatically extract's the configured Document Root WITHOUT a trailing slash /
+* Set a constant for the Site's Web Root
+* @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/"
 */
-define('SITE_ROOT', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/', true);
+define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', true);
 
 /**
 * Set a constant for the custom Error Log path
 * @const ERRORLOG_DIR sets the directory for logging the custom user_errors as in
 * @see errlog.inc.php zorgErrorHandler()
 */
-define('ERRORLOG_DIR', SITE_ROOT . '../data/errlog/', true);
+define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
+define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
 
 /**
 * Define a global SENDER e-mail addresses (From:)
@@ -105,13 +106,13 @@ if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top
  * @include usersystem.inc.php Usersystem Functions and User definitions
  * @include util.inc.php 	Various Helper Functions
  */
-require_once(SITE_ROOT.'/includes/colors.inc.php');
-require_once(SITE_ROOT.'/includes/errlog.inc.php');
-require_once(SITE_ROOT.'/includes/mysql.inc.php');
-require_once(SITE_ROOT.'/includes/smarty.inc.php');
-require_once(SITE_ROOT.'/includes/sunrise.inc.php');
-require_once(SITE_ROOT.'/includes/usersystem.inc.php');
-require_once(SITE_ROOT.'/includes/util.inc.php');
+require_once( __DIR__ .'/colors.inc.php');
+require_once( __DIR__ .'/errlog.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/smarty.inc.php');
+require_once( __DIR__ .'/sunrise.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
+require_once( __DIR__ .'/util.inc.php');
 
 /**
  * Include other scripts
@@ -132,20 +133,20 @@ require_once(SITE_ROOT.'/includes/util.inc.php');
  * @include spaceweather.inc.php Spaceweather functions
  * @include telegrambot.inc.php Telegram Messenger Bot functions
  */
-include_once(SITE_ROOT.'/includes/activities.inc.php');
-include_once(SITE_ROOT.'/includes/addle.inc.php');
-include_once(SITE_ROOT.'/includes/forum.inc.php');
-include_once(SITE_ROOT.'/includes/gallery.inc.php');
-include_once(SITE_ROOT.'/includes/go_game.inc.php');
-include_once(SITE_ROOT.'/includes/graph.inc.php');
-//include_once(SITE_ROOT.'/includes/imap.inc.php');
-include_once(SITE_ROOT.'/includes/messagesystem.inc.php');
-include_once(SITE_ROOT.'/includes/peter.inc.php');
-include_once(SITE_ROOT.'/includes/quotes.inc.php');
-include_once(SITE_ROOT.'/includes/rezepte.inc.php'); // "Call to undefined function getOpenChessGames()" ["file"]=> string(48) "/Users/or/Sites/zooomclan/www/scripts/header.php" ["line"]=> int(18)
-include_once(SITE_ROOT.'/includes/schach.inc.php');
-include_once(SITE_ROOT.'/includes/spaceweather.inc.php');
-include_once(SITE_ROOT.'/includes/telegrambot.inc.php');
+include_once( __DIR__ .'/activities.inc.php');
+include_once( __DIR__ .'/addle.inc.php');
+include_once( __DIR__ .'/forum.inc.php');
+include_once( __DIR__ .'/gallery.inc.php');
+include_once( __DIR__ .'/go_game.inc.php');
+include_once( __DIR__ .'/graph.inc.php');
+//include_once( __DIR__ .'/imap.inc.php');
+include_once( __DIR__ .'/messagesystem.inc.php');
+include_once( __DIR__ .'/peter.inc.php');
+include_once( __DIR__ .'/quotes.inc.php');
+include_once( __DIR__ .'/rezepte.inc.php'); // "Call to undefined function getOpenChessGames()" ["file"]=> string(48) "/Users/or/Sites/zooomclan/www/scripts/header.php" ["line"]=> int(18)
+include_once( __DIR__ .'/schach.inc.php');
+include_once( __DIR__ .'/spaceweather.inc.php');
+include_once( __DIR__ .'/telegrambot.inc.php');
 
 /**
  * Globals

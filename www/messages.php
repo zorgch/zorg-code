@@ -1,5 +1,5 @@
-<?PHP
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+<?php
+require_once( __DIR__ .'/includes/main.inc.php');
 
 //echo head(27);
 $smarty->assign('tplroot', array('page_title' => 'Messages'));
@@ -50,4 +50,3 @@ if($_SESSION['user_id']) {
 }
 //echo foot(1);
 $smarty->display('file:layout/footer.tpl');
-?>

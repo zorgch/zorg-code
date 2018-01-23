@@ -12,7 +12,7 @@ if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'temp
 /**
  * FILE INCLUDES
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+require_once( __DIR__ .'/../../includes/mysql.inc.php');
 
 /**
  * Get records from database

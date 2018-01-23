@@ -1,6 +1,6 @@
 <?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
+//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/../includes/hz_game.inc.php');
 	
 	unset($_GET['tplupd']);
 	
@@ -25,4 +25,4 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
 	}
 	
 	header("Location: /?".url_params());
-?>
+	exit;

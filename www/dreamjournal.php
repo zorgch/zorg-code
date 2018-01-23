@@ -1,7 +1,7 @@
 <?php
 //coded by [z]keep3r
 
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/includes/main.inc.php');
 
 
 // Form-Aktionen ausf?hren	
@@ -56,4 +56,3 @@ echo menu('user');
   
 //echo foot(52);
 $smarty->display('file:layout/footer.tpl');
-?>

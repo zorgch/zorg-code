@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Gallery-Pic holen
  * 
@@ -15,7 +15,7 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
+include_once( __DIR__ .'/usersystem.inc.php');
 
 $e = $db->query("SELECT * FROM gallery_pics WHERE id=$_GET[id]", __FILE__, __LINE__);
 $d = mysql_fetch_array($e);
@@ -70,4 +70,3 @@ if (!$d['zensur'] || $d['zensur'] && $user->typ == USER_MEMBER) {
   readfile($file);
 }
 //echo "access denied";
-?>

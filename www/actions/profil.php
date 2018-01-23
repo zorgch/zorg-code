@@ -1,7 +1,7 @@
 <?PHP
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once( __DIR__ .'/../includes/mysql.inc.php');
+require_once( __DIR__ .'/../includes/usersystem.inc.php');
 
 if($_GET['do'] == 'aussperren') {
 	$sql =	
@@ -15,4 +15,3 @@ if($_GET['do'] == 'aussperren') {
 	header("Location: /profil.php?do=view");
 	exit;
 }
-?>

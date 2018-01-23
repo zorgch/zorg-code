@@ -1,5 +1,5 @@
-<?PHP
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+<?php
+require_once( __DIR__ .'/mysql.inc.php');
 
 function get_spaceweather() {
 	global $db;
@@ -189,4 +189,3 @@ function spaceweather_ticker() {
 		return $e->getMessage();
 	}
 }
-?>

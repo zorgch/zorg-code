@@ -2,8 +2,8 @@
 /**
  * File includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/activities.inc.php');
+include_once( __DIR__ .'/mysql.inc.php');
+include_once( __DIR__ .'/activities.inc.php');
 
 /**
  *

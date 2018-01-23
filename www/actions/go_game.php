@@ -1,6 +1,6 @@
-<?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
+<?php
+require_once( __DIR__ .'/../includes/main.inc.php');
+require_once( __DIR__ .'/../includes/go_game.inc.php');
 
 unset($_GET['tplupd']);
 

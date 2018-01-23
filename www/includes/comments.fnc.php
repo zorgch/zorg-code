@@ -1,7 +1,7 @@
-<?
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
+<?php
+	require_once( __DIR__ .'/smarty.inc.php');
+	require_once( __DIR__ .'/forum.inc.php');
+	require_once( __DIR__ .'/usersystem.inc.php');
 
 	
 
@@ -64,4 +64,3 @@
 	function comment_read_permission ($comment_id) {
 		return true;
 	}
-?>

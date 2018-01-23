@@ -1,6 +1,6 @@
-<?
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
+<?php
+include_once( __DIR__ .'/usersystem.inc.php');
+include_once( __DIR__ .'/hz_map.inc.php');
 	
         if (!is_numeric($_GET['id'])) user_error("nuet isch", E_USER_ERROR);
         $gameid = $_GET['id'];
@@ -117,6 +117,3 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
 	}else{
 		user_error("Map '$_GET[id]' not found", E_USER_ERROR);
 	}
-	
-	
-?>

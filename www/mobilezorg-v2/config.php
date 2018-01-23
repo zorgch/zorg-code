@@ -8,7 +8,7 @@
 setlocale(LC_TIME,"de_CH"); // Set locale to German, Switzerland
 
 // PHP Files and Folder Paths
-if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\')); // Document Root to /www/ directory
+if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\') . '/..'); // Document Root to /www/ directory
 if (!defined('PHP_INCLUDES_DIR')) define('PHP_INCLUDES_DIR', SITE_ROOT.'/includes/'); // /includes/ directory
 if (!defined('ERROR_HANDLER_INC')) define('ERROR_HANDLER_INC', SITE_ROOT.'/includes/mobilez/error_handler.inc.php'); // MySQL DB Connection Class file
 if (!defined('MYSQL_DB_INC')) define('MYSQL_DB_INC', SITE_ROOT.'/includes/mobilez/pdo.inc.php'); // MySQL DB Connection Class file

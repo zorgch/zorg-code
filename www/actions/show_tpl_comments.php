@@ -1,5 +1,5 @@
-<?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+<?php
+require_once( __DIR__ .'/../includes/main.inc.php');
 	
 // comments ein/ausblenden
 if (isset($_GET[usershowcomments]) && $_GET[usershowcomments] != $user->show_comments) {
@@ -8,4 +8,5 @@ if (isset($_GET[usershowcomments]) && $_GET[usershowcomments] != $user->show_com
   
   unset($_GET['usershowcomments']);
   header("Location: /?".url_params());
+  die();
 }

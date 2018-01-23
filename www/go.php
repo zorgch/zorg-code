@@ -11,7 +11,7 @@
  * @package Zorg
  * @subpackage GO
  */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
+include_once( __DIR__ .'/includes/main.inc.php');
 
 /**
  * GO Klasse
@@ -98,4 +98,3 @@ $go = new go(13);
 $go->stone(40,40,0);
 $go->stone(40,120,1);
 $go->display();
-?>

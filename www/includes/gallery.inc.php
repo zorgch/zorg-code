@@ -15,8 +15,8 @@
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/colors.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
+include_once( __DIR__ .'/colors.inc.php');
+include_once( __DIR__ .'/forum.inc.php');
 
 // ********************************** CONSTANTS *********************************************************************************
 /**
@@ -1794,4 +1794,3 @@ function doImageFlip($imgsrc, $imgout, $type) {
 
    return( $imgdest );
 }
-?>

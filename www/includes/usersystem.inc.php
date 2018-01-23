@@ -25,7 +25,7 @@ define("USER_SPECIAL", 3);
 //define("USER_EINGELOGGT", 0);define("USER_MEMBER", 1);
 //define("USER_NICHTEINGELOGGT", 2);
 //define("USER_ALLE", 3);
-define("USER_IMGPATH", rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/userimages/');
+define("USER_IMGPATH",  __DIR__ .'/../../data/userimages/');
 define("USER_IMGPATH_PUBLIC", '/data/userimages/');
 define("USER_IMGSIZE_LARGE", 427);
 define("USER_IMGSIZE_SMALL", 150);
