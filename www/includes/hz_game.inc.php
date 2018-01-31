@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Hunting z (Game)
  * 
@@ -411,7 +411,8 @@ function hz_turn_passing () {
  * (z.B. prüft, ob das Spiel aufgrund des Spielzuges beendet wurde, etc.)
  * 
  * @author [z]biko
- * @version 1.0
+ * @author IneX
+ * @version 2.0
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den finalen Spielzug macht
@@ -420,49 +421,79 @@ function hz_turn_passing () {
  */
 function turn_finalize ($game, $uid=0) {
 	global $db, $user;
-	
+
 	if (!$uid) $uid = $user->id;
-	
-	$db->query("UPDATE hz_players
-		    SET turndone='1'
-		    WHERE game='".$game."'
-		      AND user='".$uid."'
-		      AND type!='z'", __FILE__, __LINE__);
-	
-	$e = $db->query(
-		"SELECT g. * , sum( a.score )  - g.z_score player_score, m.players totalplayers,
-		IF ( pl.user IS NOT NULL  || z_score >= sum( a.score ) - g.z_score,  '1',  '0' )finished
-		FROM hz_maps m, hz_games g
-		LEFT  JOIN hz_aims a ON a.map = g.map
-		LEFT  JOIN hz_players z ON z.game = g.id AND z.type =  'z'
-		LEFT  JOIN hz_players pl ON pl.game = g.id AND pl.station = z.station AND pl.type !=  'z'
-		WHERE g.id =$game AND m.id = g.map
-		GROUP  BY a.map",
-		__FILE__, __LINE__
-	);
-	$d = $db->fetch($e);
-	if ($d) {
-		$e = $db->query("SELECT count(*) num FROM hz_players WHERE game=$d[id] AND type!='z' AND turndone='1'", __FILE__, __LINE__);
-		$turndone = $db->fetch($e);
-		if ($d['nextturn'] == 'z') {
-			$db->query("UPDATE hz_games SET nextturn='players', turndate=now() WHERE id=$game", __FILE__, __LINE__);
-		}elseif ($d['nextturn'] == 'players' && $d['totalplayers'] == $turndone['num']) {
-			$db->query("UPDATE hz_games
-				     SET round=round+1, nextturn='z', turndate=now(),
-				   turncount=(turncount+1)%".TURN_COUNT."
-				   WHERE id=$game", __FILE__, __LINE__);
-			
-			// add money and reset 'turndone'
-			if ($d['turncount']+1 == TURN_COUNT) $add = TURN_ADD_MONEY;
-			else $add = 0;
-			$db->query("UPDATE hz_players SET turndone='0', money=money+$add WHERE game=$game", __FILE__, __LINE__);
-		}
-		
-		if ($d['finished']) {
-			$db->query("UPDATE hz_games SET state='finished' WHERE id=$game", __FILE__, __LINE__);
-			_update_hz_dwz($game);
-			Thread::setRights('h', $game, USER_ALLE);
-			finish_mails($game);
+
+	try {
+		$db->query("UPDATE hz_players
+			    SET turndone='1'
+			    WHERE game='".$game."'
+			      AND user='".$uid."'
+			      AND type!='z'", __FILE__, __LINE__);
+
+		$e = $db->query(
+			"SELECT g. * , sum( a.score )  - g.z_score player_score, m.players totalplayers,
+			IF ( pl.user IS NOT NULL  || z_score >= sum( a.score ) - g.z_score,  '1',  '0' )finished
+			FROM hz_maps m, hz_games g
+			LEFT  JOIN hz_aims a ON a.map = g.map
+			LEFT  JOIN hz_players z ON z.game = g.id AND z.type =  'z'
+			LEFT  JOIN hz_players pl ON pl.game = g.id AND pl.station = z.station AND pl.type !=  'z'
+			WHERE g.id =$game AND m.id = g.map
+			GROUP  BY a.map",
+			__FILE__, __LINE__
+		);
+		$d = $db->fetch($e);
+	} catch (Exception $e) {
+		user_error($e->getMessage(), E_USER_ERROR);
+	}
+
+	if ($d)
+	{
+		try {
+			$message = 'Du bist wieder an der Reihe in <a href="'.SITE_URL.'/?tpl=103&game='.$game.'">unserem Hunting z Spiel</a>.';
+
+			// Count turns by Inspectors
+			$e = $db->query("SELECT count(*) num FROM hz_players WHERE game=".$d['id']." AND type!='z' AND turndone='1'", __FILE__, __LINE__);
+				$turndone = $db->fetch($e);
+
+			// Mr. Z hat den Zug gespielt - Inspectors sind dran:
+			if ($d['nextturn'] == 'z')
+			{
+				$db->query("UPDATE hz_games SET nextturn='players', turndate=now() WHERE id=$game", __FILE__, __LINE__);
+
+				// Inspectors benachrichtigen
+				$i = $db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type!='z'", __FILE__, __LINE__);
+				while($inspectors = $db->fetch($i))
+				{
+					Messagesystem::sendMessage($uid, $inspectors['user'], 'Hunting z (autom. Nachricht)', $message);
+				}
+
+			// Die Inspectors haben den Zug gespielt - Mr. Z ist dran:
+			} elseif ($d['nextturn'] == 'players' && $d['totalplayers'] == $turndone['num']) {
+				$db->query("UPDATE hz_games
+					     SET round=round+1, nextturn='z', turndate=now(),
+					   turncount=(turncount+1)%".TURN_COUNT."
+					   WHERE id=$game", __FILE__, __LINE__);
+
+				// add money and reset 'turndone'
+				if ($d['turncount']+1 == TURN_COUNT) $add = TURN_ADD_MONEY;
+					else $add = 0;
+				$db->query("UPDATE hz_players SET turndone='0', money=money+$add WHERE game=$game", __FILE__, __LINE__);
+
+				// Mr. Z benachrichtigen
+				$z = $db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type='z'", __FILE__, __LINE__);
+				Messagesystem::sendMessage($uid, $db->fetch($z), 'Hunting z (autom. Nachricht)', $message);
+			}
+
+			if ($d['finished'])
+			{
+				$db->query("UPDATE hz_games SET state='finished' WHERE id=$game", __FILE__, __LINE__);
+				_update_hz_dwz($game);
+				Thread::setRights('h', $game, USER_ALLE);
+				finish_mails($game);
+			}
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_ERROR);
 		}
 	}else{
 		user_error("Invalid turn", E_USER_ERROR);
@@ -546,17 +577,17 @@ function finish_mails ($game) {
 	while ($d = $db->fetch($e)) {
 		$text = "";
 		if ($d['winner'] == 'z' && $d['type'] == 'z') {
-			$text = "Du hast <a href='/?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Mister z <b>gewonnen</b>.";
+			$text = 'Du hast <a href="/?tpl=103&game=$game">dieses Hunting z Spiel</a> als Mister z <b>gewonnen</b>.';
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, "ich konnt als Mr. Z in <a href=\"/?tpl=103&game=$game\">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!", 'hz');
+			Activities::addActivity($user->id, 0, 'ich konnt als Mr. Z in <a href="'.SITE_URL.'/?tpl=103&game='.$game.'">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!', 'hz');
 			
 		}elseif ($d['winner'] == 'players' && $d['type'] == 'z') {
-			$text = "Du hast <a href='/?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Mister z <b>verloren</b>.";
+			$text = 'Du hast <a href="'.SITE_URL.'/?tpl=103&game='.$game.'">dieses Hunting z Spiel</a> als Mister z <b>verloren</b>.';
 		}elseif ($d['winner'] == 'z' && $d['type'] != 'z') {
-			$text = "Ihr habt <a href='/?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Inspectors <b>verloren</b>.";
+			$text = 'Ihr habt <a href="'.SITE_URL.'/?tpl=103&game='.$game.'">dieses Hunting z Spiel</a> als Inspectors <b>verloren</b>.';
 		}elseif ($d['winner'] == 'players' && $d['type'] != 'z') {
-			$text = "Wir haben <a href='/?tpl=103&game=$game'>dieses Hunting z Spiel</a> als Inspectors <b>gewonnen</b>.";
+			$text = 'Wir haben <a href="'.SITE_URL.'/?tpl=103&game='.$game.'">dieses Hunting z Spiel</a> als Inspectors <b>gewonnen</b>.';
 			
 			// Activity Eintrag auslösen
 			Activities::addActivity($user->id, 0, "Wir haben als Inspectors auf <a href=\"/?tpl=103&game=$gid\">$map</a> Mr. Z erfolgreich festgenommen!", 'hz');
@@ -566,7 +597,8 @@ function finish_mails ($game) {
 		}else{
 			$text = "Finish-Msg ohne Inhalt bei Game '$game', ausgelöst durch user '$user->id'.<br />";
 			$text .= "Winner: '$d[winner]<br /> Reciever: '$d[user]'.";
-			Messagesystem::sendMessage(7, 7, "Hunting z ERROR (autom. Nachricht)", $text);
+			//Messagesystem::sendMessage(7, 7, "Hunting z ERROR (autom. Nachricht)", $text);
+			user_error($text, E_USER_ERROR);
 		}
 	}
 }
@@ -895,4 +927,3 @@ function _update_hz_dwz ($gid) {
    }
 }
 	
-?>
