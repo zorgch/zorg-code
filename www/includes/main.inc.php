@@ -127,6 +127,7 @@ require_once( __DIR__ .'/util.inc.php');
  * @include imap.inc.php 		IMAP functions (DEPRECATED)
  * @include messagesystem.inc.php Messagesystem Functions
  * @include peter.inc.php 		Peter Game functions
+ * @include poll.inc.php 		Poll functions
  * @include quotes.inc.php 		Quotes functions
  * @include rezepte.inc.php 	Rezepte Datenbank functions
  * @include schach.inc.php  	Schach Game functions (DEPRECATED)
@@ -142,6 +143,7 @@ include_once( __DIR__ .'/graph.inc.php');
 //include_once( __DIR__ .'/imap.inc.php');
 include_once( __DIR__ .'/messagesystem.inc.php');
 include_once( __DIR__ .'/peter.inc.php');
+include_once( __DIR__ .'/poll.inc.php');
 include_once( __DIR__ .'/quotes.inc.php');
 include_once( __DIR__ .'/rezepte.inc.php'); // "Call to undefined function getOpenChessGames()" ["file"]=> string(48) "/Users/or/Sites/zooomclan/www/scripts/header.php" ["line"]=> int(18)
 include_once( __DIR__ .'/schach.inc.php');
