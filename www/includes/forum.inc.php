@@ -586,7 +586,7 @@ class Comment {
 				// Activity Eintrag auslösen (ausser bei der Bärbel, die trollt zuviel)
 				if ($user_id != 59)
 				{
-					Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), Comment::getTitle($text, 100) ]), 'c');
+					Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ SITE_URL, Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), Comment::getTitle($text, 100) ]), 'c');
 				}
 
 

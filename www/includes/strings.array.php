@@ -63,9 +63,9 @@ return
 			,'email-notification-header' => 'MIME-Version: 1.0\n
 											Content-type: text/html;
 											charset="UTF-8"'."\n"
-											.'From: %s <%2$s>'."\n"
+											.'From: %1$s <%2$s>'."\n"
 										    .'Reply-To: %2$s'."\n"
-										    .'X-Mailer: PHP/%s'
+										    .'X-Mailer: PHP/%3$s'
 			,'email-notification-body' =>  "Du hast eine neue Nachricht in deinem Posteingang auf %s\r\n
 											\r\n
 											Titel:	%s\n
@@ -79,8 +79,8 @@ return
 			 'invalid-parent_id' => 'Parent id ist ungültig.'
 			,'invalid-thread_id' => 'Thread_id ist ungültig.'
 			,'invalid-permissions' => 'Permission denied for posting on thread %s / %d.'
-			,'activity-newcomment' =>  'hat <a href="%1$s">einen %s Comment</a> geschrieben:<br>
-										<p><small><a href="%1$s">"%s..."</a></small></p>'
+			,'activity-newcomment' =>  'hat <a href="%1$s%2$s">einen %3$s Comment</a> geschrieben:<br>
+										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'
 			,'message-newcomment-subject' => 'Du wurdest von %s in einem Comment erwähnt'
 			,'message-newcomment' => '%s hat Dich in einem Comment erwähnt:<br>
 									  <p><i>%s</i></p>
