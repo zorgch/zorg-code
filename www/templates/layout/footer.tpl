@@ -21,6 +21,9 @@
 						<a href="spaceweather.php">[more]</a>
 					{/if}
 					<br /><a href="/?word=impressum">Impressum</a> | <a href="/?word=privacy">Privacy-Policy</a> | <a href="/?word=verein">Zorg Verein</a>
+					{if $code_info.version != ''}
+						| Code Version: {$code_info.version}, {$code_info.last_commit} (updated: {$code_info.last_update|datename}){if $user->typ == 2} <a href="https://bitbucket.org/zorgvorstand/zorg.ch/commits/{$code_info.last_commit}" target="_blank">[view]</a>{/if}
+					{/if}
 				</td>
 			</tr>
 		</table>

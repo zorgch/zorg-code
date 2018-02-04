@@ -70,6 +70,20 @@ function timename($timestamp) {
 
 }
 
+/**
+ * Funktion um ein Datum-Zeit String in einen Timestamp umzuweandeln
+ * @author IneX
+ * @date 04.02.2018
+ * @param @datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
+ * @return string
+ */
+function datetimeToTimestamp($datetime)
+{
+	$d = new DateTime($datetime, new DateTimeZone('Europe/Zurich'));
+	return $d->getTimestamp();
+}
+
+
 function emailusername($username) {
 	$username = strtolower($username);
 	$username = str_replace("ä", "ae", $username);
@@ -516,4 +530,32 @@ function urlExists($url)
         return true;
     }
     return false;
+}
+
+
+/**
+ * Get Code information from Git
+ * Usage: echo getGitVersion();
+ * Result: MyApplication v1.2.3-dev.474a1d0 (2016-11-02 14:11:22)
+ *
+ * @author IneX
+ * @date 04.02.2018
+ * @version 1.0
+ * @link https://stackoverflow.com/a/33986403/5750030
+ * @return array
+ */
+function getGitCodeVersion()
+{
+	try {
+    	$codeVersion['version'] = trim(exec('git describe --tags --abbrev=0'));
+    	$codeVersion['last_commit'] = trim(exec('git log --pretty="%h" -n1 HEAD'));
+    	$lastCommitDatetime = trim(exec('git log -n1 --pretty=%ci HEAD'));
+		
+		$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
+		
+    	return $codeVersion;
+
+    } catch (Exception $e) {
+		error_log($e->getMessage());
+	}
 }
