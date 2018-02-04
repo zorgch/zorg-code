@@ -102,6 +102,7 @@ if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top
  * @include errlog.inc.php 	Errorlogging
  * @include mysql.inc.php 	MySQL-DB Connection and Functions
  * @include smarty.inc.php 	Smarty Template-Engine
+ * @include strings.inc.php Text strings to be replaced within code functions etc.
  * @include sunrise.inc.php Sunrise information and current Sun, Day & Night state
  * @include usersystem.inc.php Usersystem Functions and User definitions
  * @include util.inc.php 	Various Helper Functions
@@ -110,6 +111,7 @@ require_once( __DIR__ .'/colors.inc.php');
 require_once( __DIR__ .'/errlog.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
 require_once( __DIR__ .'/smarty.inc.php');
+require_once( __DIR__ .'/strings.inc.php');
 require_once( __DIR__ .'/sunrise.inc.php');
 require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/util.inc.php');
@@ -149,12 +151,6 @@ include_once( __DIR__ .'/rezepte.inc.php'); // "Call to undefined function getOp
 include_once( __DIR__ .'/schach.inc.php');
 include_once( __DIR__ .'/spaceweather.inc.php');
 include_once( __DIR__ .'/telegrambot.inc.php');
-
-/**
- * Globals
- * Assign defined variables to global scope
- */
-global $smarty, $db, $user, $_TPLROOT, $parsetime_start, $sun, $country, $layouttype;
 
 /**
  * Smarty assign variables

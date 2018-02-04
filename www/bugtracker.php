@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 // Libraries
 require_once( __DIR__ .'/includes/main.inc.php');
@@ -140,4 +140,3 @@ if($_GET['bug_id'] == '') {
 
 //echo foot();
 $smarty->display('file:layout/footer.tpl');
-?>

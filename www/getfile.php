@@ -52,6 +52,6 @@ if ($d) {
 	readfile( FILES_DIR . $d['user'] . DIRECTORY_SEPARATOR . $d['name']);
 }else{ // Else return a 404-not found error
 	header('HTTP/1.0 404 Not Found'); // set HTTP response header
-	echo "File not found or not linked in database.";
+	echo t('error-file-notfound');
 	die; // Make sure to quit, due to error
 }

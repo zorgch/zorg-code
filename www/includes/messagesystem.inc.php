@@ -21,9 +21,12 @@
 
 /**
  * File Includes
+ * @include util.inc.php
+ * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
  */
 //require_once( __DIR__ . '/main.inc.php');
 require_once( __DIR__ . '/util.inc.php');
+include_once( __DIR__ . '/strings.inc.php');
 
 /**
  * Messagesystem Class
@@ -594,7 +597,7 @@ class Messagesystem {
 			$sql = "UPDATE messages set isread = '1' where id = $id;";
 			$db->query($sql, __FILE__, __LINE__);
 	  } else {
-	  	$html = "Sorry du darfst diese Message nicht lesen";
+	  	$html = t('invalid-permissions', 'messagesystem');
 	  }
 
 
@@ -734,16 +737,30 @@ class Messagesystem {
 		/**
 		 * Send Telegram Notification
 		 */
-		if ($owner != $from_user_id && usersystem::userHasTelegram($owner))
-		{
+		if (is_array($owner)) {
+		// For multiple users
+			foreach ($owner as $recipient)
+			{
+				if ($recipient != $from_user_id && usersystem::userHasTelegram($recipient))
+				{
+					try {
+						$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $recipient, usersystem::id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
+						Messagesystem::sendTelegramNotification($message, $recipient);
+					} catch (Exception $e) {
+						user_error($e->getMessage(), E_USER_ERROR);
+					}
+				}
+			}
+		}
+		// For single user:
+		elseif ($owner != $from_user_id && usersystem::userHasTelegram($owner)) {
 			try {
-				$message = sprintf('Neue <a href="%s/user/%d">Nachricht</a> von <b>%s</b> auf %s: %s', SITE_URL, $owner, usersystem::id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...'));
+				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, usersystem::id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
 				Messagesystem::sendTelegramNotification($message, $owner);
 			} catch (Exception $e) {
 				user_error($e->getMessage(), E_USER_ERROR);
 			}
-		}
-	  	
+		} 	
 	}
 	
 	/**
@@ -775,22 +792,11 @@ class Messagesystem {
 				$empfaengerName = usersystem::id2user($to_user_id, TRUE);
 				$senderName = usersystem::id2user($from_user_id, TRUE);
 				
-				$subject = 	"Neue Nachricht auf Zorg.ch";
+				$header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
 				
-				$body =		"Du hast eine neue Nachricht in deinem Posteingang auf " . SITE_URL . "\r\n";
-				$body .=	"\r\n";
-				$body .=	"Titel:	$titel\n";
-				$body .=	"Von:	$senderName\n";
-				$body .=	"Auszug: ".text_width(remove_html($text), 140, '...')."\r\n";
-				$body .=	"\r\n";
-				$body .=	"------------\n";
-				$body .=	"Zorg.ch";
+				$subject = 	t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]);
 				
-				$header  = 	"MIME-Version: 1.0\n";
-				$header .= 	"Content-type: text/html; charset=iso-8859-1\n";
-				$header .= 	"From: Zorg.ch <".ZORG_EMAIL.">\n";
-			    $header .= 	"Reply-To: ".ZORG_EMAIL."\n";
-			    $header .= 	"X-Mailer: PHP/".phpversion();
+				$body = t('email-notification-subject', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), SITE_URL, $to_user_id ]);
 				
 				// Vesende E-Mail an User
 				mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
@@ -905,7 +911,7 @@ class Messagesystem {
 				}
 			}
 		} else {
-			user_error('Notification Text is empty or otherwise invalid', E_USER_NOTICE);
+			user_error( t('invalid-message', 'messagesystem'), E_USER_NOTICE);
 		}
 	}
 
@@ -995,10 +1001,10 @@ class Messagesystem {
 					}
 				}
 			} else {
-				user_error('Image URL is not reachable or invalid', E_USER_NOTICE);
+				user_error( t('invalid-image-data', 'messagesystem'), E_USER_NOTICE);
 			}
 		} else {
-			user_error('Image Data is empty or otherwise invalid', E_USER_NOTICE);
+			user_error( t('invalid-image-data', 'messagesystem'), E_USER_NOTICE);
 		}
 	}
 

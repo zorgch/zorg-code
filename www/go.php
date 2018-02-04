@@ -11,6 +11,9 @@
  * @package Zorg
  * @subpackage GO
  */
+/**
+ * @include main.inc.php
+ */
 include_once( __DIR__ .'/includes/main.inc.php');
 
 /**

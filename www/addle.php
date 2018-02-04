@@ -42,10 +42,10 @@ function use_ki($game_id) {
 
 
 /**
- * HTML-Auswahlmenü ausgeben
+ * HTML-AuswahlmenÃ¼ ausgeben
  * 
- * Gibt ein HTML-Auswahlmenü aus (<option></option>) - benutzt
- * für die Spielerauswahl um ein neues Spiel zu starten.
+ * Gibt ein HTML-AuswahlmenÃ¼ aus (<option></option>) - benutzt
+ * fÃ¼r die Spielerauswahl um ein neues Spiel zu starten.
  * 
  * @author [z]bert
  * @version 1.5
@@ -95,13 +95,14 @@ function newgame($player) {
   	"SELECT count(*) anz FROM addle WHERE finish=0 AND ((player1='$user->id' AND player2='$player') OR (player1='$player' AND player2='$user->id'))",
   	__FILE__, __LINE__
   ));
-  if ($anz['anz'] > MAX_ADDLE_GAMES) user_error("No more games versus '$player' possible", E_USER_NOTICE);
+  if ($anz['anz'] > MAX_ADDLE_GAMES) user_error(t('error-game-max-limit-reached'), E_USER_NOTICE);
   
   $e = $db->query("SELECT addle FROM user WHERE id='$player'", __FILE__, __LINE__);
   $d = $db->fetch($e);
   
   if (!$player || $player == $_SESSION['user_id'] || $d['addle']!=1) {
-     user_error("Cannot create Addle game ", E_USER_ERROR);
+     user_error(t('error-newgame'), E_USER_ERROR);
+     exit;
   }
 
   // create board
@@ -171,35 +172,13 @@ function newgame($player) {
    * Notification - New Game
    */
   try {
-	  $messageSubject = '-- New Addle Game -- (autom. Nachricht)';
-	  $messageText = sprintf('Ich habe Dich zu <a href="%s/addle.php?show=play&id=%d">einem neuen Addle-Game</a> herausgefordert!', SITE_URL, $gameid);
-	  Messagesystem::sendMessage($user->id, $player, $messageSubject, $messageText);
+	  Messagesystem::sendMessage($user->id, $player, t('message-subject', 'addle'), t('neue-herausforderung', 'addle', [ SITE_URL, $gameid ]));
   } catch (Exception $e) {
   	  user_error($e->getMessage(), E_USER_ERROR);
   }
   
   header("Location: /addle.php?show=play&id=$gameid");
-}
-
-
-/**
- * Addle Anleitung
- * 
- * Gibt das How-to (Anleitung) zu Addle aus
- * 
- * @author [z]biko
- * @version 1.0
- *
- */
-function howto() {
-  ?>
-     Ziel des Spiels Addle ist es, möglichst viele Punkte zu erziehlen. <br>
-     Um Punkte zu bekommen, wähle ein Feld aus deiner markierten Linie aus. Du erhälst die entsprechende Punktzahl. Anschliessend
-     darf dein Gegner von seiner markierten Linie auswählen. Die Linie wechselt jeweils von der Vertikalen in die Horizontalen
-     deines gewählten Feldes, und umgekehrt. Der erste Spiele wählt immer von aus einer horizontalen Linie aus, der zweite immer
-     aus einer vertikalen Linie. Das Spiel ist fertig, wenn ein Spieler kein Feld mehr aus seiner Linie auswählen kann.
-     <br />Die Spielerin Barabara Harris ist eine KI, ihr spielt dabei also gegen den Computer.
-  <?
+  exit;
 }
 
 
@@ -222,22 +201,22 @@ function games() {
   $e = $db->query("SELECT * FROM addle WHERE ((player1=$_SESSION[user_id] AND nextturn=1) OR (player2=$_SESSION[user_id] AND nextturn=2)) AND finish='0'", __FILE__, __LINE__);
   $out = "";
   while ($d = mysql_fetch_array($e)) {
-     if ($d[player1] != $_SESSION['user_id']) {
-        $otherpl = $d[player1];
+     if ($d['player1'] != $_SESSION['user_id']) {
+        $otherpl = $d['player1'];
      }else{
-        $otherpl = $d[player2];
+        $otherpl = $d['player2'];
      }
-     $out .= "<b><a style='color:red;' href='addle.php?show=play&id=".$d[id]."'>". $user->id2user($otherpl). "</a></b>, ";
+     $out .= "<b><a style='color:red;' href='addle.php?show=play&id=".$d['id']."'>". $user->id2user($otherpl). "</a></b>, ";
   }
   
   $e = $db->query("SELECT * FROM addle WHERE ((player1=$_SESSION[user_id] AND nextturn=2) OR (player2=$_SESSION[user_id] AND nextturn=1)) AND finish='0'", __FILE__, __LINE__);
   while ($d = mysql_fetch_array($e)) {
-     if ($d[player1] != $_SESSION['user_id']) {
-        $otherpl = $d[player1];
+     if ($d['player1'] != $_SESSION['user_id']) {
+        $otherpl = $d['player1'];
      }else{
-        $otherpl = $d[player2];
+        $otherpl = $d['player2'];
      }
-     $out .= "<a href='addle.php?show=play&id=".$d[id]."'>". $user->id2user($otherpl). "</a>, ";
+     $out .= "<a href='addle.php?show=play&id=".$d['id']."'>". $user->id2user($otherpl). "</a>, ";
   }
   $out = substr($out, 0, -1);
   echo "$out <br>";
@@ -247,7 +226,7 @@ function games() {
 /**
  * Addle Hauptseite
  * 
- * Erzeugt die Hauptseite zu Addle mit einer generellen Spielübersicht
+ * Erzeugt die Hauptseite zu Addle mit einer generellen SpielÃ¼bersicht
  * 
  * @author [z]biko
  * @version 1.0
@@ -282,12 +261,12 @@ function overview() {
   games();?>
   <br><br>
   <b>Anleitung:</b><br> <?
-  howto();
+  echo t('howto', 'addle');
 }
 
 
 /**
- * Addle Spielzug ausführen
+ * Addle Spielzug ausfÃ¼hren
  * 
  * Verarbeitet einen Addle Spielzug
  * 
@@ -305,22 +284,22 @@ function doplay($id, $choose) {
      $e = $db->query("SELECT * FROM addle WHERE id=$id", __FILE__, __LINE__);
      $d = mysql_fetch_array($e);
      if ($d && $choose>=0 && $choose<=7) {
-        if ($d['player'.$d[nextturn]] == $_SESSION['user_id']) {
-           if ($d[nextturn] == 1) {
+        if ($d['player'.$d['nextturn']] == $_SESSION['user_id']) {
+           if ($d['nextturn'] == 1) {
               $x = $choose;
-              $y = $d[nextrow];
+              $y = $d['nextrow'];
               $nextturn = 2;
            }else{
-              $x = $d[nextrow];
+              $x = $d['nextrow'];
               $y = $choose;
               $nextturn = 1;
            }
            $num = $y*8+$x;
-           $act = substr($d[data], $num, 1);
+           $act = substr($d['data'], $num, 1);
            if ($act != '.' && $act) {
               // score, data change
-              $score = $d['score'.$d[nextturn]] + ord($act)-96;
-              $data = substr($d[data], 0, $num) . "." . substr($d[data], $num+1);
+              $score = $d['score'.$d['nextturn']] + ord($act)-96;
+              $data = substr($d['data'], 0, $num) . "." . substr($d['data'], $num+1);
               
               // check, ob fertig
               $finish = 1;
@@ -357,33 +336,33 @@ function doplay($id, $choose) {
               	
               	// send message
               	if ($nextturn == 1) {
-              		$msg_from = $d[player2];
-              		$msg_to = $d[player1];
+              		$msg_from = $d['player2'];
+              		$msg_to = $d['player1'];
               	}else{
-              		$msg_from = $d[player1];
-              		$msg_to = $d[player2];
+              		$msg_from = $d['player1'];
+              		$msg_to = $d['player2'];
               	}
               	
-              	if ($d['score'.$nextturn] > $d['score'.$d[nextturn]]) {
+              	if ($d['score'.$nextturn] > $d['score'.$d['nextturn']]) {
                   	Messagesystem::sendMessage(
                   		$msg_from, 
                   		$msg_to,
-                  		'-- Addle -- (autom. Nachricht)',
-                  		sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game gewonnen.</a>', SITE_URL, $id)
+                  		t('message-subject', 'addle'),
+                  		t('message-game-finish', 'addle', [ SITE_URL, $id, 'gewonnen'])
                   	);
-              	}elseif ($d['score'.$nextturn] < $d['score'.$d[nextturn]]) {
+              	}elseif ($d['score'.$nextturn] < $d['score'.$d['nextturn']]) {
               		Messagesystem::sendMessage(
                   		$msg_from,
                   		$msg_to,
-                  		'-- Addle -- (autom. Nachricht)',
-                  		sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game verloren.</a>', SITE_URL, $id)
+                  		t('message-subject', 'addle'),
+                  		t('message-game-finish', 'addle', [ SITE_URL, $id, 'verloren'])
                   	);
               	}else{
               		Messagesystem::sendMessage(
                   		$msg_from,
                   		$msg_to,
-                  		'-- Addle -- (autom. Nachricht)',
-                  		sprintf('<a href="%s/addle.php?show=play&id=%d">Unser Addle-Game ging unentschieden aus.</a>', SITE_URL, $id)
+                  		t('message-subject', 'addle'),
+                  		t('message-game-unentschieden', 'addle', [ SITE_URL, $id ])
                   	);
               	}
               }
@@ -443,18 +422,18 @@ function play($id=0) {
         <td style="text-align: center;">
         <div style="font-size: x-large;">
         <?
-           if (!$d[finish]) {
-              echo $user->id2user($d["player".$d[nextturn]]). " ist am Zug";
+           if (!$d['finish']) {
+	          echo t('next', 'addle', $user->id2user($d['player'.$d['nextturn']]));
            }else{
-              if ($d[score1] == $d[score2]) {
-                 echo "unentschieden";
+              if ($d['score1'] == $d['score2']) {
+                 echo t('unentschieden', 'addle');
               }else{
-                 if ($d[score1] > $d[score2]) {
-                    echo $user->id2user($d[player1]);
+                 if ($d['score1'] > $d['score2']) {
+                    $winner = $user->id2user($d['player1']);
                  }else{
-                    echo $user->id2user($d[player2]);
+                    $winner = $user->id2user($d['player2']);
                  }
-                 echo " hat gewonnen";
+                 echo t('gewinner', 'addle', $winner);
               }
            }  ?>
         <br />
@@ -462,12 +441,12 @@ function play($id=0) {
         <?
         	if ($d['finish'] && $d['score1']!=$d['score2']) {
         		echo "<br />";
-        		if ($d[score1] > $d[score2]) {
-                 echo $user->id2user($d[player1]);
+        		if ($d['score1'] > $d['score2']) {
+                 $winner = $user->id2user($d['player1']);
               }else{
-                 echo $user->id2user($d[player2]);
+                 $winner = $user->id2user($d['player2']);
               }
-              echo " hat $d[dwz_dif] DWZ-Punkte gewonnen.";
+               echo t('gewinner-dwz', 'addle', [ $winner, $d['dwz_dif'] ]);
         	}
         	?>
         </div>
@@ -483,15 +462,15 @@ function play($id=0) {
         	<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150">
         		<tr><td><?=$user->link_userpage($d['player1'], true, true)?></td></tr>
         		<tr><td>
-           <?='<a href="/addle.php?show=archiv&uid='.$d[player1].'">'.$user->id2user($d[player1]).'</a> <br /><small>(DWZ '.$d['dwz1'].' / '.$d['dwzr1'].'.)</small>'?>
+           <?='<a href="/addle.php?show=archiv&uid='.$d['player1'].'">'.$user->id2user($d['player1']).'</a> <br /><small>(DWZ '.$d['dwz1'].' / '.$d['dwzr1'].'.)</small>'?>
         	</td></tr></table>
         	
            <table cellspacing='0' cellpadding='0' border='0' style="font-size: xx-large;" width="100%">
               <tr>
-                 <td align="center"><font size="6"><?=$d[score1]?><br /><br /></td>
+                 <td align="center"><font size="6"><?=$d['score1']?><br /><br /></td>
               </tr>
               <tr>
-                 <td align="center"><font size="6"><?=$d[score2]?></td>
+                 <td align="center"><font size="6"><?=$d['score2']?></td>
               </tr>
            </table>
            <? if($d['player'.$d['nextturn']] == $d['player2']) {
@@ -503,7 +482,7 @@ function play($id=0) {
         	<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150">
         		<tr><td><?=$user->link_userpage($d['player2'], true, true)?></td></tr>
         		<tr><td>
-           <?='<a href="/addle.php?show=archiv&uid='.$d[player2].'">'.$user->id2user($d[player2]).'</a> <br /><small>(DWZ '.$d['dwz2'].' / '.$d['dwzr2'].'.)</small>'?>
+           <?='<a href="/addle.php?show=archiv&uid='.$d['player2'].'">'.$user->id2user($d['player2']).'</a> <br /><small>(DWZ '.$d['dwz2'].' / '.$d['dwzr2'].'.)</small>'?>
            </td></tr></table>
         </td>
       </tr>
@@ -514,13 +493,13 @@ function play($id=0) {
      for ($y=0; $y<8; $y++) {
         ?><tr><?
         for ($x=0; $x<8; $x++) {
-           if (($d[nextturn]==1 && $y==$d[nextrow]) || ($d[nextturn]==2 && $x==$d[nextrow])) {
+           if (($d['nextturn']==1 && $y==$d['nextrow']) || ($d['nextturn']==2 && $x==$d['nextrow'])) {
               $bgcolor = NEWCOMMENTCOLOR;
            }else{
               $bgcolor = TABLEBACKGROUNDCOLOR;
            } ?>
            <td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='<?=$bgcolor?>'>   <?
-              $act = substr($d[data], ($y*8+$x), 1);
+              $act = substr($d['data'], ($y*8+$x), 1);
               if ($act == '.') {
               	if ($d['last_pick_data']) {
               		if ($d['nextturn']==1 && $x==$d['last_pick_row'] && $y==$d['nextrow']
@@ -533,9 +512,9 @@ function play($id=0) {
               	}
               }else{
                  $out = "<b>". (ord($act)-96). "</b>";
-                 if ($d[player1]==$_SESSION['user_id'] && $d[nextturn]==1 && $y==$d[nextrow] && $d['finish']==0) {
+                 if ($d['player1']==$_SESSION['user_id'] && $d['nextturn']==1 && $y==$d['nextrow'] && $d['finish']==0) {
                     $out = "<a href='addle.php?show=play&do=play&id=".$id."&choose=".$x."'>$out</a>";
-                 }else if ($d[player2]==$_SESSION['user_id'] && $d[nextturn]==2 && $x==$d[nextrow] && $d['finish']==0) {
+                 }else if ($d['player2']==$_SESSION['user_id'] && $d['nextturn']==2 && $x==$d['nextrow'] && $d['finish']==0) {
                     $out = "<a href='addle.php?show=play&do=play&id=".$id."&choose=".$y."'>$out</a>";
                  }
                  echo $out;
@@ -553,7 +532,7 @@ function play($id=0) {
   <br><br><?
   games();
 
-if ($_SESSION[user_id] == 52){
+if ($_SESSION['user_id'] == 52){
     $data = $d['data'];
 	$nextrow = $d['nextrow'];
 	$game_id = $d['id'];
@@ -598,35 +577,35 @@ function highscore() {
   $unent = array();
   $usr = array();
   while ($d = mysql_fetch_array($e)) {
-     $usr[$d[player1]] = $d[player1];
-     $usr[$d[player2]] = $d[player2];
-     if ($d[score1] > $d[score2]) {
-        $score[$d[player1]] += 3;
-        $score[$d[player2]] += 0;
-        $win[$d[player1]]++;
-        $win[$d[player2]] += 0;
-        $loose[$d[player1]] += 0;
-        $loose[$d[player2]]++;
-        $unent[$d[player1]] += 0;
-        $unent[$d[player2]] += 0;
-     }elseif ($d[score2] > $d[score1]) {
-        $score[$d[player1]] += 0;
-        $score[$d[player2]] += 3;
-        $win[$d[player1]] += 0;
-        $win[$d[player2]]++;
-        $loose[$d[player1]]++;
-        $loose[$d[player2]] += 0;
-        $unent[$d[player1]] += 0;
-        $unent[$d[player2]] += 0;
+     $usr[$d['player1']] = $d['player1'];
+     $usr[$d['player2']] = $d['player2'];
+     if ($d['score1'] > $d['score2']) {
+        $score[$d['player1']] += 3;
+        $score[$d['player2']] += 0;
+        $win[$d['player1']]++;
+        $win[$d['player2']] += 0;
+        $loose[$d['player1']] += 0;
+        $loose[$d['player2']]++;
+        $unent[$d['player1']] += 0;
+        $unent[$d['player2']] += 0;
+     }elseif ($d['score2'] > $d['score1']) {
+        $score[$d['player1']] += 0;
+        $score[$d['player2']] += 3;
+        $win[$d['player1']] += 0;
+        $win[$d['player2']]++;
+        $loose[$d['player1']]++;
+        $loose[$d['player2']] += 0;
+        $unent[$d['player1']] += 0;
+        $unent[$d['player2']] += 0;
      }else{
-        $score[$d[player1]]++;
-        $score[$d[player2]]++;
-        $unent[$d[player1]]++;
-        $unent[$d[player2]]++;
-        $win[$d[player1]] += 0;
-        $win[$d[player2]] += 0;
-        $loose[$d[player1]] += 0;
-        $loose[$d[player2]] += 0;
+        $score[$d['player1']]++;
+        $score[$d['player2']]++;
+        $unent[$d['player1']]++;
+        $unent[$d['player2']]++;
+        $win[$d['player1']] += 0;
+        $win[$d['player2']] += 0;
+        $loose[$d['player1']] += 0;
+        $loose[$d['player2']] += 0;
      }
   }
   $keys = array_keys($usr);
@@ -688,8 +667,8 @@ function highscore() {
 function archiv() {
   global $db, $user, $smarty;
 
-  if (!$_GET[uid]) $uid = $user->id;
-  else $uid = $_GET[uid];
+  if (!$_GET['uid']) $uid = $user->id;
+  else $uid = $_GET['uid'];
   
   //echo head(0, 'Addle');
   $smarty->assign('tplroot', array('page_title' => 'Addle Archiv'));
@@ -703,10 +682,10 @@ function archiv() {
   $d = $db->fetch($e);
   ?>
   <div align='center'>
-  <H3>Spieler Stats für <?=$user->id2user($uid)?></H3>
+  <H3>Spieler Stats fÃ¼r <?=$user->id2user($uid)?></H3>
   <table>
-     <tr><td align="left">DWZ Punkte: &nbsp; </TD><TD align="right"><?=$d[score]?></td></tr>
-     <tr><td align="left">DWZ Rank: </TD><td align="right"><?=$d[rank]?>.</td></tr>
+     <tr><td align="left">DWZ Punkte: &nbsp; </TD><TD align="right"><?=$d['score']?></td></tr>
+     <tr><td align="left">DWZ Rank: </TD><td align="right"><?=$d['rank']?>.</td></tr>
   </table>
   <BR />
   <table cellspacing='0' cellpadding='2' class='border'>
@@ -722,7 +701,7 @@ function archiv() {
      $e = $db->query("SELECT * FROM addle WHERE (player1=$uid OR player2=$uid) ORDER BY date DESC", __FILE__, __LINE__);
      $i = 0;
      while ($d = mysql_fetch_array($e)) {
-        if ($d[player1] == $uid) {
+        if ($d['player1'] == $uid) {
            $ich = 1;
            $gegner = 2;
         }else{
@@ -751,7 +730,7 @@ function archiv() {
                  echo "unentschieden";
               }  ?>
            </td>
-           <TD <?=$bgcolor?> align="left"> &nbsp; <a href="/addle.php?show=play&id=<?=$d[id]?>">ansehen</A></TD>
+           <td <?=$bgcolor?> align="left"> &nbsp; <a href="/addle.php?show=play&id=<?=$d['id']?>">ansehen</a></td>
         </tr>  <?
         $i++;
      } ?>
@@ -762,15 +741,14 @@ function archiv() {
 if (!$_SESSION['user_id']) {exit;}
 
 switch ($_GET['do']) {
-  case "new": newgame($_POST[id]); break;
-  case "play": doplay($_GET[id], $_GET[choose]); break;
+  case "new": newgame($_POST['id']); break;
+  case "play": doplay($_GET['id'], $_GET['choose']); break;
 }
 
 
 switch ($_GET['show']) {
   case "overview": overview(); break;
-  case "play": play($_GET[id]); break;
-  //case "howto": echo head("Addle: Anleitung"); howto(); break;
+  case "play": play($_GET['id']); break;
   case "howto": 
   	//echo head(0, 'Addle'); 
   	$smarty->assign('tplroot', array('page_title' => 'Addle How-to'));
@@ -778,7 +756,7 @@ switch ($_GET['show']) {
   	echo menu("zorg");
       echo menu("games");
       echo menu("addle");
-      howto(); 
+      echo t('howto', 'addle');
       break;
   case "highscore": 
   	highscore(); 
@@ -798,7 +776,7 @@ switch ($_GET['show']) {
   default:
      $e = $db->query("SELECT * FROM addle WHERE ((player1=$_SESSION[user_id] AND nextturn=1) OR (player2=$_SESSION[user_id] AND nextturn=2)) AND finish=0", __FILE__, __LINE__);
      $d = mysql_fetch_array($e);
-     play($d[id]);
+     play($d['id']);
 }
 //echo foot(7);
 $smarty->display('file:layout/footer.tpl');

@@ -33,12 +33,14 @@
  * @include	Utilities
  * @include	Sunrise
  * @include	Messagesystem
+ * @include strings.inc.php Strings die im Zorg Code benutzt werden
  */
 require_once( __DIR__ .'/smarty.inc.php');
 require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 require_once( __DIR__ .'/sunrise.inc.php');
 require_once( __DIR__ .'/messagesystem.inc.php');
+require_once( __DIR__ .'/strings.inc.php');
 
 /**
  * GLOBALS
@@ -496,7 +498,7 @@ class Comment {
 		$parent_id = ($parent_id <= 0 ? 1 : $parent_id);
 
 		if($parent_id <= 0) {
-			echo 'Parent id ist kleiner gleich 0.';
+			echo t('invalid-parent_id', 'commenting');
 			exit;
 		}
 
@@ -508,7 +510,7 @@ class Comment {
 
 
 		if($thread_id <= 0) {
-			echo 'Thread_id ist kleiner gleich 0.';
+			echo t('invalid-thread_id', 'commenting');
 			exit;
 		}
 
@@ -582,31 +584,21 @@ class Comment {
 
 
 				// Activity Eintrag auslösen (ausser bei der Bärbel, die trollt zuviel)
-				// if ($user_id != 59) { Activities::addActivity($user_id, 0, $activities_f[1]); }
-				if ($user_id != 59) { Activities::addActivity($user_id, 0, 'hat <a href="'.Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']).'">einen Comment</a> '.Forum::getBoardTitlePrefix($rs['board']).' '.Forum::getBoardTitle($rs['board']).' geschrieben.<br/><p><small>
-				&nbsp;&nbsp;<a href="'.Comment::getLink($board, $$rs['parent_id'], $rs['id'], $rs['thread_id']).'">"'.Comment::getTitle($text, 100).'..."</a></small></p>', 'c'); }
+				if ($user_id != 59)
+				{
+					Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), Comment::getTitle($text, 100) ]), 'c');
+				}
 
 
 				// Message an alle gewünschten senden
 				if(count($msg_users) > 0) {
 					for ($i=0; $i < count($msg_users); $i++) {
 						Messagesystem::sendMessage(
-							$user_id
-							, $msg_users[$i]
-							, addslashes(
-									stripslashes(
-									'[Forumpost] von '.usersystem::id2user($user_id)
-									)
-								)
-							, addslashes(
-									stripslashes(
-										usersystem::id2user($user_id).' hat geschrieben: <br /><i>'
-										.$text
-										.'</i><br /><br /><a href="'.Comment::getLink($board, $parent_id, $rs['id'], $thread_id)
-										.'">--> zum Post</a>'
-									)
-								)
-							, (is_array($msg_users) ? implode(',', $msg_users) : $msg_users)
+							 $user_id
+							,$msg_users[$i]
+							,t('message-newcomment-subject', 'commenting', usersystem::id2user($user_id))
+							,t('message-newcomment', 'commenting', [ usersystem::id2user($user_id), addslashes(stripslashes($text)), Comment::getLink($board, $parent_id, $rs['id'], $thread_id) ])
+							,(is_array($msg_users) ? implode(',', $msg_users) : $msg_users)
 						);
 					}
 				}
@@ -621,21 +613,10 @@ class Comment {
 			  if($db->num($result) > 0) {
 				  while($rs2 = $db->fetch($result)) {
 				  	Messagesystem::sendMessage(
-							59,
-							$rs2['user_id'],
-							addslashes(stripslashes('[Forum] Reply to post #'.$parent_id)),
-							addslashes(
-								stripslashes(
-									'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
-									.Comment::getTitle($rs['text'])
-									.'</a>'
-									.' &raquo;</a>'
-									.' by '
-									.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-									.' @ '
-									.datename($rs['date'])
-								)
-							)
+							 59
+							,$rs2['user_id']
+							,t('message-newcomment-subscribed-subject', 'commenting', [ usersystem::id2user($user_id), $parent_id ])
+							,t('message-newcomment-subscribed', 'commenting', [ usersystem::id2user($user_id), Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']), addslashes(stripslashes(Comment::getTitle($rs['text']))) ])
 						);
 				   }
 			}
@@ -643,7 +624,7 @@ class Comment {
 			return $commentlink;
 
 		} else {
-			echo "Permission denied for posting on thread '$board / $thread_id'";
+			user_error( t('invalid-permissions', 'commenting', [ $board, $thread_id ]), E_USER_WARNING);
 			exit;
 		}
 	}
@@ -809,50 +790,6 @@ class Forum {
 
 		return $rs['title'];
 	}
-
-
-	/**
-	 * Board Prefix für Activities Text ausgeben
-	 * @author IneX
-	 * @date 18.08.2012
-	 * @desc Ermittelt den korrekten, deutschen Prefix zur erwähnung des Board Titels in einem Text (z.B. Acitivities ;))
-	 * @param $board
-	 * @return string
-	*/
-	static function getBoardTitlePrefix($board){
-		switch ($board) {
-			case 'f':
-				return('im');
-				break;
-			case 't':
-				return('im');
-				break;
-			case 'b':
-				return('im');
-				break;
-			case 'h':
-				return('im');
-				break;
-			case 'p':
-				return('im');
-				break;
-			case 'g':
-				return('im');
-				break;
-			case 'i':
-				return('in der');
-				break;
-			case 'o':
-				return('in der');
-				break;
-			case 'e':
-				return('in den');
-				break;
-			case 'r':
-				return('in den');
-				break;
-		}
-    }
 
 
 	/**
@@ -1155,7 +1092,7 @@ class Forum {
 
 		$wboard = $board ? "comments.board='".$board."'" : "1";
 
-	    //beschr‰nkt auf 365 tage, da sonst unglaublich lahm
+	    //beschränkt auf 365 tage, da sonst unglaublich lahm
 		$sql ="SELECT
 			 comments.*,
 			 IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread,
@@ -2261,7 +2198,7 @@ class Thread {
 	  global $db, $user;
 
 	  if(!is_numeric($parent_id)) {
-				echo '$parent_id is not numeric';
+				echo t('invalid-parent_id', 'commenting');
 				exit;
 			}
 

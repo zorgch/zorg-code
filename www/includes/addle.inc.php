@@ -2,7 +2,7 @@
 /**
  * Addle Zusatzfunktionen
  * 
- * Beinhaltet diverse Zusatzfunktionen für Addle
+ * Beinhaltet diverse Zusatzfunktionen fÃ¼r Addle
  * 
  * @author [z]biko
  * @version 1.0
@@ -14,6 +14,7 @@
  */
 include_once( __DIR__ .'/messagesystem.inc.php');
 include_once( __DIR__ .'/mysql.inc.php');
+include_once( __DIR__ .'/strings.inc.php');
 
 /**
  * Konstante MAX_ADDLE_GAMES
@@ -24,7 +25,7 @@ define("MAX_ADDLE_GAMES", 1);
 /**
  * Anzahl offene Addle Spiele
  * 
- * Liefert den Text für die Startseite, wieviele Addle Games eines Benutzers noch offen sind.
+ * Liefert den Text fÃ¼r die Startseite, wieviele Addle Games eines Benutzers noch offen sind.
  * 
  * @author [z]biko
  * @version 1.0
@@ -77,14 +78,14 @@ function addle_remove_old_games () {
 			Messagesystem::sendMessage(
 				$winner,
 				$looser,
-				'-- Addle -- (autom. Nachricht)',
-				sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game verloren, weil du nicht mehr weiter gespielt hast.</a>', SITE_URL, $d['id'])
+				t('message-subject', 'addle'),
+				t('message-game-forceclosed', 'addle', [ SITE_URL, $d['id'], 'verloren', 'du', 'hast' ])
 			);
 			Messagesystem::sendMessage(
 				$looser,
 				$winner,
-				'-- Addle -- (autom. Nachricht)',
-				sprintf('<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game gewonnen, weil ich nicht mehr weiter gespielt habe.</a>', SITE_URL, $d['id'])
+				t('message-subject', 'addle'),
+				t('message-game-forceclosed', 'addle', [ SITE_URL, $d['id'], 'gewonnen', 'ich', 'habe' ])
 			);
 			$db->query("UPDATE addle SET finish='1', $winner_score=1, $looser_score=0 WHERE id=$d[id]", __FILE__, __LINE__);
 			_update_dwz($d['id']);
@@ -234,7 +235,7 @@ function _update_dwz ($id) {
    if ($d2) $db->query("UPDATE addle_dwz SET score=$dwz2, prev_score=$prev_score_2 WHERE user=$d[player2]", __FILE__, __LINE__);
    else $db->query("INSERT INTO addle_dwz (user, score, prev_score) VALUES ($d[player2], $dwz2, $prev_score_2)", __FILE__, __LINE__);
    
-   // dwz_dif für game
+   // dwz_dif fÃ¼r game
    $db->query("UPDATE addle SET dwz_dif=".abs($dif1)." WHERE id=$id AND finish=1", __FILE__, __LINE__);
    
    // rank update
@@ -268,10 +269,10 @@ function _update_dwz ($id) {
 $max_depth = 5;
 
 /**
- * KI - höchste Punktzahl wählen
+ * KI - hÃ¶chste Punktzahl wÃ¤hlen
  * 
  * Ermittelt, welches Feld die KI nehmen soll,
- * um möglichst viele Punkte zu machen aber dem
+ * um mÃ¶glichst viele Punkte zu machen aber dem
  * Gegner nur kleine Punkte zur Wahl zu lassen
  * 
  * @author [z]stamp & [z]cylander
@@ -361,10 +362,10 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 
 
 /**
- * KI - möglichst kleine Punktzahl
+ * KI - mÃ¶glichst kleine Punktzahl
  * 
- * Ermittelt, welches das kleinste Feld für die KI ist,
- * um dem Gegner möglichst wenig Punkte zur Wahl zu lassen
+ * Ermittelt, welches das kleinste Feld fÃ¼r die KI ist,
+ * um dem Gegner mÃ¶glichst wenig Punkte zur Wahl zu lassen
  * 
  * @author [z]stamp & [z]cylander
  * @version 1.0
@@ -466,5 +467,3 @@ while($rs = $db->fetch($result)) {
 	}
 }
 
-
-?>

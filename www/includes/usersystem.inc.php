@@ -14,6 +14,7 @@
 include_once( __DIR__ .'/colors.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/strings.inc.php');
 
 /**
  * Defines
@@ -297,18 +298,19 @@ class usersystem {
 						$db->query($sql, __FILE__, __LINE__);
 
 						header("Location: ".$_SERVER['PHP_SELF']."?". session_name(). "=". session_id());
+						exit;
 					} else {
-						echo "Du bist ausgesperrt! (bis ".date("d.m.Y", $rs[AUSGESPERRT_BIS]).")";
+						echo t('lockout-message', 'user', date("d.m.Y", $rs[AUSGESPERRT_BIS]));
 						exit;
 					}
 
-				} else { $error = "Dein Account wurde noch nicht aktiviert"; }
+				} else { $error = t('account-inactive', 'user'); }
 			} else {
 				$this->logerror(1,$rs['id']);
-				$error = "Benutzer/Passwort Kombination falsch!"; // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
+				$error = t('authentication-failed', 'user'); // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
 			}
 		} else {
-			$error = "Benutzer/Passwort Kombination falsch!"; // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
+			$error = t('authentication-failed', 'user'); // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
 		}
 		return $error;
 	}
@@ -331,6 +333,7 @@ class usersystem {
 		setcookie("autologin_pw",'',time()-(86400*14));
 
 		header("Location: ". $_SERVER['PHP_SELF']);
+		exit;
 	}
 
 
@@ -369,14 +372,14 @@ class usersystem {
 				$sql = "SELECT id, username FROM user WHERE email = '$email'";
 				$result = $db->query($sql, __FILE__, __LINE__);
 
-				//?berpr?fe ob user mit email existiert
+				//überprüfe ob user mit email existiert
 				if($db->num($result)) {
 					$rs = $db->fetch($result);
 
 					//generiere passwort
 					$new_pass = $this->password_gen($rs['username']);
 
-					//verschl?ssle passwort
+					//verschlüssle passwort
 					$crypted = crypt_pw($new_pass);
 
 					//trage aktion in errors ein
@@ -386,20 +389,15 @@ class usersystem {
 					$sql = "UPDATE user set userpw = '$crypted' WHERE id = '$rs[id]'";
 					$db->query($sql, __FILE__, __LINE__);
 
-					$body = "Neues Passwort fuer den Benutzer: ".$rs['username']."\
-					Passwort: ".$new_pass."\n
-					Dieses Passwort kannst du auf unserer Website unter mein Profil wieder aendern.\n
-					Weiterhin wuenschen wir dir viel Spass auf Zorg";
-
 					//versende email
-					@mail($email,"Neues Passwort",$body,"From: ".ZORG_EMAIL."\n");
-					$error = "Ein neues Passwort wurde generiert und dir zugestellt!";
+					@mail($email, t('message-newpass-subject', 'user'), t('message-newpass', 'user', [ $rs['username'], $crypted ]), "From: ".ZORG_EMAIL."\n");
+					$error = t('newpass-confirmation', 'user');
 
 				} else {
-					$error = "Es existiert kein Benutzer mit dieser E-Mail Adresse!";
+					$error = t('invalid-email', 'user');
 				}
 			} else {
-				$error = "Diese E-Mail Adresse ist ung&uuml;ltig!";
+				$error = t('invalid-email', 'user');
 			}
 		}
 		return $error;
@@ -460,31 +458,21 @@ class usersystem {
 							mkdir($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
 							chmod($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
 
-							$body = "Willkommen auf Zorg, deine Benutzerdaten sind:\n
-							Benutzername: ".$username."
-							Passwort: ".$pw."\n
-							Wir bitten dich deinen Account noch freizuschalten, dazu musst du lediglich folgende Website aufrufen:
-							".SITE_URL."/profil.php?menu_id=13&regcode=".$key."\n
-
-							Wir wünschen dir viel Spass!\n
-
-							zooomclan.org";
-
 							//email versenden
-							@mail($email,"Benutzerdaten zooomclan.org",$body,"From: ".ZORG_EMAIL."\n");
+							@mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), "From: ".ZORG_EMAIL."\n");
 
-							$error = "Dein Account wurde erfolgreich erstellt, du wirst in k&uuml;rze eine E-Mail mit weiteren Informationen bekommen!";
+							$error = t('account-confirmation', 'user');
 						} else {
-							$error = "<font color='red'>Du hast dich vertippt, bitte wiederholen!</font>";
+							$error = t('authentication-failed', 'user');
 						}
 					} else {
-						$error = "<font color='red'>Es besteht bereits ein Benutzer mit dieser E-Mail Adresse!</font>";
+						$error = t('invalid-email', 'user');
 					}
 				} else {
-					$error = "<font color='red'>Diese E-Mail Adresse ist ung&uuml;ltig!</font>";
+					$error = t('invalid-email', 'user');
 				}
 			} else {
-				$error = "<font color='red'>Es besteht bereits ein Benutzer mit diesem Namen!</font>";
+				$error = t('invalid-username', 'user');
 			}
 		}
 		return $error;
@@ -553,10 +541,10 @@ class usersystem {
 			$sql = "UPDATE ".$this->table_name." set ".$this->field_user_active." = 1
 			WHERE id = '$rs[id]'";
 			$db->query($sql, __FILE__, __LINE__);
-			$error = "Dein Account wurde soeben aktiviert!";
+			$error = t('account-activated', 'user');
 		} else {
 			$this->logerror(2,0);
-			$error = "Unbekannter Registrierungscode!";
+			$error = t('invalid-regcode', 'user');
 		}
 		return $error;
 	}
@@ -573,9 +561,10 @@ class usersystem {
 	function logerror($do,$user_id) {
 		global $db;
 		$do_array = array(
-		1 => "Falsches Passwort!",
-		2 => "Unbekannter Registrierungscode!",
-		3 => "Neues Passwort gesetzt!");
+			1 => t('authentication-failed', 'user'),
+			2 => t('invalid-regcode', 'user'),
+			3 => t('newpass-confirmation', 'user')
+		);
 
 		$sql = "INSERT into error (user_id, do, ip, date)
 		VALUES ('".$user_id."', '".$do_array[$do]."','".$_SERVER['REMOTE_ADDR']."', now())";
@@ -1009,7 +998,7 @@ class usersystem {
 			$sql = "SELECT count(*) as anzahl FROM quotes WHERE user_id = $user_id";
 			$result = $db->query($sql, __FILE__, __LINE__);
 			$rs = $db->fetch($result);
-			$total = $rs[anzahl];
+			$total = $rs['anzahl'];
 
 			mt_srand((double)microtime()*1000000);
 		    $rnd = mt_rand(1, $total);
@@ -1019,7 +1008,7 @@ class usersystem {
 			for ($i=0;$i<$rnd;$i++){
 				$rs = $db->fetch($result);
 			}
-			$quote = $rs[text];
+			$quote = $rs['text'];
 			return $quote;
 		}
 	}

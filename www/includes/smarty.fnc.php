@@ -47,11 +47,9 @@ function var_online_users ()
 	global $db;
 
 	$online_users = array();
-	$sql = "
-		SELECT id FROM user
-		WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - ".USER_TIMEOUT.")
-		ORDER by activity DESC
-	";
+	$sql = 'SELECT id FROM user
+			WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - '.USER_TIMEOUT.')
+			ORDER by activity DESC';
 	$e = $db->query($sql, __FILE__, __LINE__);
 
 	while ($d = mysql_fetch_row($e)) {

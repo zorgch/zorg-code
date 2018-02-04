@@ -13,15 +13,11 @@
  * @subpackage Gallery
  */
 
-//=============================================================================
-// Includes
-//=============================================================================
 /**
- * File Includes
+ * File includes
+ * @include main.inc.php
  */
 require_once( __DIR__ .'/includes/main.inc.php');
-
-
 
 // fuer mod_rewrite solltes
 //header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -35,13 +31,12 @@ echo menu("gallery");
 // Gallery nur für eingeloggte User anzeigen, siehe Bugtracker: http://www.zorg.ch/bugtracker.php?bug_id=708
 if ($user->typ == USER_NICHTEINGELOGGT)
 {
-	user_error("<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
-	<p>Bitte logge Dich ein oder <a href=\"profil.php?do=anmeldung&menu_id=13\">erstelle einen neuen Benutzer</a></p>", E_USER_NOTICE);
+	user_error( t('error-not-logged-in', 'gallery', SITE_URL), E_USER_NOTICE);
 
 } else {
 
 	// Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen...
-	if ($_GET['do'] && $user->typ == USER_NICHTEINGELOGGT) user_error("Permission denied for <i>".$_GET['do']."</i>", E_USER_ERROR);
+	if ($_GET['do'] && $user->typ == USER_NICHTEINGELOGGT) user_error( t('permissions-insufficient', 'gallery', $_GET['do']), E_USER_ERROR);
 	switch ($_GET['do']) {
 		case "benoten":
 	  	 	doBenoten($_POST['picID'], $_POST['score']);
@@ -58,7 +53,7 @@ if ($user->typ == USER_NICHTEINGELOGGT)
 	
 	
 	// Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen
-	if ($_GET['do'] && $user->typ != USER_MEMBER) user_error("Permission denied for <i>".$_GET['do']."</i>", E_USER_ERROR);
+	if ($_GET['do'] && $user->typ != USER_MEMBER) user_error( t('permissions-insufficient', 'gallery', $_GET['do']), E_USER_ERROR);
 	
 	switch ($_GET['do']) {
 	  case "editAlbum":
@@ -112,4 +107,3 @@ if ($user->typ == USER_NICHTEINGELOGGT)
 
 //echo foot(7);
 $smarty->display('file:layout/footer.tpl');
-?>

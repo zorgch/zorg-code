@@ -41,5 +41,5 @@ if ($d) {
 	header("Content-Type: image/gif");
 	imagegif($im);
 }else{
-	user_error("Map '$_GET[id]' not found", E_USER_ERROR);
+	user_error(t('unknown-map', 'hz', $_GET['id']), E_USER_ERROR);
 }

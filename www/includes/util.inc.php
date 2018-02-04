@@ -1,14 +1,25 @@
 <?php
 /**
+* Define preferred encryption type for user password encryption
+* @const CRYPT_SALT Sets the Salt encryption type to be used
+* @see crypt_pw()
+* @see exec_newpassword()
+* @see UserManagement::login()
+* @see usersystem::login()
+* @see usersystem::new_pass()
+* @see usersystem::create_newuser()
+*/
+if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
+
+/**
  * File includes
+ * @include mysql.inc.php 		
+ * @include activities.inc.php 	
+ * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
  */
 include_once( __DIR__ .'/mysql.inc.php');
 include_once( __DIR__ .'/activities.inc.php');
-
-/**
- *
- */
-if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
+include_once( __DIR__ .'/strings.inc.php');
 
 /**
 * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
@@ -105,7 +116,7 @@ function quote(){
 	$sql = "SELECT count(*) as anzahl FROM quotes";
 	$result = $db->query($sql, __FILE__, __LINE__);
 	$rs = $db->fetch($result);
-	$total = $rs[anzahl];
+	$total = $rs['anzahl'];
 
 	mt_srand((double)microtime()*1000000);
     $rnd = mt_rand(1, $total);
@@ -115,7 +126,7 @@ function quote(){
 	for ($i=0;$i<$rnd;$i++){
 		$rs = $db->fetch($result);
 	}
-	return $rs[text];
+	return $rs['text'];
 }
 
 /**
@@ -134,13 +145,13 @@ function set_daily_quote(){
 		$quote = quote();
   		$sql = "INSERT INTO daily_quote(
   				date,
-  	     		quote
+  	  			quote
 
-	     		)VALUES(
+	  			)VALUES(
 
-	     		'$date',
-	     		'$quote'
-	     		)";
+	  			'$date',
+	  			'$quote'
+	  			)";
   		$db->query($sql,__FILE__, __LINE__);
   		return 1;
   	} else {
@@ -149,13 +160,12 @@ function set_daily_quote(){
 }
 
 
-// URL Funktionen -------------------------------------------------------------
-
-
+/**
+ * URL Funktionen
+ */
 function getURL() {
 	return rawurldecode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']);
 }
-
 
 function glue_url($parsed) {
    if (! is_array($parsed)) return false;
@@ -168,6 +178,7 @@ function glue_url($parsed) {
        $url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
   return $url;
 }
+
 function getChangedURL($newquerystring) {
 
 	return(
@@ -203,7 +214,6 @@ function changeQueryString($querystring, $changes) {
 	return ltrim($str, '&');
 }
 
-
 function url_params () {
 	$ret = "";
 	foreach ($_GET as $key => $val) {
@@ -223,7 +233,6 @@ function url_params () {
  * @param Array $arr
  * @param Array $sortcrit
  */
-
 function array2d_sort (&$arr, $sortcrit) {
 	if (sizeof($arr) == 0) return $arr;
 	if (!is_array($sortcrit)) user_error("Invalid Parameter \$sortcrit for array2d_sort", E_USER_ERROR);
@@ -245,7 +254,7 @@ function array2d_sort (&$arr, $sortcrit) {
 
 	$exec = "\$cmdres = array_multisort (";
 	foreach ($sortcrit as $it) {
-		if (!is_array($it) && sizeof($it) < 1) user_error("Invalid Parameter \$sortcrit for array2d_sort", E_USER_ERROR);
+		if (!is_array($it) && sizeof($it) < 1) user_error(t('array2d_sort-invalid-parameter', 'util', $sortcrit), E_USER_ERROR);
 
 		if (!isset($it[1])) $it[1] = SORT_ASC;
 		if (!isset($it[2])) $it[2] = SORT_REGULAR;
@@ -278,7 +287,7 @@ function array2d_sort (&$arr, $sortcrit) {
 function htmlcolor2array ($color) {
 	if (substr($color, 0, 1) == '#') $color = substr($color, 1);
 	if (strlen($color) != 6) {
-		user_error("Invalid color '$color'", E_USER_WARNING);
+		user_error(t('htmlcolor2array-invalid-parameter', 'util', $color), E_USER_WARNING);
 		return array('r'=>0, 'g'=>0, 'b'=>0);
 	}
 
@@ -302,77 +311,79 @@ function maxwordlength($text, $max) {
 }
 
 
-	/**
-	* Smarty Klammern überprüfen
-	* 
-	* Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
-	* 
-    * @return bool
-    * @param string $text
-    * @param string &$error
-    */
-   function smarty_brackets_ok ($text, &$error) {
-   	$open = false;
-   	$last_open_tag = 0;
+/**
+* Smarty Klammern überprüfen
+* 
+* Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
+* 
+* @return bool
+* @param string $text
+* @param string &$error
+*/
+function smarty_brackets_ok ($text, &$error) {
+	$open = false;
+	$last_open_tag = 0;
 
-   	$text = preg_replace("/\{\*.*\*\}/", '', $text);
-   	$text = preg_replace("/\{\s*literal\s*\}.*{\s*\/\s*literal\s*\}/", '', $text);
+	$text = preg_replace("/\{\*.*\*\}/", '', $text);
+	$text = preg_replace("/\{\s*literal\s*\}.*{\s*\/\s*literal\s*\}/", '', $text);
 
-   	for ($i=0; $i<strlen($text); $i++) {
-   		if ($text[$i] == '{') {
-   			if ($open) break;
-   			$open = true;
-   			$last_open_tag = $i;
-   		}elseif ($text[$i] == '}') {
-   			if (!$open) break;
-   			$open = false;
-   		}
-   	}
+	for ($i=0; $i<strlen($text); $i++) {
+		if ($text[$i] == '{') {
+			if ($open) break;
+			$open = true;
+			$last_open_tag = $i;
+		}elseif ($text[$i] == '}') {
+			if (!$open) break;
+			$open = false;
+		}
+	}
 
-   	if ($i != strlen($text) || $open) {
-   		$error = "Ungültige Klammernsetzung { oder } in der Nähe von: <br / > ".substr($text, $last_open_tag, 50)."<br />";
-   		return false;
-   	}else{
-   		return true;
-   	}
-   }
+	if ($i != strlen($text) || $open) {
+		$error = t('smarty_brackets_ok-invalid-brackets', 'util', substr($text, $last_open_tag, 50) );
+		return false;
+	}else{
+		return true;
+	}
+}
 
-   function print_array ($arr, $indent=0) {
-   	if (!is_array($arr)) user_error("Invalid argument type for \$arr", E_USER_ERROR);
+function print_array ($arr, $indent=0) {
+	if (!is_array($arr)) user_error( t('smarty_brackets_ok-invalid-argument', 'util', $arr ), E_USER_ERROR);
 
-   	$ret = '';
+	$ret = '';
 
-   	if (!$indent) $ret .= '<div align="left"><xmp>';
-   	foreach ($arr as $key => $val) {
-   		for ($i=0; $i<$indent; $i++) $ret .= '   ';
-   		if (is_array($val)) {
-   			$ret .= "$key => Array: \n";
-   			$ret .= print_array($val, $indent+1);
-   		}else{
-   			$ret .= "$key => $val \n";
-   		}
-   	}
-   	if (!$indent) $ret .= '</xmp></div>';
+	if (!$indent) $ret .= '<div align="left"><xmp>';
+	foreach ($arr as $key => $val) {
+		for ($i=0; $i<$indent; $i++) $ret .= '   ';
+		if (is_array($val)) {
+			$ret .= "$key => Array: \n";
+			$ret .= print_array($val, $indent+1);
+		}else{
+			$ret .= "$key => $val \n";
+		}
+	}
+	if (!$indent) $ret .= '</xmp></div>';
 
-   	return $ret;
-   }
+	return $ret;
+}
 
-   function text_width ($text, $width, $delimiter='') {
-   	if (strlen($text) == $width) return $text;
-   	if (strlen($text) > $width) return substr($text, 0, $width).$delimiter;
-   	else{
-   		for ($i=strlen($text); $i<$width; $i++) {
-   			$text .= ' ';
-   		}
-   		return $text;
-   	}
-   }
+function text_width ($text, $width, $delimiter='') {
+	if (strlen($text) == $width) return $text;
+	if (strlen($text) > $width) return substr($text, 0, $width).$delimiter;
+	else{
+		for ($i=strlen($text); $i<$width; $i++) {
+			$text .= ' ';
+		}
+		return $text;
+	}
+}
 
 
 /**
 * Funktion entfernt alle HTML-Tags aus einem String
+*
 * @author IneX
 * @date 16.03.2008
+*
 * @return String
 * @param $html
 */
@@ -384,9 +395,13 @@ function remove_html($html) {
 
 /**
  * Escape alle nicht sicheren Zeichen eines Strings
+ *
  * @author IneX
  * @date 27.12.2017
- * @see comment_new.php, comment_edit.php, Comment:post()
+ * @see comment_new.php
+ * @see comment_edit.php
+ * @see Comment:post()
+ *
  * @param $string String Input which shall be escaped
  * @return string
  */
@@ -398,8 +413,11 @@ function escape_text($string) {
 
 /**
 * Funktion liefert den Zeitunterschied zur GMT basis
+*
 * @author IneX
+* @verison 1.0
 * @date 16.03.2008
+*
 * @return String
 * @param $date
 */
@@ -423,8 +441,10 @@ function gmt_diff($date) {
  * @deprecated
  * @todo Funktion entfernen, wird via JavaScript erledigt
  * @author IneX
+ * @version 1.0
  * @date 23.04.2009
  * @see usersystem::usersystem()
+ *
  * @param string $userAgent
  * @return string Enthält den Namen des mobilen User Agents oder nichts
  */
@@ -481,7 +501,8 @@ function isMobileClient($userAgent)
 /**
  * Test if a URL returns status code 200 OK
  *
- * @author Inex
+ * @author IneX
+ * @version 1.0
  * @date 21.01.2017
  * @link https://stackoverflow.com/a/39811033/5750030
  *

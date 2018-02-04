@@ -1,6 +1,7 @@
 <?php
 include_once( __DIR__ .'/usersystem.inc.php');
 include_once( __DIR__ .'/hz_map.inc.php');
+include_once( __DIR__ .'/strings.inc.php');
 	
         if (!is_numeric($_GET['id'])) user_error("nuet isch", E_USER_ERROR);
         $gameid = $_GET['id'];
@@ -115,5 +116,5 @@ include_once( __DIR__ .'/hz_map.inc.php');
 		header("Content-Type: image/gif");
 		imagegif($im);
 	}else{
-		user_error("Map '$_GET[id]' not found", E_USER_ERROR);
+		user_error(t('unknown-map', 'hz', $_GET['id']), E_USER_ERROR);
 	}
