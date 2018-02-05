@@ -796,7 +796,7 @@ class Messagesystem {
 				
 				$subject = 	t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]);
 				
-				$body = t('email-notification-subject', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), SITE_URL, $to_user_id ]);
+				$body = t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), SITE_URL, $to_user_id ]);
 				
 				// Vesende E-Mail an User
 				mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);

@@ -778,7 +778,7 @@ function var_request ()
 
 		if (Thread::hasRights($params['board'], $params['thread_id'], $user->id)) {
 		      if ($user->show_comments) {
-		         if ($tplvars[tpl][id] == $_GET[tpl]) {
+		         if ($tplvars['tpl']['id'] == $_GET['tpl']) {
 		            echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%" class="small border" align="right">'.
 		                 '<a href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=0">'.
 		                 'Kommentare ausblenden</a>'.

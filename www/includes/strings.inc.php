@@ -40,9 +40,34 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 {
 	//global $smarty;
 	
+	/**
+	 * Validate the passed $values
+	 */
+	if ($values != NULL && is_array($values) && count($values) > 0)
+	{
+		/** Check if any of the $values is empty */
+		foreach ($values as $key=>$value) {
+			if (empty($value) && !is_numeric($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s was passed but is empty!', $key+1));
+		}
+	} elseif (isset($values) && !is_array($values) && $values == '') {
+		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
+	} else {
+		$values_count = count($values);
+	}
+	
+	/**
+	 * Resolve the placeholder reference
+	 */
 	if ($found_string = findReferenceInArray($context, $reference))
 	{
 		try {
+			/** Check if the number of $values matches the sprintf-placeholders */
+			if ($values_count != substr_count($found_string, '%')) error_log(sprintf('[NOTICE] strings.inc.php: possible mismatch of values & sprintf for string%s%s', "\n", $found_string));
+			
+			/**
+			 * Replace & return - or return only - a matched string
+			 * vsprintf = sprintf with an array for params
+			 */
 			$string = ( !empty($values) && count($values) > 0 ? vsprintf($found_string, $values) : $found_string );
 		} catch (Exception $e) {
 			error_log($e->getMessage());

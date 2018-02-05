@@ -17,12 +17,14 @@
  * @todo Sollte das alles hier nicht in einer Class untergebracht werden?
  */
 /**
+ * @include activities.inc.php 	Activities Functions and Stream
  * @include messagesystem.inc.php Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen
  * @include usersystem.inc.php 	Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln)
  * @include util.inc.php		Utilities einbinden für Handling diverser Spezialfunktionen (z.B. URLs erzeugen)
  * @include forum.inc.php		Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele
  * @include strings.inc.php		Strings die im Zorg Code benutzt werden
  */
+require_once( __DIR__ .'/activities.inc.php');
 require_once( __DIR__ .'/messagesystem.inc.php');
 require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/util.inc.php');
@@ -442,7 +444,7 @@ function turn_finalize ($game, $uid=0) {
 				$turndone = $db->fetch($e);
 
 			// Mr. Z hat den Zug gespielt - Inspectors sind dran:
-			if ($d['nextturn'] == 'z')
+			if ($d['nextturn'] == 'z' && !$d['finished'])
 			{
 				$db->query("UPDATE hz_games SET nextturn='players', turndate=now() WHERE id=$game", __FILE__, __LINE__);
 
@@ -454,7 +456,7 @@ function turn_finalize ($game, $uid=0) {
 				}
 
 			// Die Inspectors haben den Zug gespielt - Mr. Z ist dran:
-			} elseif ($d['nextturn'] == 'players' && $d['totalplayers'] == $turndone['num']) {
+			} elseif ($d['nextturn'] == 'players' && $d['totalplayers'] == $turndone['num'] && !$d['finished']) {
 				$db->query("UPDATE hz_games
 					     SET round=round+1, nextturn='z', turndate=now(),
 					   turncount=(turncount+1)%".TURN_COUNT."
@@ -574,7 +576,7 @@ function finish_mails ($game) {
 			$text = t('message-game-won-inspectors', 'hz', [ SITE_URL, $game ]);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, t('activity-won-inspectors', 'hz', [ SITE_URL, $gid, $map ]), 'hz');
+			Activities::addActivity($user->id, 0, t('activity-won-inspectors', 'hz', [ SITE_URL, $game ]), 'hz');
 		}
 		if ($text) {
 			Messagesystem::sendMessage($user->id, $d['user'], t('message-subject', 'hz'), $text);

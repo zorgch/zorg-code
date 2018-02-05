@@ -117,7 +117,7 @@ return
 		[
 			 'activity-newgame' => 'hat ein neues Hunting z Spiel auf der Karte %s er&ouml;ffnet.<br/><br/><a href="%s/?tpl=103&amp;game=%d">Am Spiel als Inspector teilnehmen</a>'
 			,'activity-won-mrz' => 'konnt als Mr. Z in <a href="%s/?tpl=103&game=%d">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!'
-			,'activity-won-inspectors' => 'wir haben als Inspectors auf <a href="%s/?tpl=103&game=%d">%s</a> Mr. Z erfolgreich festgenommen!'
+			,'activity-won-inspectors' => 'wir haben als Inspectors <a href="%s/?tpl=103&game=%d">in diesem Game</a> Mr. Z erfolgreich festgenommen!'
 			,'activity-joingame' => 'ist <a href="%s?tpl=103&game=%d">diesem Hunting z Spiel</a> als Inspector beigetreten.'
 			,'unknown-map' => 'Invalid map "%s"'
 			,'unknown-start' => 'Cannot assign start station in game "%d"'
