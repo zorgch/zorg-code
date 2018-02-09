@@ -30,22 +30,26 @@
 	</center>
 	{if $tplroot.page_title == 'Home' && !$smarty.get.tpleditor}<!-- Redirect Mobile Devices, kudos to http://detectmobilebrowsers.com/ -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
-	<dialog id="mobile-zchat-popup" style="display:none;">
-		<h4 class="modal-header">[z]Chat anzeigen?</h4>
-		<footer class="modal-footer">
-			<button id="zchat-redirect-close" type="button">Nein</button>
-			<button id="zchat-redirect-open" type="button">Ja</button>
-		</footer>
-		<button id="zchat-redirect-xclose" class="close" type="button">&times;</button>
-	</dialog>
+	<div id="popup-dialog" style="padding: 0">
+		<dialog id="mobile-zchat-popup" style="display:none;">
+			<h4 class="modal-header">[z]Chat anzeigen?</h4>
+			<footer class="modal-footer">
+				<button id="zchat-redirect-close" type="button">Nein</button>
+				<button id="zchat-redirect-open" type="button">Ja</button>
+			</footer>
+			<button id="zchat-redirect-xclose" class="close" type="button">&times;</button>
+		</dialog>
+	</div>
 	</body>
 	<script type="text/javascript">{literal}
 		var isMobile = false;
+		const popupDialog = document.getElementById('popup-dialog');
 		const mobilePopup = document.getElementById('mobile-zchat-popup');
 		const btnClosePopup = document.getElementById('zchat-redirect-close');
 		const btnXClosePopup = document.getElementById('zchat-redirect-xclose');
 		const btnOpenRedirect = document.getElementById('zchat-redirect-open');
 		dialogPolyfill.registerDialog(mobilePopup);
+		popupDialog.addEventListener('click', function(event){ if (event.target.tagName === 'DIALOG') mobilePopup.close() });
 		btnClosePopup.addEventListener('click', () => { mobilePopup.close(); });
 		btnXClosePopup.addEventListener('click', () => { mobilePopup.close(); });
 		btnOpenRedirect.addEventListener('click', () => { window.location="mobilezorg-v2/" });
