@@ -23,7 +23,7 @@ table.shadedcells td {
 	background-color: #DDDDDD;
 }
 
-a {
+a, a.mention {
   color: #344586;
   text-decoration: none;
 }
