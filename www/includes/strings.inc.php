@@ -91,6 +91,10 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 		$string = $smarty->fetch($tploutput);
 	}*/
 	
+	/** Trim multiple tabs from String */
+	$string = preg_replace('/\t{2,}/', '', $string);
+	
+	/** Return String */
 	return $string;
 }
 

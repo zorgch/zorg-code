@@ -60,19 +60,18 @@ return
 			,'invalid-image-data' => 'Image Data or URL is empty, not reachable or otherwise invalid'
 			,'telegram-newmessage-notification' => 'Neue <a href="%s/user/%d">Nachricht</a> von <b>%s</b> auf %s: %s'
 			,'email-notification-subject' => 'Neue Nachricht von %s auf %s'
-			,'email-notification-header' => 'MIME-Version: 1.0\n
-											Content-type: text/html;
-											charset="UTF-8"'."\n"
+			,'email-notification-header' =>  'MIME-Version: 1.0'."\n"
+											.'Content-type: text/plain; charset="utf-8"'."\n"
 											.'From: %1$s <%2$s>'."\n"
 										    .'Reply-To: %2$s'."\n"
 										    .'X-Mailer: PHP/%3$s'
-			,'email-notification-body' =>  "Du hast eine neue Nachricht in deinem Posteingang auf %s\r\n
-											\r\n
-											Titel:	%s\n
-											Von:	%s\n
-											Auszug: %s\r\n
-											\r\n
-											<a href=\"%s/user/%d\">Nachricht lesen &raquo;</a>"
+			,'email-notification-body' =>    'Du hast eine neue Nachricht in deinem Posteingang auf %1$s'."\n"
+											."\r\n"
+											.'Titel:	%2$s'."\n"
+											.'Von:		%3$s'."\n"
+											.'Auszug:	%4$s'."\n"
+											."\r\n"
+											.'Nachricht lesen » %1$s/user/%5$d'
 		]
 	,'commenting' =>
 		[

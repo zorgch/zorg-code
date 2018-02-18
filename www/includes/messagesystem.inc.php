@@ -794,12 +794,13 @@ class Messagesystem {
 				
 				$header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
 				
-				$subject = 	t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]);
+				$subject = 	htmlspecialchars( t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]), ENT_DISALLOWED, 'UTF-8' );
 				
-				$body = t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), SITE_URL, $to_user_id ]);
+				$body = htmlspecialchars( t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), $to_user_id ]), ENT_DISALLOWED, 'UTF-8' );
 				
 				// Vesende E-Mail an User
-				mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
+				//mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
+				mail("$empfaengerName <$empfaengerMail>", $subject, $body, $header);
 			}
 		}
 			
