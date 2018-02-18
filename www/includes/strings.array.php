@@ -52,6 +52,7 @@ return
 									Passwort: %s\n\n
 									Dieses Passwort kannst du auf unserer Website unter mein Profil wieder ändern.\n
 									Wir wünschen Dir weiterhin viel Spass auf Zorg!"
+			,'activity-newuser' => ', willkommen auf zorg!'
 		]
 	,'messagesystem' =>
 		[

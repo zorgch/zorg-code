@@ -15,6 +15,7 @@ include_once( __DIR__ .'/colors.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
 require_once( __DIR__ .'/strings.inc.php');
+require_once( __DIR__ .'/activities.inc.php');
 
 /**
  * Defines
@@ -542,6 +543,8 @@ class usersystem {
 			WHERE id = '$rs[id]'";
 			$db->query($sql, __FILE__, __LINE__);
 			$error = t('account-activated', 'user');
+			
+			Activities::addActivity($rs['id'], 0, t('activity-newuser', 'user' ), 'u');
 		} else {
 			$this->logerror(2,0);
 			$error = t('invalid-regcode', 'user');
