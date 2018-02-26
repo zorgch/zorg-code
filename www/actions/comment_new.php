@@ -33,7 +33,7 @@ if($_POST['parent_id'] == '' || !is_numeric($_POST['parent_id']))
 if(Forum::hasPostedRecently($user->id, $_POST['parent_id']))
 {
 	http_response_code(409); // Set response code 400 (conflict) and exit.
-	user_error(usersystem::id2user($user->id) . ', Du hast vor wenigen Sekunden bereits gepostet - bitte warte noch kurz!', E_USER_NOTICE);
+	user_error($user->id2user($user->id) . ', Du hast vor wenigen Sekunden bereits gepostet - bitte warte noch kurz!', E_USER_NOTICE);
 	die();
 }
 

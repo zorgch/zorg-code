@@ -197,7 +197,7 @@ Class Quotes {
 			$db->query($sql, __FILE__, __LINE__);
 			
 			// Notification auslösen
-			Messagesystem::sendTelegramNotification( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.usersystem::id2user($rs['user_id'], TRUE).'</i>' );
+			Messagesystem::sendTelegramNotification( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.$user->id2user($rs['user_id'], TRUE).'</i>' );
 			
 			return true;
 		}

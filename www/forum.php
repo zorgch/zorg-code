@@ -12,7 +12,7 @@ if ($_GET['layout'] == '') {
 	$id = ($_GET['parent_id'] > 1) ? $_GET['parent_id'] : $_GET['thread_id'];
 	
   if ($id <= 1) { // Forumübersicht ausgeben
-  	
+	
     $parent_id = 1;
     //echo head(4, "forum");
     $smarty->assign('tplroot', array('page_title' => 'forum'));
@@ -22,11 +22,11 @@ if ($_GET['layout'] == '') {
     
     
     if($user->typ == USER_NICHTEINGELOGGT) {
-    	echo Forum::getHTML(array('f', 't', 'e'), 23, $_GET['sortby']); // Boards: f=forum, t=templates, e=events
+  	echo Forum::getHTML(array('f', 't', 'e'), 23, $_GET['sortby']); // Boards: f=forum, t=templates, e=events
     } else {
-    	
-    	echo Forum::getHTML(Forum::getBoards($user->id), 23, $_GET['sortby']);
-    	//echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : ''); @DEPRECATED
+  	
+  	echo Forum::getHTML(Forum::getBoards($user->id), 23, $_GET['sortby']);
+  	//echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : ''); @DEPRECATED
 			//echo Forum::getFormNewPart2of2('f', 1, 0);
 			$smarty->assign("board", "f");
 			$smarty->assign("thread_id", 1);
@@ -37,8 +37,8 @@ if ($_GET['layout'] == '') {
     
     
   } else {  // Thread ausgeben
-  	
-  	
+	
+	
 		//$rs = Comment::getRecordset(Comment::getThreadid($_GET[parent_id]));
 		
 		//echo head(4, "thread");
@@ -131,10 +131,8 @@ if($_GET['layout'] == 'edit' && $_SESSION['user_id']) {
 	echo menu("zorg");
 	$rs = Comment::getRecordset($_GET['id']);
 	if($_SESSION['user_id'] == $rs['user_id']) {
-  	echo Forum::getFormEdit($_GET['id']);
+		echo Forum::getFormEdit($_GET['id']);
 	}
 	//echo foot();
 	$smarty->display('file:layout/footer.tpl');
 }
-
-?>

@@ -106,7 +106,7 @@ class Activities
 	 */
 	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL)
 	{
-		global $db;
+		global $db, $user;
 		//$activities = $_ENV['$activities_HZ']; // Globale Activity-Arrays mergen
 		
 		//if (Activities::checkAllowActivities($userID))
@@ -118,7 +118,7 @@ class Activities
 					";
 			$db->query($sql, __FILE__, __LINE__);
 			
-			Messagesystem::sendTelegramNotification( '<b>' . usersystem::id2user($fromUser, TRUE) . '</b> ' . $activity );
+			Messagesystem::sendTelegramNotification( '<b>' . $user->id2user($fromUser, TRUE) . '</b> ' . $activity );
 		//}
 		
 	}
@@ -380,7 +380,7 @@ class Activities
 			{
 
 				// Assign Values
-				$activityFromUser = usersystem::id2user($activity['from_user_id']);
+				$activityFromUser = $user->id2user($activity['from_user_id']);
 				$xmlitem_title = 'Neue Activity von '.$activityFromUser;
 				$xmlitem_link = str_replace('&', '&amp;amp;', SITE_URL); // &amp;amp; for xml-compatibility
 				$xmlitem_pubDate = date('D, d M Y H:i:s', $activity['datum']);

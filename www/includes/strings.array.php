@@ -76,8 +76,9 @@ return
 		]
 	,'commenting' =>
 		[
-			 'invalid-parent_id' => 'Parent id ist ungültig.'
-			,'invalid-thread_id' => 'Thread_id ist ungültig.'
+			 'invalid-parent_id' => 'Parent ID ist ungültig.'
+			,'invalid-thread_id' => 'Thread ID ist ungültig.'
+			,'invalid-comment_id' => 'Comment ID ist ungültig.'
 			,'invalid-permissions' => 'Permission denied for posting on thread %s / %d.'
 			,'activity-newcomment' =>  'hat <a href="%1$s%2$s">einen %3$s Comment</a> geschrieben:<br>
 										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'

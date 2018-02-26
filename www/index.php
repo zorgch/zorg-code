@@ -15,7 +15,7 @@ if (!empty(key($_GET)))
 	$routeValue = $_GET[$routeSwitch];
 	switch ($routeSwitch) {
 		case 'username':
-				$getUserId = ( is_numeric($routeValue) ? $routeValue : usersystem::user2id($routeValue) );
+				$getUserId = ( is_numeric($routeValue) ? $routeValue : $user->user2id($routeValue) );
 				if (!empty($getUserId))
 					$_GET['user_id'] = $getUserId;
 					include('profil.php');

@@ -49,12 +49,12 @@ Class Anficker {
 	 * @todo Müsste es nicht "REPLACE INTO..." sein?? Jetzt werden x-Einträge mit gleichem Text gemacht! (IneX, 8.6.09)
 	 */
 	function addAnfick($user_id, $text, $spresim_trainieren=FALSE) {
-		global $db;
+		global $db, $user;
 		
 		// nur Anfick speichern, wenn Spresim trainiert werden soll:
 		//if ($spresim_trainieren == TRUE)
 		//{
-			if($text != '' && !empty($user_id))//usersystem::id2user($user_id)))
+			if($text != '' && !empty($user_id))//$user->id2user($user_id)))
 			{
 				$sql = 
 					"INSERT IGNORE

@@ -500,13 +500,13 @@ class wetten {
 			
 			while ($rsi = $db->fetch($resulti)) {
 				if($rsi['seite'] == "wetter") {
-					array_push($wetter, usersystem::link_userpage($rsi['user_id']));
+					array_push($wetter, $user->link_userpage($rsi['user_id']));
 					//$wetter .= " ".$rsi['clan_tag'].$rsi['username'];
 					if($rsi['user_id'] == $_SESSION['user_id']) {
 						$wjoin = 1;
 					}
 				} else {
-					array_push($gegner, usersystem::link_userpage($rsi['user_id']));
+					array_push($gegner, $user->link_userpage($rsi['user_id']));
 					//$gegner .= " ".$rsi['clan_tag'].$rsi['username'];
 					if($rsi['user_id'] == $_SESSION['user_id']) {
 						$gjoin = 1;
@@ -544,7 +544,7 @@ class wetten {
 			</td></tr><tr><td valign=\"top\">
 			<b>Wettstarter</b>
 			</td><td>
-			".usersystem::link_userpage($rs['user_id'])."
+			".$user->link_userpage($rs['user_id'])."
 			</td></tr><tr><td valign=\"top\">
 			<b>Wetter</b>
 			</td><td>

@@ -179,7 +179,7 @@ if($user->id && $_GET['do'] == "view" && !$_GET['user_id']) {
 
 
 if(!$_GET['do'] || $_SESSION['user_id']) {
-	$pagetitle = usersystem::id2user($_GET['user_id'], TRUE);
+	$pagetitle = $user->id2user($_GET['user_id'], TRUE);
 } elseif($_GET['regcode']) {
 	$pagetitle = 'Account bestätigung';
 } else {
@@ -432,7 +432,7 @@ if($_SESSION['user_id']) {
 			'<table class="case" width="100%">'
 			.'<tr><td style="text-align: center" valign="top">'
 			.'<h1>'.$rs['clan_tag'].$rs['username'].'</h1>'
-			.'<img src="'.usersystem::userImage($_GET['user_id'], 1).'">'
+			.'<img src="'.$user->userImage($_GET['user_id'], 1).'">'
 			.'</td><td style="text-align: left" valign="top">'
 			.$smarty->fetch("tpl:211")
 			.'</td></tr>'

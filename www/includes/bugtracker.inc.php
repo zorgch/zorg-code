@@ -66,7 +66,7 @@ Class Bugtracker {
 						, $_GET['msg_users'][$i]
 						, addslashes(
 								stripslashes(
-								'[Bugreport] von '.usersystem::id2user($user->id)
+								'[Bugreport] von '.$user->id2user($user->id)
 								)
 							)
 						, addslashes(
@@ -334,7 +334,7 @@ Class Bugtracker {
 
 			.'<tr>'
 			.'<td align="left">Assigned to:</td>'
-			.'<td align="left">'.usersystem::link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']).'</td>'
+			.'<td align="left">'.$user->link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']).'</td>'
 			.'</tr>'
 
 			.'<tr>'
@@ -525,7 +525,7 @@ Class Bugtracker {
 	*/
 	function getFormNewBugHTML() {
 
-		global $db;
+		global $db, $user;
 
 		$html =
 			'<table>'
@@ -543,7 +543,7 @@ Class Bugtracker {
 			.'</td>'
 			.'<td align="left" rowspan="5" valign="top">'
 			.'Benachrichtigen:<br />'
-	    .usersystem::getFormFieldUserlist('msg_users[]', 20)
+			.$user->getFormFieldUserlist('msg_users[]', 20)
 			.'</td>'
 			.'</tr>'
 			.'<tr><td>'

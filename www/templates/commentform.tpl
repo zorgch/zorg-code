@@ -65,7 +65,7 @@
 <script src="/js/quill-richtexteditor/quill.min.js"></script>
 <script src="/js/quill-richtexteditor/fuse.min.js"></script>
 <script src="/js/quill-richtexteditor/quill-emoji.js"></script>
-{literal}<script type="text/javascript">
+{literal}<script>
 // Quill - Rich Text Editor
 var quill = new Quill('#dinimuetter', {
   modules: {
@@ -155,8 +155,8 @@ function loadDraft(key) {
     //console.info('Draft found in Local Storage: ' + localDraft);
     quill.setContents(JSON.parse(key));
   } else {
-  //console.info('No Draft in Local Storage, using default text');
-  quill.insertText(0,{/literal}"{$quotes[$zeigen]}"{literal});
+    //console.info('No Draft in Local Storage, using default text');
+    quill.insertText(0,{/literal}"{$quotes[$zeigen]}"{literal});
   }
   }
 }

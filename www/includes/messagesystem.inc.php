@@ -326,7 +326,7 @@ class Messagesystem {
 			.'<td width="80%">'
 			.'<input class="text" maxlength="40" name="subject" size="35" tabindex="1" type="text" value="'.$subject.'"></td>'
 			.'</tr>'
-			.'<tr><td>'.usersystem::getFormFieldUserlist('to_users[]', 15, $to_users, 4).'</td>'
+			.'<tr><td>'.$user->getFormFieldUserlist('to_users[]', 15, $to_users, 4).'</td>'
 			.'<td colspan="2">'
 			.'<textarea class="text" cols="90" name="text" rows="14" tabindex="2" wrap="hard">'
 			.$text
@@ -425,11 +425,11 @@ class Messagesystem {
 		  		'<tr>'
 		  		.'<td align="center" bgcolor="'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
 		  	    .($rs['isread'] == 0 ? '<td align="center" bgcolor="'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="'.$color.'"></td>')
-		  		.'<td align="center" bgcolor="'.$color.'">'.usersystem::link_userpage($rs['from_user_id']).'</td>'
+		  		.'<td align="center" bgcolor="'.$color.'">'.$user->link_userpage($rs['from_user_id']).'</td>'
 		  		.'<td align="center" bgcolor="'.$color.'" width="30%">';
 
 			foreach (explode(',', $rs['to_users']) as $value) {
-		  		$html .= usersystem::link_userpage($value).' ';
+		  		$html .= $user->link_userpage($value).' ';
 		  	}
 
 		  	$html .=
@@ -559,7 +559,7 @@ class Messagesystem {
 		  	.'<td align="right" width="80%">'
 		  	.Messagesystem::getFormDelete($id)
 				.'</td>'
-		  	.'<td align="right" rowspan="5">'.usersystem::link_userpage($rs['from_user_id'], TRUE).'</td>'
+		  	.'<td align="right" rowspan="5">'.$user->link_userpage($rs['from_user_id'], TRUE).'</td>'
 		  	.'</tr>'
 
 		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
@@ -575,7 +575,7 @@ class Messagesystem {
 		  ;
 
 		  foreach (explode(',', $rs['to_users']) as $value) {
-		  	$html .= usersystem::link_userpage($value).' ';
+		  	$html .= $user->link_userpage($value).' ';
 		  }
 
 		  $html .=
@@ -691,7 +691,7 @@ class Messagesystem {
 	 */
 	function sendMessage($from_user_id, $owner, $subject, $text, $to_users="", $isread=0)
 	{
-		global $db;
+		global $db, $user;
 
 		if($to_users == '') $to_users = $owner;
 		if($text == '') $text = '---';
@@ -741,10 +741,10 @@ class Messagesystem {
 		// For multiple users
 			foreach ($owner as $recipient)
 			{
-				if ($recipient != $from_user_id && usersystem::userHasTelegram($recipient))
+				if ($recipient != $from_user_id && $user->userHasTelegram($recipient))
 				{
 					try {
-						$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $recipient, usersystem::id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
+						$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $recipient, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
 						Messagesystem::sendTelegramNotification($message, $recipient);
 					} catch (Exception $e) {
 						user_error($e->getMessage(), E_USER_ERROR);
@@ -753,9 +753,9 @@ class Messagesystem {
 			}
 		}
 		// For single user:
-		elseif ($owner != $from_user_id && usersystem::userHasTelegram($owner)) {
+		elseif ($owner != $from_user_id && $user->userHasTelegram($owner)) {
 			try {
-				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, usersystem::id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
+				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
 				Messagesystem::sendTelegramNotification($message, $owner);
 			} catch (Exception $e) {
 				user_error($e->getMessage(), E_USER_ERROR);
@@ -780,17 +780,17 @@ class Messagesystem {
 	 */
 	function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
 	{
-		global $db;
+		global $db, $user;
 		
 		// E-Mailnachricht bauen
 		if ($to_user_id != 0 && $to_user_id <> '' && is_numeric($to_user_id))
 		{
 			// Nur, wenn User E-Mailbenachrichtigung aktiviert hat...!
-			if (usersystem::id2useremail($to_user_id) != false)
+			if ($user->id2useremail($to_user_id) != false)
 			{
-				$empfaengerMail = usersystem::id2useremail($to_user_id);
-				$empfaengerName = usersystem::id2user($to_user_id, TRUE);
-				$senderName = usersystem::id2user($from_user_id, TRUE);
+				$empfaengerMail = $user->id2useremail($to_user_id);
+				$empfaengerName = $user->id2user($to_user_id, TRUE);
+				$senderName = $user->id2user($from_user_id, TRUE);
 				
 				$header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
 				
@@ -855,6 +855,7 @@ class Messagesystem {
 	 * @version	1.0
 	 * @since	2.0
 	 *
+	 * @TODO don't send notification when it's caused by the current user
 	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
 	 *
 	 * @see Messagesystem::getAllUserTelegramChatIds()
@@ -872,14 +873,14 @@ class Messagesystem {
 		if ((!empty($notificationText) && strlen($notificationText) > 0) && (isset($botconfigs) && is_array($botconfigs)))
 		{
 			// Encode Notification Text
-				// Fix missing Server address in Links
-				if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
-				
-				// Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre>
-				$notificationText = str_replace(array("\r", "\n", "&nbsp;"), '', $notificationText);
-				$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
-				//$notificationText = str_replace('IneX', '<a href="tg://user?id=28563309">IneX</a>', $notificationText);
-				$notificationText = html_entity_decode($notificationText);
+			// Fix missing Server address in Links
+			if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
+			
+			// Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre>
+			$notificationText = str_replace(array("\r", "\n", "&nbsp;"), '', $notificationText);
+			$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
+			//$notificationText = str_replace('IneX', '<a href="tg://user?id=28563309">IneX</a>', $notificationText);
+			$notificationText = html_entity_decode($notificationText);
 
 			// Get the Telegram Chat-IDs
 			$telegramChatIds = Messagesystem::getAllUserTelegramChatIds( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
@@ -890,25 +891,27 @@ class Messagesystem {
 				// ...send the Telegram Message to each of them
 				foreach ($telegramChatIds as $chatId)
 				{
-					$data = [
-					    'chat_id' => $chatId,
-					    'parse_mode' => 'html',
-					    'text' => $notificationText,
-					];
-					file_get_contents( TELEGRAM_API_URI . '/sendMessage?' . http_build_query($data) );
-					
-					// Check if an Image URL has been passed, too
-					
-					if (isset($picUrl) && strlen($picUrl) > 0 && strpos($picUrl, 'http'))
-					{
-						if (urlExists($picUrl)) {
-							$data = [
-							    'chat_id' => $chatId,
-							    'caption' => 'html',
-							    'text' => $notificationText,
-							];
+					// ...except it's from the current user
+					//if (!) {
+						$data = [
+						    'chat_id' => $chatId,
+						    'parse_mode' => 'html',
+						    'text' => $notificationText,
+						];
+						file_get_contents( TELEGRAM_API_URI . '/sendMessage?' . http_build_query($data) );
+						
+						// Check if an Image URL has been passed, too
+						if (isset($picUrl) && strlen($picUrl) > 0 && strpos($picUrl, 'http'))
+						{
+							if (urlExists($picUrl)) {
+								$data = [
+								    'chat_id' => $chatId,
+								    'caption' => 'html',
+								    'text' => $notificationText,
+								];
+							}
 						}
-					}
+					//}
 				}
 			}
 		} else {

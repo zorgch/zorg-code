@@ -127,12 +127,12 @@ class mobilezSetup
 	
 	static function mobilez_setup_create($setup)
 	{
-		global $pdo_db;
+		global $pdo_db, $user;
 		
 		switch ($setup)
 		{
 			case 'user_files_testdir':
-				if (!usersystem::get_and_create_user_files_dir(USER_FILES_TESTDIR))
+				if (!$user->get_and_create_user_files_dir(USER_FILES_TESTDIR))
 				{
 					self::mobilez_setup_htmloutput('Setup: '.USER_FILES_TESTDIR, 3);
 				} else {

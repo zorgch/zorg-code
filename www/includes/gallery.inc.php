@@ -947,7 +947,7 @@ function checkUserToPic($userID, $picID)
  * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
  */
 function getUsersOnPic($pic_id) {
-	global $db;
+	global $db, $user;
 	$usersonpic = array();
 	$html = '';
 	
@@ -959,10 +959,10 @@ function getUsersOnPic($pic_id) {
 	$result = $db->query($sql, __FILE__, __LINE__);
 	
 	while ($mp = $db->fetch($result)) {
-		array_push($usersonpic, usersystem::link_userpage($mp[user_id], FALSE));
+		array_push($usersonpic, $user->link_userpage($mp[user_id], FALSE));
 		/* für DIV basierte positionierung/Ausgabe:
 		$html .= '
-		<div name="'.usersystem::id2user($mp[user_id], FALSE, FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.usersystem::id2user($mp[user_id], FALSE, FALSE).'<div>
+		<div name="'.$user->id2user($mp[user_id], FALSE, FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.$user->id2user($mp[user_id], FALSE, FALSE).'<div>
 		';*/
 	}
 	
@@ -1013,7 +1013,7 @@ function getUserPics($userid, $limit=1)
 		$html_out .=
 				'<table style="'.$table_style.'" width="100%">'
 				.'	<thead>'
-				.'	<tr><th colspan="4">'.usersystem::id2user($userid, FALSE).'\'s Pics</th></tr>'
+				.'	<tr><th colspan="4">'.$user->id2user($userid, FALSE).'\'s Pics</th></tr>'
 				.'	</thead>';
 		
 		while($rs = $db->fetch($result)) {

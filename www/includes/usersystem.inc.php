@@ -149,71 +149,82 @@ class usersystem {
 	 */
 	function usersystem() {
 		global $db;
+		
 		session_name("z");
 		$this->typ = USER_ALLE;
-
 
 		// Session init'en
 		if((isset($_GET['z']) && $_GET['z'] != '') || (isset($_POST['z']) && $_POST['z'] != '') || (isset($_COOKIE['z']) && $_COOKIE['z'] != '')) {
 			session_start();
-			$sql = "SELECT *, UNIX_TIMESTAMP(".$this->field_activity.") as ".$this->field_activity.",
-			UNIX_TIMESTAMP(".$this->field_lastlogin.") as ".$this->field_lastlogin.",
-			UNIX_TIMESTAMP(".$this->field_currentlogin.") as ".$this->field_currentlogin."
-			FROM ".$this->table_name." WHERE id = '$_SESSION[user_id]'";
-			$result = $db->query($sql, __FILE__, __LINE__);
-			$rs = $db->fetch($result);
-
-			if ($rs[$this->field_maxdepth]) {
-				$this->maxdepth = $rs[$this->field_maxdepth];
-			}else{
-				$this->maxdepth = DEFAULT_MAXDEPTH;
+			
+			try {
+				$sql = "SELECT *, UNIX_TIMESTAMP(".$this->field_activity.") as ".$this->field_activity.",
+				UNIX_TIMESTAMP(".$this->field_lastlogin.") as ".$this->field_lastlogin.",
+				UNIX_TIMESTAMP(".$this->field_currentlogin.") as ".$this->field_currentlogin."
+				FROM ".$this->table_name." WHERE id = '$_SESSION[user_id]'";
+				$result = $db->query($sql, __FILE__, __LINE__);
+				$rs = $db->fetch($result);
+	
+				if ($rs[$this->field_maxdepth]) {
+					$this->maxdepth = $rs[$this->field_maxdepth];
+				}else{
+					$this->maxdepth = DEFAULT_MAXDEPTH;
+				}
+				$this->email = $rs[$this->field_email];
+				$this->username = $rs[$this->field_username];
+				$this->clantag = $rs[$this->field_clantag];
+				$this->userpw = $rs[$this->field_userpw];
+				$this->last_ip = $rs[$this->field_last_ip];
+				$this->lastlogin = $rs[$this->field_lastlogin];
+				$this->currentlogin = $rs[$this->field_currentlogin];
+				$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
+				$this->activity = $rs[$this->field_activity];
+				$this->typ = ($rs[$this->field_usertyp] != '' ? $rs[$this->field_usertyp] : USER_ALLE);
+				$this->show_comments = $rs[$this->field_show_comments];
+				$this->email_notification = $rs[$this->field_email_notification];
+		        $this->sql_tracker = $rs[$this->field_sql_tracker];
+		        $this->addle = $rs[$this->field_addle];
+		        $this->chess = $rs[$this->field_chess];
+		        $this->icq = $rs['icq'];
+				$this->id = $_SESSION['user_id'];
+				$this->menulayout = $rs[$this->field_menulayout];
+				$this->mymenu = $rs[$this->field_mymenu];
+				$this->zorger = $rs[$this->field_zorger];
+				if (usersystem::checkimage($_SESSION['user_id'])) {
+				   $this->image = USER_IMGPATH_PUBLIC.$_SESSION['user_id']."_tn.jpg";
+				}else{
+				   $this->image = USER_IMGPATH_PUBLIC."none.jpg";
+				}
+	
+				$this->forum_boards = explode(",", $rs['forum_boards']);
+				$this->forum_boards_unread = explode(",", $rs['forum_boards_unread']);
+	
+				$this->mail_userpw = $rs[$this->field_mail_userpw];
+				$this->mail_username = $rs[$this->field_mail_username];
+	
+				if(file_exists($_SERVER['DOCUMENT_ROOT']."/images/users/".$_SESSION['user_id'].".jpg")) {
+					$this->image = $_SESSION['user_id'].".jpg";
+				}
+	
+				$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
+	
+				// User Agent suchen - Loginart (normal / mobile) festlegen - wird nur in Session geadded, nicht in DB gespeichert
+				//isMobileClient($_SERVER['HTTP_USER_AGENT']) <> '' ? $this->is_mobile = 1 : $this->is_mobile = 0;
+				$this->from_mobile = isMobileClient($_SERVER['HTTP_USER_AGENT']);
 			}
-			$this->email = $rs[$this->field_email];
-			$this->username = $rs[$this->field_username];
-			$this->clantag = $rs[$this->field_clantag];
-			$this->userpw = $rs[$this->field_userpw];
-			$this->last_ip = $rs[$this->field_last_ip];
-			$this->lastlogin = $rs[$this->field_lastlogin];
-			$this->currentlogin = $rs[$this->field_currentlogin];
-			$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
-			$this->activity = $rs[$this->field_activity];
-			$this->typ = ($rs[$this->field_usertyp] != '' ? $rs[$this->field_usertyp] : USER_ALLE);
-			$this->show_comments = $rs[$this->field_show_comments];
-			$this->email_notification = $rs[$this->field_email_notification];
-	        $this->sql_tracker = $rs[$this->field_sql_tracker];
-	        $this->addle = $rs[$this->field_addle];
-	        $this->chess = $rs[$this->field_chess];
-	        $this->icq = $rs['icq'];
-			$this->id = $_SESSION['user_id'];
-			$this->menulayout = $rs[$this->field_menulayout];
-			$this->mymenu = $rs[$this->field_mymenu];
-			$this->zorger = $rs[$this->field_zorger];
-			if (usersystem::checkimage($_SESSION['user_id'])) {
-			   $this->image = USER_IMGPATH_PUBLIC.$_SESSION['user_id']."_tn.jpg";
-			}else{
-			   $this->image = USER_IMGPATH_PUBLIC."none.jpg";
+			catch(Exception $e) {
+				user_error($e->getMessage(), E_USER_ERROR);
 			}
 
-			$this->forum_boards = explode(",", $rs['forum_boards']);
-			$this->forum_boards_unread = explode(",", $rs['forum_boards_unread']);
-
-			$this->mail_userpw = $rs[$this->field_mail_userpw];
-			$this->mail_username = $rs[$this->field_mail_username];
-
-			if(file_exists($_SERVER['DOCUMENT_ROOT']."/images/users/".$_SESSION['user_id'].".jpg")) {
-				$this->image = $_SESSION['user_id'].".jpg";
+			try {
+				$sql = "UPDATE ".$this->table_name." SET ".$this->field_activity." = now(),
+				".$this->field_last_ip." = '".$_SERVER['REMOTE_ADDR']."', ".$this->field_from_mobile." = '".$this->from_mobile."'
+				WHERE id = '$_SESSION[user_id]'";
+				$db->query($sql, __FILE__, __LINE__);
 			}
-
-			$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
-
-			// User Agent suchen - Loginart (normal / mobile) festlegen - wird nur in Session geadded, nicht in DB gespeichert
-			//isMobileClient($_SERVER['HTTP_USER_AGENT']) <> '' ? $this->is_mobile = 1 : $this->is_mobile = 0;
-			$this->from_mobile = isMobileClient($_SERVER['HTTP_USER_AGENT']);
-
-			$sql = "UPDATE ".$this->table_name." SET ".$this->field_activity." = now(),
-			".$this->field_last_ip." = '".$_SERVER['REMOTE_ADDR']."', ".$this->field_from_mobile." = '".$this->from_mobile."'
-			WHERE id = '$_SESSION[user_id]'";
-			$db->query($sql, __FILE__, __LINE__);
+			catch(Exception $e) {
+				user_error($e->getMessage(), E_USER_ERROR);
+			}
 		}
 	}
 
@@ -655,23 +666,23 @@ class usersystem {
 	function userImage($id, $large=0) {
 		global $user;
 		
-		if ($user->checkimage($id)) {
+		if ($this->checkimage($id)) {
 			if ($large) {
-				return $user->get_gravatar(
-					$user->id2useremail($id)
+				return $this->get_gravatar(
+					$this->id2useremail($id)
 					,USER_IMGSIZE_LARGE
 					,USER_IMGPATH_PUBLIC.$id.'.jpg'
 				);
 			} else {
-				return $user->get_gravatar(
-					$user->id2useremail($id)
+				return $this->get_gravatar(
+					$this->id2useremail($id)
 					,USER_IMGSIZE_SMALL
 					,USER_IMGPATH_PUBLIC.$id.'_tn.jpg'
 				);
 			}
 		} else {
-			return $user->get_gravatar(
-				$user->id2useremail($id)
+			return $this->get_gravatar(
+				$this->id2useremail($id)
 				,USER_IMGSIZE_SMALL
 				,USER_IMGPATH_PUBLIC.'none.jpg'
 			);
@@ -944,11 +955,16 @@ class usersystem {
 	*/
 	function id2useremail($id) {
 		global $db;
-		$sql = "SELECT email, email_notification FROM user WHERE id = $id";
-		$result = $db->query($sql, __FILE__, __LINE__);
-		$rs = $db->fetch($result);
-		$value = (!empty($rs['email_notification']) ? $rs['email'] : false);
-		return $value;
+		
+		try {
+			$sql = "SELECT email, email_notification FROM user WHERE id = $id";
+			$result = $db->query($sql, __FILE__, __LINE__);
+			$rs = $db->fetch($result);
+			$value = (!empty($rs['email_notification']) ? $rs['email'] : false);
+			return $value;
+		} catch(Exception $e) {
+			return $e->getMessage();
+		}
 	}
 
 
@@ -1056,10 +1072,16 @@ class usersystem {
 	function userHasTelegram($user_id)
 	{
 		global $db;
-		$query = $db->query('SELECT telegram_chat_id FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__);
-		$result = $db->fetch($query);
-		if ($result) return $result['telegram_chat_id'];
-		else return false;
+		
+		try {
+			$query = $db->query('SELECT telegram_chat_id FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__);
+			$result = $db->fetch($query);
+			if ($result) return $result['telegram_chat_id'];
+			else return false;
+		}
+		catch(Exception $e) {
+			return $e->getMessage();
+		}
 	}
 }
 

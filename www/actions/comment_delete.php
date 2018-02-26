@@ -17,13 +17,13 @@ if($rs == false) {
 }
 
 if(($_SESSION['user_id'] != $rs['user_id'])) {
-	echo 'Dieser Post ('.$_POST['id'].') gehört gar nicht dir, sondern'.usersystem::id2user($rs['user_id']);
+	echo 'Dieser Post ('.$_POST['id'].') gehÃ¶rt gar nicht dir, sondern'.$user->id2user($rs['user_id']);
 	exit;
 }
 
 $numchildren = Comment::getNumChildposts($_POST['board'], $_POST['id']);
 if($numchildren > 0) {
-	echo 'Dieser Post ('.$_POST['id'].') hat noch '.$numchildren.' Kinder, du darfst ihn nicht löschen.';
+	echo 'Dieser Post ('.$_POST['id'].') hat noch '.$numchildren.' Kinder, du darfst ihn nicht lÃ¶schen.';
 	exit;
 }
 
@@ -36,7 +36,7 @@ if($numchildren > 0) {
 //$db->query($sql, __FILE__, __LINE__);
 
 
-// Comment löschen
+// Comment lÃ¶schen
 $sql = "delete from comments where id = ".$_POST['id'];
 $db->query($sql, __FILE__, __LINE__);
 
@@ -44,10 +44,10 @@ $db->query($sql, __FILE__, __LINE__);
 // Threads fixen
 Thread::adjustThreadRecord($rs['board'], $rs['thread_id']);
 
-// todo: falls es ein thread war, comments_threads record löschen
+// todo: falls es ein thread war, comments_threads record lÃ¶schen
 
 
-// last post setzen todo: müsste nicht _immer_ passieren
+// last post setzen todo: mÃ¼sste nicht _immer_ passieren
 $sql = 
 	"UPDATE comments_threads ct"
 	." SET last_comment_id = (SELECT MAX(id) from comments c WHERE thread_id = ".$rs['thread_id']." AND c.board = ct.board)"
@@ -60,6 +60,6 @@ if($rs['board'] != 'f' || $rs['parent_id'] > 1) {
 	Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']);
 }
 
-// todo: wenns ein thread war, redirecten auf die Übersicht oder Startseite
+// todo: wenns ein thread war, redirecten auf die Ãœbersicht oder Startseite
 header("Location: ".base64_decode($_POST['url']));	  
 exit;

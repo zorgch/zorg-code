@@ -200,14 +200,19 @@ class Comment {
 	  	echo '$id is not numeric '.__FILE__." Line: ".__LINE__;
 	  	exit;
 	  }
-
-	  $sql =
-	  	"
-	  	SELECT *, UNIX_TIMESTAMP(date) as date
-	  	FROM comments where id = '".$id."'
-	  	"
-	  ;
-	  return $db->fetch($db->query($sql, __FILE__, __LINE__));
+	  
+	  try {
+		  $sql =
+		  	"
+		  	SELECT *, UNIX_TIMESTAMP(date) as date
+		  	FROM comments where id = '".$id."'
+		  	"
+		  ;
+		  return $db->fetch($db->query($sql, __FILE__, __LINE__, 'Comment::getRecordset()'));
+	  }
+	  catch(Exception $e) {
+			return $e->getMessage();
+		}
 	}
 
 	/**
@@ -802,7 +807,7 @@ class Forum {
 	static function getFormEdit($comment_id) {
 	  global $db, $user;
 
-	  if(!is_numeric($comment_id)) echo '$comment_id is not numeric.'.__LINE__;
+	  if(!is_numeric($comment_id)) user_error( t('invalid-comment_id', 'commenting'), E_USER_WARNING);
 
 	  $rs = Comment::getRecordset($comment_id);
 
@@ -822,7 +827,7 @@ class Forum {
 	  	.'</textarea>'
 	    .'</td>'
 	    .'<td align="left" valign="top">Benachrichtigen:<br />'
-	    .usersystem::getFormFieldUserlist('msg_users[]', 20).'</td>'
+	    .$user->getFormFieldUserlist('msg_users[]', 20).'</td>'
 	  	.'</tr>
 	  	<tr><td align="left" valign="top">
 	    <input type="submit" name="submit" value="Update" class="button">
@@ -835,7 +840,8 @@ class Forum {
 	  	</form>
 	    </td><td align="right">
 		';
-		if(Comment::getNumchildposts($rs['board'], $comment_id) < 1) {
+		if(Comment::getNumchildposts($rs['board'], $comment_id) < 1)
+		{
 			$html .= '
 				<table cellpadding="0" cellspacing="0">
 				<form action="/actions/comment_delete.php" method="post">
@@ -852,6 +858,7 @@ class Forum {
 	    </td></tr></table>
 	    <br />
 	  ';
+
 	  return $html;
 	}
 	
@@ -2179,12 +2186,18 @@ class Thread {
 	* @desc Fetches a Thread and returns its Recordset
 	*/
 	static function getRecordset($board, $thread_id) {
-	  global $db;
-	  $sql =
-	  	"SELECT *, UNIX_TIMESTAMP(date) as date"
-	  	." FROM comments where thread_id = ".$thread_id." and board = '".$board."'"
-	  ;
-	  return $db->fetch($db->query($sql, __FILE__, __LINE__));
+		global $db;
+
+		try {
+			$sql =
+				"SELECT *, UNIX_TIMESTAMP(date) as date"
+				." FROM comments where thread_id = ".$thread_id." and board = '".$board."'"
+			;
+			return $db->fetch($db->query($sql, __FILE__, __LINE__));
+		}
+		catch(Exception $e) {
+			return $e->getMessage();
+		}
 	}
 
 	/**

@@ -198,7 +198,7 @@ function smartyresource_comments_get_commenttree ($id) {
 				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'">'
 				.'#'.$rs['id']
 				.'</a>'
-				.' by '.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
+				.' by '.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
 				.' @ {datename date='.$rs['date'].'}'
 				
 			;
