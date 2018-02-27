@@ -156,20 +156,20 @@ function var_request ()
 	   }
 	}
 	function smarty_name ($userid) {
-      	global $user;
-      	return $user->id2user($userid, false, false);
+    	global $user;
+    	return $user->id2user($userid, false, false);
     }
     function smarty_username ($userid) { // converts id to username
-      	global $user;
-      	return $user->link_userpage($userid, false);
+    	global $user;
+    	return $user->link_userpage($userid, false);
     }
     function smarty_userpic ($userid) {
-      	global $user;
-      	return $user->link_userpage($userid, true);
+    	global $user;
+    	return $user->link_userpage($userid, true);
     }
     function smarty_userpage ($userid, $pic=0) {
-      	global $user;
-      	return $user->link_userpage($userid, $pic);
+    	global $user;
+    	return $user->link_userpage($userid, $pic);
     }
 	function smarty_userpic2 ($userid, $displayName=FALSE)
 	{
@@ -203,26 +203,26 @@ function var_request ()
 	 * HTML Elemente
 	 */
     function smarty_html_link ($params, $content, &$smarty, &$repeat) { // gibt einen link aus
-      	if (!$content) $content = "link";
-	  	return '<a href="'.smarty_link($params).'">'.$content.'</a>';
+    	if (!$content) $content = "link";
+		return '<a href="'.smarty_link($params).'">'.$content.'</a>';
     }
     function smarty_html_button ($params, $content, &$smarty, &$repeat) { // gibt einen button als link aus
-      	return '<input type="button" class="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'">';
+    	return '<input type="button" class="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'">';
     }
     function smarty_form ($params, $content, &$smarty, &$repeat) {
-    	// returns an opening-tag for a html-form. action is always 'smarty.php'
-    	// if you set the parameter 'formid', a hidden input with this formid is added.
+  	// returns an opening-tag for a html-form. action is always 'smarty.php'
+  	// if you set the parameter 'formid', a hidden input with this formid is added.
       if (!$_GET[tpl]) $_GET[tpl] = '0';
 
       if ($params['url']) {
-      	$url = $params['url'];
+    	$url = $params['url'];
       }elseif ($params['action']) {
-      	$url = "/actions/$params[action]?".url_params();
+    	$url = "/actions/$params[action]?".url_params();
       }else{
-      	$url = "/?".url_params();
-      	if ($params[param]) {
-         	$url .= '&'.$params[param];
-      	}
+    	$url = "/?".url_params();
+    	if ($params[param]) {
+       	$url .= '&'.$params[param];
+    	}
       }
 
       $ret = '<form method="post" action="'.$url.'" ';
@@ -399,13 +399,41 @@ function var_request ()
 	}
 
 	/**
-	 * Menu
+	 * Verein Mailer - Info Block
+	 * Usage: {mail_infoblock topic="headline"}content{/mail_infoblock}
+	 */
+	function smarty_mailinfoblock ($params, $content, &$smarty, &$repeat) {
+		//if (!$repeat) {  // closing tag
+		$smarty->assign('infoblock', ['topic' => $params['topic'], 'text' => $content ]);
+		return $smarty->fetch('file:email/verein/elements/block_info.tpl');
+		//}
+	}
+	
+	/**
+	 * Verein Mailer - Call-to-Action Button Block
+	 * Usage: {mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}
+	 */
+	function smarty_mailctabutton ($params, $content, &$smarty, &$repeat) {
+		if ($params['position'] == 'left') $ctaposition = 'float:left';
+		if ($params['position'] == 'right') $ctaposition = 'float:left';
+		if ($params['position'] == 'center') $ctaposition = 'margin:0 auto';
+		$smarty->assign('cta', [
+								 'style' => $params['style']
+								,'position' => $ctaposition
+								,'action' => $params['action']
+								,'href' => $params['href']
+								,'text' => $content
+								]);
+		return $smarty->fetch('file:email/verein/elements/block_ctabutton.tpl');
+	}
+  
+	/**
+	 * Smarty Menu
 	 */
 	function smarty_menubar ($params, $content, &$smarty, &$repeat) {
 		global $user;
 
 		$vars = $smarty->get_template_vars();
-
 		if (!$repeat) {  // closing tag
 			$out = '';
 			$out .=
@@ -429,7 +457,8 @@ function var_request ()
 			return $out;
 		}
 	}
-		function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
+	
+	function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
 		global $user;
 
 		if (!$repeat) {  // closing tag
@@ -648,7 +677,7 @@ function var_request ()
 	 * SQL Errors
 	 */
     function smarty_sql_errors($params) {
-   		return  get_sql_errors($params['num'],$params['order'],$params['oby']);
+ 		return  get_sql_errors($params['num'],$params['order'],$params['oby']);
 	}
 
 	/**
@@ -657,25 +686,25 @@ function var_request ()
 	function smarty_link ($params) {
 		// url to a template called by smarty.php;
 	    // if parameter button is set, the link is shown as a button.
-	   	global $smarty;
-	   	$vars = $smarty->get_template_vars();
+	 	global $smarty;
+	 	$vars = $smarty->get_template_vars();
 
-	   	if (isset($params['url'])) {
-	   		$ret = $params['url'];
-	   	}elseif (isset($params['word'])) {
-	   		$ret = "/?word=".$params['word'];
-	   	}elseif (isset($params['tpl'])) {
-	      	$ret = "/?tpl=".$params['tpl'];
-	   	}elseif (isset($params['comment'])) {
-	   		$ret = Comment::getLinkComment($params['comment']);
-	   	}elseif (isset($params['user'])) {
-	   		if (is_numeric($params['user'])) $ret = "/profil.php?user_id=$params[user]";
-	   		else $ret = '/profil.php?user_id='.usersystem::user2id($params['user']);
-	   	}elseif (isset($params['action'])) {
-	   		$ret .= "/actions/$params[action]?".url_params();
-	   	}else{
-	   		$ret = "/?tpl=".$vars[tpl][root];
-	   	}
+	 	if (isset($params['url'])) {
+	 		$ret = $params['url'];
+	 	}elseif (isset($params['word'])) {
+	 		$ret = "/?word=".$params['word'];
+	 	}elseif (isset($params['tpl'])) {
+	    	$ret = "/?tpl=".$params['tpl'];
+	 	}elseif (isset($params['comment'])) {
+	 		$ret = Comment::getLinkComment($params['comment']);
+	 	}elseif (isset($params['user'])) {
+	 		if (is_numeric($params['user'])) $ret = "/profil.php?user_id=$params[user]";
+	 		else $ret = '/profil.php?user_id='.usersystem::user2id($params['user']);
+	 	}elseif (isset($params['action'])) {
+	 		$ret .= "/actions/$params[action]?".url_params();
+	 	}else{
+	 		$ret = "/?tpl=".$vars[tpl][root];
+	 	}
 
         if (isset($params['param'])) $ret .= "&".$params[param];
 
@@ -768,13 +797,13 @@ function var_request ()
 		Forum::printCommentingSystem($params['board'], $params['thread_id']);
 	}
     function smarty_comments ($params) {
-      	global $smarty, $user;
+    	global $smarty, $user;
 
-      	$tplvars = $smarty->get_template_vars();
-      	if (!$params['board'] || !$params['thread_id']) {
-   			$params['board'] = 't';
-   			$params['thread_id'] = $tplvars['tpl']['id'];
-   		}
+    	$tplvars = $smarty->get_template_vars();
+    	if (!$params['board'] || !$params['thread_id']) {
+ 			$params['board'] = 't';
+ 			$params['thread_id'] = $tplvars['tpl']['id'];
+ 		}
 
 		if (Thread::hasRights($params['board'], $params['thread_id'], $user->id)) {
 		      if ($user->show_comments) {
@@ -840,7 +869,7 @@ function var_request ()
 	         return "";
 	      }
     }
-   	function smarty_edit_link_url ($params, &$smarty) {
+ 	function smarty_edit_link_url ($params, &$smarty) {
 		if (!$params['tpl']) {
 			$vars = $smarty->get_template_vars();
 			$params['tpl'] = $vars['tpl']['id'];
@@ -967,16 +996,16 @@ function var_request ()
 		 */
 		function smarty_top_pics ($params)
 		{
-		   	$album_id = ($params['album'] == '' ? 0 : $params['album']);
+		 	$album_id = ($params['album'] == '' ? 0 : $params['album']);
 
-		   	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
+		 	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
 
-		   	$options = ($params['options'] == '' ? '' : $params['options']);
+		 	$options = ($params['options'] == '' ? '' : $params['options']);
 
-	   		//Nur zum kontrollieren...
-	   		//print('Album-ID: '.$album_id.'<br />Limit: '.$limit.'<br />');
+	 		//Nur zum kontrollieren...
+	 		//print('Album-ID: '.$album_id.'<br />Limit: '.$limit.'<br />');
 
-	   		return getTopPics($album_id, $limit, $options);
+	 		return getTopPics($album_id, $limit, $options);
 		}
 		/**
 		 * Smarty Function "user_pics"
@@ -990,18 +1019,18 @@ function var_request ()
 		function smarty_user_pics($params)
 		{
 			$userid = ($params['user'] == '' ? 0 : $params['user']);
-		   	$limit = ($params['limit'] == '' ? 0 : $params['limit']);
-		   	//$options = ($params['options'] == '' ? '' : $params['options']);
+		 	$limit = ($params['limit'] == '' ? 0 : $params['limit']);
+		 	//$options = ($params['options'] == '' ? '' : $params['options']);
 
-	   		//return getUserPics($userid, $limit, $options);
-	   		return getUserPics($userid, $limit);
+	 		//return getUserPics($userid, $limit, $options);
+	 		return getUserPics($userid, $limit);
 		}
 
 	/**
 	 * Chat
 	 */
 	/*function smarty_chat() { Inaktiv?! IneX, 2.5.09
-    	return Chat::getInterfaceHTML();
+  	return Chat::getInterfaceHTML();
 	}*/
 	function smarty_assign_chatmessages($params, &$smarty) {
 		global $db;
@@ -1283,7 +1312,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
 								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
 								
-    						 );
+  						 );
 	
 	/**
 	 * PHP Functions as Modifiers for Smarty Functions
@@ -1340,7 +1369,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_substr' => array('substr', 'Variablen', '{substr from=2 to=-1}text{/substr}  // gleich wie php-fnc substr(text, from, to)', false)
 								,'smarty_trim' => array('trim', 'Variablen', 'text modification', false)
 								,'smarty_member' => array('member', 'Layout', '{member}..{/member}   {member noborder=1}..{/member}', false)
-								
+								,'smarty_mailinfoblock' => array('mail_infoblock', 'Verein Mailer - Info Block', '{mail_infoblock topic="headline"}...{/mail_infoblock}', false)
 								
 								);
 
@@ -1350,7 +1379,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @var array
 	 */
     $zorg_php_functions = array( //Format: [Tpl-Funktion] => array ([PHP-Funktion], [Kategorie], [Beschreibung], [Members only true/false], [Compiler Function true/false])
-    							 'smarty_menuname' => array('menuname', 'Layout', 'Compiler Funktion: echo() des Menu Mamens (retourniert PHP)', false, true) // Compiler Funktion
+  							 'smarty_menuname' => array('menuname', 'Layout', 'Compiler Funktion: echo() des Menu Mamens (retourniert PHP)', false, true) // Compiler Funktion
 								,'smarty_addle_highscore' => array('addle_highscore', 'Addle', 'Addle', false, false)
 								,'smarty_apod' => array('apod', 'APOD', 'Astronomy Picture of the Day (APOD)', false, false)
 								,'smarty_assign_chatmessages' => array('assign_chatmessages', 'Chat', 'Chat', false, false)

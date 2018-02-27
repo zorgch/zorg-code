@@ -53,12 +53,21 @@ define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
 define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
 
 /**
-* Define a global SENDER e-mail addresses (From:)
+* Define global Contact points, such as e-mail addresses (From:)
 * @const ZORG_EMAIL A valid e-mailadress such as info@zooomclan.org
 * @const SERVER_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
+* @const TWITTER_NAME A Twitter-profile username which can be linked, e.g. ZorgCH (no "@")
+* @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
+* @const BARBARA_HARRIS User-ID of [z]Barbara Harris
+* @const VORSTAND_USER User-ID of the Zorg Verein Vorstand-User
 */
-define('ZORG_EMAIL', 'info@zorg.ch', true);
+define('ZORG_EMAIL', 'info@' . SITE_HOSTNAME, true);
 define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
+define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com', true);
+define('TWITTER_NAME', 'ZorgCH', true);
+define('FACEBOOK_APPID', '110932998937967', true);
+define('BARBARA_HARRIS', 59);
+define('VORSTAND_USER', 451);
 
 /**
  * @const SITE_HOSTNAME General suffix for <title>...[suffix]</title> on every page.
