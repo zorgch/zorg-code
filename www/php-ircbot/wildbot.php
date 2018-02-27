@@ -25,9 +25,9 @@
     require 'Classes/Autoloader.php';
 
     if (file_exists(ROOT_DIR . '/config.local.php')) {
-        $config = include_once(ROOT_DIR . '/config.local.php');
+        $config = require_once(ROOT_DIR . '/config.local.php');
     } else {
-        $config = include_once(ROOT_DIR . '/config.php');
+        $config = require_once(ROOT_DIR . '/config.php');
     }
 
 	// Full list with valid timezones can be found here:

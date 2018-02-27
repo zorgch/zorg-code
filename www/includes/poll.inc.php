@@ -28,7 +28,7 @@ function getPoll ($id) {
 	));
 	
 	if (!$poll) {
-		return trigger_error(t('invalid-poll_id', 'poll', $id), E_USER_WARNING);
+		user_error(t('invalid-poll_id', 'poll', $id), E_USER_WARNING);
 	}
 	
 		

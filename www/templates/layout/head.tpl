@@ -2,11 +2,45 @@
 {if $sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}
 <html>
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="geo.position" content="47.4233;9.37">
 		<meta name="geo.region" content="CH-SG">
 		<meta name="geo.placename" content="St. Gallen">
-		<meta name="ICBM" content="47.4233, 9.37" />
+		<meta name="ICBM" content="47.4233, 9.37">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="twitter:card" content="summary">{*summary_large_image*}
+		<meta name="twitter:title" content="{$tplroot.page_title}">
+		<meta property="og:title" content="{$tplroot.page_title}">
+		<meta itemprop="headline" content="{$tplroot.page_title}">
+		{if $smarty.const.TWITTER_NAME != ''}
+			<meta name="twitter:site" content="{$smarty.const.TWITTER_NAME}">
+			<meta name="twitter:creator" content="{$smarty.const.TWITTER_NAME}">
+		{/if}
+		<meta property="og:site_name" content="{$smarty.const.SITE_HOSTNAME}">
+		<meta property="og:url" content="{$smarty.const.SITE_URL}{$smarty.server.REQUEST_URI}">
+		{if $tplroot.page_title == 'forum' || $tplroot.page_title == 'thread'}
+			<meta property="og:type" content="article">
+			<meta itemscope itemtype="http://schema.org/Article">
+		{elseif $tplroot.page_title == 'Events'}
+			<meta property="og:type" content="website">
+			<meta itemscope itemtype="http://schema.org/Event">
+		{else}
+			<meta property="og:type" content="website">
+			<meta itemscope itemtype="http://schema.org/WebSite">
+		{/if}
+		{*if $meta_description != ''}
+			{assign var=meta_description value=$string|truncate:156:'…'}
+			<meta name="twitter:description" content="{$meta_description}">
+			<meta property="og:description" content="{$meta_description}">
+			<meta itemprop="description" content="{$meta_description}">
+			<meta name="description" content="{$meta_description}">
+		{/if*}
+		{*assign var=page_image = value='https://zorg.ch/images/zorg.jpg'}
+		<meta name="twitter:image" content="<?php echo $page_image; ?>">
+		<meta property="og:image" content="<?php echo $page_image; ?>">
+		<meta itemprop="image" content="<?php echo $page_image; ?>">*}
+		<meta property="fb:app_id" content="{$smarty.const.FACEBOOK_APPID}">
 		<title>{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}</title>
 		<link rel="shortcut icon" href="{$smarty.const.IMAGES_DIR}favicons/fav_{$sun}.ico" type="image/x-icon">
 		<meta name="msapplication-square70x70logo" content="{$smarty.const.IMAGES_DIR}favicons/smalltile.png">
