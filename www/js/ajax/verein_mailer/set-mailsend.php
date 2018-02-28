@@ -84,7 +84,7 @@ if (!is_array($recipients) || count($recipients) <= 0)
 					error_log('[INFO] Sending E-Mail from ' . $senderEmail);
 					$mailTo = sprintf('%s <%s>', $user->id2user($recipient_id), $recipientEmail);
 					$mailHeaders = "From: $senderEmail\r\n";
-					$mailHeaders .= "Reply-To: $senderEmail\r\n";
+					$mailHeaders .= 'Reply-To: '.ZORG_VEREIN_EMAIL."\r\n";
 					$mailHeaders .= 'MIME-Version: 1.0'."\r\n";
 					$mailHeaders .= 'Content-Type: text/html; charset="utf-8"'."\r\n";
 					$mailHeaders .= 'X-Mailer: PHP/'.phpversion()."\r\n";

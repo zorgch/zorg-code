@@ -415,7 +415,7 @@ function var_request ()
 	 */
 	function smarty_mailctabutton ($params, $content, &$smarty, &$repeat) {
 		if ($params['position'] == 'left') $ctaposition = 'float:left';
-		if ($params['position'] == 'right') $ctaposition = 'float:left';
+		if ($params['position'] == 'right') $ctaposition = 'float:right;';
 		if ($params['position'] == 'center') $ctaposition = 'margin:0 auto';
 		$smarty->assign('cta', [
 								 'style' => $params['style']
@@ -1370,6 +1370,8 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_trim' => array('trim', 'Variablen', 'text modification', false)
 								,'smarty_member' => array('member', 'Layout', '{member}..{/member}   {member noborder=1}..{/member}', false)
 								,'smarty_mailinfoblock' => array('mail_infoblock', 'Verein Mailer - Info Block', '{mail_infoblock topic="headline"}...{/mail_infoblock}', false)
+								,'smarty_mailctabutton' => array('mail_button', 'Verein Mailer - Call-to-Action-Button', '{mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}', false)
+								
 								
 								);
 
