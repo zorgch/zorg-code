@@ -10,7 +10,7 @@
 	{if $user->id > 0}
 	<link href="{if !$dev}https://use.fontawesome.com/releases/v5.0.6/css/all.css{else}{$smarty.const.CSS_DIR}font-awesome.min.css{/if}" rel="stylesheet">
 	{*<link href="/js/emoji-picker/css/emoji.css" rel="stylesheet">*}
-	<script src="{if !$dev}http://code.jquery.com/jquery-3.3.1{else}{$smarty.const.JS_DIR}jquery-2.1.4{/if}.min.js" crossorigin="anonymous"></script>
+	<script src="{if !$dev}https://code.jquery.com/jquery-3.3.1{else}{$smarty.const.JS_DIR}jquery-2.1.4{/if}.min.js" crossorigin="anonymous"></script>
 	<script src="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.js"></script>
 	<script {if !$dev}src="https://cdnjs.cloudflare.com/ajax/libs/nanobar/0.4.2/nanobar.js" crossorigin="anonymous">{else}<!-- nanobar.min.js not found -->{/if}</script>
 	<!-- Quill - Rich Text Editor: https://quilljs.com/ -->
