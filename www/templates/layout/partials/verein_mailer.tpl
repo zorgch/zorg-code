@@ -1,5 +1,9 @@
-<!DOCTYPE html>{assign var=dev value=false}
+<!DOCTYPE html>
 <html lang="de">
+{assign var=dev value=false}
+{assign_array var=president value="array('userid'=>117,'value'=>'president','label'=>'Präsidentensache')"}
+{assign_array var=actuary value="array('userid'=>11,'value'=>'actuary','label'=>'Aktuarssache')"}
+{assign_array var=treasurer value="array('userid'=>52,'value'=>'treasurer','label'=>'Kassiersache')"}
 <head>
 	<meta charset="utf-8">
 	<title>Zorg Verein - Mailer</title>
@@ -7,7 +11,7 @@
 	<meta name="robots" content="none, noarchive, nosnippet, noodp, notranslate, noimageindex" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.css">
-	{if $user->id > 0}
+	{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
 	<link href="{if !$dev}https://use.fontawesome.com/releases/v5.0.6/css/all.css{else}{$smarty.const.CSS_DIR}font-awesome.min.css{/if}" rel="stylesheet">
 	{*<link href="/js/emoji-picker/css/emoji.css" rel="stylesheet">*}
 	<script src="{if !$dev}https://code.jquery.com/jquery-3.3.1{else}{$smarty.const.JS_DIR}jquery-2.1.4{/if}.min.js" crossorigin="anonymous"></script>
@@ -31,7 +35,7 @@
 	{/if}
 </head>
 
-<body>{if $user->id > 0}
+<body>{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
 	<header class="text-center">
 		<h1>Zorg Verein - Mailer</h1>
 		<p class="text-secondary text-small">Eine E-Mailversand Applikation f&uuml;r Mails an die Zorg Verein Mitglieder</p>
@@ -62,9 +66,6 @@
 		<div class="row">
 			<div class="col">
 				<h2>Absender</h2>
-				{assign_array var=president value="array('userid'=>117,'value'=>'president','label'=>'Präsidentensache')"}
-				{assign_array var=actuary value="array('userid'=>11,'value'=>'actuary','label'=>'Aktuarssache')"}
-				{assign_array var=treasurer value="array('userid'=>52,'value'=>'treasurer','label'=>'Kassiersache')"}
 				<div class="input-field">
 					<label><input type="radio" name="topic" id="radio_president" value="{$president.value}" {if $user->id == $president.userid}checked{/if}> {$president.label}</label> <br class="hide-md-up">
 					<label><input type="radio" name="topic" id="radio_actuary" value="{$actuary.value}" {if $user->id == $actuary.userid}checked{/if}> {$actuary.label}</label> <br class="hide-md-up">
@@ -244,6 +245,7 @@
 	const div_mail_preview = $('#div_mail_preview');
 	const preview_iframe = $("#frame_mail_preview");
 	const preview_div = $("#div_mail_preview");
+	const hidden_selected_recipients = $('#hidden_selected_recipients');
 	const preview_mode = 'frame';
 	const president_userid = {/literal}{$president.userid}{literal};
 	const actuary_userid = {/literal}{$actuary.userid}{literal};
@@ -374,9 +376,11 @@
 		$('.progress-bar').width('0%');
 		quill.root.innerHTML = '';
 		send_button.addClass('hide-xs-up');
+		$("input[id$='_alle']").prop('checked', false);
 		$("div[id^='list'] fieldset label").removeClass('text-success text-primary');
 		$("div[id^='list'] fieldset label span").removeClass('badge-success');
 		$("div[id^='list'] fieldset label input:checkbox").prop('checked', false);
+		hidden_selected_recipients.val('');
 		getTemplates('dropdown_template_select');
 		existing_tpls.prop('disabled', false);
 		console.info('Template closed!');
@@ -491,6 +495,13 @@
 			console.info('Update Mode: disabled');
 		}
 	}
+	
+	function addUseridToRecipients(recipient_id) {
+		hidden_selected_recipients.val(hidden_selected_recipients.val() + '"' + recipient_id + '",');
+	}
+	function removeUseridFromRecipients(recipient_id) {
+		hidden_selected_recipients.val(hidden_selected_recipients.val().replace('"' + recipient_id + '",', ''));
+	}
 
 	// Nanobar Progressbar{/literal}
 {if !$dev}{literal}
@@ -542,16 +553,30 @@
 			$(this).parent().siblings("div[class='input-field']").find("fieldset input:checkbox").prop('checked', $(this).is(':checked'));
 			if ($(this).is(':checked')) {
 				$(this).parent().siblings("div[class='input-field']").find("fieldset label").addClass('text-primary');
+				$(this).parent().siblings("div[class='input-field']").find("fieldset input:checkbox").each(function(){
+					addUseridToRecipients($(this).val());
+					console.log('Adding user id to recipients: ' + $(this).val());
+				});
 			} else {
 				$(this).parent().siblings("div[class='input-field']").find("fieldset label").removeClass('text-primary');
+				$(this).parent().siblings("div[class='input-field']").find("fieldset input:checkbox").each(function(){
+					removeUseridFromRecipients($(this).val());
+					console.log('Removing user id from recipients: ' + $(this).val());
+				});
 			}
 		});
 		
 		/**
-		 * Add recipients to hidden field
+		 * Add or remove recipient to hidden field
 		 */
 		$("div[id^='list_']").on('click', "input[type='checkbox']", function(){
-			$('#hidden_selected_recipients').val($('#hidden_selected_recipients').val() + $(this).val() + ',');
+			if ($(this).is(':checked')) {
+				addUseridToRecipients($(this).val());
+				console.log('Adding user id to recipients: ' + $(this).val());
+			} else {
+				removeUseridFromRecipients($(this).val());
+				console.log('Removing user id from recipients: ' + $(this).val());
+			}
 			$(this).parent().toggleClass('text-primary');
 		});
 

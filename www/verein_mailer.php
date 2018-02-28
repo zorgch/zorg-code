@@ -83,6 +83,12 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 /**
  * Show Verein Mailer application
  */
-} else {
+} elseif (isset($_GET['admin'])) {
 	$smarty->display('file:layout/partials/verein_mailer.tpl');
+
+/**
+ * Redirect to zorg.ch
+ */
+} else {
+	$smarty->display('file:layout/layout.tpl');
 }
