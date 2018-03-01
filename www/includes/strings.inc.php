@@ -43,17 +43,18 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	/**
 	 * Validate the passed $values
 	 */
-	if ($values != NULL && is_array($values) && count($values) > 0)
+	if (isset($values) && is_array($values)) //&& count($values) > 0)
 	{
 		/** Check if any of the $values is empty */
 		foreach ($values as $key=>$value) {
 			if (empty($value) && !is_numeric($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s was passed but is empty!', $key+1));
 		}
-	} elseif (isset($values) && !is_array($values) && $values == '') {
+	} elseif (isset($values) && $values == '') {
 		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
-	} else {
-		$values_count = count($values);
 	}
+	
+	/** Count the number of $values passed */
+	$values_count = count($values);
 	
 	/**
 	 * Resolve the placeholder reference
@@ -62,7 +63,8 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	{
 		try {
 			/** Check if the number of $values matches the sprintf-placeholders */
-			if ($values_count != substr_count($found_string, '%')) error_log(sprintf('[NOTICE] strings.inc.php: possible mismatch of values & sprintf for string%s%s', "\n", $found_string));
+			$sprintf_count = substr_count($found_string, '%');
+			if ($values_count != $sprintf_count) error_log(sprintf('[NOTICE] strings.inc.php: possible mismatch between values (num: %d) & sprintf (num: %d) for string "%s"', $values_count, $sprintf_count, $found_string));
 			
 			/**
 			 * Replace & return - or return only - a matched string
