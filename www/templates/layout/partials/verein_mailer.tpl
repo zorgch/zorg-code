@@ -42,18 +42,13 @@
 		<hr>
 	</header>
 	<main class="container">
-		<!--div class="row">
-			<div class="col">
-				<h2>Templates</h2>
-			</div>
-		</div-->
 		<div class="row">
 			<div class="col">
 				<!--button type="button" name="button_new_message" id="button_new_message" class="mar-t-sm mar-b-sm">Create new Message</button-->
 				<h3>Select an existing Message:</h3>
 				<div class="input-group">
 					<select name="dropdown_template_select" id="dropdown_template_select">
-						<option id="" label="" value=""></option>
+						<option label="--- Message auswählen ---" selected disabled></option>
 					</select>
 					<button type="button" id="button_delete_message" class="button-danger" disabled><i class="fa fa-trash"></i> delete</button>
 					<button type="button" id="button_load_message"><i class="fa fa-edit"></i> load</button>
@@ -235,6 +230,7 @@
 	{/literal}</script>*}
 	<script>{literal}
 	const existing_tpls = $('#dropdown_template_select');
+	const existing_tpls_initial = $('#dropdown_template_select').html();
 	const form_elements = $('#mail_settings');
 	const hidden_template_id = $('#template_id');
 	const text_mail_subject = $('#text_mail_subject');
@@ -322,7 +318,7 @@
 			url: "/js/ajax/verein_mailer/get-mailtemplateslist.php?action=list",
 			type: 'GET',
 			success: function(data) {
-					var list_html = '';//$('#' + container).html
+					var list_html = existing_tpls_initial;
 					for( var i=0; i<data.length; i++) {
 						list_html += '<option id="' + container + '_' + data[i].tplid + '" label="#' + data[i].tplid + ' &laquo;' + data[i].subject + '&raquo; von ' + data[i].updated + '" value="' + data[i].tplid + '"></option>';
 					}
@@ -457,20 +453,7 @@
 			div_mail_preview.removeClass('hide-xs-up');
 			preview_iframe.attr('src', '');
 			enableTemplateUpdateMode(true);
-			//preview_iframe.attr('src', '/js/ajax/verein_mailer/get-mailpreview.php?action=preview&mailtpl_id=' + tpl_id);
 			preview_iframe.attr('src', '/js/ajax/verein_mailer/get-mailpreview.php?action=preview&mailtpl_id=' + tpl_id);
-			/*$.ajax({
-				url: '/js/ajax/verein_mailer/get-mailpreview.php?action=preview&mailtpl_id=' + tpl_id,
-				type: 'POST',
-				data: form_elements.serialize(),
-				success: function(data) {
-						console.info('Loading Template ' + tpl_id + ' into ' + preview_mode);
-						preview_iframe.attr('src', data)
-					},
-				error: function(data) {
-						console.error('Error while loading template ' + tpl_id);
-					}
-			});*/
 		} else if (preview_mode == 'div') {
 			console.info('Loading Template ' + tpl_id + ' into ' + preview_mode + '...');
 			preview_div.load('/js/ajax/verein_mailer/get-mailpreview.php?action=preview&mailtpl_id=' + tpl_id, form_elements.serializeArray(), function(response, status, xhr){
@@ -653,6 +636,7 @@
 					}
 			});
 			getTemplates('dropdown_template_select');
+			existing_tpls.find('option[value="'+hidden_template_id.val()+'"]').prop('selected', true);
 			$(this).prop('disabled', false);
 		});
 

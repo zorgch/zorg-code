@@ -5,11 +5,6 @@
 require_once( __DIR__ . '/includes/main.inc.php');
 
 /**
- * Smarty variables
- */
-$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
-
-/**
  * Show a mail message's webview
  */
 if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']) && is_numeric($_GET['user']) ) && !empty($_GET['hash']))
@@ -20,7 +15,7 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 	try {
 		$matchingAgainst = md5($_GET['mail'] . $_GET['user']);
 		/** ORDER BY id DESC = ensures, if same message was sent multiple times, that the NEWEST is displayed (and not the oldest) */
-		$checkHashQuery = 'SELECT template_id, recipient_id, message_text, MD5(CONCAT(template_id, recipient_id)) as hash
+		$checkHashQuery = 'SELECT id, template_id, recipient_id, message_text, MD5(CONCAT(template_id, recipient_id)) as hash
 				FROM verein_correspondence
 				WHERE MD5(CONCAT(template_id, recipient_id)) = "' . $_GET['hash'] . '"
 				ORDER BY id DESC';
@@ -34,26 +29,49 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 				/**
 				 * Update EMAIL read status
 				 */
-				error_log('[DEBUG] Updating Read State for template ' . $matchedResult['template_id'] . ' and user ' . $matchedResult['recipient_id']);
+				error_log('[INFO] Updating Read State for template ' . $matchedResult['template_id'] . ' and user ' . $matchedResult['recipient_id']);
 				$updateReadStateQuery = 'UPDATE verein_correspondence
 										 SET
-										 	recipient_confirmation = TRUE,
+										 	recipient_confirmation = "TRUE",
 										 	recipient_confirmationdate = NOW()
 										 WHERE
-										 	recipient_confirmation != TRUE
-										 	AND template_id = '.$matchedResult['template_id'].'
-										 	AND recipient_id = '.$matchedResult['recipient_id'];
-				$updateReadState = mysql_fetch_assoc($db->query($checkHashQuery, __FILE__, __LINE__, 'verein_mailer.php'));
+										 	id = ' . $matchedResult['id'];
+				$updateReadState = mysql_fetch_assoc($db->query($updateReadStateQuery, __FILE__, __LINE__, 'verein_mailer.php'));
 				
+				/**
+				 * Only a resource was requested - so show it
+				 */
+				if (isset($_GET['path']) && !empty($_GET['path']))
+				{
+					//error_log('[DEBUG] resource requested: ' . SITE_URL . $_GET['path']);
+					$resource = SITE_URL . $_GET['path'];
+					if (@file_get_contents( $resource ))
+				    {
+						$fileInfo = getimagesize($resource);
+						//$fileStream = base64_encode(file_get_contents($resource));
+						$fileMime = $fileInfo['mime'];
+						http_response_code(200); // Set response code 200 (OK)
+						header("Content-type: {$fileMime}");
+						readfile($resource);
+						//echo "data:$fileMime;base64,$fileStream";
+				    } else {
+						http_response_code(404); // Set response code 404 (not found)
+						user_error('Resource not found ' . $_GET['path'], E_USER_NOTICE);
+				    }
+
 				/**
 				 * Show web-view of the E-Mail Message
 				 */
-				http_response_code(200); // Set response code 200 (OK)
-				echo $matchedResult['message_text'];
-			
+				} else {
+
+					http_response_code(200); // Set response code 200 (OK)
+					echo $matchedResult['message_text'];
+				}
+
 			/** Template and/or User IDs do NOT match... */
 			} else {
 				http_response_code(403); // Set response code 403 (forbidden)
+				$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
 				$smarty->display('file:layout/head.tpl');
 				user_error('Nice try - aber Du dörfsch die Message nöd aluege. Yarak!', E_USER_NOTICE);
 				$smarty->display('file:layout/footer.tpl');
@@ -62,6 +80,7 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 		/** Hash did NOT match... */
 		} else {
 			http_response_code(403); // Set response code 403 (forbidden)
+			$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
 			$smarty->display('file:layout/head.tpl');
 			user_error('Nope - do stimmt was nöd. Tschau.', E_USER_NOTICE);
 			$smarty->display('file:layout/footer.tpl');
@@ -84,6 +103,8 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
  * Show Verein Mailer application
  */
 } elseif (isset($_GET['admin'])) {
+
+	$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
 	$smarty->display('file:layout/partials/verein_mailer.tpl');
 
 /**
