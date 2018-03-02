@@ -48,7 +48,7 @@
 				<h3>Select an existing Message:</h3>
 				<div class="input-group">
 					<select name="dropdown_template_select" id="dropdown_template_select">
-						<option label="--- Message auswählen ---" selected disabled></option>
+						<option label="--- Message auswählen ---" selected disabled>--- Message auswählen ---</option>
 					</select>
 					<button type="button" id="button_delete_message" class="button-danger" disabled><i class="fa fa-trash"></i> delete</button>
 					<button type="button" id="button_load_message"><i class="fa fa-edit"></i> load</button>
@@ -320,7 +320,10 @@
 			success: function(data) {
 					var list_html = existing_tpls_initial;
 					for( var i=0; i<data.length; i++) {
-						list_html += '<option id="' + container + '_' + data[i].tplid + '" label="#' + data[i].tplid + ' &laquo;' + data[i].subject + '&raquo; von ' + data[i].updated + '" value="' + data[i].tplid + '"></option>';
+						var option_id = container + '_' + data[i].tplid;
+						var option_label = '#' + data[i].tplid + ' &laquo;' + data[i].subject + '&raquo; von ' + data[i].updated;
+						var option_value = data[i].tplid;
+						list_html += '<option id="' + option_id + '" label="' + option_label + '" value="' + option_value + '">' + option_label + '</option>';
 					}
 					$('#' + container).html(list_html);
 				},
