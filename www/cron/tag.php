@@ -2,11 +2,11 @@
 
 if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 
-	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+	include_once( __DIR__ .'/../includes/main.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php'); --> lässt Script aufhängen
-	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/apod.inc.php');
+	include_once( __DIR__ .'/../includes/apod.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php'); --> lässt Script aufhängen
-	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
+	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php'); --> lässt Script aufhängen
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/spaceweather.inc.php');  --> tut irgendwie nicht
@@ -57,5 +57,3 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	*/
 
 }
-	
-?>
