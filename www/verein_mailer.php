@@ -73,6 +73,8 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 				http_response_code(403); // Set response code 403 (forbidden)
 				$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
 				$smarty->display('file:layout/head.tpl');
+				echo menu("zorg");
+				echo menu("verein-menu");
 				user_error('Nice try - aber Du dörfsch die Message nöd aluege. Yarak!', E_USER_NOTICE);
 				$smarty->display('file:layout/footer.tpl');
 			}
@@ -82,6 +84,8 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 			http_response_code(403); // Set response code 403 (forbidden)
 			$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
 			$smarty->display('file:layout/head.tpl');
+			echo menu("zorg");
+			echo menu("verein-menu");
 			user_error('Nope - do stimmt was nöd. Tschau.', E_USER_NOTICE);
 			$smarty->display('file:layout/footer.tpl');
 		}
@@ -111,5 +115,6 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
  * Redirect to zorg.ch
  */
 } else {
-	$smarty->display('file:layout/layout.tpl');
+	header('Location: /page/verein'); // Display Template "Verein"
+	die();
 }

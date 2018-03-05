@@ -374,6 +374,7 @@
 		$('.progress-bar').html('0');
 		$('.progress-bar').width('0%');
 		quill.root.innerHTML = '';
+		send_button.removeClass('button-danger button-success');
 		send_button.addClass('hide-xs-up');
 		$("input[id$='_alle']").prop('checked', false);
 		$("div[id^='list'] fieldset label").removeClass('text-success text-primary');
@@ -647,20 +648,31 @@
 		 * Send message
 		 */
 		send_button.click(function(e){
+			var data_items = '';
 			$(this).prop('disabled', true);
 			$.ajax({
 				url: '/js/ajax/verein_mailer/set-mailsend.php?action=send',
 				type: 'POST',
 				data: form_elements.serialize(),
+				dataType: 'JSON',
 				success: function(data) {
-						console.info( 'Sent e-mail to user id ' + data );
+						console.log(data);
+						$.each(data, function(index, item){
+							data_items += '\n' + data[index].value;
+							//form_elements.find("input[value='"+data+"']").parent().addClass('text-success');
+							//form_elements.find("input[value='"+data+"']").siblings("span[id$='sent']").addClass('badge-success');
+						});
+						console.info( 'Sent e-mail to user id ' + data_items );
+						send_button.addClass('button-success');
 						checkRecipientStatus(hidden_template_id.val());
-						//form_elements.find("input[value='"+data+"']").parent().addClass('text-success');
-						//form_elements.find("input[value='"+data+"']").siblings("span[id$='sent']").addClass('badge-success');
 					},
 				error: function(data) {
-						console.error('Error while sending mail to user ' . data);
-						$(this).addClass('button-danger');
+						console.log(data);
+						$.each(data, function(index, value){
+							data_items += '\n' + data[index].userid;
+						});
+						console.error('Error while sending mail to user ' . data_items);
+						send_button.addClass('button-danger');
 					}
 			});
 			$(this).prop('disabled', false);

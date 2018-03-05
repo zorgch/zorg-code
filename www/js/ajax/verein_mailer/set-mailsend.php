@@ -9,7 +9,7 @@ if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'send
 }
 
 /**
- * FILE INCLUDES
+ * File includes
  */
 require_once( __DIR__ .'/../../../includes/main.inc.php');
 
@@ -17,10 +17,12 @@ require_once( __DIR__ .'/../../../includes/main.inc.php');
  * Array with recipients
  * parse, cleanup & type conversion from string => int
  */
+//error_log('[DEBUG] Recipients IDs (as passed): ' . $_POST['hidden_selected_recipients']);
 $recipients = str_replace('"', '', $_POST['hidden_selected_recipients']);
 $recipients = preg_split('/,/', $recipients, null, PREG_SPLIT_NO_EMPTY);
 $recipients = array_unique($recipients); // Remove duplicates
 sort($recipients);
+//error_log('[DEBUG] Recipients IDs (cleaned up):' . print_r($recipients, TRUE));
 
 /** Validate recipients */
 if (!is_array($recipients) || count($recipients) <= 0)
@@ -32,16 +34,19 @@ if (!is_array($recipients) || count($recipients) <= 0)
 } elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id'])) {
 	$leMailTemplate = 'email/verein/verein_htmlmail.tpl';
 
-	foreach ($recipients as $recipient_id) {
-		try {
+	try {
+		foreach ($recipients as $recipient_id) {
+			//error_log('[DEBUG] Processing $recipient_id: ' . $recipient_id);
+			
 			/** Get Recipient's E-Mail address */
-			$recipientEmail = $user->id2useremail($recipient_id);
+			//$recipientEmail = $user->id2useremail($recipient_id); //--> fails when user has disabled 'email_notification'
+			$recipientEmailQuery = 'SELECT email FROM user WHERE id = ' . $recipient_id;
+			$recipientEmailResult = mysql_fetch_assoc($db->query($recipientEmailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
+			$recipientEmail = $recipientEmailResult['email'];
 
 			if (!empty($recipientEmail))
 			{
-				/**
-				 * Compile the template
-				 */
+				/** Compile the template */
 				$smarty->assign('mail_param', $_POST['template_id']);
 				$smarty->assign('user_param', $recipient_id);
 				$smarty->assign('hash_param', md5($_POST['template_id'] . $recipient_id) );
@@ -93,32 +98,48 @@ if (!is_array($recipients) || count($recipients) <= 0)
 					if ( mail($mailTo, $mailMessage['subject_text'], $mailMessage['message_text'], $mailHeaders) )
 					{
 						/** Success! */
-						error_log('[OK] Successfully sent E-Mail «'.$mailMessage['subject_text'].'» to ' . $mailTo . ' (user id '.$recipient_id.')');
-						http_response_code(200); // Set response code 200 (OK)
-						echo $recipient_id;
+						error_log('[INFO] OK - Successfully sent E-Mail «'.$mailMessage['subject_text'].'» to ' . $mailTo . ' (user id '.$recipient_id.')');
+						//echo $recipient_id;
+						$response[] = [ 'value' => $recipient_id ];
 	
 					} else {
 						
 						/** Failed */
 						error_log('[ERROR] Failed to send E-Mail «'.$mailMessage['subject_text'].'» to ' . $mailTo);
-						http_response_code(500); // Set response code 500 (internal server error)
-						die('Could not send e-mail message to user ' . $recipient_id);
+						$response[] = [ 'value' => "Failed to send E-Mail to user id: $recipient_id" ]; // Don't die - would kill foreach{..}!
 					}
 
 				} else {
-					http_response_code(500); // Set response code 500 (internal server error)
-					die('Could not create new message for user ' . $recipient_id);
+					error_log('[ERROR] Could not create new message for user '.$recipient_id);
+					$response[] = [ 'value' => "Could not create new message for user id: $recipient_id" ]; // Don't die - would kill foreach{..}!
 				}
 			} else {
-				http_response_code(500); // Set response code 500 (internal server error)
-				die('Email not found or invalid for user ' . $recipient_id);
+				error_log('[ERROR] Email not found, invalid or not allowed for user '.$recipient_id);
+				$response[] = [ 'value' => "Email not found, invalid or not allowed for user id: $recipient_id" ]; // Don't die - would kill foreach{..}!
 			}
-		} catch(Exception $e) {
-			http_response_code(500); // Set response code 500 (internal server error)
-			echo $e->getMessage();
 		}
+		
+		/** Return results */
+		//if (isset($successful) && count($successful) > 0)
+		if (isset($response) && is_array($response))
+		{
+			//error_log('[DEBUG] Return $successful: ' . json_encode($response));
+			http_response_code(200); // Set response code 200 (OK)
+			header('Content-type: application/json');
+			echo json_encode($response);
+		} else {
+			http_response_code(500); // Set response code 500 (internal server error)
+			echo 'Oops... something went completely wrong :(';
+		}
+		
+	} catch(Exception $e) {
+		error_log($e->getMessage());
+		http_response_code(500); // Set response code 500 (internal server error)
+		echo $e->getMessage();
 	}
+	
 } else {
+	error_log('[ERROR] Referenced template id is invalid');
 	http_response_code(500); // Set response code 500 (internal server error)
 	die('Referenced template id is invalid');
 }
