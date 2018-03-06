@@ -19,7 +19,7 @@ require_once( __DIR__ .'/../../../includes/mysql.inc.php');
 header('Content-type:application/json;charset=utf-8');
 $_POST = json_decode(file_get_contents('php://input'), true);
 try {
-	$sql = 'SELECT recipient_id mail_status, recipient_confirmation read_status
+	$sql = 'SELECT recipient_id mail_status, recipient_confirmation read_status, recipient_confirmationdate read_datetime
 			FROM verein_correspondence
 			WHERE template_id = '.$_POST['template_id'].'
 			AND recipient_id = '.$_POST['recipient_id'];

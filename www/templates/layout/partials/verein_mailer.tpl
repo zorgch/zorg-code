@@ -343,9 +343,9 @@
 			type: 'POST',
 			data: JSON.stringify(params),
 			success: function(data) {
-					if (data.owner == president_userid) $('#radio_president').prop('selected', true);
-					if (data.owner == actuary_userid) $('#radio_actuary').prop('selected', true);
-					if (data.owner == treasurer_userid) $('#radio_treasurer').prop('selected', true);
+					if (Number(data.owner) == president_userid) $('#radio_president').prop('checked', true);
+					if (Number(data.owner) == actuary_userid) $('#radio_actuary').prop('checked', true);
+					if (Number(data.owner) == treasurer_userid) $('#radio_treasurer').prop('checked', true);
 					text_mail_subject.val(data.subject);
 					text_mail_description.val(data.preview);
 					quill.root.innerHTML = data.message;
@@ -379,6 +379,7 @@
 		$("input[id$='_alle']").prop('checked', false);
 		$("div[id^='list'] fieldset label").removeClass('text-success text-primary');
 		$("div[id^='list'] fieldset label span").removeClass('badge-success');
+		$("span[id$='_status_read']").html('<i class="fa fa-eye"></i>');
 		$("div[id^='list'] fieldset label input:checkbox").prop('checked', false);
 		hidden_selected_recipients.val('');
 		getTemplates('dropdown_template_select');
@@ -437,8 +438,12 @@
 						if (data) {
 							recipient_label.addClass('text-success');
 							mail_sent_status.addClass('badge-success');
-							if (data.read_status)
+							if (data.read_status) {
+								var read_status_info = mail_read_status.html();
+								read_status_info += ' <small>' + data.read_datetime + '</small>';
+								mail_read_status.html(read_status_info);
 								mail_read_status.addClass('badge-success');
+							}
 						}
 					},
 				error: function(data) {
