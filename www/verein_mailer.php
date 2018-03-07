@@ -15,7 +15,7 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 	try {
 		$matchingAgainst = md5($_GET['mail'] . $_GET['user']);
 		/** ORDER BY id DESC = ensures, if same message was sent multiple times, that the NEWEST is displayed (and not the oldest) */
-		$checkHashQuery = 'SELECT id, template_id, recipient_id, message_text, MD5(CONCAT(template_id, recipient_id)) as hash
+		$checkHashQuery = 'SELECT id, template_id, recipient_id, message_text, recipient_confirmation, MD5(CONCAT(template_id, recipient_id)) as hash
 				FROM verein_correspondence
 				WHERE MD5(CONCAT(template_id, recipient_id)) = "' . $_GET['hash'] . '"
 				ORDER BY id DESC';
@@ -29,14 +29,18 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 				/**
 				 * Update EMAIL read status
 				 */
-				error_log('[INFO] Updating Read State for template ' . $matchedResult['template_id'] . ' and user ' . $matchedResult['recipient_id']);
-				$updateReadStateQuery = 'UPDATE verein_correspondence
-										 SET
-										 	recipient_confirmation = "TRUE",
-										 	recipient_confirmationdate = NOW()
-										 WHERE
-										 	id = ' . $matchedResult['id'];
-				$updateReadState = mysql_fetch_assoc($db->query($updateReadStateQuery, __FILE__, __LINE__, 'verein_mailer.php'));
+				//error_log('[DEBUG] recipient_confirmation: ' . $matchedResult['recipient_confirmation']);
+				if (!$matchedResult['recipient_confirmation'])
+				{
+					error_log('[INFO] Updating Read State for template ' . $matchedResult['template_id'] . ' and user ' . $matchedResult['recipient_id']);
+					$updateReadStateQuery = 'UPDATE verein_correspondence
+											 SET
+											 	recipient_confirmation = "TRUE",
+											 	recipient_confirmationdate = NOW()
+											 WHERE
+											 	id = ' . $matchedResult['id'];
+					$updateReadState = mysql_fetch_assoc($db->query($updateReadStateQuery, __FILE__, __LINE__, 'verein_mailer.php'));
+				}
 				
 				/**
 				 * Only a resource was requested - so show it
