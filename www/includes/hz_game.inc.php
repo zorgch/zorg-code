@@ -17,19 +17,15 @@
  * @todo Sollte das alles hier nicht in einer Class untergebracht werden?
  */
 /**
- * @include activities.inc.php 	Activities Functions and Stream
- * @include messagesystem.inc.php Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen
- * @include usersystem.inc.php 	Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln)
- * @include util.inc.php		Utilities einbinden für Handling diverser Spezialfunktionen (z.B. URLs erzeugen)
- * @include forum.inc.php		Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele
- * @include strings.inc.php		Strings die im Zorg Code benutzt werden
+ * @include main.inc.php 		Main Functions
+ * @include activities.inc.php 	(DEPRECATED) Activities Functions and Stream
+ * @include messagesystem.inc.php (DEPRECATED) Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen
+ * @include usersystem.inc.php 	(DEPRECATED) Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln)
+ * @include util.inc.php		(DEPRECATED) Utilities einbinden für Handling diverser Spezialfunktionen (z.B. URLs erzeugen)
+ * @include forum.inc.php		(DEPRECATED) Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele
+ * @include strings.inc.php		(DEPRECATED) Strings die im Zorg Code benutzt werden
  */
-require_once( __DIR__ .'/activities.inc.php');
-require_once( __DIR__ .'/messagesystem.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
-require_once( __DIR__ .'/util.inc.php');
-require_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/strings.inc.php');
+require_once( __DIR__ .'/main.inc.php');
 
 /**
  * @const IMGPATH		Pfad zu den Bildern fürs Hunting Z
@@ -84,26 +80,36 @@ function start_new_game ($map) {
 	
 	if (!$user->id) user_error(t('error-newgame-not-logged-in'), E_USER_ERROR);
 	
-        //get number of games the users has opened (i.e. is mister z)
-	$own_games = $db->fetch($db->query(
-		"SELECT count(p.user) AS anz
-		FROM hz_players AS p JOIN hz_games AS g ON p.game=g.id
-		WHERE g.state!='finished' AND p.type='z' AND p.user='$user->id'",
-		__FILE__, __LINE__
-	));
-	if ($own_games['anz'] > MAX_HZ_GAMES) user_error(t('error-game-max-limit-reached'), E_USER_ERROR);
-	
-	$e = $db->query("SELECT * FROM hz_maps WHERE id='$map' AND state='active'", __FILE__, __LINE__);
-	$d = $db->fetch($e);
-	if ($d) {
-		$game = $db->query("INSERT INTO hz_games (date, map, round) VALUES (NOW(), $d[id], 1)", __FILE__, __LINE__);
-		$db->query("INSERT INTO hz_players (game, user, station) VALUES ($game, $user->id, ".get_start_station($game).")", __FILE__, __LINE__);
+	try {
+		/** get number of games the users has opened (i.e. is mister z) */
+		$own_games = $db->fetch($db->query(
+			"SELECT count(p.user) AS anz
+			FROM hz_players AS p JOIN hz_games AS g ON p.game=g.id
+			WHERE g.state!='finished' AND p.type='z' AND p.user='$user->id'",
+			__FILE__, __LINE__
+		));
 		
-		// Activity Eintrag auslösen
-		Activities::addActivity($user->id, 0, t('activity-newgame', 'hz', [ $d['name'], SITE_URL, $game ]), 'hz');
+		/** too many games open already */
+		if ($own_games['anz'] > MAX_HZ_GAMES) {
+			user_error(t('error-game-max-limit-reached'), E_USER_ERROR);
 		
-	}else{
-		user_error(t('unknown-map', 'hz', $map), E_USER_ERROR);
+		/** user can still open new games */
+		} else {
+			$e = $db->query("SELECT * FROM hz_maps WHERE id='$map' AND state='active'", __FILE__, __LINE__);
+			$d = $db->fetch($e);
+			if ($d) {
+				$game = $db->query("INSERT INTO hz_games (date, map, round) VALUES (NOW(), $d[id], 1)", __FILE__, __LINE__);
+				$db->query("INSERT INTO hz_players (game, user, station) VALUES ($game, $user->id, ".get_start_station($game).")", __FILE__, __LINE__);
+				
+				/** Activity Eintrag auslösen */
+				Activities::addActivity($user->id, 0, t('activity-newgame', 'hz', [ $d['name'], SITE_URL, $game ]), 'hz');
+				
+			}else{
+				user_error(t('unknown-map', 'hz', $map), E_USER_ERROR);
+			}
+		}
+	} catch (Exception $e) {
+		user_error($e->getMessage(), E_USER_ERROR);
 	}
 }
 
@@ -125,7 +131,8 @@ function get_start_station ($game) {
 	
 	$e = $db->query("SELECT * FROM hz_games WHERE id=$game", __FILE__, __LINE__);
 	$d = $db->fetch($e);
-    //select a random station out of the unoccupied, non-goal stations
+	
+	//select a random station out of the unoccupied, non-goal stations
 	if ($d) {			
 		$e = $db->query("SELECT s.id
 				FROM hz_games AS g
@@ -173,7 +180,7 @@ function join_game ($game) {
 			$db->query("INSERT INTO hz_players (game, user, type, station) VALUES ($game, $user->id, '$d[numplayers]', ".get_start_station($game).")", __FILE__, __LINE__);
 			
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, t('activity-newgame', 'hz', [ SITE_URL, $game ]), 'hz');
+			Activities::addActivity($user->id, 0, t('activity-joingame', 'hz', [ SITE_URL, $game ]), 'hz');
 			
 			if ($d['numplayers'] == $d['awaitingplayers']) {
 				start_game ($game);
@@ -300,9 +307,9 @@ function ticket_map ($game, $ticket='all') {
 			$y = $d['y'];
 			$ret .= '<area shape="rect" coords="'.($x-20).','.($y-15).','.($x+20).','.($y+15).'" '.
 				'href="/actions/hz_turn.php?ticket='.$d['routetype'].'&move='
-		                .$d['id'].'&'.url_params().'"'.
+						.$d['id'].'&'.url_params().'"'.
 				'alt="Mit '.$vk.' hier hin fahren ('.turn_cost($vkt).'$)" '.
-		                 'title="Mit '.$vk.' hier hin fahren ('.turn_cost($vkt).'$)">';
+						 'title="Mit '.$vk.' hier hin fahren ('.turn_cost($vkt).'$)">';
 		}
 	}
 	
@@ -361,7 +368,7 @@ function turn_allowed ($game, $uid=0) {
 		__FILE__, __LINE__
 	);
 	$d = $db->fetch($e);
-        
+		
 	return $d['allowed'];
 }
 
@@ -386,7 +393,7 @@ function hz_turn_passing () {
 		WHERE g.state='running'
 		  AND UNIX_TIMESTAMP(now())-unix_timestamp(g.turndate) > ".TURN_TIME."
 		  AND if(g.nextturn='z' && p.type='z'
-		    OR g.nextturn='players' && p.type!='z' && p.turndone='0', '1', '0') = '1'", 
+			OR g.nextturn='players' && p.type!='z' && p.turndone='0', '1', '0') = '1'", 
 		__FILE__, __LINE__
 	);
 	while ($game = $db->fetch($e)) turn_stay($game['id'], $game['user']);
@@ -415,10 +422,10 @@ function turn_finalize ($game, $uid=0) {
 
 	try {
 		$db->query("UPDATE hz_players
-			    SET turndone='1'
-			    WHERE game='".$game."'
-			      AND user='".$uid."'
-			      AND type!='z'", __FILE__, __LINE__);
+				SET turndone='1'
+				WHERE game='".$game."'
+				  AND user='".$uid."'
+				  AND type!='z'", __FILE__, __LINE__);
 
 		$e = $db->query(
 			"SELECT g. * , sum( a.score )  - g.z_score player_score, m.players totalplayers,
@@ -458,7 +465,7 @@ function turn_finalize ($game, $uid=0) {
 			// Die Inspectors haben den Zug gespielt - Mr. Z ist dran:
 			} elseif ($d['nextturn'] == 'players' && $d['totalplayers'] == $turndone['num'] && !$d['finished']) {
 				$db->query("UPDATE hz_games
-					     SET round=round+1, nextturn='z', turndate=now(),
+						 SET round=round+1, nextturn='z', turndate=now(),
 					   turncount=(turncount+1)%".TURN_COUNT."
 					   WHERE id=$game", __FILE__, __LINE__);
 
@@ -518,18 +525,18 @@ function turn_stay ($game, $uid=0) {
 	 __FILE__, __LINE__);
 	$d = $db->fetch($e);
 	
-	if ($d['playertype'] == 'z') {		    
+	if ($d['playertype'] == 'z') {			
 		$db->query("INSERT INTO hz_tracks
-			     (game, ticket, station, nr, player)
-	                     VALUES ('".$game."', 'stay', '0', '".($d['round'])."', 'z')", __FILE__, __LINE__);
+				 (game, ticket, station, nr, player)
+						 VALUES ('".$game."', 'stay', '0', '".($d['round'])."', 'z')", __FILE__, __LINE__);
 	}else{
 		$e = $db->query("SELECT *
 				 FROM hz_players
 				 WHERE game='".$game."' AND user='".$uid."'", __FILE__, __LINE__);
 		$s = $db->fetch($e);
 		$db->query("INSERT INTO hz_tracks
-			    (game, ticket, station, nr, player)
-	                    VALUES ('".$game."', 'stay', '".$s['station']."', ".($d['round']).", '$d[playertype]')", __FILE__, __LINE__);
+				(game, ticket, station, nr, player)
+						VALUES ('".$game."', 'stay', '".$s['station']."', ".($d['round']).", '$d[playertype]')", __FILE__, __LINE__);
 	}
 	
 	turn_finalize($game, $uid);
@@ -610,7 +617,7 @@ function turn_move ($game, $ticket, $station) {
 	if (!turn_allowed($game)) user_error(t('error-game-notyourturn'), E_USER_ERROR);
 	
 	if (!in_array($ticket, array("taxi", "ubahn", "bus", "black")))
-            user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
+			user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
 	if ($ticket == "black") $where_ticket = "p.type='z'";
 	else $where_ticket = "r.type='$ticket'";
 	
@@ -634,27 +641,27 @@ function turn_move ($game, $ticket, $station) {
 		  IF (sen.station IS NOT NULL || a.station IS NOT NULL && at.nr IS NULL , '1', '0')seen
 		  FROM hz_games g
 		  LEFT JOIN hz_tracks t ON t.game = g.id
-		    AND t.player = 'z'
+			AND t.player = 'z'
 		  LEFT JOIN hz_sentinels sen ON sen.game = g.id
-		    AND sen.station =$station
+			AND sen.station =$station
 		  LEFT JOIN hz_aims a ON a.map = g.map
-		    AND a.station =$station
+			AND a.station =$station
 		  LEFT JOIN hz_tracks at ON at.game = g.id
-		    AND at.station =$station
-		    AND at.player = 'z'
+			AND at.station =$station
+			AND at.player = 'z'
 		  LEFT JOIN hz_players p ON p.user='$user->id'
-		    AND p.game = g.id
+			AND p.game = g.id
 		  LEFT JOIN hz_routes r ON r.map = g.map
-		    AND $where_ticket
+			AND $where_ticket
 		  LEFT JOIN hz_players other ON other.station =$station
-		    AND other.game = g.id
-		    AND IF (
+			AND other.game = g.id
+			AND IF (
 			  p.type = 'z' || p.type != 'z' && other.type != 'z', '1', '0'
 			  ) = '1'
 		  WHERE g.id = '$game'
-		    AND p.money -".turn_cost($ticket)." >=0
-		    AND other.user IS NULL
-		    AND (r.start=$station && r.end=p.station || r.end=$station && r.start=p.station)
+			AND p.money -".turn_cost($ticket)." >=0
+			AND other.user IS NULL
+			AND (r.start=$station && r.end=p.station || r.end=$station && r.start=p.station)
 		  GROUP BY t.game",
 			
 		__FILE__, __LINE__
@@ -662,16 +669,16 @@ function turn_move ($game, $ticket, $station) {
 	$d = $db->fetch($e);
 	if ($d) {
 		$db->query("UPDATE hz_players
-			    SET station=$station, money=money-".turn_cost($ticket)."
-			    WHERE game=$d[id] AND user=$user->id", __FILE__, __LINE__);
+				SET station=$station, money=money-".turn_cost($ticket)."
+				WHERE game=$d[id] AND user=$user->id", __FILE__, __LINE__);
 		if ($d['playertype'] == 'z') {
   				if ($d['seen']) $track_station = $station;
 			else $track_station = 0;
 			
 			$db->query("INSERT INTO hz_tracks 
-				     (game, ticket, station, nr, player)
-		                     VALUES ($game, '$ticket', $track_station,
-					     '".($d['tracks'])."', 'z')",
+					 (game, ticket, station, nr, player)
+							 VALUES ($game, '$ticket', $track_station,
+						 '".($d['tracks'])."', 'z')",
 				   __FILE__, __LINE__);
 			
 			if ($d['aim_catch']) {
@@ -679,9 +686,9 @@ function turn_move ($game, $ticket, $station) {
 			}
 		}else{
 			$db->query("INSERT INTO hz_tracks
-				     (game, ticket, station, nr, player)
-		      VALUES ($game, '$ticket', $station,
-			      '".$d['tracks']."', '$d[playertype]')", __FILE__, __LINE__);
+					 (game, ticket, station, nr, player)
+			  VALUES ($game, '$ticket', $station,
+				  '".$d['tracks']."', '$d[playertype]')", __FILE__, __LINE__);
 		}
 		
 	}else{
@@ -726,15 +733,15 @@ function turn_sentinel ($game) {
 	$d = $db->fetch($e);
 	if ($d) {
 		$db->query("INSERT INTO hz_sentinels
-			     (game, station)
-	                     VALUES ($game, $d[station])", __FILE__, __LINE__);
+				 (game, station)
+						 VALUES ($game, $d[station])", __FILE__, __LINE__);
 		$db->query("UPDATE hz_players
-			     SET money=money-".turn_cost("sentinel")."
-			     WHERE game=$game
-			       AND user=$user->id", __FILE__, __LINE__);
+				 SET money=money-".turn_cost("sentinel")."
+				 WHERE game=$game
+				   AND user=$user->id", __FILE__, __LINE__);
 		$db->query("INSERT INTO hz_tracks 
-			     (game, ticket, station, nr, player)
-	      VALUES ($game, 'sentinel', '$d[station]', $d[tracknr], '$d[playertype]')", __FILE__, __LINE__);
+				 (game, ticket, station, nr, player)
+		  VALUES ($game, 'sentinel', '$d[station]', $d[tracknr], '$d[playertype]')", __FILE__, __LINE__);
 	}else{
 		user_error(t('invalid-turn', 'hz', $game), E_USER_ERROR);
 	}

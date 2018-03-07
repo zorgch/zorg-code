@@ -47,7 +47,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	{
 		/** Check if any of the $values is empty */
 		foreach ($values as $key=>$value) {
-			if (empty($value) && !is_numeric($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s was passed but is empty!', $key+1));
+			if (empty($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s for string "%s" was passed but is empty!', $key+1, $reference));
 		}
 	} elseif (isset($values) && $values == '') {
 		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
