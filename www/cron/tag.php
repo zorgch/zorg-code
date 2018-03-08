@@ -1,7 +1,8 @@
 <?php
 
 if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
-
+	error_log('[INFO] Starting Cron ' . __FILE__);
+	
 	include_once( __DIR__ .'/../includes/main.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php'); --> lässt Script aufhängen
 	include_once( __DIR__ .'/../includes/apod.inc.php');
@@ -11,7 +12,8 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php'); --> lässt Script aufhängen
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/spaceweather.inc.php');  --> tut irgendwie nicht
 	
-	$status_html = '';
+	//$status_html = '';
+	error_log('[INFO] ' . __FILE__ . ': files included');
 	
 	/*
 	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
@@ -30,20 +32,23 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	//setiathome::tagesabschluss();
 	
 	// alte kompilierte comments löschen (um speicherplatz zu sparen)
-	$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done' : 'deleteOldTemplates: ERROR' ) . "\r\n";
+	//$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done' : 'deleteOldTemplates: ERROR' ) . "\r\n";
+	error_log('[INFO] ' . __FILE__ . ': ' . ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done' : 'deleteOldTemplates: ERROR' ));
 	
 	// addle-games älter als 15 wochen löschen. spieler, der nicht gezogen hat, verliehrt
-	$status_html .= ( addle_remove_old_games() ? 'addle_remove_old_games: done' : 'addle_remove_old_games: ERROR' ) . "\r\n";
+	//$status_html .= ( addle_remove_old_games() ? 'addle_remove_old_games: done' : 'addle_remove_old_games: ERROR' ) . "\r\n";
+	error_log('[INFO] ' . __FILE__ . ': ' . ( addle_remove_old_games() ? 'addle_remove_old_games: done' : 'addle_remove_old_games: ERROR' ));
 	
 	// Neuer Quote of the Day machen.
-	$status_html .= ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done' : 'Quotes::newDailyQuote: ERROR' ) . "\r\n";
 	//Quotes::newDailyQuote();
 	//$status_html .=  'Quotes::newDailyQuote: done\n';
+	//$status_html .= ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done' : 'Quotes::newDailyQuote: ERROR' ) . "\r\n";
+	error_log('[INFO] ' . __FILE__ . ': ' . ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done' : 'Quotes::newDailyQuote: ERROR' ));
 
 	//spaceweather --> wird doch eigentlich schon im apod Cron erledigt?? IneX, 8.6.08
 	//$status_html .= get_spaceweather() ? "get_spaceweather: done\n" : "get_spaceweather: ERROR\n" ;
 
-	user_error($status_html, E_USER_NOTICE);
+	//user_error($status_html, E_USER_NOTICE);
 
 	// E-Mailbenachrichtigung
 	/*
@@ -55,5 +60,5 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	$body = "Der Daily Cron wurde am $mail_date um $mail_time ausgeführt\n\nStatus:\n $status_html";
 	@mail($recipient, $subject, $body, $sender);
 	*/
-
+	Messagesystem::sendTelegramNotification('[INFO] Daily Cron '.__FILE__.' um '.date('d.m.Y H:i').' ausgeführt', 117);
 }
