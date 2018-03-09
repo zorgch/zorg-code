@@ -169,11 +169,11 @@ Class Quotes {
 	}
 
 	static function newDailyQuote() {
-		global $db;
+		global $db, $user;
 
 		try {
 			// anzahl quotes ermitteln
-			$result = $db->query("SELECT * FROM quotes", __FILE__, __LINE__);
+			$result = $db->query("SELECT * FROM quotes", __FILE__, __LINE__, 'Quotes::newDailyQuote()');
 			$count = $db->num($result);
 
 			// zufaellige quote-id holen
