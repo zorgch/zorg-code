@@ -60,5 +60,5 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	$body = "Der Daily Cron wurde am $mail_date um $mail_time ausgeführt\n\nStatus:\n $status_html";
 	@mail($recipient, $subject, $body, $sender);
 	*/
-	Messagesystem::sendTelegramNotification('[INFO] Daily Cron '.__FILE__.' um '.date('d.m.Y H:i').' ausgeführt', 117);
+	//Messagesystem::sendTelegramNotification('[INFO] Daily Cron '.__FILE__.' um '.date('d.m.Y H:i').' ausgeführt', 117);
 }
