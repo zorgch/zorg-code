@@ -57,7 +57,10 @@ if (!is_array($recipients) || count($recipients) <= 0)
 				$compiledMailTpl = str_replace('{literal}', '', $compiledMailTpl);
 				$compiledMailTpl = str_replace('{/literal}', '', $compiledMailTpl);
 	
-				/** Create new E-Mail message entry for recipient */
+				/**
+				 * Create new E-Mail message entry for recipient
+				 * @TODO To be discussed: make this work with with "ON DUPLICATE KEY UPDATE..."?
+				 */
 				error_log('[INFO] Creating a new E-Mail message for user ' . $recipient_id . ' based on template ' . $_POST['template_id']);
 				$insertMailQuery = 'INSERT INTO verein_correspondence
 										(communication_type, subject_text, preview_text, message_text, template_id, sender_id, recipient_id)

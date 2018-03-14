@@ -426,6 +426,18 @@ function var_request ()
 								]);
 		return $smarty->fetch('file:email/verein/elements/block_ctabutton.tpl');
 	}
+	
+	/**
+	 * Verein Mailer - Telegram Messenger Button Block
+	 * Usage: {telegram_button}button-text{/telegram_button}
+	 */
+	function smarty_mailtelegrambutton ($params, $content, &$smarty, &$repeat) {
+		$smarty->assign('telegrambtn', [
+								 'text' => (!empty($content) ? $content : 'Telegram Chat beitreten' )
+								,'href' => TELEGRAM_CHATLINK
+								]);
+		return $smarty->fetch('file:email/verein/elements/block_telegrambutton.tpl');
+	}
   
 	/**
 	 * Smarty Menu
@@ -1371,6 +1383,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_member' => array('member', 'Layout', '{member}..{/member}   {member noborder=1}..{/member}', false)
 								,'smarty_mailinfoblock' => array('mail_infoblock', 'Verein Mailer - Info Block', '{mail_infoblock topic="headline"}...{/mail_infoblock}', false)
 								,'smarty_mailctabutton' => array('mail_button', 'Verein Mailer - Call-to-Action-Button', '{mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}', false)
+								,'smarty_mailtelegrambutton' => array('telegram_button', 'Verein Mailer - Telegram Messenger Button', '{telegram_button}button-text{/telegram}', false)
 								
 								
 								);

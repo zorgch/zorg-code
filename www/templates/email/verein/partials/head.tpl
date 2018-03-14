@@ -49,13 +49,13 @@
   </style><![endif]-->
 {ldelim}/literal{rdelim}</head>
 
-<body class="mail-body" style="width: 100%; height: 100%; margin: 0px; padding: 0px; background-color:#000000;color:#FFFFFF;font-family:Verdana, Sans-Serif;font-size:12px;margin:2px;">
+<body style="width: 100%; height: 100%; margin: 0px; padding: 0px; background-color:#000000;color:#FFFFFF;font-family:Verdana, Sans-Serif;font-size:12px;">
 	{if $smarty.post.text_mail_description != ''}<span style="visibility:hidden;">{$smarty.post.text_mail_description}&hellip;</span>{/if}
     <table id="email-body" class="email-body-wrap" height="97%" bgcolor="#000000" cellspacing="0" cellpadding="0" align="center">
       <tr>
         <td valign="top" bgcolor="#141414" height="100%">
           <div align="center">
-	        <span class="small" style="font-size:6pt">Darstellungsprobleme? <a href="{$smarty.const.SITE_URL}/verein_mailer.php?mail={$mail_param}&user={$user_param}&hash={$hash_param}">Hier klicken</a> um die Nachricht im Webbrowser zu öffnen</span>
+	        <span class="small" style="font-size:6pt">Darstellungsprobleme? Bitte Bilder laden oder <a href="{$smarty.const.SITE_URL}/verein_mailer.php?mail={$mail_param}&user={$user_param}&hash={$hash_param}">hier klicken</a> für Webansicht</span>
             <table class="header" style="height: 55px; margin: 0px; width: 100%; text-align:center;">
               <tr>
                 <td align="left">
@@ -121,5 +121,5 @@
           <div align="center" valign="top" style="margin: 0px 40px;"></div>
 
           <div class="menu" align="center" width="100%">
-            <a class="left">&nbsp;</a><a class="navlink" href="{$smarty.const.SITE_URL}/tpl/208"><b>Zorg Verein</b></a><a class="navlink" href="{$smarty.const.SITE_URL}/tpl/206">Vorstand</a><a class="navlink" href="{$smarty.const.SITE_URL}/tpl/209">GV</a><a class="navlink" href="{$smarty.const.SITE_URL}/tpl/119">Statuten</a><a class="navlink" href="{$smarty.const.SITE_URL}/tpl/683">Protokolle</a><a class="navlink" href="{$smarty.const.SITE_URL}/tpl/684">Geschichte</a><a class="right">&nbsp;</a>
+            <a class="left">&nbsp;</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein"><b>Zorg Verein</b></a><a class="navlink" href="{$smarty.const.SITE_URL}/page/vereinsvorstand">Vorstand</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/gv">GV</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein-statuten">Statuten</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein-overview">Protokolle</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/vereinskonto">Konto</a><a class="right">&nbsp;</a>
           </div>
