@@ -24,61 +24,71 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
 elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
     $isSecure = true;
 }
-define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'), true);
+if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'), true);
 
 /**
 * Define preferred Hostname where zorg.ch is accessible on
 * @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../")
 */
-define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
+if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
 
 /**
 * Define preferred base URL where zorg.ch is accessible through
 * @const SITE_URL Don't edit! Is generated using SITE_PROTOCOL and SITE_HOSTNAME
 */
-define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME, true);
+if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME, true);
 
 /**
 * Set a constant for the Site's Web Root
 * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/"
 */
-define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', true);
+if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', true);
+
+/**
+ * @include	env.inc.php Check & set if DEVELOPMENT environment
+ */
+require_once( __DIR__ . '/env.inc.php');
 
 /**
 * Set a constant for the custom Error Log path
 * @const ERRORLOG_DIR sets the directory for logging the custom user_errors as in
-* @see errlog.inc.php zorgErrorHandler()
+* @see errlog.inc.php, zorgErrorHandler(), user_error()
 */
-define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
-define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
+if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
+if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
 
 /**
 * Define global Contact points, such as e-mail addresses (From:)
-* @const ZORG_EMAIL A valid e-mailadress such as info@zooomclan.org
-* @const SERVER_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
-* @const TWITTER_NAME A Twitter-profile username which can be linked, e.g. ZorgCH (no "@")
-* @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
+* @const ZORG_EMAIL Sets valid sender e-mailadress such as info@zooomclan.org
+* @const ZORG_ADMIN_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
+* @const ZORG_VEREIN_EMAIL Zorg Verein E-Mail address
 * @const BARBARA_HARRIS User-ID of [z]Barbara Harris
 * @const VORSTAND_USER User-ID of the Zorg Verein Vorstand-User
+* @const TWITTER_NAME A Twitter-profile username which can be linked, e.g. ZorgCH (no "@")
+* @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
+* @const FACEBOOK_PAGENAME Facebook page name (as in the group url) of the Zorg Facebook group
+* @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
 */
-define('ZORG_EMAIL', 'info@' . SITE_HOSTNAME, true);
-define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
-define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com', true);
-define('TWITTER_NAME', 'ZorgCH', true);
-define('FACEBOOK_APPID', '110932998937967', true);
-define('BARBARA_HARRIS', 59);
-define('VORSTAND_USER', 451);
+if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
+if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
+if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com', true);
+if (!defined('BARBARA_HARRIS')) define('BARBARA_HARRIS', 59);
+if (!defined('VORSTAND_USER')) define('VORSTAND_USER', 451);
+if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH', true);
+if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967', true);
+if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
+if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
 
 /**
- * @const SITE_HOSTNAME General suffix for <title>...[suffix]</title> on every page.
+ * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
  */
-if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.SITE_HOSTNAME);
+if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNAME, true);
 
 /**
  * RSS Feeds
  * @const RSS_URL Basic URL for RSS-Feeds
  */
-if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . '/?layout=rss');
+if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . '/?layout=rss', true);
 
 /**
  * Define paths to directories where HTML web resources will be referenced from
@@ -90,18 +100,18 @@ if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . '/?layout=rss');
  * @const JS_DIR JavaScripts directory
  * @const CSS_DIR CSS directory
  */
-if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', '/includes/');
-if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/');
-if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/');
-if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
-if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
-if (!defined('JS_DIR')) define('JS_DIR', '/js/');
-if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
+if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', '/includes/', true);
+if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/', true);
+if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/', true);
+if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/', true);
+if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/', true);
+if (!defined('JS_DIR')) define('JS_DIR', '/js/', true);
+if (!defined('CSS_DIR')) define('CSS_DIR', '/css/', true);
 
 /**
  * @const BODYSETTINGS bodysettings wird verwendet, um den div nach den menüs wieder zu öffnen.
  */
-if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
+if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"', true);
 
 /**
  * Require important scripts
