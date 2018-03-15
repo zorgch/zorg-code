@@ -1,7 +1,6 @@
 <?php
 /**
  * Include Telegram Bot Configs
- *
- * @TODO Switch auf [z]BarbaraHarris implementieren...
  */
-require_once(  __DIR__ . '/../../' . ( file_exists(__DIR__.'/../../z_architect_bot.php') ? 'z_architect_bot.php' : 'zbarbaraharris_bot.php') );
+if (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot', true);
+if ( file_exists(__DIR__.'/../../'.TELEGRAM_BOT.'.php') ) require_once( __DIR__ . '/../../' . TELEGRAM_BOT.'.php' );
