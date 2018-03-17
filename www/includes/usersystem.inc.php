@@ -950,18 +950,33 @@ class usersystem {
 	*
 	* Gibt aufgrund einer User ID dessen E-Mailadresse zurück, falls der User E-Mailbenachrichtigung erlaubt hat
 	*
-	* @return string email
-	* @param $id int User ID
+	* @author IneX
+	* @version 3.0
+	* @date 17.03.2018
+	*
+	* @param $id int User-ID
+	* @return string EMail-Adresse oder false
 	*/
 	function id2useremail($id) {
 		global $db;
-		
+
 		try {
-			$sql = "SELECT email, email_notification FROM user WHERE id = $id";
+			$sql = "SELECT email, email_notification FROM user WHERE id = $id LIMIT 0,1";
 			$result = $db->query($sql, __FILE__, __LINE__);
 			$rs = $db->fetch($result);
-			$value = (!empty($rs['email_notification']) ? $rs['email'] : false);
-			return $value;
+
+			if (!empty($rs['email_notification']) && $rs['email_notification'] > 0)
+			{
+				if (!empty($rs['email'])) {
+					return $rs['email'];
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+			//$value = (!empty($rs['email_notification']) ? $rs['email'] : false);
+			//return $value;
 		} catch(Exception $e) {
 			return $e->getMessage();
 		}

@@ -59,6 +59,7 @@ return
 			 'invalid-permissions' => 'Sorry du darfst diese Message nicht lesen.'
 			,'invalid-message' => 'Notification Text is empty or otherwise invalid'
 			,'invalid-image-data' => 'Image Data or URL is empty, not reachable or otherwise invalid'
+			,'message-empty-text' => '--- i bi z fuul gsii zum en text schriibe ---'
 			,'telegram-newmessage-notification' => 'Neue <a href="%s/user/%d">Nachricht</a> von <b>%s</b> auf %s: %s'
 			,'email-notification-subject' => 'Neue Nachricht von %s auf %s'
 			,'email-notification-header' =>  'MIME-Version: 1.0'."\n"
@@ -68,10 +69,10 @@ return
 										    .'X-Mailer: PHP/%3$s'
 			,'email-notification-body' =>    'Du hast eine neue Nachricht in deinem Posteingang auf %1$s'."\n"
 											."\r\n"
-											.'Titel:	%2$s'."\n"
-											.'Von:		%3$s'."\n"
-											.'Auszug:	%4$s'."\n"
-											."\r\n"
+											.'Titel: %2$s'."\n"
+											.'Von: %3$s'."\n"
+											.'Auszug:'."\n"
+											.'%4$s'."\r\n"
 											.'Nachricht lesen » %1$s/user/%5$d'
 		]
 	,'commenting' =>
@@ -85,7 +86,7 @@ return
 			,'message-newcomment-subject' => 'Du wurdest von %s in einem Comment erwähnt'
 			,'message-newcomment' => '%s hat Dich in einem Comment erwähnt:<br>
 									  <p><i>%s</i></p>
-									  <a href="%s">&rarr; Comment lesen</a>'
+									  <a href="%s">→ Comment lesen</a>'
 			,'message-newcomment-subscribed-subject' => 'Neuer Reply von %s zum Post #%d'
 			,'message-newcomment-subscribed' => '%s hat einen Post commented welchen Du abonniert hast:
 												<p><a href="%s">%s &raquo;</a></p>'

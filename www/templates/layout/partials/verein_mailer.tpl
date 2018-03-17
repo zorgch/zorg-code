@@ -38,7 +38,10 @@
 <body>{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
 	<header class="text-center">
 		<h1>Zorg Verein - Mailer</h1>
-		<p class="text-secondary text-small">Eine E-Mailversand Applikation f&uuml;r Mails an die Zorg Verein Mitglieder</p>
+		<p class="text-secondary text-small">
+			Eine E-Mailversand Applikation f&uuml;r Mails an die Zorg Verein Mitglieder<br>
+			<a href="{$smarty.const.SITE_URL}">↩ back to zorg</a>
+		</p>
 		<hr>
 	</header>
 	<main class="container">
@@ -73,14 +76,14 @@
 				<h2>E-Mail</h2>
 				<div class="input-field">
 					<label for="text_mail_subject">Betreff</label>
-					<input type="text" name="text_mail_subject" id="text_mail_subject" maxlength="39" data-emojiable="true" data-emoji-input="unicode" placeholder="E-Mail Betreff" autocomplete="off" {if $dev}value="🔥Zorg Verein - Mailtemplate Testing"{/if}>
+					<input type="text" name="text_mail_subject" id="text_mail_subject" maxlength="47" data-emojiable="true" data-emoji-input="unicode" placeholder="E-Mail Betreff" autocomplete="off" {if $dev}value="🔥Zorg Verein - Mailtemplate Testing"{/if}>
 					<div class="progress progress-xs" id="text_mail_subject_progressbar"><div class="progress-bar" id="text_mail_subject_progress"></div></div>
 				</div>
 				
 				<div class="input-field">
 					<label for="text_mail_description">Vorschautext</label>
 					<span class="input-hint hide-xs"><a class="badge" href="https://litmus.com/blog/the-ultimate-guide-to-preview-text-support" target="_blank">?</a> Wird in E-Mailclients als Vorschautext der E-Mail angezeigt</span>
-					<input type="text" name="text_mail_description" id="text_mail_description" maxlength="145" placeholder="Kurzbeschreibung / Vorschau Text" autocomplete="off" {if $dev}value="Protokoll der GV 2017, wichtigste Beschlüsse & Highlights"{/if}>
+					<input type="text" name="text_mail_description" id="text_mail_description" maxlength="99" placeholder="Kurzbeschreibung / Vorschau Text" autocomplete="off" {if $dev}value="Protokoll der GV 2017, wichtigste Beschlüsse & Highlights"{/if}>
 					<div class="progress progress-xs" id="text_mail_description_progressbar"><div class="progress-bar" id="text_mail_description_progress"></div></div>
 				</div>
 				

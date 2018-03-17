@@ -1,9 +1,11 @@
 <?php
 /**
- * Include MySQL Database login information file
+ * MySQL-Authentifizierung laden
+ * Wenn lokal entwickelt wird, muss manuell eine Kopie
+ * der DB-Info-Datei mit folgendem Namen angelegt werden:
+ *	  mysql_login.inc.local.php
  *
- * Wenn lokal entwickelt wird, muss manuell eine Kopie der DB-Info-Datei mit folgendem Namen angelegt werden:
- * "mysql_login.inc.local.php"
+ * @include mysql_login.inc.local.php Include MySQL Database login information file
  */
 require_once( (file_exists( __DIR__ .'/mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
 
@@ -23,14 +25,14 @@ class dbconn {
 	var $query_track = array();
 
 	/**
-	* Verbindungsaufbau
-	*
-	* @author IneX
-	* @date 10.11.2017
-	* @version 3.0
-	*
-	* @param MYSQL_DBNAME string
- 	*/
+	 * Verbindungsaufbau
+	 *
+	 * @author IneX
+	 * @date 10.11.2017
+	 * @version 3.0
+	 *
+	 * @param MYSQL_DBNAME string
+	 */
 	function dbconn($database) {
 		//$this->dbname = $dbname;
 		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
@@ -51,48 +53,54 @@ class dbconn {
 	}
 
 	/**
-	* Führt ein SQL-Query aus
-	*
-	* @return object resource or primarykey of insert
-	* @param $sql string SQL
-	* @param $file string Filename
-	* @param $line int Linenumber
- 	*/
+	 * Führt ein SQL-Query aus
+	 *
+	 * @TODO im GANZEN Zorg-Code in $db->query(...) den "$funktion"-Parameter setzen!
+	 *
+	 * @return object resource or primarykey of insert
+	 * @param $sql string SQL
+	 * @param $file string Filename
+	 * @param $line int Linenumber
+	*/
 	function query ($sql, $file="", $line=0, $funktion="") {
-	   global $user;
+		global $user;
 
-	   $this->noquerys++;
+		$this->noquerys++;
 
-	   if ($user && $user->sql_tracker) {
-         $this->noquerytracks++;
-	      $qfile = $file;
-   	   $qline = $line;
-   	   if (!$qfile) $qfile = "?";
-   	   if (is_object($qfile)) $qfile = "?";  // weil irgend jemand auf die idee kam, ein object zu ?bergeben (tststs)
-   	   if (!$qline) $qline = "?";
-   	   if (!isset($this->query_track[$qfile])) $this->query_track[$qfile] = array();
-   	   $this->query_track[$qfile]['line '.$qline]++;
-	   }
+		if ($user && $user->sql_tracker) {
+			$this->noquerytracks++;
+			$qfile = $file;
+			$qline = $line;
+			if (!$qfile) $qfile = "?";
+			if (is_object($qfile)) $qfile = "?";  // weil irgend jemand auf die idee kam, ein object zu übergeben (tststs)
+			if (!$qline) $qline = "?";
+			if (!isset($this->query_track[$qfile])) $this->query_track[$qfile] = array();
+			$this->query_track[$qfile]['line '.$qline]++;
+		}
 
-		$result = @mysql_query($sql, $this->conn); // DEPRECATED - PHP5 only
-		//$result = @mysqli_query($this->conn, $sql); // PHP7.x ready
-      if (strtolower(substr($sql,0,7)) == "insert ") {
-         return mysql_insert_id($this->conn);
-	   }elseif (!$result && $this->display_error == 1) {
-			die($this->msg($sql,$file,$line,$funktion));
-		} else {
-			return $result;
+		try {
+			$result = @mysql_query($sql, $this->conn); // DEPRECATED - PHP5 only
+			//$result = @mysqli_query($this->conn, $sql); // PHP7.x ready
+			if (strtolower(substr($sql,0,7)) == "insert ") {
+				return mysql_insert_id($this->conn);
+			}elseif (!$result && $this->display_error == 1) {
+				die($this->msg($sql,$file,$line,$funktion));
+			} else {
+				return $result;
+			}
+		} catch (MySQLException $e) {
+			user_error($e->getMessage(), E_USER_ERROR);
 		}
 	}
 
 	/**
-	* Gibt die Errormeldungen formatiert zur?ck
-	*
-	* @return string html
-	* @param $sql string SQL
-	* @param $file string Filename
-	* @param $line int Linenumber
- 	*/
+	 * Gibt die Errormeldungen formatiert zur?ck
+	 *
+	 * @return string html
+	 * @param $sql string SQL
+	 * @param $file string Filename
+	 * @param $line int Linenumber
+	 */
 	function msg($sql="",$file="",$line="",$funktion="") {
 		$num = mysql_errno($this->conn); // DEPRECATED - PHP5 only
 		$msg = mysql_error($this->conn); // DEPRECATED - PHP5 only
@@ -115,14 +123,14 @@ class dbconn {
 	}
 
 	/**
-	* Speichert SQL-Errors in der DB
-	*
-	* @return void
-	* @param $msg string SQL-Error
-	* @param $sql string SQL-Query
-	* @param $file string Filename
-	* @param $line int Linenumber
- 	*/
+	 * Speichert SQL-Errors in der DB
+	 *
+	 * @return void
+	 * @param $msg string SQL-Error
+	 * @param $sql string SQL-Query
+	 * @param $file string Filename
+	 * @param $line int Linenumber
+	 */
 	function saveerror($msg,$sql,$file="",$line="",$funktion="") {
 		$msg = addslashes($msg);
 		$sql = addslashes($sql);
@@ -139,10 +147,13 @@ class dbconn {
 	}
 
 	/**
-	* @return array
-	* @param $result object SQL-Resultat
-	* @desc Fetcht ein SQL-Resultat in ein Array
- 	*/
+	 * Fetcht ein SQL-Resultat in ein Array
+	 *
+	 * @TODO im GANZEN Zorg-Code search & replace "mysql_fetch_array" ersetzen durch "$db->fetch(...)"
+	 *
+	 * @return array
+	 * @param $result object SQL-Resultat
+	 */
 	function fetch($result) {
 		global $sql;
 		return @mysql_fetch_array($result); // DEPRECATED - PHP5 only
@@ -150,49 +161,49 @@ class dbconn {
 	}
 
 	/**
-	* @return int
-	* @desc gibt die letzte Autoincrement ID zur?ck
- 	*/
+	 * gibt die letzte Autoincrement ID zur?ck
+	 * @return int
+	 */
 	function lastid() {
 		return @mysql_insert_id($this->conn); // DEPRECATED - PHP5 only
 		//return @mysqli_insert_id($this->conn); // PHP7.x ready
 	}
 
 	/**
-	* @return int numrows
-	* @param $result object SQL-Resultat
-	* @desc Gibt die Anzahl betroffener Datens?tze zur?ck
- 	*/
+	 * Gibt die Anzahl betroffener Datens?tze zur?ck
+	 * @return int numrows
+	 * @param $result object SQL-Resultat
+	 */
 	function num($result,$errorchk=TRUE) {
 		return @mysql_num_rows($result); // DEPRECATED - PHP5 only
 		//return @mysqli_num_rows($result); // PHP7.x ready
 	}
 
 	/**
-	* @return object
-	* @param $result object SQL-Resultat
-	* @param $rownum int Rownumber
-	* @desc Setzt den Zeiger auf einen Datensatz
- 	*/
+	 * Setzt den Zeiger auf einen Datensatz
+	 * @return object
+	 * @param $result object SQL-Resultat
+	 * @param $rownum int Rownumber
+	 */
 	function seek($result,$rownum) {
 		return @mysql_data_seek($result,$rownum); // DEPRECATED - PHP5 only
 		//return @mysqli_data_seek($result, $rownum); // PHP7.x ready
 	}
 
 	/**
-	* @return int
-	* @param $result object SQL-Resultat
-	* @desc Gibt die Anzahl betroffener Felder zur?ck
- 	*/
+	 * Gibt die Anzahl betroffener Felder zur?ck
+	 * @return int
+	 * @param $result object SQL-Resultat
+	 */
 	function numfields($result) {
 		return @mysql_num_fields($result); // DEPRECATED - PHP5 only
 		//return @mysqli_field_count($this->conn); // PHP7.x ready
 	}
 
 	/**
-	* @return array
-	* @desc Gibt s?mtliche Tabellennamen einer DB als Array zur?ck
- 	*/
+	 * Gibt s?mtliche Tabellennamen einer DB als Array zur?ck
+	 * @return array
+	 */
 	function tables() {
 		$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
 		//$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
@@ -207,63 +218,63 @@ class dbconn {
 		return $tab;
 	}
 
-   /**
-   * @return Prim?rschl?ssel des neuen Eintrags
-   * @param $table (String) Tabelle, in die eingef?gt werden soll
-   * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
-   * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
-   * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
-   * @desc F?gt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
-   * @author biko
-   */
-   function insert($table, $values, $file="", $line="") {
-      if (!is_array($values)) {
-      	user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
-      }
+	/**
+	* Fügt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
+	 * @author biko
+	 * @return Prim?rschl?ssel des neuen Eintrags
+	 * @param $table (String) Tabelle, in die eingef?gt werden soll
+	 * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
+	 * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
+	 * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
+	 */
+	function insert($table, $values, $file="", $line="") {
+		if (!is_array($values)) {
+			user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
+		}
 
-      $sql =
-      	"INSERT INTO ".$table." ("
-      	.implode(",", array_keys($values)).") VALUES ('"
-      	.implode("','", $values)."')"
-      ;
-      $id = $this->query($sql, $file, $line);
-      return $id;
-   }
+		$sql =
+			"INSERT INTO ".$table." ("
+			.implode(",", array_keys($values)).") VALUES ('"
+			.implode("','", $values)."')"
+		;
+		$id = $this->query($sql, $file, $line);
+		return $id;
+	}
 
-   /**
-   * Ändert eine Row ein einer DB-Table, ähnlich insert
-   *
-   * @author biko
-   * @param $table (String) Tabelle, in der ge?ndert werden soll
-   * @param $id (Array) $id[0]: Name des Prim?rschl?sselfeldes / $id[1+] Rows, die ge?ndert werden sollen
-   * @param $id (int) Row, die ge?ndert werden soll, nimmt Prim?rschl?sselfeld als 'id' an
-   * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
-   * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
-   * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
-   */
-   function update($table, $id, $values, $file="", $line="") {
-      if (!is_array($values)) {
-         echo "Wrong Parameter type $values in db->insert()";
-         exit;
-      }
-      if (!is_array($id)) {
-         $tmp = $id;
-         $id = array("id", $tmp);
-      }
+	/**
+	 * Ändert eine Row ein einer DB-Table, ähnlich insert
+	 *
+	 * @author biko
+	 * @param $table (String) Tabelle, in der ge?ndert werden soll
+	 * @param $id (Array) $id[0]: Name des Prim?rschl?sselfeldes / $id[1+] Rows, die ge?ndert werden sollen
+	 * @param $id (int) Row, die ge?ndert werden soll, nimmt Prim?rschl?sselfeld als 'id' an
+	 * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
+	 * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
+	 * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
+	*/
+	function update($table, $id, $values, $file="", $line="") {
+		if (!is_array($values)) {
+			echo "Wrong Parameter type $values in db->insert()";
+			exit;
+		}
+		if (!is_array($id)) {
+			$tmp = $id;
+			$id = array("id", $tmp);
+		}
 
-      $sql = "UPDATE ".$table." SET ";
-      foreach ($values as $key => $val) {
-         $sql .= $key."='".$val."', ";
-      }
-      $sql = substr($sql, 0, -2);
-      $sql .= " WHERE ";
-      for ($i=1; $i<sizeof($id); $i++) {
-         $sql .= $id[0]."='".$id[$i]."' OR ";
-      }
-      $sql = substr($sql, 0, -4);
-      $this->query($sql, $file, $line);
-   }
+		$sql = "UPDATE ".$table." SET ";
+		foreach ($values as $key => $val) {
+			$sql .= $key."='".$val."', ";
+		}
+		$sql = substr($sql, 0, -2);
+		$sql .= " WHERE ";
+		for ($i=1; $i<sizeof($id); $i++) {
+			$sql .= $id[0]."='".$id[$i]."' OR ";
+		}
+		$sql = substr($sql, 0, -4);
+		$this->query($sql, $file, $line);
+	}
 }
 
-// Grad eine Verbindung bauen, damit sie includet ist...
+/** Grad eine Verbindung bauen, damit sie includet ist... */
 $db = new dbconn(MYSQL_DBNAME);
