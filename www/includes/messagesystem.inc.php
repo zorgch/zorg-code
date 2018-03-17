@@ -50,6 +50,7 @@ class Messagesystem {
 	 * @date 
 	 * @version 2.0
 	 *
+	 * @see BARBARA_HARRIS, Messagesystem::sendMessage()
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
 	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
@@ -60,21 +61,21 @@ class Messagesystem {
 
 		if($_POST['action'] == 'sendmessage') {
 
-			$to_users = $_POST['to_users'];
-
+			$to_users = ( empty($_POST['to_users']) ? $user->id : $_POST['to_users'] );
+			
 			for ($i=0; $i < count($to_users); $i++) {
 				
-				// Wenn ich mir selber was schicke, dann nimm die Bärbe als Absender
+				/** Wenn ich mir selber was schicke, dann nimm die Bärbe als Absender */
 				if ($to_users[$i] == $user->id) {
 					Messagesystem::sendMessage(
-						59,
+						BARBARA_HARRIS,
 						$to_users[$i],
 						$_POST['subject'],
 						$_POST['text'],
 						implode(',', $to_users)
 					);
 				
-				// Nachricht an andere Leute
+				/** Nachricht an andere Leute */
 				} else {
 					Messagesystem::sendMessage(
 						$user->id,
@@ -87,8 +88,7 @@ class Messagesystem {
 				
 			}
 
-			// Eigene Message für den 'Sent'-Ordner
-			/* Moved to be a part of the "sendMessage" function (IneX, 29.08.2011)
+			/** Eigene Message für den 'Sent'-Ordner */
 			Messagesystem::sendMessage(
 				$user->id,
 				$user->id,
@@ -96,9 +96,9 @@ class Messagesystem {
 				$_POST['text'],
 				$to_users=implode(',', $to_users),
 				1
-			);*/
+			);
 			
-			// Wieso wird hier die deleteMessage-Funktion aufgerufen in der "sendmessage"-Aktion? Inex/28.10.2013
+			/** Wieso wird hier die deleteMessage-Funktion aufgerufen in der "sendmessage"-Aktion? Inex/28.10.2013 */
 			if($_POST['delete_message_id'] > 0) {
 				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
 			}
@@ -135,7 +135,7 @@ class Messagesystem {
 		
 		if($_POST['do'] == 'messages_as_unread') {
 			
-			// Change Message Status to UNREAD
+			/** Change Message Status to UNREAD */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
 				Messagesystem::doMessagesUnread($_POST['message_id'][$i], $user->id);
 			}
@@ -158,7 +158,7 @@ class Messagesystem {
 		
 		if($_POST['do'] == 'mark_all_as_read') {
 			
-			// Mark all Messages as read
+			/** Mark all Messages as read */
 			Messagesystem::doMarkAllAsRead($user->id);
 
 			if(count($_POST['message_id']) == 1) {
@@ -198,10 +198,10 @@ class Messagesystem {
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
 		if($rs['owner'] == $deleter_userid) {
-	  	$sql =
-	  		"DELETE FROM messages WHERE id = ".$messageid
-	  	;
-	  	$db->query($sql, __FILE__, __LINE__);
+		$sql =
+			"DELETE FROM messages WHERE id = ".$messageid
+		;
+		$db->query($sql, __FILE__, __LINE__);
 		}
 	}
 
@@ -223,10 +223,10 @@ class Messagesystem {
 		
 		if ($messageid > 0 && $messageid != '' && $userid > 0 && $userid != '') // ok man könnte auch noch auf $user->id checken
 		{
-	  		$sql =
-	  			"UPDATE messages SET isread='0' WHERE isread='1' AND id=$messageid AND owner=$userid";
-	  		$db->query($sql, __FILE__, __LINE__);
-	  	}
+			$sql =
+				"UPDATE messages SET isread='0' WHERE isread='1' AND id=$messageid AND owner=$userid";
+			$db->query($sql, __FILE__, __LINE__);
+		}
 	}
 	
 	
@@ -247,10 +247,10 @@ class Messagesystem {
 		
 		if ($userid > 0 && $userid != '') // man könnte auch noch auf $user->id checken
 		{
-	  		$sql =
-	  			"UPDATE messages SET isread='1' WHERE isread='0' AND owner=$userid";
-	  			$db->query($sql, __FILE__, __LINE__);
-	  	}
+			$sql =
+				"UPDATE messages SET isread='1' WHERE isread='0' AND owner=$userid";
+				$db->query($sql, __FILE__, __LINE__);
+		}
 	}
 	
 	
@@ -310,12 +310,12 @@ class Messagesystem {
 	  $html =
 	    '<form name="sendform" action="/profil.php?'.$_SERVER['QUERY_STRING'].'" method="post">'
 	    .'<input type="hidden" name="action" value="sendmessage">'
-	  	.'<input type="hidden" name="url" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+		.'<input type="hidden" name="url" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
 	    .'<table width="'.FORUMWIDTH.'" class="border" align="center">'
 	  ;
 
 	  if($_GET['sent'] == 'successful') {
-	  	$html .= '<tr><td colspan="2" style="text-align: center;"><br /><font size="6"><b>Nachricht gesendet!</b></font><br />&nbsp;</td></tr>';
+		$html .= '<tr><td colspan="2" style="text-align: center;"><br /><font size="6"><b>Nachricht gesendet!</b></font><br />&nbsp;</td></tr>';
 	  }
 
 	  $html .=
@@ -379,67 +379,67 @@ class Messagesystem {
 		
 	  // Neuste (isread) immer zuoberst
 	  $sql = "
-	  	SELECT *, UNIX_TIMESTAMP(date) as date
-	  	FROM messages where owner = ".$user->id ."
-	  	AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
-	  	ORDER BY isread ASC, ".$orderby." DESC
-	  	LIMIT ".($page-1) * $pagesize.",".$pagesize
+		SELECT *, UNIX_TIMESTAMP(date) as date
+		FROM messages where owner = ".$user->id ."
+		AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
+		ORDER BY isread ASC, ".$orderby." DESC
+		LIMIT ".($page-1) * $pagesize.",".$pagesize
 	  ;
 
 	  $result = $db->query($sql, __FILE__, __LINE__);
 	  $html .=
-	  	'<form name="inboxform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="POST">'
-	  	//.'<input name="do" type="hidden" value="delete_messages">'
-	  	.'<input type="hidden" name="url" value="'.base64_encode(getURL()).'">'
-	  	.'<table class="border" width="100%">'
-	  	.'<tr><th align="center" colspan="6"><b>Pers&ouml;nliche Nachrichten</b>'
-	  	.' '
-	  	.($box == "inbox" ? 'Empfangen' : '<a href="'.getChangedURL('box=inbox').'">Empfangen</a>')
-	  	.' / '
-	  	.($box == "outbox" ? 'Gesendet' : '<a href="'.getChangedURL('box=outbox').'">Gesendet</a>')
-	  	.'<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><button name="button_newMessage" class="button" type="button" style="float:right;">Neue Nachricht</button></a>'
-	  	.'</td></tr>'
-	  	.'<tr><td>'
-	  	.'<input class="button" onClick="selectAll();" type="button" value="Alle">'
-	  	.'</th>'
-	  	.'<td>New</td>'
-	  	.'<td>Sender</td>'
-	  	.'<td>Empf&auml;nger</td>'
-	  	.'<td>Subject</td>'
-	  	.'<td>Datum</td>'
-	  	.'</tr>'
+		'<form name="inboxform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="POST">'
+		//.'<input name="do" type="hidden" value="delete_messages">'
+		.'<input type="hidden" name="url" value="'.base64_encode(getURL()).'">'
+		.'<table class="border" width="100%">'
+		.'<tr><th align="center" colspan="6"><b>Pers&ouml;nliche Nachrichten</b>'
+		.' '
+		.($box == "inbox" ? 'Empfangen' : '<a href="'.getChangedURL('box=inbox').'">Empfangen</a>')
+		.' / '
+		.($box == "outbox" ? 'Gesendet' : '<a href="'.getChangedURL('box=outbox').'">Gesendet</a>')
+		.'<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><button name="button_newMessage" class="button" type="button" style="float:right;">Neue Nachricht</button></a>'
+		.'</td></tr>'
+		.'<tr><td>'
+		.'<input class="button" onClick="selectAll();" type="button" value="Alle">'
+		.'</th>'
+		.'<td>New</td>'
+		.'<td>Sender</td>'
+		.'<td>Empf&auml;nger</td>'
+		.'<td>Subject</td>'
+		.'<td>Datum</td>'
+		.'</tr>'
 	  ;
 
 	  if($db->num($result) == 0) {
-	  	$html .= '<tr><td align="center" colspan="5"><b> --- Postfach leer ---</b></td></tr>';
+		$html .= '<tr><td align="center" colspan="5"><b> --- Postfach leer ---</b></td></tr>';
 	  } else {
 
 		  while($rs = $db->fetch($result)) {
 
-		  	$i++;
-		  	$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-		  	if($rs['isread'] == 0) $color = NEWCOMMENTCOLOR;
-		  	if($rs['from_user_id'] == $user->id) $color = OWNCOMMENTCOLOR;
+			$i++;
+			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+			if($rs['isread'] == 0) $color = NEWCOMMENTCOLOR;
+			if($rs['from_user_id'] == $user->id) $color = OWNCOMMENTCOLOR;
 
-		  	$html .=
-		  		'<tr>'
-		  		.'<td align="center" bgcolor="'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
-		  	    .($rs['isread'] == 0 ? '<td align="center" bgcolor="'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="'.$color.'"></td>')
-		  		.'<td align="center" bgcolor="'.$color.'">'.$user->link_userpage($rs['from_user_id']).'</td>'
-		  		.'<td align="center" bgcolor="'.$color.'" width="30%">';
+			$html .=
+				'<tr>'
+				.'<td align="center" bgcolor="'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
+			    .($rs['isread'] == 0 ? '<td align="center" bgcolor="'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="'.$color.'"></td>')
+				.'<td align="center" bgcolor="'.$color.'">'.$user->link_userpage($rs['from_user_id']).'</td>'
+				.'<td align="center" bgcolor="'.$color.'" width="30%">';
 
 			foreach (explode(',', $rs['to_users']) as $value) {
-		  		$html .= $user->link_userpage($value).' ';
-		  	}
+				$html .= $user->link_userpage($value).' ';
+			}
 
-		  	$html .=
-		  		'</td>'
-		  		.'<td align="center" bgcolor="'.$color.'">'
-		  		.'<a href="/messagesystem.php?message_id='.$rs['id'].'">'.str_pad($rs['subject'], 60, ' . ', STR_PAD_BOTH).'</a>'
-		  		.'</td>'
-		  		.'<td align="center" bgcolor="'.$color.'">'.datename($rs['date']).'</td>'
-		  		.'</tr>'
-		  	;
+			$html .=
+				'</td>'
+				.'<td align="center" bgcolor="'.$color.'">'
+				.'<a href="/messagesystem.php?message_id='.$rs['id'].'">'.str_pad($rs['subject'], 60, ' . ', STR_PAD_BOTH).'</a>'
+				.'</td>'
+				.'<td align="center" bgcolor="'.$color.'">'.datename($rs['date']).'</td>'
+				.'</tr>'
+			;
 		  }
 
 		  $html .= '<tr><td align="left" colspan="3">';
@@ -456,20 +456,20 @@ class Messagesystem {
 		  $html .= '</td><td align="right" colspan="3">';
 
 		  $sql =
-		  	"
-		  	SELECT count(*) as num
-		  	FROM messages where owner = ".$user->id."
-		  	AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id
+			"
+			SELECT count(*) as num
+			FROM messages where owner = ".$user->id."
+			AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id
 		  ;
-	  	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-	  	$numpages = ceil($rs['num'] / $pagesize); // number of pages
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$numpages = ceil($rs['num'] / $pagesize); // number of pages
 		  $html .= '<b>Pages: ';
 		  for($j = 1; $j <= $numpages; $j++) {
-		  	if($page != $j) {
-		  		$html .= ' <a href="'.getChangedURL('page='.$j).'">'.$j.'</a>';
-		  	} else {
-		  		$html .= ' '.$j;
-		  	}
+			if($page != $j) {
+				$html .= ' <a href="'.getChangedURL('page='.$j).'">'.$j.'</a>';
+			} else {
+				$html .= ' '.$j;
+			}
 		  }
 
 		  $html .= '</b></td></tr>';
@@ -480,12 +480,12 @@ class Messagesystem {
 	  $html .= '</form>';
 
 	  $html .=
-	  	'<script language="javascript">'
-	  	.'function selectAll() {'
-	  	.'  for(i=2; i < ('.$db->num($result).'+3); i++)'
-	  	.'  document.inboxform.elements[i].checked = !document.inboxform.elements[i].checked;'
-	  	.'}'
-	  	.'</script>'
+		'<script language="javascript">'
+		.'function selectAll() {'
+		.'  for(i=2; i < ('.$db->num($result).'+3); i++)'
+		.'  document.inboxform.elements[i].checked = !document.inboxform.elements[i].checked;'
+		.'}'
+		.'</script>'
 	  ;
 
 	  return $html;
@@ -512,7 +512,7 @@ class Messagesystem {
 		if ($user->typ != USER_NICHTEINGELOGGT) {
 			$sql = "SELECT count(*) as num FROM messages WHERE owner = ".$user->id." AND isread = '0'";
 			$result = $db->query($sql, __FILE__, __LINE__);
-		  	$rs = $db->fetch($result);
+			$rs = $db->fetch($result);
 
 			return $rs['num'];
 		}
@@ -537,67 +537,67 @@ class Messagesystem {
 
 	  // Message holen http://www.zorg.ch
 	  $sql =
-	  	"
-	  	SELECT
-	  		messages.*
-	  	, UNIX_TIMESTAMP(date) as date
-	  	, CONCAT(user.clan_tag, user.username) AS from_user
-	  	FROM messages
-	  	LEFT JOIN user ON (messages.from_user_id = user.id)
-	  	WHERE messages.id = ".$id
+		"
+		SELECT
+			messages.*
+		, UNIX_TIMESTAMP(date) as date
+		, CONCAT(user.clan_tag, user.username) AS from_user
+		FROM messages
+		LEFT JOIN user ON (messages.from_user_id = user.id)
+		WHERE messages.id = ".$id
 	  ;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
 	  if ($rs['owner'] == $user->id) {
 		  $html .=
-		  	'<table class="border" width="100%">'
-		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="30">'
-		  	.'<td align="left" width="80">'
+			'<table class="border" width="100%">'
+			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="30">'
+			.'<td align="left" width="80">'
 				.(Messagesystem::getNextMessageid($rs['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getNextMessageid($rs['id']).'"><-- </a> | ' : '')
 				.(Messagesystem::getPrevMessageid($rs['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getPrevMessageid($rs['id']).'"> --></a>' : '')
-		  	.'</td>'
-		  	.'<td align="right" width="80%">'
-		  	.Messagesystem::getFormDelete($id)
+			.'</td>'
+			.'<td align="right" width="80%">'
+			.Messagesystem::getFormDelete($id)
 				.'</td>'
-		  	.'<td align="right" rowspan="5">'.$user->link_userpage($rs['from_user_id'], TRUE).'</td>'
-		  	.'</tr>'
+			.'<td align="right" rowspan="5">'.$user->link_userpage($rs['from_user_id'], TRUE).'</td>'
+			.'</tr>'
 
-		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-		  	.'<td align="left"><b>From</b></td>'
-		  	.'<td align="left">'.$rs['from_user'].'</td>'
-		  	.'</tr>'
+			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
+			.'<td align="left"><b>From</b></td>'
+			.'<td align="left">'.$rs['from_user'].'</td>'
+			.'</tr>'
 
-		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-		  	.'<td align="left"><b>Date</b></td>'
-		  	.'<td align="left">'.datename($rs['date']).'</td></tr>'
-		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'"><td align="left"><b>To</b></td>'
-		  	.'<td align="left">'
+			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
+			.'<td align="left"><b>Date</b></td>'
+			.'<td align="left">'.datename($rs['date']).'</td></tr>'
+			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'"><td align="left"><b>To</b></td>'
+			.'<td align="left">'
 		  ;
 
 		  foreach (explode(',', $rs['to_users']) as $value) {
-		  	$html .= $user->link_userpage($value).' ';
+			$html .= $user->link_userpage($value).' ';
 		  }
 
 		  $html .=
-		  	'</td>'
-		  	.'</tr>'
+			'</td>'
+			.'</tr>'
 
-		  	.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="40">'
-		  	.'<td align="left" valign="top"><b>Subject</b></td>'
-		  	.'<td align="left" valign="top" width="70%">'.$rs['subject'].'</td>'
-		  	.'</tr>'
-		  	.'<tr><td><img height="2" src="/images/pixel_trans.gif" width="100"></td></tr>'
-		  	.'<tr><td align="left" colspan="3">'
-		  	.maxwordlength(nl2br($rs['text']), 100)
-		  	.'</td></tr>'
-		  	.'</table>'
+			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="40">'
+			.'<td align="left" valign="top"><b>Subject</b></td>'
+			.'<td align="left" valign="top" width="70%">'.$rs['subject'].'</td>'
+			.'</tr>'
+			.'<tr><td><img height="2" src="/images/pixel_trans.gif" width="100"></td></tr>'
+			.'<tr><td align="left" colspan="3">'
+			.maxwordlength(nl2br($rs['text']), 100)
+			.'</td></tr>'
+			.'</table>'
 		  ;
 
 		  // Als gelesen markieren
 			$sql = "UPDATE messages set isread = '1' where id = $id;";
 			$db->query($sql, __FILE__, __LINE__);
 	  } else {
-	  	$html = t('invalid-permissions', 'messagesystem');
+		$html = t('invalid-permissions', 'messagesystem');
 	  }
 
 
@@ -676,91 +676,68 @@ class Messagesystem {
 	 * Persönliche Nachricht senden
 	 * 
 	 * Speichert die gesendete Nachricht im Postfach des Empfängers und meinem Postausgang
+	 * Neu: verschickt eine Notification über die neue Nachricht per E-Mail
+	 * Neu 2: ...und per Telegram Messenger
 	 * 
 	 * @author [z]milamber
-	 * @date 
-	 * @version 2.0
+	 * @author IneX
+	 * @date 17.03.2018
+	 * @version 3.0
 	 *
-	 * @param integer $from_user_id User-ID des Senders
-	 * @param integer $owner User-Id des Nachrichten-Owners
-	 * @param string $subject Titel der Nachricht
-	 * @param string $text Nachrichten-Text
-	 * @param string $to_users Alle Empfänger der Nachricht
-	 * @param integer $isread Lesestatus der Nachricht (Default: Ungelesen)
+	 * @param integer	$from_user_id User-ID des Senders
+	 * @param integer	$owner User-Id des Nachrichten-Owners
+	 * @param string	$subject Titel der Nachricht
+	 * @param string	$text (Optional) Nachrichten-Text
+	 * @param string	$to_users (Optional) Liste aller Empfänger der Nachricht
+	 * @param integer	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
 	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 * @global $user Globales Array mit den User-Variablen
 	 */
-	function sendMessage($from_user_id, $owner, $subject, $text, $to_users="", $isread=0)
+	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
 	{
 		global $db, $user;
 
-		if($to_users == '') $to_users = $owner;
-		if($text == '') $text = '---';
-		
-		// Send Message to recipient(s)
-	  	$sql =
-	  		"INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users) values (
-	  		".$from_user_id."
-	  		, ".$owner."
-	  		, '".addslashes(stripslashes($subject))."'
-	  		, '".addslashes(stripslashes($text))."'
-	  		, now()
-	  		, '".$isread."'
-	  		, '".$to_users."'
-	  		)"
-	  	;
-	  	$db->query($sql, __FILE__, __LINE__);
-	  	
-	  	// Save copy for my Sent-Folder
-	  	$sql =
-	  		"INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users) values (
-	  		".$from_user_id."
-	  		, ".$from_user_id."
-	  		, '".addslashes(stripslashes($subject))."'
-	  		, '".addslashes(stripslashes($text))."'
-	  		, now()
-	  		, '1'
-	  		, '".$to_users."'
-	  		)"
-	  	;
-	  	$db->query($sql, __FILE__, __LINE__);
-		
-		// Sende E-Mail Notification an Users (einzeln, nur sofern erlaubt)
-		//for ($i=0; $i<count($to_users); $i++) --> auf $owner gehen!
-			//{
-		try {
-			if ($owner != $from_user_id) Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
-		} catch (Exception $e) {
-			user_error($e->getMessage(), E_USER_ERROR);
-		}
-		//}
-		
+		if(!isset($to_users) || empty($to_users)) $to_users = $owner;
+		if(empty($text)) $text = t('message-empty-text', 'messagesystem');
+
 		/**
-		 * Send Telegram Notification
+		 * Send Message to recipient(s)
 		 */
-		if (is_array($owner)) {
-		// For multiple users
-			foreach ($owner as $recipient)
-			{
-				if ($recipient != $from_user_id && $user->userHasTelegram($recipient))
-				{
-					try {
-						$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $recipient, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
-						Messagesystem::sendTelegramNotification($message, $recipient);
-					} catch (Exception $e) {
-						user_error($e->getMessage(), E_USER_ERROR);
-					}
-				}
-			}
+		try {
+			if (DEVELOPMENT) error_log("[DEBUG] Sending SINGLE Zorg Message '$subject' to user $owner");
+			$sql =
+				"INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
+				VALUES (
+					 $from_user_id
+					,$owner
+					,'".escape_text($subject)."'
+					,'".escape_text($text)."'
+					,NOW()
+					,'$isread'
+					,'".$to_users."'
+				)";
+			$db->query($sql, __FILE__, __LINE__, 'sendMessage()');
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_WARNING);
 		}
-		// For single user:
-		elseif ($owner != $from_user_id && $user->userHasTelegram($owner)) {
+
+		/** Send E-Mail Notification */
+		if ($owner != $from_user_id)
+		{
+			try {
+				Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
+			} catch (Exception $e) {
+				user_error($e->getMessage(), E_USER_NOTICE);
+			}
+	
+			/** Send Telegram Notification */
 			try {
 				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
 				Messagesystem::sendTelegramNotification($message, $owner);
 			} catch (Exception $e) {
 				user_error($e->getMessage(), E_USER_ERROR);
 			}
-		} 	
+		}
 	}
 	
 	/**
@@ -782,13 +759,15 @@ class Messagesystem {
 	{
 		global $db, $user;
 		
-		// E-Mailnachricht bauen
+		/** E-Mailnachricht bauen */
 		if ($to_user_id != 0 && $to_user_id <> '' && is_numeric($to_user_id))
 		{
-			// Nur, wenn User E-Mailbenachrichtigung aktiviert hat...!
-			if ($user->id2useremail($to_user_id) != false)
+			/** Get User E-Mail - if E-Mail Notifications are enabled */
+			$empfaengerMail = $user->id2useremail($to_user_id);
+			
+			/** Nur, wenn User E-Mailbenachrichtigung aktiviert hat...! */
+			if (!empty($empfaengerMail))
 			{
-				$empfaengerMail = $user->id2useremail($to_user_id);
 				$empfaengerName = $user->id2user($to_user_id, TRUE);
 				$senderName = $user->id2user($from_user_id, TRUE);
 				
@@ -798,48 +777,63 @@ class Messagesystem {
 				
 				$body = htmlspecialchars( t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), $to_user_id ]), ENT_DISALLOWED, 'UTF-8' );
 				
-				// Vesende E-Mail an User
+				/** Vesende E-Mail an User */
 				//mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
 				mail("$empfaengerName <$empfaengerMail>", $subject, $body, $header);
+				if (DEVELOPMENT) error_log("[DEBUG] mail() sent to user $empfaengerName");
 			}
 		}
 			
 	}
 
 	/**
-	 * Get List of Users Telegram Messenger Chat-ID where available
+	 * Get (List of) Users Telegram Messenger Chat-ID, where available
 	 *
 	 * @author	IneX
-	 * @date	21.01.2017
-	 * @version	1.0
+	 * @date	17.03.2018
+	 * @version	2.0
 	 * @since	2.0
 	 *
-	 * @param 	integer $userid (Optional) User-ID dessen Chat-ID ermittelt werden soll
+	 * @TODO Should this - in some cases - return a list of multiple IDs, not only a single user's Chat-ID?
+	 *
+	 * @param 	integer $userid User-ID (numeric String or Array) dessen Chat-ID ermittelt werden soll
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
 	 * @return	array			Returns list with Telegram Chat-IDs from User-Table
 	 */
-	static public function getAllUserTelegramChatIds($userid='')
+	static public function getUserTelegramChatId($userid)
 	{
 		global $db;
 		
 		try {
-			$sql = "SELECT
-						telegram_chat_id
-					FROM
-						user
-					WHERE
-						telegram_chat_id IS NOT NULL
-					" . (isset($userid) && $userid > 0 && is_numeric($userid) ? 'AND id = ' . $userid : '' );
-			$result = $db->query($sql, __FILE__, __LINE__);
+			if (isset($userid) && $userid > 0 && is_numeric($userid))
+			{
+				$sql = "SELECT
+							telegram_chat_id
+						FROM
+							user
+						WHERE
+							telegram_chat_id IS NOT NULL
+							AND id = $userid
+						LIMIT 0,1";
+				$telegramChatIds = mysql_fetch_assoc($db->query($sql, __FILE__, __LINE__, 'Messagesystem::getUserTelegramChatId()'));
 
-			while($rs = $db->fetch($result)) {
-				$telegramChatIds[] = $rs['telegram_chat_id'];
+				//$result = $db->query($sql, __FILE__, __LINE__);
+				//while($rs = $db->fetch($result)) {
+				//	$telegramChatIds[] = $rs['telegram_chat_id'];
+				//}
+				/** Cleanup Array by removing possible duplicate Chat-IDs */
+				//$telegramChatIds = array_unique($telegramChatIds);
+
+				if (!empty($telegramChatIds))
+				{
+					return $telegramChatIds;
+				} else {
+					return false;
+				}
+
+			} else {
+				return false;
 			}
-
-			// Cleanup Array by removing possible duplicate Chat-IDs
-			$telegramChatIds = array_unique($telegramChatIds);
-			
-			return $telegramChatIds;
 
 		} catch (Exception $e) {
 			user_error($e->getMessage(), E_USER_WARNING);
@@ -851,71 +845,132 @@ class Messagesystem {
 	 * Schickt eine Notification an die Telegram Chats von Usern
 	 *
 	 * @author	IneX
-	 * @date	21.01.2017
-	 * @version	1.0
+	 * @date	17.03.2018
+	 * @version	2.0
 	 * @since	2.0
 	 *
-	 * @TODO don't send notification when it's caused by the current user
 	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
 	 *
-	 * @see Messagesystem::getAllUserTelegramChatIds()
+	 * @see Messagesystem::getUserTelegramChatId()
 	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
 	 * @param	integer	$to_user_id			(Optional) User-Id des Empfängers
-	 * @param	string	$sendPhoto			(Optional) Picture with URL to an Image & Caption, to send along the Message
+	 * @param	string	$sendPhoto			(Optional) URL to an Image to send along the Message
 	 * @global	array	$db					Array mit allen MySQL-Datenbankvariablen
 	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
 	 */
 	static public function sendTelegramNotification($notificationText, $to_user_id='', $sendPhoto='')
 	{
-		global $db, $botconfigs;
-		
-		// Make sure a proper Notification Text is passed & the Telegram Bot-Configs exist
+		global $db, $user, $botconfigs;
+
+		/** Make sure a proper Notification Text is passed & the Telegram Bot-Configs exist */
 		if ((!empty($notificationText) && strlen($notificationText) > 0) && (isset($botconfigs) && is_array($botconfigs)))
 		{
-			// Encode Notification Text
-			// Fix missing Server address in Links
+			/** Encode Notification Text: Fix missing Server address in Links */
 			if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
-			
-			// Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre>
-			$notificationText = str_replace(array("\r", "\n", "&nbsp;"), '', $notificationText);
+
+			/** Encode Notification Text: Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre> */
+			$notificationText = str_replace(array("\r", "\n", "&nbsp;"), ' ', $notificationText);
 			$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
-			//$notificationText = str_replace('IneX', '<a href="tg://user?id=28563309">IneX</a>', $notificationText);
+			/**$notificationText = str_replace('IneX', '<a href="tg://user?id=28563309">IneX</a>', $notificationText); */
 			$notificationText = html_entity_decode($notificationText);
 
-			// Get the Telegram Chat-IDs
-			$telegramChatIds = Messagesystem::getAllUserTelegramChatIds( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
-
-			// When we got at least 1 Chat-ID...
-			if(is_array($telegramChatIds))
+			/** Get the Telegram Chat-IDs */
+			if (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id))
 			{
-				// ...send the Telegram Message to each of them
-				foreach ($telegramChatIds as $chatId)
+				/** For a specific (list of) User-ID - only if Telegram-Notifications enabled */
+				$telegramChatIds = $user->userHasTelegram($to_user_id);
+				if (DEVELOPMENT && !empty($telegramChatIds)) error_log("[DEBUG] Found USER Telegram Chat-ID: $telegramChatIds");
+				if (DEVELOPMENT && empty($telegramChatIds)) error_log("[DEBUG] NO Telegram Chat-ID found for USER $to_user_id");
+
+			} else {
+
+				/** Get Group Chat */
+				$telegramChatIds = TELEGRAM_GROUPCHAT_ID;
+				if (DEVELOPMENT) error_log("[DEBUG] Found GROUP Telegram Chat-ID: $telegramChatIds");
+			}
+
+			/** When we got at least 1 Chat-ID... */
+			if (!empty($telegramChatIds))
+			{
+				/** For multiple users */
+				if(is_array($telegramChatIds))
 				{
-					// ...except it's from the current user
-					//if (!) {
+					if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to MULTIPLE CHATS");
+					
+					/** ...send the Telegram Message to each of them */
+					foreach ($telegramChatIds as $chatId)
+					{
+						if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to CHAT $chatId");
+
+						/** Check if an Image URL has been passed, too */
+						if (!empty($sendPhoto) && strpos($sendPhoto, 'http'))
+						{
+							if (DEVELOPMENT) error_log("[DEBUG] Valid Photo URL for Telegram Messaage: $sendPhoto");
+							if (urlExists($sendPhoto))
+							{
+								$data = [
+								    'chat_id' => $chatId,
+								    'caption' => $notificationText,
+								    'photo' => $sendPhoto
+								];
+								$telegramAPImethod = 'sendPhoto';
+							} else {
+								error_log( t('invalid-image-data', 'messagesystem') );
+							}
+
+						/** Send Text-only message */
+						} else {
+							$data = [
+							    'chat_id' => $chatId,
+							    'parse_mode' => 'html',
+							    'text' => $notificationText,
+							];
+							$telegramAPImethod = 'sendMessage';
+						}
+
+						/** Send the Telegram message */
+						if (DEVELOPMENT) error_log("[DEBUG] Sending Telegram Message using '$telegramAPImethod' to Chat $chatId");
+						if (!empty($telegramAPImethod)) file_get_contents( TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data) );
+					}
+
+				/** For a single user */
+				} else {
+					$chatId = $telegramChatIds;
+					if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to USER $chatId");
+
+					/** Check if an Image URL has been passed, too */
+					if (!empty($sendPhoto) && strpos($sendPhoto, 'http'))
+					{
+						if (DEVELOPMENT) error_log("[DEBUG] Valid Photo URL for Telegram Messaage: $sendPhoto");
+						if (urlExists($sendPhoto))
+						{
+							$data = [
+							    'chat_id' => $chatId,
+							    'caption' => $notificationText,
+							    'photo' => $sendPhoto
+							];
+							$telegramAPImethod = 'sendPhoto';
+						} else {
+							error_log( t('invalid-image-data', 'messagesystem') );
+						}
+
+					/** Send Text-only message */
+					} else {
 						$data = [
 						    'chat_id' => $chatId,
 						    'parse_mode' => 'html',
 						    'text' => $notificationText,
 						];
-						file_get_contents( TELEGRAM_API_URI . '/sendMessage?' . http_build_query($data) );
-						
-						// Check if an Image URL has been passed, too
-						if (isset($picUrl) && strlen($picUrl) > 0 && strpos($picUrl, 'http'))
-						{
-							if (urlExists($picUrl)) {
-								$data = [
-								    'chat_id' => $chatId,
-								    'caption' => 'html',
-								    'text' => $notificationText,
-								];
-							}
-						}
-					//}
+						$telegramAPImethod = 'sendMessage';
+					}
+
+					/** Send the Telegram message */
+					if (DEVELOPMENT) error_log("[DEBUG] Sending Telegram Message using '$telegramAPImethod' to Chat $chatId");
+					if (!empty($telegramAPImethod)) file_get_contents( TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data) );
 				}
 			}
 		} else {
-			user_error( t('invalid-message', 'messagesystem'), E_USER_NOTICE);
+			error_log( t('invalid-message', 'messagesystem') );
 		}
 	}
 
@@ -925,13 +980,13 @@ class Messagesystem {
 	 * Schickt eine Photo-Notification an die Telegram Chats von Usern
 	 *
 	 * @author	IneX
-	 * @date	21.01.2017
+	 * @date	21.01.2018
 	 * @version	1.0
 	 * @since	2.0
 	 *
 	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
 	 *
-	 * @see Messagesystem::getAllUserTelegramChatIds()
+	 * @see Messagesystem::getUserTelegramChatId()
 	 * @param	array	$imageData			Image data: URL to an Image & Caption text
 	 * @param	integer	$to_user_id			(Optional) User-Id des Empfängers
 	 * @global	array	$db					Array mit allen MySQL-Datenbankvariablen
@@ -941,31 +996,31 @@ class Messagesystem {
 	{
 		global $db, $botconfigs;
 		
-		// Make sure a proper Image Data Array is passed & the Telegram Bot-Configs exist
+		/** Make sure a proper Image Data Array is passed & the Telegram Bot-Configs exist */
 		if (is_array($imageData) && (isset($imageData['url']) && strlen($imageData['url']) > 0) && (isset($botconfigs) && is_array($botconfigs)))
 		{
 			$image_url = $imageData['url'];
 			$image_caption = (isset($imageData['caption']) && strlen($imageData['caption']) > 0 ? $imageData['caption'] : '');
 			
-			// Encode Image Caption Text
-				// Fix missing Server address in Links
+			/** Encode Image Caption Text */
+				/** Fix missing Server address in Links */
 				if (strpos($image_url, 'href="/') > 0) $image_url = str_replace('href="/', 'href="' . SITE_URL . '/', $image_url);
 			
-				// Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre>
+				/** Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre> */
 				$image_caption = str_replace(array("\r", "\n", "&nbsp;"), '', $image_caption);
 				$image_caption = strip_tags($image_caption, '<b><i><a><code><pre>');
 				$image_caption = html_entity_decode($image_caption);
 
-			// Test if the Image URL is valid:
+			/** Test if the Image URL is valid: */
 			if (urlExists($image_url))
 			{
-				// Get the Telegram Chat-IDs
-				$telegramChatIds = Messagesystem::getAllUserTelegramChatIds( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
+				/** Get the Telegram Chat-IDs */
+				$telegramChatIds = Messagesystem::getUserTelegramChatId( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
 
-				// When we got at least 1 Chat-ID...
+				/** When we got at least 1 Chat-ID... */
 				if(is_array($telegramChatIds))
 				{
-					// ...send the Telegram Message to each of them
+					/** ...send the Telegram Message to each of them */
 					foreach ($telegramChatIds as $chatId)
 					{
 						$data = [
@@ -974,8 +1029,8 @@ class Messagesystem {
 						    'photo' => $image_url
 						];
 						file_get_contents( TELEGRAM_API_URI . '/sendPhoto?' . http_build_query($data) );
-						
-						/* Source: https://stackoverflow.com/a/4247082/5750030
+
+						/** Source: https://stackoverflow.com/a/4247082/5750030
 						define('MULTIPART_BOUNDARY', '--------------------------'.microtime(true));
 						$header = 'Content-Type: multipart/form-data; boundary='.MULTIPART_BOUNDARY;
 						define('FORM_FIELD', 'uploaded_file'); 
