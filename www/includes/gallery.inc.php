@@ -1445,26 +1445,50 @@ function getRandomThumb() {
 	return formatGalleryThumb($rs);
 }
 
+
+/**
+ * Get new Daily Pic
+ *
+ * @author ?
+ * @author IneX
+ * @since 1.0
+ * @version 2.0
+ * @date 19.03.2018
+ *
+ * @see SITE_URL, imgsrcThum(), Messagesystem::sendTelegramPhoto()
+ * @global $db MySQL-Datenbank Objekt aus mysql.inc.php
+ * @global $user User-Objekte aus usersystem.inc.php
+ */
 function getDailyThumb () {
 	global $db, $user;
 	$name = 'daily_pic';
 
-	$e = $db->query("SELECT g.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
-							FROM periodic p, gallery_pics g
-							WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__);
-	$d = $db->fetch($e);
-
-	if (!$d || $d['upd']) {
-		$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
+	try {
+		/** Check if current Daily Pic is still from Today */
+		$e = $db->query("SELECT g.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
+								FROM periodic p, gallery_pics g
+								WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__, 'getDailyThumb()');
 		$d = $db->fetch($e);
-		$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__);
-		
-		// Notification auslösen
-		// url = URL to the Pic, caption = "Daily Pic(: Title - if available)"
-		Messagesystem::sendTelegramPhoto( array('url' => SITE_URL.imgsrcThum($d['id']), 'caption' => 'Daily Pic' . ( !picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']) ) ) );
-	}
 
-	return formatGalleryThumb($d);
+		/** If current Daily Pic is old - generate a new one: */
+		if (!$d || $d['upd']) {
+			/** Randomly get new Gallery-Pic */
+			$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
+			$d = $db->fetch($e);
+			/** Add the new Daily-Pic into the periodic Database-Table */
+			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__);
+
+			// Notification auslösen
+			// url = URL to the Pic, caption = "Daily Pic(: Title - if available)"
+			$imgUrl = SITE_URL.imgsrcThum($d['id']);
+			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
+			Messagesystem::sendTelegramPhoto( array('url' => $imgUrl, 'caption' => $imgCaption) );
+		}
+
+		return formatGalleryThumb($d);
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+	}
 }
 
 

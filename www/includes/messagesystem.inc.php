@@ -933,7 +933,7 @@ class Messagesystem {
 						if (!empty($telegramAPImethod)) file_get_contents( TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data) );
 					}
 
-				/** For a single user */
+				/** For a single Chat-ID */
 				} else {
 					$chatId = $telegramChatIds;
 					if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to USER $chatId");
@@ -1015,48 +1015,78 @@ class Messagesystem {
 			if (urlExists($image_url))
 			{
 				/** Get the Telegram Chat-IDs */
-				$telegramChatIds = Messagesystem::getUserTelegramChatId( (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id) ? $to_user_id : '' ) );
+				if (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id))
+				{
+					/** For a specific (list of) User-ID - only if Telegram-Notifications enabled */
+					$telegramChatIds = $user->userHasTelegram($to_user_id);
+					if (DEVELOPMENT && !empty($telegramChatIds)) error_log("[DEBUG] Found USER Telegram Chat-ID: $telegramChatIds");
+					if (DEVELOPMENT && empty($telegramChatIds)) error_log("[DEBUG] NO Telegram Chat-ID found for USER $to_user_id");
+
+				} else {
+
+					/** Get Group Chat */
+					$telegramChatIds = TELEGRAM_GROUPCHAT_ID;
+					if (DEVELOPMENT) error_log("[DEBUG] Found GROUP Telegram Chat-ID: $telegramChatIds");
+				}
 
 				/** When we got at least 1 Chat-ID... */
-				if(is_array($telegramChatIds))
+				if (!empty($telegramChatIds))
 				{
-					/** ...send the Telegram Message to each of them */
-					foreach ($telegramChatIds as $chatId)
+					/** For multiple users */
+					if(is_array($telegramChatIds))
 					{
+						/** ...send the Telegram Pohot to each of them */
+						foreach ($telegramChatIds as $chatId)
+						{
+							if (DEVELOPMENT) error_log("[DEBUG] sendTelegramPhoto('$image_url') to CHAT $chatId");
+							
+							$data = [
+							    'chat_id' => $chatId,
+							    'caption' => $image_caption,
+							    'photo' => $image_url
+							];
+							file_get_contents( TELEGRAM_API_URI . '/sendPhoto?' . http_build_query($data) );
+	
+							/** Source: https://stackoverflow.com/a/4247082/5750030
+							define('MULTIPART_BOUNDARY', '--------------------------'.microtime(true));
+							$header = 'Content-Type: multipart/form-data; boundary='.MULTIPART_BOUNDARY;
+							define('FORM_FIELD', 'uploaded_file'); 
+							$file_contents = file_get_contents($image_url);    
+							
+							$content =  "--".MULTIPART_BOUNDARY."\r\n".
+							            "Content-Disposition: form-data; name=\"".FORM_FIELD."\"; filename=\"".basename($image_url)."\"\r\n".
+							            "Content-Type: image/jpeg\r\n\r\n".
+							            $file_contents."\r\n";
+							
+							// add some POST fields to the request too: $_POST['foo'] = 'bar'
+							$content .= "--".MULTIPART_BOUNDARY."\r\n".
+							            "Content-Disposition: form-data; name=\"".$image_caption."\"\r\n\r\n".
+							            $image_caption."\r\n";
+							
+							// signal end of request (note the trailing "--")
+							$content .= "--".MULTIPART_BOUNDARY."--\r\n";
+							$context = stream_context_create(array(
+							    'http' => array(
+							          'method' => 'POST',
+							          'header' => $header,
+							          'content' => $content,
+							    )
+							));
+							file_get_contents('http://url/to/upload/handler', false, $context);
+							*/
+						}
+
+					/** For a single Chat-ID */
+					} else {
+						$chatId = $telegramChatIds;
+						if (DEVELOPMENT) error_log("[DEBUG] sendTelegramPhoto('$image_url') to CHAT $chatId");
+
 						$data = [
 						    'chat_id' => $chatId,
 						    'caption' => $image_caption,
 						    'photo' => $image_url
 						];
 						file_get_contents( TELEGRAM_API_URI . '/sendPhoto?' . http_build_query($data) );
-
-						/** Source: https://stackoverflow.com/a/4247082/5750030
-						define('MULTIPART_BOUNDARY', '--------------------------'.microtime(true));
-						$header = 'Content-Type: multipart/form-data; boundary='.MULTIPART_BOUNDARY;
-						define('FORM_FIELD', 'uploaded_file'); 
-						$file_contents = file_get_contents($image_url);    
-						
-						$content =  "--".MULTIPART_BOUNDARY."\r\n".
-						            "Content-Disposition: form-data; name=\"".FORM_FIELD."\"; filename=\"".basename($image_url)."\"\r\n".
-						            "Content-Type: image/jpeg\r\n\r\n".
-						            $file_contents."\r\n";
-						
-						// add some POST fields to the request too: $_POST['foo'] = 'bar'
-						$content .= "--".MULTIPART_BOUNDARY."\r\n".
-						            "Content-Disposition: form-data; name=\"".$image_caption."\"\r\n\r\n".
-						            $image_caption."\r\n";
-						
-						// signal end of request (note the trailing "--")
-						$content .= "--".MULTIPART_BOUNDARY."--\r\n";
-						$context = stream_context_create(array(
-						    'http' => array(
-						          'method' => 'POST',
-						          'header' => $header,
-						          'content' => $content,
-						    )
-						));
-						file_get_contents('http://url/to/upload/handler', false, $context);
-						*/
 					}
 				}
 			} else {
