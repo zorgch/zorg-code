@@ -425,7 +425,7 @@ function turn_finalize ($game, $uid=0) {
 				SET turndone='1'
 				WHERE game='".$game."'
 				  AND user='".$uid."'
-				  AND type!='z'", __FILE__, __LINE__);
+				  AND type!='z'", __FILE__, __LINE__, 'turn_finalize()');
 
 		$e = $db->query(
 			"SELECT g. * , sum( a.score )  - g.z_score player_score, m.players totalplayers,
@@ -436,47 +436,53 @@ function turn_finalize ($game, $uid=0) {
 			LEFT  JOIN hz_players pl ON pl.game = g.id AND pl.station = z.station AND pl.type !=  'z'
 			WHERE g.id =$game AND m.id = g.map
 			GROUP  BY a.map",
-			__FILE__, __LINE__
+			__FILE__, __LINE__, 'turn_finalize()'
 		);
 		$d = $db->fetch($e);
 	} catch (Exception $e) {
-		user_error($e->getMessage(), E_USER_ERROR);
+		error_log($e->getMessage());
 	}
 
 	if ($d)
 	{
 		try {
 			// Count turns by Inspectors
-			$e = $db->query("SELECT count(*) num FROM hz_players WHERE game=".$d['id']." AND type!='z' AND turndone='1'", __FILE__, __LINE__);
+			$e = $db->query("SELECT count(*) num FROM hz_players WHERE game=".$d['id']." AND type!='z' AND turndone='1'", __FILE__, __LINE__, 'turn_finalize()');
 				$turndone = $db->fetch($e);
 
 			// Mr. Z hat den Zug gespielt - Inspectors sind dran:
 			if ($d['nextturn'] == 'z' && !$d['finished'])
 			{
-				$db->query("UPDATE hz_games SET nextturn='players', turndate=now() WHERE id=$game", __FILE__, __LINE__);
+				$db->query("UPDATE hz_games SET nextturn='players', turndate=now() WHERE id=$game", __FILE__, __LINE__, 'turn_finalize()');
 
 				// Inspectors benachrichtigen
-				$i = $db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type!='z'", __FILE__, __LINE__);
+				$i = $db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type!='z'", __FILE__, __LINE__, 'turn_finalize()');
 				while($inspectors = $db->fetch($i))
 				{
+					error_log("[INFO] turn_finalize() triggers sendMessage() for Inspectors from uid=$uid to z=$z");
 					Messagesystem::sendMessage($uid, $inspectors['user'], t('message-subject', 'hz'), t('message-your-turn', 'hz', [ SITE_URL, $game]));
 				}
 
 			// Die Inspectors haben den Zug gespielt - Mr. Z ist dran:
 			} elseif ($d['nextturn'] == 'players' && $d['totalplayers'] == $turndone['num'] && !$d['finished']) {
 				$db->query("UPDATE hz_games
-						 SET round=round+1, nextturn='z', turndate=now(),
-					   turncount=(turncount+1)%".TURN_COUNT."
-					   WHERE id=$game", __FILE__, __LINE__);
+							SET round=round+1, nextturn='z', turndate=now(),
+							turncount=(turncount+1)%".TURN_COUNT."
+							WHERE id=$game", __FILE__, __LINE__, 'turn_finalize()');
 
 				// add money and reset 'turndone'
 				if ($d['turncount']+1 == TURN_COUNT) $add = TURN_ADD_MONEY;
 					else $add = 0;
-				$db->query("UPDATE hz_players SET turndone='0', money=money+$add WHERE game=$game", __FILE__, __LINE__);
+				$db->query("UPDATE hz_players SET turndone='0', money=money+$add WHERE game=$game", __FILE__, __LINE__, 'turn_finalize()');
 
 				// Mr. Z benachrichtigen
-				$z = $db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type='z'", __FILE__, __LINE__);
-				Messagesystem::sendMessage($uid, $db->fetch($z), t('message-subject', 'hz'), t('message-your-turn', 'hz', [ SITE_URL, $game]));
+				$z = mysql_fetch_assoc($db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type='z' LIMIT 0,1", __FILE__, __LINE__, 'turn_finalize()'));
+				if (!empty($z) && is_numeric($z)) {
+					error_log("[INFO] turn_finalize() triggers sendMessage() for Mr.Z from uid=$uid to z=$z");
+					Messagesystem::sendMessage($uid, $z, t('message-subject', 'hz'), t('message-your-turn', 'hz', [ SITE_URL, $game]));
+				} else {
+					error_log('[ERROR] "Mr. Z benachrichtigen" failed because db->query() for z returned: '.$z);
+				}
 			}
 
 			if ($d['finished'])
@@ -487,7 +493,7 @@ function turn_finalize ($game, $uid=0) {
 				finish_mails($game);
 			}
 		} catch (Exception $e) {
-			user_error($e->getMessage(), E_USER_ERROR);
+			error_log($e->getMessage());
 		}
 	}else{
 		user_error(t('invalid-turn', 'hz', $game), E_USER_ERROR);
