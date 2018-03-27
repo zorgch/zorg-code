@@ -718,7 +718,7 @@ class Messagesystem {
 				)";
 			$db->query($sql, __FILE__, __LINE__, 'sendMessage()');
 		} catch (Exception $e) {
-			user_error($e->getMessage(), E_USER_WARNING);
+			error_log($e->getMessage());
 		}
 
 		/** Send E-Mail Notification */
@@ -727,19 +727,19 @@ class Messagesystem {
 			try {
 				Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
 			} catch (Exception $e) {
-				user_error($e->getMessage(), E_USER_NOTICE);
+				error_log($e->getMessage());
 			}
-	
+
 			/** Send Telegram Notification */
 			try {
 				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
 				Messagesystem::sendTelegramNotification($message, $owner);
 			} catch (Exception $e) {
-				user_error($e->getMessage(), E_USER_ERROR);
+				error_log($e->getMessage());
 			}
 		}
 	}
-	
+
 	/**
 	 * E-Mail Hinweis über neue Nachricht senden
 	 * 
