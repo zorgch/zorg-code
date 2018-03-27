@@ -476,12 +476,12 @@ function turn_finalize ($game, $uid=0) {
 				$db->query("UPDATE hz_players SET turndone='0', money=money+$add WHERE game=$game", __FILE__, __LINE__, 'turn_finalize()');
 
 				// Mr. Z benachrichtigen
-				$z = mysql_fetch_assoc($db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type='z' LIMIT 0,1", __FILE__, __LINE__, 'turn_finalize()'));
-				if (!empty($z) && is_numeric($z)) {
-					error_log("[INFO] turn_finalize() triggers sendMessage() for Mr.Z from uid=$uid to z=$z");
-					Messagesystem::sendMessage($uid, $z, t('message-subject', 'hz'), t('message-your-turn', 'hz', [ SITE_URL, $game]));
+				$z = $db->fetch($db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type='z' LIMIT 0,1", __FILE__, __LINE__, 'turn_finalize()'));
+				if (!empty($z['user']) && is_numeric($z['user'])) {
+					error_log("[INFO] turn_finalize() triggers sendMessage() for Mr.Z from uid=$uid to z=".$z['user']);
+					Messagesystem::sendMessage($uid, $z['user'], t('message-subject', 'hz'), t('message-your-turn', 'hz', [ SITE_URL, $game]));
 				} else {
-					error_log('[ERROR] "Mr. Z benachrichtigen" failed because db->query() for z returned: '.$z);
+					error_log('[ERROR] "Mr. Z benachrichtigen" failed because db->query() for z returned: '.$z['user']);
 				}
 			}
 
