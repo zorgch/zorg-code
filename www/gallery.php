@@ -31,7 +31,7 @@ echo menu("gallery");
 // Gallery nur für eingeloggte User anzeigen, siehe Bugtracker: http://www.zorg.ch/bugtracker.php?bug_id=708
 if ($user->typ == USER_NICHTEINGELOGGT)
 {
-	user_error( t('error-not-logged-in', 'gallery', SITE_URL), E_USER_NOTICE);
+	print( t('error-not-logged-in', 'gallery', SITE_URL) );
 
 } else {
 
