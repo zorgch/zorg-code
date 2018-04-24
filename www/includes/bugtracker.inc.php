@@ -32,8 +32,8 @@ Class Bugtracker {
 			// Validate & escape fields
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
 			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
-			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
-			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description']) : '' );
+			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? sanitize_userinput($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$bugDescription = ( !empty($_GET['description']) ? sanitize_userinput($_GET['description']) : '' );
 			
 			$sql =
 				"
@@ -200,8 +200,8 @@ Class Bugtracker {
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
 			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
-			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
-			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description']) : '' );
+			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? sanitize_userinput($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$bugDescription = ( !empty($_GET['description']) ? sanitize_userinput($_GET['description']) : '' );
 			
 			$sql =
 				"UPDATE bugtracker_bugs"
@@ -245,11 +245,12 @@ Class Bugtracker {
 		}
 
 		else if($_GET['action'] == 'newcategory') {
-			$categoryTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$title_sanitized = sanitize_userinput($_GET['title']);
+			$categoryTitle = ( isset($title_sanitized) && !empty($title_sanitized) ? $title_sanitized : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
 			
 			$sql =
 				"INSERT INTO bugtracker_categories (title)"
-				." VALUES('".$categoryTitle."')"
+				." VALUES('".$title_sanitized."')"
 			;
 			$db->query($sql, __FILE__, __LINE__);
 			header("Location: ".base64_decode($_GET['url']));

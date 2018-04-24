@@ -426,6 +426,22 @@ function escape_text($string) {
 
 
 /**
+ * Entferne in einem vom User eingegebenen String alle nicht sicheren Zeichen
+ *
+ * @author IneX
+ * @date 24.04.2018
+ * @see bugtracker.inc.php
+ *
+ * @param $string String Input which shall be sanitized
+ * @return string
+ */
+function sanitize_userinput($string, $allowable_tags = '') {
+	$s = mysql_real_escape_string(strip_tags($string, $allowable_tags));
+	return $s;
+}
+
+
+/**
 * Funktion liefert den Zeitunterschied zur GMT basis
 *
 * @author IneX
