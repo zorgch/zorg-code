@@ -97,6 +97,12 @@ return
 			 							<p>Bitte logge Dich ein oder <a href="%s/profil.php?do=anmeldung&menu_id=13">erstelle einen neuen Benutzer</a></p>'
 			,'permissions-insufficient' => 'Permission denied for <code>%s</code>'
 		]
+	,'bugtracker' =>
+		[
+			 'buglist-headline' =>  '<h2 style="text-align:left;">Bugs und Features Liste:</h2>'
+			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen:</h2>'
+			,'newcategory-headline' =>  '<h2>Neue Kategorie adden:</h2>'
+		]
 	,'addle' =>
 		[
 			'howto' => 'Ziel des Spiels Addle ist es, möglichst viele Punkte zu erzielen.<br>

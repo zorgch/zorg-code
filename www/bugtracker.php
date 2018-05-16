@@ -50,13 +50,14 @@ if($_GET['bug_id'] == '') {
 	
 	echo menu("zorg");
 	echo menu("utilities");
-	echo menu("admin");
+	if ($user->typ == USER_MEMBER) echo menu("admin");
 
 	echo '<h1>Bugtracker</h1>';
 
 	echo(
-		'<table class="border" style="border-collapse: collapse;" width="100%">'
+		 t('buglist-headline', 'bugtracker')
 		.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
+		.'<table class="border" style="border-collapse: collapse;" width="100%">'
 		.'<tr>'
 		.'<td valign="top"><b>Show:</b></td>'
 		.'<td>'
@@ -73,7 +74,7 @@ if($_GET['bug_id'] == '') {
 		.'<input name="show[]" type="checkbox" value="assigned" '.(in_array('assigned', $show) ? 'checked' : '').'>assigned'
 	);
 
-	if($user->id > 0) {
+	if($user->typ >= USER_USER) {
 		echo(
 			'<input name="show[]" type="checkbox" value="own" '.(in_array('own', $show) ? 'checked' : '').'>mine'
 			.'<input name="show[]" type="checkbox" value="notown" '.(in_array('notown', $show) ? 'checked' : '').'>not mine'
@@ -94,7 +95,7 @@ if($_GET['bug_id'] == '') {
 		.'</td>'
 	);*/
 
-	if($user->id > 0) {
+	if($user->typ >= USER_USER) {
 		echo(
 			'<td>'
 			.'<input name="show[]" type="checkbox" value="new" '.(in_array('new', $show) ? 'checked' : '').'>new'
@@ -109,14 +110,14 @@ if($_GET['bug_id'] == '') {
 		.'<input class="button" type="submit" value="refresh">'
 		.'</td>'
 		.'</tr>'
-		.'</form>'
 		.'</table>'
+		.'</form>'
 		.Bugtracker::getBugList($show, $_GET['order'])
-		.'<br />'
-		.Bugtracker::getFormNewBugHTML()
-		.'<br />'
-		.Bugtracker::getFormNewCategoryHTML()
 	);
+	
+	if($user->typ >= USER_USER) echo Bugtracker::getFormNewBugHTML();
+	
+	if($user->typ >= USER_MEMBER) echo Bugtracker::getFormNewCategoryHTML();
 
 // Bug ausgeben
 } else {
@@ -126,7 +127,7 @@ if($_GET['bug_id'] == '') {
 	
 	echo menu("zorg");
 	echo menu("utilities");
-	echo menu("admin");
+	if ($user->typ == USER_MEMBER) echo menu("admin");
 	echo '<h1>Bugtracker</h1>';
 
 	if($_GET['action'] == 'editlayout') {

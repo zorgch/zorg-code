@@ -521,81 +521,85 @@ Class Bugtracker {
 
 	/**
 	* Formular für neuen Bug generieren
-	* 
-	* @return string HTML-Code der Seite
+	* @return string HTML-Code für das Formular "Neuen Bug eintragen"
 	*/
 	function getFormNewBugHTML() {
+		global $user;
 
-		global $db, $user;
+		/** Formular nur Ausgeben für eingeloggte User oder Member */
+		if ($user->typ >= USER_USER)
+		{
+			$html =
+				 t('newbug-headline', 'bugtracker')
+				.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
+				.'<input name="action" type="hidden" value="new">'
+				.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+				.'<table>'
+					.'<tr>'
+						.'<td><strong>Bereich:</strong></td>'
+						.'<td>'.Bugtracker::getFormFieldCategory().'</td>'
+						.'<td rowspan="5" style="text-align:left; vertical-align:top; padding-left:20px;">'
+							.'<strong>Benachrichtigen:</strong><br />'
+							.$user->getFormFieldUserlist('msg_users[]', 20)
+						.'</td>'
+					.'</tr><tr>'
+						.'<td><strong>Titel:</strong></td>'
+						.'<td>'.Bugtracker::getFormFieldTitle().'</td>'
+					.'</tr><tr>'
+						.'<td><strong>Priorit&auml;t:</strong></td>'
+						.'<td>'.Bugtracker::getFormFieldPriority(3).'</td>'
+					.'</tr><tr>'
+						.'<td colspan="2">'.Bugtracker::getFormFieldDescription().'</td>'
+					.'</tr><tr>'
+						.'<td><input class="button" type="submit" value="Eintragen"></td>'
+					.'</tr>'
+				.'</table>'
+				.'</form>'
+			;
 
-		$html =
-			'<table>'
-			.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
-			.'<input name="action" type="hidden" value="new">'
-			.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-			.'<tr><td>'
-			.'Neuen Bug/Request eintragen:'
-			.'</td>'
-
-			.'</tr>'
-			.'<tr><td>'
-			.'Bereich: '
-			.Bugtracker::getFormFieldCategory()
-			.'</td>'
-			.'<td align="left" rowspan="5" valign="top">'
-			.'Benachrichtigen:<br />'
-			.$user->getFormFieldUserlist('msg_users[]', 20)
-			.'</td>'
-			.'</tr>'
-			.'<tr><td>'
-			.'Titel: '.Bugtracker::getFormFieldTitle()
-			.'</td></tr>'
-			.'<tr><td>'
-			.'Priorit&auml;t: '
-			.Bugtracker::getFormFieldPriority()
-			.'</td></tr>'
-			.'<tr><td>'
-			.Bugtracker::getFormFieldDescription()
-			.'</td></tr>'
-			.'<tr><td>'
-			.'<input class="button" type="submit" value="Eintragen">'
-			.'</td></tr>'
-			.'</form>'
-			.'</table>'
-		;
-
-		return $html;
+			return $html;
+		} else {
+			return false;
+		}
 	}
 
+	/**
+	* Formular für neue Kategorie generieren
+	* @return string HTML-Code für das Formular "Neue Kategorie hinzufügen"
+	*/
 	function getFormNewCategoryHTML() {
-
-		$html =
-			'<table>'
-			.'<form action="'.$_SERVER['PHP_SELF'].'" method="GET">'
-			.'<input name="action" type="hidden" value="newcategory">'
-			.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-			.'<tr><td>'
-			.'<b>Neue Kategorie hinzuf&uuml;gen:'
-			.'</td></tr>'
-			.'<tr><td>'
-			.'<input class="text" name="title" maxlength="40" size="40" type="text" value="'.$rs['title'].'">'
-			.'<input class="button" type="submit" value="Add">'
-			.'</td></tr>'
-			.'</form>'
-			.'</table>'
-		;
-
-		return $html;
+		global $user;
+		
+		/** Formular nur Ausgeben für eingeloggte Member (normale User nicht) */
+		if ($user->typ >= USER_MEMBER)
+		{
+			$html =
+				 t('newcategory-headline', 'bugtracker')
+				.'<form action="'.$_SERVER['PHP_SELF'].'" method="GET">'
+				.'<input name="action" type="hidden" value="newcategory">'
+				.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+				.'<table>'
+					.'<tr>'
+						.'<td><input class="text" name="title" maxlength="40" size="40" type="text" value="'.$rs['title'].'" placeholder="Kategorie-Bezeichnung"></td>'
+						.'<td><input class="button" type="submit" value="Add"></td>'
+					.'</tr>'
+				.'</table>'
+				.'</form>'
+			;
+	
+			return $html;
+		} else {
+			return false;
+		}
 	}
 
 	function getFormActionsHTML($rs) {
-
 		global $user;
 		
 		$html = '';
 		
-		// Formular nur anzeigen, wenn User ein Member ist
-		if($user->typ == USER_MEMBER) {
+		/** Formular nur Ausgeben für eingeloggte Member (normale User nicht) */
+		if($user->typ >= USER_MEMBER) {
 		
 			$html .=
 				'<table>'
@@ -646,7 +650,7 @@ Class Bugtracker {
 	static function getNumOwnBugs () {
 		global $db, $user;
 
-		if ($user->typ == USER_MEMBER) {
+		if ($user->typ >= USER_MEMBER) {
 			$sql =
 					"SELECT count(*) as num FROM bugtracker_bugs"
 					." WHERE assignedto_id = ".$user->id
@@ -662,7 +666,7 @@ Class Bugtracker {
 	static function getNumOpenBugs () {
 		global $db, $user;
 
-		if ($user->typ == USER_MEMBER) {
+		if ($user->typ >= USER_MEMBER) {
 		$sql = "SELECT count(*) as num FROM bugtracker_bugs WHERE assignedto_id = 0";
 			$result = $db->query($sql, __FILE__, __LINE__);
 		  $rs = $db->fetch($result);
@@ -674,7 +678,7 @@ Class Bugtracker {
 	static function getNumNewBugs () {
 		global $db, $user;
 
-		if ($user->typ == USER_MEMBER) {
+		if ($user->typ >= USER_MEMBER) {
 			$sql =
 				"
 				SELECT count(*) as num FROM bugtracker_bugs
@@ -758,7 +762,7 @@ Class Bugtracker {
 	}
 
 	function getFormFieldDescription($description='') {
-		return '<textarea cols="50" name="description" rows="15">'.$description.'</textarea>';
+		return '<textarea name="description" placeholder="Beschreibung" cols="60" rows="15" style="width:100%;">'.$description.'</textarea>';
 	}
 
 	function getFormFieldPriority($priority=4) {
@@ -772,7 +776,7 @@ Class Bugtracker {
 	}
 
 	function getFormFieldTitle($title='') {
-		return '<input class="text" name="title" type="text" value="'.$title.'">';
+		return '<input class="text" name="title" type="text" value="'.$title.'" style="width:100%;">';
 	}
 
 	function getPriorityDescription($priority_id) {

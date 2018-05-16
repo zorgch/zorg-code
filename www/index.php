@@ -8,12 +8,16 @@ require_once( dirname(__FILE__) . '/includes/main.inc.php');
  * Parse URL-Routes & Query Parameters
  * @TODO Route-Switch ist dirty - muss challenged werden & braucht wahrscheinlich refactoring!
  * @TODO Event geht nur wenn /year/month/day/event(id) mitgegeben wird
+ *
+ * @see .htaccess
  */
 if (!empty(key($_GET)))
 {
 	$routeSwitch = key($_GET);
 	$routeValue = $_GET[$routeSwitch];
 	switch ($routeSwitch) {
+
+		/** Route: /user/[user-id|username] */
 		case 'username':
 				$getUserId = ( is_numeric($routeValue) ? $routeValue : $user->user2id($routeValue) );
 				if (!empty($getUserId))
@@ -21,11 +25,24 @@ if (!empty(key($_GET)))
 					include('profil.php');
 					die();
 			break;
+
+		/** Route: /bug/[bug-id] */
+		case 'bug':
+				if ( is_numeric($routeValue) ) $getBugId = $routeValue;
+				if (!empty($getBugId))
+					$_GET['bug_id'] = $getBugId;
+					include('bugtracker.php');
+					die();
+			break;
+
+		/** Route: /event/[year]/[month]/[day]/[event-id|eventname] */
 		case 'event':
 				// 158 = Event Template
 				$_GET['tpl'] = 158;
 				$_GET['event_id'] = $routeValue;
 			break;
+
+		/** Route: /word/[pagetitle] */
 		case 'word':
 				$_GET['word'] = $routeValue;
 			break;
