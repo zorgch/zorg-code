@@ -24,7 +24,7 @@ function getPoll ($id) {
 		LEFT JOIN poll_votes tot ON v.poll=p.id
 		WHERE id=$id
 		GROUP BY p.id",
-		__FILE__, __LINE__
+		__FILE__, __LINE__, __FUNCTION__
 	));
 	
 	if (!$poll) {
@@ -54,7 +54,7 @@ function getPoll ($id) {
 			"<tr><td><img src='/images/pixel_border.gif' height='1' width='100%'></td></tr>";
 	;
 	
-	$e = $db->query("SELECT count(user) anz FROM poll_votes WHERE poll=$poll[id] GROUP BY answer", __FILE__, __LINE__);
+	$e = $db->query("SELECT count(user) anz FROM poll_votes WHERE poll=$poll[id] GROUP BY answer", __FILE__, __LINE__, __FUNCTION__);
 	$maxvotes = 0;
 	while ($d = $db->fetch($e)) if ($maxvotes < $d['anz']) $maxvotes = $d['anz'];
 		
@@ -66,7 +66,7 @@ function getPoll ($id) {
 		WHERE a.poll=$poll[id]
 		GROUP BY a.id
 		ORDER BY a.id",
-		__FILE__, __LINE__
+		__FILE__, __LINE__, __FUNCTION__
 	);
 	
 	if ($display == "vote") {
@@ -102,7 +102,7 @@ function getPoll ($id) {
 			}
 			
 			if ($poll['type'] == "member") {
-				$v_e = $db->query("SELECT u.username FROM user u, poll_votes v WHERE v.user=u.id AND v.answer=$aw[id]", __FILE__, __LINE__);
+				$v_e = $db->query("SELECT u.username FROM user u, poll_votes v WHERE v.user=u.id AND v.answer=$aw[id]", __FILE__, __LINE__, __FUNCTION__);
 				$voters = "";
 				while ($v = $db->fetch($v_e)) $voters .= "$v[username], ";
 				

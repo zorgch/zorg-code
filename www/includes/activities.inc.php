@@ -31,8 +31,10 @@ require_once( __DIR__.'/usersystem.inc.php');
  * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
  *
  * @author		IneX
+ * @date		13.09.2009
  * @date		18.08.2012
- * @version		2.0
+ * @date		16.05.2018
+ * @version		3.0
  * @package		Zorg
  * @subpackage	Activities
  */
@@ -44,7 +46,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$owner			User ID von welchem die Activities ausgegeben werden sollen (Default = alle)
 	 * @param	integer	$start			Von welchem Datensatz aus die Activites ausgegeben werden sollen
@@ -77,7 +79,7 @@ class Activities
 		}
 		$sql .= $sql_WHERE . " LIMIT $start,$limit";
 		
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		
 		while($rs = $db->fetch($result)) {
 			$activities[] = $rs;
@@ -92,17 +94,18 @@ class Activities
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
-	 * @version	1.0
-	 * @since	1.0
+	 * @version	2.0
+	 * @since	1.0 initial release
+	 * @since	2.0 added Telegram Notification for new Activities
 	 *
 	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat
 	 * @param	integer	$forUserID		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
 	 * @param	string	$activity		Activity-Nachricht, welche ausgelöst wurde
+	 * @param	string	$activityArea	Activity-Area, Bereich zu dessen die Activity ausgelöst wurde
 	 * @global	array	$db				Array mit allen MySQL-Datenbankvariablen
 	 * @global	array	$user			Array mit allen Uservariablen
 	 * 
 	 * @see		checkAllowActivities()
-	 * @todo	Würde es Sinn machen, noch die Activity-Area zu speichern?
 	 */
 	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL)
 	{
@@ -116,7 +119,7 @@ class Activities
 					VALUES
 						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
 					";
-			$db->query($sql, __FILE__, __LINE__);
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			
 			Messagesystem::sendTelegramNotification( '<b>' . $user->id2user($fromUser, TRUE) . '</b> ' . $activity );
 		//}
@@ -125,12 +128,41 @@ class Activities
 	
 	
 	/**
+	 * Activity aktualisieren
+	 *
+	 * @author	IneX
+	 * @date	16.05.2018
+	 * @version	1.0
+	 * @since	1.0 initial release
+	 *
+	 * @param	integer	$activityID	ID der Activity, welche aktualisiert werden soll
+	 * @global	array	$user		Array mit allen Uservariablen
+	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
+	 * @return	boolean				Gibt TRUE oder FALSE zurück
+	 */
+	static public function updateActivity ($activityID)
+	{
+		global $db, $user;
+		
+		if($user->id == getActivityOwner($activityID))
+		{
+		  	$sql = "INSERT INTO activities
+						(date, activity_area, from_user_id, owner, activity)
+					VALUES
+						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
+					";
+		  	return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? TRUE : FALSE );
+		}
+	}
+
+
+	/**
 	 * Activity entfernen
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche entfernt werden soll
 	 * @global	array	$user		Array mit allen Uservariablen
@@ -149,7 +181,7 @@ class Activities
 		  				id = ".$activityID." AND
 		  				owner = ".$user->id
 		  			;
-		  	if ($db->query($sql, __FILE__, __LINE__)) return TRUE; else return FALSE;
+		  	return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? TRUE : FALSE );
 		}
 	}
 	
@@ -160,7 +192,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche bewertet werden soll
 	 * @param	string	$rating		Bewertungstext der Activity - MAXIMAL 20 Zeichen!
@@ -189,7 +221,7 @@ class Activities
 								 $user->id,
 								 ".addslashes(stripslashes($rating)).")
 						";
-				$db->query($sql, __FILE__, __LINE__);
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			}
 		}
 		
@@ -202,7 +234,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche bewertet werden soll
 	 * @global	array	$db			Array mit allen MySQL-Datenbankvariablen
@@ -222,7 +254,7 @@ class Activities
 						activity_id = ".$activityID." AND
 		  				user_id = ".$user->id
 					;
-			$db->query($sql, __FILE__, __LINE__);
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 		
 	}
@@ -234,7 +266,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche überprüft werden soll
 	 * @param	integer	$userID		Benutzer ID welcher eine Bewertung abgeben möchte
@@ -251,8 +283,8 @@ class Activities
 				WHERE
 					activity_id = ".$activityID." AND user_id =".$userID
 				;
-		$rs = $db->num($db->query($sql, __FILE__, __LINE__));
-		return ($rs > 0) ? TRUE : FALSE;
+		$rs = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		return ( $rs > 0 ? TRUE : FALSE );
 	}
 	
 	
@@ -263,7 +295,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity deren Owner ermittelt werden soll
 	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
@@ -280,7 +312,7 @@ class Activities
 				WHERE
 					id = ".$activityID."
 				";
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		return $rs['owner'];
 	}
 	
@@ -291,7 +323,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$userID	Wenn angegeben, werden nur die Activities diesesn Benutzers gezählt
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
@@ -309,7 +341,7 @@ class Activities
 		
 		if ($userID > 0) $sql .= "WHERE owner = ".$userID;
 		
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		return $rs['num'];
 	}
 	
@@ -321,7 +353,7 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	1.0
-	 * @since	1.0
+	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$userID	Benutzer ID für welchen die Einstellung überprüft werden muss
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
@@ -339,7 +371,7 @@ class Activities
 					id = ".$userID." AND
 					activities_allow = 1
 				";
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		return ($rs['activities_allow'] == 1) ? TRUE : FALSE;
 	}
 	
@@ -351,7 +383,7 @@ class Activities
 	 * @author	IneX
 	 * @date	18.08.2012
 	 * @version	1.0
-	 * @since	2.0
+	 * @since	2.0 initial release
 	 *
 	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
 	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
@@ -418,5 +450,3 @@ class Activities
 }
 
 //$activities = new Activities();
-
-?>

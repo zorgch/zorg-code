@@ -91,6 +91,20 @@ return
 			,'message-newcomment-subscribed' => '%s hat einen Post commented welchen Du abonniert hast:
 												<p><a href="%s">%s &raquo;</a></p>'
 		]
+	,'tpl' =>
+		[
+			 'created' =>  'Neue Seite wurde erstellt. ID: %d.<br />'
+			,'updated' => "Seite '%d' erfolgreich aktualisiert.<br />"
+			,'deleted' => "Seite '%d' wurde <strong>gelöscht</strong>.<br />"
+			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br />'
+			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br />'
+			,'invalid-border' => 'Ungültiger Rahmen-Typ.<br />'
+			,'error-empty' => 'Bitte keine leeren Seiten. <br />'
+			,'error-word-toolong' => "Word '%s' ist zu lang. Max. 30 Zeichen!<br/>"
+			,'error-word-validation' => "Ungültige Zeichen im Word '%s'. Erlaubt sind nur: a-z, A-Z, 0-9, _, -<br />"
+			,'error-package-missing' => 'Package <i>%s</i> existiert nicht.<br />'
+			,'activity-newpage' =>  'hat die Seite <a href="/tpl/%d">%s</a> erstellt.'
+		]
 	,'gallery' =>
 		[
 			 'error-not-logged-in' =>  '<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
@@ -102,6 +116,7 @@ return
 			 'buglist-headline' =>  '<h2 style="text-align:left;">Bugs und Features Liste:</h2>'
 			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen:</h2>'
 			,'newcategory-headline' =>  '<h2>Neue Kategorie adden:</h2>'
+			,'activity-newbug' =>  'hat den Bug <a href="/bug/%d">%s</a> gemeldet.'
 		]
 	,'addle' =>
 		[

@@ -6,17 +6,18 @@ Class Quotes {
 
 		global $db, $user;
 
-		if($_POST['action'] == 'benoten' && $_POST['score'] != '') {
+		if($_POST['action'] == 'benoten' && $_POST['score'] != '')
+		{
 
-	  	$sql =
-	  		"REPLACE INTO quotes_votes (quote_id, user_id, score) "
-	  		." VALUES ("
-	  		.$_POST['quote_id']
-	  		.', '.$user->id
-	  		.', '.$_POST['score']
-	  		.")"
-	  	;
-	  	$db->query($sql, __FILE__, __LINE__);
+		  	$sql =
+		  		"REPLACE INTO quotes_votes (quote_id, user_id, score) "
+		  		." VALUES ("
+		  		.$_POST['quote_id']
+		  		.', '.$user->id
+		  		.', '.$_POST['score']
+		  		.")"
+		  	;
+		  	$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			header("Location: ".base64_decode($_POST['url']));
 		}
 	}
@@ -94,8 +95,8 @@ Class Quotes {
 			." FROM quotes_votes"
 			." WHERE quote_id = ".$quote_id
 		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		$rs = $db->fetch($result, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$rs = $db->fetch($result, __FILE__, __LINE__, __METHOD__);
 
 		return $rs['score'];
 	}
@@ -110,7 +111,7 @@ Class Quotes {
 			"SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd"
 			." FROM periodic p, quotes"
 			." WHERE p.name='daily_quote' AND p.id=quotes.id";
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		$rs = $db->fetch($result);
 
@@ -125,9 +126,9 @@ Class Quotes {
 			." FROM quotes_votes"
 			." WHERE quote_id = ".$quote_id
 		;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-		return $db->num($result, __FILE__, __LINE__);
+		return $db->num($result, __FILE__, __LINE__, __METHOD__);
 	}
 
 	static function getScorebyUser($quote_id, $user_id) {
@@ -138,8 +139,8 @@ Class Quotes {
 			." FROM quotes_votes"
 			." WHERE quote_id = ".$quote_id." AND user_id =".$user_id
 		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		$rs = $db->fetch($result, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$rs = $db->fetch($result, __FILE__, __LINE__, __METHOD__);
 
 		return $rs['score'];
 	}
@@ -152,9 +153,9 @@ Class Quotes {
 			." FROM quotes_votes"
 			." WHERE quote_id = '".$quote_id."' AND user_id =".$user_id
 		;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-		return $db->num($result, __FILE__, __LINE__);
+		return $db->num($result, __FILE__, __LINE__, __METHOD__);
 	}
 
 	static function isDailyQuote($id) {
@@ -163,7 +164,7 @@ Class Quotes {
 		$sql =	"SELECT * FROM periodic
 				WHERE date = NOW() AND name = 'daily_quote'";
 
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 		return $rs['id'] == $id;
 	}
@@ -173,7 +174,7 @@ Class Quotes {
 
 		try {
 			// anzahl quotes ermitteln
-			$result = $db->query("SELECT * FROM quotes", __FILE__, __LINE__, 'Quotes::newDailyQuote()');
+			$result = $db->query("SELECT * FROM quotes", __FILE__, __LINE__, __METHOD__);
 			$count = $db->num($result);
 
 			// zufaellige quote-id holen
@@ -189,12 +190,12 @@ Class Quotes {
 				ORDER BY score ASC
 				LIMIT ".$id.", 1
 			";
-			$result = $db->query($sql, __FILE__, __LINE__);
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$rs = $db->fetch($result);
 
 			// Quote in die daily tabelle tun
 			$sql = "REPLACE INTO periodic (name, id, date) VALUES ('daily_quote', ".$rs['id'].", NOW())";
-			$db->query($sql, __FILE__, __LINE__);
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			
 			// Notification auslösen
 			Messagesystem::sendTelegramNotification( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.$user->id2user($rs['user_id'], TRUE).'</i>' );
