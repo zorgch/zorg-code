@@ -121,20 +121,20 @@ function smartyresource_tpl_get_template ($tpl_name, &$tpl_source, &$smarty) {
   $d = mysql_fetch_array($e);
 
   if ($d) {
-     if ($d[border] == 0) {
+     if ($d['border'] == 0) {
         $class = "";
         $footer = "";
-     }else if ($d[border] == 1) {
+     }else if ($d['border'] == 1) {
         $class = 'class="border"';
         $footer = '<tr><td bgcolor="{$color.border}">{include file="file:tplfooter.html"}</td></tr>';
-     }else if ($d[border] == 2) {
+     }else if ($d['border'] == 2) {
         $class = 'class="border"';
         $footer = "";
      }
 
 
-     if ($d[error]) $output = "{literal} $d[error]<br />{/literal}{edit_link}[edit]{/edit_link}";
-     else $output = $d[tpl];
+     if ($d['error']) $output = "{literal} $d[error]<br />{/literal}{edit_link}[edit]{/edit_link}";
+     else $output = $d['tpl'];
 
 
      $tpl_source = stripslashes(
