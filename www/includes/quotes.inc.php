@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Quotes Class
+ * 
+ * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
+ *
+ * @author		[z]milamber
+ * @author		IneX
+ * @version		2.0
+ * @since		1.0
+ * @since		2.0 added Telegram Notification for new Daily Quote
+ * @package		Zorg
+ * @subpackage	Quotes
+ */
 Class Quotes {
 
 	static function execActions() {
@@ -169,6 +182,14 @@ Class Quotes {
 		return $rs['id'] == $id;
 	}
 
+	/**
+	 * Quote of the Day
+	 * Generates a new Daily Quote
+	 *
+	 * @version 2.0
+	 * @since 1.0
+	 * @since 2.0 added Telegram Notification for new Daily Quote
+	 */
 	static function newDailyQuote() {
 		global $db, $user;
 
@@ -197,8 +218,8 @@ Class Quotes {
 			$sql = "REPLACE INTO periodic (name, id, date) VALUES ('daily_quote', ".$rs['id'].", NOW())";
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			
-			// Notification auslösen
-			Messagesystem::sendTelegramNotification( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.$user->id2user($rs['user_id'], TRUE).'</i>' );
+			/** Send new Daily Quote as Telegram Message */
+			Messagesystem::sendTelegramNotificationGroup( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.$user->id2user($rs['user_id'], TRUE).'</i>' );
 			
 			return true;
 		}
@@ -209,4 +230,3 @@ Class Quotes {
 		}
 	}
 }
-?>

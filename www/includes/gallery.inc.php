@@ -1451,11 +1451,15 @@ function getRandomThumb() {
  *
  * @author ?
  * @author IneX
- * @since 1.0
- * @version 2.0
  * @date 19.03.2018
+ * @version 2.0
+ * @since 1.0
+ * @since 2.0 added Telegram Notification (photo message)
+ * @since 3.0 Telegram will send now high-res photo, instead of low-res thumbnail
  *
- * @see SITE_URL, imgsrcThum(), Messagesystem::sendTelegramPhoto()
+ * @see SITE_URL
+ * @see imgsrcThum()
+ * @see Messagesystem::sendTelegramNotificationGroup()
  * @global $db MySQL-Datenbank Objekt aus mysql.inc.php
  * @global $user User-Objekte aus usersystem.inc.php
  */
@@ -1464,28 +1468,35 @@ function getDailyThumb () {
 	$name = 'daily_pic';
 
 	try {
-		/** Check if current Daily Pic is still from Today */
+		/**
+		 * Check if current Daily Pic is still from Today…
+		 */
 		$e = $db->query("SELECT g.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
 								FROM periodic p, gallery_pics g
-								WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__, 'getDailyThumb()');
+								WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 
-		/** If current Daily Pic is old - generate a new one: */
-		if (!$d || $d['upd']) {
+		/**
+		 * If current Daily Pic is old - generate a new one:
+		 */
+		if (!$d || $d['upd'])
+		{
 			/** Randomly get new Gallery-Pic */
-			$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
+			$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__, __FUNCTION__);
 			$d = $db->fetch($e);
 			/** Add the new Daily-Pic into the periodic Database-Table */
-			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__);
+			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
+			if (DEVELOPMENT) error_log("[DEBUG] ".__FUNCTION__." new Daily Pic generated: ".$d['id']);
 
 			// Notification auslösen
-			// url = URL to the Pic, caption = "Daily Pic(: Title - if available)"
-			$imgUrl = SITE_URL.imgsrcThum($d['id']);
+			// url = URL to the Pic, caption = "Daily Pic(: Title - if available) [<a href="img-url">aluegä</a>]"
+			$imgUrl = SITE_URL.imgsrcPic($d['id']);
 			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
-			Messagesystem::sendTelegramPhoto( array('url' => $imgUrl, 'caption' => $imgCaption) );
+			Messagesystem::sendTelegramNotificationGroup( $imgCaption, $imgUrl );
 		}
 
 		return formatGalleryThumb($d);
+
 	} catch (Exception $e) {
 		error_log($e->getMessage());
 	}

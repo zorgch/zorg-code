@@ -16,6 +16,7 @@ require_once( __DIR__ .'/util.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
 require_once( __DIR__ .'/strings.inc.php');
 require_once( __DIR__ .'/activities.inc.php');
+//require_once( __DIR__ .'/main.inc.php');
 
 /**
  * Defines
@@ -36,6 +37,7 @@ define("USER_OLD_AFTER", 60*60*24*30*3); // 3 Monate
 define("DEFAULT_MAXDEPTH", 10);
 define("AUSGESPERRT_BIS", "ausgesperrt_bis");
 //if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
+if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
 
 /**
  * Usersystem Klasse
@@ -471,7 +473,7 @@ class usersystem {
 							chmod($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
 
 							//email versenden
-							@mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), "From: ".ZORG_EMAIL."\n");
+							@mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.ZORG_EMAIL."\n");
 
 							$error = t('account-confirmation', 'user');
 						} else {
@@ -1072,30 +1074,31 @@ class usersystem {
 	}
 	
 	/**
-	* Get User Telegram Chat-ID
-	*
-	* Prüft ob der User-ID einen Telegram Messenger Chat-ID eingetragen hat
-	*
-	* @author IneX
-	* @date 22.01.2017
-	* @since 4.0
-	* @version 1.0
-	*
-	* @param $user_id interger User-ID
-	* @return integer The User's Telegram Chat-ID
-	*/
+	 * Get User Telegram Chat-ID
+	 *
+	 * Prüft ob der User-ID einen Telegram Messenger Chat-ID eingetragen hat
+	 * -> wenn ja, wird die Telegram Chat-ID zurückgegeben
+	 *
+	 * @author IneX
+	 * @date 22.01.2017
+	 * @since 4.0
+	 * @version 2.0
+	 *
+	 * @param $user_id interger User-ID
+	 * @return integer The User's Telegram Chat-ID
+	 */
 	function userHasTelegram($user_id)
 	{
 		global $db;
-		
+
 		try {
-			$query = $db->query('SELECT telegram_chat_id FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__);
+			$query = $db->query('SELECT telegram_chat_id tci FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
 			$result = $db->fetch($query);
-			if ($result) return $result['telegram_chat_id'];
-			else return false;
+			return ( $result ? $result['tci'] : false );
 		}
 		catch(Exception $e) {
-			return $e->getMessage();
+			error_log($e->getMessage());
+			return false;
 		}
 	}
 }

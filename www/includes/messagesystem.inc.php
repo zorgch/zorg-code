@@ -34,8 +34,9 @@ include_once( __DIR__ . '/strings.inc.php');
  * In dieser Klasse befinden sich alle Funktionen zum Senden & Verwalten der Nachrichten
  *
  * @author		[z]milamber
- * @date		
- * @version		2.0
+ * @author		IneX
+ * @date		25.05.2018
+ * @version		3.0
  * @package		Zorg
  * @subpackage	Messagesystem
  */
@@ -195,13 +196,13 @@ class Messagesystem {
 		global $db;
 
 		$sql = "SELECT id, owner FROM messages where id = ".$messageid;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 		if($rs['owner'] == $deleter_userid) {
 		$sql =
 			"DELETE FROM messages WHERE id = ".$messageid
 		;
-		$db->query($sql, __FILE__, __LINE__);
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 	}
 
@@ -225,7 +226,7 @@ class Messagesystem {
 		{
 			$sql =
 				"UPDATE messages SET isread='0' WHERE isread='1' AND id=$messageid AND owner=$userid";
-			$db->query($sql, __FILE__, __LINE__);
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 	}
 	
@@ -249,7 +250,7 @@ class Messagesystem {
 		{
 			$sql =
 				"UPDATE messages SET isread='1' WHERE isread='0' AND owner=$userid";
-				$db->query($sql, __FILE__, __LINE__);
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 	}
 	
@@ -386,7 +387,7 @@ class Messagesystem {
 		LIMIT ".($page-1) * $pagesize.",".$pagesize
 	  ;
 
-	  $result = $db->query($sql, __FILE__, __LINE__);
+	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 	  $html .=
 		'<form name="inboxform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="POST">'
 		//.'<input name="do" type="hidden" value="delete_messages">'
@@ -461,7 +462,7 @@ class Messagesystem {
 			FROM messages where owner = ".$user->id."
 			AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id
 		  ;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		$numpages = ceil($rs['num'] / $pagesize); // number of pages
 		  $html .= '<b>Pages: ';
 		  for($j = 1; $j <= $numpages; $j++) {
@@ -511,7 +512,7 @@ class Messagesystem {
 
 		if ($user->typ != USER_NICHTEINGELOGGT) {
 			$sql = "SELECT count(*) as num FROM messages WHERE owner = ".$user->id." AND isread = '0'";
-			$result = $db->query($sql, __FILE__, __LINE__);
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$rs = $db->fetch($result);
 
 			return $rs['num'];
@@ -546,7 +547,7 @@ class Messagesystem {
 		LEFT JOIN user ON (messages.from_user_id = user.id)
 		WHERE messages.id = ".$id
 	  ;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 	  if ($rs['owner'] == $user->id) {
 		  $html .=
@@ -595,7 +596,7 @@ class Messagesystem {
 
 		  // Als gelesen markieren
 			$sql = "UPDATE messages set isread = '1' where id = $id;";
-			$db->query($sql, __FILE__, __LINE__);
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 	  } else {
 		$html = t('invalid-permissions', 'messagesystem');
 	  }
@@ -633,7 +634,7 @@ class Messagesystem {
 			." ORDER BY id desc"
 			." LIMIT 0,1"
 		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 		return $rs['id'];
 	}
@@ -666,7 +667,7 @@ class Messagesystem {
 			." ORDER BY id desc"
 			." LIMIT 0,1"
 		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 		return $rs['id'];
 	}
@@ -676,13 +677,14 @@ class Messagesystem {
 	 * Persönliche Nachricht senden
 	 * 
 	 * Speichert die gesendete Nachricht im Postfach des Empfängers und meinem Postausgang
-	 * Neu: verschickt eine Notification über die neue Nachricht per E-Mail
-	 * Neu 2: ...und per Telegram Messenger
 	 * 
 	 * @author [z]milamber
 	 * @author IneX
 	 * @date 17.03.2018
 	 * @version 3.0
+	 * @since 1.0
+	 * @since 2.0 verschickt eine Notification über die neue Nachricht per E-Mail
+	 * @since 3.0 verschickt eine Notification per Telegram Messenger
 	 *
 	 * @param integer	$from_user_id User-ID des Senders
 	 * @param integer	$owner User-Id des Nachrichten-Owners
@@ -716,7 +718,7 @@ class Messagesystem {
 					,'$isread'
 					,'".$to_users."'
 				)";
-			$db->query($sql, __FILE__, __LINE__, 'sendMessage()');
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		} catch (Exception $e) {
 			error_log($e->getMessage());
 		}
@@ -733,7 +735,7 @@ class Messagesystem {
 			/** Send Telegram Notification */
 			try {
 				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
-				Messagesystem::sendTelegramNotification($message, $owner);
+				Messagesystem::sendTelegramNotificationUser($message, $owner);
 			} catch (Exception $e) {
 				error_log($e->getMessage());
 			}
@@ -786,187 +788,172 @@ class Messagesystem {
 			
 	}
 
+
 	/**
-	 * Get (List of) Users Telegram Messenger Chat-ID, where available
+	 * Send Telegram Messenger Notification to a User
+	 * Schickt eine Notification an einen Telegram Chat eines einzelnen Users
 	 *
 	 * @author	IneX
-	 * @date	17.03.2018
-	 * @version	2.0
-	 * @since	2.0
+	 * @date	25.05.2018
+	 * @version	1.0
+	 * @since	3.0
 	 *
-	 * @TODO Should this - in some cases - return a list of multiple IDs, not only a single user's Chat-ID?
-	 *
-	 * @param 	integer $userid User-ID (numeric String or Array) dessen Chat-ID ermittelt werden soll
-	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
-	 * @return	array			Returns list with Telegram Chat-IDs from User-Table
+	 * @see usersystem::userHasTelegram()
+	 * @see Messagesystem::sendTelegramMessage()
+	 * @see Messagesystem::sendTelegramPhoto()
+	 * @param	integer	$to_user_id			User-Id des Empfängers
+	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
+	 * @param	string	$imageUrl			(Optional) URL to an Image to send along the Message
+	 * @global	array	$user				Globales Array mit den User-Variablen
 	 */
-	static public function getUserTelegramChatId($userid)
+	static public function sendTelegramNotificationUser($notificationText, $to_user_id, $imageUrl='')
 	{
-		global $db;
-		
-		try {
-			if (isset($userid) && $userid > 0 && is_numeric($userid))
+		global $user;
+
+		/** Get the Telegram Chat-IDs */
+		if (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id))
+		{
+			/** For a specific (list of) User-ID - only if Telegram-Notifications enabled */
+			$telegramChatIds = $user->userHasTelegram($to_user_id);
+
+			if (!empty($telegramChatIds))
 			{
-				$sql = "SELECT
-							telegram_chat_id
-						FROM
-							user
-						WHERE
-							telegram_chat_id IS NOT NULL
-							AND id = $userid
-						LIMIT 0,1";
-				$telegramChatIds = mysql_fetch_assoc($db->query($sql, __FILE__, __LINE__, 'Messagesystem::getUserTelegramChatId()'));
+				if (DEVELOPMENT) error_log("[DEBUG] Found USER Telegram Chat-ID: $telegramChatIds");
+				$notificationText_formatted = Messagesystem::getFormattedTelegramNotificationText($notificationText);
 
-				//$result = $db->query($sql, __FILE__, __LINE__);
-				//while($rs = $db->fetch($result)) {
-				//	$telegramChatIds[] = $rs['telegram_chat_id'];
-				//}
-				/** Cleanup Array by removing possible duplicate Chat-IDs */
-				//$telegramChatIds = array_unique($telegramChatIds);
-
-				if (!empty($telegramChatIds))
-				{
-					return $telegramChatIds;
-				} else {
-					return false;
-				}
+				/** Trigger Notification */
+				if (!empty($sendPhoto)) Messagesystem::sendTelegramPhoto(['caption' => $notificationText_formatted, 'url' => $imageUrl], $telegramChatIds);
+				else Messagesystem::sendTelegramMessage($notificationText_formatted, $telegramChatIds);
 
 			} else {
+				if (DEVELOPMENT) error_log("[DEBUG] NO Telegram Chat-ID found for USER $to_user_id");
 				return false;
 			}
 
-		} catch (Exception $e) {
-			user_error($e->getMessage(), E_USER_WARNING);
+		} else {
+			error_log( t('invalid-userid', 'messagesystem') );
+			return false;
 		}
+
 	}
 
+
 	/**
-	 * Notfication via Telegram Messenger
+	 * Send Telegram Messenger Notification to a Group
+	 * Schickt eine Notification an einen Telegram Gruppenchat (mehrere User)
+	 *     Default: TELEGRAM_GROUPCHAT_ID
+	 *
+	 * @author	IneX
+	 * @date	25.05.2018
+	 * @version	1.0
+	 * @since	3.0
+	 *
+	 * @see $botconfigs
+	 * @see Messagesystem::sendTelegramMessage()
+	 * @see Messagesystem::sendTelegramPhoto()
+	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
+	 * @param	string	$imageUrl			(Optional) URL to an Image to send along the Message
+	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
+	 */
+	static public function sendTelegramNotificationGroup($notificationText, $imageUrl='')
+	{
+		global $botconfigs;
+
+		/** Get Telegram Group Chat ID */
+		if (defined('TELEGRAM_GROUPCHAT_ID'))
+		{
+			$telegramChatIds = TELEGRAM_GROUPCHAT_ID;
+			
+			if (!empty($telegramChatIds))
+			{
+				if (DEVELOPMENT) error_log("[DEBUG] Found GROUP Telegram Chat-ID: $telegramChatIds");
+				$notificationText_formatted = Messagesystem::getFormattedTelegramNotificationText($notificationText);
+
+				/** Trigger Notification */
+				if (!empty($imageUrl)) Messagesystem::sendTelegramPhoto(['caption' => $notificationText_formatted, 'url' => $imageUrl], $telegramChatIds);
+				else Messagesystem::sendTelegramMessage($notificationText_formatted, $telegramChatIds);
+
+			} else {
+				error_log( t('invalid-telegram-chatid', 'messagesystem') );
+				return false;
+			}
+		} else {
+			return false;
+		}
+
+	}
+
+
+	/**
+	 * Send a Message via Telegram Messenger
 	 * Schickt eine Notification an die Telegram Chats von Usern
 	 *
 	 * @author	IneX
 	 * @date	17.03.2018
-	 * @version	2.0
+	 * @version	3.0
 	 * @since	2.0
+	 * @since	3.0
 	 *
 	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
 	 *
-	 * @see Messagesystem::getUserTelegramChatId()
+	 * @link https://core.telegram.org/bots/api#sendmessage
+	 * @see Messagesystem::getFormattedTelegramNotificationText()
 	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
-	 * @param	integer	$to_user_id			(Optional) User-Id des Empfängers
-	 * @param	string	$sendPhoto			(Optional) URL to an Image to send along the Message
-	 * @global	array	$db					Array mit allen MySQL-Datenbankvariablen
+	 * @param	integer	$telegramChatIds	Telegram Chat-ID des Empfängers: one (integer) or more (array)
 	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
 	 */
-	static public function sendTelegramNotification($notificationText, $to_user_id='', $sendPhoto='')
+	static public function sendTelegramMessage($notificationText, $telegramChatIds)
 	{
-		global $db, $user, $botconfigs;
+		global $botconfigs;
+
+		$telegramAPImethod = 'sendMessage';
+		$telegramParseMode = 'html';
 
 		/** Make sure a proper Notification Text is passed & the Telegram Bot-Configs exist */
 		if ((!empty($notificationText) && strlen($notificationText) > 0) && (isset($botconfigs) && is_array($botconfigs)))
 		{
-			/** Encode Notification Text: Fix missing Server address in Links */
-			if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
-
-			/** Encode Notification Text: Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre> */
-			$notificationText = str_replace(array("\r", "\n", "&nbsp;"), ' ', $notificationText);
-			$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
-			/**$notificationText = str_replace('IneX', '<a href="tg://user?id=28563309">IneX</a>', $notificationText); */
-			$notificationText = html_entity_decode($notificationText);
-
-			/** Get the Telegram Chat-IDs */
-			if (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id))
-			{
-				/** For a specific (list of) User-ID - only if Telegram-Notifications enabled */
-				$telegramChatIds = $user->userHasTelegram($to_user_id);
-				if (DEVELOPMENT && !empty($telegramChatIds)) error_log("[DEBUG] Found USER Telegram Chat-ID: $telegramChatIds");
-				if (DEVELOPMENT && empty($telegramChatIds)) error_log("[DEBUG] NO Telegram Chat-ID found for USER $to_user_id");
-
-			} else {
-
-				/** Get Group Chat */
-				$telegramChatIds = TELEGRAM_GROUPCHAT_ID;
-				if (DEVELOPMENT) error_log("[DEBUG] Found GROUP Telegram Chat-ID: $telegramChatIds");
-			}
-
 			/** When we got at least 1 Chat-ID... */
 			if (!empty($telegramChatIds))
 			{
 				/** For multiple users */
 				if(is_array($telegramChatIds))
 				{
-					if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to MULTIPLE CHATS");
-					
+					if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " to MULTIPLE CHATS");
+
 					/** ...send the Telegram Message to each of them */
 					foreach ($telegramChatIds as $chatId)
 					{
-						if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to CHAT $chatId");
-
-						/** Check if an Image URL has been passed, too */
-						if (!empty($sendPhoto) && strpos($sendPhoto, 'http'))
-						{
-							if (DEVELOPMENT) error_log("[DEBUG] Valid Photo URL for Telegram Messaage: $sendPhoto");
-							if (urlExists($sendPhoto))
-							{
-								$data = [
-								    'chat_id' => $chatId,
-								    'caption' => $notificationText,
-								    'photo' => $sendPhoto
-								];
-								$telegramAPImethod = 'sendPhoto';
-							} else {
-								error_log( t('invalid-image-data', 'messagesystem') );
-							}
-
-						/** Send Text-only message */
-						} else {
-							$data = [
-							    'chat_id' => $chatId,
-							    'parse_mode' => 'html',
-							    'text' => $notificationText,
-							];
-							$telegramAPImethod = 'sendMessage';
-						}
+						/** Build API Call */
+						$data = [
+						    'chat_id' => $chatId,
+						    'parse_mode' => $telegramParseMode,
+						    'text' => $notificationText,
+						];
+						$telegramAPIcall = TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data);
 
 						/** Send the Telegram message */
-						if (DEVELOPMENT) error_log("[DEBUG] Sending Telegram Message using '$telegramAPImethod' to Chat $chatId");
-						if (!empty($telegramAPImethod)) file_get_contents( TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data) );
+						if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " using '$telegramAPImethod' to Chat $chatId");
+						if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " API call: $telegramAPIcall");
+						if (!empty($telegramAPImethod)) file_get_contents( $telegramAPIcall );
 					}
 
 				/** For a single Chat-ID */
 				} else {
+					if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " to SINGLE CHAT");
+
+					/** Build API Call */
 					$chatId = $telegramChatIds;
-					if (DEVELOPMENT) error_log("[DEBUG] sendTelegramNotification() to USER $chatId");
-
-					/** Check if an Image URL has been passed, too */
-					if (!empty($sendPhoto) && strpos($sendPhoto, 'http'))
-					{
-						if (DEVELOPMENT) error_log("[DEBUG] Valid Photo URL for Telegram Messaage: $sendPhoto");
-						if (urlExists($sendPhoto))
-						{
-							$data = [
-							    'chat_id' => $chatId,
-							    'caption' => $notificationText,
-							    'photo' => $sendPhoto
-							];
-							$telegramAPImethod = 'sendPhoto';
-						} else {
-							error_log( t('invalid-image-data', 'messagesystem') );
-						}
-
-					/** Send Text-only message */
-					} else {
-						$data = [
-						    'chat_id' => $chatId,
-						    'parse_mode' => 'html',
-						    'text' => $notificationText,
-						];
-						$telegramAPImethod = 'sendMessage';
-					}
+					$data = [
+					    'chat_id' => $chatId,
+					    'parse_mode' => $telegramParseMode,
+					    'text' => $notificationText,
+					];
+					$telegramAPIcall = TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data);
 
 					/** Send the Telegram message */
-					if (DEVELOPMENT) error_log("[DEBUG] Sending Telegram Message using '$telegramAPImethod' to Chat $chatId");
-					if (!empty($telegramAPImethod)) file_get_contents( TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data) );
+					if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " using '$telegramAPImethod' to Chat $chatId");
+					if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " API call: $telegramAPIcall");
+					if (!empty($telegramAPImethod)) file_get_contents( $telegramAPIcall );
 				}
 			}
 		} else {
@@ -981,53 +968,37 @@ class Messagesystem {
 	 *
 	 * @author	IneX
 	 * @date	21.01.2018
-	 * @version	1.0
+	 * @version	2.0
 	 * @since	2.0
+	 * @since	3.0
 	 *
 	 * @TODO integrate with TelegramBot\TelegramBotManager\BotManager
+	 * @TODO Alternative to file_get_contents -> https://stackoverflow.com/a/4247082/5750030
 	 *
-	 * @see Messagesystem::getUserTelegramChatId()
-	 * @param	array	$imageData			Image data: URL to an Image & Caption text
-	 * @param	integer	$to_user_id			(Optional) User-Id des Empfängers
-	 * @global	array	$db					Array mit allen MySQL-Datenbankvariablen
+	 * @link https://core.telegram.org/bots/api#sendphoto
+	 * @see Messagesystem::getFormattedTelegramNotificationText()
+	 * @param	array	$imageData			Image data array: URL to an Image & Caption text
+	 * @param	integer	$telegramChatIds	Telegram Chat-ID des Empfängers: one (integer) or more (array)
 	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
 	 */
-	static public function sendTelegramPhoto($imageData, $to_user_id='')
+	static public function sendTelegramPhoto($imageData, $telegramChatIds)
 	{
-		global $db, $botconfigs;
-		
+		global $botconfigs;
+
+		$telegramAPImethod = 'sendPhoto';
+
 		/** Make sure a proper Image Data Array is passed & the Telegram Bot-Configs exist */
 		if (is_array($imageData) && (isset($imageData['url']) && strlen($imageData['url']) > 0) && (isset($botconfigs) && is_array($botconfigs)))
 		{
-			$image_url = $imageData['url'];
-			$image_caption = (isset($imageData['caption']) && strlen($imageData['caption']) > 0 ? $imageData['caption'] : '');
-			
-			/** Encode Image Caption Text */
-				/** Fix missing Server address in Links */
-				if (strpos($image_url, 'href="/') > 0) $image_url = str_replace('href="/', 'href="' . SITE_URL . '/', $image_url);
-			
-				/** Strip away all HTML-tags & line breaks; except from the whitelist <b>, <i>, <a>, <code> & <pre> */
-				$image_caption = str_replace(array("\r", "\n", "&nbsp;"), '', $image_caption);
-				$image_caption = strip_tags($image_caption, '<b><i><a><code><pre>');
-				$image_caption = html_entity_decode($image_caption);
+			$image_caption = (isset($imageData['caption']) && strlen($imageData['caption']) > 0 ? $imageData['caption'] : false);
+
+			/** Fix missing Server address in Links */
+			$image_url = ( (strpos($imageData['url'], 'href="/') > 0) ? str_replace('href="/', 'href="' . SITE_URL . '/', $image_url) : $imageData['url'] );
 
 			/** Test if the Image URL is valid: */
 			if (urlExists($image_url))
 			{
-				/** Get the Telegram Chat-IDs */
-				if (isset($to_user_id) && $to_user_id > 0 && is_numeric($to_user_id))
-				{
-					/** For a specific (list of) User-ID - only if Telegram-Notifications enabled */
-					$telegramChatIds = $user->userHasTelegram($to_user_id);
-					if (DEVELOPMENT && !empty($telegramChatIds)) error_log("[DEBUG] Found USER Telegram Chat-ID: $telegramChatIds");
-					if (DEVELOPMENT && empty($telegramChatIds)) error_log("[DEBUG] NO Telegram Chat-ID found for USER $to_user_id");
-
-				} else {
-
-					/** Get Group Chat */
-					$telegramChatIds = TELEGRAM_GROUPCHAT_ID;
-					if (DEVELOPMENT) error_log("[DEBUG] Found GROUP Telegram Chat-ID: $telegramChatIds");
-				}
+				if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " valid image url: $image_url");
 
 				/** When we got at least 1 Chat-ID... */
 				if (!empty($telegramChatIds))
@@ -1035,65 +1006,143 @@ class Messagesystem {
 					/** For multiple users */
 					if(is_array($telegramChatIds))
 					{
+						if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " to MULTIPLE CHATS");
+
 						/** ...send the Telegram Pohot to each of them */
 						foreach ($telegramChatIds as $chatId)
 						{
-							if (DEVELOPMENT) error_log("[DEBUG] sendTelegramPhoto('$image_url') to CHAT $chatId");
-							
+							/** Build API Call */
 							$data = [
 							    'chat_id' => $chatId,
 							    'caption' => $image_caption,
 							    'photo' => $image_url
 							];
-							file_get_contents( TELEGRAM_API_URI . '/sendPhoto?' . http_build_query($data) );
-	
-							/** Source: https://stackoverflow.com/a/4247082/5750030
-							define('MULTIPART_BOUNDARY', '--------------------------'.microtime(true));
-							$header = 'Content-Type: multipart/form-data; boundary='.MULTIPART_BOUNDARY;
-							define('FORM_FIELD', 'uploaded_file'); 
-							$file_contents = file_get_contents($image_url);    
-							
-							$content =  "--".MULTIPART_BOUNDARY."\r\n".
-							            "Content-Disposition: form-data; name=\"".FORM_FIELD."\"; filename=\"".basename($image_url)."\"\r\n".
-							            "Content-Type: image/jpeg\r\n\r\n".
-							            $file_contents."\r\n";
-							
-							// add some POST fields to the request too: $_POST['foo'] = 'bar'
-							$content .= "--".MULTIPART_BOUNDARY."\r\n".
-							            "Content-Disposition: form-data; name=\"".$image_caption."\"\r\n\r\n".
-							            $image_caption."\r\n";
-							
-							// signal end of request (note the trailing "--")
-							$content .= "--".MULTIPART_BOUNDARY."--\r\n";
-							$context = stream_context_create(array(
-							    'http' => array(
-							          'method' => 'POST',
-							          'header' => $header,
-							          'content' => $content,
-							    )
-							));
-							file_get_contents('http://url/to/upload/handler', false, $context);
-							*/
+							$telegramAPIcall = TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data);
+
+							/** Send the Telegram message */
+							if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " using '$telegramAPImethod' to Chat $chatId");
+							if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " API call: $telegramAPIcall");
+							if (!empty($telegramAPImethod)) file_get_contents( $telegramAPIcall );
 						}
 
 					/** For a single Chat-ID */
 					} else {
+						if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " to SINGLE CHAT");
 						$chatId = $telegramChatIds;
-						if (DEVELOPMENT) error_log("[DEBUG] sendTelegramPhoto('$image_url') to CHAT $chatId");
 
+						/** Build API Call */
 						$data = [
-						    'chat_id' => $chatId,
-						    'caption' => $image_caption,
-						    'photo' => $image_url
-						];
-						file_get_contents( TELEGRAM_API_URI . '/sendPhoto?' . http_build_query($data) );
+							    'chat_id' => $chatId,
+							    'caption' => $image_caption,
+							    'photo' => $image_url
+							];
+						$telegramAPIcall = TELEGRAM_API_URI . "/$telegramAPImethod?" . http_build_query($data);
+
+						/** Send the Telegram message */
+						if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " using '$telegramAPImethod' to Chat $chatId");
+						if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " API call: $telegramAPIcall");
+						if (!empty($telegramAPImethod)) file_get_contents( $telegramAPIcall );
 					}
 				}
 			} else {
-				user_error( t('invalid-image-data', 'messagesystem'), E_USER_NOTICE);
+				error_log( t('invalid-image-data', 'messagesystem'), E_USER_NOTICE);
 			}
 		} else {
-			user_error( t('invalid-image-data', 'messagesystem'), E_USER_NOTICE);
+			error_log( t('invalid-image-data', 'messagesystem'), E_USER_NOTICE);
+		}
+	}
+
+
+	/**
+	 * Cleanup Message for Telegram Messenger Notification
+	 *
+	 * @author	IneX
+	 * @date	25.05.2018
+	 * @version	1.0
+	 * @since	3.0
+	 *
+	 * @link https://core.telegram.org/bots/api#html-style
+	 * @param	string	$notificationText	Content welcher für die Telegram Nachricht vorgesehen ist
+	 */
+	static public function getFormattedTelegramNotificationText($notificationText)
+	{
+		if (DEVELOPMENT) error_log("[DEBUG] getFormattedTelegramNotificationText() passed raw string: $notificationText");
+
+		/**
+		 * Add missing Server address in HTML-Links inside Notification Text
+		 */
+		if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
+
+		/**
+		 * Strip away all HTML-tags & line breaks
+		 * Except from the whitelist:
+		 * <b>, <strong>, <i>, <a>, <code>, <pre>
+		 */
+		$notificationText = str_replace(array("\r", "\n", "&nbsp;"), ' ', $notificationText);
+		$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
+		$notificationText = html_entity_decode($notificationText);
+
+		if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " passed raw string: $notificationText");
+		return ( !empty($notificationText) ? $notificationText : false );
+	}
+
+
+	/**
+	 * NOT IMPLEMENTED YET! - Format Link to Mention Telegram User inline
+	 * Gibt einen Link aus, welcher Telegram benutzt um einen spezifischen Telegram Benutzer zu @mention
+	 *    Example: <a href="tg://user?id=123456789">inline mention of a user</a>
+	 *
+	 * @author	IneX
+	 * @date	25.05.2018
+	 * @version	1.0
+	 * @since	3.0
+	 *
+	 * @TODO Database column "telegram_user_id" must be added first, for this to work
+	 * @TODO probably it's more common that a userNAME is passed? => needs usersystem::user2id()
+	 *
+	 * @link https://core.telegram.org/bots/api#html-style
+	 * @see usersystem::id2user()
+	 * @param	integer	$userid	User-ID (numeric String) dessen Telegram User mentioned werden soll
+	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
+	 * @global	array	$user	Globales Array mit den User-Variablen
+	 * @return	string			Returns HTML href-link formatted as Telegram readable User-IDs mention
+	 */
+	static public function getTelegramUserMentionLink($userid)
+	{
+		global $db, $user;
+
+		try {
+			if (isset($userid) && $userid > 0 && is_numeric($userid))
+			{
+				$sql = "SELECT
+							telegram_user_id tui
+						FROM
+							user
+						WHERE
+							telegram_user_id IS NOT NULL
+							AND id = $userid
+						LIMIT 0,1";
+				$telegramUserIds = mysql_fetch_assoc($db->query($sql, __FILE__, __LINE__, __METHOD__));
+				$telegramUserId = $telegramUserIds['tui'];
+				if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " found Telegram User ID $telegramUserId");
+
+				if (!empty($telegramUserId))
+				{
+					$username = $user->id2user($telegramUserId);
+					$link = sprintf('<a href="tg://user?id=%d">%s</a>', $telegramUserId, $username);
+					if (DEVELOPMENT) error_log("[DEBUG] " . __METHOD__ . " returns HTML-link: $link");
+					return $telegramUserIds['tui'];
+				} else {
+					return false;
+				}
+
+			} else {
+				error_log( t('invalid-userid', 'messagesystem') );
+				return false;
+			}
+
+		} catch (Exception $e) {
+			error_log($e->getMessage());
 		}
 	}
 

@@ -58,6 +58,8 @@ return
 		[
 			 'invalid-permissions' => 'Sorry du darfst diese Message nicht lesen.'
 			,'invalid-message' => 'Notification Text is empty or otherwise invalid'
+			,'invalid-userid' => 'Empty or invalid User-ID(s)'
+			,'invalid-telegram-chatid' => 'Empty or invalid Telegram Chat-ID(s)'
 			,'invalid-image-data' => 'Image Data or URL is empty, not reachable or otherwise invalid'
 			,'message-empty-text' => '--- i bi z fuul gsii zum en text schriibe ---'
 			,'telegram-newmessage-notification' => 'Neue <a href="%s/user/%d">Nachricht</a> von <b>%s</b> auf %s: %s'

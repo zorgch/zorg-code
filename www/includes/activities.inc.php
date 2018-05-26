@@ -120,8 +120,9 @@ class Activities
 						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
 					";
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			
-			Messagesystem::sendTelegramNotification( '<b>' . $user->id2user($fromUser, TRUE) . '</b> ' . $activity );
+
+			// Notification auslösen
+			Messagesystem::sendTelegramNotificationGroup( '<b>' . $user->id2user($fromUser, TRUE) . '</b> ' . $activity );
 		//}
 		
 	}

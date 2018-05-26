@@ -55,11 +55,11 @@ define("TURN_ADD_MONEY", 10);
 function hz_close_game ($gid) {
 	global $db, $user;
 	
-	$e = $db->query("SELECT g.id FROM hz_games AS g, hz_players AS z WHERE g.id=$gid AND g.id=z.game AND g.state='open' AND z.type='z' AND z.user='$user->id'", __FILE__, __LINE__);
+	$e = $db->query("SELECT g.id FROM hz_games AS g, hz_players AS z WHERE g.id=$gid AND g.id=z.game AND g.state='open' AND z.type='z' AND z.user='$user->id'", __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	if ($d) {
-		$db->query("DELETE FROM hz_games WHERE id=$d[id]", __FILE__, __LINE__);
-		$db->query("DELETE FROM hz_players WHERE game=$d[id]", __FILE__, __LINE__);
+		$db->query("DELETE FROM hz_games WHERE id=$d[id]", __FILE__, __LINE__, __FUNCTION__);
+		$db->query("DELETE FROM hz_players WHERE game=$d[id]", __FILE__, __LINE__, __FUNCTION__);
 	}
 }
 
@@ -95,11 +95,11 @@ function start_new_game ($map) {
 		
 		/** user can still open new games */
 		} else {
-			$e = $db->query("SELECT * FROM hz_maps WHERE id='$map' AND state='active'", __FILE__, __LINE__);
+			$e = $db->query("SELECT * FROM hz_maps WHERE id='$map' AND state='active'", __FILE__, __LINE__, __FUNCTION__);
 			$d = $db->fetch($e);
 			if ($d) {
-				$game = $db->query("INSERT INTO hz_games (date, map, round) VALUES (NOW(), $d[id], 1)", __FILE__, __LINE__);
-				$db->query("INSERT INTO hz_players (game, user, station) VALUES ($game, $user->id, ".get_start_station($game).")", __FILE__, __LINE__);
+				$game = $db->query("INSERT INTO hz_games (date, map, round) VALUES (NOW(), $d[id], 1)", __FILE__, __LINE__, __FUNCTION__);
+				$db->query("INSERT INTO hz_players (game, user, station) VALUES ($game, $user->id, ".get_start_station($game).")", __FILE__, __LINE__, __FUNCTION__);
 				
 				/** Activity Eintrag auslösen */
 				Activities::addActivity($user->id, 0, t('activity-newgame', 'hz', [ $d['name'], SITE_URL, $game ]), 'hz');
@@ -129,7 +129,7 @@ function start_new_game ($map) {
 function get_start_station ($game) {
 	global $db, $user;
 	
-	$e = $db->query("SELECT * FROM hz_games WHERE id=$game", __FILE__, __LINE__);
+	$e = $db->query("SELECT * FROM hz_games WHERE id=$game", __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	
 	//select a random station out of the unoccupied, non-goal stations
@@ -173,11 +173,11 @@ function join_game ($game) {
 		FROM hz_players numpl, hz_maps m, hz_games g
 		LEFT JOIN hz_players p ON p.game=g.id AND p.user='$user->id'
 		WHERE g.id=$game AND g.state='open' AND numpl.game=g.id AND m.id=g.map
-		GROUP BY numpl.game", __FILE__, __LINE__);
+		GROUP BY numpl.game", __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	if ($d) {
 		if (!$d['joined']) {
-			$db->query("INSERT INTO hz_players (game, user, type, station) VALUES ($game, $user->id, '$d[numplayers]', ".get_start_station($game).")", __FILE__, __LINE__);
+			$db->query("INSERT INTO hz_players (game, user, type, station) VALUES ($game, $user->id, '$d[numplayers]', ".get_start_station($game).")", __FILE__, __LINE__, __FUNCTION__);
 			
 			// Activity Eintrag auslösen
 			Activities::addActivity($user->id, 0, t('activity-joingame', 'hz', [ SITE_URL, $game ]), 'hz');
@@ -208,10 +208,10 @@ function join_game ($game) {
 function unjoin_game ($game) {
 	global $db, $user;
 	
-	$e = $db->query("SELECT * FROM hz_games g, hz_players p WHERE g.id=$game AND p.game=g.id AND p.user='$user->id' AND p.type!='z'", __FILE__, __LINE__);
+	$e = $db->query("SELECT * FROM hz_games g, hz_players p WHERE g.id=$game AND p.game=g.id AND p.user='$user->id' AND p.type!='z'", __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	if ($d) {
-		$db->query("DELETE FROM hz_players WHERE user=$user->id AND game=$game", __FILE__, __LINE__);
+		$db->query("DELETE FROM hz_players WHERE user=$user->id AND game=$game", __FILE__, __LINE__, __FUNCTION__);
 	}
 }
 
@@ -237,9 +237,9 @@ function start_game ($game) {
 		__FILE__, __LINE__);
 	$d = $db->fetch($e);
 	if ($d) {
-		$db->query("UPDATE hz_games SET state='running', turndate=now() WHERE id=$game", __FILE__, __LINE__);
+		$db->query("UPDATE hz_games SET state='running', turndate=now() WHERE id=$game", __FILE__, __LINE__, __FUNCTION__);
 		$rights = array();
-		$e = $db->query("SELECT * FROM hz_players WHERE game='$game' AND type!='z'", __FILE__, __LINE__);
+		$e = $db->query("SELECT * FROM hz_players WHERE game='$game' AND type!='z'", __FILE__, __LINE__, __FUNCTION__);
 		while ($d = $db->fetch($e)) $rights[] = $d['user'];
 		Thread::setRights('h', $game, $rights);
 	}else{
@@ -487,7 +487,7 @@ function turn_finalize ($game, $uid=0) {
 
 			if ($d['finished'])
 			{
-				$db->query("UPDATE hz_games SET state='finished' WHERE id=$game", __FILE__, __LINE__);
+				$db->query("UPDATE hz_games SET state='finished' WHERE id=$game", __FILE__, __LINE__, __FUNCTION__);
 				_update_hz_dwz($game);
 				Thread::setRights('h', $game, USER_ALLE);
 				finish_mails($game);
@@ -534,15 +534,15 @@ function turn_stay ($game, $uid=0) {
 	if ($d['playertype'] == 'z') {			
 		$db->query("INSERT INTO hz_tracks
 				 (game, ticket, station, nr, player)
-						 VALUES ('".$game."', 'stay', '0', '".($d['round'])."', 'z')", __FILE__, __LINE__);
+						 VALUES ('".$game."', 'stay', '0', '".($d['round'])."', 'z')", __FILE__, __LINE__, __FUNCTION__);
 	}else{
 		$e = $db->query("SELECT *
 				 FROM hz_players
-				 WHERE game='".$game."' AND user='".$uid."'", __FILE__, __LINE__);
+				 WHERE game='".$game."' AND user='".$uid."'", __FILE__, __LINE__, __FUNCTION__);
 		$s = $db->fetch($e);
 		$db->query("INSERT INTO hz_tracks
 				(game, ticket, station, nr, player)
-						VALUES ('".$game."', 'stay', '".$s['station']."', ".($d['round']).", '$d[playertype]')", __FILE__, __LINE__);
+						VALUES ('".$game."', 'stay', '".$s['station']."', ".($d['round']).", '$d[playertype]')", __FILE__, __LINE__, __FUNCTION__);
 	}
 	
 	turn_finalize($game, $uid);
@@ -575,27 +575,38 @@ function finish_mails ($game) {
 	);
 	while ($d = $db->fetch($e))
 	{
+		/** Die Players haben den Spielzug gemacht, aber Mr. Z hat gewonnen */
 		if ($d['winner'] == 'z' && $d['type'] == 'z')
 		{
 			$text = t('message-game-won-mrz', 'hz', [ SITE_URL, $game ]);
-			
-			// Activity Eintrag auslösen
+
+			/** Activity Eintrag auslösen */
 			Activities::addActivity($user->id, 0, t('activity-won-mrz', 'hz', [ SITE_URL, $game ]), 'hz');
+
+		/** Die Players haben den Spielzug gemacht und haben gewonnen */
 		}elseif ($d['winner'] == 'players' && $d['type'] == 'z') {
 			$text = t('message-game-won-mrz', 'hz', [ SITE_URL, $game ]);
+
+		/** Mr. Z hat den Spielzug gemacht und hat gewonnen */
 		}elseif ($d['winner'] == 'z' && $d['type'] != 'z') {
 			$text = t('message-game-lost-inspectors', 'hz', [ SITE_URL, $game ]);
+
+		/** Mr. Z hat den Spielzug gemacht, aber die Players haben gewonnen */
 		}elseif ($d['winner'] == 'players' && $d['type'] != 'z') {
 			$text = t('message-game-won-inspectors', 'hz', [ SITE_URL, $game ]);
-			
-			// Activity Eintrag auslösen
+
+			/** Activity Eintrag auslösen */
 			Activities::addActivity($user->id, 0, t('activity-won-inspectors', 'hz', [ SITE_URL, $game ]), 'hz');
 		}
+
+		/** Nachricht an Players und Mr. Z verschicken */
 		if ($text) {
 			Messagesystem::sendMessage($user->id, $d['user'], t('message-subject', 'hz'), $text);
+
+		/** Fallback falls Nachrichten-Text nicht gesetzt werden konnte */
 		}else{
 			//Messagesystem::sendMessage(7, 7, "Hunting z ERROR (autom. Nachricht)", $text);
-			user_error(t('error-game-finish-message', 'global', [ $game, $user->id, $d['winner'], $d['user'] ]), E_USER_ERROR);
+			error_log( t('error-game-finish-message', 'global', [ $game, $user->id, $d['winner'], $d['user'] ]) );
 		}
 	}
 }
@@ -676,7 +687,7 @@ function turn_move ($game, $ticket, $station) {
 	if ($d) {
 		$db->query("UPDATE hz_players
 				SET station=$station, money=money-".turn_cost($ticket)."
-				WHERE game=$d[id] AND user=$user->id", __FILE__, __LINE__);
+				WHERE game=$d[id] AND user=$user->id", __FILE__, __LINE__, __FUNCTION__);
 		if ($d['playertype'] == 'z') {
   				if ($d['seen']) $track_station = $station;
 			else $track_station = 0;
@@ -688,13 +699,13 @@ function turn_move ($game, $ticket, $station) {
 				   __FILE__, __LINE__);
 			
 			if ($d['aim_catch']) {
-				$db->query("UPDATE hz_games SET z_score=z_score+$d[score] WHERE id=$game", __FILE__, __LINE__);
+				$db->query("UPDATE hz_games SET z_score=z_score+$d[score] WHERE id=$game", __FILE__, __LINE__, __FUNCTION__);
 			}
 		}else{
 			$db->query("INSERT INTO hz_tracks
 					 (game, ticket, station, nr, player)
 			  VALUES ($game, '$ticket', $station,
-				  '".$d['tracks']."', '$d[playertype]')", __FILE__, __LINE__);
+				  '".$d['tracks']."', '$d[playertype]')", __FILE__, __LINE__, __FUNCTION__);
 		}
 		
 	}else{
@@ -740,14 +751,14 @@ function turn_sentinel ($game) {
 	if ($d) {
 		$db->query("INSERT INTO hz_sentinels
 				 (game, station)
-						 VALUES ($game, $d[station])", __FILE__, __LINE__);
+						 VALUES ($game, $d[station])", __FILE__, __LINE__, __FUNCTION__);
 		$db->query("UPDATE hz_players
 				 SET money=money-".turn_cost("sentinel")."
 				 WHERE game=$game
-				   AND user=$user->id", __FILE__, __LINE__);
+				   AND user=$user->id", __FILE__, __LINE__, __FUNCTION__);
 		$db->query("INSERT INTO hz_tracks 
 				 (game, ticket, station, nr, player)
-		  VALUES ($game, 'sentinel', '$d[station]', $d[tracknr], '$d[playertype]')", __FILE__, __LINE__);
+		  VALUES ($game, 'sentinel', '$d[station]', $d[tracknr], '$d[playertype]')", __FILE__, __LINE__, __FUNCTION__);
 	}else{
 		user_error(t('invalid-turn', 'hz', $game), E_USER_ERROR);
 	}
@@ -882,20 +893,20 @@ function _update_hz_dwz ($gid) {
 	$difi = round (MAX_POINTS_TRANSFERABLE * ($pi - $probi));
 	$difi_avg = round (MAX_POINTS_TRANSFERABLE * ($pi - $probi) / sizeof($idwz));
 
-	$tusr = $db->fetch($db->query("SELECT * FROM hz_dwz WHERE user=$g[z]", __FILE__, __LINE__));
-	if ($tusr) $db->query("UPDATE hz_dwz SET score=".($zdwz+$difz).", prev_score=$prev_score_z WHERE user=$g[z]", __FILE__, __LINE__);
-	else $db->query("INSERT INTO hz_dwz (user, score, prev_score) VALUES ($g[z], ".($zdwz+$difz).", $prev_score_z)", __FILE__, __LINE__);
+	$tusr = $db->fetch($db->query("SELECT * FROM hz_dwz WHERE user=$g[z]", __FILE__, __LINE__, __FUNCTION__));
+	if ($tusr) $db->query("UPDATE hz_dwz SET score=".($zdwz+$difz).", prev_score=$prev_score_z WHERE user=$g[z]", __FILE__, __LINE__, __FUNCTION__);
+	else $db->query("INSERT INTO hz_dwz (user, score, prev_score) VALUES ($g[z], ".($zdwz+$difz).", $prev_score_z)", __FILE__, __LINE__, __FUNCTION__);
 	foreach ($idwz as $key => $val) {
-		$tusr = $db->fetch($db->query("SELECT * FROM hz_dwz WHERE user=$key", __FILE__, __LINE__));
-		if ($tusr) $db->query("UPDATE hz_dwz SET score=".($val+$difi_avg).", prev_score=$prev_score_i[$key] WHERE user=$key", __FILE__, __LINE__);
-		else $db->query("INSERT INTO hz_dwz (user, score, prev_score) VALUES ($key, ".($val+$difi_avg).", $prev_score_i[$key])", __FILE__, __LINE__);
+		$tusr = $db->fetch($db->query("SELECT * FROM hz_dwz WHERE user=$key", __FILE__, __LINE__, __FUNCTION__));
+		if ($tusr) $db->query("UPDATE hz_dwz SET score=".($val+$difi_avg).", prev_score=$prev_score_i[$key] WHERE user=$key", __FILE__, __LINE__, __FUNCTION__);
+		else $db->query("INSERT INTO hz_dwz (user, score, prev_score) VALUES ($key, ".($val+$difi_avg).", $prev_score_i[$key])", __FILE__, __LINE__, __FUNCTION__);
 	}
 
 	// dwz_dif für game
-	$db->query("UPDATE hz_games SET dwz_dif=".abs($difz)." WHERE id=$gid AND state='finished'", __FILE__, __LINE__);
+	$db->query("UPDATE hz_games SET dwz_dif=".abs($difz)." WHERE id=$gid AND state='finished'", __FILE__, __LINE__, __FUNCTION__);
 
 	// rank update
-	$e = $db->query("SELECT * FROM hz_dwz ORDER BY score DESC", __FILE__, __LINE__);
+	$e = $db->query("SELECT * FROM hz_dwz ORDER BY score DESC", __FILE__, __LINE__, __FUNCTION__);
 	$i = 1;
 	$prev_score = 0;
 	$rank = 0;
@@ -911,7 +922,7 @@ function _update_hz_dwz ($gid) {
 			$prev_rank = "";
 		}
 
-		$db->query("UPDATE hz_dwz SET rank=$rank $prev_rank WHERE user=$upd[user]", __FILE__, __LINE__);
+		$db->query("UPDATE hz_dwz SET rank=$rank $prev_rank WHERE user=$upd[user]", __FILE__, __LINE__, __FUNCTION__);
 
 		$prev_score = $upd['score'];
 		++$i;
