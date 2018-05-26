@@ -10,6 +10,8 @@
  */
 /**
  * File Includes
+ * @include mysql.inc.php
+ * @include usersystem.inc.php
  */
 require_once( __DIR__ .'/mysql.inc.php');
 require_once( __DIR__ .'/usersystem.inc.php');
@@ -43,7 +45,8 @@ Class Anficker {
 	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
 	 * @param string $text Anfick des Users
 	 * @param boolean $spresim_trainieren Gibt an, ob Anfick des Users gespeichert werden soll oder nicht
-	 * @global array $db Array mit allen MySQL-Datenbankvariablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 *
 	 * @todo Unterschied, ob Spresim trainieren oder nur battlen sollte möglich sein (Bug #487) (Mättä, 25.10.04) | IDEE: Eine möglich Lösung wäre, ein zusätzliches Flag in der Tabelle "battle_only" oder so...
 	 * @todo Müsste es nicht "REPLACE INTO..." sein?? Jetzt werden x-Einträge mit gleichem Text gemacht! (IneX, 8.6.09)
@@ -102,7 +105,7 @@ Class Anficker {
 	 * @param integer $anfick_id ID des Anficks wo das Log ergänzt werden soll
 	 * @param integer $user_id ID des Users, welcher angefickt wurde
 	 * @param integer $anficker_id ID des Users, welcher den Anfick gemacht hat
-	 * @global array $db Array mit allen MySQL-Datenbankvariablen
+	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function logAnfick($anfick_id, $user_id, $anficker_id) {
 		global $db;
@@ -159,7 +162,7 @@ Class Anficker {
 	 * @see Anficker::logAnfick(), Anficker::anfickenMit()
 	 *
 	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
-	 * @global array $db Array mit allen MySQL-Datenbankvariablen
+	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return string Gibt das gesamte bisherige Anfick-Log des Battles 'User vs. Spresim' aus
 	 */
 	function getLog($user_id) {
@@ -268,7 +271,7 @@ Class Anficker {
 	 * @version 1.0
 	 * @since 2.0
 	 *
-	 * @global array $db Array mit allen MySQL-Datenbankvariablen
+	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return integer ID des Anfick von Spresim
 	 */
 	function anfickenMit()
@@ -307,7 +310,7 @@ Class Anficker {
 	 *
 	 * @param integer $anfick_id ID des benoteten Anficks
 	 * @param integer $note Bewertung des Anficks
-	 * @global array $db Array mit allen MySQL-Datenbankvariablen
+	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function vote($anfick_id, $note) {
 		global $db;

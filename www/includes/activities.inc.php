@@ -15,15 +15,18 @@
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		activities, activities_areas, activities_votes
  *
+ * @TODO make Activities a Global Class-Object!
+ *
  * @package		Zorg
  * @subpackage	Activities
  */
-
 /**
- * File Includes
+ * File includes
+ * @include mysql.inc.php
+ * @include usersystem.inc.php
  */
-require_once( __DIR__.'/mysql.inc.php');
-require_once( __DIR__.'/usersystem.inc.php');
+require_once( __DIR__ . '/mysql.inc.php');
+require_once( __DIR__ . '/usersystem.inc.php');
 
 /**
  * Activities Class
@@ -52,7 +55,7 @@ class Activities
 	 * @param	integer	$start			Von welchem Datensatz aus die Activites ausgegeben werden sollen
 	 * @param	integer	$limit			Anzahl Activities, welche ausgegeben werden sollen
 	 * @param	date	$date			Datum von welchem die Activities angezeigt werden sollen
-	 * @global	array	$db				Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
 	 *
 	 * @todo	Activity-Area wurde entfernt... ev. doch nötig?
 	 */
@@ -102,8 +105,8 @@ class Activities
 	 * @param	integer	$forUserID		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
 	 * @param	string	$activity		Activity-Nachricht, welche ausgelöst wurde
 	 * @param	string	$activityArea	Activity-Area, Bereich zu dessen die Activity ausgelöst wurde
-	 * @global	array	$db				Array mit allen MySQL-Datenbankvariablen
-	 * @global	array	$user			Array mit allen Uservariablen
+	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
 	 * 
 	 * @see		checkAllowActivities()
 	 */
@@ -137,8 +140,8 @@ class Activities
 	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche aktualisiert werden soll
-	 * @global	array	$user		Array mit allen Uservariablen
-	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
+	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
 	 * @return	boolean				Gibt TRUE oder FALSE zurück
 	 */
 	static public function updateActivity ($activityID)
@@ -166,8 +169,8 @@ class Activities
 	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche entfernt werden soll
-	 * @global	array	$user		Array mit allen Uservariablen
-	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
+	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
 	 * @return	boolean				Gibt TRUE oder FALSE zurück
 	 */
 	static public function removeActivity ($activityID)
@@ -197,8 +200,8 @@ class Activities
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche bewertet werden soll
 	 * @param	string	$rating		Bewertungstext der Activity - MAXIMAL 20 Zeichen!
-	 * @global	array	$db			Array mit allen MySQL-Datenbankvariablen
-	 * @global	array	$user		Array mit allen Uservariablen
+	 * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
 	 *
 	 * @todo Modifier addslahes() für $rating könnte zu Problemen führen wegen der 20 Zeichen Begrenzung!
 	 * @todo Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
@@ -238,8 +241,8 @@ class Activities
 	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche bewertet werden soll
-	 * @global	array	$db			Array mit allen MySQL-Datenbankvariablen
-	 * @global	array	$user		Array mit allen Uservariablen
+	 * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
 	 *
 	 * @todo Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
 	 */
@@ -271,7 +274,7 @@ class Activities
 	 *
 	 * @param	integer	$activityID	ID der Activity, welche überprüft werden soll
 	 * @param	integer	$userID		Benutzer ID welcher eine Bewertung abgeben möchte
-	 * @global	array	$db			Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
 	 */
 	static public function hasRated ($activityID, $userID)
 	{
@@ -299,7 +302,7 @@ class Activities
 	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$activityID	ID der Activity deren Owner ermittelt werden soll
-	 * @global	array	$db 		Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
 	 * @return	integer				User ID des Activity Owners
 	 */
 	static public function getActivityOwner ($activityID)
@@ -327,7 +330,7 @@ class Activities
 	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$userID	Wenn angegeben, werden nur die Activities diesesn Benutzers gezählt
-	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
 	 * @return	integer			Anzahl gefundener Activities aufgrund der Kriterien
 	 */
 	static public function countActivities ($userID=0)
@@ -357,7 +360,7 @@ class Activities
 	 * @since	1.0 initial release
 	 *
 	 * @param	integer	$userID	Benutzer ID für welchen die Einstellung überprüft werden muss
-	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
 	 * @return	boolean			Gibt TRUE oder FALSE zurück, je nach Setting des Users
 	 */
 	static public function checkAllowActivities ($userID)
@@ -387,7 +390,7 @@ class Activities
 	 * @since	2.0 initial release
 	 *
 	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
-	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
+	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
 	 * @return	string			Gibt das XML des zusammengebauten RSS-Feeds aus
 	 */
 	static public function getActivitiesRSS ($num)
@@ -446,6 +449,29 @@ class Activities
 
 		} // end if count()	
 
+	}
+
+
+	/**
+	 * Daily Activities Summary
+	 * Gibt alle Activities eines Tages zusammengefasst aus
+	 *
+	 * @author	IneX
+	 * @date	26.05.2018
+	 * @version	1.0
+	 * @since	3.0 initial release
+	 *
+	 * @param	date	$date	Tag für welcher Activities-Einträge ausgegeben werden sollen
+	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
+	 * @param	string	$format	Style wie die auszugebenden Activities-Einträge formatiert werden sollen: html oder plain
+	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
+	 * @return	string			Gibt ein zusammengebautes Activities-Summary mit $num Einträgen von $date als $format aus
+	 */
+	static public function getActivitiesDaily ($date, $num=5, $format='html')
+	{
+		global $db;
+
+		if (empty($date)) $date = date('Y-m-d');
 	}
 
 }

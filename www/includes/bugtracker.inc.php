@@ -13,6 +13,7 @@
 include_once( __DIR__ .'/messagesystem.inc.php');
 include_once( __DIR__ .'/usersystem.inc.php');
 include_once( __DIR__ .'/util.inc.php');
+include_once( __DIR__ .'/strings.inc.php');
 
 /**
  * Bugtracker Klasse
@@ -55,8 +56,8 @@ Class Bugtracker {
 			$sql = "SELECT MAX(id) AS id FROM bugtracker_bugs";
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
-			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$bugTitle.'</a> gemeldet.<br/><br/>', 'bu');
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, t('activity-newbug', 'bugtracker', [ $rs['id'], $bugTitle ]), 'bu');
 
 			// Benachrichtigungs-Message
 			if(count($_GET['msg_users']) > 0) {

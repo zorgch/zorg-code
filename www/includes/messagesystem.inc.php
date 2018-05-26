@@ -54,7 +54,7 @@ class Messagesystem {
 	 * @see BARBARA_HARRIS, Messagesystem::sendMessage()
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function execActions()
 	{
@@ -189,7 +189,7 @@ class Messagesystem {
 	 *
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function deleteMessage($messageid, $deleter_userid)
 	{
@@ -216,7 +216,7 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function doMessagesUnread($messageid, $userid)
 	{
@@ -240,7 +240,7 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $userid User-ID welcher alle Nachricht(en) als gelesen markieren möchte
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function doMarkAllAsRead($userid)
 	{
@@ -367,8 +367,8 @@ class Messagesystem {
 	 * @param string $box Darstellung des Ein- oder Ausgangs (inbox|outbox)
 	 * @param integer $pagesize Anzahl Nachrichten pro Seite (Default: 11, wegen Farbwechsel)
 	 * @param integer $page Aktuelle Seite mit Nachrichten (Default: 1)
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
-	 * @global $user Globales Array mit den User-Variablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
 	 */
 	function getInboxHTML($box, $pagesize=11, $page=1, $orderby='date')
@@ -502,8 +502,8 @@ class Messagesystem {
 	 * @date 
 	 * @version 1.0
 	 *
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
-	 * @global $user Globales Array mit den User-Variablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
 	static function getNumNewMessages()
@@ -617,8 +617,8 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $id ID der aktuell angezeigten Nachricht
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
-	 * @global $user Globales Array mit den User-Variablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
 	function getNextMessageid($id)
@@ -650,8 +650,8 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $id ID der aktuell angezeigten Nachricht
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
-	 * @global $user Globales Array mit den User-Variablen
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
 	function getPrevMessageid($id)
@@ -687,15 +687,15 @@ class Messagesystem {
 	 * @since 3.0 verschickt eine Notification per Telegram Messenger
 	 *
 	 * @param integer	$from_user_id User-ID des Senders
-	 * @param integer	$owner User-Id des Nachrichten-Owners
+	 * @param integer	$owner User-ID des Nachrichten-Owners
 	 * @param string	$subject Titel der Nachricht
 	 * @param string	$text (Optional) Nachrichten-Text
 	 * @param string	$to_users (Optional) Liste aller Empfänger der Nachricht
-	 * @param integer	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
-	 * @global $user Globales Array mit den User-Variablen
+	 * @param string	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
+	 * @global object	$db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object	$user Globales Class-Object mit den User-Methoden & Variablen
 	 */
-	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
+	function sendMessage(int $from_user_id, int $owner, $subject, $text='', $to_users='', $isread='0')
 	{
 		global $db, $user;
 
@@ -707,17 +707,9 @@ class Messagesystem {
 		 */
 		try {
 			if (DEVELOPMENT) error_log("[DEBUG] Sending SINGLE Zorg Message '$subject' to user $owner");
-			$sql =
-				"INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
-				VALUES (
-					 $from_user_id
-					,$owner
-					,'".escape_text($subject)."'
-					,'".escape_text($text)."'
-					,NOW()
-					,'$isread'
-					,'".$to_users."'
-				)";
+			$sql = sprintf("INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
+							VALUES (%d, %d, '%s', '%s', NOW(), '%s', '%s')",
+							$from_user_id, $owner, escape_text($subject), escape_text($text), $isread, $to_users);
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		} catch (Exception $e) {
 			error_log($e->getMessage());
@@ -734,7 +726,7 @@ class Messagesystem {
 
 			/** Send Telegram Notification */
 			try {
-				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text), 140, '...') ] );
+				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text, '<br>'), 140, '...') ] );
 				Messagesystem::sendTelegramNotificationUser($message, $owner);
 			} catch (Exception $e) {
 				error_log($e->getMessage());
@@ -751,13 +743,14 @@ class Messagesystem {
 	 * @date 15.05.2009
 	 * @version 1.0
 	 *
-	 * @param integer $from_user_id User-ID des Senders
-	 * @param integer $to_user_id User-Id des Empfängers
-	 * @param string $titel Titel der ursprünglichen Nachricht
-	 * @param string $text Ursprünglicher Text
-	 * @global $db Globales Array mit allen wichtigen MySQL-Datenbankvariablen
+	 * @param	integer	$from_user_id	User-ID des Senders
+	 * @param	integer	$to_user_id		User-ID des Empfängers
+	 * @param	string	$titel			Titel der ursprünglichen Nachricht
+	 * @param	string	$text			Ursprünglicher Text
+	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
 	 */
-	function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
+	function sendEmailNotification(int $from_user_id, int $to_user_id, $titel, $text)
 	{
 		global $db, $user;
 		
@@ -777,15 +770,18 @@ class Messagesystem {
 				
 				$subject = 	htmlspecialchars( t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]), ENT_DISALLOWED, 'UTF-8' );
 				
-				$body = htmlspecialchars( t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text), 140, '...'), $to_user_id ]), ENT_DISALLOWED, 'UTF-8' );
+				$body = htmlspecialchars( t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text, '<br>'), 140, '...'), $to_user_id ]), ENT_DISALLOWED, 'UTF-8' );
 				
 				/** Vesende E-Mail an User */
-				//mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
-				mail("$empfaengerName <$empfaengerMail>", $subject, $body, $header);
-				if (DEVELOPMENT) error_log("[DEBUG] mail() sent to user $empfaengerName");
+				try {
+					if (DEVELOPMENT) error_log("[DEBUG] mail() '$subject' to user: $empfaengerName");
+					mail("$empfaengerName <$empfaengerMail>", $subject, $body, $header);
+					//mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
+				} catch (Exception $e) {
+					error_log($e->getMessage());
+				}
 			}
 		}
-			
 	}
 
 
@@ -804,9 +800,9 @@ class Messagesystem {
 	 * @param	integer	$to_user_id			User-Id des Empfängers
 	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
 	 * @param	string	$imageUrl			(Optional) URL to an Image to send along the Message
-	 * @global	array	$user				Globales Array mit den User-Variablen
+	 * @global	object	$user				Globales Class-Object mit den User-Methoden & Variablen
 	 */
-	static public function sendTelegramNotificationUser($notificationText, $to_user_id, $imageUrl='')
+	static public function sendTelegramNotificationUser($notificationText, int $to_user_id, $imageUrl='')
 	{
 		global $user;
 
@@ -898,9 +894,9 @@ class Messagesystem {
 	 *
 	 * @link https://core.telegram.org/bots/api#sendmessage
 	 * @see Messagesystem::getFormattedTelegramNotificationText()
-	 * @param	string	$notificationText	Content welcher an die Telegram Chats geschickt wird
-	 * @param	integer	$telegramChatIds	Telegram Chat-ID des Empfängers: one (integer) or more (array)
-	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
+	 * @param	string			$notificationText	Content welcher an die Telegram Chats geschickt wird
+	 * @param	string|array	$telegramChatIds	Telegram Chat-ID des Empfängers: one (as String) or more (as Array)
+	 * @global	array			$botconfigs			Array mit allen Telegram Bot-Configs
 	 */
 	static public function sendTelegramMessage($notificationText, $telegramChatIds)
 	{
@@ -978,10 +974,10 @@ class Messagesystem {
 	 * @link https://core.telegram.org/bots/api#sendphoto
 	 * @see Messagesystem::getFormattedTelegramNotificationText()
 	 * @param	array	$imageData			Image data array: URL to an Image & Caption text
-	 * @param	integer	$telegramChatIds	Telegram Chat-ID des Empfängers: one (integer) or more (array)
+	 * @param	string	$telegramChatIds	Telegram Chat-ID des Empfängers: one (integer) or more (array)
 	 * @global	array	$botconfigs			Array mit allen Telegram Bot-Configs
 	 */
-	static public function sendTelegramPhoto($imageData, $telegramChatIds)
+	static public function sendTelegramPhoto(array $imageData, $telegramChatIds)
 	{
 		global $botconfigs;
 
@@ -1063,6 +1059,7 @@ class Messagesystem {
 	 *
 	 * @link https://core.telegram.org/bots/api#html-style
 	 * @param	string	$notificationText	Content welcher für die Telegram Nachricht vorgesehen ist
+	 * @return	string						Returns formatted & cleaned up $notificationText as String
 	 */
 	static public function getFormattedTelegramNotificationText($notificationText)
 	{
@@ -1103,8 +1100,8 @@ class Messagesystem {
 	 * @link https://core.telegram.org/bots/api#html-style
 	 * @see usersystem::id2user()
 	 * @param	integer	$userid	User-ID (numeric String) dessen Telegram User mentioned werden soll
-	 * @global	array	$db 	Array mit allen MySQL-Datenbankvariablen
-	 * @global	array	$user	Globales Array mit den User-Variablen
+	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
 	 * @return	string			Returns HTML href-link formatted as Telegram readable User-IDs mention
 	 */
 	static public function getTelegramUserMentionLink($userid)

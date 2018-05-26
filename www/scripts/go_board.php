@@ -12,23 +12,17 @@
  * @package Zorg
  * @subpackage GO
  * 
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
- * @global array $smarty Array mit allen Smarty-Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  */
 /**
  * File Includes
+ * @include go_game.inc.php
  */
-//     include_once('/home/CME/z/zooomclan/www/includes/usersystem.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
+require_once( __DIR__ . '/../includes/go_game.inc.php');
 
-/**
- * Globals
- */
-//global $db, $user, $smarty;
-
-$gameid = $_GET[game];
+$gameid = $_GET['game'];
 if (!is_numeric($gameid)) user_error("Invalid game supplied");
 $e = $db->query(
 		"SELECT *
@@ -69,8 +63,5 @@ if ($game['state'] == 'running'){
 
 draw_go_players($im, $game);
 
-
 header("Content-Type: image/png");
 imagepng($im);
-	
-?>

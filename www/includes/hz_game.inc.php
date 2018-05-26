@@ -17,6 +17,7 @@
  * @todo Sollte das alles hier nicht in einer Class untergebracht werden?
  */
 /**
+ * File includes
  * @include main.inc.php 		Main Functions
  * @include activities.inc.php 	(DEPRECATED) Activities Functions and Stream
  * @include messagesystem.inc.php (DEPRECATED) Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen
@@ -28,11 +29,11 @@
 require_once( __DIR__ .'/main.inc.php');
 
 /**
- * @const IMGPATH		Pfad zu den Bildern fürs Hunting Z
- * @const MAX_HZ_GAMES	In sovielen Hz-Spielen kann ein Spieler maximal gleichzeitig teilnehmen
- * @const TURN_TIME		So lange haben Spieler Zeit für ihren Spielzug
- * @const TURN_COUNT	Nach so vielen Zügen gibts neues Geld
- * @const TURN_ADD_MONEY So viel Geld gibts nach TURN_COUNT Spielzügen
+ * @const IMGPATH			Pfad zu den Bildern fürs Hunting Z
+ * @const MAX_HZ_GAMES		In sovielen Hz-Spielen kann ein Spieler maximal gleichzeitig teilnehmen
+ * @const TURN_TIME			So lange haben Spieler Zeit für ihren Spielzug
+ * @const TURN_COUNT		Nach so vielen Zügen gibts neues Geld
+ * @const TURN_ADD_MONEY	So viel Geld gibts nach TURN_COUNT Spielzügen
  */			
 define("IMGPATH", "/images/hz/");
 define("MAX_HZ_GAMES", 5);
@@ -49,8 +50,8 @@ define("TURN_ADD_MONEY", 10);
  * @version 1.0
  *
  * @param integer $gid ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function hz_close_game ($gid) {
 	global $db, $user;
@@ -72,8 +73,8 @@ function hz_close_game ($gid) {
  * @version 1.0
  *
  * @param integer $map ID der Karte auf welcher das neue Spiel stattfindet
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function start_new_game ($map) {
 	global $db, $user;
@@ -122,8 +123,8 @@ function start_new_game ($map) {
  * @version 1.0
  *
  * @param integer $game ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return ID des Hunting z Spiels
  */
 function get_start_station ($game) {
@@ -160,8 +161,8 @@ function get_start_station ($game) {
  * @version 1.0
  *
  * @param integer $game ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function join_game ($game) {
 	global $db, $user;
@@ -202,8 +203,8 @@ function join_game ($game) {
  * @version 1.0
  *
  * @param integer $game ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function unjoin_game ($game) {
 	global $db, $user;
@@ -224,7 +225,7 @@ function unjoin_game ($game) {
  * @version 1.0
  *
  * @param integer $game ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
 function start_game ($game) {
 	global $db;
@@ -257,8 +258,8 @@ function start_game ($game) {
  *
  * @param integer $game ID des Hunting z Spiels
  * @param array $ticket Array mit den verschiedenen Arten von Stationen
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return HTML mit klickbaren Map-Buttons der möglichen, ansteuerbaren Stationen
  */
 function ticket_map ($game, $ticket='all') {
@@ -349,8 +350,8 @@ function turn_cost ($type) {
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den Spielzug macht
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return Boolean (True/False) ob gewünschter Spielzug erlaubt ist oder nicht
  */
 function turn_allowed ($game, $uid=0) {
@@ -380,7 +381,7 @@ function turn_allowed ($game, $uid=0) {
  * @author [z]biko
  * @version 1.0
  *
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
 function hz_turn_passing () {
 	global $db;
@@ -412,8 +413,8 @@ function hz_turn_passing () {
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den finalen Spielzug macht
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function turn_finalize ($game, $uid=0) {
 	global $db, $user;
@@ -511,8 +512,8 @@ function turn_finalize ($game, $uid=0) {
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den Spielzug macht
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function turn_stay ($game, $uid=0) {
 	global $db, $user;
@@ -558,8 +559,8 @@ function turn_stay ($game, $uid=0) {
  * @version 1.0
  *
  * @param integer $game ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function finish_mails ($game) {
 	global $db, $user;
@@ -623,8 +624,8 @@ function finish_mails ($game) {
  * @param integer $game ID des Hunting z Spiels
  * @param integer $ticket String mit Art der gewählten Fortbewegung
  * @param integer $station Integer der ID der gewählten Destinations-Station
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function turn_move ($game, $ticket, $station) {
 	global $db, $user;
@@ -725,8 +726,8 @@ function turn_move ($game, $ticket, $station) {
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den Spielzug macht
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function turn_sentinel ($game) {
 	global $user, $db;
@@ -775,8 +776,8 @@ function turn_sentinel ($game) {
  * @author [z]biko
  * @version 1.0
  *
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return Integer mit Anzahl der laufenden Hz Spiele
  */
 function hz_running_games () {
@@ -801,8 +802,8 @@ function hz_running_games () {
  * @author [z]biko
  * @version 1.0
  *
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return Integer mit Anzahl der offenen Spiele
  */
 function hz_open_games () {
@@ -829,7 +830,7 @@ function hz_open_games () {
  * @version 1.0
  *
  * @param integer $gid ID des Hunting z Spiels
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
 function _update_hz_dwz ($gid) {
 	global $db;
@@ -928,4 +929,3 @@ function _update_hz_dwz ($gid) {
 		++$i;
 	}
 }
-	

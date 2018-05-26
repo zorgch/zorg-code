@@ -14,54 +14,35 @@
  */
 /**
  * File Includes
+ * @include colors.inc.php
+ * @include forum.inc.php
  */
 include_once( __DIR__ .'/colors.inc.php');
 include_once( __DIR__ .'/forum.inc.php');
 
-// ********************************** CONSTANTS *********************************************************************************
 /**
- * Konstante set_time_limit
- * Maximale Zeit in Sekunden, welche das Script laufen darf
+ * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
+ * @const FTP_UPDIT			FTP-Serveraddress and Directory-Path to Gallery Upload Dir
+ * @const DIR				Path to Gallery directory on the server
+ * @const UPDIR				Path to the Upload directory on the server
+ * @const ZENSUR			If the User is a Member, he can see censored Pics. Otherwise the SQL-Query addition will filter them out.
  */
 set_time_limit(600);
-
-/**
- * Konstante FTP_UPDIT
- */
 define("FTP_UPDIR", "ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/");
-/**
- * Konstante DIR
- */
 define("DIR", $_SERVER['DOCUMENT_ROOT']."/../data/gallery/");
-/**
- * Konstante UPDIR
- */
 define("UPDIR", $_SERVER['DOCUMENT_ROOT']."/../data/upload/");
-#define("UPDIR", DIR."upload/incoming/");
-/**
- * Konstante ZENSUR
- */
-if ($user->typ == USER_MEMBER) {
-define("ZENSUR", "");
-}else{
-define("ZENSUR", "AND p.zensur='0'");
-}
+define("ZENSUR", ( $user->typ >= USER_MEMBER ? "" : "AND p.zensur='0'" ));
 
 /**
- * Global MAX_PIC_SIZE
- * @global array $MAX_PIC_SIZE
+ * Globals
+ * @global array $MAX_PIC_SIZE	The maximum width & height for pictures
+ * @global array $THUMBPAGE		The image size for Thumbnail pictures
  */
 $MAX_PIC_SIZE = array("picWidth"=>800, "picHeight"=>800, "tnWidth"=>150, "tnHeight"=>150);
-/**
- * Global THUMBPAGE
- * @global array $THUMBPAGE
- */
 $THUMBPAGE = array("width"=>4, "height"=>3, "padding"=>10);
 
 
 // ********************************** LAYOUT FUNCTIONS ***************************************************************************
-
-
 /**
  * Gallery Hauptseite anzeigen
  * 
@@ -72,13 +53,13 @@ $THUMBPAGE = array("width"=>4, "height"=>3, "padding"=>10);
  * @package Zorg
  * @subpackage Gallery
  *
+ * @see ZENSUR
  * @param string $state Aktueller Status des Albums, z.B. wenn es gerade bearbeitet wird
  * @param string $error (Fehler-)Meldung, welche auf der Gallery-Seite angezeigt werden soll
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Benutzervariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global string $MAX_PIC_SIZE String der Variable MAX_PIC_SIZE
  * @global string $THUMBPAGE String der Variable THUMBPAGE
- * @see ZENSUR
  * @return string HTML-Code der Gallery-Seite
  */
 function galleryOverview ($state="", $error="") {
@@ -835,8 +816,8 @@ if ($d[zensur]) {
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $pic_x X-Koordinaten wo der User geklickt hat
  * @param integer $pic_y Y-Koordinaten wo der User geklickt hat
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Benutzervariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function doMyPic($pic_id, $pic_x, $pic_y) {
 	global $db, $user;
@@ -914,7 +895,7 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
  * @subpackage Gallery
  *
  * @param integer $picID ID des betroffenen Bildes
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  *
  * @return boolean Gibt true/false zurück, je nachdem ob User<->Bild Verknüpfung gefunden wurde
  */
@@ -943,7 +924,7 @@ function checkUserToPic($userID, $picID)
  * @subpackage Gallery
  *
  * @param integer $picID ID des betroffenen Bildes
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
  */
 function getUsersOnPic($pic_id) {
@@ -985,8 +966,8 @@ function getUsersOnPic($pic_id) {
  * 
  * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
  * @param integer $limit Maximale Anzahl von Bildern
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen User-Variablen 
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Array mit allen User-Variablen 
  * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
  */
 function getUserPics($userid, $limit=1)
@@ -1072,8 +1053,8 @@ function getUserPics($userid, $limit=1)
  *
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $score Bewertung (1-5) welche der User dem Bild gegeben hat
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $db Array mit allen Benutzervariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $db Globales Class-Object mit den User-Methoden & Variablen
  */
 function doBenoten($pic_id, $score) {
 	global $db, $user;

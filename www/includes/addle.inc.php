@@ -10,17 +10,19 @@
  * @subpackage Addle
  */
 /**
- * File Includes
+ * File includes
+ * @include messagesystem.inc.php
+ * @include mysql.inc.php
+ * @include strings.inc.php
  */
 include_once( __DIR__ .'/messagesystem.inc.php');
 include_once( __DIR__ .'/mysql.inc.php');
 include_once( __DIR__ .'/strings.inc.php');
 
 /**
- * Konstante MAX_ADDLE_GAMES
+ * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
  */
 define("MAX_ADDLE_GAMES", 1);
-
 
 /**
  * Anzahl offene Addle Spiele
@@ -31,7 +33,7 @@ define("MAX_ADDLE_GAMES", 1);
  * @version 1.0
  *
  * @param integer $userID ID des Users
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return integer Anzahl der offenen Spiele
  */
 function getOpenAddleGames($userID) {
@@ -56,7 +58,7 @@ function getOpenAddleGames($userID) {
  * @author [z]biko
  * @version 1.0
  *
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
 function addle_remove_old_games () {
 	global $db;
@@ -110,7 +112,7 @@ function addle_remove_old_games () {
  * @version 1.0
  *
  * @param integer $anzahl Anzahl Zeilen, welche ausgegeben werden sollen
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return string Gibt einen String mit dem HTML-Code der Highscore Liste zurueck
  */
 function highscore_dwz ($anzahl) {
@@ -188,7 +190,7 @@ function highscore_dwz ($anzahl) {
  * @version 1.0
  *
  * @param integer $id ID des Users
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
 function _update_dwz ($id) {
    global $db;
@@ -466,4 +468,3 @@ while($rs = $db->fetch($result)) {
 		$db->query($sql,__LINE__,__FILE__);
 	}
 }
-

@@ -393,16 +393,25 @@ function text_width ($text, $width, $delimiter='') {
 
 
 /**
-* Funktion entfernt alle HTML-Tags aus einem String
-*
-* @author IneX
-* @date 16.03.2008
-*
-* @return String
-* @param $html
-*/
-function remove_html($html) {
-   $s = preg_replace ("@</?[^>]*>*@", "", $html);
+ * Entfernt HTML-Tags aus einem String
+ *
+ * @author IneX
+ * @date 16.03.2008
+ * @version 2.0
+ * @since 1.0 initial release
+ * @since 2.0 changed preg_replace("@</?[^>]*>*@") => strip_tags()
+ *
+ * @link http://php.net/manual/de/function.strip-tags.php
+ * @link https://www.reddit.com/r/PHP/comments/nj5t0/what_everyone_should_know_about_strip_tags/
+ * @see Messagesystem::sendMessage()
+ * @param string $html HTML-String input to strip tags from
+ * @param string $allowable_tags Whitelist of HTML-Tags which should NOT be removed
+ * @return string Returns clean $html as string
+ */
+function remove_html($html, $allowable_tags=NULL)
+{
+   //$s = preg_replace ("@</?[^>]*>*@", "", $html);
+   $s = strip_tags($html, $allowable_tags);
    return $s;
 }
 
@@ -417,7 +426,7 @@ function remove_html($html) {
  * @see Comment:post()
  *
  * @param $string String Input which shall be escaped
- * @return string
+ * @return string Returns escaped $string as string
  */
 function escape_text($string) {
    $s = addslashes(stripslashes($string));
@@ -432,11 +441,12 @@ function escape_text($string) {
  * @date 24.04.2018
  * @see bugtracker.inc.php
  *
- * @param $string String Input which shall be sanitized
- * @return string
+ * @param string	$string String Input which shall be sanitized
+ * @param string	$allowable_tags Whitelist of HTML-Tags which should NOT be removed
+ * @return string	Returns sanitized $string as string
  */
-function sanitize_userinput($string, $allowable_tags = '') {
-	$s = mysql_real_escape_string(strip_tags($string, $allowable_tags));
+function sanitize_userinput($string, $allowable_tags=NULL) {
+	$s = mysql_real_escape_string(remove_html($string, $allowable_tags));
 	return $s;
 }
 

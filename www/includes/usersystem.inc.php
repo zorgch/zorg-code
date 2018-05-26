@@ -147,6 +147,8 @@ class usersystem {
 	 *
 	 * Klassen Konstruktor
 	 *
+	 * @TODO Will be deprecated in PHP7! -> http://php.net/manual/de/migration70.deprecated.php
+	 *
 	 * @return usersystem
 	 */
 	function usersystem() {
