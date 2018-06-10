@@ -97,9 +97,10 @@ class Activities
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
-	 * @version	2.0
+	 * @version	2.1
 	 * @since	1.0 initial release
 	 * @since	2.0 added Telegram Notification for new Activities
+	 * @since	2.1 Changed to new Telegram Notification-Method
 	 *
 	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat
 	 * @param	integer	$forUserID		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
@@ -112,7 +113,7 @@ class Activities
 	 */
 	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL)
 	{
-		global $db, $user;
+		global $db, $user, $telegram;
 		//$activities = $_ENV['$activities_HZ']; // Globale Activity-Arrays mergen
 		
 		//if (Activities::checkAllowActivities($userID))
@@ -124,8 +125,8 @@ class Activities
 					";
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			// Notification auslösen
-			Messagesystem::sendTelegramNotificationGroup( '<b>' . $user->id2user($fromUser, TRUE) . '</b> ' . $activity );
+			/** Telegram Notification auslösen */
+			$telegram->send->message('group', ['text' => sprintf('<b>%s</b> %s', $user->id2user($fromUser, TRUE), $activity), 'disable_notification' => 'true'] );
 		//}
 		
 	}

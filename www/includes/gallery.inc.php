@@ -1433,19 +1433,21 @@ function getRandomThumb() {
  * @author ?
  * @author IneX
  * @date 19.03.2018
- * @version 2.0
+ * @version 2.2
  * @since 1.0
  * @since 2.0 added Telegram Notification (photo message)
- * @since 3.0 Telegram will send now high-res photo, instead of low-res thumbnail
+ * @since 2.1 Telegram will send now high-res photo, instead of low-res thumbnail
+ * @since 2.2 changed to new Telegram Send-Method
  *
  * @see SITE_URL
  * @see imgsrcThum()
- * @see Messagesystem::sendTelegramNotificationGroup()
- * @global $db MySQL-Datenbank Objekt aus mysql.inc.php
- * @global $user User-Objekte aus usersystem.inc.php
+ * @see Telegram::send::photo()
+ * @global object $db		MySQL-Datenbank Objekt aus mysql.inc.php
+ * @global object $user		User-Objekte aus usersystem.inc.php
+ * @global object $telegram	Globales Class-Object mit den Telegram-Methoden
  */
 function getDailyThumb () {
-	global $db, $user;
+	global $db, $user, $telegram;
 	$name = 'daily_pic';
 
 	try {
@@ -1469,11 +1471,11 @@ function getDailyThumb () {
 			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
 			if (DEVELOPMENT) error_log("[DEBUG] ".__FUNCTION__." new Daily Pic generated: ".$d['id']);
 
-			// Notification auslösen
+			/** Telegram Notification auslösen */
 			// url = URL to the Pic, caption = "Daily Pic(: Title - if available) [<a href="img-url">aluegä</a>]"
 			$imgUrl = SITE_URL.imgsrcPic($d['id']);
 			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
-			Messagesystem::sendTelegramNotificationGroup( $imgCaption, $imgUrl );
+			$telegram->send->photo('group', ['caption' => $imgCaption, 'photo' => $imgUrl, 'disable_notification' => 'true'] );
 		}
 
 		return formatGalleryThumb($d);

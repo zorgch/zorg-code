@@ -186,12 +186,19 @@ Class Quotes {
 	 * Quote of the Day
 	 * Generates a new Daily Quote
 	 *
-	 * @version 2.0
+	 * @author [z]milamber
+	 * @author IneX
+	 * @version 2.1
 	 * @since 1.0
 	 * @since 2.0 added Telegram Notification for new Daily Quote
+	 * @since 2.1 changed to new Telegram Send-Method
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $telegram Globales Class-Object mit den Telegram-Methoden
 	 */
 	static function newDailyQuote() {
-		global $db, $user;
+		global $db, $user, $telegram;
 
 		try {
 			// anzahl quotes ermitteln
@@ -219,7 +226,7 @@ Class Quotes {
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			
 			/** Send new Daily Quote as Telegram Message */
-			Messagesystem::sendTelegramNotificationGroup( 'Daily [z]Quote: <b>' . $rs['text'] . '</b><i> - '.$user->id2user($rs['user_id'], TRUE).'</i>' );
+			$telegram->send->message('group', [ 'text' => sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', $rs['text'], $user->id2user($rs['user_id'], TRUE)), 'disable_notification' => 'true' ]);
 			
 			return true;
 		}
