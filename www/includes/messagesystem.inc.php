@@ -728,7 +728,7 @@ class Messagesystem {
 			/** Send Telegram Notification */
 			try {
 				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text, '<br>'), 140, '...') ] );
-				$telegram->send->message($owner, ['text' => $message]);
+				$telegram->send->message($owner, $message, ['disable_web_page_preview' => 'true']);
 			} catch (Exception $e) {
 				error_log($e->getMessage());
 			}

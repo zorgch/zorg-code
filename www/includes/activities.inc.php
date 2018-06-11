@@ -126,7 +126,7 @@ class Activities
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 			/** Telegram Notification auslösen */
-			$telegram->send->message('group', ['text' => sprintf('<b>%s</b> %s', $user->id2user($fromUser, TRUE), $activity), 'disable_notification' => 'true'] );
+			$telegram->send->message('group', sprintf('<b>%s</b> %s', $user->id2user($fromUser, TRUE), $activity), ['disable_notification' => 'true']);
 		//}
 		
 	}

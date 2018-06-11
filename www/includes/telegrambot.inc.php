@@ -343,7 +343,7 @@ Class Telegram
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking $parameters for presence of required parameter "%s"', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
 			if ( !isset($parameters[$_telegramMessageModels[$messageType]['required'][0]]) )
 			{
-				error_log(sprintf('[WARN] <%s:&d> Value %s is required but was not passed!', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
+				error_log(sprintf('[WARN] <%s:%d> Value %s is required but was not passed!', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
 				return false;
 			} else {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SUCCESS: required parameter "%s" found and is OK', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
@@ -405,38 +405,42 @@ Class Telegram
 /**
  * Pseudo Sub-Class for Telegram Class
  * Used for properly preparing new Telegram Bot API Method Calls
+ *
+ * @TODO Add method-call routes for all additional Telegram Message types
  */
 Class send extends Telegram
 {
-
 	/** sendMessage */
-	public function message($scope, array $content) {
-		$this->send($scope, 'sendMessage', $content);
+	public function message($scope, $text, $parameters=[]) {
+		$this->send( $scope, 'sendMessage', array_merge(['text' => $text], $parameters) );
 	}
 
 	/** sendPhoto */
-	public function photo($scope, array $content) {
-		$this->send($scope, 'sendPhoto', $content);
+	public function photo($scope, $photo, $caption=NULL, $parameters=[]) {
+		$this->send( $scope, 'sendPhoto', array_merge(['photo' => $photo], ['caption' => $caption], $parameters) );
 	}
 
-	/** sendMediaGroup */
-	public function gallery($scope, array $content) {
-		$this->send($scope, 'sendMediaGroup', $content);
+	/**
+	 * sendMediaGroup
+	 * @link https://core.telegram.org/bots/api/#inputmedia
+	 */
+	public function gallery($scope, array $inputMedia, $parameters=[]) {
+		$this->send( $scope, 'sendMediaGroup', array_merge($inputMedia, $parameters) );
 	}
 
 	/** sendDocument */
-	public function document($scope, array $content) {
-		$this->send($scope, 'sendDocument', $content);
+	public function document($scope, $document, $caption=NULL, $parameters=[]) {
+		$this->send( $scope, 'sendDocument', array_merge(['document' => $document], ['caption' => $caption], $parameters) );
 	}
 
 	/** sendLocation */
-	public function location($scope, array $content) {
-		$this->send($scope, 'sendLocation', $content);
+	public function location($scope, float $latitude, float $longitude, $live_period=NULL, $parameters=[]) {
+		$this->send( $scope, 'sendLocation', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['live_period' => $live_period], $parameters) );
 	}
 
 	/** sendVenue */
-	public function event($scope, array $content) {
-		$this->send($scope, 'sendVenue', $content);
+	public function event($scope, float $latitude, float $longitude, $title, $address, $foursquare_id=NULL, $parameters=[]) {
+		$this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['live_period' => $live_period], $parameters) );
 	}
 }
 

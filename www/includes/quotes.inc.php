@@ -226,7 +226,7 @@ Class Quotes {
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			
 			/** Send new Daily Quote as Telegram Message */
-			$telegram->send->message('group', [ 'text' => sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', $rs['text'], $user->id2user($rs['user_id'], TRUE)), 'disable_notification' => 'true' ]);
+			$telegram->send->message('group', sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', $rs['text'], $user->id2user($rs['user_id'], TRUE)), ['disable_notification' => 'true']);
 			
 			return true;
 		}

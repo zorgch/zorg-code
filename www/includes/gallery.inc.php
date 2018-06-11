@@ -1475,7 +1475,7 @@ function getDailyThumb () {
 			// url = URL to the Pic, caption = "Daily Pic(: Title - if available) [<a href="img-url">aluegä</a>]"
 			$imgUrl = SITE_URL.imgsrcPic($d['id']);
 			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
-			$telegram->send->photo('group', ['caption' => $imgCaption, 'photo' => $imgUrl, 'disable_notification' => 'true'] );
+			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
 		}
 
 		return formatGalleryThumb($d);
