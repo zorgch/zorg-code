@@ -695,6 +695,7 @@ class Messagesystem {
 	 * @param string	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
 	 * @global object	$db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object	$user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object	$telegram Globales Class-Object mit den Telegram-Methoden
 	 */
 	function sendMessage(int $from_user_id, int $owner, $subject, $text='', $to_users='', $isread='0')
 	{

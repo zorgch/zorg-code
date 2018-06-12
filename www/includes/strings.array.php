@@ -187,5 +187,7 @@ return
 	,'event' =>
 		[
 			 'telegram-event-notification' => 'Um %s: %s'
+			,'error-upcoming-event' => '[NOTICE] <%s:%d> No upcoming Event found'
+			,'error-googlemapsapi-geocode' => '[NOTICE] <%s:%d> $googleMapsApi->geocode(): no result'
 		]
 ];

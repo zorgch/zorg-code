@@ -1,3 +1,10 @@
 # Ignore MySQL Database login information file
 mysql_login.inc.php
 mysql_login.inc.local.php
+
+# Ignore local Development configuration
+development.config.php
+
+# Ignore Google API Key information file
+googleapis_key.inc.php
+googleapis_key.inc.local.php

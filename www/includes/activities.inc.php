@@ -102,14 +102,14 @@ class Activities
 	 * @since	2.0 added Telegram Notification for new Activities
 	 * @since	2.1 Changed to new Telegram Notification-Method
 	 *
+	 * @see checkAllowActivities()
 	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat
-	 * @param	integer	$forUserID		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
+	 * @param	integer	$forUser		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
 	 * @param	string	$activity		Activity-Nachricht, welche ausgelöst wurde
 	 * @param	string	$activityArea	Activity-Area, Bereich zu dessen die Activity ausgelöst wurde
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
-	 * 
-	 * @see		checkAllowActivities()
+	 * @global	object	$telegram		Globales Class-Object mit den Telegram-Methoden
 	 */
 	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL)
 	{

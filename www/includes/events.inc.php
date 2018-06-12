@@ -1,8 +1,39 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+/**
+ * Events Funktionen
+ * 
+ * Beinhaltet die Events-Klasse und deren Methoden, welche für die Events benötigt werden
+ *
+ * Diese Klassen benutzen folgende Tabellen aus der DB:
+ * - events
+ * - events_to_user
+ *
+ * @version		1.0
+ * @package		Zorg
+ * @subpackage	Events
+ */
+/**
+ * File includes
+ * @include smarty.inc.php Includes the Smarty Class and Methods
+ * @include usersystem.inc.php Includes the Usersystem Class and Methods
+ * @include util.inc.php Includes the Helper Utilities Class and Methods
+ * @include googleapis.inc.php Include the Google API Class and Methods
+ */
+require_once( __DIR__ .'/smarty.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
+require_once( __DIR__ .'/util.inc.php');
+include_once( __DIR__ .'/googleapis.inc.php');
 
+/**
+ * Events Class
+ * 
+ * In dieser Klasse befinden sich alle Funktionen für die Events
+ *
+ * @author		[z]milamber, IneX
+ * @version		1.0
+ * @package		Zorg
+ * @subpackage	Events
+ */
 class Events {
 	
 	static function getEvent($event_id) {
@@ -232,4 +263,88 @@ class Events {
 		return $out[1];
 	}
 }
-?>
+
+
+/**
+ * Upcoming Events
+ *
+ * @author IneX
+ * @date 12.06.2018
+ * @version 1.0
+ * @since 1.0
+ * @package Zorg
+ * @subpackage Events
+ */
+Class UpcomingEvent
+{
+	/**
+	 * Telegram Notification for an upcoming Event
+	 *
+	 * @see Telegram::send::event()
+	 * @see UpcomingEvent::getUpcomingEvent()
+	 * @global object $telegram Globales Class-Object mit den Telegram-Methoden
+	 * @return boolean Returns true or false, depending on successful result
+	 */
+	public function notify()
+	{
+		global $telegram;
+
+		$nextEvent = $this->getUpcomingEvent();
+		if ($nextEvent)
+		{
+			if (DEVELOP) error_log('[DEBUG] Sending Telegram Notification $telegram->send-event()');
+			$eventTitle = t('telegram-event-notification', 'event', [ $nextEvent['time'], $nextEvent['name'] ]);
+			$telegram->send->event('group', $nextEvent['lat'], $nextEvent['lng'], $eventTitle, $nextEvent['location']);
+			return true;
+		} else {
+			error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__]) );
+			return false;
+		}
+	}
+
+	/**
+	 * Check & return Data of upcoming Event
+	 *
+	 * @see GoogleMapsApi::geocode()
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $googleMapsApi Globales Class-Object mit den Google Maps API-Methoden
+	 * @return array|null Returns either an Array representing the upcoming Event, or NULL if no upcoming Event was found
+	 */
+	private function getUpcomingEvent()
+	{
+		global $db, $googleMapsApi;
+		try {
+			$sql = 'SELECT name, location, DATE_FORMAT(startdate, "%H:%i") time
+					FROM events
+					WHERE startdate >= DATE_ADD(NOW(), INTERVAL 3 HOUR)
+						AND startdate < DATE_ADD(NOW(), INTERVAL 4 HOUR)
+					ORDER BY startdate ASC
+					LIMIT 1';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$event = $db->fetch($result);
+			if (DEVELOP) error_log("[DEBUG] Event Query Result:\n\r".print_r($event,true));
+
+			if (!empty($event['name']))
+			{
+				if (DEVELOP) error_log("[DEBUG] getUpcomingEvent()\n\r" . print_r($event, true));
+				$geolocation = $googleMapsApi->geocode($event['location']);
+				if(!empty($geolocation))
+				{
+					if (DEVELOP) error_log('[DEBUG] $googleMapsApi->geocode()'."\n\r" . print_r($geolocation, true));
+					$event['lat'] = $geolocation['lat'];
+					$event['lng'] = $geolocation['lng'];
+					return $event;
+				} else {
+					error_log( t('error-googlemapsapi-geocode', 'event', [__METHOD__, __LINE__]) );
+					return NULL;
+				}
+			} else {
+				error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__]) );
+				return NULL;
+			}
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return $e->getMessage();
+		}
+	}
+}
