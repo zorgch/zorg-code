@@ -25,17 +25,6 @@ if (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot', true)
 if ( file_exists(__DIR__.'/../../'.TELEGRAM_BOT.'.php') ) require_once( __DIR__ . '/../../' . TELEGRAM_BOT.'.php' );
 
 /**
-* Define global Telegram Bot Settings (can be overwritten later on a Message level)
-* @const TELEGRAM_BOT_SILENT Specifies whether the Bot's messages should be silent or regular notifications
-* @const TELEGRAM_BOT_PARSE_MODE Specifies the Message Format to use - either empty, Markdown or HTML
-* @const TELEGRAM_BOT_LINK_PREVIEWS Specifies whether link previews for links in the message should be enabled or disabled
-*/
-if (!defined('TELEGRAM_BOT_PARSE_MODE')) define('TELEGRAM_BOT_PARSE_MODE', 'html', true);
-if (!defined('TELEGRAM_BOT_DISABLE_WEB_PAGE_PREVIEW')) define('TELEGRAM_BOT_DISABLE_WEB_PAGE_PREVIEWS', 'false', true);
-if (!defined('TELEGRAM_BOT_DISABLE_NOTIFICATION')) define('TELEGRAM_BOT_DISABLE_NOTIFICATIONS', 'false', true);
-
-
-/**
  * Telegram Messaging Class
  * 
  * In dieser Klasse befinden sich alle Funktionen zum Senden von Telegram-Messages über einen Telegram-Bot
@@ -51,7 +40,17 @@ if (!defined('TELEGRAM_BOT_DISABLE_NOTIFICATION')) define('TELEGRAM_BOT_DISABLE_
  */
 Class Telegram
 {
-
+	/**
+	* Define global default Telegram Bot Settings
+	* (can be overwritten on a Message level by passing as $parameter)
+	* @const TELEGRAM_BOT_PARSE_MODE Specifies the Message Format to use - either empty, Markdown or HTML
+	* @const TELEGRAM_BOT_DISABLE_WEB_PAGE_PREVIEW Specifies whether link previews for links in the message should be enabled or disabled
+	* @const TELEGRAM_BOT_DISABLE_NOTIFICATION Specifies whether the Bot's messages should be silent or regular notifications
+	*/
+	const PARSE_MODE = 'html';
+	const DISABLE_WEB_PAGE_PREVIEW = 'false';
+	const DISABLE_NOTIFICATION = 'false';
+	
 	/**
 	 * Send a Message via Telegram Messenger
 	 * Schickt eine Notification an die Telegram Chats von Usern
@@ -369,9 +368,9 @@ Class Telegram
 					error_log(sprintf('[WARN] <%s:%d> Value "%s" is required but was not passed!', __METHOD__, __LINE__, 'chat_id'));
 					return false;
 				}
-				$data['parse_mode'] = ( isset($parameters['parse_mode']) ? $parameters['parse_mode'] : TELEGRAM_BOT_PARSE_MODE );
-				$data['disable_web_page_preview'] = ( isset($parameters['disable_web_page_preview']) ? $parameters['disable_web_page_preview'] : TELEGRAM_BOT_DISABLE_WEB_PAGE_PREVIEW );
-				$data['disable_notification'] = ( isset($parameters['disable_notification']) ? $parameters['disable_notification'] : TELEGRAM_BOT_DISABLE_NOTIFICATION );
+				$data['parse_mode'] = ( isset($parameters['parse_mode']) ? $parameters['parse_mode'] : self::PARSE_MODE );
+				$data['disable_web_page_preview'] = ( isset($parameters['disable_web_page_preview']) ? $parameters['disable_web_page_preview'] : self::DISABLE_WEB_PAGE_PREVIEW );
+				$data['disable_notification'] = ( isset($parameters['disable_notification']) ? $parameters['disable_notification'] : self::DISABLE_NOTIFICATION );
 				if ( isset($parameters['reply_to_message_id']) ) $data['reply_to_message_id'] = $parameters['reply_to_message_id'];
 				if ( isset($parameters['reply_markup']) ) $data['reply_markup'] = $parameters['reply_markup'];
 
@@ -440,7 +439,7 @@ Class send extends Telegram
 
 	/** sendVenue */
 	public function event($scope, float $latitude, float $longitude, $title, $address, $foursquare_id=NULL, $parameters=[]) {
-		$this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['live_period' => $live_period], $parameters) );
+		$this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['title' => $title], ['address' => $address], ['foursquare_id' => $foursquare_id], $parameters) );
 	}
 }
 

@@ -36,6 +36,7 @@ return
 			,'account-inactive' => 'Dein Account wurde noch nicht aktiviert'
 			,'account-activated' => 'Dein Account wurde erfolgreich aktiviert!'
 			,'authentication-failed' => 'Benutzer/Passwort Kombination falsch!'
+			,'invalid-id' => '<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>'
 			,'invalid-email' => 'E-Mail Adresse ist ung&uuml;ltig!'
 			,'invalid-username' => 'Username ist ung&uuml;ltig!'
 			,'invalid-regcode' => 'Ungültiger Aktivierungscode!'
@@ -182,5 +183,9 @@ return
 			,'htmlcolor2array-invalid-parameter' => 'Invalid color "%s" for htmlcolor2array.'
 			,'smarty_brackets_ok-invalid-brackets' => 'Ungültige Klammernsetzung &lbrace; oder &rbrace; in der Nähe von: <br><pre>%s</pre><br>'
 			,'smarty_brackets_ok-invalid-argument' => 'Invalid argument type for <pre>%s</pre>'
+		]
+	,'event' =>
+		[
+			 'telegram-event-notification' => 'Um %s: %s'
 		]
 ];
