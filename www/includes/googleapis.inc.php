@@ -14,7 +14,7 @@
 * @const GOOGLE_API_KEY A constant holding the Google API Key required for requests to Google's APIs
 */
 if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once( (file_exists( __DIR__ .'/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') ), true);
-if (!empty(GOOGLE_API_KEY)) error_log('[INFO] <%s:%d> GOOGLE_API_KEY: found');
+if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log('[DEBUG] <%s:%d> GOOGLE_API_KEY: found');
 
 /**
  * Google Maps API Class
@@ -48,10 +48,10 @@ Class GoogleMapsApi
 		if (!empty(GOOGLE_API_KEY))
 		{
 			$googleGeocodingAPIrequest = sprintf('https://maps.googleapis.com/maps/api/geocode/json?key=%s&address=%s', GOOGLE_API_KEY, urlencode($address));
-			if (DEVELOP) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $googleGeocodingAPIrequest));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $googleGeocodingAPIrequest));
 			$request = file_get_contents($googleGeocodingAPIrequest);
 			$response = get_object_vars(json_decode($request));
-			if (DEVELOP) error_log(sprintf("[DEBUG] <%s:%d> Google Geocoding API Response JSON:\n\r%s", __METHOD__, __LINE__, print_r($response,true)));
+			if (DEVELOPMENT) error_log(sprintf("[DEBUG] <%s:%d> Google Geocoding API Response JSON:\n\r%s", __METHOD__, __LINE__, print_r($response,true)));
 			if ($response['status']=='OK')
 			{
 				return [

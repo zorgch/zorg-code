@@ -282,22 +282,37 @@ Class UpcomingEvent
 	 *
 	 * @see Telegram::send::event()
 	 * @see UpcomingEvent::getUpcomingEvent()
+	 * @param integer $starts_in_hours Integer value representing N hours to check for when any event might start. Default: 4 (hours)
 	 * @global object $telegram Globales Class-Object mit den Telegram-Methoden
 	 * @return boolean Returns true or false, depending on successful result
 	 */
-	public function notify()
+	public function notify($starts_in_hours=null)
 	{
 		global $telegram;
 
-		$nextEvent = $this->getUpcomingEvent();
-		if ($nextEvent)
+		/** If Function Parameter is not set, set a default */
+		if (null === $starts_in_hours) {
+	        $starts_in_hours = 4;
+	    } elseif (DEVELOPMENT) {
+		    error_log(sprintf('[DEBUG] <%s:%d> Function Parameter: %s', __METHOD__, __LINE__, $starts_in_hours));
+	    }
+
+		/** Validate $starts_in_hours - must be valid integer */
+		if (is_numeric($starts_in_hours))
 		{
-			if (DEVELOP) error_log('[DEBUG] Sending Telegram Notification $telegram->send-event()');
-			$eventTitle = t('telegram-event-notification', 'event', [ $nextEvent['time'], $nextEvent['name'] ]);
-			$telegram->send->event('group', $nextEvent['lat'], $nextEvent['lng'], $eventTitle, $nextEvent['location']);
-			return true;
+			$nextEvent = $this->getUpcomingEvent($starts_in_hours);
+			if ($nextEvent)
+			{
+				if (DEVELOPMENT) error_log('[DEBUG] Sending Telegram Notification $telegram->send-event()');
+				$eventTitle = t('telegram-event-notification', 'event', [ $nextEvent['time'], $nextEvent['name'] ]);
+				$telegram->send->event('group', $nextEvent['lat'], $nextEvent['lng'], $eventTitle, $nextEvent['location']);
+				return true;
+			} else {
+				error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__]) );
+				return false;
+			}
 		} else {
-			error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__]) );
+			error_log( sprintf('[WARN] <%s:%d> Starts in X hours is no valid integer value!', __METHOD__, __LINE__) );
 			return false;
 		}
 	}
@@ -306,31 +321,32 @@ Class UpcomingEvent
 	 * Check & return Data of upcoming Event
 	 *
 	 * @see GoogleMapsApi::geocode()
+	 * @param integer $hours_until_start Integer value representing N hours to check for when any event might start
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $googleMapsApi Globales Class-Object mit den Google Maps API-Methoden
 	 * @return array|null Returns either an Array representing the upcoming Event, or NULL if no upcoming Event was found
 	 */
-	private function getUpcomingEvent()
+	private function getUpcomingEvent(int $hours_until_start)
 	{
 		global $db, $googleMapsApi;
 		try {
 			$sql = 'SELECT name, location, DATE_FORMAT(startdate, "%H:%i") time
 					FROM events
-					WHERE startdate >= DATE_ADD(NOW(), INTERVAL 3 HOUR)
-						AND startdate < DATE_ADD(NOW(), INTERVAL 4 HOUR)
+					WHERE startdate >= DATE_ADD(NOW(), INTERVAL '.($hours_until_start-1).' HOUR)
+						AND startdate < DATE_ADD(NOW(), INTERVAL '.($hours_until_start).' HOUR)
 					ORDER BY startdate ASC
 					LIMIT 1';
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$event = $db->fetch($result);
-			if (DEVELOP) error_log("[DEBUG] Event Query Result:\n\r".print_r($event,true));
+			if (DEVELOPMENT) error_log("[DEBUG] Event Query Result:\n\r".print_r($event,true));
 
 			if (!empty($event['name']))
 			{
-				if (DEVELOP) error_log("[DEBUG] getUpcomingEvent()\n\r" . print_r($event, true));
+				if (DEVELOPMENT) error_log("[DEBUG] getUpcomingEvent()\n\r" . print_r($event, true));
 				$geolocation = $googleMapsApi->geocode($event['location']);
 				if(!empty($geolocation))
 				{
-					if (DEVELOP) error_log('[DEBUG] $googleMapsApi->geocode()'."\n\r" . print_r($geolocation, true));
+					if (DEVELOPMENT) error_log('[DEBUG] $googleMapsApi->geocode()'."\n\r" . print_r($geolocation, true));
 					$event['lat'] = $geolocation['lat'];
 					$event['lng'] = $geolocation['lng'];
 					return $event;
