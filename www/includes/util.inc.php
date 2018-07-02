@@ -1,13 +1,13 @@
 <?php
 /**
-* Define preferred encryption type for user password encryption
-* @const CRYPT_SALT Sets the Salt encryption type to be used
-* @see crypt_pw()
-* @see exec_newpassword()
-* @see UserManagement::login()
-* @see usersystem::login()
-* @see usersystem::new_pass()
-* @see usersystem::create_newuser()
+ * Define preferred encryption type for user password encryption
+ * @const CRYPT_SALT Sets the Salt encryption type to be used
+ * @see crypt_pw()
+ * @see exec_newpassword()
+ * @see UserManagement::login()
+ * @see usersystem::login()
+ * @see usersystem::new_pass()
+ * @see usersystem::create_newuser()
 */
 if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
 
@@ -22,12 +22,12 @@ include_once( __DIR__ .'/activities.inc.php');
 include_once( __DIR__ .'/strings.inc.php');
 
 /**
-* Funktion um ein UNIX_TIMESTAMP schön darzustellen.
-* @author Milamber
-* @date 25.08.03
-*/
-function datename ($timestamp) {
-
+ * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
+ * @author Milamber
+ * @date 25.08.03
+ */
+function datename ($timestamp)
+{
 	// Leer
 	if($timestamp == 0) return '';
 
@@ -37,7 +37,7 @@ function datename ($timestamp) {
 
 	// Gestern
 	} else if(date("d.m.y", time()-86400) == date("d.m.y", $timestamp)) {
-		return 'Gestern '.date("H:i", $timestamp);
+		return t('datetime-yesterday', 'global', date("H:i", $timestamp));
 
 	// Diesen Monat
 	} else if (date("m.y", time()) == date("m.y", $timestamp)) {
@@ -54,32 +54,89 @@ function datename ($timestamp) {
 	}
 }
 
-function timename($timestamp) {
+function timename($timestamp)
+{
+	/** Leer */
+	if(empty($timestamp)) return '';
 
-	if($timestamp == 0) return '';
+	try {
+		/** Jetzt */
+		$currTime = time();
 
-	if($timestamp < 60) {
-		return $timestamp.' sek.';
-	} else if($timestamp < 60*60) {
-		return floor($timestamp/60).' min.';
-	} else if($timestamp < 60*60*24) {
-		return floor($timestamp/(60*60)).' h';
-	} else {
-		return floor($timestamp/(60*60*24)).' tage';
+		/** Vergangen oder in der Zukunft? */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Comparing timestamps %s vs %s', __FUNCTION__, __LINE__, $timestamp, $currTime));
+		$prefix = ($timestamp >= $currTime ? 'In ' : 'Vor ');
+		$timeDiff = ($timestamp >= $currTime ? $timestamp - $currTime : $currTime - $timestamp);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps time difference: %s%d', __FUNCTION__, __LINE__, $prefix, $timeDiff));
+	
+		/** Zeitperioden */
+		$timeLengths = array('s' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800, 'mt' => 2592000, 'y' => 31536000);
+	
+		switch ($timeDiff)
+		{
+			case $timeDiff <= 10: /** Gerade eben */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
+				return t('datetime-recently');
+				break;
+			
+			case $timeDiff < $timeLengths['m']: /** Sekunden */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
+				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+				return $prefix . t('datetime-seconds', 'global', $timeDiff) . $timeSuffix;
+				break;
+			
+			case $timeDiff < $timeLengths['h']: /** Minuten */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
+				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+				return $prefix . t('datetime-minutes', 'global', floor($timeDiff/$timeLengths['m'])) . $timeSuffix;
+				break;
+			
+			case $timeDiff < $timeLengths['d']: /** Stunden */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
+				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+				return $prefix . t('datetime-hours', 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
+				break;
+			
+			case $timeDiff < $timeLengths['w']: /** Tage */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
+				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'en' : '' );
+				return $prefix . t('datetime-days', 'global', floor($timeDiff/$timeLengths['d'])) . $timeSuffix;
+				break;
+			
+			case $timeDiff < $timeLengths['mt']: /** Wochen */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
+				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+				return $prefix . t('datetime-weeks', 'global', floor($timeDiff/$timeLengths['w'])) . $timeSuffix;
+				break;
+			
+			case $timeDiff < $timeLengths['y']: /** Monate */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
+				$timeSuffix = (floor($timeDiff/$timeLengths['mt']) > 1 ? 'en' : '' );
+				return $prefix . t('datetime-months', 'global', floor($timeDiff/$timeLengths['mt'])) . $timeSuffix;
+				break;
+			
+			case $timeDiff >= $timeLengths['y']: /** Jahre oder mehr */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
+				$timeSuffix = (floor($timeDiff/$timeLengths['y']) > 1 ? 'en' : '' );
+				return $prefix . t('datetime-years', 'global', floor($timeDiff/$timeLengths['y'])) . $timeSuffix;
+				break;
+		}
+	} catch (Exception $e) {
+		error_log($e->getMessage());
 	}
-
 }
 
 /**
  * Funktion um ein Datum-Zeit String in einen Timestamp umzuweandeln
  * @author IneX
  * @date 04.02.2018
- * @param @datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
+ * @see main.inc.php DateTime will take default Timezone as in date_default_timezone_set()
+ * @param $datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
  * @return string
  */
 function datetimeToTimestamp($datetime)
 {
-	$d = new DateTime($datetime, new DateTimeZone('Europe/Zurich'));
+	$d = new DateTime($datetime);
 	return $d->getTimestamp();
 }
 
@@ -120,10 +177,11 @@ function check_email($email) {
 }
 
 /**
-* Gibt einen random Quote zurück
-* @author keep3r
-* @date 22.03.2004
-*/
+ * Gibt einen random Quote zurück
+ * @author keep3r
+ * @date 22.03.2004
+ * @TODO Move this Method to the Quotes-Class
+ */
 function quote(){
 	global $db;
 
@@ -133,7 +191,7 @@ function quote(){
 	$total = $rs['anzahl'];
 
 	mt_srand((double)microtime()*1000000);
-    $rnd = mt_rand(1, $total);
+	$rnd = mt_rand(1, $total);
 	$sql = "SELECT * FROM quotes";
 	$result = $db->query($sql);
 
@@ -144,10 +202,11 @@ function quote(){
 }
 
 /**
-* Setzt einmal am Tag einen Quote in die DB daily_quote
-* @author keep3r
-* @date 22.03.2004
-*/
+ * Setzt einmal am Tag einen Quote in die DB daily_quote
+ * @author keep3r
+ * @date 22.03.2004
+ * @TODO Move this Method to the Quotes-Class
+ */
 function set_daily_quote(){
 
 	$date = date("Y-m-d");
@@ -157,40 +216,41 @@ function set_daily_quote(){
 
 	if (!$rs){
 		$quote = quote();
-  		$sql = "INSERT INTO daily_quote(
-  				date,
-  	  			quote
+			$sql = "INSERT INTO daily_quote(
+					date,
+		  			quote
 
 	  			)VALUES(
 
 	  			'$date',
 	  			'$quote'
 	  			)";
-  		$db->query($sql,__FILE__, __LINE__);
-  		return 1;
-  	} else {
-  		return 0;
-  	}
+			$db->query($sql,__FILE__, __LINE__);
+			return 1;
+		} else {
+			return 0;
+		}
 }
 
 
+/** URL Funktionen */
 /**
- * URL Funktionen
+ * Get & return current Script's URL & Parameters
  */
 function getURL() {
-	return rawurldecode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']);
+	return base64_encode(rawurldecode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']));
 }
 
 function glue_url($parsed) {
-   if (! is_array($parsed)) return false;
-       $url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
-       $url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
-       $url .= $parsed['host'] ? $parsed['host'] : '';
-       $url .= $parsed['port'] ? ':'.$parsed['port'] : '';
-       $url .= $parsed['path'] ? $parsed['path'] : '';
-       $url .= $parsed['query'] ? '?'.$parsed['query'] : '';
-       $url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
-  return $url;
+	if (! is_array($parsed)) return false;
+		$url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
+		$url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
+		$url .= $parsed['host'] ? $parsed['host'] : '';
+		$url .= $parsed['port'] ? ':'.$parsed['port'] : '';
+		$url .= $parsed['path'] ? $parsed['path'] : '';
+		$url .= $parsed['query'] ? '?'.$parsed['query'] : '';
+		$url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
+	return $url;
 }
 
 function getChangedURL($newquerystring) {
@@ -314,25 +374,25 @@ function htmlcolor2array ($color) {
 
 function maxwordlength($text, $max) {
 	$words = explode(' ', $text);
-   foreach($words as $key => $word)
-   {
-       $length = strlen($word);
-       if($length > $max)
-           $word = chunk_split($word, floor($length/ceil($length/$max)), ' ');
-       $words[$key] = $word;
-   }
-   return implode(' ', $words);
+	foreach($words as $key => $word)
+	{
+		$length = strlen($word);
+		if($length > $max)
+			$word = chunk_split($word, floor($length/ceil($length/$max)), ' ');
+		$words[$key] = $word;
+	}
+	return implode(' ', $words);
 }
 
 
 /**
-* Smarty Klammern überprüfen
-* 
-* Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
-* 
-* @return bool
-* @param string $text
-* @param string &$error
+ * Smarty Klammern überprüfen
+ * 
+ * Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
+ * 
+ * @return bool
+ * @param string $text
+ * @param string &$error
 */
 function smarty_brackets_ok ($text, &$error) {
 	$open = false;
@@ -367,7 +427,7 @@ function print_array ($arr, $indent=0) {
 
 	if (!$indent) $ret .= '<div align="left"><xmp>';
 	foreach ($arr as $key => $val) {
-		for ($i=0; $i<$indent; $i++) $ret .= '   ';
+		for ($i=0; $i<$indent; $i++) $ret .= '	';
 		if (is_array($val)) {
 			$ret .= "$key => Array: \n";
 			$ret .= print_array($val, $indent+1);
@@ -410,9 +470,9 @@ function text_width ($text, $width, $delimiter='') {
  */
 function remove_html($html, $allowable_tags=NULL)
 {
-   //$s = preg_replace ("@</?[^>]*>*@", "", $html);
-   $s = strip_tags($html, $allowable_tags);
-   return $s;
+	//$s = preg_replace ("@</?[^>]*>*@", "", $html);
+	$s = strip_tags($html, $allowable_tags);
+	return $s;
 }
 
 
@@ -429,8 +489,8 @@ function remove_html($html, $allowable_tags=NULL)
  * @return string Returns escaped $string as string
  */
 function escape_text($string) {
-   $s = addslashes(stripslashes($string));
-   return $s;
+	$s = addslashes(stripslashes($string));
+	return $s;
 }
 
 
@@ -452,14 +512,14 @@ function sanitize_userinput($string, $allowable_tags=NULL) {
 
 
 /**
-* Funktion liefert den Zeitunterschied zur GMT basis
+ * Funktion liefert den Zeitunterschied zur GMT basis
 *
-* @author IneX
-* @verison 1.0
-* @date 16.03.2008
+ * @author IneX
+ * @verison 1.0
+ * @date 16.03.2008
 *
-* @return String
-* @param $date
+ * @return String
+ * @param $date
 */
 function gmt_diff($date) {
 	$diff = ($date - date('Z', $date)) / 3600;
@@ -469,7 +529,7 @@ function gmt_diff($date) {
 	} else {
 			$diff2gmt = '+' . $diff;
 	}
-   
+	
 	return $diff2gmt;
 }
 
@@ -551,11 +611,8 @@ function isMobileClient($userAgent)
  */ 
 function urlExists($url)
 {
-	if (@file_get_contents($url,false,NULL,0,1))
-    {
-        return true;
-    }
-    return false;
+	if (@file_get_contents($url,false,NULL,0,1)) return true;
+	return false;
 }
 
 
@@ -573,15 +630,40 @@ function urlExists($url)
 function getGitCodeVersion()
 {
 	try {
-    	$codeVersion['version'] = trim(exec('git describe --tags --abbrev=0'));
-    	$codeVersion['last_commit'] = trim(exec('git log --pretty="%h" -n1 HEAD'));
-    	$lastCommitDatetime = trim(exec('git log -n1 --pretty=%ci HEAD'));
+		$codeVersion['version'] = trim(exec('git describe --tags --abbrev=0'));
+		$codeVersion['last_commit'] = trim(exec('git log --pretty="%h" -n1 HEAD'));
+		$lastCommitDatetime = trim(exec('git log -n1 --pretty=%ci HEAD'));
 		
 		$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
 		
-    	return $codeVersion;
+		return $codeVersion;
 
-    } catch (Exception $e) {
+	} catch (Exception $e) {
 		error_log($e->getMessage());
 	}
+}
+
+
+/**
+ * Wraps String with a specified HTML-Tag
+ * e.g. 'text', 'b' => returns <b>text</b>
+ *
+ * @author IneX
+ * @date 18.06.2018
+ * @version 1.0
+ * @since 1.0 initial release
+ *
+ * @param string $text String input to wrap into HTML-tag $htmlTag
+ * @param string $htmlTag HTML-Tag to use for warpping $text inside. Use only "b", "pre", "code", etc.
+ * @return string Returns $text as wrapped HTML-String
+ */
+function html_tag($text, $htmlTag)
+{
+	/** Validate the $text (not empty, null, or alike) */
+	if ( empty($text) ) return false;
+	/** Validate the $htmlTag (not whitespaces allowed) */
+	if ( $htmlTag !== str_replace(' ','',$htmlTag) ) return false;
+
+	/** If $text & $htmlTag are OK - wrap it to get a HTML-Tag as return */
+	return sprintf('<%1$s>%2$s</%1$s>', $htmlTag, $text);
 }

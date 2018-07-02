@@ -161,7 +161,7 @@ function var_request ()
     }
     function smarty_username ($userid) { // converts id to username
     	global $user;
-    	return $user->link_userpage($userid, false);
+    	return $user->link_userpage($userid);
     }
     function smarty_userpic ($userid) {
     	global $user;
@@ -564,7 +564,7 @@ function var_request ()
 	}
 
 	/**
-	 * Tauschbörse
+	 * TauschbÃ¶rse
 	 */
 	function smarty_num_new_tauschangebote ($params, &$smarty) {
 		if (isset($user->lastlogin)) {
@@ -678,7 +678,7 @@ function var_request ()
 		$smarty->assign("rezept", Rezepte::getRezept($params['id']));
 	}
 	function smarty_assign_rezept_voted ($params, &$smarty) {
-		// nur für eingeloggte
+		// nur fÃ¼r eingeloggte
 		$smarty->assign("rezept_voted", Rezepte::hasVoted($params['user_id'], $params['rezept_id']));
 	}
 	function smarty_assign_rezept_score ($params, &$smarty) {
@@ -911,7 +911,7 @@ function var_request ()
 			;
 			$result = $db->query($sql, __FILE__, __LINE__);
 
-			$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
+			$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Ã„nderungen</b></td></tr>';
 			while($rs = $db->fetch($result)) {
 		    $i++;
 
@@ -1082,7 +1082,7 @@ function var_request ()
 /**
  * Compiler Functions
  *
- * ACHTUNG: compiler-funktionen müssen php-code zurückgeben!
+ * ACHTUNG: compiler-funktionen mÃ¼ssen php-code zurÃ¼ckgeben!
  */
 function smarty_menuname ($name, &$smarty) {
 	return "echo smarty_menuname_exec ('$name');";
@@ -1098,7 +1098,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * assign_adv
 	 * -------------------------------------------------------------
 	 * Type:     function
-	 * Name:     assign_adv --> geändert zu "assign_array" damit es verständlicher ist, 6.8.07/IneX
+	 * Name:     assign_adv --> geÃ¤ndert zu "assign_array" damit es verstÃ¤ndlicher ist, 6.8.07/IneX
 	 * File:     function.assign_adv.php
 	 * Version:  0.11
 	 * Purpose:  assigns smarty variables including arrays and range arrays
@@ -1205,7 +1205,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * Smarty |rendertime modifier function
 	 *
 	 * Type:	Modifier
-	 * Name:	timer --> geändert zu "rendertime" damit es verständlicher ist, 07.01.2017/IneX
+	 * Name:	timer --> geÃ¤ndert zu "rendertime" damit es verstÃ¤ndlicher ist, 07.01.2017/IneX
 	 * Date:	Sat Nov 01, 2003
 	 * Author:	boots
 	 *
@@ -1301,16 +1301,16 @@ function smarty_menuname ($name, &$smarty) {
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
 								 'color' => array($color, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
 								,'event_newest' => array(Events::getEventNewest(), 'Events', 'Zeigt neusten Event an', false)
-								,'nextevents' => array(Events::getNext(), 'Events', 'Zeigt nächsten kommenden Event an', false)
+								,'nextevents' => array(Events::getNext(), 'Events', 'Zeigt nÃ¤chsten kommenden Event an', false)
 								,'eventyears' => array(Events::getYears(), 'Events', 'Zeigt alle Jahre an, in denen Events erfasst sind', false)
 								,'rezept_newest' => array(Rezepte::getRezeptNewest(), 'Rezepte', 'Zeigt neustes Rezept an', false)
 								,'categories' => array(Rezepte::getCategories(), 'Rezepte', 'Zeigt Liste von Rezept-Kategorien an', false)
 								,'num_errors' => array($num_errors, 'System', 'Zeigt Anzahl geloggter SQL-Errors an', false)
 								,'sun' => array($sun, 'Layout', 'Zeigt an ob Sonne "up" oder "down" ist', false)
-								,'sunset' => array($sunset, 'Layout', 'Zeit des nächsten SonnenUNTERgangs', false)
-								,'sunrise' => array($sunrise, 'Layout', 'Zeit des nächsten SonnenAUFgangs', false)
+								,'sunset' => array($sunset, 'Layout', 'Zeit des nÃ¤chsten SonnenUNTERgangs', false)
+								,'sunrise' => array($sunrise, 'Layout', 'Zeit des nÃ¤chsten SonnenAUFgangs', false)
 								,'country' => array($country, 'Layout', 'ISO-Code des ermittelten Landes des aktuellen Besuchers', false)
-								,'country_image' => array(IMAGES_DIR."country/flags/$country_code.png", 'Layout', 'Bildpfad zur Länderflagge des ermittelten Landes', false)
+								,'country_image' => array(IMAGES_DIR."country/flags/$country_code.png", 'Layout', 'Bildpfad zur LÃ¤nderflagge des ermittelten Landes', false)
 								,'request' => array(var_request(), 'URL Handling', 'associative array:  page = requested page / params = url parameter / url = page+params', false)
 								,'url' => array(getURL(), 'URL Handling', 'Gesamte aktuell aufgerufene URL (inkl. Query-Parameter)', false)
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)
@@ -1321,7 +1321,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'comments_default_maxdepth' => array(DEFAULT_MAXDEPTH, 'Layout', 'Standart angezeigte Tiefe an Kommentaren z.B. im Forum', false)
 								,'online_users' => array(var_online_users(), 'Usersystem', 'Array mit allen zur Zeit eingeloggten Usern', false)
 								,'num_new_events' => array(Events::getNumNewEvents(), 'Events', 'Zeigt Anzahl neu erstellter Events an', true)
-								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
+								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthÃ¤lt Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
 								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
 								
   						 );
@@ -1332,23 +1332,24 @@ function smarty_menuname ($name, &$smarty) {
 	 * @var array
 	 */
     $zorg_php_modifiers = array( //Format: [Modifier] => array ([PHP-Funktion] | [Kategorie] | [Beschreibung] | [Members only true/false])
-								 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
-								,'stripslashes' => array('stripslashes', 'Variablen', 'Modifier für die Funktion stripslashes() wie in PHP', false)
-								,'strstr' => array('strstr', 'Variablen', 'Modifier für die Funktion strstr() wie in PHP', false)
-								,'stristr' => array('stristr', 'Variablen', 'Modifier für die Funktion stristr() wie in PHP (Gross-/Kleinschreibung ignorieren)', false)
+								 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anstÃ¤ndiges datum/zeit Format', false)
+								,'stripslashes' => array('stripslashes', 'Variablen', 'Modifier fÃ¼r die Funktion stripslashes() wie in PHP', false)
+								,'strstr' => array('strstr', 'Variablen', 'Modifier fÃ¼r die Funktion strstr() wie in PHP', false)
+								,'stristr' => array('stristr', 'Variablen', 'Modifier fÃ¼r die Funktion stristr() wie in PHP (Gross-/Kleinschreibung ignorieren)', false)
 								,'smarty_sizebytes' => array('sizebytes', 'Variablen', 'stellt z.B: ein "kB" dahinter und konvertiert die zahl.', false)
-								,'smarty_quantity' => array('quantity', 'Variablen', '{$anz|quantity:Zug:Züge}', false)
-								,'smarty_number_quotes' => array('number_quotes', 'Variablen', 'Registriert für Smarty den Modifier number_quotes() aus PHP', false)
-								,'htmlentities' => array('htmlentities', 'Variablen', 'Registriert für Smarty den Modifier htmlentities() aus PHP', false)
-								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert für Smarty den Modifier base64_encode() aus PHP', false)
-								,'smarty_concat' => array('concat', 'Variablen', 'Registriert für Smarty den Modifier concat() aus PHP', false)
-								,'smarty_ltrim' => array('ltrim', 'Variablen', 'Registriert für Smarty den Modifiert ltrim() aus PHP', false)
-								,'smarty_maxwordlength' => array('maxwordlength', 'Variablen', 'Registriert für Smarty den Modifier maxwordlength() aus PHP', false)
+								,'smarty_quantity' => array('quantity', 'Variablen', '{$anz|quantity:Zug:ZÃ¼ge}', false)
+								,'smarty_number_quotes' => array('number_quotes', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier number_quotes() aus PHP', false)
+								,'htmlentities' => array('htmlentities', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier htmlentities() aus PHP', false)
+								,'base64_decode' => array('base64decode', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier base64_decode() aus PHP', false)
+								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier base64_encode() aus PHP', false)
+								,'smarty_concat' => array('concat', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier concat() aus PHP', false)
+								,'smarty_ltrim' => array('ltrim', 'Variablen', 'Registriert fÃ¼r Smarty den Modifiert ltrim() aus PHP', false)
+								,'smarty_maxwordlength' => array('maxwordlength', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier maxwordlength() aus PHP, 1.param = word length', false)
 								,'smarty_name' => array('name', 'Usersystem', 'usersystem', false)
 								,'smarty_username' => array('username', 'Usersystem', '{$userid|username} konvertiert userid zu username', false)
 								,'smarty_userpic' => array('userpic', 'Usersystem', '{$userid|userpic}', false)
 								,'smarty_userpic2' => array('userpic2', 'Usersystem', '{$userid|userpic2:0}', false)
-								,'smarty_usergroup' => array('usergroup', 'Usersystem', '{$id|usergroup} für tpl schreib / lese rechte', false)
+								,'smarty_usergroup' => array('usergroup', 'Usersystem', '{$id|usergroup} fÃ¼r tpl schreib / lese rechte', false)
 								,'smarty_userpage' => array('userpage', 'Usersystem', '{$userid|userpage:0} , 1.param = username (0) or userpic (1)', false)
 								,'smarty_userismobile' => array('ismobile', 'Usersystem', '{$userid|ismobile} ermittelt ob letzter Login eines Users per Mobile war', false)
 								,'smarty_strip_anchor' => array('strip_anchor', 'URL Handling', 'link', false)
@@ -1438,13 +1439,13 @@ function smarty_menuname ($name, &$smarty) {
 								,'stockbroker_update_kurs' => array('update_kurs', 'Stockbroker', 'Stockbroker', false, false)
 								,'stockbroker_getkursbought' => array('getkursbought', 'Stockbroker', 'Stockbroker', false, false)
 								,'stockbroker_getkurs' => array('getkurs', 'Kategorie', 'Stockbroker', false, false)
-								,'smarty_num_new_tauschangebote' => array('num_new_tauschangebote', 'Tauschbörse', 'Tauschbörse', false, false)
-								,'smarty_assign_artikel' => array('assign_artikel', 'Tauschbörse', 'Tauschbörse', false, false)
+								,'smarty_num_new_tauschangebote' => array('num_new_tauschangebote', 'TauschbÃ¶rse', 'TauschbÃ¶rse', false, false)
+								,'smarty_assign_artikel' => array('assign_artikel', 'TauschbÃ¶rse', 'TauschbÃ¶rse', false, false)
 								,'url_params' => array('url_params', 'URL Handling', 'system', false, false)
 								,'smarty_sizeof' => array('sizeof', 'Smarty Templates', 'system', false, false)
 								,'smarty_get_changed_url' => array('get_changed_url', 'URL Handling', 'system', false, false)
-								,'smarty_htmlentities' => array('htmlentities', 'Variablen', 'Registriert für Smarty die Funktion htmlentities() aus PHP', false, false)
-								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert für Smarty die Funktion base64_encode() aus PHP', false, false)
+								,'smarty_htmlentities' => array('htmlentities', 'Variablen', 'Registriert fÃ¼r Smarty die Funktion htmlentities() aus PHP', false, false)
+								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert fÃ¼r Smarty die Funktion base64_encode() aus PHP', false, false)
 								,'smarty_onlineusers' => array('onlineusers', 'Usersystem', 'usersystem', false, false)
 								,'loginform' => array('loginform', 'Usersystem', 'usersystem', false, false)
 								,'smarty_FormFieldUserlist' => array('formfielduserlist', 'Usersystem', 'usersystem', false, false)
@@ -1511,7 +1512,7 @@ function smarty_menuname ($name, &$smarty) {
 		natcasesort($php_modifiers_array[]); // Sort the Array from A-Z
 		
 		foreach ($php_modifiers_array as $function_name => $data)
-		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
+		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anstÃ¤ndiges datum/zeit Format', false)
 			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
 			if ($data[3] && $user != null) $smarty->register_modifier($smarty_name, $function_name);
 			elseif (!$data[3]) $smarty->register_modifier($smarty_name, $function_name);

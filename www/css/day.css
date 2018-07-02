@@ -72,10 +72,10 @@ pre {
 }
 
 div.menu {
-	background-color: #BDCFF5; /* EDF2F2 */
+	background-color: #BDCFF5; /*EDF2F2*/
 	
 	border-bottom-style: solid;
-	border-bottom-color: #CCCCCC; /* ddd */
+	border-bottom-color: #CCCCCC; /*DDD*/
 	border-bottom-width: 1px;	
 	
 	border-top-style: solid;
@@ -84,16 +84,16 @@ div.menu {
 
 	letter-spacing: 1px;
 	
-	/* Innenabstand */ 
+	/** Innenabstand */ 
 	padding-bottom: 1px;
 	padding-top: 1px;
 }
 
 table.dreid {
-	background-color: #E5E5E5; /* EDF2F2 */
+	background-color: #E5E5E5; /*EDF2F2*/
 	
 	border-bottom-style: solid;
-	border-bottom-color: #CCCCCC; /* ddd */
+	border-bottom-color: #CCCCCC; /*DDD*/
 	border-bottom-width: 1px;	
 
 	border-left-style: solid;
@@ -101,7 +101,7 @@ table.dreid {
 	border-left-width: 1px;
 
 	border-right-style: solid;
-	border-right-color: #CCCCCC; /* ddd */
+	border-right-color: #CCCCCC; /*DDD*/
 	border-right-width: 1px;	
 	
 	border-top-style: solid;
@@ -110,11 +110,11 @@ table.dreid {
 }
 
 div.menu a {	
-	background-color: #BDCFF5; /* EDF2F2 */
+	background-color: #BDCFF5; /*EDF2F2*/
 
-	border-bottom:	1px solid #CCCCCC; /* DDD */
-	border-left:		1px solid #FFF;
-	border-right:		1px solid #CCCCCC; /* DDD */
+	border-bottom: 1px solid #CCCCCC; /*DDD*/
+	border-left: 1px solid #FFF;
+	border-right: 1px solid #CCCCCC; /*DDD*/
 
 	color: #344586;		
 
@@ -132,7 +132,7 @@ div.menu a:hover {
 }
 
 div.menu a.left {
-	background-color: #BDCFF5; /* EDF2F2 */
+	background-color: #BDCFF5; /*EDF2F2*/
 	border-left-style: none;
 	padding-left: 0px;
 	padding-right: 1px;
@@ -142,7 +142,7 @@ div.menu a.left:hover {
 }
 
 div.menu a.right {
-	background-color: #BDCFF5; /* EDF2F2 */
+	background-color: #BDCFF5; /*EDF2F2*/
 	border-right-style: none;
 	padding-left: 1px;
 	padding-right: 0px;
@@ -153,7 +153,7 @@ div.menu a.right:hover {
 
 table.forum {
 	border-collapse:collapse;
-	/* table-layout:fixed; */
+	/*table-layout:fixed;*/
 	width:100%;
 }
 
@@ -215,7 +215,6 @@ option {
 	font-size: 10px;
 	color: #000000;
 	background-color: #F2F2F2;
-
 }
 
 .text, textarea {
@@ -256,6 +255,11 @@ input[type=checkbox], input[type=radio] {
 	border-style: inset;
 }
 
+.button:disabled, .button:disabled:hover {
+    border-style: outset;
+    background-color: #dddddd;
+}
+
 .small{
 	font-size: 9px;
 }
@@ -273,7 +277,7 @@ font-size: 22px;
    text-align: center;
 }
 
-/* HTML5.2 Modial Dialog */
+/** HTML5.2 Modial Dialog */
 dialog {
   padding: 0;
   border: 0;
@@ -283,7 +287,7 @@ dialog {
           box-shadow: 0 0 1em black;
 }
 
-/* native backdrop */
+/** native backdrop */
 dialog::-webkit-backdrop {
   background-color: rgba(0, 0, 0, 0.4);
 }
@@ -291,7 +295,7 @@ dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-/* polyfill backdrop */
+/** polyfill backdrop */
 dialog + .backdrop {
   position: fixed;
   top: 0;
@@ -306,23 +310,20 @@ dialog[open] {
           animation: slide-up 0.4s ease-out;
 }
 
-/* The following styles are for older browsers when using
-   the polyfill. These aren’t necessary for Chrome/Firefox. */
+/** The following styles are for older browsers when using the polyfill. These aren’t necessary for Chrome/Firefox. */
 dialog {
   display: none;
   position: absolute;
   margin: 0 auto;
-  /* should center it, but not working in Safari */
+  /** should center it, but not working in Safari */
   max-width: 80vw;
   color: inherit;
   background-color: white;
 }
-
 dialog[open] {
   display: block;
 }
-
-/* prettying things up a bit */
+/** prettying things up a bit */
 .close {
   position: absolute;
   top: 0.2em;
@@ -333,13 +334,11 @@ dialog[open] {
   background-color: transparent;
   border: 0;
 }
-
 .modal-header,
 .modal-body,
 .modal-footer {
   padding: 1em;
 }
-
 .modal-header {
   margin: 0;
   padding-bottom: 0.6em;
@@ -348,11 +347,59 @@ dialog[open] {
   border-top-left-radius: 0.6rem;
   border-top-right-radius: 0.6rem;
 }
-
 .modal-footer {
   border: 0;
 }
-
 .modal-footer button:last-child {
   float:right;
 }
+
+/** Profile Pics - Circle Style */
+div.profilepic {
+	display: inline-block;
+	text-align: center;
+}
+div.profilepic img {
+	width: 65px;
+	height: 65px;
+	background-size: cover;
+	border: 0;
+	border-radius: 50%;
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+}
+
+/** Alert message boxes */
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #f44336; /** Red */
+    color: white;
+    cursor: pointer;
+    opacity: 0.85;
+    -webkit-transition: opacity 0.3s;
+    -moz-transition: opacity 0.3s;
+    -o-transition: opacity 0.3s;
+    -ms-transition: opacity 0.3s;
+    transition: opacity 0.3s;
+}
+.alert.success {background-color: #4CAF50} /**  Green */
+.alert.info {background-color: #2196F3;} /** Blue */
+.alert.warning {background-color: #ff9800;} /**  Orange */
+/** Alert message box close button */
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 10px;
+    cursor: pointer;
+    -webkit-transition: 0.3s;
+    -moz-transition: 0.3s;
+    -o-transition: 0.3s;
+    -ms-transition: 0.3s;
+    transition: 0.3s;
+}
+/* When moving the mouse over the close button */
+.closebtn:hover {color: black;}

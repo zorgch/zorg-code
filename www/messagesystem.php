@@ -47,7 +47,7 @@ try {
 }
 catch(Exception $e) {
 	http_response_code(500); // Set response code 500 (internal server error)
-	user_error($$e->getMessage(), E_USER_WARNING);
+	user_error($e->getMessage(), E_USER_WARNING);
 }
 
 echo $html;

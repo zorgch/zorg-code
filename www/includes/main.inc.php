@@ -1,10 +1,12 @@
 <?php
 error_reporting(E_ALL & ~E_NOTICE);
+/** @TODO: use error_reporting($WEBSITE_IS_LIVE ? 0 : E_STRICT); => with DEVELOPMENT constant */
 
 /**
- * Set locale to German, Switzerland
+ * Set locale to German, Switzerland & Timezone to Europe/Zurich
  */
-setlocale(LC_TIME,"de_CH");
+setlocale(LC_TIME, 'de_CH');
+date_default_timezone_set('Europe/Zurich');
 
 /**
  * Start execution time measurement

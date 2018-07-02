@@ -21,6 +21,13 @@ function reply()
 }
 
 
+function selectAllMessages() {
+	var messagesForm = document.inboxform;
+	var selectCheckboxes = messagesForm.querySelectorAll('input[type="checkbox"]');
+	for(i=0; i < selectCheckboxes.length; i++)
+		selectCheckboxes[i].checked = !selectCheckboxes[i].checked;
+}
+
 /*function addsymbol(symbol)
 {
 	document.commentform.text.value = document.commentform.text.value + symbol;

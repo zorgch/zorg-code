@@ -43,9 +43,9 @@ include_once( __DIR__ . '/strings.inc.php');
 class Messagesystem {
 
 	/**
-	 * Nachrichten löschen
+	 * Message-Actions ausführen
 	 * 
-	 * Löscht ausgewählte Nachrichten von der Inbox/Outbox
+	 * Controller für diverse Message Actions
 	 * 
 	 * @author [z]milamber
 	 * @date 
@@ -105,8 +105,9 @@ class Messagesystem {
 			}
 
 			//header("Location: profil.php?user_id=".$user->id."&box=outbox&sent=successful".session_name()."=".session_id());
-			$headerLocation = sprintf('Location: %s/profil.php?user_id=%d&box=outbox&sent=successful%s%s', SITE_URL, $user->id, session_name(), session_id());
-			header($headerLocation);
+			$headerLocation = ( !empty($_POST['url']) ? base64_decode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful&%s=%s', SITE_URL, $user->id, session_name(), session_id()) );
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> header() Location: %s', __METHOD__, __LINE__, $headerLocation));
+			header('Location: ' . $headerLocation);
 
 			//exit;
 		}
@@ -114,21 +115,27 @@ class Messagesystem {
 
 		if($_POST['do'] == 'delete_messages') {
 
+			/** Delete all passed message_id's */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Deleting Message ID: %d', __METHOD__, __LINE__, $_POST['message_id']));
 				Messagesystem::deleteMessage($_POST['message_id'][$i], $user->id);
 			}
 
+			/** If only singe passed message_id, redirect User to previous Message */
 			if(count($_POST['message_id']) == 1) {
 				$msgid = Messagesystem::getPrevMessageid($_POST['message_id'][0]);
 				if($msgid > 0) {
-					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id());
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User to Message ID: %d', __METHOD__, __LINE__, $msgid));
+					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id()."&delete=done");
 					//exit;
 				} else {
-					header("Location: profil.php?user_id=".$user->id."&".session_name()."=".session_id());
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User to Userprofile: /user/%s', __METHOD__, __LINE__, $user->id));
+					header("Location: /user/".$user->id."?".session_name()."=".session_id()."&delete=done");
 					//exit;
 				}
 			}
 
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User back to Page: %s', __METHOD__, __LINE__, base64_decode($_POST['url'])));
 			header("Location: ".base64_decode($_POST['url']));
 			//exit;
 		}
@@ -229,8 +236,42 @@ class Messagesystem {
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 	}
-	
-	
+
+
+	/**
+	 * Nachricht als gelesn markieren
+	 * 
+	 * @author IneX
+	 * @date 24.06.2018
+	 * @version 1.0 initial method release
+	 * @since 1.0 
+	 *
+	 * @param integer $messageid ID der ausgewählten Nachricht
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return boolean Returns true or false depending on the completion
+	 */
+	function doMarkMessageAsRead(int $messageid)
+	{
+		global $db;
+
+		if (!empty($messageid))
+		{
+			try {
+				$sql = "UPDATE messages set isread='1' WHERE id=$messageid;";
+				if ( $db->query($sql, __FILE__, __LINE__, __METHOD__) )
+				{
+					return true;
+				} else {
+					return false;
+				}
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+		}
+	}
+
+
 	/**
 	 * Alle Nachrichten als gelesen markieren
 	 * 
@@ -253,246 +294,146 @@ class Messagesystem {
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Nachrichten-Löschfomular
 	 * 
 	 * Baut das HTML-Formular um Nachrichten zu löschen
 	 * 
 	 * @author [z]milamber
-	 * @date 
-	 * @version 1.0
-	 *
+	 * @author IneX
+	 * @date 23.06.2018
+	 * @version 2.0
+	 * @since 1.0 initial method release
+	 * @since 2.0 frontend is now a template - as it should be
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @param integer $id ID der ausgewählten Nachricht
-	 * @return string
+	 
+	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
+	 * @return string HTML des Message-Delete Form
 	 */
 	function getFormDelete($id)
 	{
-		global $user;
+		global $user, $smarty;
 
-	  $html =
+		$smarty->assign('form_action', '/user/'.$user->id);
+		$smarty->assign('form_url', base64_encode('/user/'.$user->id.'&delete=done'));
+		$smarty->assign('message_id', $id);
 
-	    '<table>'
-	    .'<form name="deleteform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="post">'
-	    .'<input type="hidden" name="do" value="delete_messages">'
-	    .'<input type="hidden" name="url" value="'.base64_encode("/profil.php?user_id=".$user->id).'">'
-	    .'<input type="hidden" name="message_id[]" value="'.$id.'">'
-			.'<tr>'
-			.'<td>'
-			.'<input class="button" name="submit" type="submit" value="Nachricht l&ouml;schen">'
-			.'</td>'
-			.'</tr></table>'
-			.'</form>'
-	  ;
-	  return $html;
+		return $smarty->fetch('file:layout/partials/messages/messages_delete.tpl');
 	}
-	
-	
+
+
 	/**
 	 * Nachrichten-Formular
 	 * 
 	 * Baut das HTML-Formular um eine neue Nachrichten zu versenden
 	 * 
 	 * @author [z]milamber
-	 * @date 
-	 * @version 1.0
+	 * @author IneX
+	 * @date 23.06.2018
+	 * @version 2.0
+	 * @since 1.0 initial method release
+	 * @since 2.0 frontend is now a template - as it should be
 	 *
 	 * @param string $to_users Alle Empfänger der Nachricht
 	 * @param string $subject Titel der Nachricht
 	 * @param string $text Nachrichten-Text
 	 * @param integer $delete_message_id Löschstatus der Nachricht (Default: ungelöscht)
-	 * @return string
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
+	 * @return string HTML des Send-Message Form
 	 */
 	function getFormSend($to_users, $subject, $text, $delete_message_id=0)
 	{
-	  global $user;
+		global $user, $smarty;
 
-	  $html =
-	    '<form name="sendform" action="/profil.php?'.$_SERVER['QUERY_STRING'].'" method="post">'
-	    .'<input type="hidden" name="action" value="sendmessage">'
-		.'<input type="hidden" name="url" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-	    .'<table width="'.FORUMWIDTH.'" class="border" align="center">'
-	  ;
+		$smarty->assign('form_action', base64_decode(getURL()));
+		$smarty->assign('form_url', getURL());
+		$smarty->assign('subject', $subject);
+		$smarty->assign('text', $text);
+		$smarty->assign('userlist', $user->getFormFieldUserlist('to_users[]', 15, $to_users, 4));
+		$smarty->assign('backlink_url', '/user/'.$user->id.'?box=inbox');
+		$smarty->assign('delete_message_id', $delete_message_id);
 
-	  if($_GET['sent'] == 'successful') {
-		$html .= '<tr><td colspan="2" style="text-align: center;"><br /><font size="6"><b>Nachricht gesendet!</b></font><br />&nbsp;</td></tr>';
-	  }
-
-	  $html .=
-			'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'"><td colspan="3"><b>Nachricht senden</b></td></tr>'
-			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-			.'<td width="70"><b>An:</b></td>'
-			.'<td><b>Betreff:</b></td>'
-			.'<td width="80%">'
-			.'<input class="text" maxlength="40" name="subject" size="35" tabindex="1" type="text" value="'.$subject.'"></td>'
-			.'</tr>'
-			.'<tr><td>'.$user->getFormFieldUserlist('to_users[]', 15, $to_users, 4).'</td>'
-			.'<td colspan="2">'
-			.'<textarea class="text" cols="90" name="text" rows="14" tabindex="2" wrap="hard">'
-			.$text
-			.'</textarea>'
-			.'</td></tr><tr style="font-size: x-small;"><td colspan="3" valign="middle">'
-			.'<input class="button" name="submit" tabindex="3" type="submit" value="Send">'
-			.'&nbsp;<a href="profil.php?user_id='.$user->id.'&amp;box=inbox">Zur&uuml;ck</a>'
-		;
-
-		if($delete_message_id > 0) {
-			$html .=
-				'&nbsp;<input name="delete_message_id" tabindex="4" type="checkbox" value="'.$delete_message_id.'">'
-				.'obige Nachricht l&ouml;schen'
-			;
-		}
-
-		$html .=
-			'</form>'
-			.'</td>'
-			.'</tr>'
-			.'</tr></table>'
-	  ;
-	  return $html;
+		return $smarty->fetch('file:layout/partials/messages/messages_send.tpl');
 	}
-	
-	
+
+
 	/**
 	 * Message-Inbox/Outbox
 	 * 
 	 * Baut das HTML um die Nachrichten-Verwaltung anzuzeigen
 	 * 
 	 * @author [z]milamber, IneX
-	 * @date 
+	 * @date 24.06.2018
 	 * @version 2.0
-	 * @since 1.0
+	 * @since 1.0 initial method release
+	 * @since 2.0 frontend is now a template - as it should be
 	 *
 	 * @param string $box Darstellung des Ein- oder Ausgangs (inbox|outbox)
 	 * @param integer $pagesize Anzahl Nachrichten pro Seite (Default: 11, wegen Farbwechsel)
 	 * @param integer $page Aktuelle Seite mit Nachrichten (Default: 1)
+	 * @param integer $orderby Sortierung der Nachrichten (Default: date)
+	 * @param integer $sortby Sortierreihenfolge der Nachrichten (Default: DESC)
 	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string
 	 */
-	function getInboxHTML($box, $pagesize=11, $page=1, $orderby='date')
+	function getInboxHTML($box='inbox', $pagesize=11, $page=1, $orderby='date', $sortby='DESC')
 	{
-		global $db, $user;
+		global $db, $user, $smarty;
 
-		$page = ($page == '') ? 1 : $page;
-		if($box == '') $box = 'inbox';
-		
-	  // Neuste (isread) immer zuoberst
-	  $sql = "
-		SELECT *, UNIX_TIMESTAMP(date) as date
-		FROM messages where owner = ".$user->id ."
-		AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
-		ORDER BY isread ASC, ".$orderby." DESC
-		LIMIT ".($page-1) * $pagesize.",".$pagesize
-	  ;
+		/** Check and set integers which cannot be 0 */
+		if (empty($box) || $box === '') $box = 'inbox';
+		if (empty($pagesize) || $pagesize === 0) $pagesize = 11;
+		if (empty($page) || $page === 0) $page = 1;
 
-	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-	  $html .=
-		'<form name="inboxform" action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" method="POST">'
-		//.'<input name="do" type="hidden" value="delete_messages">'
-		.'<input type="hidden" name="url" value="'.base64_encode(getURL()).'">'
-		.'<table class="border" width="100%">'
-		.'<tr><th align="center" colspan="6"><b>Pers&ouml;nliche Nachrichten</b>'
-		.' '
-		.($box == "inbox" ? 'Empfangen' : '<a href="'.getChangedURL('box=inbox').'">Empfangen</a>')
-		.' / '
-		.($box == "outbox" ? 'Gesendet' : '<a href="'.getChangedURL('box=outbox').'">Gesendet</a>')
-		.'<a href="'.$_SERVER['PHP_SELF'].'?user_id='.$user->id.'&newmsg"><button name="button_newMessage" class="button" type="button" style="float:right;">Neue Nachricht</button></a>'
-		.'</td></tr>'
-		.'<tr><td>'
-		.'<input class="button" onClick="selectAll();" type="button" value="Alle">'
-		.'</th>'
-		.'<td>New</td>'
-		.'<td>Sender</td>'
-		.'<td>Empf&auml;nger</td>'
-		.'<td>Subject</td>'
-		.'<td>Datum</td>'
-		.'</tr>'
-	  ;
+		/** Validate $orderby & $sortby */
+		if (empty($orderby) || !in_array( $orderby, ['date','from_user_id','subject'], true)) $orderby = 'date';
+		if (empty($sortby) || !in_array( $sortby, ['asc','desc'], true)) $sortby = 'DESC';
 
-	  if($db->num($result) == 0) {
-		$html .= '<tr><td align="center" colspan="5"><b> --- Postfach leer ---</b></td></tr>';
-	  } else {
+		$smarty->assign('form_action', base64_decode(getURL()));
+		$smarty->assign('form_url', getURL());
+		//$smarty->assign('newmsg_url', base64_decode(getURL()).'?newmsg');
+		$smarty->assign('box', $box);
+		$smarty->assign('current_page', $page);
+		$smarty->assign('sort_order', $sortby);
 
-		  while($rs = $db->fetch($result)) {
-
-			$i++;
-			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			if($rs['isread'] == 0) $color = NEWCOMMENTCOLOR;
-			if($rs['from_user_id'] == $user->id) $color = OWNCOMMENTCOLOR;
-
-			$html .=
-				'<tr>'
-				.'<td align="center" bgcolor="'.$color.'"><input name="message_id[]" type="checkbox" value="'.$rs['id'].'" onclick="document.getElementById(\'do_messages_as_unread\').disabled = false;document.getElementById(\'do_delete_messages\').disabled = false"></td>'
-			    .($rs['isread'] == 0 ? '<td align="center" bgcolor="'.$color.'"><img src="/images/new_msg.png" width="16" height="16" /></td>' : '<td align="center" bgcolor="'.$color.'"></td>')
-				.'<td align="center" bgcolor="'.$color.'">'.$user->link_userpage($rs['from_user_id']).'</td>'
-				.'<td align="center" bgcolor="'.$color.'" width="30%">';
-
-			foreach (explode(',', $rs['to_users']) as $value) {
-				$html .= $user->link_userpage($value).' ';
-			}
-
-			$html .=
-				'</td>'
-				.'<td align="center" bgcolor="'.$color.'">'
-				.'<a href="/messagesystem.php?message_id='.$rs['id'].'">'.str_pad($rs['subject'], 60, ' . ', STR_PAD_BOTH).'</a>'
-				.'</td>'
-				.'<td align="center" bgcolor="'.$color.'">'.datename($rs['date']).'</td>'
-				.'</tr>'
+		/** Query messages - Neuste (!isread) immer zuoberst */
+		try {
+			$sql = "
+				SELECT *, UNIX_TIMESTAMP(date) as date
+				FROM messages where owner = ".$user->id ."
+				AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
+				ORDER BY isread ASC, ".$orderby." ".$sortby."
+				LIMIT ".($page-1) * $pagesize.",".$pagesize
 			;
-		  }
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SQL-Query: %s', __METHOD__, __LINE__, $sql));
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			while($rs = $db->fetch($result)) {
+				$messages[] = $rs;
+		 	}
+			$smarty->assign('messages', $messages);
+			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $messages: %s', __METHOD__, __LINE__, print_r($messages,true)));
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
 
-		  $html .= '<tr><td align="left" colspan="3">';
+		/** Calculate number of pages */
+		$numMessages = Messagesystem::getNumUserMessages($user->id);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $numMessages: %s', __METHOD__, __LINE__, print_r($numMessages,true)));
+		$numPages = (!empty($numMessages) ? ceil($numMessages[$box] / $pagesize) : $page);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $numPages: %s', __METHOD__, __LINE__, $numPages));
+		$smarty->assign('pages', $numPages);
 
-		  
-		  $html .= '<button id="do_mark_all_as_read" name="do" class="button" type="submit" value="mark_all_as_read">ALLE als gelesen markieren</button>';
-		  
-		  
-		  $html .= '<button id="do_messages_as_unread" name="do" class="button" type="submit" value="messages_as_unread" disabled>Markierte als ungelesen</button>';
-
-		  
-		  $html .= '<button id="do_delete_messages" name="do" class="button" type="submit" value="delete_messages" disabled>Markierte Nachrichten l&ouml;schen</button>';
-		  
-		  $html .= '</td><td align="right" colspan="3">';
-
-		  $sql =
-			"
-			SELECT count(*) as num
-			FROM messages where owner = ".$user->id."
-			AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id
-		  ;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		$numpages = ceil($rs['num'] / $pagesize); // number of pages
-		  $html .= '<b>Pages: ';
-		  for($j = 1; $j <= $numpages; $j++) {
-			if($page != $j) {
-				$html .= ' <a href="'.getChangedURL('page='.$j).'">'.$j.'</a>';
-			} else {
-				$html .= ' '.$j;
-			}
-		  }
-
-		  $html .= '</b></td></tr>';
-	  }
-
-
-	  $html .= '</table>';
-	  $html .= '</form>';
-
-	  $html .=
-		'<script language="javascript">'
-		.'function selectAll() {'
-		.'  for(i=2; i < ('.$db->num($result).'+3); i++)'
-		.'  document.inboxform.elements[i].checked = !document.inboxform.elements[i].checked;'
-		.'}'
-		.'</script>'
-	  ;
-
-	  return $html;
+		return $smarty->fetch('file:layout/partials/messages/messages_list.tpl');
 	}
-	
-	
+
+
 	/**
 	 * Anzahl neuer Nachrichten
 	 * 
@@ -518,95 +459,126 @@ class Messagesystem {
 			return $rs['num'];
 		}
 	}
+
+
+	/**
+	 * Anzahl aller User Nachrichten
+	 * 
+	 * Berechnet die Anzahl aller Nachrichten eines Users.
+	 * Wird benötigt für das Paginating in Messagesystem::getInboxHTML()
+	 * 
+	 * @author IneX
+	 * @date 24.06.2018
+	 * @version 1.0
+	 * @since 1.0 initial method release
+	 *
+	 * @see Messagesystem::getInboxHTML()
+	 * @param integer $userid User-ID welcher alle Nachricht(en) als gelesen markieren möchte
+	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return array|boolean Returns an array with the number of messages for inbox & outbox - or false, if an error occurred
+	 */
+	static function getNumUserMessages(int $userid)
+	{
+		global $db;
+
+		try {
+			/** A MySQL Sub-Query retrieving user's total messages for the inbox & outbox at the same time */
+			$sql = "SELECT
+						(SELECT count(id) as num FROM messages where owner = 117 AND from_user_id <> 117) num_inbox,
+						(SELECT count(id) as num FROM messages where owner = 117 AND from_user_id = 117) num_outbox
+					FROM messages
+					LIMIT 1";
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$rs = $db->fetch($result);
 	
+			if (!empty($rs)) {
+				return [ 'inbox' => $rs['num_inbox'], 'outbox' => $rs['num_outbox'] ];
+			} else {
+				return false;
+			}
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
+	}
+
 
 	/**
 	 * Nachricht anzeigen
 	 * 
 	 * Zeigt eine Message an
 	 *
-	 * @author [z]milamber
-	 * @date 
-	 * @version 1.0
+	 * @author [z]milamber, IneX
+	 * @date 24.06.2018
+	 * @version 2.0
+	 * @since 1.0 initial method release
+	 * @since 2.0 frontend is now a template - as it should be
 	 * 
+	 * @see Messagesystem::getUserMessages()
+	 * @see Messagesystem::doMarkMessageAsRead()
 	 * @param int $id ID der Nachricht
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
 	 */
 	function getMessage($id)
 	{
-		global $db, $user;
+		global $user, $smarty;
 
-	  // Message holen http://www.zorg.ch
-	  $sql =
-		"
-		SELECT
-			messages.*
-		, UNIX_TIMESTAMP(date) as date
-		, CONCAT(user.clan_tag, user.username) AS from_user
-		FROM messages
-		LEFT JOIN user ON (messages.from_user_id = user.id)
-		WHERE messages.id = ".$id
-	  ;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$messageDetails = Messagesystem::getUserMessage($id);
 
-	  if ($rs['owner'] == $user->id) {
-		  $html .=
-			'<table class="border" width="100%">'
-			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="30">'
-			.'<td align="left" width="80">'
-				.(Messagesystem::getNextMessageid($rs['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getNextMessageid($rs['id']).'"><-- </a> | ' : '')
-				.(Messagesystem::getPrevMessageid($rs['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getPrevMessageid($rs['id']).'"> --></a>' : '')
-			.'</td>'
-			.'<td align="right" width="80%">'
-			.Messagesystem::getFormDelete($id)
-				.'</td>'
-			.'<td align="right" rowspan="5">'.$user->link_userpage($rs['from_user_id'], TRUE).'</td>'
-			.'</tr>'
+		if (!empty($messageDetails) && $messageDetails['owner'] === $user->id)
+		{
+			$smarty->assign('prevmessage_url', (Messagesystem::getNextMessageid($messageDetails['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getNextMessageid($messageDetails['id']).'"><-- </a> | ' : ''));
+			$smarty->assign('nextmessage_url', (Messagesystem::getPrevMessageid($messageDetails['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getPrevMessageid($messageDetails['id']).'"> --></a>' : ''));
+			$smarty->assign('deletemessage_html', Messagesystem::getFormDelete($id));
+			$smarty->assign('messagedetails', $messageDetails);
+			$smarty->assign('recipientslist', explode(',', $messageDetails['to_users']));
 
-			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-			.'<td align="left"><b>From</b></td>'
-			.'<td align="left">'.$rs['from_user'].'</td>'
-			.'</tr>'
+			Messagesystem::doMarkMessageAsRead($id);
 
-			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-			.'<td align="left"><b>Date</b></td>'
-			.'<td align="left">'.datename($rs['date']).'</td></tr>'
-			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'"><td align="left"><b>To</b></td>'
-			.'<td align="left">'
-		  ;
+		} else {
+			$smarty->assign('error', t('invalid-permissions', 'messagesystem'));
+		}
 
-		  foreach (explode(',', $rs['to_users']) as $value) {
-			$html .= $user->link_userpage($value).' ';
-		  }
-
-		  $html .=
-			'</td>'
-			.'</tr>'
-
-			.'<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'" height="40">'
-			.'<td align="left" valign="top"><b>Subject</b></td>'
-			.'<td align="left" valign="top" width="70%">'.$rs['subject'].'</td>'
-			.'</tr>'
-			.'<tr><td><img height="2" src="/images/pixel_trans.gif" width="100"></td></tr>'
-			.'<tr><td align="left" colspan="3">'
-			.maxwordlength(nl2br($rs['text']), 100)
-			.'</td></tr>'
-			.'</table>'
-		  ;
-
-		  // Als gelesen markieren
-			$sql = "UPDATE messages set isread = '1' where id = $id;";
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-	  } else {
-		$html = t('invalid-permissions', 'messagesystem');
-	  }
-
-
-
-	  return $html;
+		return $smarty->fetch('file:layout/partials/messages/messages_view.tpl');
 	}
-	
-	
+
+
+	/**
+	 * Message holen
+	 * 
+	 * @author IneX
+	 * @date 24.06.2018
+	 * @version 1.0
+	 * @since 1.0 initial method release
+	 *
+	 * @param integer $messageid ID der Nachricht die abgefragt werden soll
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return array|boolean Returns an Array containing the query results - or false if the query failed
+	 */
+	function getUserMessage(int $messageid)
+	{
+		global $db;
+
+		if (!empty($messageid))
+		{
+			try {
+				$sql = "SELECT
+							 *, UNIX_TIMESTAMP(date) as date
+						FROM messages
+						WHERE id = ".$messageid."
+						LIMIT 0,1";
+				$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+				return $rs;
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+		}
+	}
+
+
 	/**
 	 * Nächste Nachricht anzeigen
 	 * 
@@ -625,29 +597,36 @@ class Messagesystem {
 	{
 		global $db, $user;
 
-		$sql =
-			"SELECT *, UNIX_TIMESTAMP(date) as date"
-			." FROM messages"
-			." WHERE owner = ".$user->id
-			." AND from_user_id !=".$user->id
-			." AND id > ".$id
-			." ORDER BY id desc"
-			." LIMIT 0,1"
-		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		try {
+			$sql =
+				"SELECT *, UNIX_TIMESTAMP(date) as date"
+				." FROM messages"
+				." WHERE owner = ".$user->id
+				." AND from_user_id !=".$user->id
+				." AND id > ".$id
+				." ORDER BY id ASC"
+				." LIMIT 0,1"
+			;
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-		return $rs['id'];
+			return $rs['id'];
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
 	}
 
-		
+
 	/**
 	 * Vorherige Nachricht anzeigen
 	 * 
 	 * Holt die ID der jeweils jüngeren Nachricht gegenüber der aktuell geöffneten
 	 * 
-	 * @author [z]milamber
-	 * @date 
-	 * @version 1.0
+	 * @author [z]milamber, IneX
+	 * @date 24.06.2018
+	 * @version 2.0
+	 * @since 1.0 initial method release
+	 * @since 2.0 prev was always getting newewst message - fixed it
 	 *
 	 * @param integer $id ID der aktuell angezeigten Nachricht
 	 * @global $db Globales Class-Object mit allen MySQL-Methoden
@@ -664,7 +643,7 @@ class Messagesystem {
 			." WHERE owner = ".$user->id
 			." AND from_user_id !=".$user->id
 			." AND id < ".$id
-			." ORDER BY id desc"
+			." ORDER BY id DESC"
 			." LIMIT 0,1"
 		;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
@@ -672,7 +651,7 @@ class Messagesystem {
 		return $rs['id'];
 	}
 
-	
+
 	/**
 	 * Persönliche Nachricht senden
 	 * 

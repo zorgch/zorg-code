@@ -129,7 +129,7 @@ function exec_uploadimage() {
 
 
 
-	// ...danach das neue raufladen und db-gschmŠus machen
+	// ...danach das neue raufladen und db-gschmäus machen
 	$sql = "INSERT INTO userpics
 			(user_id, image_name, image_title, image_added)
 			VALUES
@@ -459,7 +459,7 @@ if($_SESSION['user_id']) {
 						echo Messagesystem::getFormSend(0,'','');
 					}
 				} else { // User will Inbox sehen
-					echo Messagesystem::getInboxHTML($_GET['box'], $pagesize=11, $_GET['page']);
+					echo Messagesystem::getInboxHTML($_GET['box'], $pagesize=11, $_GET['page'], $_GET['sort'], $_GET['order']);
 				}
 			} else {
 				echo Messagesystem::getFormSend(array($_GET['user_id']), '', '');
