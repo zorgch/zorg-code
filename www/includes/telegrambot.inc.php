@@ -199,10 +199,13 @@ Class Telegram
 	 *
 	 * @author	IneX
 	 * @date	25.05.2018
-	 * @version	1.0
-	 * @since	1.0
+	 * @version	2.0
+	 * @since	1.0 initial function
+	 * @since	2.0 line breaks are possible using encoded "\n" - won't strip those anymore. Added missing allowed <strong> & <em>.
 	 *
 	 * @link https://core.telegram.org/bots/api#html-style
+	 * @link https://stackoverflow.com/questions/31908527/php-telegram-bot-insert-line-break-to-text-message
+	 * @link https://stackoverflow.com/questions/15433188/r-n-r-n-what-is-the-difference-between-them
 	 * @param	string	$notificationText	Content welcher für die Telegram Nachricht vorgesehen ist
 	 * @return	string						Returns formatted & cleaned up $notificationText as String
 	 */
@@ -216,12 +219,13 @@ Class Telegram
 		if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
 
 		/**
-		 * Strip away all HTML-tags & line breaks
+		 * Strip away all HTML-tags & unix line breaks
 		 * Except from the whitelist:
-		 * <b>, <strong>, <i>, <a>, <code>, <pre>
+		 * <b>, <strong>, <i>, <em>, <a>, <code>, <pre>
 		 */
-		$notificationText = str_replace(array("\r", "\n", "&nbsp;"), ' ', $notificationText);
-		$notificationText = strip_tags($notificationText, '<b><i><a><code><pre>');
+		$notificationText = str_replace('&nbsp;', ' ', $notificationText);
+		$notificationText = str_replace(array("\r\n", "\r"), "\n", $notificationText);
+		$notificationText = strip_tags($notificationText, '<b><strong><i><em><a><code><pre>');
 		$notificationText = html_entity_decode($notificationText);
 
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> processed string for return: %s', __METHOD__, __LINE__, $notificationText));

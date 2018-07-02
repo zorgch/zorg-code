@@ -29,6 +29,16 @@ return
 			,'error-game-finish-message' => 'Finish-Message ohne Inhalt bei Game "%d", ausgelöst durch user "%s".<br>Winner: %s<br>Receiver: %s'
 			,'error-game-notyourturn' => 'Du bisch nöd dra, yarak!'
 			,'error-file-notfound' => 'File not found or not linked in database.'
+			,'datetime-today' => 'Heute'
+			,'datetime-yesterday' => 'Gestern'
+			,'datetime-recently' => 'Jetzt'
+			,'datetime-seconds' => '%d Sekunde'
+			,'datetime-minutes' => '%d Minute'
+			,'datetime-hours' => '%d Stunde'
+			,'datetime-days' => '%d Tag'
+			,'datetime-weeks' => '%d Woche'
+			,'datetime-months' => '%d Monat'
+			,'datetime-years' => '%d Jahr'
 		]
 	,'user' =>
 		[
@@ -186,8 +196,9 @@ return
 		]
 	,'event' =>
 		[
-			 'telegram-event-notification' => 'Um %s: %s'
-			,'error-upcoming-event' => '[NOTICE] <%s:%d> No upcoming Event found'
+			 'telegram-event-notification' => '%s: %s'
+			,'error-invalid-hours' => '[WARN] <%s:%d> Starts in "%s" hours is no valid integer value!'
+			,'error-upcoming-event' => '[NOTICE] <%s:%d> No upcoming Event found within %d hours'
 			,'error-googlemapsapi-geocode' => '[NOTICE] <%s:%d> $googleMapsApi->geocode(): no result'
 		]
 ];

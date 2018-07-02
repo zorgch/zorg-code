@@ -303,16 +303,27 @@ Class UpcomingEvent
 			$nextEvent = $this->getUpcomingEvent($starts_in_hours);
 			if ($nextEvent)
 			{
-				if (DEVELOPMENT) error_log('[DEBUG] Sending Telegram Notification $telegram->send-event()');
-				$eventTitle = t('telegram-event-notification', 'event', [ $nextEvent['time'], $nextEvent['name'] ]);
-				$telegram->send->event('group', $nextEvent['lat'], $nextEvent['lng'], $eventTitle, $nextEvent['location']);
+				/** If we have lat+lng, send an event... */
+				if (isset($nextEvent['lat']) && isset($nextEvent['lng']))
+				{
+					if (DEVELOPMENT) error_log('[DEBUG] Sending Telegram Notification $telegram->send->event()');
+					$eventTitle = t('telegram-event-notification', 'event', [ timename($nextEvent['time']), $nextEvent['name'] ]);
+					$telegram->send->event('group', $nextEvent['lat'], $nextEvent['lng'], $eventTitle, $nextEvent['location']);
+
+				/** ...otherwise just send a message */
+				} else {
+					if (DEVELOPMENT) error_log('[DEBUG] Sending Telegram Notification $telegram->send->message()');
+					$eventName = html_tag($nextEvent['name'], 'b')."\n@ " . $nextEvent['location'];
+					$eventTitle = t('telegram-event-notification', 'event', [ timename($nextEvent['time']), $eventName ]); //[ t('datetime-hours', 'global', $nextEvent['time'] ), $eventName ]);
+					$telegram->send->message('group', $eventTitle);
+				}
 				return true;
 			} else {
-				error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__]) );
+				error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__, $starts_in_hours]) );
 				return false;
 			}
 		} else {
-			error_log( sprintf('[WARN] <%s:%d> Starts in X hours is no valid integer value!', __METHOD__, __LINE__) );
+			error_log( t('error-invalid-hours', 'event', [__METHOD__, __LINE__, $starts_in_hours]) );
 			return false;
 		}
 	}
@@ -330,7 +341,7 @@ Class UpcomingEvent
 	{
 		global $db, $googleMapsApi;
 		try {
-			$sql = 'SELECT name, location, DATE_FORMAT(startdate, "%H:%i") time
+			$sql = 'SELECT name, location, UNIX_TIMESTAMP(startdate) time
 					FROM events
 					WHERE startdate >= DATE_ADD(NOW(), INTERVAL '.($hours_until_start-1).' HOUR)
 						AND startdate < DATE_ADD(NOW(), INTERVAL '.($hours_until_start).' HOUR)
@@ -349,13 +360,14 @@ Class UpcomingEvent
 					if (DEVELOPMENT) error_log('[DEBUG] $googleMapsApi->geocode()'."\n\r" . print_r($geolocation, true));
 					$event['lat'] = $geolocation['lat'];
 					$event['lng'] = $geolocation['lng'];
-					return $event;
-				} else {
+					//return $event;
+				}/* else {
 					error_log( t('error-googlemapsapi-geocode', 'event', [__METHOD__, __LINE__]) );
 					return NULL;
-				}
+				}*/
+				return $event;
 			} else {
-				error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__]) );
+				error_log( t('error-upcoming-event', 'event', [__METHOD__, __LINE__, $hours_until_start]) );
 				return NULL;
 			}
 		} catch (Exception $e) {
