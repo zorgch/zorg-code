@@ -44,7 +44,7 @@
 				</td>
 				<td style="text-align:left;">
 					{if $messages[message].isread == 0}
-						<img src="/images/new_msg.png" width="16" height="16" />&nbsp;
+						&#127381;
 					{/if}
 					<a href="/messagesystem.php?message_id={$messages[message].id}"><strong>{if $messages[message].subject != ''}{$messages[message].subject}{*$messages[message].subject|truncate:40:"&hellip;"*}{else}- no subject -{/if}</strong></a>
 				</td>
