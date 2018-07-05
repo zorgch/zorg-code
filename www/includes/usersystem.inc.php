@@ -352,7 +352,14 @@ class usersystem {
 		exit;
 	}
 
-
+	
+	/**
+	 * Speichert ob User zorg oder zooomclan Layout haben will
+	 *
+	 * @param integer $user_id User-ID
+	 * @param boolean $zorg Zorg-Layout
+	 * @param boolean $zooomclan Zooomclan-Layout
+	 */
 	function set_page_style($user_id, $zorg=TRUE, $zooomclan=FALSE) {
 		global $db, $zorg, $zooomclan;
 
@@ -502,6 +509,8 @@ class usersystem {
 	 * Online Users
 	 *
 	 * Gibt Online Users als HTML aus
+	 *
+	 * @TODO HTML can be returned using new function usersystem::userpage_link()
 	 *
 	 * @return string html
 	 * @param $sec int Sekunden
@@ -662,7 +671,13 @@ class usersystem {
 	* @version 2.0
 	* @since 1.0
 	*
-	* @see usersystem::checkimage(), usersystem::get_gravatar(), USER_IMGPATH
+	* @TODO can "global $user;" be removed because referenced via $this?
+	*
+	* @see USER_IMGPATH_PUBLIC
+	* @see USER_IMGSIZE_SMALL
+	* @see USER_IMGSIZE_LARGE
+	* @see usersystem::checkimage()
+	* @see usersystem::get_gravatar()
 	* @param int $id User ID
 	* @param boolean $large Large image true/false
 	* @return string URL-Pfad zum Bild des Users
@@ -746,53 +761,65 @@ class usersystem {
 	*
 	* Konvertiert eine ID zum entsprechenden Username (wahlweise inkl. Clantag oder ohne), oder dem HTML-Code zur Anzeige des Userpics
 	*
-	* @version 2.0
-	* @since 1.0
 	* @author IneX
+	* @version 4.0
+	* @since 1.0
+	* @since 2.0
+	* @since 3.0 Method now really only resolves an ID to a Username, redirects other features
+	* @since 4.0 changed output to new function usersystem::userprofile_link()
 	*
-	* @see usersystem::userImage()
-	* @global Object $db
-	* @global Object $zorg
-	* @global Object $zooomclan
-	* @param $id int User ID
-	* @param $clantag boolean Username mit Clantag true/false
-	* @param $pic boolean Anstatt Username das Userpic HTML-Code ausgeben true/false
+	* @see usersystem::userprofile_link()
+	* @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
+	* @param integer $id User ID
+	* @param boolean $clantag Username mit Clantag true/false
+	* @param boolean $pic DEPRECATED Anstatt Username das Userpic HTML-Code ausgeben true/false
 	* @return string Username (mit/ohne Clantag) oder Userpic HTML-Code
 	*/
 	function id2user($id, $clantag=FALSE, $pic=FALSE)
 	{
-		global $db, $zorg, $zooomclan;
+		global $db;
 		static $_users = array();
 
-		if (!empty($id) && !is_numeric($id)) user_error('<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>', E_USER_WARNING);
+		/** If given User-ID is missing (empty) or not valid (not numeric), show a User Error */
+		if (!empty($id) && !is_numeric($id)) user_error(t('invalid-id', 'user'), E_USER_WARNING);
+		$clantag = (empty($clantag) || $clantag === 'false' || $clantag === 0 ? FALSE : TRUE);
 
-		if (!isset($_users[$id]))
+		if (!isset($_users[$id]) || !isset($_users[$id]['clan_tag']))
 		{
-			if ($clantag == TRUE) {
-				$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
-			} else {
-				$sql = "SELECT username FROM user WHERE id='$id'";
+			try {
+				if ($clantag === TRUE) {
+					$sql = "SELECT clan_tag, username FROM user WHERE id='$id' LIMIT 0,1";
+				} else {
+					$sql = "SELECT username FROM user WHERE id='$id' LIMIT 0,1";
+				}
+		  		$result = $db->query($sql, __FILE__, __LINE__);
+		  		while ($rs = mysql_fetch_array($result)) {
+		  		   $_users[$id] = $rs;
+		  		}
+		  	} catch(Exception $e) {
+				return $e->getMessage();
 			}
-	  		$result = $db->query($sql, __FILE__, __LINE__);
-	  		while ($rs = mysql_fetch_array($result)) {
-	  		   $_users[$id] = $rs;
-	  		}
 		}
 
-		// Set string with Username
-		$us = $_users[$id]['username'];
+		/** Set string with Username */
+		$username = $_users[$id]['username'];
 
-		// If applicable, prefix Username with the Clantag
+		/** If applicable, prefix Username with the Clantag */
 		if ($clantag == TRUE)
 		{
-			// ...but only if the user really HAS a Clantag!
+			/** ...but only if the user really HAS a Clantag! */
 			if (!empty($_users[$id]['clan_tag'])) {
-				$us = $_users[$id]['clan_tag'].$us;
+				$username = $_users[$id]['clan_tag'].$username;
 			}
 		}
 
-		// Return Userpic HTML
-		if($pic == TRUE) {
+		/**
+		 * Return Userpic HTML
+		 * @DEPRECATED
+		 */
+		/*
+		if($pic == TRUE)
+		{
 			$us =
 				'<img alt="'.$us.'" border="0" src="'.usersystem::userImage($id).'" title="'.$us.'"'
 			;
@@ -802,9 +829,9 @@ class usersystem {
 			} else {
 				$us .= '>';
 			}
-		}
-
-		return $us;
+			$us .= $this->userpic($id);
+		}*/
+		return $username;
 	}
 
 	/**
@@ -813,64 +840,79 @@ class usersystem {
 	* Konvertiert einen Username zur dazugehörigen User ID
 	*
 	* @version 2.0
-	* @since 1.0
+	* @since 1.0 initial function
+	* @since 2.0 optimized sql-query
 	* @author IneX
 	*
-	* @global Object $db
+	* @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
 	* @param $username string Username
 	* @return int User ID oder 0
 	*/
 	function user2id ($username) {
 		global $db;
-		$e = $db->query("SELECT id FROM user WHERE username='$username' LIMIT 1", __FILE__, __LINE__);
+		$e = $db->query("SELECT id FROM user WHERE username='$username' LIMIT 1", __FILE__, __LINE__, __METHOD__);
 		$d = $db->fetch($e);
-		if ($d) return $d['id'];
-		else return 0;
+		return ($d ? $d['id'] : 0);
 	}
 
 
 	/**
-	 *
 	 * Userpic (klein) ausgeben
+	 *
+	 * @DEPRECATED
 	 *
 	 * @author IneX
 	 * @date 02.10.2009
+	 * @version 2.0
+	 * @since 1.0 initial function
+	 * @since 2.0 changed output to new function usersystem::userprofile_link()
 	 *
-	 * @see usersystem::userImage()
-	 * @param	$id				User-ID
-	 * @param	$displayName	Zeigt Usernamen unter dem Bild an
-	 * @return	string			Link zum Userpic
+	 * @TODO there is no $clantag passed to this function?!
 	 *
+	 * @see usersystem::userprofile_link()
+	 * @param	integer	$id				User-ID
+	 * @param	boolean	$displayName	Zeigt Usernamen unter dem Bild an
+	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
+	 * @global	object	$smarty			Globales Class-Object mit allen Smarty-Methoden
+	 * @static	array	$_users
+	 * @return	string					Link zum Userpic
 	 */
-	function userpic($id, $displayName=FALSE)
-		{
-		global $db;
+	function userpic(int $id, $displayName=FALSE)
+	{
+		/** DEPRECATED
+		global $db, $user;
 		static $_users = array();
 
 		$us = '';
 
 		if ($displayName) {
-	   		if (!isset($_users[$id])) {
-	      		$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
-	      		$result = $db->query($sql, __FILE__, __LINE__);
-	      		while ($rs = mysql_fetch_array($result)) {
-	      		   $_users[$id] = $rs;
-	      		}
-	   		}
-	   		$us = $_users[$id][username];
-	   		if($clantag == TRUE) {
-	   			$us = $_users[$id]['clan_tag'].$us;
-	   		}
-	   	}
-
+			if (!isset($_users[$id])) {
+				try {
+	    			$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
+					$result = $db->query($sql, __FILE__, __LINE__);
+					while ($rs = mysql_fetch_array($result)) {
+						$_users[$id] = $rs;
+	    			}
+	    		} catch(Exception $e) {
+					return $e->getMessage();
+				}
+			}
+			$us = $_users[$id]['username'];
+			if($clantag == TRUE) {
+				$us = $_users[$id]['clan_tag'].$us;
+			}
+		}
 
 		$us =
 			'<a href="/profil.php?user_id='.$id.'">'.
 			'<img alt="'.$us.'" border="0" src="'.usersystem::userImage($id).'" title="'.$us.'" height="65">'.
 			'</a>'
 		;
+		*/
 
-   		return $us;
+		/** Because method is DEPRECATED => Redirect to new usersystem::userprofile_link() */
+		return self::userprofile_link($id, ['pic' => TRUE, 'link' => TRUE, 'username' => FALSE, 'clantag' => FALSE]);
 	}
 
 
@@ -880,20 +922,23 @@ class usersystem {
 	 * Get either a Gravatar URL or complete image tag for a specified email address.
 	 *
 	 * @source http://gravatar.com/site/implement/images/php/
-	 * @date 24.07.2014, 11.01.2017
+	 * @date 24.07.2014
+	 * @date 11.01.2017
 	 * @author IneX
 	 * @since 3.0
-	 * @version 2.0
+	 * @version 2.0 Fixed Gravatar-URL to https using SITE_PROTOCOL
 	 *
+	 * @see SITE_PROTOCOL
+	 * @see userprofile_link.tpl
 	 * @param string $email The email address
 	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
 	 * @param string $d Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
 	 * @param string $r Maximum rating (inclusive) [ g | pg | r | x ]
-	 * @param boole $img True to return a complete IMG tag False for just the URL
+	 * @param boolean $img True to return a complete IMG tag False for just the URL
 	 * @param array $atts Optional, additional key/value attributes to include in the IMG tag
-	 * @return String containing either just a URL or a complete image tag
+	 * @return string String containing either just a URL or a complete image tag
 	 */
-	function get_gravatar( $email, $s = 150, $d = 'mm', $r = 'x', $img = false, $atts = array() )
+	function get_gravatar( $email, $s = 150, $d = 'mm', $r = 'x', $img_tag = false, $atts = array() )
 	{
 		$url = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
 		$url .= md5( strtolower( trim( $email ) ) );
@@ -901,7 +946,8 @@ class usersystem {
 		$url_check = @get_headers($url); // Get response headers of $url
 		$url_parse = parse_url(trim($d)); // For eventual fallback: parse URL of Default image
 		if(strpos($url_check[0],'200')===false) return $url_parse['path']; // If $url response header is NOT 200, fallback to local image
-		if ( $img )
+		/** If whole <img>-Tag was requested: */
+		if ( $img_tag )
 		{
 			$url = '<img src="' . $url . '"';
 			foreach ( $atts as $key => $val )
@@ -993,30 +1039,98 @@ class usersystem {
 	*
 	* Gibt eine User ID als link zur userpage aus
 	*
+	* @DEPRECATED
+	*
+	* @author milamber
+	* @author IneX
+	* @version 2.0
+	* @since 1.0 initial version
+	* @since 2.0 changed output to new function usersystem::userprofile_link()
+	*
+	* @see usersystem::userprofile_link()
+	* @param int $user_id User ID
+	* @param bool $pic Userpic mitausgeben
 	* @return string html
-	* @param $user_id int User ID
-	* @param $image bool
 	*/
-	function link_userpage($user_id, $pic=FALSE) {
-		if($user_id != '') {
+	function link_userpage(int $user_id, $pic=FALSE)
+	{
+		/** @DEPRECATED */
+		/*if($user_id != '') {
 
 			$html =
 		  	'<a href="/profil.php?user_id='.$user_id.'">'
-		  	.usersystem::id2user($user_id, TRUE, $pic)
+		  	.$this->id2user($user_id, TRUE, $pic)
 		  	.'</a>'
 		  ;
-		}
-		return $html;
+		}*/
+
+		/** Validate & set $pic parameter to real boolean */
+		if ($pic === 'false' || $pic === 0) $pic = FALSE;
+		elseif ($pic === 'true' || $pic === 1) $pic = TRUE;
+
+		/** Because method is DEPRECATED => Redirect to new usersystem::userprofile_link() */
+		return self::userprofile_link($user_id, ['pic' => $pic, 'link' => TRUE, 'username' => TRUE, 'clantag' => TRUE]);
 	}
 
-
+	/**
+	* Link zu einem Userprofil
+	* @TODO wird diese Methode usersystem::userpagelink() noch benötigt irgendwo? Sonst: raus!
+	* @DEPRECATED
+	* @see usersystem::userpage_link()
+	*/
 	function userpagelink($userid, $clantag, $username) {
+		/** DEPRECATED
 		$name = $clantag.$username;
 
 		// Dreadwolfs spezieller Nick
 		//if($userid == 307) $name = '<b style="background-color: green; color: white;">&otimes; '.$name.' &oplus;</b>';
 
-		return '<a href="/profil.php?user_id='.$userid.'">'.$name.'</a>';
+		return '<a href="/user/'.$userid.'">'.$name.'</a>';
+		*/
+		
+		/** Because method is DEPRECATED => Redirect to new usersystem::userprofile_link() */
+		return self::userprofile_link($userid, ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE]);
+	}
+
+	/**
+	 * Show Userprofile for a User ID
+	 *
+	 * Gibt eine User ID als Username aus - mit diversen Darstellungsmöglichkeiten:
+	 *    - Username: ja/nein?
+	 *    - Clantag im Username: ja/nein?
+	 *    - Userpic: ja/nein?
+	 *    - Verlinkung auf Userprofil: ja/nein?
+	 *
+	 * @author IneX
+	 * @date 05.07.2018
+	 * @version 1.0
+	 * @since 1.0 initial version (output from Smarty-Template)
+	 *
+	 * @see usersystem::userImage()
+	 * @see usersystem::id2user()
+	 * @see userprofile_link.tpl
+	 * @param int $userid User ID
+	 * @param array $params Parameters as Array which define the output using true/false
+	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
+	 * @return string Fetched Smarty-Template String (usually HTML-formatted) for output
+	 */
+	function userprofile_link(int $userid, array $params)
+	{
+		global $smarty;
+
+		/** Check & set $params parameters to valid values */
+		$pic = (empty($params['pic']) || $params['pic'] === 'false' || $params['pic'] === 0 ? FALSE : TRUE);
+		$username = (empty($params['username']) || $params['username'] === 'false' || $params['username'] === 0 ? FALSE : TRUE);
+		$clantag = (empty($params['clantag']) || $params['clantag'] === 'false' || $params['clantag'] === 0 ? FALSE : TRUE);
+		$link = (empty($params['link']) || $params['link'] === 'false' || $params['link'] === 0 ? FALSE : TRUE);
+
+		$smarty->assign('show_profilepic', ($pic ? 'true' : 'false'));
+		if ($pic) $smarty->assign('profilepic_imgsrc', self::userImage($userid));
+		$smarty->assign('show_username', ($username ? 'true' : 'false'));
+		if ($username) $smarty->assign('username', self::id2user($userid, $clantag));
+		$smarty->assign('show_profile_link', ($link ? 'true' : 'false'));
+
+		return $smarty->fetch('file:layout/partials/profile/userprofile_link.tpl');
 	}
 
 	/**

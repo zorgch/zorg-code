@@ -943,7 +943,7 @@ function getUsersOnPic($pic_id) {
 		array_push($usersonpic, $user->link_userpage($mp[user_id], FALSE));
 		/* für DIV basierte positionierung/Ausgabe:
 		$html .= '
-		<div name="'.$user->id2user($mp[user_id], FALSE, FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.$user->id2user($mp[user_id], FALSE, FALSE).'<div>
+		<div name="'.$user->id2user($mp[user_id], FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.$user->id2user($mp[user_id], FALSE).'<div>
 		';*/
 	}
 	

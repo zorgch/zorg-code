@@ -157,26 +157,27 @@ function var_request ()
 	}
 	function smarty_name ($userid) {
     	global $user;
-    	return $user->id2user($userid, false, false);
+    	return $user->id2user($userid, false);
     }
     function smarty_username ($userid) { // converts id to username
     	global $user;
-    	return $user->link_userpage($userid);
+    	//Original: return $user->link_userpage($userid);
+    	return $user->userprofile_link($userid, ['username' => TRUE, 'pic' => FALSE, 'link' => TRUE]);
     }
-    function smarty_userpic ($userid) {
+    function smarty_userpic ($userid, $displayName=TRUE) {
     	global $user;
-    	return $user->link_userpage($userid, true);
+    	//Original: return $user->link_userpage($userid, $displayName);
+    	//return $user->userpic($userid, $displayName);
+    	return $user->userprofile_link($userid, ['username' => $displayName, 'pic' => TRUE, 'link' => TRUE]);
     }
     function smarty_userpage ($userid, $pic=0) {
     	global $user;
-    	return $user->link_userpage($userid, $pic);
+    	//Original: return $user->link_userpage($userid, $pic);
+    	return $user->userprofile_link($userid, ['username' => TRUE, 'pic' => $pic, 'link' => TRUE]);
     }
-	function smarty_userpic2 ($userid, $displayName=FALSE)
-	{
-		global $user;
-		return $user->userpic($userid, $displayName);
-	}
-
+    function smarty_logerror($params, &$smarty) {
+	    error_log(sprintf('[SMARTY] <%s:%d> %s', $params['tpl'], $params['line'], $params['string']));
+    }
 
 /**
  * Blocks for Smarty
@@ -212,7 +213,7 @@ function var_request ()
     function smarty_form ($params, $content, &$smarty, &$repeat) {
   	// returns an opening-tag for a html-form. action is always 'smarty.php'
   	// if you set the parameter 'formid', a hidden input with this formid is added.
-      if (!$_GET[tpl]) $_GET[tpl] = '0';
+      if (!$_GET['tpl']) $_GET['tpl'] = '0';
 
       if ($params['url']) {
     	$url = $params['url'];
@@ -220,19 +221,19 @@ function var_request ()
     	$url = "/actions/$params[action]?".url_params();
       }else{
     	$url = "/?".url_params();
-    	if ($params[param]) {
-       	$url .= '&'.$params[param];
+    	if ($params['param']) {
+       	$url .= '&'.$params['param'];
     	}
       }
 
       $ret = '<form method="post" action="'.$url.'" ';
 
-      if ($params[upload]) {
+      if ($params['upload']) {
          $ret .= 'enctype="multipart/form-data"';
       }
       $ret .= '>';
-      if ($params[formid]) {
-         $ret .= '<input name="formid" type="hidden" value="'.$params[formid].'">';
+      if ($params['formid']) {
+         $ret .= '<input name="formid" type="hidden" value="'.$params['formid'].'">';
       }
 
       $ret .= $content;
@@ -605,8 +606,8 @@ function var_request ()
 		return usersystem::getFormFieldUserlist($params['name'], $params['size']);
 	}
 	function smarty_onlineusers($params) {
-		if (!isset($params[images])) $params[images] = false;
-		return usersystem::online_users($params[images]);
+		if (!isset($params['images'])) $params['images'] = false;
+		return usersystem::online_users($params['images']);
 	}
 
 	/**
@@ -614,8 +615,8 @@ function var_request ()
 	 */
     function smarty_addle_highscore ($params) {
 	    // wrapper function for addle highscore
-        if (!isset($params[anzahl])) $params[anzahl] = 5;
-        return highscore_dwz($params[anzahl]);
+        if (!isset($params['anzahl'])) $params['anzahl'] = 5;
+        return highscore_dwz($params['anzahl']);
     }
 	/*function smarty_addle_highscore ($params) {
       if (!isset($params[anzahl])) $params[anzahl] = 5;
@@ -1347,8 +1348,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_maxwordlength' => array('maxwordlength', 'Variablen', 'Registriert für Smarty den Modifier maxwordlength() aus PHP, 1.param = word length', false)
 								,'smarty_name' => array('name', 'Usersystem', 'usersystem', false)
 								,'smarty_username' => array('username', 'Usersystem', '{$userid|username} konvertiert userid zu username', false)
-								,'smarty_userpic' => array('userpic', 'Usersystem', '{$userid|userpic}', false)
-								,'smarty_userpic2' => array('userpic2', 'Usersystem', '{$userid|userpic2:0}', false)
+								,'smarty_userpic' => array('userpic', 'Usersystem', '{$userid|userpic:0} zeigt Userpic für eine User-ID, 1.param = Username anzeigen ja/nein', false)
 								,'smarty_usergroup' => array('usergroup', 'Usersystem', '{$id|usergroup} für tpl schreib / lese rechte', false)
 								,'smarty_userpage' => array('userpage', 'Usersystem', '{$userid|userpage:0} , 1.param = username (0) or userpic (1)', false)
 								,'smarty_userismobile' => array('ismobile', 'Usersystem', '{$userid|ismobile} ermittelt ob letzter Login eines Users per Mobile war', false)
@@ -1455,6 +1455,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_assign_event_hasjoined' => array('assign_event_hasjoined', 'Events', 'events', true, false)
 								,'smarty_event_hasjoined' => array('event_hasjoined', 'Events', 'events', true, false)
 								,'smarty_assign_rezept_voted' => array('assign_rezept_voted', 'Rezepte', 'rezepte', true)
+								,'smarty_logerror' => array('logerror', 'PHP Error Log', 'errorhandling', false)
 							);
 		
 	

@@ -459,10 +459,10 @@ function play($id=0) {
 							$piccolor = BORDERCOLOR;
 						}
 						?>
-					<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150">
-						<tr><td><?=$user->link_userpage($d['player1'], true, true)?></td></tr>
+					<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150" style="text-align:center;">
+						<tr><td><?=$user->userprofile_link($d['player1'], ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true])?></td></tr>
 						<tr><td>
-					 <?='<a href="/addle.php?show=archiv&uid='.$d['player1'].'">'.$user->id2user($d['player1']).'</a> <br /><small>(DWZ '.$d['dwz1'].' / '.$d['dwzr1'].'.)</small>'?>
+					 <?='<a href="/addle.php?show=archiv&uid='.$d['player1'].'"><small>(DWZ '.$d['dwz1'].' / '.$d['dwzr1'].'.)</small></a>'?>
 					</td></tr></table>
 					
 					 <table cellspacing='0' cellpadding='0' border='0' style="font-size: xx-large;" width="100%">
@@ -479,10 +479,10 @@ function play($id=0) {
 					 	$piccolor = BORDERCOLOR;
 					 }
 					 ?>
-					<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150">
-						<tr><td><?=$user->link_userpage($d['player2'], true, true)?></td></tr>
+					<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150" style="text-align:center;">
+						<tr><td><?=$user->userprofile_link($d['player2'], ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true])?></td></tr>
 						<tr><td>
-					 <?='<a href="/addle.php?show=archiv&uid='.$d['player2'].'">'.$user->id2user($d['player2']).'</a> <br /><small>(DWZ '.$d['dwz2'].' / '.$d['dwzr2'].'.)</small>'?>
+					 <?='<a href="/addle.php?show=archiv&uid='.$d['player2'].'"><small>(DWZ '.$d['dwz2'].' / '.$d['dwzr2'].'.)</small></a>'?>
 					 </td></tr></table>
 				</td>
 			</tr>

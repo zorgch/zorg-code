@@ -1022,7 +1022,7 @@ class Forum {
 		;
 
 		if($page > 10) {
-			$html .= '<td><a href="'.getChangedURL('page=1').'">¬´ First</a></td>';
+			$html .= '<td><a href="'.getChangedURL('page=1').'">&larrb; First</a></td>';
 		}
 
 		if($page > 1) {
@@ -1043,7 +1043,7 @@ class Forum {
 		}
 
 		if($page < ($numpages-10)) {
-			$html .=	'<td><a href="'.getChangedURL('page='.$numpages).'">Last ¬ª</a></td>';
+			$html .=	'<td><a href="'.getChangedURL('page='.$numpages).'">Last &rarrb;</a></td>';
 		}
 
 		$html .= '</tr></table>';
