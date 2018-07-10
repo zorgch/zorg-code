@@ -252,7 +252,7 @@ class dbconn {
 	 * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
 	 * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
 	*/
-	function update($table, $id, $values, $file="", $line="") {
+	function update($table, $id, $values, $file="", $line="", $funktion="") {
 		if (!is_array($values)) {
 			echo "Wrong Parameter type $values in db->insert()";
 			exit;
@@ -272,7 +272,7 @@ class dbconn {
 			$sql .= $id[0]."='".$id[$i]."' OR ";
 		}
 		$sql = substr($sql, 0, -4);
-		$this->query($sql, $file, $line);
+		$this->query($sql, $file, $line, $funktion);
 	}
 }
 

@@ -57,31 +57,31 @@ if ($user->typ == USER_NICHTEINGELOGGT)
 	
 	switch ($_GET['do']) {
 	  case "editAlbum":
-	     $res = doEditAlbum($_GET[albID], $_POST[frm]);
-	     if (!$_GET[albID]) $_GET[albID] = $res[id];
+	     $res = doEditAlbum($_GET['albID'], $_POST['frm']);
+	     if (!$_GET['albID']) $_GET['albID'] = $res['id'];
 	     break;
 	  case "editAlbumFromEvent":
-	     $res = doEditAlbumFromEvent($_GET[albID], $_POST[event]);
-	     if (!$_GET[albID]) $_GET[albID] = $res[id];
+	     $res = doEditAlbumFromEvent($_GET['albID'], $_POST['event']);
+	     if (!$_GET['albID']) $_GET['albID'] = $res['id'];
 	     break;
 	  case "delAlbum":
-	     $res = doDelAlbum($_GET[albID], $_POST[del]);
-	     $_GET[show] = $res[show];
+	     $res = doDelAlbum($_GET['albID'], $_POST['del']);
+	     $_GET['show'] = $res['show'];
 	     break;
 	  case "zensur":
-	     doZensur($_GET[picID]);
+	     doZensur($_GET['picID']);
 	     break;
 	  case "delPic":
-	     $res = doDelPic($_POST[picID]);
+	     $res = doDelPic($_POST['picID']);
 	     break;
 	  case "upload":
-	     $res = doUpload($_GET[albID], $_POST[frm]);
+	     $res = doUpload($_GET['albID'], $_POST['frm']);
 	     break;
 	  case "delUploadDir":
-	     $res = doDelUploadDir($_POST[frm][folder]);
+	     $res = doDelUploadDir($_POST['frm']['folder']);
 	     break;
 	  case "mkUploadDir":
-	     $res = doMkUploadDir($_POST[frm]);
+	     $res = doMkUploadDir($_POST['frm']);
 	     break;
 	  case "editFotoTitle":
 	  	$res = doEditFotoTitle($_GET['picID'], $_POST['frm']);
@@ -90,17 +90,17 @@ if ($user->typ == USER_NICHTEINGELOGGT)
 	  	$res = doRotatePic($_GET['picID'], $_POST['rotatedir']);
 	  	break;
 	  /*case "markieren":
-	     doMark($_GET[picID]);
+	     doMark($_GET['picID']);
 	     break;*/
 	}
 	
 	unset($_GET['do']);
 	
-	switch ($_GET[show]) {
-	  case "editAlbum": editAlbum($_GET[albID], $_GET['do'], $res[state], $res[error], $res[frm]); break;
-	  case "albumThumbs": albumThumbs($_GET[albID], $_GET[page]); break;
-	  case "pic": pic($_GET[picID]); break;
-	  default: echo '<br />'.galleryOverview($res[state], $res[error]);
+	switch ($_GET['show']) {
+	  case "editAlbum": editAlbum($_GET['albID'], $_GET['do'], $res['state'], $res['error'], $res['frm']); break;
+	  case "albumThumbs": albumThumbs($_GET['albID'], $_GET['page']); break;
+	  case "pic": pic($_GET['picID']); break;
+	  default: echo '<br />'.galleryOverview($res['state'], $res['error']);
 	}
 
 }
