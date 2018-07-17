@@ -14,12 +14,12 @@
  */
 /**
  * File includes
- * @include smarty.inc.php Includes the Smarty Class and Methods
+ * @include DEPRECATED smarty.inc.php Includes the Smarty Class and Methods
  * @include usersystem.inc.php Includes the Usersystem Class and Methods
  * @include util.inc.php Includes the Helper Utilities Class and Methods
  * @include googleapis.inc.php Include the Google API Class and Methods
  */
-require_once( __DIR__ .'/smarty.inc.php');
+//require_once( __DIR__ .'/smarty.inc.php');
 require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 include_once( __DIR__ .'/googleapis.inc.php');

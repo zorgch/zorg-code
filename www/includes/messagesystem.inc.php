@@ -411,7 +411,6 @@ class Messagesystem {
 				ORDER BY isread ASC, ".$orderby." ".$sortby."
 				LIMIT ".($page-1) * $pagesize.",".$pagesize
 			;
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SQL-Query: %s', __METHOD__, __LINE__, $sql));
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			while($rs = $db->fetch($result)) {
 				$messages[] = $rs;

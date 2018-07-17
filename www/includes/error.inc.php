@@ -1,10 +1,9 @@
 <?php
 require_once( __DIR__ .'/main.inc.php');
 
-$sql = "SELECT * FROM sql_error	WHERE status = 1";
-$num_errors = $db->num($db->query($sql));
-
-global $num_errors;
+/** Query errors Table for all open errors (status = 1) */
+$sql = $db->fetch($db->query('SELECT count(*) as num_errors FROM sql_error WHERE status = 1', __FILE__, __LINE__, '$db->fetch($db->query())'));
+$num_errors = $sql['num_errors'];
 
 function get_sql_errors($num=23,$order=3,$oby=0) {
 	global $db, $num_errors;
