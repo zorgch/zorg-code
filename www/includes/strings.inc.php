@@ -1,5 +1,10 @@
 <?php
 /**
+ * @include config.inc.php Include required global site configurations
+ */
+require_once( __DIR__ . '/config.inc.php');
+
+/**
  * @const NO_STRING_FOUND String for empty / not found references to be replaced
  */
 if (!defined('NO_STRING_FOUND')) define('NO_STRING_FOUND', 'Reference not found in String list');
@@ -141,7 +146,7 @@ function findReferenceInArray($context, $reference)
 
 /** 
  * Return single or plural string
- *
+ * @TODO Single/Plural Strings-Feature is yet to be implemented...
  * @param $array The array containing two values: one for singular & one for pluaral
  * @param $value The integer value to check against, whether it's singular or plural
  */
