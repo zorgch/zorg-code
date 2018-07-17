@@ -550,43 +550,42 @@ function gmt_diff($date) {
  */
 function isMobileClient($userAgent)
 {
-	
 	/**
 	* Liste von Mobile-Clients
 	*
 	* @var array
 	*/
 	$_mobileClients = array(
-									"midp",
-									"240x320",
-									"blackberry",
-									"netfront",
-									"nokia",
-									"panasonic",
-									"portalmmm",
-									"sharp",
-									"sie-",
-									"sonyericsson",
-									"symbian",
-									"windows ce",
-									"benq",
-									"mda",
-									"mot-",
-									"opera mini",
-									"philips",
-									"pocket pc",
-									"sagem",
-									"samsung",
-									"sda",
-									"sgh-",
-									"vodafone",
-									"xda",
-									"iphone",
-									"android"
-								);
-	
+							"midp",
+							"240x320",
+							"blackberry",
+							"netfront",
+							"nokia",
+							"panasonic",
+							"portalmmm",
+							"sharp",
+							"sie-",
+							"sonyericsson",
+							"symbian",
+							"windows ce",
+							"benq",
+							"mda",
+							"mot-",
+							"opera mini",
+							"philips",
+							"pocket pc",
+							"sagem",
+							"samsung",
+							"sda",
+							"sgh-",
+							"vodafone",
+							"xda",
+							"iphone",
+							"android"
+						);
+
 	$userAgent = strtolower($userAgent);
-	
+
 	foreach($_mobileClients as $mobileClient) {
 	//foreach($_mobileClients as $mobileClient) {
 		if (strstr($userAgent, $mobileClient)) {
@@ -630,6 +629,8 @@ function urlExists($url)
 function getGitCodeVersion()
 {
 	try {
+		static $codeVersion = array();
+
 		$codeVersion['version'] = trim(exec('git describe --tags --abbrev=0'));
 		$codeVersion['last_commit'] = trim(exec('git log --pretty="%h" -n1 HEAD'));
 		$lastCommitDatetime = trim(exec('git log -n1 --pretty=%ci HEAD'));
@@ -666,4 +667,83 @@ function html_tag($text, $htmlTag)
 
 	/** If $text & $htmlTag are OK - wrap it to get a HTML-Tag as return */
 	return sprintf('<%1$s>%2$s</%1$s>', $htmlTag, $text);
+}
+
+
+/**
+ * HTTP file download using cURL
+ * Starts a cURL instance to download a passed URL to the defined file path, if the URL status is 200 OK
+ *
+ * @author IneX
+ * @date 17.07.2018
+ * @version 1.0
+ * @since 1.0 added function
+ *
+ * @param string $url String input containing a URL
+ * @param string $save_as_file String input containing a valid local file path to save the $url to
+ * @return bool Returns true/false depening on if a successful execution was possible, or not
+ */
+function cURLfetchUrl($url, $save_as_file)
+{
+	/** Validate the $url & $filepath (not empty, null, or alike) */
+	if ( empty($url) || is_numeric($url) ) return false;
+	if ( empty($save_as_file) || is_numeric($save_as_file) ) return false;
+
+	/** Disable PHP timelimit, because this could take a while... */
+	set_time_limit(0);
+
+	try {
+		/**
+		 * Initialize cURL process for handling multiple parallel requests 
+		 *
+		 * cURL request options:
+		 *	 CURLOPT_HEADER	yes/no if to retrieve HTTP-Header with request
+		 *   CURLOPT_BODY	yes/no if to retrieve Resource Body with request
+		 *	 CURLOPT_FOLLOWLOCATION	yes/no if to follow 3xx HTTP-redirects
+		 *		 only if Redirects enabled:
+		 *			 CURLOPT_AUTOREFERER	yes/no if passing Referer header field to HTTP requests
+		 *			 CURLOPT_MAXREDIRS	maximum amount of redirects
+		 *	 CURLOPT_TIMEOUT	maximum request timeout (in seconds)
+		 *	 CURLOPT_USERAGENT	Useragent to identify the request
+		 *	 CURLOPT_FILE			return the resource as a file (needs an open fopen())
+		 *	 CURLOPT_RETURNTRANSFER return the data instead of outputting it
+		 *	 CURLOPT_VERBOSE yes/no if to print everything on screen (no!)
+		 */
+		$curl_request_options = [
+									CURLOPT_USERAGENT => 'Zorg/1.0 (+https://zorg.ch/)',
+									CURLOPT_TIMEOUT => 5,
+									CURLOPT_FOLLOWLOCATION => true,
+									CURLOPT_RETURNTRANSFER => true,
+								];
+
+		/** Initialize & execute cURL-Request */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_exec() START: %s', __FUNCTION__, __LINE__, $url));
+		$curl_instance = curl_init($url);
+		curl_setopt_array($curl_instance, $curl_request_options);
+		$curl_data = curl_exec($curl_instance);
+		$curl_done = curl_getinfo($curl_instance);
+
+		/** cURL request successful */
+		if ($curl_done['http_code'] == 200)
+		{
+			/** Open a new file handle */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_getinfo(%d): %s', __FUNCTION__, __LINE__, $curl_done['http_code'], $curl_done['url']));
+			$filestream = fopen($save_as_file, 'w');
+			fwrite($filestream, $curl_data);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> fwrite(): %s', __FUNCTION__, __LINE__, $save_as_file));
+
+			/** Close the file handle */
+			fclose($filestream);
+		}
+
+		/** Close the $curl_instance */
+		curl_close($curl_instance);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_close(): DONE', __FUNCTION__, __LINE__));
+
+		return true;
+
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+		return false;
+	}
 }

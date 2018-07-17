@@ -21,21 +21,23 @@ require_once( __DIR__ .'/activities.inc.php');
 /**
  * Defines
  */
-define("USER_ALLE", 0);
-define("USER_USER", 1);
-define("USER_MEMBER", 2);
-define("USER_SPECIAL", 3);
-//define("USER_EINGELOGGT", 0);define("USER_MEMBER", 1);
-//define("USER_NICHTEINGELOGGT", 2);
-//define("USER_ALLE", 3);
-define("USER_IMGPATH",  __DIR__ .'/../../data/userimages/');
-define("USER_IMGPATH_PUBLIC", '/data/userimages/');
-define("USER_IMGSIZE_LARGE", 427);
-define("USER_IMGSIZE_SMALL", 150);
-define("USER_TIMEOUT", 200);
-define("USER_OLD_AFTER", 60*60*24*30*3); // 3 Monate
-define("DEFAULT_MAXDEPTH", 10);
-define("AUSGESPERRT_BIS", "ausgesperrt_bis");
+define('USER_ALLE', 0);
+define('USER_USER', 1);
+define('USER_MEMBER', 2);
+define('USER_SPECIAL', 3);
+//define('USER_EINGELOGGT', 0);define('USER_MEMBER', 1);
+//define('USER_NICHTEINGELOGGT', 2);
+//define('USER_ALLE', 3);
+define('USER_IMGEXTENSION',  '.jpg');
+define('USER_IMGPATH',  __DIR__ .'/../../data/userimages/');
+define('USER_IMGPATH_PUBLIC', '/data/userimages/');
+define('USER_IMGSIZE_LARGE', 427);
+define('USER_IMGSIZE_SMALL', 150);
+define('USER_IMGPATH_DEFAULT', 'none.jpg');
+define('USER_TIMEOUT', 200);
+define('USER_OLD_AFTER', 60*60*24*30*3); // 3 Monate
+define('DEFAULT_MAXDEPTH', 10);
+define('AUSGESPERRT_BIS', 'ausgesperrt_bis');
 //if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
 
@@ -151,16 +153,17 @@ class usersystem {
 	 *
 	 * @return usersystem
 	 */
-	function usersystem() {
+	function usersystem()
+	{
 		global $db;
-		
+
 		session_name("z");
 		$this->typ = USER_ALLE;
 
 		// Session init'en
 		if((isset($_GET['z']) && $_GET['z'] != '') || (isset($_POST['z']) && $_POST['z'] != '') || (isset($_COOKIE['z']) && $_COOKIE['z'] != '')) {
 			session_start();
-			
+
 			try {
 				$sql = "SELECT *, UNIX_TIMESTAMP(".$this->field_activity.") as ".$this->field_activity.",
 				UNIX_TIMESTAMP(".$this->field_lastlogin.") as ".$this->field_lastlogin.",
@@ -168,7 +171,7 @@ class usersystem {
 				FROM ".$this->table_name." WHERE id = '$_SESSION[user_id]'";
 				$result = $db->query($sql, __FILE__, __LINE__);
 				$rs = $db->fetch($result);
-	
+
 				if ($rs[$this->field_maxdepth]) {
 					$this->maxdepth = $rs[$this->field_maxdepth];
 				}else{
@@ -186,32 +189,24 @@ class usersystem {
 				$this->typ = ($rs[$this->field_usertyp] != '' ? $rs[$this->field_usertyp] : USER_ALLE);
 				$this->show_comments = $rs[$this->field_show_comments];
 				$this->email_notification = $rs[$this->field_email_notification];
-		        $this->sql_tracker = $rs[$this->field_sql_tracker];
-		        $this->addle = $rs[$this->field_addle];
-		        $this->chess = $rs[$this->field_chess];
-		        $this->icq = $rs['icq'];
+				$this->sql_tracker = $rs[$this->field_sql_tracker];
+				$this->addle = $rs[$this->field_addle];
+				$this->chess = $rs[$this->field_chess];
+				$this->icq = $rs['icq'];
 				$this->id = $_SESSION['user_id'];
 				$this->menulayout = $rs[$this->field_menulayout];
 				$this->mymenu = $rs[$this->field_mymenu];
 				$this->zorger = $rs[$this->field_zorger];
-				if (usersystem::checkimage($_SESSION['user_id'])) {
-				   $this->image = USER_IMGPATH_PUBLIC.$_SESSION['user_id']."_tn.jpg";
-				}else{
-				   $this->image = USER_IMGPATH_PUBLIC."none.jpg";
-				}
-	
+				$this->image = self::userImage(intval($_SESSION['user_id']));
+
 				$this->forum_boards = explode(",", $rs['forum_boards']);
 				$this->forum_boards_unread = explode(",", $rs['forum_boards_unread']);
-	
+
 				$this->mail_userpw = $rs[$this->field_mail_userpw];
 				$this->mail_username = $rs[$this->field_mail_username];
-	
-				if(file_exists($_SERVER['DOCUMENT_ROOT']."/images/users/".$_SESSION['user_id'].".jpg")) {
-					$this->image = $_SESSION['user_id'].".jpg";
-				}
-	
+
 				$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
-	
+
 				// User Agent suchen - Loginart (normal / mobile) festlegen - wird nur in Session geadded, nicht in DB gespeichert
 				//isMobileClient($_SERVER['HTTP_USER_AGENT']) <> '' ? $this->is_mobile = 1 : $this->is_mobile = 0;
 				$this->from_mobile = isMobileClient($_SERVER['HTTP_USER_AGENT']);
@@ -239,6 +234,8 @@ class usersystem {
 	 * User Login
 	 *
 	 * Erstellt eine Session (login)
+	 *
+	 * @TODO Fix redirect bei Cookie-Session-Login auf Home (anstatt jeweils aktuelle Seite)!
 	 *
 	 * @see crypt_pw()
 	 * @return string error
@@ -313,6 +310,7 @@ class usersystem {
 						WHERE id = '".$rs['id']."'";
 						$db->query($sql, __FILE__, __LINE__);
 
+						/** @TODO Fix redirect bei Cookie-Session-Login auf Home (anstatt jeweils aktuelle Seite)! */
 						header("Location: ".$_SERVER['PHP_SELF']."?". session_name(). "=". session_id());
 						exit;
 					} else {
@@ -648,17 +646,42 @@ class usersystem {
 	*
 	* Überprüft ob ein Bild zum User existiert
 	*
-	* @ToDo this function is f*cking SLOW!!!! // Jan 2016, IneX
+	* @author ?
+	* @author IneX
+	* @date 11.07.2018
+	* @version 2.0
+	* @since 1.0
+	* @since 2.0 11.07.2018 added check for locally cached Gravatar, replaced 'file_exists' with 'stream_resolve_include_path'
+	* @since 3.0 16.07.2018 Method now returns path to userpic (or queried Gravatar result) as string, instead of true.
+	*
+	* @TODO this function is f*cking SLOW!!!! // Jan 2016, IneX => fix0red 11.07.2018
 	*
 	* @see USER_IMGPATH
-	* @return bool
-	* @param $id int User ID
+	* @see USER_IMGEXTENSION
+	* @param $userid int User ID
+	* @return string|bool Returns userimage path as string, or false if not found
 	*/
-	function checkimage($id) {
-		if(file_exists(USER_IMGPATH.$id.".jpg")) {
-			return TRUE;
+	function checkimage($userid)
+	{
+		/** Image-Path to check */
+		$user_imgpath_custom = USER_IMGPATH.$userid.USER_IMGEXTENSION;
+		$user_imgpath_gravatar = USER_IMGPATH.$userid.'_gravatar'.USER_IMGEXTENSION;
+
+		/** Check for cached Gravater */
+		if (stream_resolve_include_path($user_imgpath_gravatar) !== false)
+		{
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage cached (GRAVATAR): %s', __METHOD__, __LINE__, $user_imgpath_gravatar));
+			return $user_imgpath_gravatar;
+
+		/** Check for custom Userpic */
+		} elseif (stream_resolve_include_path($user_imgpath_custom) !== false) {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage cached (ZORG): %s', __METHOD__, __LINE__, $user_imgpath_custom));
+			return $user_imgpath_custom;
+
+		/** Return false if no userpic cached */
 		} else {
-			return FALSE;
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage not cached: querying Gravatar', __METHOD__, __LINE__));
+			return false;
 		}
 	}
 
@@ -669,42 +692,41 @@ class usersystem {
 	* Gibt den Pfad zum Bild des Users. Falls kein Bild: none.jpg
 	*
 	* @version 2.0
-	* @since 1.0
+	* @since 1.0 initial function
+	* @since 2.0 Check & load cached Gravatar, optimized if-else
 	*
-	* @TODO can "global $user;" be removed because referenced via $this?
-	*
+	* @see USER_IMGPATH
 	* @see USER_IMGPATH_PUBLIC
 	* @see USER_IMGSIZE_SMALL
 	* @see USER_IMGSIZE_LARGE
 	* @see usersystem::checkimage()
 	* @see usersystem::get_gravatar()
-	* @param int $id User ID
+	* @param int $userid User ID
 	* @param boolean $large Large image true/false
 	* @return string URL-Pfad zum Bild des Users
 	*/
-	function userImage($id, $large=0) {
-		global $user;
-		
-		if ($this->checkimage($id)) {
-			if ($large) {
-				return $this->get_gravatar(
-					$this->id2useremail($id)
-					,USER_IMGSIZE_LARGE
-					,USER_IMGPATH_PUBLIC.$id.'.jpg'
-				);
-			} else {
-				return $this->get_gravatar(
-					$this->id2useremail($id)
-					,USER_IMGSIZE_SMALL
-					,USER_IMGPATH_PUBLIC.$id.'_tn.jpg'
-				);
-			}
+	function userImage($userid, $large=false)
+	{
+		/** Check if userpic-file exists, and return it */
+		$user_imgpath = self::checkimage($userid);
+		if (!empty($user_imgpath))
+		{
+			/** Make internal USER_IMGPATH to external USER_IMGPATH_PUBLIC */
+			$user_imgpath = str_replace(USER_IMGPATH, USER_IMGPATH_PUBLIC, $user_imgpath);
+
+			/** Add Thumbnail shortcut, if $large is NOT set */
+			if (empty($large)) $user_imgpath = str_replace(USER_IMGEXTENSION, '_tn' . USER_IMGEXTENSION, $user_imgpath);
+
+			return $user_imgpath;
+
+		/** If no userpic-file exists, query Gravatar with USER_IMGPATH_DEFAULT as fallback image */
 		} else {
-			return $this->get_gravatar(
-				$this->id2useremail($id)
-				,USER_IMGSIZE_SMALL
-				,USER_IMGPATH_PUBLIC.'none.jpg'
-			);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage not cached for $userid %d', __METHOD__, __LINE__, $userid));
+			return self::get_gravatar(
+				 						 self::id2useremail($userid)
+				 						,($large ? USER_IMGSIZE_LARGE : USER_IMGSIZE_SMALL)
+				 						,USER_IMGPATH_PUBLIC.USER_IMGPATH_DEFAULT
+				 					);
 		}
 	}
 
@@ -889,12 +911,12 @@ class usersystem {
 		if ($displayName) {
 			if (!isset($_users[$id])) {
 				try {
-	    			$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
+					$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
 					$result = $db->query($sql, __FILE__, __LINE__);
 					while ($rs = mysql_fetch_array($result)) {
 						$_users[$id] = $rs;
-	    			}
-	    		} catch(Exception $e) {
+					}
+				} catch(Exception $e) {
 					return $e->getMessage();
 				}
 			}
@@ -922,39 +944,180 @@ class usersystem {
 	 * Get either a Gravatar URL or complete image tag for a specified email address.
 	 *
 	 * @source http://gravatar.com/site/implement/images/php/
-	 * @date 24.07.2014
-	 * @date 11.01.2017
 	 * @author IneX
-	 * @since 3.0
-	 * @version 2.0 Fixed Gravatar-URL to https using SITE_PROTOCOL
+	 * @date 24.07.2014
+	 * @version 3.0
+	 * @since 1.0 24.07.2014
+	 * @since 2.0 11.01.2017 Fixed Gravatar-URL to https using SITE_PROTOCOL
+	 * @since 3.0 16.07.2018 Removed possibility to return <img>-Tag
 	 *
 	 * @see SITE_PROTOCOL
-	 * @see userprofile_link.tpl
 	 * @param string $email The email address
 	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
 	 * @param string $d Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
 	 * @param string $r Maximum rating (inclusive) [ g | pg | r | x ]
 	 * @param boolean $img True to return a complete IMG tag False for just the URL
 	 * @param array $atts Optional, additional key/value attributes to include in the IMG tag
-	 * @return string String containing either just a URL or a complete image tag
+	 * @return string String containing URL to gravatar.com Profilepic
 	 */
-	function get_gravatar( $email, $s = 150, $d = 'mm', $r = 'x', $img_tag = false, $atts = array() )
+	function get_gravatar( $email, $s = 150, $d = '404', $r = 'x' )
 	{
+		/** HTTP-request to Gravatar */
 		$url = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
 		$url .= md5( strtolower( trim( $email ) ) );
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $email: %s', __METHOD__, __LINE__, $email));
 		$url .= "?s=$s&d=$d&r=$r";
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $url_check: %s', __METHOD__, __LINE__, $url));
 		$url_check = @get_headers($url); // Get response headers of $url
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> get_headers() response: %s', __METHOD__, __LINE__, print_r($url_check, true)));
 		$url_parse = parse_url(trim($d)); // For eventual fallback: parse URL of Default image
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> parse_url() %s', __METHOD__, __LINE__, $d));
 		if(strpos($url_check[0],'200')===false) return $url_parse['path']; // If $url response header is NOT 200, fallback to local image
-		/** If whole <img>-Tag was requested: */
-		if ( $img_tag )
-		{
-			$url = '<img src="' . $url . '"';
-			foreach ( $atts as $key => $val )
-				$url .= ' ' . $key . '="' . $val . '"';
-			$url .= ' />';
-		}
 		return $url;
+	}
+
+
+	/**
+	 * Fetch Gravatar images for Userlist
+	 *
+	 * @author IneX
+	 * @date 12.07.2018
+	 * @version 1.0
+	 * @since 1.0 12.07.2018 function added
+	 *
+	 * @param integer|string $userScope Scope for whom to get the Gravatar image for: a single User-ID integer, or 'all' string for all Useraccounts.
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return bool Returns true/false depening on if a successful execution was possible, or not
+	 */
+	function cacheGravatarImages($userScope)
+	{
+		global $db;
+
+		/** Validate passed $userScope variable */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $userScope: %s', __METHOD__, __LINE__, $userScope));
+		if (empty($userScope)) return false;
+
+		/** Get the Gravatar image for a User or a List of Users */
+		switch ($userScope)
+		{
+			/** (integer)USER: If $userScope = User-ID: try to get the User's Gravatar-Image */
+			case is_numeric($userScope) && $userScope > 0:
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for User-ID: %d', __METHOD__, __LINE__, $userScope));
+				//$sql = 'SELECT email FROM user WHERE id = ' . $userid;
+				//$user_emaillist = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				if (self::exportGravatarImages([$userScope])) return true;
+
+			/** (array)LIST: If $userScope = User-ID list: try to get Gravatar-Image for all of them */
+			case $userScope === 'all':
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for %s User-IDs', __METHOD__, __LINE__, $userScope));
+				try {
+					$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email <> "" AND active = 1';
+					$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+					while ($result = mysql_fetch_array($userids_list))
+					{
+						$userids[] = $result['id'];
+					}
+					if (self::exportGravatarImages($userids)) return true;
+
+				} catch (Exception $e) {
+					error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+					return false;
+				}
+
+			/** DEFAULT: stop execution */
+			default:
+				error_log( t('invalid-id', 'user') );
+				return false;
+		}
+	}
+
+
+	/**
+	 * Fetch & save Gravatar Userpics to local Filecache
+	 *
+	 * Downloads & stores Gravatar images locally using cURL, so we don't query gravatar.com all the time
+	 * @link https://en.gravatar.com/site/implement/images/
+	 *
+	 * @author IneX
+	 * @date 11.07.2018
+	 * @version 1.0
+	 * @since 1.0 11.07.2018 function added
+	 *
+	 * @TODO read & compare Gravatar image based on Gravatar's filename? See description for full response header retrieved.
+	 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
+	 *
+	 * @see SITE_PROTOCOL, USER_IMGPATH, USER_IMGSIZE_LARGE, USER_IMGSIZE_SMALL, USER_IMGEXTENSION
+	 * @see cURLfetchUrl()
+	 * @param array $userid Single or List of User ID(s) as Array
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return bool Returns true/false depening on if a successful execution was possible, or not
+	 */
+	function exportGravatarImages(array $userids)
+	{
+		global $db;
+		
+		if ( empty($userids) || count($userids) <= 0 ) return false;
+
+		$index = 0;
+		foreach($userids as $userid)
+		{
+			try {
+				/**
+				 * Check for a valid user e-mail
+				 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
+				 */
+				//$useremail = self::id2useremail($userid);
+				$queryresult = $db->fetch($db->query('SELECT email FROM user WHERE id = '.$userid.' LIMIT 0,1', __FILE__, __LINE__, __METHOD__));
+				$useremail = $queryresult['email'];
+			} catch(Exception $e) {
+				return $e->getMessage();
+			}
+			if (!empty($useremail))
+			{
+				$gravatar_baseurl = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
+				$gravatar_useremail = md5( strtolower( trim( $useremail ) ) );
+				/** d=404: return http 404 response, r=x: all ratings of images */
+				$gravatar_urlparam = '?d=404&r=x';
+	
+				try {
+					/**
+					 * Loop twice to get large & small image size
+					 * !Important! no 'return" within the for-loop - otherwise the function will exit & not finish processing both request!
+					 */
+					for ($i = 1; $i <= 2; $i++)
+					{
+						/** Switch image size while looping, s=pixelsize */
+						$gravatar_imgsize = '&s=' . ($i === 1 ? USER_IMGSIZE_LARGE : USER_IMGSIZE_SMALL);
+						$user_imgpath_gravatar = USER_IMGPATH.$userid.'_gravatar'.($i === 1 ? '' : '_tn').USER_IMGEXTENSION;
+	
+						/** Build full URL for request */
+						$gravatar_request = $gravatar_baseurl . $gravatar_useremail . $gravatar_urlparam . $gravatar_imgsize;
+						$curl_httpresources[$index++] = [ $gravatar_request, $user_imgpath_gravatar ];
+					}
+
+				/** Handle exception */
+				} catch (Exception $e) {
+					error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+					return false;
+				}
+			}
+			$index++;
+		}
+		
+		/** cURL all request from the $curl_httpresources Array */
+		if (count($curl_httpresources) > 0)
+		{
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): START', __METHOD__, __LINE__));
+			foreach ($curl_httpresources as $resource)
+			{
+				cURLfetchUrl($resource[0], $resource[1]);
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): SUCCESS', __METHOD__, __LINE__));
+			return true;
+		} else {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): ERROR', __METHOD__, __LINE__));
+			return false;
+		}
 	}
 
 
@@ -976,7 +1139,6 @@ class usersystem {
 	}
 
 
-
 	/**
 	* ID zu Username
 	*
@@ -994,11 +1156,11 @@ class usersystem {
 	}
 
 
-
 	/**
 	* ID zu User E-Mail
 	*
-	* Gibt aufgrund einer User ID dessen E-Mailadresse zurück, falls der User E-Mailbenachrichtigung erlaubt hat
+	* Gibt aufgrund einer User ID dessen E-Mailadresse zurück.
+	* @TODO soll nur geprüft werden, ob der User E-Mailbenachrichtigung erlaubt hat.
 	*
 	* @author IneX
 	* @version 3.0
@@ -1096,10 +1258,10 @@ class usersystem {
 	 * Show Userprofile for a User ID
 	 *
 	 * Gibt eine User ID als Username aus - mit diversen Darstellungsmöglichkeiten:
-	 *    - Username: ja/nein?
-	 *    - Clantag im Username: ja/nein?
-	 *    - Userpic: ja/nein?
-	 *    - Verlinkung auf Userprofil: ja/nein?
+	 *	- Username: ja/nein?
+	 *	- Clantag im Username: ja/nein?
+	 *	- Userpic: ja/nein?
+	 *	- Verlinkung auf Userprofil: ja/nein?
 	 *
 	 * @author IneX
 	 * @date 05.07.2018
@@ -1153,7 +1315,7 @@ class usersystem {
 			$total = $rs['anzahl'];
 
 			mt_srand((double)microtime()*1000000);
-		    $rnd = mt_rand(1, $total);
+			$rnd = mt_rand(1, $total);
 			$sql = "SELECT * FROM quotes WHERE user_id = ".$user_id;
 			$result = $db->query($sql, __FILE__, __LINE__);
 
