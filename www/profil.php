@@ -78,12 +78,12 @@ function exec_uploadimage() {
 	global $user, $db;
 
 	$error[0] = false;
-	if (!$_FILES[image][name]) return $error;
-	if($_FILES[image][error] != 0) {
+	if (!$_FILES['image']['name']) return $error;
+	if($_FILES['image']['error'] != 0) {
 		$error[1] = "Das Bild konnte nicht &uuml;bertragen werden!<br />";
 		return $error;
 	}
-	if ($_FILES[image][type] != "image/jpeg" && $_FILES[image][type] != "image/pjpeg") {
+	if ($_FILES['image']['type'] != "image/jpeg" && $_FILES['image']['type'] != "image/pjpeg") {
 		 $error[1] = "Dies ist kein JPEG Bild! (Mu&auml;sch n&ouml;d mein&auml;!)<br />";
 		 return $error;
 	}
@@ -133,25 +133,25 @@ function exec_uploadimage() {
 	$sql = "INSERT INTO userpics
 			(user_id, image_name, image_title, image_added)
 			VALUES
-			($user->id, '".$_FILES[image][name]."', '".$_FILES[image][name]."', now())
+			($user->id, '".$_FILES['image']['name']."', '".$_FILES['image']['name']."', now())
 			";
 	$db->query($sql, __FILE__, __LINE__);
 
 	$tmpfile = $_SERVER['DOCUMENT_ROOT'].USER_IMGPATH."upload/$user->id.jpg";
-	if (!move_uploaded_file($_FILES[image][tmp_name], $tmpfile)) {
+	if (!move_uploaded_file($_FILES['image']['tmp_name'], $tmpfile)) {
 		$error[1] = "Bild konnte nicht bearbeitet werden.";
 		return $error;
 	}
 
 	$e = createPic($tmpfile, $_SERVER['DOCUMENT_ROOT'].USER_IMGPATH.$user->id."_tn.jpg", 150, 150, array(0,0,0));
-	if ($e[error]) {
-		$error[1] = $e[error];
+	if ($e['error']) {
+		$error[1] = $e['error'];
 		return $error;
 	}
 
 	$e = createPic($tmpfile, $_SERVER['DOCUMENT_ROOT'].USER_IMGPATH.$user->id.".jpg", 500, 500);
-	if ($e[error]) {
-		$error[1] = $e[error];
+	if ($e['error']) {
+		$error[1] = $e['error'];
 		return $error;
 	}
 

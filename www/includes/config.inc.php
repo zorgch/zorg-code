@@ -9,20 +9,6 @@ setlocale(LC_TIME, 'de_CH');
 date_default_timezone_set('Europe/Zurich');
 
 /**
- * Environment-specific configurations: can be set in the Apache config using
- *    SetEnv environment 'development'
- *
- * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) 
- */
-define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), true);
-
-/**
- * If DEVELOPMENT, load a corresponding config file
- * @include	development.config.php File containing DEV-specific settings
- */
-if (DEVELOPMENT) include_once( __DIR__ . '/development.config.php');
-
-/**
 * Define preferred Protocol that zorg.ch is running on
 * @const SITE_PROTOCOL https or http, required for building links like http(s)://...
 * @link https://stackoverflow.com/questions/1175096/how-to-find-out-if-youre-using-https-without-serverhttps
@@ -53,6 +39,47 @@ if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNA
 * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/"
 */
 if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', true);
+
+/**
+ * Environment-specific configurations: can be set in the Apache config using
+ *    SetEnv environment 'development'
+ *
+ * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) 
+ */
+define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), true);
+
+/**
+ * If DEVELOPMENT, load a corresponding config file
+ * @include	development.config.php File containing DEV-specific settings
+ */
+if (DEVELOPMENT) include_once( __DIR__ . '/development.config.php');
+
+/**
+ * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
+ */
+if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNAME, true);
+
+/**
+* Define global Contact points, such as e-mail addresses (From:)
+* @const ZORG_EMAIL Sets valid sender e-mailadress such as info@zooomclan.org
+* @const ZORG_ADMIN_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
+* @const ZORG_VEREIN_EMAIL Zorg Verein E-Mail address
+* @const BARBARA_HARRIS User-ID of [z]Barbara Harris
+* @const VORSTAND_USER User-ID of the Zorg Verein Vorstand-User
+* @const TWITTER_NAME A Twitter-profile username which can be linked, e.g. ZorgCH (no "@")
+* @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
+* @const FACEBOOK_PAGENAME Facebook page name (as in the group url) of the Zorg Facebook group
+* @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
+*/
+if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
+if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
+if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com', true);
+if (!defined('BARBARA_HARRIS')) define('BARBARA_HARRIS', 59);
+if (!defined('VORSTAND_USER')) define('VORSTAND_USER', 451);
+if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH', true);
+if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967', true);
+if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
+if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
 
 /**
 * Set a constant for the custom Error Log path

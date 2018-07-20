@@ -37,7 +37,7 @@ function datename ($timestamp)
 
 	// Gestern
 	} else if(date("d.m.y", time()-86400) == date("d.m.y", $timestamp)) {
-		return t('datetime-yesterday', 'global', date("H:i", $timestamp));
+		return t('datetime-yesterday', 'global');
 
 	// Diesen Monat
 	} else if (date("m.y", time()) == date("m.y", $timestamp)) {
@@ -538,62 +538,64 @@ function gmt_diff($date) {
 /**
  * Funktion prüft, ob der Client ein Mobile-Client ist (iPhone, BB, etc.)
  *
- * @deprecated
- * @todo Funktion entfernen, wird via JavaScript erledigt
+ * @DEPRECATED
+ * @TODO Funktion entfernen, wird via JavaScript erledigt
+ * @link https://deviceatlas.com/blog/mobile-browser-user-agent-strings
  * @author IneX
- * @version 1.0
  * @date 23.04.2009
- * @see usersystem::usersystem()
+ * @version 2.0
+ * @since 1.0 23.04.2009 function added
+ * @since 2.0 19.07.2018 Array foreach-loop replaced with faster array_filter-search, updated identifiers
  *
+ * @see usersystem::usersystem()
  * @param string $userAgent
- * @return string Enthält den Namen des mobilen User Agents oder nichts
+ * @return string|bool Gibt true oder false zurück
  */
 function isMobileClient($userAgent)
 {
+	/** Validate & format $userAgent param */
+	if (empty($userAgent) || is_numeric($userAgent)) return false;
+	$userAgent = strtolower($userAgent);
+	
 	/**
 	* Liste von Mobile-Clients
 	*
 	* @var array
 	*/
-	$_mobileClients = array(
-							"midp",
-							"240x320",
-							"blackberry",
-							"netfront",
-							"nokia",
-							"panasonic",
-							"portalmmm",
-							"sharp",
-							"sie-",
-							"sonyericsson",
-							"symbian",
-							"windows ce",
-							"benq",
-							"mda",
-							"mot-",
-							"opera mini",
-							"philips",
-							"pocket pc",
-							"sagem",
-							"samsung",
-							"sda",
-							"sgh-",
-							"vodafone",
-							"xda",
-							"iphone",
-							"android"
+	static $_mobileClients = array(
+								 'midp'
+								,'240x320'
+								,'blackberry'
+								,'netfront'
+								,'nokia'
+								,'panasonic'
+								,'portalmmm'
+								,'sharp'
+								,'sie-'
+								,'sonyericsson'
+								,'symbian'
+								,'windows ce'
+								,'benq'
+								,'mda'
+								,'mot-'
+								,'opera mini'
+								,'philips'
+								,'pocket pc'
+								,'sagem'
+								,'samsung'
+								,'sda'
+								,'sgh-'
+								,'vodafone'
+								,'xda'
+								,'iphone'
+								,'android'
+								,'iemobile'
+								,'windows phone'
+								,'mobile safari'
 						);
-
-	$userAgent = strtolower($userAgent);
-
-	foreach($_mobileClients as $mobileClient) {
-	//foreach($_mobileClients as $mobileClient) {
-		if (strstr($userAgent, $mobileClient)) {
-			//return true
-			return $mobileClient;
-		}
-	}
-	return '';
+	return array_filter($_mobileClients, function($match) use ($userAgent) {
+		return ( strpos($userAgent, $match) !== false);
+	});
 }
 
 
@@ -728,12 +730,17 @@ function cURLfetchUrl($url, $save_as_file)
 		{
 			/** Open a new file handle */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_getinfo(%d): %s', __FUNCTION__, __LINE__, $curl_done['http_code'], $curl_done['url']));
-			$filestream = fopen($save_as_file, 'w');
-			fwrite($filestream, $curl_data);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> fwrite(): %s', __FUNCTION__, __LINE__, $save_as_file));
+			if (file_put_contents($save_as_file, $curl_data) !== false) {
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_put_contents() OK: %s', __FUNCTION__, __LINE__, $save_as_file));
+			} else {
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_put_contents() ERROR: %s', __FUNCTION__, __LINE__, $save_as_file));
+			}
+			//$filestream = fopen($save_as_file, 'w');
+			//fwrite($filestream, $curl_data);
+			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> fwrite(): %s', __FUNCTION__, __LINE__, $save_as_file));
 
 			/** Close the file handle */
-			fclose($filestream);
+			//fclose($filestream);
 		}
 
 		/** Close the $curl_instance */

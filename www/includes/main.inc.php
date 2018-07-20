@@ -11,33 +11,6 @@ $sqltracker_numqueries = 0;
 require_once( __DIR__ . '/config.inc.php');
 
 /**
-* Define global Contact points, such as e-mail addresses (From:)
-* @const ZORG_EMAIL Sets valid sender e-mailadress such as info@zooomclan.org
-* @const ZORG_ADMIN_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
-* @const ZORG_VEREIN_EMAIL Zorg Verein E-Mail address
-* @const BARBARA_HARRIS User-ID of [z]Barbara Harris
-* @const VORSTAND_USER User-ID of the Zorg Verein Vorstand-User
-* @const TWITTER_NAME A Twitter-profile username which can be linked, e.g. ZorgCH (no "@")
-* @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
-* @const FACEBOOK_PAGENAME Facebook page name (as in the group url) of the Zorg Facebook group
-* @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
-*/
-if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
-if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
-if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com', true);
-if (!defined('BARBARA_HARRIS')) define('BARBARA_HARRIS', 59);
-if (!defined('VORSTAND_USER')) define('VORSTAND_USER', 451);
-if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH', true);
-if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967', true);
-if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
-if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
-
-/**
- * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
- */
-if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNAME, true);
-
-/**
  * RSS Feeds
  * @const RSS_URL Basic URL for RSS-Feeds
  */

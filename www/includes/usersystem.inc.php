@@ -209,7 +209,8 @@ class usersystem {
 
 				// User Agent suchen - Loginart (normal / mobile) festlegen - wird nur in Session geadded, nicht in DB gespeichert
 				//isMobileClient($_SERVER['HTTP_USER_AGENT']) <> '' ? $this->is_mobile = 1 : $this->is_mobile = 0;
-				$this->from_mobile = isMobileClient($_SERVER['HTTP_USER_AGENT']);
+				$this->from_mobile = ( isMobileClient($_SERVER['HTTP_USER_AGENT']) ? true : false );
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> isMobileClient(): %s => %s', __METHOD__, __LINE__, $_SERVER['HTTP_USER_AGENT'], ( $this->from_mobile ? 'true' : 'false')));
 			}
 			catch(Exception $e) {
 				user_error($e->getMessage(), E_USER_ERROR);
@@ -810,9 +811,9 @@ class usersystem {
 		{
 			try {
 				if ($clantag === TRUE) {
-					$sql = "SELECT clan_tag, username FROM user WHERE id='$id' LIMIT 0,1";
+					$sql = 'SELECT clan_tag, username FROM user WHERE id='.$id.' LIMIT 0,1';
 				} else {
-					$sql = "SELECT username FROM user WHERE id='$id' LIMIT 0,1";
+					$sql = 'SELECT username FROM user WHERE id='.$id.' LIMIT 0,1';
 				}
 		  		$result = $db->query($sql, __FILE__, __LINE__);
 		  		while ($rs = mysql_fetch_array($result)) {
