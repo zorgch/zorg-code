@@ -34,14 +34,14 @@ if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top
  * @include usersystem.inc.php Usersystem Functions and User definitions
  * @include util.inc.php 	Various Helper Functions
  */
-require_once( __DIR__ .'/colors.inc.php');
-require_once( __DIR__ .'/errlog.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/smarty.inc.php');
 require_once( __DIR__ .'/strings.inc.php');
-require_once( __DIR__ .'/sunrise.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
 require_once( __DIR__ .'/usersystem.inc.php');
+require_once( __DIR__ .'/errlog.inc.php');
 require_once( __DIR__ .'/util.inc.php');
+require_once( __DIR__ .'/smarty.inc.php');
+require_once( __DIR__ .'/colors.inc.php');
+require_once( __DIR__ .'/sunrise.inc.php');
 
 /**
  * Include other scripts
@@ -82,7 +82,9 @@ include_once( __DIR__ .'/telegrambot.inc.php');
 /**
  * Smarty assign variables
  * Variables can be accessed in Smarty-Templates using {$variable}
+ * @const SMARTY_DEFAULT_TPL Default (fallback) Smarty-Template tpl:- or file:-ID/Name
  */
+if (!defined('SMARTY_DEFAULT_TPL')) define('SMARTY_DEFAULT_TPL', 23, true);
 $smarty->register_function('sqltracker', 'dbcon::sqltracker');
 $smarty->register_modifier('rendertime', 'smarty_modifier_rendertime');
 $smarty->assign('spaceweather', spaceweather_ticker());

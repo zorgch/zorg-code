@@ -7,7 +7,7 @@ require_once( dirname(__FILE__) . '/includes/main.inc.php');
 /**
  * Parse URL-Routes & Query Parameters
  * @TODO Route-Switch ist dirty - muss challenged werden & braucht wahrscheinlich refactoring!
- * @TODO Event geht nur wenn /year/month/day/event(id) mitgegeben wird
+ * @TODO Event geht nur wenn /event/year/month/day/event(id) mitgegeben wird
  *
  * @see .htaccess
  */
@@ -37,8 +37,7 @@ if (!empty(key($_GET)))
 
 		/** Route: /event/[year]/[month]/[day]/[event-id|eventname] */
 		case 'event':
-				// 158 = Event Template
-				$_GET['tpl'] = 158;
+				$_GET['tpl'] = 158; // 158 = Event Template
 				$_GET['event_id'] = $routeValue;
 			break;
 
@@ -56,7 +55,7 @@ if ($_GET['layout'] != 'rss' && ((!isset($_GET['tpl']) && !isset($_GET['word']))
 
 /**
  * RSS Feeds
- * rss ($title, $link, $desc, $feeds)
+ * @see Forum::printRSS()
  */
 if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	$smarty->assign('feeddesc', SITE_HOSTNAME . ' RSS Feed');
@@ -64,36 +63,39 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	$smarty->assign('feeddate', date('D, d M Y H:i:s').' GMT');
 
 	switch ($_GET['type']) {
-		// Forum RSS
+		/** Forum RSS */
 		case 'forum':
-			// ein board wurde übergeben
+			/** ...ein board wurde übergeben */
 			if ($_GET['board'] != '') {
 
-				// eine thread_id wurde übergeben
+				/** eine thread_id wurde übergeben */
 				if ($_GET['thread_id'] != '') {
-					// RSS Feed für einen einzelnen Thread
+					/** RSS Feed für einen einzelnen Thread */
 					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($_GET['board'], Comment::getThreadid($_GET['board'], $_GET['thread_id'])) . PAGETITLE_SUFFIX) );
 					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board'] . '&amp;amp;thread_id=' . $_GET['thread_id']);
 					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
 
-				// keine thread_id vorhanden
+				/** keine thread_id vorhanden */
 				} else {
-					// RSS Feed für ein ganzes Board
+					/**
+					 * RSS Feed für ein ganzes Board
+					 * @TODO Fix "unknown feed" (broken RSS-feed) für Gallery-Comments: ?layout=rss&type=forum&board=i
+					 */
 					$smarty->assign('feedtitle', remove_html(Forum::getBoardTitle($_GET['board']) . PAGETITLE_SUFFIX) );
 					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board']);
 					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], $_SESSION['user_id']));
 				}
 
-			// kein board vorhanden
+			/** kein board vorhanden */
 			} else {
-				// genereller Forum RSS Feed
+				/** genereller Forum RSS Feed */
 				$smarty->assign('feedtitle', 'Forum RSS' . PAGETITLE_SUFFIX);
 				$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum' . $_GET['board']);
 				$smarty->assign('feeditems', Forum::printRSS(null, $_SESSION['user_id']));
 			}
 			break;
 
-		// Activities RSS
+		/** Activities RSS */
 		case 'activities':
 			$smarty->assign('feedtitle', remove_html('Activities' . PAGETITLE_SUFFIX));
 			$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=activities');
@@ -101,23 +103,24 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 			break;
 	}
 
-	// Text-codierung & XML-Encoding an den header senden
+	/** Text-codierung & XML-Encoding an den header senden */
 	header("Content-Type: text/xml; charset=UTF-8");
 	$smarty->display('file:rss.tpl');
 
 /**
  * Regular Page
+ * @see SMARTY_DEFAULT_TPL
  */
 } else {
+	/** Fallback for missing Template-ID */
+	if (empty($_GET['word']) && empty($_GET['tpl'])) $_GET['tpl'] = SMARTY_DEFAULT_TPL;
 	
-	/**
-	 * Load Template data
-	 */
+	/** Load Template data */
 	try {
 		$where = ( $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
 		$e = $db->query('SELECT id, packages, title, word, LENGTH(tpl) size, owner, update_user, page_title,
 						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-						write_rights, force_compile, border FROM templates WHERE '.$where, __FILE__, __LINE__);
+						write_rights, force_compile, border FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
 		$_TPLROOT = $db->fetch($e);
 		if ($_GET['word']) $_GET['tpl'] = $_TPLROOT['id'];
 			$smarty->assign('tplroot', $_TPLROOT);
@@ -141,8 +144,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	   unset($_SESSION['query_request']);
 	   unset($_SESSION['noquerytracks']);
 	}
-	
-	
+
 	/**
 	 * Display the page
 	 * @TODO add a Canonical tag to each page: <link rel="canonical" href="{main url to page}">
