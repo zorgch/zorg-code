@@ -791,6 +791,8 @@ class usersystem {
 	* @since 3.0 Method now really only resolves an ID to a Username, redirects other features
 	* @since 4.0 changed output to new function usersystem::userprofile_link()
 	*
+	* @TODO 20.07.2018 Find out & fix issue with Query failing on id=$id instead of id="$id"...
+	*
 	* @see usersystem::userprofile_link()
 	* @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
 	* @param integer $id User ID
@@ -803,7 +805,7 @@ class usersystem {
 		global $db;
 		static $_users = array();
 
-		/** If given User-ID is missing (empty) or not valid (not numeric), show a User Error */
+		/** If given User-ID is not valid (not numeric), show a User Error */
 		if (!empty($id) && !is_numeric($id)) user_error(t('invalid-id', 'user'), E_USER_WARNING);
 		$clantag = (empty($clantag) || $clantag === 'false' || $clantag === 0 ? FALSE : TRUE);
 
@@ -811,9 +813,9 @@ class usersystem {
 		{
 			try {
 				if ($clantag === TRUE) {
-					$sql = 'SELECT clan_tag, username FROM user WHERE id='.$id.' LIMIT 0,1';
+					$sql = 'SELECT clan_tag, username FROM user WHERE id="'.$id.'" LIMIT 0,1'; // ATTENTION: Query fails when $id is not quoted with "$id"!
 				} else {
-					$sql = 'SELECT username FROM user WHERE id='.$id.' LIMIT 0,1';
+					$sql = 'SELECT username FROM user WHERE id="'.$id.'" LIMIT 0,1';
 				}
 		  		$result = $db->query($sql, __FILE__, __LINE__);
 		  		while ($rs = mysql_fetch_array($result)) {
