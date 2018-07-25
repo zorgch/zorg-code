@@ -1672,70 +1672,79 @@ class Forum {
 	}
 
 	/**
-	 * @return String
+	 * Commenting-System ausgeben
+	 * Printet das "Pluggable" Commenting-System
+	 *
+	 * @author	biko
+	 * @author	IneX
+	 * @version	3.0
+	 * @since	1.0 added method
+	 * @since	2.0 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
+	 * @since	3.0 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
+	 *
+	 * @see USER_USER, USER_NICHTEINGELOGGT
+	 * @see commentform.tpl
 	 * @param $board
 	 * @param $thread_id
 	 * @param $parent_id
-	 * @desc Printet das "Pluggable" Commenting-System
+	 * @return String
 	 */
 	static function printCommentingSystem($board, $thread_id) {
 		global $db, $user, $smarty;
 
-	    if($_GET['parent_id'] == '') {
-	    	$_GET['parent_id'] = $thread_id;
-	    }
+		/** Get and set missing parent_id */
+	    if($_GET['parent_id'] == '') $_GET['parent_id'] = $thread_id;
 
 		if (Thread::hasRights($board, $thread_id, $user->id)) {
-		   // damit man die älteren kompilierten comments löschen kann (speicherplatz sparen)
+			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
 			Thread::setLastSeen($$board, $thread_id);
 
-			// @DEPRECATED
-			// @SEE $smarty->display("file:commentform.tpl");
-			//if($user->typ != USER_NICHTEINGELOGGT) echo Forum::getFormNewPart1of2();
+			/** Subscribed_Comments Array Bauen (nur für eingeloggte User) */
+			if($user->typ >= USER_USER)
+			{
+				$comments_subscribed = array();
+				$sql = '
+					SELECT comment_id
+					FROM comments_subscriptions
+					WHERE board="'.$board.'" AND user_id='.$user->id
+					;
+				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
+				$smarty->assign('comments_subscribed', $comments_subscribed);
 
-			// Subscribed_Comments Array Bauen
-			$comments_subscribed = array();
-			$sql = '
-				SELECT comment_id
-				FROM comments_subscriptions
-				WHERE board="'.$board.'" AND user_id='.$user->id
-			;
-			$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
-			$smarty->assign("comments_subscribed", $comments_subscribed);
+				/** Unread Comment Array Bauen */
+				$comments_unread = array();
+				$sql = '
+					SELECT u.*
+					FROM comments_unread u, comments c
+					WHERE c.id=u.comment_id
+						AND c.thread_id='.$thread_id.'
+						AND c.board="'.$board.'"
+						AND u.user_id='.$user->id
+				;
+				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
+				$smarty->assign('comments_unread', $comments_unread);
+			}
 
-			// Unread Comment Array Bauen
-			$comments_unread = array();
-			$sql = '
-				SELECT u.*
-				FROM comments_unread u, comments c
-				WHERE c.id=u.comment_id
-					AND c.thread_id='.$thread_id.'
-					AND c.board="'.$board.'"
-					AND u.user_id='.$user->id
-			;
-			$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
-			$smarty->assign('comments_unread', $comments_unread);
-
-			// Comments ausgeben
+			/** Comments aus DB holen */
 			$sql = "SELECT * FROM comments WHERE id='".$_GET['parent_id']."' AND board='$board'";
 			$d = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
+			/** Comments an Smarty übergeben */
 			if ($_GET['parent_id'] == $thread_id || $d['parent_id'] == $thread_id) {
 				$smarty->display("comments:$board-$thread_id");
 			} else {
-				$smarty->assign("comments_top_additional", 1);
-				$smarty->display("comments:$d[parent_id]");
+				$smarty->assign('comments_top_additional', 1);
+				$smarty->display('comments:'.$d['parent_id']);
 			}
 
+			/** Wenn User eingeloggt ist, commentform.tpl ausgeben */
 	    	if($user->typ != USER_NICHTEINGELOGGT) {
-	    		//echo Forum::getFormNewPart2of2($board, $thread_id, $_GET['parent_id']);
-	    		$smarty->assign("board", $board);
-				$smarty->assign("thread_id", $thread_id);
-				$smarty->assign("parent_id", $_GET['parent_id']);
-				//$smarty->display("tpl:194"); @DEPRECATED
-				$smarty->display("file:commentform.tpl");
+	    		$smarty->assign('board', $board);
+				$smarty->assign('thread_id', $thread_id);
+				$smarty->assign('parent_id', $_GET['parent_id']);
+				$smarty->display('file:commentform.tpl');
 	    	}
 		}
 	}

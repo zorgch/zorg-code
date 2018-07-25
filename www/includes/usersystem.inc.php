@@ -25,7 +25,8 @@ define('USER_ALLE', 0);
 define('USER_USER', 1);
 define('USER_MEMBER', 2);
 define('USER_SPECIAL', 3);
-//define('USER_EINGELOGGT', 0);define('USER_MEMBER', 1);
+//define('USER_EINGELOGGT', 0);
+//define('USER_MEMBER', 1);
 //define('USER_NICHTEINGELOGGT', 2);
 //define('USER_ALLE', 3);
 define('USER_IMGEXTENSION',  '.jpg');
@@ -93,37 +94,37 @@ class usersystem {
 	CLASS CONFIG
 	=========================================================================*/
 
-	var $table_name = "user";
+	var $table_name = 'user';
 	var $dbc;
-	var $field_username = "username";
-	var $field_clantag = "clan_tag";
-	var $field_userpw = "userpw";
-	var $field_email = "email";
-	var $field_lastlogin = "lastlogin";
-	var $field_maxdepth = "forummaxthread";
-	var $field_usertyp = "usertype";
+	var $field_username = 'username';
+	var $field_clantag = 'clan_tag';
+	var $field_userpw = 'userpw';
+	var $field_email = 'email';
+	var $field_lastlogin = 'lastlogin';
+	var $field_maxdepth = 'forummaxthread';
+	var $field_usertyp = 'usertype';
 
 	//pugin vars
-	var $field_bild = "image";
-	var $field_activity = "activity";
-	var $field_last_ip = "last_ip";
-	var $field_sessionid = "sessionid";
-	var $field_currentlogin = "currentlogin";
-	var $field_ausgesperrt_bis = "ausgesperrt_bis";
-	var $field_regdate = "regdate";
-	var $field_regcode = "regcode";
-	var $field_user_active = "active";
-	var $field_mail_userpw = "mail_userpw";
-	var $field_mail_username = "mail_username";
-	var $field_show_comments = "show_comments";
-	var $field_email_notification = "email_notification";
-	var $field_sql_tracker = "sql_tracker";
-	var $field_addle = "addle";
+	var $field_bild = 'image';
+	var $field_activity = 'activity';
+	var $field_last_ip = 'last_ip';
+	var $field_sessionid = 'sessionid';
+	var $field_currentlogin = 'currentlogin';
+	var $field_ausgesperrt_bis = 'ausgesperrt_bis';
+	var $field_regdate = 'regdate';
+	var $field_regcode = 'regcode';
+	var $field_user_active = 'active';
+	var $field_mail_userpw = 'mail_userpw';
+	var $field_mail_username = 'mail_username';
+	var $field_show_comments = 'show_comments';
+	var $field_email_notification = 'email_notification';
+	var $field_sql_tracker = 'sql_tracker';
+	var $field_addle = 'addle';
 	var $field_chess = 'chess';
-	var $field_menulayout = "menulayout";
-	var $field_mymenu = "mymenu";
-	var $field_zorger = "zorger";
-	var $field_from_mobile = "from_mobile";
+	var $field_menulayout = 'menulayout';
+	var $field_mymenu = 'mymenu';
+	var $field_zorger = 'zorger';
+	var $field_from_mobile = 'from_mobile';
 
 	//auto einloggen mit cookie
 	var $use_cookie = TRUE;
@@ -157,18 +158,19 @@ class usersystem {
 	{
 		global $db;
 
-		session_name("z");
+		session_name('z');
 		$this->typ = USER_ALLE;
 
 		// Session init'en
-		if((isset($_GET['z']) && $_GET['z'] != '') || (isset($_POST['z']) && $_POST['z'] != '') || (isset($_COOKIE['z']) && $_COOKIE['z'] != '')) {
+		if((isset($_GET['z']) && $_GET['z'] != '') || (isset($_POST['z']) && $_POST['z'] != '') || (isset($_COOKIE['z']) && $_COOKIE['z'] != ''))
+		{
 			session_start();
 
 			try {
-				$sql = "SELECT *, UNIX_TIMESTAMP(".$this->field_activity.") as ".$this->field_activity.",
-				UNIX_TIMESTAMP(".$this->field_lastlogin.") as ".$this->field_lastlogin.",
-				UNIX_TIMESTAMP(".$this->field_currentlogin.") as ".$this->field_currentlogin."
-				FROM ".$this->table_name." WHERE id = '$_SESSION[user_id]'";
+				$sql = 'SELECT *, UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
+				UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
+				UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
+				FROM '.$this->table_name.' WHERE id = "'.$_SESSION['user_id'].'"';
 				$result = $db->query($sql, __FILE__, __LINE__);
 				$rs = $db->fetch($result);
 
@@ -199,8 +201,8 @@ class usersystem {
 				$this->zorger = $rs[$this->field_zorger];
 				$this->image = self::userImage(intval($_SESSION['user_id']));
 
-				$this->forum_boards = explode(",", $rs['forum_boards']);
-				$this->forum_boards_unread = explode(",", $rs['forum_boards_unread']);
+				$this->forum_boards = explode(',', $rs['forum_boards']);
+				$this->forum_boards_unread = explode(',', $rs['forum_boards_unread']);
 
 				$this->mail_userpw = $rs[$this->field_mail_userpw];
 				$this->mail_username = $rs[$this->field_mail_username];
@@ -217,9 +219,9 @@ class usersystem {
 			}
 
 			try {
-				$sql = "UPDATE ".$this->table_name." SET ".$this->field_activity." = now(),
-				".$this->field_last_ip." = '".$_SERVER['REMOTE_ADDR']."', ".$this->field_from_mobile." = '".$this->from_mobile."'
-				WHERE id = '$_SESSION[user_id]'";
+				$sql = 'UPDATE '.$this->table_name.' SET '.$this->field_activity.' = now(),
+				'.$this->field_last_ip.' = "'.$_SERVER['REMOTE_ADDR'].'", '.$this->field_from_mobile.' = "'.$this->from_mobile.'"
+				WHERE id = "'.$_SESSION['user_id'].'"';
 				$db->query($sql, __FILE__, __LINE__);
 			}
 			catch(Exception $e) {
