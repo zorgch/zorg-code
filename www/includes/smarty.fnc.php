@@ -1486,7 +1486,7 @@ function smarty_menuname ($name, &$smarty) {
 			$smarty_vars_documentation['{$'.$smarty_var_key.'}'] = array('category' => $smarty_var_data[1], 'description' => $smarty_var_data[2], 'members_only' => $smarty_var_data[3]);
 		}
 		
-		natcasesort($smarty_vars_documentation[]);
+		natcasesort($smarty_vars_documentation);
 		$smarty->assign('smartyvars_doc', $smarty_vars_documentation); // {smartyvars_doc} Lists all available custom Smarty Vars
 	}
 
@@ -1510,7 +1510,7 @@ function smarty_menuname ($name, &$smarty) {
 		// Globals
 		global $smarty, $user;
 		$documentation = array();
-		natcasesort($php_modifiers_array[]); // Sort the Array from A-Z
+		natcasesort($php_modifiers_array); // Sort the Array from A-Z
 		
 		foreach ($php_modifiers_array as $function_name => $data)
 		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
@@ -1520,7 +1520,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{$var|'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
-		//natcasesort($smarty_modifiers_documentation[]); // Sort the Array from A-Z
+		//natcasesort($smarty_modifiers_documentation); // Sort the Array from A-Z
 		$smarty->assign('smartymodifiers_doc', $documentation); // {smartymodifiers} Lists all available Smarty Modifiers
 	}
 
@@ -1553,7 +1553,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
-		natcasesort($documentation[]); // Sort the Array from A-Z
+		natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyblocks_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 
@@ -1588,7 +1588,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3], 'compiler_function' => $data[4]);
 		}
 		
-		natcasesort($documentation[]); // Sort the Array from A-Z
+		natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyfunctions_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 

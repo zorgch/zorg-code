@@ -10,6 +10,11 @@
  */
 /**
  * File Includes
+ * @include	colors.inc.php 	Colors
+ * @include util.inc.php 	Various Helper Functions
+ * @include mysql.inc.php 	MySQL-DB Connection and Functions
+ * @include strings.inc.php Text strings to be replaced within code functions etc.
+ * @include	activities.inc.php 	Activities Functions and Stream
  */
 include_once( __DIR__ .'/colors.inc.php');
 require_once( __DIR__ .'/util.inc.php');
@@ -673,12 +678,12 @@ class usersystem {
 		/** Check for cached Gravater */
 		if (stream_resolve_include_path($user_imgpath_gravatar) !== false)
 		{
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage cached (GRAVATAR): %s', __METHOD__, __LINE__, $user_imgpath_gravatar));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage GRAVATAR exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_gravatar));
 			return $user_imgpath_gravatar;
 
 		/** Check for custom Userpic */
 		} elseif (stream_resolve_include_path($user_imgpath_custom) !== false) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage cached (ZORG): %s', __METHOD__, __LINE__, $user_imgpath_custom));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage ZORG exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_custom));
 			return $user_imgpath_custom;
 
 		/** Return false if no userpic cached */
@@ -905,7 +910,7 @@ class usersystem {
 	 * @static	array	$_users
 	 * @return	string					Link zum Userpic
 	 */
-	function userpic(int $id, $displayName=FALSE)
+	function userpic($id, $displayName=FALSE)
 	{
 		/** DEPRECATED
 		global $db, $user;
@@ -1219,7 +1224,7 @@ class usersystem {
 	* @param bool $pic Userpic mitausgeben
 	* @return string html
 	*/
-	function link_userpage(int $user_id, $pic=FALSE)
+	function link_userpage($user_id, $pic=FALSE)
 	{
 		/** @DEPRECATED */
 		/*if($user_id != '') {
@@ -1281,7 +1286,7 @@ class usersystem {
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string Fetched Smarty-Template String (usually HTML-formatted) for output
 	 */
-	function userprofile_link(int $userid, array $params)
+	function userprofile_link($userid, array $params)
 	{
 		global $smarty;
 

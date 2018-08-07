@@ -275,7 +275,7 @@ class Events {
  * @package Zorg
  * @subpackage Events
  */
-Class UpcomingEvent
+class UpcomingEvent
 {
 	/**
 	 * Telegram Notification for an upcoming Event
@@ -337,7 +337,7 @@ Class UpcomingEvent
 	 * @global object $googleMapsApi Globales Class-Object mit den Google Maps API-Methoden
 	 * @return array|null Returns either an Array representing the upcoming Event, or NULL if no upcoming Event was found
 	 */
-	private function getUpcomingEvent(int $hours_until_start)
+	private function getUpcomingEvent($hours_until_start)
 	{
 		global $db, $googleMapsApi;
 		try {

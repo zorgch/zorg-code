@@ -382,7 +382,7 @@ div.profilepic a img:hover {
 }
 .alert.success {background-color: #4CAF50} /**  Green */
 .alert.info {background-color: #2196F3;} /** Blue */
-.alert.warning {background-color: #ff9800;} /**  Orange */
+.alert.warn {background-color: #ff9800;} /**  Orange */
 /** Alert message box close button */
 .closebtn {
 	  margin-left: 15px;

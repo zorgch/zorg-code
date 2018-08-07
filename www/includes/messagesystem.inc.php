@@ -250,7 +250,7 @@ class Messagesystem {
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return boolean Returns true or false depending on the completion
 	 */
-	function doMarkMessageAsRead(int $messageid)
+	function doMarkMessageAsRead($messageid)
 	{
 		global $db;
 
@@ -476,7 +476,7 @@ class Messagesystem {
 	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return array|boolean Returns an array with the number of messages for inbox & outbox - or false, if an error occurred
 	 */
-	static function getNumUserMessages(int $userid)
+	static function getNumUserMessages($userid)
 	{
 		global $db;
 
@@ -556,7 +556,7 @@ class Messagesystem {
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return array|boolean Returns an Array containing the query results - or false if the query failed
 	 */
-	function getUserMessage(int $messageid)
+	function getUserMessage($messageid)
 	{
 		global $db;
 
@@ -675,7 +675,7 @@ class Messagesystem {
 	 * @global object	$user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object	$telegram Globales Class-Object mit den Telegram-Methoden
 	 */
-	function sendMessage(int $from_user_id, int $owner, $subject, $text='', $to_users='', $isread='0')
+	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
 	{
 		global $db, $user, $telegram;
 
@@ -730,7 +730,7 @@ class Messagesystem {
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
 	 */
-	function sendEmailNotification(int $from_user_id, int $to_user_id, $titel, $text)
+	function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
 	{
 		global $db, $user;
 		
