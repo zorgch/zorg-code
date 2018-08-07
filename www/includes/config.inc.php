@@ -1,12 +1,17 @@
 <?php
-error_reporting(E_ALL & ~E_NOTICE);
-/** @TODO: use error_reporting($WEBSITE_IS_LIVE ? 0 : E_STRICT); => with DEVELOPMENT constant */
-
 /**
  * Set locale to German, Switzerland & Timezone to Europe/Zurich
  */
 setlocale(LC_TIME, 'de_CH');
 date_default_timezone_set('Europe/Zurich');
+
+/**
+ * Environment-specific configurations: can be set in the Apache config using
+ *    SetEnv environment 'development'
+ *
+ * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) 
+ */
+define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), true);
 
 /**
 * Define preferred Protocol that zorg.ch is running on
@@ -41,12 +46,17 @@ if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNA
 if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', true);
 
 /**
- * Environment-specific configurations: can be set in the Apache config using
- *    SetEnv environment 'development'
- *
- * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) 
- */
-define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), true);
+* Set a constant for the custom Error Log path
+* @see errlog.inc.php, zorgErrorHandler(), user_error(), trigger_error()
+* @const ERRORLOG_FILETYPE sets the file extension used for the error log file
+* @const ERRORLOG_DIR sets the directory for logging the custom user_errors
+* @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
+* @include errlog.inc.php 	Errorlogging Class
+*/
+if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log', true);
+if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
+if (!defined('ERRORLOG_FILEPATH')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE, true);
+require_once( __DIR__ .'/errlog.inc.php');
 
 /**
  * If DEVELOPMENT, load a corresponding config file
@@ -82,17 +92,11 @@ if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
 if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
 
 /**
-* Set a constant for the custom Error Log path
-* @const ERRORLOG_DIR sets the directory for logging the custom user_errors as in
-* @see errlog.inc.php, zorgErrorHandler(), user_error()
-*/
-if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
-if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
-
-/**
  * Define paths to directories where HTML web resources will be referenced from
  * @const INCLUDES_DIR File includes directory
  * @const IMAGES_DIR Images directory
+ * @const FILES_DIR Files directory (local server path)
+ * @const GALLERY_DIR Gallery directory (local server path)
  * @const ACTIONS_DIR Actions directory
  * @const SCRIPTS_DIR Scripts directory
  * @const UTIL_DIR Utilities directory
@@ -101,6 +105,8 @@ if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/', tr
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', '/includes/', true);
 if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/', true);
+if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
+if (!defined('GALLERY_DIR')) define('GALLERY_DIR', SITE_ROOT . '/../data/gallery/', true);
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/', true);
 if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/', true);
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/', true);

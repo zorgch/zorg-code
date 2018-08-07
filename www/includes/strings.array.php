@@ -32,13 +32,20 @@ return
 			,'datetime-today' => 'Heute'
 			,'datetime-yesterday' => 'Gestern'
 			,'datetime-recently' => 'Jetzt'
-			,'datetime-seconds' => '%d Sekunde'
-			,'datetime-minutes' => '%d Minute'
-			,'datetime-hours' => '%d Stunde'
-			,'datetime-days' => '%d Tag'
-			,'datetime-weeks' => '%d Woche'
-			,'datetime-months' => '%d Monat'
-			,'datetime-years' => '%d Jahr'
+			,'datetime-second' => '%d Sekunde'
+			,'datetime-seconds' => '%d Sekunden'
+			,'datetime-minute' => '%d Minute'
+			,'datetime-minutes' => '%d Minuten'
+			,'datetime-hour' => '%d Stunde'
+			,'datetime-hours' => '%d Stunden'
+			,'datetime-day' => '%d Tag'
+			,'datetime-days' => '%d Tage'
+			,'datetime-week' => '%d Woche'
+			,'datetime-weeks' => '%d Wochen'
+			,'datetime-month' => '%d Monat'
+			,'datetime-months' => '%d Monate'
+			,'datetime-year' => '%d Jahr'
+			,'datetime-years' => '%d Jahre'
 		]
 	,'user' =>
 		[
@@ -200,5 +207,9 @@ return
 			,'error-invalid-hours' => '[WARN] <%s:%d> Starts in "%s" hours is no valid integer value!'
 			,'error-upcoming-event' => '[NOTICE] <%s:%d> No upcoming Event found within %d hours'
 			,'error-googlemapsapi-geocode' => '[NOTICE] <%s:%d> $googleMapsApi->geocode(): no result'
+		]
+	,'apod' =>
+		[
+			 'apod-pic-comment' => '<h4><a href="%s" target="_blank" rel="noopener noreferrer">%s</a></h4><blockquote>%s</blockquote><p>%s<a href="%s" target="_blank" rel="noopener noreferrer">%s</a></p>'
 		]
 ];

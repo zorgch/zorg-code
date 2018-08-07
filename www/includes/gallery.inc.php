@@ -1265,6 +1265,9 @@ function isPic($file) {
 	}
 }
 
+/**
+ * @DEPRECATED Use pathinfo($file, PATHINFO_EXTENSION);
+ */
 function extension($file) {
 	$found = 0;
 	for ($i=1; $i<strlen($file); $i++) {
@@ -1294,11 +1297,11 @@ function countFiles ($directory) {
 }
 
 function picPath($albID, $id, $extension) {
-	return DIR.$albID."/pic_".$id.$extension;
+	return GALLERY_DIR.$albID."/pic_".$id.$extension;
 }
 
 function tnPath($albID, $id, $extension) {
-	return DIR.$albID."/tn_".$id.$extension;
+	return GALLERY_DIR.$albID."/tn_".$id.$extension;
 }
 
 function imgsrcPic($id) {
@@ -1347,11 +1350,13 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 	if (!isPic($srcFile)) user_error("Wrong File Type", E_USER_ERROR);
 	if (extension($srcFile) != extension($dstFile))
 		user_error("Source- and Destination-Files doesn't have the same File Types.", E_USER_ERROR);
-	
+
 	$ext = extension($srcFile);
-	
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $ext: %s', __FUNCTION__, __LINE__, $ext));
+
 	// calc new pic size
-	$img_size = @getImageSize($srcFile);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> calc new pic size', __FUNCTION__, __LINE__));
+	$img_size = getImageSize($srcFile);
 	if (!$img_size) return array('error'=>"keine Rechte");
 	$width = $img_size[0];
 	$height = $img_size[1];
@@ -1366,41 +1371,76 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 		$picHeight = $height;
 		$picWidth = $width;
 	}
-	
+
 	// create new pic
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create new pic', __FUNCTION__, __LINE__));
 	if ($ext == ".jpg") $src = ImageCreateFromJPEG($srcFile);
 	elseif ($ext == ".gif") $src = ImageCreateFromGIF($srcFile);
-	
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG/ImageCreateFromGIF: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+
 	if (is_array($bgcolor) && sizeof($bgcolor) == 3) {
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $bgcolor: %s', __FUNCTION__, __LINE__, print_r($bgcolor, true)));
 		$dst = ImageCreateTrueColor ($maxWidth, $maxHeight);  // GD 2.0.1
 		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
 		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
 		$bg = imagecolorallocate($dst, $bgcolor[0], $bgcolor[1], $bgcolor[2]);
-	
+
 		$x = round(($maxWidth-$picWidth) / 2);
 		$y = round(($maxHeight-$picHeight) / 2);
-	
+
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> imagecopyresized()', __FUNCTION__, __LINE__));
 		imagecopyresized($dst, $src, $x,$y,0,0, $picWidth, $picHeight, $width, $height);
-	
+
 		$ret = array('width'=>$maxWidth, 'height'=>$maxHeight);
 	}else{
 		$dst = ImageCreateTrueColor ($picWidth, $picHeight);  // GD 2.0.1
 		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
 		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
-	
-		ImageCopyResampled($dst, $src, 0,0,0,0, $picWidth, $picHeight, $width, $height);
-	
-		array('width'=>$picWidth, 'height'=>$picHeight);
+
+		if (ImageCopyResampled($dst, $src, 0,0,0,0, $picWidth, $picHeight, $width, $height)) {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCopyResampled OK', __FUNCTION__, __LINE__));
+		} else {
+			error_log(sprintf('<%s:%d> ImageCopyResampled ERROR: %s => %s', __FUNCTION__, __LINE__, $src, $dst));
+			return false;
+		}
+
+		$ret = array('width'=>$picWidth, 'height'=>$picHeight);
 	}
-	
-	if ($ext == ".jpg") ImageJPEG($dst, $dstFile);
-	elseif ($ext == ".gif") ImageGIF($dst, $dstFile);
+
+	switch ($ext) {
+		case '.jpg':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (ImageJPEG($dst, $dstFile)) {
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG OK', __FUNCTION__, __LINE__));
+			} else {
+				error_log(sprintf('<%s:%d> ImageJPEG ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				return false;
+			}
+			break;
+		
+		case '.gif':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (ImageGIF($dst, $dstFile)) {
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF OK', __FUNCTION__, __LINE__));
+			} else {
+				error_log(sprintf('<%s:%d> ImageGIF ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				return false;
+			}
+			break;
+		
+		default:
+			error_log(sprintf('<%s:%d> Wrong File Type', __FUNCTION__, __LINE__));
+			break;
+	}
+	/*if ($ext == '.jpg') ImageJPEG($dst, $dstFile);
+	elseif ($ext == '.gif') ImageGIF($dst, $dstFile);*/
 	//system("chmod 0664 ".$dstFile);
 	chmod($dstFile, 0664);
-	
+
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageDestroy()', __FUNCTION__, __LINE__));
 	ImageDestroy($src);
 	ImageDestroy($dst);
-	
+
 	return $ret;
 }
 

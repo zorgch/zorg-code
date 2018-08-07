@@ -696,7 +696,7 @@ function cURLfetchUrl($url, $save_as_file)
 
 	try {
 		/**
-		 * Initialize cURL process for handling multiple parallel requests 
+		 * Initialize cURL process for handling the HTTP request
 		 *
 		 * cURL request options:
 		 *	 CURLOPT_HEADER	yes/no if to retrieve HTTP-Header with request
@@ -712,10 +712,10 @@ function cURLfetchUrl($url, $save_as_file)
 		 *	 CURLOPT_VERBOSE yes/no if to print everything on screen (no!)
 		 */
 		$curl_request_options = [
-									CURLOPT_USERAGENT => 'Zorg/1.0 (+https://zorg.ch/)',
-									CURLOPT_TIMEOUT => 5,
-									CURLOPT_FOLLOWLOCATION => true,
-									CURLOPT_RETURNTRANSFER => true,
+									 CURLOPT_USERAGENT => 'Zorg/1.0 (+https://zorg.ch/)'
+									,CURLOPT_TIMEOUT => 5
+									,CURLOPT_FOLLOWLOCATION => true
+									,CURLOPT_RETURNTRANSFER => true
 								];
 
 		/** Initialize & execute cURL-Request */
@@ -735,12 +735,6 @@ function cURLfetchUrl($url, $save_as_file)
 			} else {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_put_contents() ERROR: %s', __FUNCTION__, __LINE__, $save_as_file));
 			}
-			//$filestream = fopen($save_as_file, 'w');
-			//fwrite($filestream, $curl_data);
-			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> fwrite(): %s', __FUNCTION__, __LINE__, $save_as_file));
-
-			/** Close the file handle */
-			//fclose($filestream);
 		}
 
 		/** Close the $curl_instance */
@@ -753,4 +747,76 @@ function cURLfetchUrl($url, $save_as_file)
 		error_log($e->getMessage());
 		return false;
 	}
+}
+
+
+/**
+ * GET request using cURL to retrieve JSON object
+ * Starts a cURL instance to retrieve a JSON data object from the passed $url, and return it as a PHP array if the JSON response status is 200 OK
+ *
+ * @author IneX
+ * @date 06.08.2018
+ * @version 1.0
+ * @since 1.0 added function
+ *
+ * @param string $url String input containing a REST API URL
+ * @return array|bool Returns a JSON object converted to a PHP array containing the JSON data, or false, depening on if a successful execution was possible
+ */
+function cURLfetchJSON($url)
+{
+	/** Validate the $url (not empty, null, or alike) */
+	if ( empty($url) || is_numeric($url) ) return false;
+
+	/** Initialize cURL process for handling the HTTP request */
+	$curl_request_options = [
+								 CURLOPT_USERAGENT => 'Zorg/1.0 (+https://zorg.ch/)'
+								,CURLOPT_TIMEOUT => 5
+								,CURLOPT_FOLLOWLOCATION => true
+								,CURLOPT_RETURNTRANSFER => true
+								,CURLOPT_HTTPHEADER => ['Content-type: application/json']
+							];
+
+	/** Initialize & execute cURL-Request */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_exec() START: %s', __FUNCTION__, __LINE__, $url));
+	$curl_instance = curl_init($url);
+	curl_setopt_array($curl_instance, $curl_request_options);
+	$curl_data = curl_exec($curl_instance);
+	$curl_done = curl_getinfo($curl_instance);
+
+	/** cURL request successful */
+	if ($curl_done['http_code'] == 200)
+	{
+		/** Retrieve & decode JSON object */
+		$json_decoded_array = json_decode($curl_data, true);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $json_decoded: %s', __FUNCTION__, __LINE__, print_r($json_decoded_array, true)));
+	}
+	
+	/** If cURL request is ERROR */
+	else {
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_getinfo() ERROR: %d', __FUNCTION__, __LINE__, $curl_done['http_code']));
+		return false;
+	}
+
+	/** Close the $curl_instance */
+	curl_close($curl_instance);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_close(): DONE', __FUNCTION__, __LINE__));
+
+	/** JSON response is OK */
+	return $json_decoded_array;
+}
+
+
+/**
+ * Test if a File exists on the Server
+ *
+ * @author IneX
+ * @version 1.0
+ * @date 06.08.2018
+ *
+ * @param string $filepath 	The filepath to validate
+ * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
+ */ 
+function fileExists($filepath)
+{
+	return (stream_resolve_include_path($filepath) !== false ? $filepath : false);
 }

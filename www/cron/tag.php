@@ -1,8 +1,9 @@
 <?php
 
-if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
-	error_log('[INFO] Starting Cron ' . __FILE__);
-	
+if($_GET['pw'] == 'schmelzigel')
+{
+	error_log(sprintf('[%s] <cron> Starting...', __FILE__));
+
 	include_once( __DIR__ .'/../includes/main.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php'); --> lässt Script aufhängen
 	include_once( __DIR__ .'/../includes/apod.inc.php');
@@ -11,10 +12,9 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php'); --> lässt Script aufhängen
 	//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/spaceweather.inc.php');  --> tut irgendwie nicht
-	
-	//$status_html = '';
+
 	error_log('[INFO] ' . __FILE__ . ': files included');
-	
+
 	/*
 	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
@@ -28,37 +28,25 @@ if($_GET['pw'] == 'schmelzigel') { // "altes" PW: schmelzigel
 	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/apod.inc.php');
 	include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
 	*/
-	
+
 	//setiathome::tagesabschluss();
-	
-	// alte kompilierte comments löschen (um speicherplatz zu sparen)
-	//$status_html .= ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done' : 'deleteOldTemplates: ERROR' ) . "\r\n";
-	error_log('[INFO] ' . __FILE__ . ': ' . ( Forum::deleteOldTemplates() ? 'deleteOldTemplates: done' : 'deleteOldTemplates: ERROR' ));
-	
-	// addle-games älter als 15 wochen löschen. spieler, der nicht gezogen hat, verliehrt
-	//$status_html .= ( addle_remove_old_games() ? 'addle_remove_old_games: done' : 'addle_remove_old_games: ERROR' ) . "\r\n";
-	error_log('[INFO] ' . __FILE__ . ': ' . ( addle_remove_old_games() ? 'addle_remove_old_games: done' : 'addle_remove_old_games: ERROR' ));
-	
-	// Neuer Quote of the Day machen.
+
+	/** alte kompilierte comments löschen (um speicherplatz zu sparen) */
+	error_log(sprintf('[%s] <cron> Forum::deleteOldTemplates() finished: %s', __FILE__, ( Forum::deleteOldTemplates() ? 'OK' : 'ERROR' )));
+
+	/** addle-games älter als 15 wochen löschen. spieler, der nicht gezogen hat, verliehrt */
+	error_log(sprintf('[%s] <cron> addle_remove_old_games() finished: %s', __FILE__, ( addle_remove_old_games() ? 'OK' : 'ERROR' )));
+
+	/** Neuer Quote of the Day machen. */
 	//Quotes::newDailyQuote();
-	//$status_html .=  'Quotes::newDailyQuote: done\n';
-	//$status_html .= ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done' : 'Quotes::newDailyQuote: ERROR' ) . "\r\n";
-	error_log('[INFO] ' . __FILE__ . ': ' . ( Quotes::newDailyQuote() ? 'Quotes::newDailyQuote: done' : 'Quotes::newDailyQuote: ERROR' ));
+	error_log(sprintf('[%s] <cron> Quotes::newDailyQuote() finished: %s', __FILE__, ( Quotes::newDailyQuote() ? 'OK' : 'ERROR' )));
+
+	/** Neustes APOD holen und in die Gallery posten */
+	error_log(sprintf('[%s] <cron> get_apod() finished: %s', __FILE__, ( get_apod() ? 'OK' : 'ERROR' )));
 
 	//spaceweather --> wird doch eigentlich schon im apod Cron erledigt?? IneX, 8.6.08
 	//$status_html .= get_spaceweather() ? "get_spaceweather: done\n" : "get_spaceweather: ERROR\n" ;
 
-	//user_error($status_html, E_USER_NOTICE);
-
-	// E-Mailbenachrichtigung
-	/*
-	$mail_date = date('d.m.Y');
-	$mail_time = date('H:i');
-	$recipient = "zorg@raduner.ch";
-	$sender = "From: info@zooomclan.org";
-	$subject = "Daily Cron ausgeführt";
-	$body = "Der Daily Cron wurde am $mail_date um $mail_time ausgeführt\n\nStatus:\n $status_html";
-	@mail($recipient, $subject, $body, $sender);
-	*/
-	//Messagesystem::sendTelegramNotification('[INFO] Daily Cron '.__FILE__.' um '.date('d.m.Y H:i').' ausgeführt', 117);
+} else {
+	error_log(sprintf('[%s] <cron> Access denied!', __FILE__));
 }
