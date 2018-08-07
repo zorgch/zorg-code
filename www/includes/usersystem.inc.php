@@ -1379,6 +1379,9 @@ class usersystem {
 	{
 		global $db;
 
+		/** Validte $user_id - valid integer & not empty/null */
+		if (empty($user_id) || $user_id === NULL || $user_id <= 0) return false;
+
 		try {
 			$query = $db->query('SELECT telegram_chat_id tci FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
 			$result = $db->fetch($query);
