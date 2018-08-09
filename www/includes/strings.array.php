@@ -210,6 +210,6 @@ return
 		]
 	,'apod' =>
 		[
-			 'apod-pic-comment' => '<h4><a href="%s" target="_blank" rel="noopener noreferrer">%s</a></h4><blockquote>%s</blockquote><p>%s<a href="%s" target="_blank" rel="noopener noreferrer">%s</a></p>'
+			 'apod-pic-comment' => '<h4><a href="%s" target="_blank" rel="noopener noreferrer">%s</a></h4><blockquote>%s</blockquote><a href="%s" target="_blank" rel="noopener noreferrer">© %s</a>'
 		]
 ];

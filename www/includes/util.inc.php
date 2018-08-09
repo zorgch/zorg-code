@@ -24,33 +24,40 @@ include_once( __DIR__ .'/strings.inc.php');
 /**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
  * @author Milamber
+ * @author IneX
  * @date 25.08.03
+ * @version 2.0
+ * @since 1.0 25.08.2003 function added
+ * @since 2.0 09.08.2018 added timestamp validation, string for text, added time-check
+ *
+ * @param string $timestamp
+ * @return string Formatted $timestamp or empty string ''
  */
-function datename ($timestamp)
+function datename($timestamp)
 {
-	// Leer
+	/** Leer */
 	if($timestamp == 0) return '';
 
-	// Heute
-	if(date("d.m.y", time()) == date("d.m.y", $timestamp)) {
-		return date("H:i", $timestamp);
+	/** Heute */
+	if(date('d.m.y', time()) == date('d.m.y', $timestamp)) {
+		return strtolower((date('s', $timestamp) == '00' && date('i', $timestamp) == '00' ? t('datetime-today') : date('H:i', $timestamp)));
 
-	// Gestern
-	} else if(date("d.m.y", time()-86400) == date("d.m.y", $timestamp)) {
-		return t('datetime-yesterday', 'global');
+	/** Gestern */
+	} else if(date('d.m.y', time()-86400) == date('d.m.y', $timestamp)) {
+		return strtolower((date('s', $timestamp) == '00' && date('i', $timestamp) == '00' ? t('datetime-yesterday') : t('datetime-yesterday').' '.date('H:i', $timestamp)));
 
-	// Diesen Monat
-	} else if (date("m.y", time()) == date("m.y", $timestamp)) {
-		return date("j. M H:i", $timestamp);
+	/** Diesen Monat */
+	} else if (date('m.y', time()) == date('m.y', $timestamp)) {
+		return (date('s', $timestamp) == '00' && date('i', $timestamp) == '00' ? strftime('%e. %B', $timestamp) : strftime('%e. %B %H:%M', $timestamp));
 
-	// Dieses Jahr
-	} else if(date("Y",time()) == date("Y", $timestamp)) {
-		return date("j. M H:i", $timestamp);
+	/** Dieses Jahr */
+	} else if(date('Y',time()) == date('Y', $timestamp)) {
+		return (date('s', $timestamp) == '00' && date('i', $timestamp) == '00' ? strftime('%e. %B', $timestamp) : strftime('%e. %B %H:%M', $timestamp));
 
-	// Letztes Jahr und älter
+	/** Letztes Jahr und älter */
 	} else {
-		//return date("j.m.y", $timestamp); // "altes" Format
-		return date("d. M Y H:i", $timestamp);
+		//return date('j.m.y', $timestamp); // "altes" Format
+		return (date('s', $timestamp) == '00' && date('i', $timestamp) == '00' ? date('d.m.Y', $timestamp) : date('d.m.Y H:i', $timestamp));
 	}
 }
 
@@ -819,4 +826,24 @@ function cURLfetchJSON($url)
 function fileExists($filepath)
 {
 	return (stream_resolve_include_path($filepath) !== false ? $filepath : false);
+}
+
+
+/**
+ * Calculate a unique md5-Hash of a file
+ * Either the file only, or by adding it's last modification datetime (for comparing file changes)
+ *
+ * @author IneX
+ * @version 1.0
+ * @date 08.08.2018
+ *
+ * @param string $filepath 	The filepath to a file for creating the hash
+ * @param boolean $use_last_modification_datetime	Whether or not to md5-hash with $filepath AND filemtime()
+ * @return string|boolean	Returns the calculated md5-Hash, or false if file doesn't exist
+ */ 
+function fileHash($filepath, $use_last_modification_datetime=false)
+{
+	if ($use_last_modification_datetime) $file_lastmodified = filemtime($filepath);
+	$file_hash = md5($file_lastmodified.md5_file($filepath));
+	return (!empty($file_hash) && $file_hash != null ? $file_hash : false);
 }

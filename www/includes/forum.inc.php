@@ -493,13 +493,14 @@ class Comment {
 	  return preg_replace("$searcher", $replace, $text);
 	}
 
-
-	static function post($parent_id, $board, $user_id, $text, $msg_users="") {
-
-		//global $db, $activities_f;
+	/**
+	 * Post Comment to Board
+	 */
+	static function post($parent_id, $board, $user_id, $text, $msg_users=NULL)
+	{
 		global $db;
 
-		// (Parent-Id = 1 wenn man ein ForumThread postet
+		/** Parent-Id = 1 wenn man ein ForumThread postet */
 		$parent_id = ($parent_id <= 0 ? 1 : $parent_id);
 
 		if($parent_id <= 0) {
@@ -507,8 +508,10 @@ class Comment {
 			exit;
 		}
 
-		// Falls Thread-Id noch nicht vorhanden, parent-id nehmen
-		// (1 bei forum, anderes bei den anderen boards)
+		/**
+		 * Falls Thread-Id noch nicht vorhanden, parent-id nehmen
+		 * (1 bei forum, anderes bei den anderen boards)
+		 */
 		$thread_id = Comment::getThreadid($board, $parent_id);
 		if(!($thread_id > 0)) $thread_id = $parent_id;
 
@@ -520,83 +523,82 @@ class Comment {
 		}
 
 
-		// Rechte checken
+		/** Nur weitermachen, wenn Rechte stimmen */
 		if (Thread::hasRights($board, $thread_id, $user_id)) {
 			
-			  // Text escapen
-			  $text = escape_text($text);
-			  
-			  // Comment in die DB abspeichern
-			  $sql =
-			  	"INSERT INTO comments (user_id, parent_id, thread_id, text, date, board, error)"
-			  	."VALUES ( $user_id, $parent_id, $thread_id, '$text', now(), '$board', '$comment_error' )";
-			  $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			  $comment_id = mysql_insert_id();
+				/** Text escapen */
+				$text = escape_text($text);
+				
+				/** Comment in die DB abspeichern */
+				$sql = sprintf('INSERT INTO comments (user_id, parent_id, thread_id, text, date, board, error)
+								VALUES ( %d, %d, %d, "%s", now(), "%s", "%s" )'
+								,$user_id, $parent_id, $thread_id, $text, $board, $comment_error);
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+				$comment_id = mysql_insert_id();
 
-			  // Falls parent_id = 1, thread_id = id. Für Forum->neue Threads.
-			  $sql = "
-			  	UPDATE comments
-			  	SET thread_id = id
-			  	WHERE parent_id = 1
-			  		AND board = 'f'
-			  ";
-	  		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+				/**
+				 * Falls parent_id = 1, thread_id = id.
+				 * Für Forum->neue Threads.
+				 */
+				$sql = 'UPDATE comments
+						SET thread_id = id
+						WHERE parent_id = 1
+						AND board = "f"';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-	  		$rs = Comment::getRecordset($comment_id);
-	  		$commentlink = Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
+				$rs = Comment::getRecordset($comment_id);
+				$commentlink = Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
 
-			  // Falls neuer Thread, Record in Thread-Tabelle generieren
+				/** Falls neuer Thread, Record in Thread-Tabelle generieren */
 				$sql =
 					"INSERT IGNORE INTO comments_threads (board, thread_id, comment_id)"
 					." VALUES ('".$rs['board']."', ".$rs['thread_id'].", ".$rs['id'].")";
-			  $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			  // last post setzen
-			  $sql =
-			  	"
-			  	UPDATE comments_threads
+				/** last post setzen */
+				$sql =
+					"
+					UPDATE comments_threads
 					SET
 						last_comment_id = ".$rs['id']."
 						, comment_id = IF(ISNULL(comment_id), ".$rs['id'].", comment_id)
 
 					WHERE thread_id = ".$rs['thread_id']." AND board = '".$board."'
 					"
-			  ;
-			  $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				;
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			  // Template Kompilieren
-			  Comment::compile_template($rs['thread_id'], $rs['id'], $rs['board']);
+				/** Comment-Template kompilieren */
+				Comment::compile_template($rs['thread_id'], $rs['id'], $rs['board']);
 
-			  if ($rs['parent_id'] != 1 || $rs['board'] != 'f') {
-			  		// Templates neu Kompilieren, zuerst Parent
-			  		/*
-				  if($parent_id != $rs['thread_id']) {
-				  		Comment::compile_template($rs['thread_id'], $rs['parent_id']);
-				  } else {
-				  		Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']);
-				  }*/
+				if ($rs['parent_id'] != 1 || $rs['board'] != 'f') {
+					// Templates neu Kompilieren, zuerst Parent
+					/*
+					if($parent_id != $rs['thread_id']) {
+							Comment::compile_template($rs['thread_id'], $rs['parent_id']);
+					} else {
+							Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']);
+					}*/
 
-				  Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']);
-			  }
+					Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']);
+				}
 
-
-			  // Mark comment as unread for all users.
+				/** Mark comment as unread for all users */
 				Comment::markasunread($rs['id']);
 
-
-				// Mark comment as read for this user.
+				/** Mark comment as read for poster (current user) */
 				Comment::markasread($rs['id'], $user_id);
 
 
-				// Activity Eintrag auslösen (ausser bei der Bärbel, die trollt zuviel)
-				if ($user_id != 59)
+				/** Activity Eintrag auslösen (ausser bei der Bärbel, die trollt zuviel) */
+				if ($user_id != BARBARA_HARRIS)
 				{
 					Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ SITE_URL, Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), Comment::getTitle($text, 100) ]), 'c');
 				}
 
 
-				// Message an alle gewünschten senden
-				if(count($msg_users) > 0) {
+				/** Message an alle markierten (@user) senden */
+				if(!empty($msg_users) && count($msg_users) > 0) {
 					for ($i=0; $i < count($msg_users); $i++) {
 						Messagesystem::sendMessage(
 							 $user_id
@@ -608,22 +610,20 @@ class Comment {
 					}
 				}
 
-				// Message an alle Subscriber senden
-				$sql =
-					"SELECT * FROM comments_subscriptions"
-					." WHERE comment_id = ".$parent_id
-					." AND board='".$board."'"
-				;
-			  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			  if($db->num($result) > 0) {
-				  while($rs2 = $db->fetch($result)) {
-				  	Messagesystem::sendMessage(
-							 59
+				/** Message an alle Subscriber senden */
+				$sql = 'SELECT * FROM comments_subscriptions
+						 WHERE comment_id = '.$parent_id.'
+						 AND board="'.$board.'"';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				if($db->num($result) > 0) {
+					while($rs2 = $db->fetch($result)) {
+						Messagesystem::sendMessage(
+							 BARBARA_HARRIS
 							,$rs2['user_id']
 							,t('message-newcomment-subscribed-subject', 'commenting', [ usersystem::id2user($user_id), $parent_id ])
 							,t('message-newcomment-subscribed', 'commenting', [ usersystem::id2user($user_id), Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']), addslashes(stripslashes(Comment::getTitle($rs['text']))) ])
 						);
-				   }
+					 }
 			}
 
 			return $commentlink;

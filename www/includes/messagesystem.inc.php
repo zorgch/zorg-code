@@ -674,11 +674,17 @@ class Messagesystem {
 	 * @global object	$db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object	$user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object	$telegram Globales Class-Object mit den Telegram-Methoden
+	 * @return boolean	Returns true or false, depening on the susccessful execution
 	 */
 	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
 	{
 		global $db, $user, $telegram;
 
+		/** Validate function parameters */
+		if(!isset($owner) || empty($owner) || $owner <= 0) {
+			error_log(sprintf('<%s:%d> %s $owner ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $owner));
+			return false;
+		}
 		if(!isset($to_users) || empty($to_users)) $to_users = $owner;
 		if(empty($text)) $text = t('message-empty-text', 'messagesystem');
 
@@ -686,9 +692,9 @@ class Messagesystem {
 		 * Send Message to recipient(s)
 		 */
 		try {
-			if (DEVELOPMENT) error_log("[DEBUG] Sending SINGLE Zorg Message '$subject' to user $owner");
-			$sql = sprintf("INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
-							VALUES (%d, %d, '%s', '%s', NOW(), '%s', '%s')",
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', $subject, $owner));
+			$sql = sprintf('INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
+							VALUES (%d, %d, "%s", "%s", NOW(), "%s", "%s")',
 							$from_user_id, $owner, escape_text($subject), escape_text($text), $isread, $to_users);
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		} catch (Exception $e) {
@@ -702,6 +708,7 @@ class Messagesystem {
 				Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
 			} catch (Exception $e) {
 				error_log($e->getMessage());
+				return false;
 			}
 
 			/** Send Telegram Notification */
@@ -710,6 +717,7 @@ class Messagesystem {
 				$telegram->send->message($owner, $message, ['disable_web_page_preview' => 'true']);
 			} catch (Exception $e) {
 				error_log($e->getMessage());
+				return false;
 			}
 		}
 	}

@@ -6,67 +6,110 @@
  * It uses the standard session of the User.
  *
  * @author [z]biko
- * @version 1.0
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 file & functions added initially
+ * @since 2.0 added check for valid GET-Parameters, refactored Caching & HTTP-Headers, added Movie-File output variations
  * @package Zorg
  * @subpackage Gallery
  *
- * @param integer $pic_id
+ * @param integer $_GET['id'] Passed integer > 0 of an existing Gallery Pic ID
+ * @return resource Media resource with correct MIME-Type and HTTP Headers
  */
 /**
- * File Includes
+ * File includes
+ * @include config.inc.php Include required global site configurations
+ * @include mysql.inc.php MySQL-DB Connection and Functions
+ * @include usersystem.inc.php Usersystem Functions and User definitions
+ * @include util.inc.php Various Helper Functions
  */
+require_once( __DIR__ .'/config.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
 include_once( __DIR__ .'/usersystem.inc.php');
+include_once( __DIR__ .'/util.inc.php');
 
-$e = $db->query("SELECT * FROM gallery_pics WHERE id=$_GET[id]", __FILE__, __LINE__);
-$d = mysql_fetch_array($e);
+/** Check if passed $_GET['id'] is valid / integer & not empty */
+if (empty($_GET['id']) || !is_numeric($_GET['id']) || $_GET['id'] <= 0) {
+	/** @TODO instead of just exit(), output a default image showing "broken" or alike? */
+	exit( error_log(sprintf('<%s:%d> Invalid Media-ID was requested: %s', __FILE__, __LINE__, $_GET['id'])) );
+} else {
+	$media_id = $_GET['id'];
+}
 
-if (!$d['zensur'] || $d['zensur'] && $user->typ == USER_MEMBER) {
-  
-  if ($_GET['type'] == "tn") {
-     $type = "tn_";
-  }else{
-     $type = "pic_";
-  }
-  
-  
-  switch ($d['extension']) {
-     case ".jpg": 
-     case ".jpeg": $mime = "image/jpeg"; break;
-     case ".gif": $mime = "image/gif"; break;
-     case ".png": $mime = "image/png"; break;
-     default: exit;
-  }
-  $file = $_SERVER['DOCUMENT_ROOT']."/../data/gallery/$d[album]/$type$d[id]$d[extension]"; 
-  $lastmod = filemtime($file); 
- 
-  // Falls das Last_Modified Feld vom Client mit dem vom Server uebereinstimmt
-  // Bild nicht senden sondern HTTP 304 Not Modified (wird fuer caching benoetigt)
-  $if_modified_since = preg_replace('/;.*$/', '', $_SERVER['HTTP_IF_MODIFIED_SINCE']);
-  $gmdate_mod = gmdate('D, d M Y H:i:s', $lastmod) . ' GMT';
+/** Check if passed $_GET['type'] is set to "tn" and valid - in all other cases fallback to "_pic" (default) */
+$media_type = (!isset($_GET['type']) || empty($_GET['type']) || is_numeric($_GET['type']) || (!empty($_GET['type']) && $_GET['type'] != 'tn') ? 'pic_' : 'tn_' );
 
-  if ($if_modified_since == $gmdate_mod) {
-     header("HTTP/1.0 304 Not Modified");
-	 header("Pragma: cache"); 
-	 header("Cache-Control: cache"); 
-	 header("Expires: never");
-     exit;
-  }
-  
-  header("Content-Type: $mime");
-  header('Content-Length: ' . filesize($file)); ;
-  header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastmod) ." GMT"); 
-  
-  /*<H2><H2></H2></H2>
-  header("Expires: Mon, 26 Jul 1997 05:00:00 GMT"); 
- 
-  header("Pragma: no-cache"); 
-  header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate"); 
-*/
-	  header("Expires: never");
-  header("Pragma: cache"); 
-  header("Cache-Control: cache"); 
+try {
+	$query = $db->query('SELECT * FROM gallery_pics WHERE id=' . $media_id, __FILE__, __LINE__, 'SELECT * FROM gallery_pics');
+	$media_data = mysql_fetch_array($query);
+} catch (Exception $e) {
+	error_log($e->getMessage());
+	return false;
+}
 
-  
-  readfile($file);
+/** Zensur-Check: zensurierte Pics können nur Members sehen */
+if (!$media_data['zensur'] || ($media_data['zensur'] && $user->typ == USER_MEMBER))
+{
+	/** Set MIME-Type for HTTP response of resource */
+	switch ($media_data['extension'])
+	{
+		case ('.jpg' || '.jpeg' || '.jpe'): $media_mime = 'image/jpeg'; $media_download = false; break;
+		case '.gif': $media_mime = 'image/gif'; $media_download = false; break;
+		case '.png': $media_mime = 'image/png'; $media_download = false; break;
+		case '.mov': $media_mime = 'video/quicktime'; $media_download = false; break;
+		case '.movie': $media_mime = 'video/x-sgi-movie'; $media_download = false; break;
+		case '.m3u': $media_mime = 'audio/x-mpegurl'; $media_download = false; break;
+		case '.mp3': $media_mime = 'audio/mp3'; $media_download = false; break;
+		case ('.mp4' || '.m4v' || '.m4a'): $media_mime = 'video/mp4'; $media_download = false; break;
+		case ('.mpeg' || '.mpe' || '.mpg'): $media_mime = 'video/mpeg'; $media_download = false; break;
+		default: exit( error_log(sprintf('<%s:%d> Unknown Media Extension: %s', __FILE__, __LINE__, $media_data['extension'])) );
+	}
+
+	/** Build path to the Media Item */
+	$mediafile_name = $media_type.$media_data['id'].$media_data['extension'];
+	$mediafile = GALLERY_DIR . DIRECTORY_SEPARATOR . $media_data['album'] . DIRECTORY_SEPARATOR . $mediafile_name;
+
+	/**
+	 * Last file modification date HTTP-Headers, must be valid HTTP-Date (in GMT)
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+	 * @link https://developer.mozilla.org/de/docs/Web/HTTP/Headers/Last-Modified
+	 */
+	$mediafile_lastmodified_gmt = gmdate('D, d M Y H:i:s T', filemtime($mediafile));
+	$mediafile_hash = fileHash($mediafile, true);
+	header('ETag: "'.$mediafile_hash.'"');
+	header('Last-Modified: ' . $mediafile_lastmodified_gmt);
+
+	/**
+	 * Caching directives HTTP-Headers
+	 * Falls die Last_Modified & ETag Werte vom Client mit dem vom Server übereinstimmen
+	 * Bild nicht senden sondern HTTP 304 Not Modified zurückliefern (wird fuer caching benoetigt)
+	 * @link https://developer.mozilla.org/de/docs/Web/HTTP/Headers/Cache-Control
+	 * @link https://stackoverflow.com/questions/2000715/answering-http-if-modified-since-and-http-if-none-match-in-php
+	 */
+	header('Cache-Control: public, max-age=31536000'); // 31536000 seconds = 365 days
+	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) || isset($_SERVER['HTTP_IF_NONE_MATCH']))
+	{
+		if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $mediafile_lastmodified_gmt || str_replace('"', '', stripslashes($_SERVER['HTTP_IF_NONE_MATCH'])) == $mediafile_hash)
+		{
+			/** File is chached & has not changed - so exit() */
+			header('HTTP/1.1 304 Not Modified');
+			exit();
+		}
+	}
+	/* Das hier deaktiviert das Browsercaching des $mediafile
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+		header('Pragma: no-cache');
+		header('Cache-Control: no-store, no-cache, max-age=0, must-revalidate');
+	*/
+
+	/** If not cached or changed: Media content HTTP-Headers */
+	header('Content-Type: '.$media_mime);
+	header('Content-Length: ' . filesize($mediafile)); ;
+
+	/** Tell browser whether to display file (e.g. images) or download it (e.g. ZIP) */
+	header('Content-Disposition: ' . ($media_download ? 'attachment; filename="'.basename($mediafile).'"' : 'inline' ) );
+
+	/** If not cached or changed: return $mediafile */
+	readfile($mediafile);
 }
 //echo "access denied";

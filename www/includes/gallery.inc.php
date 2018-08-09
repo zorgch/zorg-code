@@ -5,20 +5,27 @@
  * Beinhaltet alle Funktionen der Gallery.
  *
  * @author [z]biko
- * @version 2.0
  * @package Zorg
  * @subpackage Gallery
+ * @version 3.0
+ * @since 1.0 File & functions added
+ * @since 2.0 Added code documentations, polished & optimized various functions
+ * @since 3.0 09.08.2018 Refactored picPath() & createPic(), added APOD specific specials
  *
- * @todo MyPic-Markierung von Bildern
- * @todo Wasserzeichen(?)
+ * @TODO MyPic-Markierung von Bildern
+ * @TODO Wasserzeichen(?)
  */
 /**
- * File Includes
+ * File includes
+ * @include config.inc.php
  * @include colors.inc.php
  * @include forum.inc.php
+ * @include util.inc.php
  */
+include_once( __DIR__ .'/config.inc.php');
 include_once( __DIR__ .'/colors.inc.php');
 include_once( __DIR__ .'/forum.inc.php');
+include_once( __DIR__ .'/util.inc.php');
 
 /**
  * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
@@ -28,18 +35,18 @@ include_once( __DIR__ .'/forum.inc.php');
  * @const ZENSUR			If the User is a Member, he can see censored Pics. Otherwise the SQL-Query addition will filter them out.
  */
 set_time_limit(600);
-define("FTP_UPDIR", "ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/");
-define("DIR", $_SERVER['DOCUMENT_ROOT']."/../data/gallery/");
-define("UPDIR", $_SERVER['DOCUMENT_ROOT']."/../data/upload/");
-define("ZENSUR", ( $user->typ >= USER_MEMBER ? "" : "AND p.zensur='0'" ));
+define('FTP_UPDIR', 'ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/');
+define('DIR', $_SERVER['DOCUMENT_ROOT'].'/../data/gallery/');
+define('UPDIR', $_SERVER['DOCUMENT_ROOT'].'/../data/upload/');
+define('ZENSUR', ( $user->typ >= USER_MEMBER ? '' : 'AND p.zensur="0"' ));
 
 /**
  * Globals
  * @global array $MAX_PIC_SIZE	The maximum width & height for pictures
  * @global array $THUMBPAGE		The image size for Thumbnail pictures
  */
-$MAX_PIC_SIZE = array("picWidth"=>800, "picHeight"=>800, "tnWidth"=>150, "tnHeight"=>150);
-$THUMBPAGE = array("width"=>4, "height"=>3, "padding"=>10);
+$MAX_PIC_SIZE = array('picWidth'=>800, 'picHeight'=>800, 'tnWidth'=>150, 'tnHeight'=>150);
+$THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
 
 
 // ********************************** LAYOUT FUNCTIONS ***************************************************************************
@@ -174,7 +181,7 @@ function albumThumbs ($id, $page=0) {
 	
 	if (!$page) $page = 0;
 	
-	$pagepics = $THUMBPAGE[width] * $THUMBPAGE[height];
+	$pagepics = $THUMBPAGE['width'] * $THUMBPAGE['height'];
 	$e = $db->query("SELECT count(id) anz FROM gallery_pics p WHERE album=$id ".ZENSUR." GROUP BY album", __FILE__, __LINE__, __FUNCTION__);
 	$d = mysql_fetch_array($e);
 	$anz = $d['anz'];
@@ -192,15 +199,15 @@ function albumThumbs ($id, $page=0) {
 	
 	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=$id ".ZENSUR." ORDER BY p.id LIMIT ".($page*$pagepics).", $pagepics", __FILE__, __LINE__, __FUNCTION__);
 	echo '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
-	$hgt = $MAX_PIC_SIZE[tnHeight] + 2 * $THUMBPAGE[padding];
-	$wdt = $MAX_PIC_SIZE[tnWidth] + 2 * $THUMBPAGE[padding];
+	$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
+	$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
 	$rows = 0;
 	while ($d = mysql_fetch_array($e)) {
 		$comments = Thread::getNumPosts('i', $d['id']);
 		$unread = Thread::getNumUnread('i', $d['id']);
 	
 		if ($rows==0) echo '<tr>';
-		echo '<td class="border" cellpadding="'.$THUMBPAGE[padding].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
+		echo '<td class="border" cellpadding="'.$THUMBPAGE['padding'].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
 		.'<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br />':'').'<img border="0" src="'.imgsrcThum($d['id']).'">';
 	
 		if ($comments) {
@@ -209,7 +216,7 @@ function albumThumbs ($id, $page=0) {
 		}
 	
 		echo '</a></td>';
-		if (++$rows == $THUMBPAGE[width]) {
+		if (++$rows == $THUMBPAGE['width']) {
 		$rows = 0;
 		echo '</tr>';
 		}
@@ -254,9 +261,9 @@ function albumThumbs ($id, $page=0) {
 function pic ($id) {
 	global $user, $db, $THUMBPAGE;
 	
-	if (!$id) user_error("Missing Parameter <i>id</i> ", E_USER_ERROR);
+	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
 	
-	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
 	$cur = mysql_fetch_array($e);
 	
 	if($cur == false) {
@@ -264,10 +271,10 @@ function pic ($id) {
 		exit;
 	}
 	
-	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=".$cur['album']." AND id<'$id' ".ZENSUR." ORDER BY id DESC LIMIT 0,1", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 	$last = mysql_fetch_array($e);
 	
-	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=".$cur['album']." AND id>'$id' ".ZENSUR." ORDER BY id ASC LIMIT 0,1", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 	$next = mysql_fetch_array($e);
 	
 	$e = $db->query("SELECT a.*, count(p.id) anz, e.name eventname
@@ -309,11 +316,14 @@ function pic ($id) {
 	
 	//$exif_data = exif_read_data(picPath($cur[album], $id, '.jpg'), 1, true); PHP wurde anscheinend ohne EXIF-Support kompiliert
 	//echo "<p>Bild erstellt am ".date('d. F Y H:i', filemtime(picPath($cur[album], $id, '.jpg')))."</p>";
-	$exif_data = exif_read_data(picPath($cur['album'], $id, '.jpg'), 1, true);
+	$pic_filepath = picPath($cur['album'], $id, '.jpg');
+	$exif_data = exif_read_data($pic_filepath, 1, true);
 	if ($exif_data['FILE.FileDateTime'] != false) {
-		print("<p>Bild erstellt am ".date('d. F Y H:i', $exif_data['FILE.FileDateTime'])."</p>");
+		echo '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
+	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) { // APOD Special: use pic_added from database, instead of filemtime
+		echo '<p>Bild von '.datename($cur['timestamp']).'</p>';
 	} else {
-		print("<p>Bild Upload am ".date('d. F Y H:i', filemtime(picPath($cur['album'], $id, '.jpg')))."</p>");
+		echo '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
 	}
 	
 	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.
@@ -411,18 +421,18 @@ function pic ($id) {
 	
 	if ($user->typ == USER_MEMBER) { // member
 		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br />';
-		if ($cur[zensur]) {
-		echo '<font color="red">Bild ist zensiert</font>';
-		$val = "Zensur aufheben";
+		if ($cur['zensur']) {
+			echo '<font color="red">Bild ist zensiert</font>';
+			$val = "Zensur aufheben";
 		}else{
-		echo '<font color="green">Bild ist nicht zensiert</font>';
-		$val = "zensieren";
+			echo '<font color="green">Bild ist nicht zensiert</font>';
+			$val = "zensieren";
 		}
 		echo '</td><td valign="top"><br /><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
 		.'<input type="submit" class="button" value="'.$val.'"></form></td>';
 	
 		echo '<td valign="top" style="text-align:right" width="250"><br />'
-		.'<form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur[album].'" method="post">'
+		.'<form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
 		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
 		.'</form></td></tr></table>';
 	}
@@ -538,7 +548,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		?>
 		<table class="border"><tr><td>
 		<form <?='action="'.$SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
-		Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best?tigen)<br /><br />
+		Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br /><br />
 			<input class="text" name="del" value="" size="4"> &nbsp;
 			<input type="submit" class="button" value="   l&ouml;schen   ">
 		</form>
@@ -624,7 +634,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
 		Rechte 0664 gibst.
 		(<?='<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br /><br />
-		W?hle den Ordner hier aus, um die Pics zu indizieren: <br /><br />
+		W&auml;hle den Ordner hier aus, um die Pics zu indizieren: <br /><br />
 		<input type="checkbox" checked name="frm[delPics]" value="1">
 		Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br />
 		<input type="checkbox" name="frm[delFiles]" value="1">
@@ -1372,17 +1382,44 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 		$picWidth = $width;
 	}
 
-	// create new pic
+	/** Create new Pic */
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create new pic', __FUNCTION__, __LINE__));
-	if ($ext == ".jpg") $src = ImageCreateFromJPEG($srcFile);
-	elseif ($ext == ".gif") $src = ImageCreateFromGIF($srcFile);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG/ImageCreateFromGIF: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+	switch ($ext)
+	{
+		case '.jpg':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG(): %s', __FUNCTION__, __LINE__, $srcFile));
+			$src = ImageCreateFromJPEG($srcFile);
+			if ($src === null) {
+				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+			break;
+		case '.gif':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG(): %s', __FUNCTION__, __LINE__, $srcFile));
+			$src = ImageCreateFromGIF($srcFile);
+			if ($src === null) {
+				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+			break;
+		default:
+			error_log(sprintf('<%s:%d> %s Wrong File Type', __FILE__, __LINE__, __FUNCTION__));
+			return false;
+			break;
+	}
 
-	if (is_array($bgcolor) && sizeof($bgcolor) == 3) {
+	/** Modify Pic */
+	if (is_array($bgcolor) && sizeof($bgcolor) == 3)
+	{
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $bgcolor: %s', __FUNCTION__, __LINE__, print_r($bgcolor, true)));
 		$dst = ImageCreateTrueColor ($maxWidth, $maxHeight);  // GD 2.0.1
 		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
-		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
+		if (!$dst) {
+			error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+			return false;
+		}
 		$bg = imagecolorallocate($dst, $bgcolor[0], $bgcolor[1], $bgcolor[2]);
 
 		$x = round(($maxWidth-$picWidth) / 2);
@@ -1392,7 +1429,7 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 		imagecopyresized($dst, $src, $x,$y,0,0, $picWidth, $picHeight, $width, $height);
 
 		$ret = array('width'=>$maxWidth, 'height'=>$maxHeight);
-	}else{
+	} else {
 		$dst = ImageCreateTrueColor ($picWidth, $picHeight);  // GD 2.0.1
 		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
 		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
@@ -1410,26 +1447,25 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 	switch ($ext) {
 		case '.jpg':
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
-			if (ImageJPEG($dst, $dstFile)) {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG OK', __FUNCTION__, __LINE__));
-			} else {
+			if (!ImageJPEG($dst, $dstFile)) {
 				error_log(sprintf('<%s:%d> ImageJPEG ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
 				return false;
 			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG() OK', __FUNCTION__, __LINE__));
 			break;
-		
+
 		case '.gif':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
-			if (ImageGIF($dst, $dstFile)) {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF OK', __FUNCTION__, __LINE__));
-			} else {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (!ImageGIF($dst, $dstFile)) {
 				error_log(sprintf('<%s:%d> ImageGIF ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
 				return false;
 			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF() OK', __FUNCTION__, __LINE__));
 			break;
-		
+
 		default:
-			error_log(sprintf('<%s:%d> Wrong File Type', __FUNCTION__, __LINE__));
+			error_log(sprintf('<%s:%d> %s Wrong File Type', __FILE__, __LINE__, __FUNCTION__));
+			return false;
 			break;
 	}
 	/*if ($ext == '.jpg') ImageJPEG($dst, $dstFile);
@@ -1437,9 +1473,9 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 	//system("chmod 0664 ".$dstFile);
 	chmod($dstFile, 0664);
 
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageDestroy()', __FUNCTION__, __LINE__));
 	ImageDestroy($src);
 	ImageDestroy($dst);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageDestroy() OK', __FUNCTION__, __LINE__));
 
 	return $ret;
 }
