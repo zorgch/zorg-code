@@ -114,6 +114,14 @@ if (!defined('JS_DIR')) define('JS_DIR', '/js/', true);
 if (!defined('CSS_DIR')) define('CSS_DIR', '/css/', true);
 
 /**
+* Grab the NASA API Key
+* @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
+* @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
+*/
+if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ), true);
+if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
+
+/**
  * Define various APOD related constants
  * @const APOD_GALLERY_ID ID der APOD-Gallery in der Datenbank
  * @const APOD_TEMP_IMGPATH Pfad zum initialen Download des aktuellen APOD-Bildes

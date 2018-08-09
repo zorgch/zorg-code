@@ -24,14 +24,6 @@ require_once( __DIR__ .'/gallery.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 
 /**
-* Grab the NASA API Key
-* @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
-* @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
-*/
-if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ), true);
-if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
-
-/**
  * Astronomy Picture of the Day (APOD)
  * 
  * Holt und speichert das neus Astronomy Pic of the Day (APOD).
