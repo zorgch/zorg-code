@@ -25,8 +25,8 @@
  * @include config.inc.php Include required global site configurations
  * @include mysql.inc.php MySQL-DB Connection and Functions
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/includes/config.inc.php');
+require_once( __DIR__ .'/includes/mysql.inc.php');
 
 /** Look for & validate user-id and file-name in URL-Params */
 if ($_GET['user'] && $_GET['file'])
