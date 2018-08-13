@@ -830,20 +830,74 @@ function fileExists($filepath)
 
 
 /**
- * Calculate a unique md5-Hash of a file
+ * Calculate a unique md5-Hash of a File or URL - or compare to another File/URL
  * Either the file only, or by adding it's last modification datetime (for comparing file changes)
+ * Pass a second file, in order to do a comparison of the two
  *
  * @author IneX
- * @version 1.0
- * @date 08.08.2018
+ * @date 13.08.2018
+ * @version 2.0
+ * @since 1.0 08.08.2018 added function
+ * @since 2.0 13.08.2018 added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
  *
  * @param string $filepath 	The filepath to a file for creating the hash
- * @param boolean $use_last_modification_datetime	Whether or not to md5-hash with $filepath AND filemtime()
- * @return string|boolean	Returns the calculated md5-Hash, or false if file doesn't exist
- */ 
-function fileHash($filepath, $use_last_modification_datetime=false)
+ * @param boolean $use_last_modification_datetime	(Optional) Whether or not to md5-hash with $filepath AND filemtime(), default: false
+ * @param string $filepath_to_compare 	(Optional) A 2nd filepath to a file for comparing md5-hash against $filepath
+ * @return string|boolean	Returns the calculated md5-Hash or false if file doesn't exist - or, if $filepath_to_compare given, true/false depening if comparison matched
+ */
+function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to_compare=NULL)
 {
-	if ($use_last_modification_datetime) $file_lastmodified = filemtime($filepath);
-	$file_hash = md5($file_lastmodified.md5_file($filepath));
-	return (!empty($file_hash) && $file_hash != null ? $file_hash : false);
+	/** Hash 1st $filepath (required) */
+	if (md5_file($filepath) !== false)
+	{
+		$file_hash = md5_file($filepath);
+
+		if ($use_last_modification_datetime)
+		{
+			/** filemtime() requires a LOCAL file (no URL) */
+			if (fileExists($filepath) !== false)
+			{
+				$file_lastmodified = filemtime($filepath);
+				$file_hash = md5($file_lastmodified.$file_hash);
+			} else {
+				error_log(sprintf('[WARN] <%s:%d> filemtime() requires a LOCAL file (no URL), given: %s', __FILE__, __LINE__, $filepath));
+				return false;
+			}
+		}
+	} else {
+		//error_log(sprintf('[WARN] <%s:%d> %s Non-existent $filepath: %s', __FILE__, __LINE__, __FUNCTION__, $filepath));
+		return false;
+	}
+
+	/** Hash 2nd $filepath_to_compare (optional) */
+	if (!empty($filepath_to_compare) && $filepath_to_compare != null)
+	{
+		if (md5_file($filepath_to_compare) !== false)
+		{
+			$file_to_compare_hash = md5_file($filepath_to_compare);
+	
+			if ($use_last_modification_datetime)
+			{
+				/** filemtime() requires a LOCAL file (no URL) */
+				if (fileExists($filepath_to_compare) !== false)
+				{
+					$file_to_compare_lastmodified = filemtime($filepath_to_compare);
+					$file_to_compare_hash = md5($file_to_compare_lastmodified.$file_to_compare_hash);
+				} else {
+					error_log(sprintf('[WARN] <%s:%d> filemtime() requires a LOCAL file (no URL), given: %s', __FILE__, __LINE__, $filepath_to_compare));
+					return false;
+				}
+			}
+
+			/** Compare the two Hashes & return true on match (false will be handled later) */
+			if (!empty($file_to_compare_hash) && $file_to_compare_hash != null && $file_to_compare_hash === $file_hash) return true;
+
+		} else {
+			//error_log(sprintf('[WARN] <%s:%d> %s Non-existent $filepath_to_compare: %s', __FILE__, __LINE__, __FUNCTION__, $filepath_to_compare));
+			return false;
+		}
+	}
+
+	/** Check if $filepath was hashed - and return it. In case $file_to_compare_hash was also hashed, return false (otherwise a matching Hash would have been true already) */
+	return (!empty($file_hash) && $file_hash != null && empty($file_to_compare_hash) ? $file_hash : false);
 }

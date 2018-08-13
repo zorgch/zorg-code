@@ -1051,13 +1051,14 @@ class usersystem {
 	 * @author IneX
 	 * @date 11.07.2018
 	 * @version 1.0
+	 * @version 2.0
 	 * @since 1.0 11.07.2018 function added
+	 * @since 2.0 13.08.2018 added md5 file hash check to compare files before downloading
 	 *
-	 * @TODO read & compare Gravatar image based on Gravatar's filename? See description for full response header retrieved.
 	 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
 	 *
 	 * @see SITE_PROTOCOL, USER_IMGPATH, USER_IMGSIZE_LARGE, USER_IMGSIZE_SMALL, USER_IMGEXTENSION
-	 * @see cURLfetchUrl()
+	 * @see cURLfetchUrl(), fileHash()
 	 * @param array $userid Single or List of User ID(s) as Array
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return bool Returns true/false depening on if a successful execution was possible, or not
@@ -1065,7 +1066,7 @@ class usersystem {
 	function exportGravatarImages(array $userids)
 	{
 		global $db;
-		
+		if (DEVELOPMENT) $start = microtime(true); // Start execution time measurement
 		if ( empty($userids) || count($userids) <= 0 ) return false;
 
 		$index = 0;
@@ -1088,7 +1089,7 @@ class usersystem {
 				$gravatar_useremail = md5( strtolower( trim( $useremail ) ) );
 				/** d=404: return http 404 response, r=x: all ratings of images */
 				$gravatar_urlparam = '?d=404&r=x';
-	
+
 				try {
 					/**
 					 * Loop twice to get large & small image size
@@ -1099,15 +1100,20 @@ class usersystem {
 						/** Switch image size while looping, s=pixelsize */
 						$gravatar_imgsize = '&s=' . ($i === 1 ? USER_IMGSIZE_LARGE : USER_IMGSIZE_SMALL);
 						$user_imgpath_gravatar = USER_IMGPATH.$userid.'_gravatar'.($i === 1 ? '' : '_tn').USER_IMGEXTENSION;
-	
+
 						/** Build full URL for request */
 						$gravatar_request = $gravatar_baseurl . $gravatar_useremail . $gravatar_urlparam . $gravatar_imgsize;
-						$curl_httpresources[$index++] = [ $gravatar_request, $user_imgpath_gravatar ];
+
+						/** Check - based on md5-Hash - if local & remote file are identical (if yes: don't queue for $gravatar_request) */
+						if (!fileHash($user_imgpath_gravatar, false, $gravatar_request))
+						{
+							$curl_httpresources[$index++] = [ $gravatar_request, $user_imgpath_gravatar ];
+						}
 					}
 
 				/** Handle exception */
 				} catch (Exception $e) {
-					error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+					error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
 					return false;
 				}
 			}
@@ -1122,7 +1128,8 @@ class usersystem {
 			{
 				cURLfetchUrl($resource[0], $resource[1]);
 			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): SUCCESS', __METHOD__, __LINE__));
+			if (DEVELOPMENT) $end = microtime(true) - $start; // Stop execution time measurement
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): SUCCESS (duration: %s)', __METHOD__, __LINE__, $end));
 			return true;
 		} else {
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): ERROR', __METHOD__, __LINE__));
