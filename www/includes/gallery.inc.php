@@ -1355,11 +1355,24 @@ function delDir ($dir) {
 	return $done;
 }
 
-function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
+
+/**
+ * Create a z-Gallery ready Imagefile
+ *
+ * @author [z]deep
+ * @author IneX
+ * @version 4.0
+ * @since 1.0 function added
+ * @since 2.0 updated pathes
+ * @since 3.0 major overhaul - added better error handling, added debugging infos
+ * @since 4.0 added support for PNG image file types
+ */
+function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
+{
 	// errors
-	if (!isPic($srcFile)) user_error("Wrong File Type", E_USER_ERROR);
+	if (!isPic($srcFile)) user_error('Wrong File Type', E_USER_ERROR);
 	if (extension($srcFile) != extension($dstFile))
-		user_error("Source- and Destination-Files doesn't have the same File Types.", E_USER_ERROR);
+		user_error('Source- and Destination-Files have mismatching File Types.', E_USER_ERROR);
 
 	$ext = extension($srcFile);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $ext: %s', __FUNCTION__, __LINE__, $ext));
@@ -1367,7 +1380,7 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 	// calc new pic size
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> calc new pic size', __FUNCTION__, __LINE__));
 	$img_size = getImageSize($srcFile);
-	if (!$img_size) return array('error'=>"keine Rechte");
+	if (!$img_size) return array('error'=>'keine Rechte');
 	$width = $img_size[0];
 	$height = $img_size[1];
 	
@@ -1395,6 +1408,7 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 			}
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
 			break;
+
 		case '.gif':
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG(): %s', __FUNCTION__, __LINE__, $srcFile));
 			$src = ImageCreateFromGIF($srcFile);
@@ -1404,6 +1418,17 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 			}
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
 			break;
+
+		case '.png':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromPNG(): %s', __FUNCTION__, __LINE__, $srcFile));
+			$src = ImageCreateFromPNG($srcFile);
+			if ($src === null) {
+				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromPNG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+			break;
+
 		default:
 			error_log(sprintf('<%s:%d> %s Wrong File Type', __FILE__, __LINE__, __FUNCTION__));
 			return false;
@@ -1461,6 +1486,15 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 				return false;
 			}
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF() OK', __FUNCTION__, __LINE__));
+			break;
+
+		case '.png':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImagePNG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (!ImagePNG($dst, $dstFile)) {
+				error_log(sprintf('<%s:%d> ImagePNG ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImagePNG() OK', __FUNCTION__, __LINE__));
 			break;
 
 		default:
