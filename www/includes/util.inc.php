@@ -243,12 +243,15 @@ function set_daily_quote(){
 /** URL Funktionen */
 /**
  * Get & return current Script's URL & Parameters
+ * @param boolean $preserve_query_string Whether or not to keep & return the QUERY_STRING with the URL, or not
  */
-function getURL() {
-	return base64_encode(rawurldecode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']));
+function getURL($preserve_query_string=true)
+{
+	return base64_encode(rawurldecode($_SERVER['PHP_SELF'].($preserve_query_string === true ? '?'.$_SERVER['QUERY_STRING'] : '')));
 }
 
-function glue_url($parsed) {
+function glue_url($parsed)
+{
 	if (! is_array($parsed)) return false;
 		$url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
 		$url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
@@ -260,27 +263,24 @@ function glue_url($parsed) {
 	return $url;
 }
 
-function getChangedURL($newquerystring) {
-
+function getChangedURL($newquerystring)
+{
 	return(
-		str_replace("?&", "?", $_SERVER['PHP_SELF']
-		.'?'
-		.changeQueryString($_SERVER['QUERY_STRING'], $newquerystring))
+		str_replace('?&', '?', $_SERVER['PHP_SELF'].'?'.changeQueryString($_SERVER['QUERY_STRING'], $newquerystring))
 	);
 }
 
-function changeURL($url, $querystringchanges) {
+function changeURL($url, $querystringchanges)
+{
 	$urlarray = parse_url($url);
-
 	$urlarray['query'] = changeQueryString($urlarray['query'], $querystringchanges);
-
 	return glue_url($urlarray);
 }
 
-function changeQueryString($querystring, $changes) {
-
+function changeQueryString($querystring, $changes)
+{
 	// der 2. Wert überschreibt den 1.
-	parse_str($querystring."&".$changes, $querystringarray);
+	parse_str($querystring.'&'.$changes, $querystringarray);
 
 	foreach ($querystringarray as $key => $value) {
 		if(is_array($value)) {
@@ -295,10 +295,11 @@ function changeQueryString($querystring, $changes) {
 	return ltrim($str, '&');
 }
 
-function url_params () {
-	$ret = "";
+function url_params()
+{
+	$ret = '';
 	foreach ($_GET as $key => $val) {
-		$ret .= "$key=$val&";
+		$ret .= $key.'='.$val.'&';
 	}
 	return substr($ret, 0, -1);
 }

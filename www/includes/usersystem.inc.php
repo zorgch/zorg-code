@@ -9,43 +9,20 @@
  * @subpackage Usersystem
  */
 /**
- * File Includes
+ * File includes
+ * @include	config.inc.php 	Include required global site configurations
  * @include	colors.inc.php 	Colors
  * @include util.inc.php 	Various Helper Functions
  * @include mysql.inc.php 	MySQL-DB Connection and Functions
  * @include strings.inc.php Text strings to be replaced within code functions etc.
  * @include	activities.inc.php 	Activities Functions and Stream
  */
+require_once( __DIR__ .'/config.inc.php');
 include_once( __DIR__ .'/colors.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
 require_once( __DIR__ .'/strings.inc.php');
 require_once( __DIR__ .'/activities.inc.php');
-//require_once( __DIR__ .'/main.inc.php');
-
-/**
- * Defines
- */
-define('USER_ALLE', 0);
-define('USER_USER', 1);
-define('USER_MEMBER', 2);
-define('USER_SPECIAL', 3);
-//define('USER_EINGELOGGT', 0);
-//define('USER_MEMBER', 1);
-//define('USER_NICHTEINGELOGGT', 2);
-//define('USER_ALLE', 3);
-define('USER_IMGEXTENSION',  '.jpg');
-define('USER_IMGPATH',  __DIR__ .'/../../data/userimages/');
-define('USER_IMGPATH_PUBLIC', '/data/userimages/');
-define('USER_IMGSIZE_LARGE', 427);
-define('USER_IMGSIZE_SMALL', 150);
-define('USER_IMGPATH_DEFAULT', 'none.jpg');
-define('USER_TIMEOUT', 200);
-define('USER_OLD_AFTER', 60*60*24*30*3); // 3 Monate
-define('DEFAULT_MAXDEPTH', 10);
-define('AUSGESPERRT_BIS', 'ausgesperrt_bis');
-//if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
-if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
 
 /**
  * Usersystem Klasse
@@ -275,7 +252,7 @@ class usersystem {
 					SELECT
 						id
 						, ".$this->field_user_active."
-						, UNIX_TIMESTAMP(".AUSGESPERRT_BIS.") as ".AUSGESPERRT_BIS."
+						, UNIX_TIMESTAMP(".$this->field_ausgesperrt_bis.") as ".$this->field_ausgesperrt_bis."
 					FROM ".$this->table_name."
 					WHERE "
 							.$this->field_username." = '".$username."'
@@ -293,7 +270,7 @@ class usersystem {
 				if($rs[$this->field_user_active]) {
 
 					// überprüfe ob User nicht ausgesperrt ist
-					if($rs[AUSGESPERRT_BIS] < time()) {
+					if($rs[$this->field_ausgesperrt_bis] < time()) {
 						session_start();
 						$_SESSION['user_id'] = $rs['id'];
 
@@ -322,7 +299,7 @@ class usersystem {
 						header("Location: ".$_SERVER['PHP_SELF']."?". session_name(). "=". session_id());
 						exit;
 					} else {
-						echo t('lockout-message', 'user', date("d.m.Y", $rs[AUSGESPERRT_BIS]));
+						echo t('lockout-message', 'user', date("d.m.Y", $rs[$this->field_ausgesperrt_bis]));
 						exit;
 					}
 

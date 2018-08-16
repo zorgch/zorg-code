@@ -35,11 +35,11 @@ require_once( __DIR__ .'/main.inc.php');
  * @const TURN_COUNT		Nach so vielen Zügen gibts neues Geld
  * @const TURN_ADD_MONEY	So viel Geld gibts nach TURN_COUNT Spielzügen
  */			
-define("IMGPATH", "/images/hz/");
-define("MAX_HZ_GAMES", 5);
-define("TURN_TIME", 60*60*24*3);
-define("TURN_COUNT", 4);
-define("TURN_ADD_MONEY", 10);
+define('IMGPATH', '/images/hz/');
+define('MAX_HZ_GAMES', 5);
+define('TURN_TIME', 60*60*24*3);
+define('TURN_COUNT', 4);
+define('TURN_ADD_MONEY', 10);
 	
 /**
  * Hunting z Spiel löschen
@@ -56,11 +56,11 @@ define("TURN_ADD_MONEY", 10);
 function hz_close_game ($gid) {
 	global $db, $user;
 	
-	$e = $db->query("SELECT g.id FROM hz_games AS g, hz_players AS z WHERE g.id=$gid AND g.id=z.game AND g.state='open' AND z.type='z' AND z.user='$user->id'", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT g.id FROM hz_games AS g, hz_players AS z WHERE g.id='.$gid.' AND g.id=z.game AND g.state="open" AND z.type="z" AND z.user='.$user->id, __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	if ($d) {
-		$db->query("DELETE FROM hz_games WHERE id=$d[id]", __FILE__, __LINE__, __FUNCTION__);
-		$db->query("DELETE FROM hz_players WHERE game=$d[id]", __FILE__, __LINE__, __FUNCTION__);
+		$db->query('DELETE FROM hz_games WHERE id='.$d['id'], __FILE__, __LINE__, __FUNCTION__);
+		$db->query('DELETE FROM hz_players WHERE game='.$d['id'], __FILE__, __LINE__, __FUNCTION__);
 	}
 }
 
@@ -382,22 +382,26 @@ function turn_allowed ($game, $uid=0) {
  * @version 1.0
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return boolean
  */
 function hz_turn_passing () {
 	global $db;
 	
-	$e = $db->query(
-		"SELECT g.id, p.user
-		FROM hz_games g
-		JOIN hz_players p
-		  ON p.game=g.id
-		WHERE g.state='running'
-		  AND UNIX_TIMESTAMP(now())-unix_timestamp(g.turndate) > ".TURN_TIME."
-		  AND if(g.nextturn='z' && p.type='z'
-			OR g.nextturn='players' && p.type!='z' && p.turndone='0', '1', '0') = '1'", 
-		__FILE__, __LINE__
-	);
-	while ($game = $db->fetch($e)) turn_stay($game['id'], $game['user']);
+	try {
+		$e = $db->query('SELECT g.id, p.user
+						 FROM hz_games g
+						 JOIN hz_players p
+						  ON p.game=g.id
+						 WHERE g.state="running"
+						  AND UNIX_TIMESTAMP(now())-unix_timestamp(g.turndate) > "'.TURN_TIME.'"
+						  AND if(g.nextturn="z" && p.type="z"
+							OR g.nextturn="players" && p.type!="z" && p.turndone="0", "1", "0") = "1"', 
+						__FILE__, __LINE__, __FUNCTION__);
+		while ($game = $db->fetch($e)) turn_stay($game['id'], $game['user']);
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+		return false;
+	}
 }
 
 

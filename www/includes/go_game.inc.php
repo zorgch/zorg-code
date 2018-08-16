@@ -9,15 +9,17 @@
  * @author [z]bert
  * @author [z]domi
  * @date nn.nn.nnnn
- * @version 1.0
  * @package Zorg
  * @subpackage GO
  */
 /**
  * File includes
- * @include main.inc.php
+ * @include main.inc.php DEPRECATED
+ * @include config.inc.php
+ * @include mysql.inc.php
  */
-require_once( __DIR__ .'/main.inc.php');
+require_once( __DIR__ .'/config.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
 
 /**
  * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.
@@ -38,44 +40,62 @@ require_once( __DIR__ .'/main.inc.php');
  * @const WHITESTONEBIG		Weitere globale Variablen fürs GO
  * @const LASTSTONE			Weitere globale Variablen fürs GO
  */
-define("OFFSET_PIC", 250);
-define("LINKRADIUS", 15);
-define("FIELDSIZE", 40);
-define("LINEWIDTH", 2);    
-define("STARDOTWIDTH", 10);
-define("STONEBIGWIDTH", 190);
-define("LASTSTONEWIDTH", 10);
-define("GOIMGPATH", $_SERVER['DOCUMENT_ROOT'].'/images/go/');
-define("LINE", imagecreatefrompng(GOIMGPATH."go_line.png"));
-define("STARDOT", imagecreatefrompng(GOIMGPATH."go_stardot.png"));
-define("BLACKSTONE", imagecreatefrompng(GOIMGPATH."go_black.png"));
-define("WHITESTONE", imagecreatefrompng(GOIMGPATH."go_white.png"));
-define("BLACKSTONESEMI", imagecreatefrompng(GOIMGPATH."go_black_semi.png"));
-define("WHITESTONESEMI", imagecreatefrompng(GOIMGPATH."go_white_semi.png"));
-define("BLACKSTONEBIG", imagecreatefrompng(GOIMGPATH."go_pl2.png"));
-define("WHITESTONEBIG", imagecreatefrompng(GOIMGPATH."go_pl1.png"));
-define("LASTSTONE", imagecreatefrompng(GOIMGPATH."go_last.png"));
+define('OFFSET_PIC', 250);
+define('LINKRADIUS', 15);
+define('FIELDSIZE', 40);
+define('LINEWIDTH', 2);
+define('STARDOTWIDTH', 10);
+define('STONEBIGWIDTH', 190);
+define('LASTSTONEWIDTH', 10);
+define('GOIMGPATH', PHP_IMAGES_DIR.'go/');
+define('LINE', imagecreatefrompng(GOIMGPATH.'go_line.png'));
+define('STARDOT', imagecreatefrompng(GOIMGPATH.'go_stardot.png'));
+define('BLACKSTONE', imagecreatefrompng(GOIMGPATH.'go_black.png'));
+define('WHITESTONE', imagecreatefrompng(GOIMGPATH.'go_white.png'));
+define('BLACKSTONESEMI', imagecreatefrompng(GOIMGPATH.'go_black_semi.png'));
+define('WHITESTONESEMI', imagecreatefrompng(GOIMGPATH.'go_white_semi.png'));
+define('BLACKSTONEBIG', imagecreatefrompng(GOIMGPATH.'go_pl2.png'));
+define('WHITESTONEBIG', imagecreatefrompng(GOIMGPATH.'go_pl1.png'));
+define('LASTSTONE', imagecreatefrompng(GOIMGPATH.'go_last.png'));
 
 
-function go_running_games () {
+/**
+ * Alle laufenden GO Spiele
+ *
+ * @author [z]bert
+ * @author [z]domi
+ * @version 1.0
+ * @since 1.0
+ */
+function go_running_games ()
+{
     global $db, $user;
-    
     $e = $db->query(
-		    "SELECT count(*) anz
+		    'SELECT count(*) anz
 		      FROM go_games g 
-		      WHERE g.nextturn='".$user->id."' AND g.state='running'",
+		      WHERE g.nextturn='.$user->id.' AND g.state="running"',
 		    __FILE__, __LINE__
 		    );
     $d = $db->fetch($e);
     return $d['anz'];
-   }
+}
 
-    function go_open_games () {
+
+/**
+ * Alle offenen GO Spiele
+ *
+ * @author [z]bert
+ * @author [z]domi
+ * @version 1.0
+ * @since 1.0
+ */
+function go_open_games ()
+{
     global $db, $user;
     $e = $db->query(
-		    "SELECT count(*) anz
+		    'SELECT count(*) anz
 		      FROM go_games g
-		      WHERE g.pl2='".$user->id."' AND g.state='open'", 
+		      WHERE g.pl2='.$user->id.' AND g.state="open"', 
 		    __FILE__, __LINE__
 		    );
     $d = $db->fetch($e);
@@ -96,13 +116,14 @@ function go_running_games () {
  * @global array $db Globales Class-Object mit allen MySQL-Methoden
  * @global array $user Globales Class-Object mit den User-Methoden & Variablen
  */
-function go_close_game ($gid) {
+function go_close_game ($gid)
+{
 	global $db, $user;
-    $e = $db->query("DELETE
+    $e = $db->query('DELETE
     	FROM go_games
-    	WHERE state='open'
-    	AND id='".$gid."'
-    	AND pl1='".$user->id."'",
+    	WHERE state="open"
+    	AND id='.$gid.'
+    	AND pl1='.$user->id,
     	__FILE__, __LINE__);
 }
 
@@ -122,11 +143,11 @@ function go_close_game ($gid) {
  */
 function go_decline_game ($gid) {
 	global $db, $user;
-   	$e = $db->query("DELETE
+   	$e = $db->query('DELETE
 		 FROM go_games
-		 WHERE state='open'
-		   AND id='".$gid."'
-		   AND pl2='".$user->id."'",
+		 WHERE state="open"
+		   AND id='.$gid.'
+		   AND pl2='.$user->id,
 		 __FILE__, __LINE__);
 }
 
@@ -146,11 +167,11 @@ function go_decline_game ($gid) {
  */
 function go_accept_game ($gid) {
 	global $db, $user;
-   	$e = $db->query("UPDATE go_games
-		 SET state='running'
-		 WHERE state='open'
-		   AND id='".$gid."'
-		   AND pl2='".$user->id."'",
+   	$e = $db->query('UPDATE go_games
+		 SET state="running"
+		 WHERE state="open"
+		   AND id='.$gid.'
+		   AND pl2='.$user->id,
 		 __FILE__, __LINE__);
 }
 
@@ -952,7 +973,6 @@ function draw_go_players(&$im, $game)
 function get_userpic($user_id)
 {    
     $image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
-    //$image = imagecreatefromjpeg($_SERVER['DOCUMENT_ROOT'].'../data/userimages/'.$user_id.'.jpg');
     
     $w = imagesx($image);
     $h = imagesy($image);

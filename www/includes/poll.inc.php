@@ -1,12 +1,15 @@
 <?php
 /**
  * File includes
+ * @include config.inc.php
  * @include usersystem.inc.php
  * @include colors.inc.php
- * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
+ * @include strings.inc.php	Strings die im Zorg Code benutzt werden
  */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/colors.inc.php");
+require_once( __DIR__ . '/config.inc.php');
+require_once( __DIR__ . '/usersystem.inc.php');
+include_once( __DIR__ . '/colors.inc.php');
+include_once( __DIR__ . '/strings.inc.php');
 
 
 function getPoll ($id) {
@@ -18,12 +21,12 @@ function getPoll ($id) {
 				
 	
 	$poll = $db->fetch($db->query(
-		"SELECT p.*, UNIX_TIMESTAMP(p.date) date, if(v.user IS NULL, '0', v.answer) myvote, count(tot.user) tot_votes
+		'SELECT p.*, UNIX_TIMESTAMP(p.date) date, if(v.user IS NULL, 0, v.answer) myvote, count(tot.user) tot_votes
 		FROM polls p
-		LEFT JOIN poll_votes v ON v.poll=p.id AND v.user='$user->id'
+		LEFT JOIN poll_votes v ON v.poll=p.id AND v.user='.$user->id.'
 		LEFT JOIN poll_votes tot ON v.poll=p.id
-		WHERE id=$id
-		GROUP BY p.id",
+		WHERE id='.$id.'
+		GROUP BY p.id',
 		__FILE__, __LINE__, __FUNCTION__
 	));
 	
@@ -54,18 +57,18 @@ function getPoll ($id) {
 			"<tr><td><img src='/images/pixel_border.gif' height='1' width='100%'></td></tr>";
 	;
 	
-	$e = $db->query("SELECT count(user) anz FROM poll_votes WHERE poll=$poll[id] GROUP BY answer", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT count(user) anz FROM poll_votes WHERE poll='.$poll['id'].' GROUP BY answer', __FILE__, __LINE__, __FUNCTION__);
 	$maxvotes = 0;
 	while ($d = $db->fetch($e)) if ($maxvotes < $d['anz']) $maxvotes = $d['anz'];
 		
 	
 	$aw_e = $db->query(
-		"SELECT a.*, count(v.user) votes
+		'SELECT a.*, count(v.user) votes
 		FROM poll_answers a
 		LEFT JOIN poll_votes v ON v.answer=a.id
-		WHERE a.poll=$poll[id]
+		WHERE a.poll='.$poll['id'].'
 		GROUP BY a.id
-		ORDER BY a.id",
+		ORDER BY a.id',
 		__FILE__, __LINE__, __FUNCTION__
 	);
 	

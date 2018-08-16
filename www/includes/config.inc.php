@@ -93,18 +93,20 @@ if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joi
 
 /**
  * Define paths to directories where HTML web resources will be referenced from
- * @const INCLUDES_DIR File includes directory
- * @const IMAGES_DIR Images directory
+ * @const INCLUDES_DIR PHP-Script includes directory for using in PHP-Scripts
+ * @const IMAGES_DIR Images directory for Frontend-Resources (don't use in PHP Scripts! Refer to PHP_IMAGES_DIR)
+ * @const PHP_IMAGES_DIR Images directory for including Images in PHP-Scripts
  * @const FILES_DIR Files directory (local server path)
  * @const GALLERY_DIR Gallery directory (local server path)
- * @const ACTIONS_DIR Actions directory
- * @const SCRIPTS_DIR Scripts directory
- * @const UTIL_DIR Utilities directory
- * @const JS_DIR JavaScripts directory
- * @const CSS_DIR CSS directory
+ * @const ACTIONS_DIR Actions directory for Frontend-Resources 
+ * @const SCRIPTS_DIR Scripts directory for Frontend-Resources 
+ * @const UTIL_DIR Utilities directory for Frontend-Resources 
+ * @const JS_DIR JavaScripts directory for Frontend-Resources 
+ * @const CSS_DIR CSS directory for Frontend-Resources 
  */
-if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', '/includes/', true);
+if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/', true);
 if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/', true);
+if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/', true);
 if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
 if (!defined('GALLERY_DIR')) define('GALLERY_DIR', SITE_ROOT . '/../data/gallery/', true);
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/', true);
@@ -112,6 +114,48 @@ if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/', true);
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/', true);
 if (!defined('JS_DIR')) define('JS_DIR', '/js/', true);
 if (!defined('CSS_DIR')) define('CSS_DIR', '/css/', true);
+
+/**
+ * Define User & Usersystem constants
+ * User Typen:
+ *	1 = Normaler User ##################### 0 isch nöd so cool wil wenns nöd gsetzt isch chunt jo au 0
+ *	2 = [z]member und schöne
+ *	0 = nicht eingeloggt ##################### Aber Weber: wenn typ = 2, gits $user jo gar nöd?! -> doch s'usersystem isch jo immer verfügbar
+ *	=> verfügbar über $user->typ
+ *
+ * @const USER_ALLE		Wert für nicht eingeloggte User
+ * @const USER_USER		Wert für normale eingeloggte User
+ * @const USER_MEMBER 	Wert für [z]member & schöne
+ * @const USER_SPECIAL	Wert für Admins & Coder
+ * @const USER_IMGEXTENSION	File-Extension/Format von Userpics
+ * @const USER_IMGPATH	Interner PHP-Pfad zum Userpics Ordner
+ * @const USER_IMGPATH_PUBLIC	Externer Pfad zu den Userpics
+ * @const USER_IMGSIZE_LARGE	Grösse in Pixel der normalen Userpics
+ * @const USER_IMGSIZE_SMALL	Grösse in Pixel der Userpic-Thumbnails
+ * @const USER_IMGPATH_DEFAULT	Externer Pfad zum Standard-Userpic
+ * @const USER_TIMEOUT	Session Timeout für eingeloggte User
+ * @const USER_OLD_AFTER	Zeit bis ein User als "alt" gilt -> 3 Monate
+ * @const DEFAULT_MAXDEPTH	Standard Setting für die Anzeigetiefe von Comments in Forum-Threads
+ */
+define('USER_ALLE', 0);
+define('USER_USER', 1);
+define('USER_MEMBER', 2);
+define('USER_SPECIAL', 3);
+//define('USER_EINGELOGGT', 0);
+//define('USER_MEMBER', 1);
+//define('USER_NICHTEINGELOGGT', 2);
+//define('USER_ALLE', 3);
+define('USER_IMGEXTENSION',  '.jpg');
+define('USER_IMGPATH',  __DIR__ .'/../../data/userimages/');
+define('USER_IMGPATH_PUBLIC', '/data/userimages/');
+define('USER_IMGSIZE_LARGE', 427);
+define('USER_IMGSIZE_SMALL', 150);
+define('USER_IMGPATH_DEFAULT', 'none.jpg');
+define('USER_TIMEOUT', 200);
+define('USER_OLD_AFTER', 60*60*24*30*3); // 3 Monate
+define('DEFAULT_MAXDEPTH', 10);
+//define('AUSGESPERRT_BIS', 'ausgesperrt_bis');
+//if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 /**
 * Grab the NASA API Key

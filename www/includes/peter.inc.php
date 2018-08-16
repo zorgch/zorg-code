@@ -9,15 +9,17 @@
  * @package Zorg
  * @subpackage Peter
  */
-
-/** Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln) */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-
-/** Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/messagesystem.inc.php");
-
-/** Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
+/**
+ * File includes
+ * @include config.inc.php
+ * @include forum.inc.php
+ * @include messagesystem.inc.php
+ * @include usersystem.inc.php
+ */
+require_once( __DIR__ . '/config.inc.php');
+include_once( __DIR__ . '/forum.inc.php');
+include_once( __DIR__ . '/messagesystem.inc.php');
+require_once( __DIR__ . '/usersystem.inc.php');
 
 
 /**
@@ -331,7 +333,8 @@ class peter {
 			//Wenn ein wunsch da ist ;)
 			if($_POST['wunsch']) {
 				$this->set_wunsch($_POST['wunsch']);
-				header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?game_id=".$this->game_id."&".session_name()."=".session_id());
+				header('Location: '.getChangedURL('game_id='.$this->game_id));
+				exit();
 			}
 		}
 		
@@ -686,9 +689,11 @@ class peter {
 			
 			//Karten ausgeben
 			$this->ausgeben();
-			header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?game_id=".$this->game_id."&".session_name()."=".session_id());
+			header('Location: '.getChangedURL('game_id='.$this->game_id));
+			exit();
 		}
-		header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());		
+		header('Location: '.getURL(false));
+		exit();
 	}
 	
 	/**
@@ -1130,9 +1135,9 @@ class peter {
 			$rsi = $db->fetch($resulti);
 			
 			// Wenn noch offene Züge, dann direkt ins nächste Spiel weiterleiten
-			$locationHeader = 'Location: '.SITE_URL.'/peter.php?game_id='.$rs[game_id];
-			if ($db->num($result)) header($locationHeader);
-
+			//$locationHeader = 'Location: '.SITE_URL.'/peter.php?game_id='.$rs[game_id];
+			if ($db->num($result)) header('Location: '.getChangedURL('game_id='.$rs['game_id']));
+			exit();
 		}
 		
 		//Prüfen ob Spiel beendet werden soll
@@ -1397,7 +1402,9 @@ class peter {
 					
 					//Zug ausführen
 					$this->zug($card_id,$make,$gd['players']);
-					header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?game_id=".$this->game_id."&".session_name()."=".session_id());
+					//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?game_id=".$this->game_id."&".session_name()."=".session_id());
+					header('Location: '.getChangedURL('game_id='.$this->game_id));
+					exit();
 				}
 				
 				//Wenn der Spieler am Zug ist, ANZEIGE

@@ -379,14 +379,14 @@ Class Telegram
 				if ( isset($parameters['reply_markup']) ) $data['reply_markup'] = $parameters['reply_markup'];
 
 				/** Assign key=>value pairs for $messageType Required Parameters */
-				foreach ($_telegramMessageModels[$messageType]['required'] as $requiredParameter)
+				foreach ((array) $_telegramMessageModels[$messageType]['required'] as $requiredParameter)
 				{
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> array_push to $data Array for key=>value pair "%s"', __METHOD__, __LINE__, $requiredParameter));
 					$data[$requiredParameter] = $this->formatText($parameters[$requiredParameter]);
 				}
 
 				/** Assign key=>value pairs for $messageType Optional Parameters */
-				foreach ($_telegramMessageModels[$messageType]['optional'] as $optionalParameter)
+				foreach ((array) $_telegramMessageModels[$messageType]['optional'] as $optionalParameter)
 				{
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> array_push to $data Array for key=>value pair "%s"', __METHOD__, __LINE__, $optionalParameter));
 					if (!empty($parameters[$optionalParameter])) $data[$optionalParameter] = $parameters[$optionalParameter];
@@ -451,4 +451,5 @@ Class send extends Telegram
  * Instantiating new Telegram Class-Object
  * @TODO Fix this "dirty hack" with instantiated "$telegram->send"-object...
  */
+$telegram = new Telegram();
 $telegram->send = new send();

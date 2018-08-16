@@ -48,7 +48,7 @@ require_once( __DIR__ .'/util.inc.php');
  * @param string $apod_date (Optional) A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)
  * @return boolean Returns true or false, depening on if the function was processed successfully or not
  */
-function get_apod($apod_date_input)
+function get_apod($apod_date_input=NULL)
 {
 	global $db, $MAX_PIC_SIZE;
 
@@ -78,8 +78,8 @@ function get_apod($apod_date_input)
 		 *	    [url] => https://apod.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
 		 *	)
 		 */
-		if ( $apod_date_input != NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",$apod_date_input): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_date_input))));
-		if ( $apod_date_input == NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",strtotime($apod_data[date])): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_data['date']))));
+		if ( DEVELOPMENT && $apod_date_input != NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",$apod_date_input): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_date_input))));
+		if ( DEVELOPMENT && $apod_date_input == NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",strtotime($apod_data[date])): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_data['date']))));
 		$new_apod_date = ( $apod_date_input != NULL ? date('ymd',strtotime($apod_date_input)) : date('ymd',strtotime($apod_data['date'])) );
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_date: %s', __FUNCTION__, __LINE__, $new_apod_date));
 		$new_apod_title = $apod_data['title'];

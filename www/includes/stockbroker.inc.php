@@ -1,11 +1,11 @@
-<?PHP
-
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/messagesystem.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/mysql.inc.php");
+<?php
+/** File includes */
+require_once( __DIR__ .'/messagesystem.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
 
 //set_time_limit(20);
 
-Class Stockbroker {
+class Stockbroker {
 	
 	function buyStock($user_id, $symbol, $menge, $max) {
 		global $db;
@@ -768,4 +768,3 @@ Class Stockbroker {
 	
 	}
 }
-?>
