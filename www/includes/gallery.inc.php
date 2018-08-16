@@ -521,8 +521,6 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	?>
 	<table class="border" cellspacing="3">
 	<form action="<?=$_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?=$id?>&do=editAlbum" method="post">
-		<?
-		?>
 		<tr>
 		<td align="left">ID: </td>
 		<td align="left"><?=$id?>
@@ -543,7 +541,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	<br />
 	
 	
-	<?
+	<?php
 	if ($id) {
 		?>
 		<table class="border"><tr><td>
@@ -554,7 +552,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</form>
 		</td></tr></table>
 		<br />
-		<?
+		<?php
 	
 	
 		echo '<br/><br/><table width="80%" align="center"><tr>
@@ -573,7 +571,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</td></tr></table>
 		<br />
 	
-		<?
+		<?php
 		$d = opendir(UPDIR);
 		$fileoptions = array();
 		$i = 0;
@@ -615,7 +613,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
 		Upload-Ordner l&ouml;schen:<br /><br />
 		<select size="1" class="text" name="frm[folder]">
-			<?
+			<?php
 			for ($i=0; $i<sizeof($fileoptions); $i++) {
 				echo $fileoptions[$i];
 			}
@@ -641,7 +639,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		nicht indizierte Files aus Upload-Ordner l&ouml;schen
 		<br /><br />
 		<select size="1" class="text" name="frm[folder]">
-			<?
+			<?php
 			for ($i=0; $i<sizeof($fileoptions); $i++) {
 			echo $fileoptions[$i];
 			}
@@ -654,7 +652,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		<a <?='href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 		</td></tr></table>
 		<br />
-		<?
+		<?php
 	}
 }
 
