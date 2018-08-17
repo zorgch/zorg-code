@@ -451,5 +451,4 @@ Class send extends Telegram
  * Instantiating new Telegram Class-Object
  * @TODO Fix this "dirty hack" with instantiated "$telegram->send"-object...
  */
-$telegram = new Telegram();
 $telegram->send = new send();
