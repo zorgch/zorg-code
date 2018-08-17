@@ -6,7 +6,9 @@
  *	  mysql_login.inc.local.php
  *
  * @include mysql_login.inc.local.php Include MySQL Database login information file
+ * @include config.inc.php
  */
+require_once( __DIR__ .'/config.inc.php');
 require_once( (file_exists( __DIR__ .'/mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
 
 /**

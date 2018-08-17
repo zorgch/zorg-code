@@ -1,4 +1,4 @@
-<?
+<?php
 /* File: includes/smarty.inc.php
  * ====================================
  *
@@ -9,24 +9,28 @@
  * der globalen Variable $smarty gespeichert.
  *
  */
-
+/**
+ * File includes
+ * @include config.inc.php
+ */
+require_once( __DIR__ .'/config.inc.php');
 
 /** Pfad zu den Smarty Ordnern */
-define('WEB_ROOT',  __DIR__ .'/..');
-define('SMARTY_DIR',  WEB_ROOT.'/smartylib/');
-define('SMARTY_TEMPLATES_HTML',  WEB_ROOT.'/templates/');
-define('SMARTY_CACHE',  WEB_ROOT.'/../data/smartylib/cache/');
-define('SMARTY_COMPILE', WEB_ROOT.'/../data/smartylib/templates_c/');
+//define('WEB_ROOT',  __DIR__ .'/..');
+//define('SMARTY_DIR',  WEB_ROOT.'/smartylib/');
+//define('SMARTY_TEMPLATES_HTML',  WEB_ROOT.'/templates/');
+//define('SMARTY_CACHE',  WEB_ROOT.'/../data/smartylib/cache/');
+//define('SMARTY_COMPILE', WEB_ROOT.'/../data/smartylib/templates_c/');
 
 
 //$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
 require_once(SMARTY_DIR . 'Smarty.class.php');
 //$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
 //$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
-include_once(WEB_ROOT . '/includes/usersystem.inc.php');
+include_once(INCLUDES_DIR . 'usersystem.inc.php');
 //$prof->stopTimer( "smarty.inc.php: include_once usersystem.inc.php" );
 //$prof->startTimer( "smarty.inc.php: include_once comments.res.php" );
-include_once(WEB_ROOT . '/includes/comments.res.php');
+include_once(INCLUDES_DIR . 'comments.res.php');
 //$prof->stopTimer( "smarty.inc.php: include_once comments.res.php" );
 
 /**
@@ -49,7 +53,7 @@ $_tpl_stack = array();
 
 function tpl_comment_permission ($thread_id) {
 	global $db;
-	$e = $db->query("SELECT * FROM templates WHERE id='$thread_id'", __FILE__, __LINE__);
+	$e = $db->query('SELECT * FROM templates WHERE id='.$thread_id, __FILE__, __LINE__);
 	$d = $db->fetch($e);
 	return tpl_permission($d['read_rights'], $d['owner']);
 }
@@ -550,6 +554,6 @@ if (!isset($smarty)) $smarty = startSmarty();
 
 
 // required smarty files for registering all smarty features etc.
-require_once(WEB_ROOT.'/includes/smarty.fnc.php');
-require_once(WEB_ROOT.'/includes/smarty_menu.php');
-require_once(WEB_ROOT.'/includes/comments.fnc.php');
+require_once(INCLUDES_DIR.'smarty.fnc.php');
+require_once(INCLUDES_DIR.'smarty_menu.php');
+require_once(INCLUDES_DIR.'comments.fnc.php');

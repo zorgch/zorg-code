@@ -30,15 +30,20 @@
  */
 /**
  * File Includes
+ * @include config.inc.php
+ * @include usersystem.inc.php
+ * @include mysql.inc.php
+ * @include util.inc.php
  */
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/config.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
+require_once( __DIR__ .'/mysql.inc.php');
 include_once( __DIR__ .'/util.inc.php');
 
 /**
  * Globals
  */
-global $user, $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $layouttype;
+global $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $layouttype;
 
 
 /**

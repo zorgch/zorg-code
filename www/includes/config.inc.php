@@ -158,6 +158,14 @@ define('DEFAULT_MAXDEPTH', 10);
 //if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 /**
+ * Define Smarty constants
+ */
+define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
+define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
+define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
+define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
+
+/**
 * Grab the NASA API Key
 * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
 * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
