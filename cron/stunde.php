@@ -1,4 +1,11 @@
 <?php
+/**
+ * zorg cron jobs to run once per HOUR
+ *    $ sudo crontab -e
+ *      0 * * * * php -f /var/cron/stunde.php > /var/log/cron_stunde.log
+ */
+error_reporting(E_ERROR);
+
 /** Assign passed PHP CLI arguments to $_GET */
 if (!empty($argv[1])) {
   parse_str($argv[1], $_GET);

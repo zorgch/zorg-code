@@ -1,4 +1,11 @@
 <?php
+/**
+ * zorg cron jobs to run once per WEEK
+ *    $ sudo crontab -e
+ *      15 7 * * * php -f /var/cron/week.php > /var/log/cron_week.log
+ */
+error_reporting(E_ERROR);
+
 /** Assign passed PHP CLI arguments to $_GET */
 if (!empty($argv[1])) {
   parse_str($argv[1], $_GET);

@@ -1541,60 +1541,111 @@ function getRandomThumb() {
 
 
 /**
- * Get new Daily Pic
+ * Get Daily Pic
  *
- * @author ?
+ * @author [z]biko
  * @author IneX
- * @date 19.03.2018
- * @version 2.2
+ * @version 3.0
  * @since 1.0
- * @since 2.0 added Telegram Notification (photo message)
+ * @since 2.0 19.03.2018 added Telegram Notification (photo message)
  * @since 2.1 Telegram will send now high-res photo, instead of low-res thumbnail
  * @since 2.2 changed to new Telegram Send-Method
+ * @since 3.0 18.08.2018 function now only returns Daily Pic, generating a new Daily Pic is now done in setNewDailyPic()
  *
- * @see SITE_URL
- * @see imgsrcThum()
- * @see Telegram::send::photo()
+ * @see formatGalleryThumb()
  * @global object $db		MySQL-Datenbank Objekt aus mysql.inc.php
- * @global object $user		User-Objekte aus usersystem.inc.php
- * @global object $telegram	Globales Class-Object mit den Telegram-Methoden
+ * @return string|boolean	HTML-formatted String with Daily Pic Thumbnail, or false if something went wrong
  */
-function getDailyThumb () {
-	global $db, $user, $telegram;
-	$name = 'daily_pic';
+function getDailyThumb()
+{
+	global $db;
 
+	/** Get current Daily Pic */
 	try {
-		/**
-		 * Check if current Daily Pic is still from Today…
-		 */
-		$e = $db->query("SELECT g.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
-								FROM periodic p, gallery_pics g
-								WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT g.* FROM gallery_pics g
+						 INNER JOIN periodic p ON p.id=g.id
+						 WHERE p.name="daily_pic"', __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
-
-		/**
-		 * If current Daily Pic is old - generate a new one:
-		 */
-		if (!$d || $d['upd'])
-		{
-			/** Randomly get new Gallery-Pic */
-			$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__, __FUNCTION__);
-			$d = $db->fetch($e);
-			/** Add the new Daily-Pic into the periodic Database-Table */
-			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("'.$name.'", '.$d['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
-			if (DEVELOPMENT) error_log("[DEBUG] ".__FUNCTION__." new Daily Pic generated: ".$d['id']);
-
-			/** Telegram Notification auslösen */
-			// url = URL to the Pic, caption = "Daily Pic(: Title - if available) [<a href="img-url">aluegä</a>]"
-			$imgUrl = SITE_URL.imgsrcPic($d['id']);
-			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
-			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
-		}
-
-		return formatGalleryThumb($d);
-
 	} catch (Exception $e) {
 		error_log($e->getMessage());
+	}
+
+	/** If Daily Pic ID is available */
+	if (!empty($d) && $d['id'] > 0)
+	{
+		return formatGalleryThumb($d);
+
+	/** Daily Pic not found... */
+	} else {
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Daily Pic not found', __FUNCTION__, __LINE__));
+		return false;
+	}
+}
+
+
+/**
+ * Set a new random Daily Pic
+ *
+ * @author IneX
+ * @date 18.08.2018
+ * @version 1.0
+ * @since 1.0 18.08.2018 function added
+ *
+ * @see SITE_URL
+ * @see imgsrcPic(), picHasTitle()
+ * @see Telegram::send::photo()
+ * @global object $db		MySQL-Datenbank Objekt aus mysql.inc.php
+ * @global object $telegram	Globales Class-Object mit den Telegram-Methoden
+ * @return boolean Returns true or false, depending if new Daily Pic was set or not
+ */
+function setNewDailyPic()
+{
+	global $db, $telegram;
+
+	try {
+		/** Check if current Daily Pic is still from Today... */
+		$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
+						 FROM periodic p
+						 WHERE p.name="daily_pic"', __FILE__, __LINE__, __FUNCTION__);
+		$currdp = $db->fetch($sql);
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+	}
+
+	/** If current Daily Pic is old - generate a new one: */
+	if (!$currdp || $currdp['upd'] < 0)
+	{
+		/** Randomly select a new Gallery-Pic */
+		$sql = $db->query('SELECT id FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$newdp = $db->fetch($sql);
+
+		if (!$newdp || $newdp['id'] > 0)
+		{
+			/** Add the new Daily-Pic into the `periodic` Database-Table */
+			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("daily_pic", '.$newdp['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d', __FUNCTION__, __LINE__, $newdp['id']));
+
+			/**
+			 * Telegram Notification auslösen
+			 *     url = URL to the Pic
+			 *     caption = "Daily Pic[: Title - if available]"
+			 */
+			$imgUrl = SITE_URL.imgsrcPic($newdp['id']);
+			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
+			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
+
+			return true;
+
+		/** Error updating Daily Pic */
+		} else {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Updating Daily Pic: ERROR', __FUNCTION__, __LINE__));
+			return false;
+		}
+
+	/** Daily Pic for today is already set */
+	} else {
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Daily Pic for today already set', __FUNCTION__, __LINE__));
+		return false;
 	}
 }
 
