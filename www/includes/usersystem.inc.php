@@ -601,7 +601,6 @@ class usersystem {
 	*
 	* @return bool
 	*/
-
 	function islogged_in() {
 		if($_SESSION['user_id']) {
 			return TRUE;

@@ -21,47 +21,18 @@ include_once( __DIR__ . '/forum.inc.php');
 include_once( __DIR__ . '/messagesystem.inc.php');
 require_once( __DIR__ . '/usersystem.inc.php');
 
-
-/**
- * Ausstehende Züge
- * 
- * Gibt die Anzahl ausstehenden Peter züge zurück
- * 
- * @return unknown
- *
- * @todo IneX, 26.12.12: Wieso ist diese Funktion nicht in der Peter-Klasse?
- */
-function peter_zuege() {
-	global $db;
-
-	//Wenn user eingeloggt ist
-	if($_SESSION['user_id']) {
-		//Prüfen ob der User Peter züge machen kann
-		$sql = "
-		SELECT
-			game_id
-		FROM peter_games
-		WHERE 
-			next_player = $_SESSION[user_id]
-			AND 
-			status = 'lauft'";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		$rs = $db->fetch($result);
-		
-		$return = ($db->num($result)) ? "<a href='peter.php?game_id=$rs[game_id]'>".$db->num($result)." Peter </a> | " : "" ;
-		return $return;
-	}
-}
-
 /**
  * Peter Klasse
  * 
  * Dies ist die Hauptklasse zum Peter Spiel
  * 
  * @author [z]Duke, [z]domi, IneX
- * @version 2.0
- * @package Zorg
+ * package Zorg
  * @subpackage Peter
+ * @version 3.0
+ * @since 1.0 Class added
+ * @since 2.0
+ * @since 3.0 18.08.2018 Moved function for pending Peter-Games of a User as part of the Class
  */
 class peter {
 	
@@ -428,7 +399,45 @@ class peter {
 		('$game_id',1,'$_SESSION[user_id]')";
 		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 	}
+
+
+	/**
+	 * Ausstehende Peter Züge
+	 * Gibt die Anzahl ausstehenden Peter züge zurück
+	 *
+	 * @FIXME HTML-Link ins Template verlagern, als Return nur die Anzahl Züge zurückgeben (0 oder n-Züge)!
+	 *
+	 * @author [z]Duke, [z]domi, IneX
+	 * @version 2.0
+	 * @since 1.0 function added
+	 * @since 2.0 18.08.2018 function moved as method of peter()-Class
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @return string HTML-Code mit Link auf das nächste Peter-Spiel wo der User einen Zug machen kann
+	 */
+	public static function peter_zuege()
+	{
+		global $db, $user;
 	
+		/** Nur wenn user eingeloggt ist */
+		if($user->islogged_in())
+		{
+			//Prüfen ob der User Peter züge machen kann
+			$sql = 'SELECT
+						game_id
+					FROM peter_games
+					WHERE 
+						next_player = "'.$_SESSION['user_id'].'"
+						AND status = "lauft"';
+			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$rs = $db->fetch($result);
+
+			return ($db->num($result) ? '<a href="peter.php?game_id='.$rs['game_id'].'">'.$db->num($result).' Peter </a> | ' : '');
+		}
+	}
+
+
 	/**
 	 * Offene Spiele anzeigen
 	 * 

@@ -54,7 +54,8 @@ class Messagesystem {
 	 * @see BARBARA_HARRIS, Messagesystem::sendMessage()
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function execActions()
 	{
