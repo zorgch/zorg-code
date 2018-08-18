@@ -212,4 +212,11 @@ return
 		[
 			 'apod-pic-comment' => '<h4><a href="%s" target="_blank" rel="noopener noreferrer">%s</a></h4><blockquote>%s</blockquote><a href="%s" target="_blank" rel="noopener noreferrer">© %s</a>'
 		]
+	,'stl' =>
+		[
+			 'activity-newgame' => 'hat ein neues Shoot the Lamber-Spiel &laquo;%1$s&raquo; er&ouml;ffnet für %2$d vs. %2$d.<br/><a href="%3$s/stl.php?do=game&amp;game_id=%4$d">Jetzt joinen!</a>'
+			,'activity-won-gelb' => 'hat Team Gelb im STL-Spiel <a href="%s/stl.php?do=game&game_id=%d">%s</a> zum Sieg gef&uuml;hrt!'
+			,'activity-won-gruen' => 'hat Team Gr&uuml;n im STL-Spiel <a href="%s/stl.php?do=game&game_id=%d">%s</a> zum Sieg gef&uuml;hrt!'
+			,'activity-joingame' => 'ist dem STL-Spiel <a href="%s/stl.php?do=game&game_id=%d">%s</a> gejoined.'
+		]
 ];

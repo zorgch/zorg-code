@@ -282,6 +282,17 @@ font-size: 22px;
 	 text-align: center;
 }
 
+/** Shoot the Lamber */
+table.stl {
+	color: #000;
+}
+table.stl tr td del, table.stl tr td del .profilepic {
+	filter: grayscale(100%);
+	-webkit-filter: grayscale(100%);
+	text-decoration: line-through;
+	color: #666;
+}
+
 /** HTML5.2 Modial Dialog */
 dialog {
 	padding: 0;
@@ -350,6 +361,7 @@ dialog[open] { display: block; }
 div.profilepic {
 	display: inline-block;
 	text-align: center;
+	padding: 4px;
 }
 div.profilepic img {
 	width: 65px;

@@ -1,6 +1,6 @@
 <?
 	global $db, $user, $smarty;
-
+/* @DEPRECATED
 	if (isset($user) && isset($user->id) && $user->id > 0)
 	{
 		// addle
@@ -34,4 +34,4 @@
 	   // forum
 	   $smarty->assign("new_rezepte", Rezepte::getNumNewRezepte($user->id));
 	}
-?>
+*/
