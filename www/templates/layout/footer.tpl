@@ -13,7 +13,8 @@
 						{if $tplroot.write_rights || $tplroot.owner == $user->id}&nbsp;| {edit_link tpl=$tplroot.id}[edit]{/edit_link}{/if}
 						<br/>
 					{/if}
-					<span id="swisstime"></span> | Parsetime: {$smarty.now-$parsetime_start|round:2}s | Rendertime: {'stop'|rendertime:true|round:2}s {if $smarty.session.noquerys > 0}| {$smarty.session.noquerys} SQL Queries{if $user->sql_tracker} <a href="/?word=sql-query-tracker">[details]</a>{/if}{/if}
+					{math assign='parsetime' equation='end-start' start=$parsetime_start end="true"|microtime format="%.2f"}
+					<span id="swisstime"></span> | Parsetime: {$parsetime}s | Rendertime: {'stop'|rendertime:true|round:2}s {if $smarty.session.noquerys > 0}| {$smarty.session.noquerys} SQL Queries{if $user->sql_tracker} <a href="/?word=sql-query-tracker">[details]</a>{/if}{/if}
 					{if $spaceweather}<br />
 						{section name=i loop=$spaceweather max=2}
 							{$spaceweather[i].type}: {$spaceweather[i].value} |&nbsp;
