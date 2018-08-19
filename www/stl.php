@@ -19,14 +19,6 @@ require_once( __DIR__ .'/includes/stl.inc.php');
 
 $stl = new stl();
 
-/** Page Header & Menüs */
-$page_title = 'Shoot the Lamber';
-$smarty->assign('tplroot', array('page_title' => $page_title));
-$smarty->display('file:layout/head.tpl');
-echo menu('zorg');
-echo menu('games');
-echo '<h1>'.$page_title.'</h1>';
-
 /** Zugriff nur wenn User eingeloggt ist */
 if($user->islogged_in())
 {	
@@ -36,6 +28,7 @@ if($user->islogged_in())
 				$stl->shoot();
 			}
 			//echo head(46, "Shoot the Lamber");
+			printStlPageHeader();
 			echo $stl->data['game'];
 			echo $stl->data['legende'];
 
@@ -48,14 +41,17 @@ if($user->islogged_in())
 			if($db->num($result)) {
 				$rs = $db->fetch($result);
 				//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=".$rs['game_id']."&".session_name()."=".session_id());
-				header('Location: '.getChangedURL('do=game&game_id='.$rs['game_id']));
+				header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$rs['game_id']);
+				exit;
 			} else {
 				//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=overview&".session_name()."=".session_id());
-				header('Location: '.getChangedURL('do=overview'));
+				header('Location: '.base64_decode(getURL(false)).'?do=overview');
+				exit;
 			}
 		}
 	}
 	if($_GET['do'] == 'overview' || !isset($_GET['do'])) {
+		printStlPageHeader();
 		//echo head(45, "Shoot the Lamber");
 		echo $stl->data['overview'];
 		echo $stl->data['legende'];
@@ -66,16 +62,32 @@ if($user->islogged_in())
 		$sql = 'UPDATE stl SET status = 0 WHERE game_id = '.$_GET['game_id'];
 		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 		//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-		header('Location: '.getChangedURL('do=game&game_id='.$_GET['game_id']));
+		header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id']);
+		exit;
 	}
 	//echo foot(1);
 
 /** ...sonst "Access denied" (für nicht-eingeloggte) */
 } else {
 	//echo head(45, "Shoot the Lamber");
+	printStlPageHeader();
 	echo '<h4 style="color:#FF0000;">Wenn Du eingeloggt wärst, könntest Du hier Shoot the Lamber spielen... aber bis dahin: access denied!</h4>';
 	//echo foot(1);
 }
 
 /** Page Footer */
 $smarty->display('file:layout/footer.tpl');
+
+/**
+ * Function to print STL Page Header & Menüs
+ */
+function printStlPageHeader()
+{
+	global $smarty;
+	$page_title = 'Shoot the Lamber';
+	$smarty->assign('tplroot', array('page_title' => $page_title));
+	$smarty->display('file:layout/head.tpl');
+	echo menu('zorg');
+	echo menu('games');
+	echo '<h1>'.$page_title.'</h1>';
+}

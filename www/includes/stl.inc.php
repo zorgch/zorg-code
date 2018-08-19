@@ -437,7 +437,8 @@ class stl {
 			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 			
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.getChangedURL('do=game&game_id='.$_GET['game_id']));
+			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id']);
+			exit;
 		}	
 	}
 	
@@ -561,11 +562,9 @@ class stl {
 								game_id
 							FROM stl_players 
 							WHERE
-							game_id = '.$_GET['game_id'].'
-							AND
-							user_id = '.$user->id.'
-							AND
-							HOUR(last_shoot) <> HOUR(now())';
+								game_id = '.$_GET['game_id'].'
+							AND user_id = '.$user->id.'
+							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
 					$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 					
 					//Zuweisung der Message wenn geladen wird oder nicht
@@ -847,7 +846,7 @@ class stl {
 			}
 	
 			$this->data['overview'] .= '
-				<form action="'.getURL().'" method="post">
+				<form action="'.base64_decode(getURL()).'" method="post">
 					<table>
 					<tr><td align="center" colspan="2">
 						<h3>Neues Spiel starten</h3>
@@ -878,6 +877,8 @@ class stl {
 	* Neues Spiel erstellen
 	* Prüft ob ein neues Spiel erstellt werden will
 	*
+	* @FIXME Für creator in stl_players added: mysql_last_insert_id() nehmen (jetzt nimmt es immer letztes Spiel, auch wenn INSERT into stl failed...)
+	*
 	* @global object $db Globales Class-Object mit allen MySQL-Methoden
 	* @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	* @return void
@@ -905,19 +906,15 @@ class stl {
 				$sql = 'INSERT into stl 
 							(game_size, status, creator_id, game_title, num_players)
 						VALUES 
-							('.$game_size.',0,'.$user->id.','.$_POST['game_title'].','.$num_players.')';
+							('.$game_size.',0,'.$user->id.',"'.$_POST['game_title'].'",'.$num_players.')';
 				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 
 				//creator automatisch als spieler im neu erstellten game eintragen.
-				$sql = 'SELECT 
-							game_id 
-						FROM 
-							stl 
-						WHERE 
-							creator_id = '.$user->id.' 
-						ORDER by 	
-							game_id 
-						DESC';
+				$sql = 'SELECT game_id 
+						FROM stl 
+						WHERE creator_id = '.$user->id.' 
+						ORDER by game_id DESC
+						LIMIT 0,1';
 				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 				$rs = $db->fetch($result);
 				$sql = 'INSERT into stl_players
@@ -934,7 +931,8 @@ class stl {
 			}
 		}
 		if($go === true) {
-			header('Location: '.getURL());
+			header('Location: '.base64_decode(getURL(false)));
+			exit;
 		}
 	}
 
@@ -1039,10 +1037,12 @@ class stl {
 		}
 		if(!isset($msg)) {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.getChangedURL('do=game&game_id='.$_GET['game_id']));
+			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id']);
+			exit;
 		} else {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&msg=$msg&".session_name()."=".session_id());
-			header('Location: '.getChangedURL('do=game&game_id='.$_GET['game_id'].'&msg='.$msg));
+			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id'].'&msg='.$msg);
+			exit;
 		}
 	}
 
@@ -1063,7 +1063,7 @@ class stl {
 	public static function getOpenSTLGames()
 	{
 		global $db, $user;
-	
+
 		$count = 0;
 		if ($user->islogged_in())
 		{
@@ -1089,14 +1089,14 @@ class stl {
 				error_log($e->getMessage());			
 				return false;
 			}
-	
+
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' open STL game'.($count > 1 ? 's' : '').'</a>' : '' );
 		} else {
 			return null;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Offene STL-Spielzüge des Users
 	 * Gibt die Anzahl offener Spielzüge - bei denen der User mitspielt - aus, als HTML-Link zum nächsten Spielzug
@@ -1113,7 +1113,7 @@ class stl {
 	public static function getOpenSTLLink()
 	{
 		global $db, $user;
-	
+
 		$count = 0;
 		if ($user->islogged_in())
 		{
@@ -1121,7 +1121,6 @@ class stl {
 				$sql = 'SELECT
 							 stl.game_id AS game_id
 							,HOUR( pl.last_shoot) AS last_shoot
-							,HOUR(now()) AS akt
 						FROM stl
 							LEFT JOIN stl_players pl ON pl.game_id = stl.game_id
 							LEFT JOIN stl_positions p ON stl.game_id = p.game_id
@@ -1129,7 +1128,8 @@ class stl {
 							pl.user_id='.$user->id.'
 							AND stl.status=1
 							AND p.ship_user_id='.$user->id.'
-							AND p.hit_user_id=0';
+							AND p.hit_user_id=0
+							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
 				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 				$count = ($result ? $db->num($result) : 0);
 				$next = $db->fetch($result);
@@ -1138,10 +1138,7 @@ class stl {
 				error_log($e->getMessage());			
 				return false;
 			}
-			/*while($rs = $db->fetch($result)) {
-				if ($rs['akt'] != $rs['last_shoot']) { $count++; $id = $rs['game_id']; }		
-			}*/
-	
+
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' STL-shot'.($count > 1 ? 's' : '').'</a>' : '' );
 		} else {
 			return null;

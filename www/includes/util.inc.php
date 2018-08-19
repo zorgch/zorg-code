@@ -243,6 +243,7 @@ function set_daily_quote(){
 /** URL Funktionen */
 /**
  * Get & return current Script's URL & Parameters
+ * @FIXME Add 2nd Function-Parameter: $base64_encode=true - to enable/disable base64_encoding
  * @param boolean $preserve_query_string Whether or not to keep & return the QUERY_STRING with the URL, or not
  */
 function getURL($preserve_query_string=true)
