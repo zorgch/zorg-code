@@ -2,7 +2,7 @@
 /**
  * zorg cron jobs to run once per HOUR
  *    $ sudo crontab -e
- *      0 * * * * php -f /var/cron/stunde.php >/dev/null 2>/var/log/cron_stunde.log
+ *      0 * * * * php -f /var/cron/stunde.php >/dev/null 2>>/var/log/cron_stunde.log
  */
 error_reporting(E_ERROR);
 

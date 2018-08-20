@@ -646,9 +646,9 @@ function getGitCodeVersion()
 	try {
 		static $codeVersion = array();
 
-		$codeVersion['version'] = trim(exec('cd '.SITE_ROOT.' && git describe --tags --abbrev=0'));
-		$codeVersion['last_commit'] = trim(exec('cd '.SITE_ROOT.' && git log --pretty="%h" -n1 HEAD'));
-		$lastCommitDatetime = trim(exec('cd '.SITE_ROOT.' && git log -n1 --pretty=%ci HEAD'));
+		$codeVersion['version'] = trim(exec('git -C '.SITE_ROOT.' describe --tags --abbrev=0'));
+		$codeVersion['last_commit'] = trim(exec('git -C '.SITE_ROOT.' log --pretty="%h" -n1 HEAD'));
+		$lastCommitDatetime = trim(exec('git -C '.SITE_ROOT.' log -n1 --pretty=%ci HEAD'));
 		
 		$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
 		
