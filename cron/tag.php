@@ -2,7 +2,7 @@
 /**
  * zorg cron jobs to run once per DAY
  *    $ sudo crontab -e
- *      15 7 * * * php -f /var/cron/tag.php > /var/log/cron_tag.log
+ *      15 7 * * * php -f /var/cron/tag.php >/dev/null 2>/var/log/cron_tag.log
  */
 error_reporting(E_ERROR);
 

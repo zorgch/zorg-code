@@ -6,16 +6,22 @@ setlocale(LC_TIME, 'de_CH');
 date_default_timezone_set('Europe/Zurich');
 
 /**
+ * Start execution time measurement
+ */
+$parsetime_start = microtime(true);
+$sqltracker_numqueries = 0;
+
+/**
  * Environment-specific configurations: can be set in the Apache config using
  *    SetEnv environment 'development'
  *
- * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) 
+ * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) - default: false
  */
-define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), true);
+define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), false);
 
 /**
 * Define preferred Protocol that zorg.ch is running on
-* @const SITE_PROTOCOL https or http, required for building links like http(s)://...
+* @const SITE_PROTOCOL https or http, required for building links like http(s)://... - default: true
 * @link https://stackoverflow.com/questions/1175096/how-to-find-out-if-youre-using-https-without-serverhttps
 */
 $isSecure = false;
@@ -31,7 +37,12 @@ if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'h
 * Define preferred Hostname where zorg.ch is accessible on
 * @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../")
 */
-if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
+if (!defined('SITE_HOSTNAME') && isset($_SERVER['SERVER_NAME']))
+{
+	define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
+} else {
+	$_SERVER['SERVER_NAME'] = 'zorg.ch';
+}
 
 /**
 * Define preferred base URL where zorg.ch is accessible through

@@ -1,11 +1,5 @@
 <?php
 /**
- * Start execution time measurement
- */
-$parsetime_start = microtime(true);
-$sqltracker_numqueries = 0;
-
-/**
  * @include config.inc.php Include required global site configurations
  */
 require_once( __DIR__ . '/config.inc.php');

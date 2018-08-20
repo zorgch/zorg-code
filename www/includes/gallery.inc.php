@@ -897,30 +897,31 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 
 /**
  * Check User<-->Bild Verknüpfung
- * 
  * Prüft ob ein Benutzer bereits auf einem bestimmten Bild markiert wurde
- * 
+ *
  * @author keep3r, IneX
  * @date 19.08.2008
- * @version 2.0
- * @since 2.0
- * @package Zorg
- * @subpackage Gallery
+ * @version 1.1
+ * @since 1.0 19.08.2008 function added
+ * @since 1.1 20.08.2018 minor SQL-Query improvements
  *
  * @param integer $picID ID des betroffenen Bildes
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
- *
  * @return boolean Gibt true/false zurück, je nachdem ob User<->Bild Verknüpfung gefunden wurde
  */
 function checkUserToPic($userID, $picID)
 {
 	global $db;
-	
-	$sql = "SELECT * FROM gallery_pics_users WHERE user_id = '$userID' AND pic_id = '$picID'";
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-	//return $db->fetch($query);
-	
-	return ($db->num($result) > 0 ? true : false);
+
+	try {
+		$sql = 'SELECT * FROM gallery_pics_users WHERE user_id = '.$userID.' AND pic_id = '.$picID;
+		$result = $db->num($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+		return false;
+	}
+
+	return ($result > 0 ? true : false);
 }
 
 
@@ -1577,7 +1578,7 @@ function getDailyThumb()
 
 	/** Daily Pic not found... */
 	} else {
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Daily Pic not found', __FUNCTION__, __LINE__));
+		error_log(sprintf('[NOTICE] <%s:%d> %s Daily Pic not found', __FILE__, __LINE__, __FUNCTION__));
 		return false;
 	}
 }
@@ -1588,8 +1589,9 @@ function getDailyThumb()
  *
  * @author IneX
  * @date 18.08.2018
- * @version 1.0
+ * @version 1.1
  * @since 1.0 18.08.2018 function added
+ * @since 1.1 20.08.2018 minor code updates after extracting function from getDailyThumb()
  *
  * @see SITE_URL
  * @see imgsrcPic(), picHasTitle()
@@ -1619,7 +1621,7 @@ function setNewDailyPic()
 		$sql = $db->query('SELECT id FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
 		$newdp = $db->fetch($sql);
 
-		if (!$newdp || $newdp['id'] > 0)
+		if (!empty($newdp) || $newdp['id'] > 0)
 		{
 			/** Add the new Daily-Pic into the `periodic` Database-Table */
 			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("daily_pic", '.$newdp['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
@@ -1631,7 +1633,7 @@ function setNewDailyPic()
 			 *     caption = "Daily Pic[: Title - if available]"
 			 */
 			$imgUrl = SITE_URL.imgsrcPic($newdp['id']);
-			$imgCaption = 'Daily Pic' . (!picHasTitle($d['id']) ? '' : ': '.picHasTitle($d['id']));
+			$imgCaption = 'Daily Pic' . (!picHasTitle($newdp['id']) ? '' : ': '.picHasTitle($newdp['id']));
 			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
 
 			return true;

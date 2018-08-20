@@ -630,21 +630,25 @@ function urlExists($url)
  * Get Code information from Git
  * Usage: echo getGitVersion();
  * Result: MyApplication v1.2.3-dev.474a1d0 (2016-11-02 14:11:22)
+ * @link https://stackoverflow.com/a/33986403/5750030
  *
  * @author IneX
  * @date 04.02.2018
- * @version 1.0
- * @link https://stackoverflow.com/a/33986403/5750030
- * @return array
+ * @version 2.0
+ * @since 1.0 04.02.2018 function added
+ * @since 2.0 20.08.2018 fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
+ * @see SITE_ROOT
+ *
+ * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
  */
 function getGitCodeVersion()
 {
 	try {
 		static $codeVersion = array();
 
-		$codeVersion['version'] = trim(exec('git describe --tags --abbrev=0'));
-		$codeVersion['last_commit'] = trim(exec('git log --pretty="%h" -n1 HEAD'));
-		$lastCommitDatetime = trim(exec('git log -n1 --pretty=%ci HEAD'));
+		$codeVersion['version'] = trim(exec('cd '.SITE_ROOT.' && git describe --tags --abbrev=0'));
+		$codeVersion['last_commit'] = trim(exec('cd '.SITE_ROOT.' && git log --pretty="%h" -n1 HEAD'));
+		$lastCommitDatetime = trim(exec('cd '.SITE_ROOT.' && git log -n1 --pretty=%ci HEAD'));
 		
 		$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
 		
@@ -652,6 +656,7 @@ function getGitCodeVersion()
 
 	} catch (Exception $e) {
 		error_log($e->getMessage());
+		return false;
 	}
 }
 
