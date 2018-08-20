@@ -97,30 +97,43 @@ class stl {
 		//Posts
 		$this->exec();
 
-		if($_GET['game_id']) {
+		if(!empty($_GET['game_id']) && $_GET['game_id'] > 0) {
 			$sql = 'SELECT * FROM stl WHERE game_id = '.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			$this->data['stl'] = $db->fetch($result);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 
-			$sql = 'SELECT 
-						team_id 
-					FROM stl_players 
-					WHERE 
-						user_id = '.$user->id.' 
-						AND 
-						game_id = '.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			$rs = $db->fetch($result);
-			$this->data['team_id'] = $rs['team_id'];
+			/** Game-ID exists (Game can be loaded) */
+			if ($db->num($result) == 1) {
+				$this->data['stl'] = $db->fetch($result);
+	
+				$sql = 'SELECT 
+							team_id 
+						FROM stl_players 
+						WHERE 
+							user_id = '.$user->id.' 
+							AND 
+							game_id = '.$this->data['stl']['game_id'];
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$rs = $db->fetch($result);
+				$this->data['team_id'] = $rs['team_id'];
+	
+				$this->data['msg'][1] = 'Kommandant, ein Rettungsboot hat keine Torpedos!';
+				$this->data['msg'][2] = 'Kommandant, dieses Ziel ist uninteressant!';
+				$this->data['msg'][3] = 'Torpedos geladen und bereit!';
+				$this->data['msg'][4] = 'Kommandant, man schiesst nicht auf die eigenen Leute!';
+				$this->data['msg'][5] = 'Kommandant, Sie müssen warten bis die Torpedorohre nachgeladen sind!';
+				$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, in '.(60-date('i')).' Minuten ist es soweit';
+				$this->data['msg'][7] = 'Kommandant, die Schlacht ist vorbei!';
+	
+				$this->game();
+			
+			/** Invalid Game-ID - Game couldn't be loaded */
+			} else {
+				user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
+			}
 
-			$this->data['msg'][1] = 'Kommandant, ein Rettungsboot hat keine Torpedos!';
-			$this->data['msg'][2] = 'Kommandant, dieses Ziel ist uninteressant!';
-			$this->data['msg'][3] = 'Torpedos geladen und bereit!';
-			$this->data['msg'][4] = 'Kommandant, man schiesst nicht auf die eigenen Leute!';
-			$this->data['msg'][5] = 'Kommandant, Sie müssen warten bis die Torpedorohre nachgeladen sind!';
-			$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, in '.(60-date('i')).' Minuten ist es soweit';
-
-			$this->game();
+		/** Invalid $_GET['game_id'] Game-ID passed */
+		} else {
+			user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
 		}
 
 		/** Legende */
@@ -196,11 +209,10 @@ class stl {
 		</td><td align="left">
 		Meerfarbene Felder mit einer Namensabkürzung kennzeichnen gesunkene Teammitglieder
 		</td></tr></table>';
-		
+
 		$this->overview();
 	}
-	
-	
+
 
 	/**
 	 * STL Teams
@@ -221,10 +233,10 @@ class stl {
 					INNER JOIN stl_positions 
 						ON stl_players.user_id = stl_positions.ship_user_id
 				WHERE
-					stl_players.game_id = '.$_GET['game_id'].'
-					AND stl_positions.game_id = '.$_GET['game_id'].'
+					stl_players.game_id = '.$this->data['stl']['game_id'].'
+					AND stl_positions.game_id = '.$this->data['stl']['game_id'].'
 				ORDER BY hit_user_id ASC';
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 		while($rs = $db->fetch($result))
 		{
@@ -235,7 +247,7 @@ class stl {
 			}
 		}
 	}
-	
+
 	/**
 	 * Prüfen ob Spieler bereits gejoined 
 	 * Ermittelt ob ein Spieler bei einem Spiel bereits mitspielt (wenn nein, spielt er JETZT mit)
@@ -250,28 +262,28 @@ class stl {
 					game_id
 				FROM stl
 				WHERE status = 0
-				AND game_id = '.$_GET['game_id'];
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				AND game_id = '.$this->data['stl']['game_id'];
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		if($db->num($result)) {
 			$sql = 'SELECT 
 						user_id 
 					FROM stl_players 
 					WHERE 
-						game_id = '.$_GET['game_id'].'
+						game_id = '.$this->data['stl']['game_id'].'
 						AND user_id = '.$user->id;
 			$result = $db->query($sql);
 			//wenn spieler noch nicht eingetragen ist
 			if(!$db->num($result)) {
 				$sql = 'INSERT into stl_players (user_id, game_id)
-						VALUES ('.$user->id.','.$_GET['game_id'].')';
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+						VALUES ('.$user->id.','.$this->data['stl']['game_id'].')';
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 				/** Activity Eintrag auslösen */
-				Activities::addActivity($user->id, 0, t('activity-joingame', 'stl', [ SITE_URL, $_GET['game_id'], $this->config['game_title'] ]), 'sl');
+				Activities::addActivity($user->id, 0, t('activity-joingame', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ]), 'sl');
 			}
 		}
 	}
-	
+
 	/**
 	 * Prüfen ob Spielende möglich
 	 * Prüft ob ein Spiel beendet werden kann und ermittelt das Gewinner Team
@@ -282,12 +294,12 @@ class stl {
 	 */
 	function check4finish() {
 		global $db, $user;
-	
+
 		$sql = 'SELECT 
 					pos_id
 				FROM stl_positions
 				WHERE 
-					game_id = '.$_GET['game_id'].'
+					game_id = '.$this->data['stl']['game_id'].'
 					AND
 					ship_team_id = 1
 					AND 
@@ -296,13 +308,13 @@ class stl {
 					ship_user_id <> 0
 					AND
 					hit_user_id <> 0';
-		$win_team_gelb = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		
+		$win_team_gelb = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 		$sql = 'SELECT 
 					pos_id
 				FROM stl_positions
 				WHERE 
-					game_id = '.$_GET['game_id'].'
+					game_id = '.$this->data['stl']['game_id'].'
 					AND
 					ship_team_id = 0
 					AND 
@@ -311,35 +323,38 @@ class stl {
 					ship_user_id <> 0
 					AND 
 					hit_user_id <> 0';
-		$win_team_gruen = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$win_team_gruen = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 		if($db->num($win_team_gelb) == ($this->data['stl']['num_players'] / 2)) {
-			$sql = 'UPDATE stl
+			/*$sql = 'UPDATE stl
 						set
 						status = 2,
 						winner_team = 0
 					WHERE
 						game_id = '.$_GET['game_id'];
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);*/
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $game_id %d: %s', __METHOD__, __LINE__, $this->data['stl']['game_id'], t('activity-won-gelb', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ])));
+			$result = $db->update('stl', ['game_id', $this->data['stl']['game_id']], ['status' => 2, 'winner_team' => 0],__FILE__,__LINE__,__METHOD__);
 
 			/** Activity Eintrag auslösen */
-			Activities::addActivity($user->id, 0, t('activity-won-gelb', 'stl', [ SITE_URL, $_GET['game_id'], $this->config['game_title'] ]), 'sl');
+			if (!empty($result) && $result > 0) Activities::addActivity($user->id, 0, t('activity-won-gelb', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ]), 'sl');
 		}
 		if($db->num($win_team_gruen) == ($this->data['stl']['num_players'] / 2)) {
-			$sql = 'UPDATE stl
+			/*$sql = 'UPDATE stl
 						set
 						status = 2,
 						winner_team = 1
 					WHERE
 						game_id = '.$_GET['game_id'];
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);*/
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $game_id %d: %s', __METHOD__, __LINE__, $this->data['stl']['game_id'], t('activity-won-gruen', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ])));
+			$result = $db->update('stl', ['game_id', $this->data['stl']['game_id']], ['status' => 2, 'winner_team' => 1],__FILE__,__LINE__,__METHOD__);
 
 			/** Activity Eintrag auslösen */
-			Activities::addActivity($user->id, 0, t('activity-won-gruen', 'stl', [ SITE_URL, $_GET['game_id'], $this->config['game_title'] ]), 'sl');
-		}	
-		
+			if (!empty($result) && $result > 0) Activities::addActivity($user->id, 0, t('activity-won-gruen', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ]), 'sl');
+		}
 	}
-	
+
 	/**
 	* Prüft ein Spiel auf Spielstart
 	 * 
@@ -349,36 +364,33 @@ class stl {
 	 */
 	function check4start() {
 		global $db;
-		
-		$sql = 'SELECT count(user_id) as num FROM stl_players WHERE game_id = '.$_GET['game_id'];
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+
+		$sql = 'SELECT count(user_id) as num FROM stl_players WHERE game_id = '.$this->data['stl']['game_id'];
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rs = $db->fetch($result);
 		if($rs['num'] == $this->config['num_players']) {
-			$sql = "
-			SELECT 
-				*
-			FROM stl_players
-			WHERE 
-				game_id = '$_GET[game_id]'";
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$sql = 'SELECT *
+					FROM stl_players
+					WHERE game_id = '.$this->data['stl']['game_id'];
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			while($rs = $db->fetch($result)) {
 				$players[] = $rs['id'];
 			}
 			shuffle($players);
 			for($i=0;$i<=count($players);$i++) {
 				$team = ($i % 2);
-				$shoot_date = date("Y-m-s H:i:s",time()-5000);
+				$shoot_date = date('Y-m-s H:i:s',time()-5000);
 				$sql = 'UPDATE stl_players set team_id = '.$team.', last_shoot = NOW() WHERE id = '.$players[$i];
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			}
-			$sql = 'SELECT * FROM stl_players WHERE game_id = '.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$sql = 'SELECT * FROM stl_players WHERE game_id = '.$this->data['stl']['game_id'];
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			while($rs = $db->fetch($result)) {
-				
+
 				//grid array erstellen
 				$grid_x_array = range(1,$this->config['game_size']);
 				$grid_y_array = range(1,$this->config['game_size']);
-				
+
 				//x position
 				$num = 1;
 				$rand_x = array();
@@ -407,41 +419,39 @@ class stl {
 				$sql = 'INSERT INTO stl_positions
 							(game_id, grid_x, grid_y, ship_user_id, shoot_date)
 						VALUES
-							('.$_GET['game_id'].','.$grid_x.','.$grid_y.','.$rs['user_id'].', now())';
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+							('.$this->data['stl']['game_id'].','.$grid_x.','.$grid_y.','.$rs['user_id'].', now())';
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 				
 			}
-			
+
 			//team_id in positions table schreiben
 			$sql = 'SELECT 
 						team_id,
 						game_id,
 						user_id
 					FROM stl_players 
-					WHERE game_id = '.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+					WHERE game_id = '.$this->data['stl']['game_id'];
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			while($rs = $db->fetch($result)) {
-				$sql = "
-				UPDATE stl_positions
-				set
-					ship_team_id = '$rs[team_id]'
-				WHERE
-					ship_user_id = '$rs[user_id]'
-					AND
-					game_id = '$_GET[game_id]'";
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$sql = 'UPDATE stl_positions
+						SET
+							ship_team_id = '.$rs['team_id'].'
+						WHERE
+							ship_user_id = '.$rs['user_id'].'
+							AND
+							game_id = '.$this->data['stl']['game_id'];
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			}
 			//game starten
-			$sql = "
-			UPDATE stl set status = 1 WHERE game_id = '$_GET[game_id]'";
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			
+			$sql = 'UPDATE stl set status = 1 WHERE game_id = '.$this->data['stl']['game_id'];
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id']);
+			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
 			exit;
 		}	
 	}
-	
+
 	/**
 	 * STL Spiel 
 	 * Hauptfunktion, erstellt das gesamte Spielfeld und drum herum
@@ -452,8 +462,8 @@ class stl {
 	 */
 	function game() {
 		global $db, $user;
-		$sql = 'SELECT * FROM stl WHERE game_id = '.$_GET['game_id'];
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$sql = 'SELECT * FROM stl WHERE game_id = '.$this->data['stl']['game_id'];
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$this->config = $db->fetch($result);
 
 		if (!empty($this->config['game_title'])) $this->data['game'] .= '<h2>'.$this->config['game_title'].'</h2>';
@@ -468,8 +478,8 @@ class stl {
 			
 			$sql = 'SELECT user_id
 					FROM stl_players
-					WHERE game_id ='.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+					WHERE game_id ='.$this->data['stl']['game_id'];
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 			$this->data['game'] .= '<div>';
 			$this->data['game'] .= '<h4>Spieler bis jetzt:</h4>';
@@ -488,11 +498,12 @@ class stl {
 		/** Team anzeige & grid wenn spiel läuft */
 		if($this->config['status'] > 0)
 		{ 
-			//Prüfen ob das Spiel beendet werden kann.
-			$this->check4finish();
+			//Prüfen ob das Spiel beendet werden kann (status<2) - wenn es noch nicht beendet ist (status=2)
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> STL-Game Status: %d', __METHOD__, __LINE__, $this->data['stl']['status']));
+			if ($this->data['stl']['status'] < 2) $this->check4finish();
 
 			//Teams zuweisung ausführen und daten generieren
-			$this->teams(); 
+			$this->teams();
 
 			//Grid Infos
 			$sql = 'SELECT
@@ -516,12 +527,12 @@ class stl {
 							user.id = stl_positions.ship_user_id
 					WHERE 
 						stl_positions.game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			//erstellung eines daten-arrays (ist einfachen beim erstellen des grids
 			while($rs = $db->fetch($result)) {
 				$this->data['game_data'][$rs['grid_y']][$rs['grid_x']] = $rs;
 			}
-			
+
 			//Team ID zuweisungen
 			$sql = 'SELECT 
 						team_id 
@@ -538,7 +549,7 @@ class stl {
 			} else {
 				$this->team_id = 2;
 			}
-			
+
 			//Messages
 			if($_GET['msg']) {
 				//Bei übergabe
@@ -552,8 +563,8 @@ class stl {
 						WHERE 
 							ship_user_id = '.$user->id.' 
 							AND 
-							game_id = '.$_GET['game_id']; 
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+							game_id = '.$this->data['stl']['game_id']; 
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$rs = $db->fetch($result);
 				//Wenn der spieler noch im spiel ist
 				if($rs['hit_user_id'] == 0) {
@@ -562,25 +573,25 @@ class stl {
 								game_id
 							FROM stl_players 
 							WHERE
-								game_id = '.$_GET['game_id'].'
+								game_id = '.$this->data['stl']['game_id'].'
 							AND user_id = '.$user->id.'
 							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
-					$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+					$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 					
 					//Zuweisung der Message wenn geladen wird oder nicht
 					$msg = ($db->num($result)) ? $this->data['msg'][3] : $this->data['msg'][6];
 				
 				//Wenn der Spieler abgeschossen wurde.
 				} else {
-					$msg = $this->data['msg'][1];
+					$msg = ($this->data['stl']['status'] < 2 ? $this->data['msg'][1] : $this->data['msg'][7]);
 				}
 			}
-			//Prüfen ob das Spiel noch läuft.
+			//Prüfen ob das Spiel fertig ist.
 			if($this->data['stl']['status'] == 2) {
 				$winner = ($this->data['stl']['winner_team']) ? "Grün" : "Gelb";
 				$this->data['game'] .= '<h3 style="text-align:center">Team '.$winner.' hat gewonnen!</h3><br><br><br><br>';
 			}
-			
+
 			//Spielfeld & HTML
 			$this->data['game'] .= '
 			<table width="100%" cellpadding="4" cellspacing="1" class="border stl" align="center">
@@ -597,11 +608,11 @@ class stl {
 			<tr><td align="right" valign="top" bgcolor="#FFFFCC">
 			'.$this->data['team_gelb'].'
 			</td><td align="right" valign="middle" bgcolor="'.BORDERCOLOR.'">';
-			
-			
+
+
 			//Spielfeld
-			for($y = $this->data['stl']['game_size'];$y>=0;$y--) {
-				
+			for($y = $this->data['stl']['game_size'];$y>=0;$y--)
+			{
 				$this->data['game'] .=  '
 				<table cellpadding="5" cellspacing="0" align="center">
 				<tr>';
@@ -615,15 +626,15 @@ class stl {
 						} else {
 							$this->add[0] = 'bgcolor="'.MENUCOLOR2.'"';
 						}
-						$links = true;
+						$links = ($this->data['stl']['status'] == 1 ? true : false);
 						//=============================================================================
 						//Eigene Position
 						//=============================================================================
 						if($this->data['game_data'][$y][$x]['ship_user_id'] == $user->id) {
 							$this->add[0] = ($this->data['game_data'][$y][$x]['team_id'] ? 'bgcolor="#00FF00"' : 'bgcolor="#FFFF00"');
-							$link = false;
+							$links = false;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen eigene torpedos erfolgreich detonierten
 						//=============================================================================
@@ -633,9 +644,9 @@ class stl {
 						){
 							$this->add[0] = 'bgcolor="#FF0000"';
 							$this->add[3] = "<small>".substr($this->data['game_data'][$y][$x]['username'],0,2)."</small>";
-							$link = false;
+							$links = false;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen befreundete torpedos erfolgreich detonierten
 						//=============================================================================
@@ -648,9 +659,9 @@ class stl {
 						){
 							$this->add[0] = 'bgcolor="#FFCCCC"';
 							$this->add[3] = "<small>".substr($this->data['game_data'][$y][$x]['username'],0,2)."</small>";
-							$link = false;
+							$links = false;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen eigene torpedos erfolglos detonierten
 						//=============================================================================
@@ -661,7 +672,7 @@ class stl {
 							$this->add[0] = 'bgcolor="#000000"';
 							$links = false;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen befreundete torpedos erfolglos detonierten
 						//=============================================================================
@@ -674,7 +685,7 @@ class stl {
 							$this->add[0] = 'bgcolor="#666666"';
 							$links = false;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen feindliche torpedos erfolglos detonierten
 						//=============================================================================
@@ -687,7 +698,7 @@ class stl {
 							$this->add[0] = 'bgcolor="#0000FF"';
 							$links = false;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen befreundete Schiffe position bezogen haben
 						//=============================================================================
@@ -699,9 +710,9 @@ class stl {
 						) {
 							$this->add[0] = ($this->data['game_data'][$y][$x]['team_id'] ? "bgcolor='#CCFFCC'" : "bgcolor='#FFFFCC'");
 							$this->add[3] = "<small>".substr($this->data['game_data'][$y][$x]['username'],0,2)."</small>";
-							$links = false;
+							$links = true;
 						}
-						
+
 						//=============================================================================
 						//Positionen an denen befreundete Schiffe gesunken sind
 						//=============================================================================
@@ -715,11 +726,11 @@ class stl {
 							$this->add[3] = "<small>".substr($this->data['game_data'][$y][$x]['username'],0,2)."</small>";
 							$links = false;
 						}
-						
+
 						//Wenn links gesetzt werden sollen
 						if($links == TRUE) {
-							$this->data['game'] .= '<td '.$this->add[0].' onClick="document.location.href=\'?do=game&game_id='.$_GET['game_id'].'&shoot='.$x.','.$y.'\'" align="center" valign="middle" style="width:'.$this->case.'px;height:'.$this->case.'px; text-align: center;">
-							<a href="?do=game&game_id='.$_GET['game_id'].'&shoot='.$x.','.$y.'" style="text-decoration: none;"  align="center">
+							$this->data['game'] .= '<td '.$this->add[0].' onClick="document.location.href=\'?do=game&game_id='.$this->data['stl']['game_id'].'&shoot='.$x.','.$y.'\'" align="center" valign="middle" style="width:'.$this->case.'px;height:'.$this->case.'px; text-align: center;">
+							<a href="?do=game&game_id='.$this->data['stl']['game_id'].'&shoot='.$x.','.$y.'" style="text-decoration: none;"  align="center">
 							<b style="font-size:14px;">
 							'.$this->add[1].$this->add[3].$this->add[2].'
 							</b>
@@ -748,7 +759,7 @@ class stl {
 			</table>';
 		}
 	}
-	
+
 	/**
 	* Spieleübersicht anzeigen
 	* Übersichts funktion, zeigt alle offenen und joinbaren spiele eines users
@@ -764,7 +775,7 @@ class stl {
 	*/
 	function overview() {
 		global $db, $user;
-		
+
 		if ($user->islogged_in())
 		{
 			/** selektiert games bei denen ich mitmache */
@@ -789,14 +800,13 @@ class stl {
 						AND 
 						stl.status <> 2
 					ORDER by stl.status DESC';
-	
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-	
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 			/** wenns spiele gibt bei denen ich mitmachen */
 			if($db->num($result)) {
 				$this->data['overview'] = '<div align="center">
 				<h3>Deine aktiven Spiele:<br><small style="font-weight:normal;">(hier spielst du mit)</small></h3>';
-				
+
 				while($rs = $db->fetch($result)) {
 					if($rs['status'] == 1 && $rs['last_shoot'] != $rs['akt']) {
 						$add = " style='color:#FF0000; font-weight:bold;'";
@@ -810,7 +820,7 @@ class stl {
 				}
 				$this->data['overview'] .= "<br><br><br>";
 			}
-	
+
 			/** selektiert games bei denen ich nicht mitmache und noch joinen kann */
 			$sql = 'SELECT
 						stl.game_id as game_id,
@@ -830,8 +840,8 @@ class stl {
 						stl_players.user_id <> '.$user->id.'
 						AND
 						stl.status = 0';
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-	
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 			/** wenns games gibt wo ich nicht mitmache */
 			if($db->num($result)) {
 				$this->data['overview'] .= '<h3>Offene Spiele:<br><small style="font-weight:normal;">(hier könnt ihr noch joinen, klicken um zu joinen)</small></h3>';
@@ -844,7 +854,7 @@ class stl {
 				}
 				$this->data['overview'] .= '<br><br><br>';
 			}
-	
+
 			$this->data['overview'] .= '
 				<form action="'.base64_decode(getURL()).'" method="post">
 					<table>
@@ -872,7 +882,7 @@ class stl {
 			</div>';
 		}
 	}
-	
+
 	/**
 	* Neues Spiel erstellen
 	* Prüft ob ein neues Spiel erstellt werden will
@@ -907,7 +917,7 @@ class stl {
 							(game_size, status, creator_id, game_title, num_players)
 						VALUES 
 							('.$game_size.',0,'.$user->id.',"'.$_POST['game_title'].'",'.$num_players.')';
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 				//creator automatisch als spieler im neu erstellten game eintragen.
 				$sql = 'SELECT game_id 
@@ -915,13 +925,13 @@ class stl {
 						WHERE creator_id = '.$user->id.' 
 						ORDER by game_id DESC
 						LIMIT 0,1';
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$rs = $db->fetch($result);
 				$sql = 'INSERT into stl_players
 							(game_id, user_id)
 						VALUES
 							('.$rs['game_id'].', '.$user->id.')';
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 				//setzte redirect
 				$go = true;
@@ -950,37 +960,37 @@ class stl {
 					game_id
 				FROM stl_players 
 				WHERE
-					game_id = '.$_GET['game_id'].'
+					game_id = '.$this->data['stl']['game_id'].'
 					AND
 					user_id = '.$user->id.'
 					AND
 					HOUR(last_shoot) <> HOUR(now())';
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 		//Prüfen ob der Spieler schiessen darf und ob das Spiel den passenden Status hat
 		if($db->num($result) && $this->data['stl']['status'] == 1) {
 			$sql = 'SELECT 
 						hit_user_id
 					FROM stl_positions
 					WHERE
-						game_id = '.$_GET['game_id'].'
+						game_id = '.$this->data['stl']['game_id'].'
 						AND
 						ship_user_id = '.$user->id;
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rs = $db->fetch($result);
 			//Prüfen ob der Spieler nicht gesunken ist
 			if($rs['hit_user_id'] == 0) {
-				$x_grid = substr($_GET['shoot'],0,strrpos($_GET['shoot'],","));
-				$y_grid = substr($_GET['shoot'],strrpos($_GET['shoot'],",")+1);
-				
+				$x_grid = substr($_GET['shoot'],0,strrpos($_GET['shoot'],','));
+				$y_grid = substr($_GET['shoot'],strrpos($_GET['shoot'],',')+1);
+
 				//Prüfen ob ein Datensatz mit diesen Grid koords bereits besteht
 				$sql = 'SELECT *
 						FROM stl_positions
 						WHERE
 							grid_x = '.$x_grid.'
 							AND grid_y = '.$y_grid.'
-							AND game_id = '.$_GET['game_id'];
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+							AND game_id = '.$this->data['stl']['game_id'];
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				//wenn JA wird der bestehende Datensatz geupdatet
 				if($db->num($result)) {
 					$rs = $db->fetch($result);
@@ -994,15 +1004,15 @@ class stl {
 											shoot_date = now()
 									WHERE
 										pos_id = '.$rs['pos_id'];
-							$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-							
+							$db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 							//last_shoot neu setzen
 							$sql = 'UPDATE stl_players
 										SET last_shoot = now()
 									WHERE
-										game_id = '.$_GET['game_id'].'
+										game_id = '.$this->data['stl']['game_id'].'
 										AND user_id = '.$user->id;
-							$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+							$db->query($sql,__FILE__,__LINE__,__METHOD__);
 							
 							$this->check4finish();
 						} else {
@@ -1017,31 +1027,31 @@ class stl {
 					$sql = 'INSERT into stl_positions
 								(game_id, grid_x, grid_y, hit_user_id, hit_team_id, shoot_date)
 							VALUES
-								('.$_GET['game_id'].','.$x_grid.','.$y_grid.','.$user->id.','.$this->data['team_id'].',now())';
-					$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+								('.$this->data['stl']['game_id'].','.$x_grid.','.$y_grid.','.$user->id.','.$this->data['team_id'].',now())';
+					$db->query($sql,__FILE__,__LINE__,__METHOD__);
 					
 					//last_shoot neu setzen
 					$sql = 'UPDATE stl_players
 								SET last_shoot = now()
 							WHERE
-								game_id = '.$_GET['game_id'].'
+								game_id = '.$this->data['stl']['game_id'].'
 								AND user_id = '.$user->id;
-					$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+					$db->query($sql,__FILE__,__LINE__,__METHOD__);
 				}
 			} else {
 				//echo "gesunken";
-				$msg = 1;
+				$msg = ($this->data['stl']['status'] < 2 ? 1 : 5);
 			}
 		} else {
-			$msg = 5;
+			$msg = ($this->data['stl']['status'] < 2 ? 5 : 0);
 		}
 		if(!isset($msg)) {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id']);
+			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
 			exit;
 		} else {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&msg=$msg&".session_name()."=".session_id());
-			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$_GET['game_id'].'&msg='.$msg);
+			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg);
 			exit;
 		}
 	}
@@ -1082,7 +1092,7 @@ class stl {
 							AND stlg.creator_id<>'.$user->id.'
 							AND stljp.user_id IS NULL
 						GROUP BY stlg.game_id';
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$count = ($result ? $db->num($result) : 0);
 				$next = $db->fetch($result);
 			} catch (Exception $e) {
@@ -1130,10 +1140,10 @@ class stl {
 							AND p.ship_user_id='.$user->id.'
 							AND p.hit_user_id=0
 							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$count = ($result ? $db->num($result) : 0);
 				$next = $db->fetch($result);
-	
+
 			} catch (Exception $e) {
 				error_log($e->getMessage());			
 				return false;

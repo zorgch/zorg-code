@@ -246,35 +246,45 @@ class dbconn {
 	/**
 	 * Ändert eine Row ein einer DB-Table, ähnlich insert
 	 *
-	 * @author biko
-	 * @param $table (String) Tabelle, in der ge?ndert werden soll
-	 * @param $id (Array) $id[0]: Name des Prim?rschl?sselfeldes / $id[1+] Rows, die ge?ndert werden sollen
-	 * @param $id (int) Row, die ge?ndert werden soll, nimmt Prim?rschl?sselfeld als 'id' an
-	 * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
-	 * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
-	 * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
+	 * @author [z]biko
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 1.1 10.11.2017 added 3rd optional parameter $funktion for better logging
+	 * @since 2.0 20.08.2018 added return as mysql_affected_rows()
+	 *
+	 * @FIXME nicht PHP7.x-kompatibel
+	 * @FIXME array($id) soll nicht key,value-Pairs parsen, sondern direkt der Vergleich (z.B. "id>2"), aktuell kann nur auf 1 name & mehrere exakte values geprüft werden: "a=b OR a=c"
+	 *
+	 * @param string $table Name der Tabelle, in der geändert werden soll
+	 * @param array|int $id Array: $id[0]: Name des Primärschlüsselfeldes + $id[1+] Rows, die geändert werden sollen | bei String: Row, die geändert werden soll, nimmt Primärschlüsselfeld als 'id' an
+	 * @param array $values Array mit Table-Feldern (als Key) und den Werten (als Values), z.B. 'name'=>'value' oder 'name'=>23
+	 * @param string $file (optional) Datei des Aufrufes, für Fehlermeldung
+	 * @param int $line (optional) Zeile des Aufrufes, für Fehlermeldung
+	 * @param string $funktion (optional) Funktion wo der Aufruf stattfand, für Fehlermeldung
+	 * @return integer Anzahl der geänderten Table-Rows des Update Queries
 	*/
 	function update($table, $id, $values, $file="", $line="", $funktion="") {
 		if (!is_array($values)) {
-			echo "Wrong Parameter type $values in db->insert()";
+			echo 'Wrong Parameter type '.print_r($values,true).' in db->update()';
 			exit;
 		}
 		if (!is_array($id)) {
 			$tmp = $id;
-			$id = array("id", $tmp);
+			$id = array('id', $tmp);
 		}
 
-		$sql = "UPDATE ".$table." SET ";
+		$sql = 'UPDATE '.$table.' SET ';
 		foreach ($values as $key => $val) {
-			$sql .= $key."='".$val."', ";
+			$sql .= $key.'="'.$val.'", ';
 		}
 		$sql = substr($sql, 0, -2);
-		$sql .= " WHERE ";
+		$sql .= ' WHERE ';
 		for ($i=1; $i<sizeof($id); $i++) {
-			$sql .= $id[0]."='".$id[$i]."' OR ";
+			$sql .= $id[0].'="'.$id[$i].'" OR ';
 		}
 		$sql = substr($sql, 0, -4);
 		$this->query($sql, $file, $line, $funktion);
+		return mysql_affected_rows();
 	}
 }
 
