@@ -15,16 +15,18 @@ $sqltracker_numqueries = 0;
  * Environment-specific configurations: can be set in the Apache config using
  *    SetEnv environment 'development'
  *
- * @const DEVELOPMENT Contains either 'true' or 'false' (boolean) - default: false
+ * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false
+ * @include	development.config.php	If DEVELOPMENT, load a corresponding config file containing DEV-specific settings. Was already checked to exist at define('DEVELOPMENT', true/false)
  */
-define('DEVELOPMENT', ( isset($_SERVER['environment']) && $_SERVER['environment'] == 'development' ? true : false ), false);
+define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( __DIR__ .'/development.config.php') ? true : false ), false);
+if (DEVELOPMENT) include_once( __DIR__ . '/development.config.php');
 
 /**
 * Define preferred Protocol that zorg.ch is running on
-* @const SITE_PROTOCOL https or http, required for building links like http(s)://... - default: true
+* @const SITE_PROTOCOL https or http, required for building links like http(s)://... - Default: true
 * @link https://stackoverflow.com/questions/1175096/how-to-find-out-if-youre-using-https-without-serverhttps
 */
-$isSecure = false;
+$isSecure = true;
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
     $isSecure = true;
 }
@@ -35,14 +37,10 @@ if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'h
 
 /**
 * Define preferred Hostname where zorg.ch is accessible on
-* @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../")
+* @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../") - Default: zorg.ch
 */
-if (!defined('SITE_HOSTNAME') && isset($_SERVER['SERVER_NAME']))
-{
-	define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
-} else {
-	$_SERVER['SERVER_NAME'] = 'zorg.ch';
-}
+if (empty($_SERVER['SERVER_NAME'])) $_SERVER['SERVER_NAME'] = 'zorg.ch';
+if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
 
 /**
 * Define preferred base URL where zorg.ch is accessible through
@@ -68,12 +66,6 @@ if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log', true);
 if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
 if (!defined('ERRORLOG_FILEPATH')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE, true);
 require_once( __DIR__ .'/errlog.inc.php');
-
-/**
- * If DEVELOPMENT, load a corresponding config file
- * @include	development.config.php File containing DEV-specific settings
- */
-if (DEVELOPMENT) include_once( __DIR__ . '/development.config.php');
 
 /**
  * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
@@ -148,33 +140,33 @@ if (!defined('CSS_DIR')) define('CSS_DIR', '/css/', true);
  * @const USER_OLD_AFTER	Zeit bis ein User als "alt" gilt -> 3 Monate
  * @const DEFAULT_MAXDEPTH	Standard Setting für die Anzeigetiefe von Comments in Forum-Threads
  */
-define('USER_ALLE', 0);
-define('USER_USER', 1);
-define('USER_MEMBER', 2);
-define('USER_SPECIAL', 3);
+if (!defined('USER_ALLE')) define('USER_ALLE', 0);
+if (!defined('USER_USER')) define('USER_USER', 1);
+if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
+if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
 //define('USER_EINGELOGGT', 0);
 //define('USER_MEMBER', 1);
 //define('USER_NICHTEINGELOGGT', 2);
 //define('USER_ALLE', 3);
-define('USER_IMGEXTENSION',  '.jpg');
-define('USER_IMGPATH',  __DIR__ .'/../../data/userimages/');
-define('USER_IMGPATH_PUBLIC', '/data/userimages/');
-define('USER_IMGSIZE_LARGE', 427);
-define('USER_IMGSIZE_SMALL', 150);
-define('USER_IMGPATH_DEFAULT', 'none.jpg');
-define('USER_TIMEOUT', 200);
-define('USER_OLD_AFTER', 60*60*24*30*3); // 3 Monate
-define('DEFAULT_MAXDEPTH', 10);
+if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
+if (!defined('USER_IMGPATH')) define('USER_IMGPATH',  __DIR__ .'/../../data/userimages/');
+if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
+if (!defined('USER_IMGSIZE_LARGE')) define('USER_IMGSIZE_LARGE', 427);
+if (!defined('USER_IMGSIZE_SMALL')) define('USER_IMGSIZE_SMALL', 150);
+if (!defined('USER_IMGPATH_DEFAULT')) define('USER_IMGPATH_DEFAULT', 'none.jpg');
+if (!defined('USER_TIMEOUT')) define('USER_TIMEOUT', 200);
+if (!defined('USER_OLD_AFTER')) define('USER_OLD_AFTER', 60*60*24*30*3); // 3 Monate
+if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', 10);
 //define('AUSGESPERRT_BIS', 'ausgesperrt_bis');
 //if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 /**
  * Define Smarty constants
  */
-define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
-define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
-define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
-define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
+if (!defined('SMARTY_DIR')) define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
+if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
+if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
+if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
 
 /**
 * Grab the NASA API Key
@@ -195,3 +187,9 @@ if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', 41);
 if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', __DIR__.'/../../data/temp/');
 if (!defined('APOD_SOURCE')) define('APOD_SOURCE', 'https://apod.nasa.gov/apod/');
 if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key=' . NASA_API_KEY);
+
+/**
+ * Define and include various Telegram-Bot/Telegram-Messaging related constants and files
+ * @include telegrambot.inc.php Required to send Telegram-Notifications
+ */
+include_once( __DIR__ .'/telegrambot.inc.php');

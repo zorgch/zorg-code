@@ -217,6 +217,7 @@ Class Telegram
 		 * Add missing Server address in HTML-Links inside Notification Text
 		 */
 		if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
+		if (strpos($notificationText, 'zorg.local') > 0) $notificationText = str_replace('zorg.local', 'zorg.ch', $notificationText);
 
 		/**
 		 * Strip away all HTML-tags & unix line breaks
