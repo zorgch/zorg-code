@@ -540,18 +540,17 @@ class peter {
 			</td></tr>";
 		}
 
-		$sql = "
-		SELECT
-			pg.game_id,
-			pg.next_player,
-			(SELECT join_id FROM peter_players WHERE game_id=pp.game_id AND user_id=pg.next_player) join_id,
-			pg.players
-		FROM peter_players pp
-		LEFT JOIN peter_games pg
-			ON pg.game_id = pp.game_id
-		WHERE 
-			pg.status = 'lauft'
-		GROUP BY pg.game_id";
+		$sql = 'SELECT
+					pg.game_id,
+					pg.next_player,
+					(SELECT join_id FROM peter_players WHERE game_id=pp.game_id AND user_id=pg.next_player) join_id,
+					pg.players
+				FROM peter_players pp
+				LEFT JOIN peter_games pg
+					ON pg.game_id = pp.game_id
+				WHERE 
+					pg.status = "lauft"
+				GROUP BY pg.game_id';
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		if ($return_html) {
 			while($rs = $db->fetch($result)) {
@@ -917,7 +916,7 @@ class peter {
 							WHERE
 								game_id = '.$force_next_player['game_id'].'
 								AND join_id = '.$next_join_id.'
-								AND DATE((SELECT last_activity FROM peter_games WHERE game_id = 301)) < (NOW() - INTERVAL 0 DAY)'; // Check if last_activity is older than 7 days
+								AND DATE((SELECT last_activity FROM peter_games WHERE game_id = 301)) < (NOW() - INTERVAL 7 DAY)'; // Check if last_activity is older than 7 days
 					$next_player = $db->fetch($db->query($sql,__FILE__,__LINE__,__METHOD__));
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $next_player: %s', __METHOD__, __LINE__, print_r($next_player,true)));
 	
