@@ -1099,7 +1099,6 @@ class stl {
 				error_log($e->getMessage());			
 				return false;
 			}
-
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' open STL game'.($count > 1 ? 's' : '').'</a>' : '' );
 		} else {
 			return null;
@@ -1143,12 +1142,10 @@ class stl {
 				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$count = ($result ? $db->num($result) : 0);
 				$next = $db->fetch($result);
-
 			} catch (Exception $e) {
 				error_log($e->getMessage());			
 				return false;
 			}
-
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' STL-shot'.($count > 1 ? 's' : '').'</a>' : '' );
 		} else {
 			return null;

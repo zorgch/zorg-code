@@ -15,13 +15,11 @@
  * @include forum.inc.php
  * @include messagesystem.inc.php
  * @include usersystem.inc.php required
- * @include smarty.inc.php required
  */
 require_once( __DIR__ . '/config.inc.php');
 include_once( __DIR__ . '/forum.inc.php');
 include_once( __DIR__ . '/messagesystem.inc.php');
 require_once( __DIR__ . '/usersystem.inc.php');
-require_once( __DIR__ . '/smarty.inc.php');
 
 /**
  * Peter Klasse
@@ -425,8 +423,7 @@ class peter {
 						next_player = '.$_SESSION['user_id'].'
 						AND status = "lauft"';
 			$peter_games = $db->fetch($db->query($sql,__FILE__,__LINE__,__METHOD__));
-
-			return ($peter_games['num_open'] > 0 ? $peter_games : false);
+			return (!empty($peter_games) && $peter_games['num_open'] > 0 ? $peter_games : 0);
 		} else {
 			return false;
 		}

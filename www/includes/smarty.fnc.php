@@ -623,6 +623,21 @@ function var_request ()
       return highscore_dwz($params[anzahl]);
     }*/
 
+	/**
+	 * Peter
+	 */
+	function smarty_peter ($params, &$smarty) {
+		$smarty->assign('peter_zuege', peter::peter_zuege());
+	}
+
+	/**
+	 * Shoot the Lamber
+	 */
+	function smarty_stl_games ($params, &$smarty) {
+		$smarty->assign('stl_shots', stl::getOpenSTLLink());
+		$smarty->assign('stl_open_games', stl::getOpenSTLGames());
+	}
+
     /**
 	 * Quotes
 	 */
@@ -1428,12 +1443,13 @@ function smarty_menuname ($name, &$smarty) {
 								,'random_quote' => [ 'smarty_getrandomquote', 'random_quote', 'Quotes', '{random_quote} display a random quote', false, false ]
 								,'daily_quote' => [ 'smarty_getdailyquote', 'daily_quote', 'Quotes', '{daily_quote} display a daily quote', false, false ]
 								,'poll' => [ 'smarty_poll', 'poll', 'Polls', '{poll id=23}', false, false ]
-								,'stl_shots' => [ array('stl', 'getOpenSTLLink'), 'stl_shots', 'STL', 'Shoot the lamber: offene Spielzüge für den User', false, false ]
-								,'stl_open_games' => [ array('stl', 'getOpenSTLGames'), 'stl_open_games', 'STL', 'Shoot the lamber: offene Games zum joinen für den User', false, false ]
+								,'shoot the lamber' => [ 'smarty_stl_games', 'get_stl_games', 'STL', '{get_stl_games} Shoot the lamber: lädt Link zu offene Spielzügen & Link zu offenen STL-Spielen für den User', false, false ]
+								//,'stl_shots' => [ 'smarty_stl_shots', 'assign_stl_shots', 'STL', '{stl_shots} Shoot the lamber: offene Spielzüge für den User', false, false ]
+								//,'stl_open_games' => [ 'smarty_stl_open_games', 'assign_stl_open_games', 'STL', '{stl_open_games} Shoot the lamber: offene Games zum joinen für den User', false, false ]
 								,'latest_updates' => [ 'getLatestUpdates', 'latest_updates', 'Smarty Templates', '{latest_updates}  table mit den letzten smarty-updates', false, false ]
 								,'edit_url' => [ 'smarty_edit_link_url', 'edit_url', 'Smarty Templates', '{edit_url tpl=x}  tpl ist optional. default: aktuelles tpl.', false, false ]
 								,'spaceweather' => [ 'spaceweather_ticker', 'spaceweather', 'Space', 'spaceweather', false, false ]
-								,'peter' => [ array('peter', 'peter_zuege'), 'peter', 'Peter', '{peter} Gibt die offenen Peter Züge eines Users aus', false, false ]
+								,'peter_zuege' => [ 'smarty_peter', 'get_peter_zuege', 'Peter', '{get_peter_zuege} Lädt ein Array das die Anzahl offener Peter Züge eines Users, und die game_id eines Peter Spiels mit offenem Zug, enthält ', false, false ]
 								,'sql_errors' => [ 'smarty_sql_errors', 'sql_errors', 'System', 'sql errors', false, false ]
 								,'assign_stocklist' => [ 'stockbroker_assign_stocklist', 'assign_stocklist', 'Stockbroker', 'Stockbroker', false, false ]
 								,'stockbroker_assign_stock' => [ 'stockbroker_assign_stock', 'assign_stock', 'Stockbroker', 'Stockbroker', false, false ]
