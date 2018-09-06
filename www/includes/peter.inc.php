@@ -11,15 +11,17 @@
  */
 /**
  * File includes
- * @include config.inc.php
+ * @include config.inc.php required
  * @include forum.inc.php
  * @include messagesystem.inc.php
- * @include usersystem.inc.php
+ * @include usersystem.inc.php required
+ * @include smarty.inc.php required
  */
 require_once( __DIR__ . '/config.inc.php');
 include_once( __DIR__ . '/forum.inc.php');
 include_once( __DIR__ . '/messagesystem.inc.php');
 require_once( __DIR__ . '/usersystem.inc.php');
+require_once( __DIR__ . '/smarty.inc.php');
 
 /**
  * Peter Klasse
@@ -396,35 +398,37 @@ class peter {
 	 * Ausstehende Peter Züge
 	 * Gibt die Anzahl ausstehenden Peter züge zurück
 	 *
-	 * @FIXME HTML-Link ins Template verlagern, als Return nur die Anzahl Züge zurückgeben (0 oder n-Züge)!
-	 *
 	 * @author [z]Duke, [z]domi, IneX
-	 * @version 2.0
+	 * @version 3.0
 	 * @since 1.0 function added
 	 * @since 2.0 18.08.2018 function moved as method of peter()-Class
+	 * @since 3.0 06.09.2018 function returns now only game_id if >0 open Games are found - or 0 if none
 	 *
+	 * @see /scripts/header.php
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return string HTML-Code mit Link auf das nächste Peter-Spiel wo der User einen Zug machen kann
+	 * @return boolean True/false depening if query result exists or not
 	 */
 	public static function peter_zuege()
 	{
 		global $db, $user;
-	
+
 		/** Nur wenn user eingeloggt ist */
 		if($user->islogged_in())
 		{
-			//Prüfen ob der User Peter züge machen kann
+			/** Anzahl offener Peter Züge des Users holen */
 			$sql = 'SELECT
+						count(*) num_open,
 						game_id
 					FROM peter_games
 					WHERE 
-						next_player = "'.$_SESSION['user_id'].'"
+						next_player = '.$_SESSION['user_id'].'
 						AND status = "lauft"';
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-			$rs = $db->fetch($result);
+			$peter_games = $db->fetch($db->query($sql,__FILE__,__LINE__,__METHOD__));
 
-			return ($db->num($result) ? '<a href="peter.php?game_id='.$rs['game_id'].'">'.$db->num($result).' Peter </a> | ' : '');
+			return ($peter_games['num_open'] > 0 ? $peter_games : false);
+		} else {
+			return false;
 		}
 	}
 
