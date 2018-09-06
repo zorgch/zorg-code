@@ -73,4 +73,3 @@ if($_GET['img'] == "karten") {
 }
 
 ob_end_flush(); // Beendet das Output-Buffering
-?>

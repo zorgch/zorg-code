@@ -683,7 +683,7 @@ class Messagesystem {
 
 		/** Validate function parameters */
 		if(!isset($owner) || empty($owner) || $owner <= 0) {
-			error_log(sprintf('<%s:%d> %s $owner ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $owner));
+			error_log(sprintf('<%s:%d> %s $owner ERROR: %s', __FILE__, __LINE__, __METHOD__, $owner));
 			return false;
 		}
 		if(!isset($to_users) || empty($to_users)) $to_users = $owner;
@@ -693,7 +693,7 @@ class Messagesystem {
 		 * Send Message to recipient(s)
 		 */
 		try {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', $subject, $owner));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', __METHOD__, __LINE__, $subject, $owner));
 			$sql = sprintf('INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
 							VALUES (%d, %d, "%s", "%s", NOW(), "%s", "%s")',
 							$from_user_id, $owner, escape_text($subject), escape_text($text), $isread, $to_users);

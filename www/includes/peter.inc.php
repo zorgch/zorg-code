@@ -35,10 +35,18 @@ require_once( __DIR__ . '/usersystem.inc.php');
  * @since 3.0 18.08.2018 Moved function for pending Peter-Games of a User as part of the Class
  */
 class peter {
-	
-	//zorg user id des Rosenverkäufers
-	static $r_id = 439;
-	
+
+	/** Class Constants */
+	private static $next_zug_messagesubjects = [
+				 'Du bisch dra i &uuml;sem Peter Spiel'
+				,'Maaach mol din Zug im Peter!'
+				,'Hallo? Spielsch no mit im Peter oder wa?'
+				,'Peter ruft!'
+				,'Du Peter, spiel mol din Peter Zug!'
+				,'Blah blah blah isch din Zug im Peter blah blah'
+				,'Spiel Peter oder i segs dim Mami!'
+			];
+
 	/**
 	 * Peter Klassenkonstruktor
 	 * 
@@ -79,27 +87,24 @@ class peter {
 			if($rand == 23)
 			{
 				//...und Rosenverkäufer heute noch nicht online war
-				$sql = "
-				SELECT
-					UNIX_TIMESTAMP(lastlogin) as lastlogin
-				FROM
-					user
-				WHERE
-					id = '".peter::$r_id."'
-					AND UNIX_TIMESTAMP(lastlogin) < UNIX_TIMESTAMP(CAST(NOW() - INTERVAL 1 DAY AS DATE))";
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$sql = 'SELECT
+							UNIX_TIMESTAMP(lastlogin) as lastlogin
+						FROM
+							user
+						WHERE
+							id = '.ROSENVERKAEUFER.'
+							AND UNIX_TIMESTAMP(lastlogin) < UNIX_TIMESTAMP(CAST(NOW() - INTERVAL 7 DAY AS DATE))';
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				
 				if ($db->num($result) != FALSE)
 				{
 					//...Rosenverkäufer einloggen
-					$sql = "
-					UPDATE user 
-					SET
-						lastlogin = currentlogin,
-						currentlogin = now(),
-						activity = now()
-					WHERE id = '".peter::$r_id."'";
-					$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+					$sql = 'UPDATE user SET
+								lastlogin = currentlogin,
+								currentlogin = now(),
+								activity = now()
+							WHERE id = '.ROSENVERKAEUFER;
+					$db->query($sql,__FILE__,__LINE__,__METHOD__);
 					
 				} else {
 					// Return 0 so nothing will happen...
@@ -111,15 +116,13 @@ class peter {
 		} else {
 		
 			//Prüfen auf Rosenverkäufer
-			$sql = "
-			SELECT
-				UNIX_TIMESTAMP(activity) as act
-			FROM user
-			WHERE 
-				id = '".peter::$r_id."'
-				AND
-				(UNIX_TIMESTAMP(activity) + ".USER_TIMEOUT.") > UNIX_TIMESTAMP(now())";
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$sql = 'SELECT
+						UNIX_TIMESTAMP(activity) as act
+					FROM user
+					WHERE 
+						id = '.ROSENVERKAEUFER.'
+						AND (UNIX_TIMESTAMP(activity) + '.USER_TIMEOUT.') > UNIX_TIMESTAMP(now())';
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rosen = $db->num($result);
 			
 			return $rosen;
@@ -143,7 +146,7 @@ class peter {
 		FROM peter_games 
 		WHERE 
 			game_id = '".$this->game_id."'";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rs = $db->fetch($result);
 		
 		//anzahl spieler ermitteln
@@ -168,7 +171,7 @@ class peter {
 		}
 		
 		//karten selektieren
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$num_cards = $db->num($result);
 		while($rs = $db->fetch($result)) {
 			$karten[] = $rs['card_id'];	
@@ -184,7 +187,7 @@ class peter {
 		FROM peter_players
 		WHERE 
 			game_id = '".$this->game_id."'";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		while($rs = $db->fetch($result)) {
 			$in = ($rs['join_id'] - 1);
 			$pp[$in] = $rs['user_id'];
@@ -200,14 +203,14 @@ class peter {
 			(game_id, card_id, user_id, status, datum)
 			VALUES
 			('".$this->game_id."','$karten[$i]',$uu,'nicht gelegt', now())";
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$card[$uu][] = $karten[$i];
 		}
 		
 		//game status updaten
 		$sql = "
 		UPDATE peter_games set status = 'lauft' WHERE game_id = '".$this->game_id."'";
-		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$db->query($sql,__FILE__,__LINE__,__METHOD__);
 	}
 	
 	
@@ -223,59 +226,47 @@ class peter {
 	 */
 	function next_player($act_player,$players) {
 		global $db;
-		
+
 		//Join ID des aktuellen Spielers ermitteln
-		$sql = "
-		SELECT 
-			join_id
-		FROM peter_players pp
-		WHERE
-			pp.user_id = $act_player
-			AND
-			pp.game_id = ".$this->game_id;
-		$rr = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$sql = 'SELECT 
+					join_id
+				FROM peter_players pp
+				WHERE
+					pp.user_id = '.$act_player.'
+					AND
+					pp.game_id = '.$this->game_id;
+		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rr = $db->fetch($rr);
-		
+
 		//Join ID inkrementieren oder wenn max players erreicht wurde wieder bei 1 anfangen
 		$next_join_id = ($rr['join_id'] == $players) ? 1 : $rr['join_id'] + 1;
-		
-		
-		$sql = "
-		SELECT
-			user_id,
-			make
-		FROM peter_players pp
-		WHERE
-			pp.game_id = ".$this->game_id."
-			AND
-			pp.join_id = $next_join_id";
-		$rr = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+
+		$sql = 'SELECT
+					user_id,
+					make
+				FROM peter_players pp
+				WHERE
+					pp.game_id = '.$this->game_id.'
+					AND
+					pp.join_id = '.$next_join_id;
+		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rr = $db->fetch($rr);
-		
+
 		//Prüfen ob der Spieler nicht bereits fertig ist
 		if($rr['make'] == "fertig") {
 			$this->next_player($rr['user_id'],$players);
 		}
-		
+
 		//Nächster Spieler freischalten
-		$sql = "
-		UPDATE peter_games set next_player = '$rr[user_id]', last_activity = now() WHERE game_id = ".$this->game_id;
-		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		
+		$sql = 'UPDATE peter_games set next_player = '.$rr['user_id'].', last_activity = now() WHERE game_id = '.$this->game_id;
+		$db->query($sql,__FILE__,__LINE__,__METHOD__);
+
 		//Sendet dem nächsten Spieler eine (random) Message, damit er weiss, dass er dran ist
 		//IneX, 22.08.2011
-		$subject = array(
-					'Du bisch dra im Peter Spiel #'.$this->game_id,
-					'Maaach mol din Zug im Peter!',
-					'Hallo? Spielsch no mit im Peter oder wa?',
-					'Peter ruft!',
-					'Du Peter, spiel mol din Peter Zug!',
-					'Blah blah blah isch din Zug im Peter blah blah',
-					'Spiel Peter oder i segs dim Mami!');
 		$text = 'I ha min Zug gmacht i &uuml;sem Peter Spiel, etz bisch du wieder dra!<br/><br/>&#8594; <a href="'.SITE_URL.'/peter.php?game_id='.$this->game_id.'">Mach doooo!</a>';
-		$rand_subject = array_rand($subject,1);
-		Messagesystem::sendMessage($act_player, $rr['user_id'], $subject[$rand_subject], $text);
-		
+		$rand_subject = self::$next_zug_messagesubjects[array_rand(self::$next_zug_messagesubjects,1)];
+		Messagesystem::sendMessage($act_player, $rr['user_id'], $rand_subject, $text);
+		return true;
 	}
 	
 	/**
@@ -323,7 +314,7 @@ class peter {
 			(UNIX_TIMESTAMP(now()) - (86400*2)) > UNIX_TIMESTAMP(last_activity)
 			AND
 			status = 'lauft'" ;
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$old_game_id = $this->game_id;
 		while($rs = $db->fetch($result)) {
 			$this->game_id = $rs['game_id'];
@@ -353,7 +344,7 @@ class peter {
 			(game_id, card_id, user_id, wunsch, datum)
 			VALUES
 			(".$this->game_id.", ".$this->lc['card_id'].", ".$_SESSION['user_id'].",'".$wunsch."', now())";
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);	
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);	
 			
 			//Anzahl Players ermitteln
 			$sql = "
@@ -362,7 +353,7 @@ class peter {
 			FROM peter_games
 			WHERE 
 				game_id = ".$this->game_id;
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rs = $db->fetch($result);
 			
 			//Nächster Spieler freischalten
@@ -387,7 +378,7 @@ class peter {
 		(players, next_player, status, last_activity)
 		VALUES
 		($players,".$_SESSION['user_id'].",'offen',now())";
-		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		$game_id = $db->lastid();
 	
@@ -397,7 +388,7 @@ class peter {
 		(game_id, join_id, user_id)
 		VALUES
 		('$game_id',1,'$_SESSION[user_id]')";
-		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$db->query($sql,__FILE__,__LINE__,__METHOD__);
 	}
 
 
@@ -430,7 +421,7 @@ class peter {
 					WHERE 
 						next_player = "'.$_SESSION['user_id'].'"
 						AND status = "lauft"';
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rs = $db->fetch($result);
 
 			return ($db->num($result) ? '<a href="peter.php?game_id='.$rs['game_id'].'">'.$db->num($result).' Peter </a> | ' : '');
@@ -465,7 +456,7 @@ class peter {
 		FROM peter_games
 		WHERE 
 			status = 'offen'";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		while($rs = $db->fetch($result)) {
 			$html .= "
 			<tr>
@@ -481,7 +472,7 @@ class peter {
 			WHERE 
 				pp.game_id = '$rs[game_id]'
 			ORDER by pp.join_id ASC";
-			$resulti = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			
 			$gejoint = FALSE;
 			while($rsi = $db->fetch($resulti)) {
@@ -517,75 +508,92 @@ class peter {
 	
 	/**
 	 * Laufende Spiele
-	 * 
 	 * Gibt alle laufenden Spiele zurück
-	 * 
-	 * @since 1.0
-	 * @version 2.0
+	 *
 	 * @author [z]Duke, [z]domi, IneX
-	 * 
+	 * @version 3.0
+	 * @since 1.0 method added
+	 * @since 2.0 fixed SQL-Query, added Code docu
+	 * @since 3.0 05.09.2018 added method param $return_html to allow also non-view output as return
+	 *
+	 * @param boolean $return_html TRUE=return view (HTML), FALSE=only IDs of running Peter games - Default: TRUE
 	 * @global $db Datenbank Model
 	 * @global $user User Model
-	 * @return unknown
+	 * @return string|array
 	*/
-	function laufende_spiele() {
+	function laufende_spiele($return_html=true) {
 		global $db, $user;
-		
-		$html = "
-		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr><td align='center' class='title' colspan='3' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Alle laufenden Spiele
-		</td></tr>
-		<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Spiel ID
-		</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Spieler
-		</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		am Zug
-		</td></tr>";
-		
+
+		if ($return_html)
+		{
+			$html = "
+			<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+			<tr><td align='center' class='title' colspan='3' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+			Alle laufenden Spiele
+			</td></tr>
+			<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+			Spiel ID
+			</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+			Spieler
+			</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+			am Zug
+			</td></tr>";
+		}
+
 		$sql = "
 		SELECT
 			pg.game_id,
-			pg.next_player
+			pg.next_player,
+			(SELECT join_id FROM peter_players WHERE game_id=pp.game_id AND user_id=pg.next_player) join_id,
+			pg.players
 		FROM peter_players pp
 		LEFT JOIN peter_games pg
 			ON pg.game_id = pp.game_id
 		WHERE 
 			pg.status = 'lauft'
 		GROUP BY pg.game_id";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		while($rs = $db->fetch($result)) {
-			$spieler = "";
-			$sql = "
-			SELECT
-				pp.user_id
-			FROM peter_players pp
-			WHERE 
-				pp.game_id = $rs[game_id]
-			ORDER by pp.join_id ASC";
-			$resulti = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			while($rsi = $db->fetch($resulti)) {
-				$spieler .= $user->link_userpage($rsi['user_id']).", ";
-			}
-			
-			$html .= "
-			<tr align='left' bgcolor='".BACKGROUNDCOLOR."'>
-				<td>
-					<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a>
-				</td>
-				<td>$spieler</td>
-				<td bgcolor='".BACKGROUNDCOLOR."'>
-					".$user->link_userpage($rs['next_player'])."
-				</td>
-			</tr>";
-		}
-		$html .= "</table>";	
-		
-		return $html;
-		
-	}
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		if ($return_html) {
+			while($rs = $db->fetch($result)) {
+				$spieler = "";
+				$sql = "
+				SELECT
+					pp.user_id
+				FROM peter_players pp
+				WHERE 
+					pp.game_id = $rs[game_id]
+				ORDER by pp.join_id ASC";
+				$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				while($rsi = $db->fetch($resulti)) {
+					$spieler .= $user->link_userpage($rsi['user_id']).", ";
+				}
 	
+				if ($return_html)
+				{
+					$html .= "
+					<tr align='left' bgcolor='".BACKGROUNDCOLOR."'>
+						<td>
+							<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a>
+						</td>
+						<td>$spieler</td>
+						<td bgcolor='".BACKGROUNDCOLOR."'>
+							".$user->link_userpage($rs['next_player'])."
+						</td>
+					</tr>";
+				}
+			}
+			$html .= "</table>";
+		} else {
+			while($rs = $db->fetch($result))
+			{
+				$runningGames[] = [ 'game_id' => $rs['game_id'], 'current_player' => $rs['next_player'], 'join_id' => $rs['join_id'], 'total_players' => $rs['players'] ];
+			}
+		}
+
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $runningGames[]: %s', __METHOD__, __LINE__, print_r($runningGames,true)));
+		return ($return_html ? $html : $runningGames);
+	}
+
 	/**
 	 * Meine offene Spiele
 	 * 
@@ -628,7 +636,7 @@ class peter {
 				pg.status = 'lauft'
 				AND
 				pp.user_id = $user_id";
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			while($rs = $db->fetch($result)) {
 				$spieler = "";
 				$sql = "
@@ -638,7 +646,7 @@ class peter {
 				WHERE 
 					pp.game_id = $rs[game_id]
 				ORDER by pp.join_id ASC";
-				$resulti = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				while($rsi = $db->fetch($resulti)) {
 					$spieler .= $user->link_userpage($rsi['user_id']).", ";
 				}
@@ -682,7 +690,7 @@ class peter {
 		FROM peter_players 
 		WHERE 
 			game_id = '".$this->game_id."'";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$num = $db->num($result) + 1;
 		
 		//player eintragen
@@ -691,7 +699,7 @@ class peter {
 		(game_id, join_id, user_id)
 		VALUES
 		('".$this->game_id."', '$num', '$_SESSION[user_id]')";
-		$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		//prüfen ob game gestartet werden soll
 		if($num >= $players) {
@@ -731,7 +739,7 @@ class peter {
 			pc.status = 'gelegt'
 		ORDER by pc.datum DESC
 		LIMIT 0,1";
-		$res = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$res = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		if($res['spezial'] == "rosen") {
 			$sql = "
@@ -755,7 +763,7 @@ class peter {
 				p.typ = 'rosen'
 			ORDER by pc.datum DESC
 			LIMIT 0,1";
-			$res = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$res = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		}
 		
 		return $db->fetch($res);	
@@ -792,7 +800,7 @@ class peter {
 		WHERE 
 			pp.game_id = ".$this->game_id."
 		ORDER by join_id ASC";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		$html = "
 		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'><tr>";
@@ -805,82 +813,144 @@ class peter {
 	}
 	
 	/**
+	 * Spielzug an nächsten Player weitergeben
+	 * Aktiviert autom. den nächsten Spieler wenn keiner eine höhere Karte hat
+	 *
+	 * @author [z]Duke, [z]domi, IneX
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 added feature to FORCE next player, if current player didn't play for a long time
+	 *
+	 * @param boolean|array $force_next_player Array=Array with game_id,next_player,players - or FALSE, if regular check. Default: FALSE
 	 * @return void
-	 * @desc Aktiviert autom. den nächsten Spieler wenn keiner eine höhere Karte hat
-	*/
-	function auto_nextplayer() {
+	 */
+	function auto_nextplayer($force_next_player=false) {
 		global $db;
-		
-		//Prüfen ob der Rosenverkäufer da ist
-		$rosen = $this->rosenverkaufer("check");
-		
-		//Wenn der Rosenverkäufer da ist
-		if($rosen == 1) {
-			$sql = "
-			SELECT
-				*
-			FROM peter_cardsets pc
-			LEFT JOIN peter p
-				ON p.card_id = pc.card_id
-			WHERE
-				game_id = ".$this->game_id."
-			AND
-				status = 'nicht gelegt'
-			AND
-				col = 2
-			AND
-				user_id <> ".$this->lc['user_id'];
-			/*
-			SQL-Query erklärt:
-			
-				game_id = aktuelles Spiel
-				status	= nur nicht gelegte Karten der Spieler
-				col		= color (Farbe) nur Rosen (color '2')
-				user_id	= nicht der gleiche wie die letzte Karte gelegt hat
-			*/
-			
-		
-		//Wenn der Rosenverkäufer NICHT da ist
-		} else {
-			$sql = "
-			SELECT
-				*
-			FROM peter_cardsets pc
-			LEFT JOIN peter p
-				ON p.card_id = pc.card_id
-			WHERE
-				game_id = ".$this->game_id."
-				AND
-				status = 'nicht gelegt'
-				AND
-				value > ".$this->lc['value'];
-			/*
-			SQL-Query erklärt:
-			
-				game_id = aktuelles Spiel
-				status	= nur nicht gelegte Karten der Spieler
-				value	= nur wer eine Karte mit GRÖSSEREM Wert als der letzte Spieler hat
-			*/
-			
-		}
-		// Query ausführen
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		
-		//Wenn niemand eine höhere Karte hat
-		//(respektive auch keine Rosen wenn der Rosenverkäufer da ist...)
-		if($db->num($result) == FALSE)
+
+		if ($force_next_player === false)
 		{
-			//Letzten Spieler nochmals aktivieren
-			$sql = "
-			UPDATE peter_games set next_player = '".$this->lc['user_id']."', last_activity = now()
-			WHERE game_id = ".$this->game_id;
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-		}
-		
-		//Karten Daten für die "Letzte gelegte Karte" neu laden
-		$this->lc = $this->lastcard();
-	}
+			//Prüfen ob der Rosenverkäufer da ist
+			$rosen = $this->rosenverkaufer('check');
 	
+			//Wenn der Rosenverkäufer da ist
+			if($rosen == 1) {
+				$sql = "
+				SELECT
+					*
+				FROM peter_cardsets pc
+				LEFT JOIN peter p
+					ON p.card_id = pc.card_id
+				WHERE
+					game_id = ".$this->game_id."
+				AND
+					status = 'nicht gelegt'
+				AND
+					col = 2
+				AND
+					user_id <> ".$this->lc['user_id'];
+				/*
+				SQL-Query erklärt:
+				
+					game_id = aktuelles Spiel
+					status	= nur nicht gelegte Karten der Spieler
+					col		= color (Farbe) nur Rosen (color '2')
+					user_id	= nicht der gleiche wie die letzte Karte gelegt hat
+				*/
+	
+			//Wenn der Rosenverkäufer NICHT da ist
+			} else {
+				$sql = "
+				SELECT
+					*
+				FROM peter_cardsets pc
+				LEFT JOIN peter p
+					ON p.card_id = pc.card_id
+				WHERE
+					game_id = ".$this->game_id."
+					AND
+					status = 'nicht gelegt'
+					AND
+					value > ".$this->lc['value'];
+				/*
+				SQL-Query erklärt:
+				
+					game_id = aktuelles Spiel
+					status	= nur nicht gelegte Karten der Spieler
+					value	= nur wer eine Karte mit GRÖSSEREM Wert als der letzte Spieler hat
+				*/
+			}
+			// Query ausführen
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+	
+			//Wenn niemand eine höhere Karte hat
+			//(respektive auch keine Rosen wenn der Rosenverkäufer da ist...)
+			if($db->num($result) == FALSE)
+			{
+				//Letzten Spieler nochmals aktivieren
+				$sql = "
+				UPDATE peter_games set next_player = '".$this->lc['user_id']."', last_activity = now()
+				WHERE game_id = ".$this->game_id;
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+			}
+	
+			//Karten Daten für die "Letzte gelegte Karte" neu laden
+			$this->lc = $this->lastcard();
+
+		/**
+		 * Zug auf nächsten Player erzwingen (benötigt valide User-ID)
+		 */
+		} else {
+			if (is_array($force_next_player) && count($force_next_player) > 0)
+			{
+				/**
+				 * Nächsten Spieler finden
+				 * (Join ID inkrementieren oder wenn max players erreicht wurde wieder bei 1 anfangen)
+				 */
+				$next_join_id = ($force_next_player['join_id'] == $force_next_player['total_players']) ? 1 : $force_next_player['join_id']+1;
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $next_join_id: %d', __METHOD__, __LINE__, $next_join_id));
+				if (!empty($next_join_id) && $next_join_id != $force_next_player['join_id'])
+				{
+					$sql = 'SELECT
+								user_id,
+								make
+							FROM peter_players
+							WHERE
+								game_id = '.$force_next_player['game_id'].'
+								AND join_id = '.$next_join_id.'
+								AND DATE((SELECT last_activity FROM peter_games WHERE game_id = 301)) < (NOW() - INTERVAL 0 DAY)'; // Check if last_activity is older than 7 days
+					$next_player = $db->fetch($db->query($sql,__FILE__,__LINE__,__METHOD__));
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $next_player: %s', __METHOD__, __LINE__, print_r($next_player,true)));
+	
+					/** Prüfen ob der Spieler nicht bereits fertig ist */
+					if(!empty($next_player) && count($next_player) > 0 && $next_player['make'] != 'fertig')
+					{
+						/** Nächster Spieler freischalten */
+						$sql = 'UPDATE peter_games SET next_player='.$next_player['user_id'].', last_activity=NOW() WHERE game_id='.$force_next_player['game_id'];
+						if ($db->query($sql,__FILE__,__LINE__,__METHOD__))
+						{
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Nächster Spieler freischalten: OK', __METHOD__, __LINE__));
+							/** Sendet dem nächsten Spieler eine (random) Message, damit er weiss, dass er dran ist */
+							$text = 'I bi z fuul gsii zum min Zug i &uuml;sem Peter Spiel zmache, drum bisch du etz wieder dra!<br/><br/>&#8594; <a href="'.SITE_URL.'/peter.php?game_id='.$force_next_player['game_id'].'">Mach doooo!</a>';
+							$rand_subject = self::$next_zug_messagesubjects[array_rand(self::$next_zug_messagesubjects,1)];
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Messagesystem::sendMessage(): %s', __METHOD__, __LINE__, print_r([$force_next_player['current_player'], $next_player['user_id'], $rand_subject, $text],true)));
+							Messagesystem::sendMessage($force_next_player['current_player'], $next_player['user_id'], $rand_subject, $text);
+							return true;
+						}
+					} else {
+						error_log(sprintf('[NOTICE] <%s:%d> No next player found / next turn not due yet', __METHOD__, __LINE__));
+						return false;
+					}
+				} else {
+					error_log(sprintf('[NOTICE] <%s:%d> $next_join_id: No next Player found', __METHOD__, __LINE__));
+					return false;
+				}
+			} else {
+				error_log(sprintf('[NOTICE] <%s:%d> Passed $force_next_player is NOT an array(): %s', __METHOD__, __LINE__, $force_next_player));
+				return false;
+			}
+		}
+	}
+
 	/**
 	 * @return bool
 	 * @param $card_id Card_ID
@@ -908,7 +978,7 @@ class peter {
 			pc.game_id = ".$this->game_id."
 			AND
 			pc.status = 'gelegt'";
-		$rr = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		//Bei Spiel Anfang kann alles gelegt werden
 		if(!$db->num($rr)) {
@@ -928,7 +998,7 @@ class peter {
 			pc.card_id = $card_id
 			AND
 			pc.status = 'nicht gelegt'";
-		$rr = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		if($db->num($rr)) {
 			
 			//Prüfen ob Karte gesetzt werden darf
@@ -939,7 +1009,7 @@ class peter {
 			WHERE 
 				card_id = '$card_id' 
 			".$regel_add;
-			$ac = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$ac = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$ac = $db->fetch($ac);
 			
 			//Wenn die zulegende Karte ein Zahl ist
@@ -1008,7 +1078,7 @@ class peter {
 				pw.game_id = ".$this->game_id."
 				AND
 				pw.card_id = ".$this->lc[card_id];
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			
 			//Wenn bereits ein Wunschvorliegt
 			if($db->num($result)) {
@@ -1040,7 +1110,7 @@ class peter {
 			pw.game_id = ".$this->game_id."
 		ORDER by datum DESC
 		LIMIT 0,1";
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rs = $db->fetch($result);
 		
 		//zuweisungs Array
@@ -1084,7 +1154,7 @@ class peter {
 					game_id = ".$this->game_id."
 					AND 
 					card_id = $card_id";
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 				
 				
 				### Zug als Comment eintragen, damit man darüber diskutieren kann ###
@@ -1094,7 +1164,7 @@ class peter {
 					WHERE card_id = '".$card_id."'
 					";
 				
-				$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$rs = $db->fetch($result);
 				
 				$text = "Ich habe die Karte '".$rs[description]."' gelegt.";
@@ -1106,7 +1176,7 @@ class peter {
 				$sql = "
 				UPDATE peter_players set make = '$make' 
 				WHERE user_id = $_SESSION[user_id] AND game_id = ".$this->game_id;
-				$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 				
 				//Prüfen ob nicht noch ein Wunsch nötig ist bevor der nächste am zug ist
 				if($this->checkwunsch()) {
@@ -1126,7 +1196,7 @@ class peter {
 			$sql = "
 			UPDATE peter_players set make = '$make' 
 			WHERE user_id = $_SESSION[user_id] AND game_id = ".$this->game_id;
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			
 			$this->next_player($_SESSION['user_id'],$players);
 			
@@ -1140,7 +1210,7 @@ class peter {
 				next_player = $_SESSION[user_id]
 				AND 
 				status = 'lauft'";
-			$resulti = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rsi = $db->fetch($resulti);
 			
 			// Wenn noch offene Züge, dann direkt ins nächste Spiel weiterleiten
@@ -1160,7 +1230,7 @@ class peter {
 			pc.user_id = $_SESSION[user_id]
 			AND
 			pc.status = 'nicht gelegt'";
-		$rr = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		//Wenn das Spiel beendet werden kann
 		if(!$db->num($rr)) {
@@ -1169,7 +1239,7 @@ class peter {
 			$sql = "
 			UPDATE peter_games set status = 'geschlossen', winner_id = $_SESSION[user_id]
 			WHERE game_id = ".$this->game_id;
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 		}	
 	}
 	
@@ -1242,7 +1312,7 @@ class peter {
 				pc.status = 'nicht gelegt'
 			ORDER by p.value DESC";
 		}
-		return $db->query($sql,__FILE__,__LINE__,__FUNCTION__);	
+		return $db->query($sql,__FILE__,__LINE__,__METHOD__);	
 	}
 	
 	/**
@@ -1301,7 +1371,7 @@ class peter {
 			ON gp.username = gw.username
 		ORDER BY num_games DESC";
 	
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		while($rs = $db->fetch($result)) {
 			$html .= "
@@ -1457,7 +1527,7 @@ class peter {
 			SELECT
 				username
 			FROM user WHERE id = '$gd[winner_id]'";
-			$res = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$res = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rs = $db->fetch($res);
 			
 			//Gewinner anzeigen
@@ -1502,7 +1572,7 @@ class peter {
 			pc.status = 'gelegt'
 		ORDER by datum ASC";
 		
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$i = 0;
 		
 		if (mysql_num_rows($result) > 0 && mysql_num_rows($result) != NULL)
