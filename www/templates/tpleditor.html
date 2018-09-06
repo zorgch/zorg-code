@@ -28,86 +28,87 @@
    </h3>
 
 
-
-   {form action="tpleditor.php"}
-   <TABLE>
+   <script src="{$smarty.const.JS_DIR}autosize.min.js"></script>
+   {form action='tpleditor.php'}
+   <table id="tpleditor" class="tpleditor">
       <tr>
-         <td align="left" width="20%">ID:</td>
-         <TD align="left">{$tpleditor_frm.id} <INPUT type="hidden" name="frm[id]" value="{$tpleditor_frm.id}"></td>
-         <TD align="left" width="15%">Created:</TD>
-         <TD align="left" width="20%">{$tpleditor_frm.created|datename}</TD>
+         <td align="left" width="20%">Template ID:</td>
+         <td align="left">{$tpleditor_frm.id} <input type="hidden" id="tplid" name="frm[id]" value="{$tpleditor_frm.id}"></td>
+         <td align="left" width="15%">Created:</td>
+         <td align="left" width="20%">{$tpleditor_frm.created|datename}</td>
       </tr>
-      <TR>
-         <TD align="left">Lese-Rechte:</TD>
-         <TD align="left">
-            <SELECT name="frm[read_rights]" size="1" class="text">
-               {html_options values=$rgroupids selected=$tpleditor_frm.read_rights output=$rgroupnames}
-            </SELECT>
-         </TD>
-         <TD align="left">&nbsp;</TD>
-         <TD align="left">by {$tpleditor_frm.owner|username}</TD>
-      </TR>
-      <TR>
-         <TD align="left">Schreib-Rechte:</TD>
-         <TD align="left">
-            <SELECT name="frm[write_rights]" size="1" class="text">
-               {html_options values=$wgroupids selected=$tpleditor_frm.write_rights output=$wgroupnames}
-            </SELECT>
-         </TD>
-         <TD align="left">Last Update:</TD>
-         <TD align="left">{$tpleditor_frm.last_update|datename}</TD>
-      </TR>
-      <TR>
-         <TD align="left">Page-Title:</TD>
-         <TD align="left"><INPUT class="text" size="30" name="frm[page_title]" value="{$tpleditor_frm.page_title}"> - zorg.ch</TD>
-         <TD>&nbsp;</TD>
-         <TD align="left">by {$tpleditor_frm.update_user|username}</TD>
-      </TR>
       <tr>
-         <TD align="left" valign="top">Titel:</TD>
-         <TD align="left"><INPUT class="text" size="50" name="frm[title]" value="{$tpleditor_frm.title}"></TD>
-         <TD>&nbsp;</TD>
-         <TD>&nbsp;</TD>
-      </TR>
-      <TR>
-      	<TD align="left" valign="top">Word (optional):</TD>
-      	<TD align="left">
+         <td align="left">Lese-Rechte:</td>
+         <td align="left">
+            <select id="tpl_read_rights" name="frm[read_rights]" size="1" class="text">
+               {html_options values=$rgroupids selected=$tpleditor_frm.read_rights output=$rgroupnames}
+            </select>
+         </td>
+         <td align="left">&nbsp;</td>
+         <td align="left">by {$tpleditor_frm.owner|username}</td>
+      </tr>
+      <tr>
+         <td align="left">Schreib-Rechte:</td>
+         <td align="left">
+            <select id="tpl_write_rights" name="frm[write_rights]" size="1" class="text">
+               {html_options values=$wgroupids selected=$tpleditor_frm.write_rights output=$wgroupnames}
+            </select>
+         </td>
+         <td align="left">Last Update:</td>
+         <td align="left">{$tpleditor_frm.last_update|datename}</td>
+      </tr>
+      <tr>
+         <td align="left" valign="top">Template Bezeichnung:</td>
+         <td align="left"><input class="text" size="50" id="tpl_title" name="frm[title]" value="{$tpleditor_frm.title}"></td>
+         <td>&nbsp;</td>
+         <td align="left">by {$tpleditor_frm.update_user|username}</td>
+      </tr>
+      <tr>
+         <td align="left">Page-Title:</td>
+         <td align="left"><input class="text" size="30" id="page_title" name="frm[page_title]" value="{$tpleditor_frm.page_title}">{$smarty.const.PAGETITLE_SUFFIX}</td>
+         <td>&nbsp;</td>
+         <td>&nbsp;</td>
+      </tr>
+      <tr>
+      	<td align="left" valign="top">Word (optional):</td>
+      	<td align="left">
       		{if !$tpleditor_frm.word}
-      			<input class="text" size="30" name="frm[word]" value="{$tpleditor_frm.word}">
+      			<input class="text" size="30" id="word" name="frm[word]" value="{$tpleditor_frm.word}">
       		{else}
       			{$tpleditor_frm.word}
       		{/if}
-      	</TD>
-    	</TR>
-      <TR>
-         <TD align="left">Rahmen-Typ:</TD>
-         <TD align="left">
-            <SELECT name="frm[border]" size="1" class="text">
+      	</td>
+    	</tr>
+      <tr>
+         <td align="left">Rahmen-Typ:</td>
+         <td align="left">
+            <select id="border" name="frm[border]" size="1" class="text">
                {html_options values=$bordertypids selected=$tpleditor_frm.border output=$bordertypnames}
-            </SELECT>
-         </TD>
-      </TR>
-      <TR>
-         <TD align="left" valign="top">Using Packages:</TD>
-         <TD align="left">
-            <INPUT class="text" size="50" name="frm[packages]" value="{$tpleditor_frm.packages}"><br />
+            </select>
+         </td>
+      </tr>
+      <tr>
+         <td align="left" valign="top">Using Packages:</td>
+         <td align="left">
+            <input class="text" size="50" id="packages" name="frm[packages]" value="{$tpleditor_frm.packages}"><br />
             <div class="small">(Mit Semikolon ; getrennt)</DIV>
-         </TD>
-      </TR>
+         </td>
+      </tr>
       <tr>
          <td colspan="4" align="left">
             <br />
-            <TEXTAREA name="frm[tpl]" class="text" cols="150" rows="30">{$tpleditor_frm.tpl}</TEXTAREA>
-         </TD>
-      </TR>
-      <TR>
-         <TD align="center" colspan="4">
-            <BR />
-            <INPUT class="button" type="submit" value=" Speichern &amp; Schliessen ">
+            <textarea id="content" name="frm[tpl]" class="text" cols="150" rows="30">{$tpleditor_frm.tpl}</textarea>
+         </td>
+      </tr>
+      <tr>
+         <td align="center" colspan="4">
+            <br>
+            <input class="button" type="submit" id="save" value=" Speichern &amp; Schliessen ">
             {spc i=8}
             {button url=$tpleditor_close_url}  Schliessen  {/button}
-         </TD>
-      </TR>
-   </TABLE>
+         </td>
+      </tr>
+   </table>
    {/form}
+   <script>autosize(document.querySelector('textarea'));</script>
 {/if}

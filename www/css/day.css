@@ -234,6 +234,16 @@ option {
 	border-color: #F2F2F2;
 }
 
+.tpleditor textarea {
+	font-family: Courier;
+	font-size: 12px;
+	color: #fff;
+	background-color: #000;
+	outline: none;
+	resize: vertical;
+	max-width: 710px;	
+}
+
 input[type=checkbox], input[type=radio] {
 	border-style: inset;
 	border-width: 2px;
