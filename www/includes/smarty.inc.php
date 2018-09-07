@@ -24,13 +24,13 @@ require_once( __DIR__ .'/config.inc.php');
 
 
 //$prof->startTimer( "smarty.inc.php: include_once smarty.class.php" );
-require_once(SMARTY_DIR . 'Smarty.class.php');
+require_once(__DIR__ . '/../smartylib/Smarty.class.php');
 //$prof->stopTimer( "smarty.inc.php: include_once smarty.class.php" );
 //$prof->startTimer( "smarty.inc.php: include_once usersystem.inc.php" );
-include_once(INCLUDES_DIR . 'usersystem.inc.php');
+include_once(__DIR__ . '/usersystem.inc.php');
 //$prof->stopTimer( "smarty.inc.php: include_once usersystem.inc.php" );
 //$prof->startTimer( "smarty.inc.php: include_once comments.res.php" );
-include_once(INCLUDES_DIR . 'comments.res.php');
+include_once(__DIR__ . '/comments.res.php');
 //$prof->stopTimer( "smarty.inc.php: include_once comments.res.php" );
 
 /**
@@ -554,6 +554,6 @@ if (!isset($smarty)) $smarty = startSmarty();
 
 
 // required smarty files for registering all smarty features etc.
-require_once(INCLUDES_DIR.'smarty.fnc.php');
-require_once(INCLUDES_DIR.'smarty_menu.php');
-require_once(INCLUDES_DIR.'comments.fnc.php');
+require_once(__DIR__.'/smarty.fnc.php');
+require_once(__DIR__.'/smarty_menu.php');
+require_once(__DIR__.'/comments.fnc.php');
