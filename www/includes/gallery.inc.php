@@ -1365,6 +1365,8 @@ function delDir ($dir) {
  * @since 2.0 updated pathes
  * @since 3.0 major overhaul - added better error handling, added debugging infos
  * @since 4.0 added support for PNG image file types
+ *
+ * @FIXME getImageSize() funktioniert nicht mit .gif-Files
  */
 function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 {
@@ -1379,6 +1381,7 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 	// calc new pic size
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> calc new pic size', __FUNCTION__, __LINE__));
 	$img_size = getImageSize($srcFile);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $img_size: %s', __FUNCTION__, __LINE__, print_r($img_size,true)));
 	if (!$img_size) return array('error'=>'keine Rechte');
 	$width = $img_size[0];
 	$height = $img_size[1];
@@ -1393,6 +1396,7 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 		$picHeight = $height;
 		$picWidth = $width;
 	}
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $picWidth & $picHeight: %d x %d', __FUNCTION__, __LINE__, $picWidth, $picHeight));
 
 	/** Create new Pic */
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create new pic', __FUNCTION__, __LINE__));
@@ -1409,7 +1413,7 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 			break;
 
 		case '.gif':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG(): %s', __FUNCTION__, __LINE__, $srcFile));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF(): %s', __FUNCTION__, __LINE__, $srcFile));
 			$src = ImageCreateFromGIF($srcFile);
 			if ($src === null) {
 				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
@@ -1867,42 +1871,47 @@ function getTopPics($album_id, $limit, $options) {
 	
 }
 
-
+/**
+ * Format Gallery-Pic Thumbnail (HTML Output)
+ * 
+ * @author [z]biko, IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 09.09.2018 Resolved Bug #759: added Pic-Title to HTML-Output & refactored function a bit
+ *
+ * @see text_width(), remove_html()
+ * @see Thread::getNumPosts()
+ * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
+ * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
+ * @param	object	$rs		DB-Query Result Object containing all gallery_pics rows & values for one image
+ * @return	string	HTML-Code for the Gallery-Pic Thumbnail
+ */
 function formatGalleryThumb($rs)
 {
 	global $db, $user;
 
 	$file = imgsrcThum($rs['id']);
 
-	if ($user->typ == USER_MEMBER) { // schauen dass wirs nur bei membern machen...
-		if (!$user_id) { $user_id = $user->id; }
+	/** HTML-Markup for Pic Thumbnail */
+	$html = '<a href="/gallery.php?show=pic&picID='.$rs['id'].'">' // Link
+			.text_width(remove_html($rs['name']), 80, '...') // Pic-Title
+			.'<img border="0" src="'.$file.'" /><br />' // Image-Tag
+			.Thread::getNumPosts('i', $rs['id']).' Comments</a>'; // No. of Comments
 
-		$e = $db->query(
-		"SELECT count(c.id) anz
-		FROM comments c, comments_unread u
-		WHERE c.board = 'i' AND c.thread_id=".$rs['id']." AND u.comment_id=c.id AND u.user_id=".$user_id,
-		__FILE__, __LINE__
-		);
+	/** Comment-Unreads bei Member holen & anzeigen... */
+	if ($user->typ == USER_MEMBER) {
+		if (!$user_id) { $user_id = $user->id; }
+		$sql = 'SELECT count(c.id) anz
+				FROM comments c, comments_unread u
+				WHERE c.board = "i" AND c.thread_id='.$rs['id'].' AND u.comment_id=c.id AND u.user_id='.$user_id;
+		$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 
-		if ($d['anz'] > 0) {
-			return
-			'<a href="/gallery.php?show=pic&picID='.$rs['id'].'">'
-			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs['id']).' Comments</a>'
-			.' <small>('.$d['anz'].' unread)</small>'
-			;
-		} else {
-			return
-			'<a href="/gallery.php?show=pic&picID='.$rs['id'].'">'
-			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs['id']).' Comments</a>'
-			;
-		}
-	} else { // wenns ein Gast ist...
-		return
-		'<a href="/gallery.php?show=pic&picID='.$rs['id'].'">'
-		.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs['id']).' Comments</a>'
-		;
+		/** Wenn das Pic 1 oder mehr Unreads hat... */
+		if ($d['anz'] > 0) $html .= ' <small>('.$d['anz'].' unread)</small>'; // Unread Comments on Pic
 	}
+
+	return $html;
 }
 
 /**
