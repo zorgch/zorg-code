@@ -1593,9 +1593,10 @@ function getDailyThumb()
  *
  * @author IneX
  * @date 18.08.2018
- * @version 1.1
+ * @version 1.5
  * @since 1.0 18.08.2018 function added
  * @since 1.1 20.08.2018 minor code updates after extracting function from getDailyThumb()
+ * @since 1.5 10.09.2018 excluded APOD Gallery-Pics from being assigned as Daily Pic
  *
  * @see SITE_URL
  * @see imgsrcPic(), picHasTitle()
@@ -1622,7 +1623,7 @@ function setNewDailyPic()
 	if (!$currdp || $currdp['upd'] < 0)
 	{
 		/** Randomly select a new Gallery-Pic */
-		$sql = $db->query('SELECT id FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$sql = $db->query('SELECT id FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' AND album<>'.APOD_GALLERY_ID.' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
 		$newdp = $db->fetch($sql);
 
 		if (!empty($newdp) || $newdp['id'] > 0)
