@@ -1895,8 +1895,8 @@ function formatGalleryThumb($rs)
 
 	/** HTML-Markup for Pic Thumbnail */
 	$html = '<a href="/gallery.php?show=pic&picID='.$rs['id'].'">' // Link
-			.text_width(remove_html($rs['name']), 80, '...') // Pic-Title
-			.'<img border="0" src="'.$file.'" /><br />' // Image-Tag
+			.text_width(remove_html($rs['name']), 80, '...').'<br>' // Pic-Title
+			.'<img border="0" src="'.$file.'" /><br>' // Image-Tag
 			.Thread::getNumPosts('i', $rs['id']).' Comments</a>'; // No. of Comments
 
 	/** Comment-Unreads bei Member holen & anzeigen... */
