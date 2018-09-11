@@ -11,41 +11,54 @@ require_once( __DIR__ . '/usersystem.inc.php');
 include_once( __DIR__ . '/colors.inc.php');
 include_once( __DIR__ . '/strings.inc.php');
 
-
+/**
+ * Poll anzeigen
+ *
+ * @author ?, IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 11.09.2018 fixed SQL-Query (Polls were broken for not-loggedin users)
+ *
+ * @TODO Extract HTML-View into Template-File and use $smarty->display()
+ *
+ * @see templates/layout/partials/polls/poll.tpl
+ * @param $id Poll-ID to display
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @return string HTML-markup to display the Poll
+ */
 function getPoll ($id) {
 	global $db, $user;
+
 	$ret = "";
-	
 	$redirect_url = base64_encode("$_SERVER[PHP_SELF]?".url_params());
 	$action = '/actions/poll_vote.php?redirect='.$redirect_url;
-				
-	
-	$poll = $db->fetch($db->query(
-		'SELECT p.*, UNIX_TIMESTAMP(p.date) date, if(v.user IS NULL, 0, v.answer) myvote, count(tot.user) tot_votes
-		FROM polls p
-		LEFT JOIN poll_votes v ON v.poll=p.id AND v.user='.$user->id.'
-		LEFT JOIN poll_votes tot ON v.poll=p.id
-		WHERE id='.$id.'
-		GROUP BY p.id',
-		__FILE__, __LINE__, __FUNCTION__
-	));
-	
+
+	$sql = 'SELECT
+				 p.*
+				,UNIX_TIMESTAMP(p.date) date
+				,(SELECT count(*) FROM poll_votes WHERE poll='.$id.') tot_votes
+				'.($user->islogged_in() ? ',(SELECT count(*) FROM poll_votes WHERE poll='.$id.' AND user='.$user->id.') myvote' : '').'
+			FROM polls p
+			WHERE id='.$id.'
+			GROUP BY p.id';
+	$poll = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+
 	if (!$poll) {
 		user_error(t('invalid-poll_id', 'poll', $id), E_USER_WARNING);
 	}
-	
-		
+
 	if (user_has_vote_permission($poll['type']) && !$poll['myvote'] && $poll['state']=="open") {
 		$display = "vote";
 	}else{
 		$display = "results";
 	}
-	
+
 	if ($display == "vote") {
 		$ret .= "<form name='poll' action='$action' method='post'>";
 		$ret .= "<input type='hidden' name='poll' value='$poll[id]'>";
 	}
-		
+
 	$ret .= 
 		"<table cellspacing=2 cellpadding=0 class='border' width=204 bgcolor='".BACKGROUNDCOLOR."'>".
 			"<tr><td align='left'><small><b>$poll[text]</b> ".
