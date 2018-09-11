@@ -300,7 +300,7 @@ function pic ($id) {
 			echo '<input type="submit" value=" OK " class="button">';
 		echo "</form>";
 	} else {
-		if (!$cur['name']) {
+		if (!$cur['name'] && $user->typ == USER_MEMBER) {
 			echo '<form method="post" action="'.$_SERVER['PHP_SELF'].'?do=editFotoTitle&'.url_params().'">';
 				echo 'Foto-Titel: <input name="frm[name]" size="30" class="text">';
 				echo '<input type="submit" value=" OK " class="button">';

@@ -31,7 +31,8 @@ echo menu("zorg");
 echo menu("gallery");
 
 /** Pic-ID zu Album-ID auflösen */
-if(!empty($_GET['picID']) && $_GET['picID'] > 0) $albumId = pic2album($_GET['picID']);
+if(!empty($_GET['albID'])) $albumId = $_GET['albID'];
+if((!empty($_GET['picID']) && $_GET['picID'] > 0) && empty($albumId)) $albumId = pic2album($_GET['picID']);
 
 /**
  * [Bug #708] Gallery nur für eingeloggte User anzeigen
