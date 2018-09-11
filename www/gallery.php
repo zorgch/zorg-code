@@ -6,13 +6,15 @@
  * Folgende Tables gehören zur Gallery:
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
  *
- * @author [z]biko
- * @date 01.01.2002
- * @version 1.5
+ * @author [z]biko, IneX
  * @package Zorg
  * @subpackage Gallery
+ * @date 01.01.2002
+ * @version 1.6
+ * @since 1.0 01.01.2002 file added
+ * @since 1.5 04.11.2013 Gallery nur noch für eingeloggte User anzeigen
+ * @since 1.6 11.09.2018 APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
  */
-
 /**
  * File includes
  * @include main.inc.php
@@ -28,11 +30,20 @@ $smarty->display('file:layout/head.tpl');
 echo menu("zorg");
 echo menu("gallery");
 
-// Gallery nur für eingeloggte User anzeigen, siehe Bugtracker: http://www.zorg.ch/bugtracker.php?bug_id=708
-if ($user->typ == USER_NICHTEINGELOGGT)
-{
-	print( t('error-not-logged-in', 'gallery', SITE_URL) );
+/** Pic-ID zu Album-ID auflösen */
+if(!empty($_GET['picID']) && $_GET['picID'] > 0) $albumId = pic2album($_GET['picID']);
 
+/**
+ * [Bug #708] Gallery nur für eingeloggte User anzeigen
+ * Ausnahme: APOD Gallery
+ * @link https://zorg.ch/bugtracker.php?bug_id=708
+ */
+if ($user->typ == USER_NICHTEINGELOGGT && $albumId != APOD_GALLERY_ID)
+{
+	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => false]);
+	$smarty->display('file:layout/elements/block_error.tpl');
+
+/** Gallery / Pics anzeigen */
 } else {
 
 	// Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen...

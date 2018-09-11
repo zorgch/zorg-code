@@ -11,7 +11,9 @@ $html .= menu("user");
 
 if($_GET['message_id'] == '' || empty($_GET['message_id']) || $_GET['message_id'] == '0') {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	user_error('Keine Nachricht angegeben!', E_USER_WARNING);
+	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Keine Nachricht angegeben!']);
+	$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
+	//user_error('Keine Nachricht angegeben!', E_USER_WARNING);
 }
 
 try {
@@ -20,7 +22,9 @@ try {
 	
 	if($rs == false) {
 		http_response_code(400); // Set response code 400 (bad request) and exit.
-		user_error('Nachricht '.$_GET['message_id'].' konnte nicht geladen werden.', E_USER_WARNING);
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Nachricht '.$_GET['message_id'].' konnte nicht geladen werden.']);
+		$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
+		//user_error('Nachricht '.$_GET['message_id'].' konnte nicht geladen werden.', E_USER_WARNING);
 	
 	} elseif($rs['owner'] == $user->id) {
 		
@@ -42,12 +46,16 @@ try {
 	
 	} else {
 		http_response_code(403); // Set response code 403 (access denied) and exit.
-		user_error('<b>Du darfst diese Message nicht lesen!</b>', E_USER_NOTICE);
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Du darfst diese Message nicht lesen!']);
+		$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
+		//user_error('<b>Du darfst diese Message nicht lesen!</b>', E_USER_NOTICE);
 	}
 }
 catch(Exception $e) {
 	http_response_code(500); // Set response code 500 (internal server error)
-	user_error($e->getMessage(), E_USER_WARNING);
+	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $e->getMessage()]);
+	$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
+	//user_error($e->getMessage(), E_USER_WARNING);
 }
 
 echo $html;

@@ -1999,3 +1999,29 @@ function doImageFlip($imgsrc, $imgout, $type)
 
    return( $imgdest );
 }
+
+/**
+ * Findet und returned die Album-ID zu welcher ein Pic gehört
+ *
+ * @author IneX
+ * @date 11.09.2018
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @param integer $id ID des Pics für welches das Album geholt werden soll
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return integer|boolean Album-ID des Pics - oder false
+ */
+function pic2album($id) {
+	global $db;
+	
+	if ($id <= 0 || !is_numeric($id)) user_error("Missing Parameter <i>id</i> ", E_USER_ERROR);
+	try {
+		$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
+		$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
+	} catch (Exception $e) {
+		user_error($e->getMessage(), E_USER_ERROR);
+		return false;
+	}
+	return (!empty($picAlbum['album']) ? $picAlbum['album'] : false);
+}
