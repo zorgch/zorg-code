@@ -33,7 +33,7 @@ a:hover {
 }
 
 .border {
-border-color: #CBBA79;
+	border-color: #CBBA79;
 	border-style: solid;
 	border-width: 1px;
 }
@@ -235,6 +235,16 @@ option {
 .text:focus, textarea:focus {
 	border-style: inset;
 	border-color: #141414;
+}
+
+.tpleditor textarea {
+	font-family: Courier;
+	font-size: 12px;
+	color: #fff;
+	background-color: #000;
+	outline: none;
+	resize: vertical;
+	max-width: 710px;	
 }
 
 input[type=checkbox], input[type=radio] {

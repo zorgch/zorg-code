@@ -33,7 +33,7 @@ a:hover {
 }
 
 .border {
-border-color: #CCCCCC;
+	border-color: #CCCCCC;
 	border-style: solid;
 	border-width: 1px;
 }

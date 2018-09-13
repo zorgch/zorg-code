@@ -1,6 +1,4 @@
 <?php
-require_once( __DIR__ .'/../includes/usersystem.inc.php');
-require_once( __DIR__ .'/../includes/mysql.inc.php');
 require_once( __DIR__ .'/../includes/poll.inc.php');
 
 if (!$user->id) user_error("Access denied", E_USER_ERROR);	
@@ -26,5 +24,5 @@ try {
 	user_error($e->getMessage(), E_USER_ERROR);
 }
 
-header("Location: ".base64_decode($_GET['redirect']));
-die();
+header('Location: '.base64_decode($_GET['redirect']));
+exit;
