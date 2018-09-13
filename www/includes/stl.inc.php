@@ -102,7 +102,7 @@ class stl {
 			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 			/** Game-ID exists (Game can be loaded) */
-			if ($db->num($result) == 1) {
+			if ($db->num($result) == 1 && $user->islogged_in()) {
 				$this->data['stl'] = $db->fetch($result);
 	
 				$sql = 'SELECT 
