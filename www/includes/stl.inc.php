@@ -383,7 +383,7 @@ class stl {
 				$team = ($i % 2);
 				$shoot_date = date('Y-m-s H:i:s',time()-5000);
 				try {
-					$sql = 'UPDATE stl_players set team_id = '.$team.', last_shoot = '.$shoot_date.' WHERE id = '.$player_index;
+					$sql = 'UPDATE stl_players set team_id = '.$team.', last_shoot = "'.$shoot_date.'" WHERE id = '.$player_index;
 					$db->query($sql,__FILE__,__LINE__,__METHOD__);
 				} catch (Exception $e) {
 					error_log($e->getMessage());
