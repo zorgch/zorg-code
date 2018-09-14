@@ -377,74 +377,97 @@ class stl {
 				$players[] = $rs['id'];
 			}
 			shuffle($players);
-			for($i=0;$i<=count($players);$i++) {
+			//for($i=0;$i<=count($players);$i++) {
+			$i = 0;
+			foreach ($players as $player_index) {
 				$team = ($i % 2);
 				$shoot_date = date('Y-m-s H:i:s',time()-5000);
-				$sql = 'UPDATE stl_players set team_id = '.$team.', last_shoot = NOW() WHERE id = '.$players[$i];
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				try {
+					$sql = 'UPDATE stl_players set team_id = '.$team.', last_shoot = '.$shoot_date.' WHERE id = '.$player_index;
+					$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				} catch (Exception $e) {
+					error_log($e->getMessage());
+				}
+				$i++;
 			}
-			$sql = 'SELECT * FROM stl_players WHERE game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-			while($rs = $db->fetch($result)) {
-
-				//grid array erstellen
-				$grid_x_array = range(1,$this->config['game_size']);
-				$grid_y_array = range(1,$this->config['game_size']);
-
-				//x position
-				$num = 1;
-				$rand_x = array();
-				while($num == 1) {
-					srand(microtime()*1000000);
-					$rand = rand(0,$this->config['game_size'] - 1);
-					if(!array_search($rand,$rand_x)) {
-						$rand_x[] = $rand;
-						$grid_x = $grid_x_array[$rand];
-						$num = 0;
+			try {
+				$sql = 'SELECT * FROM stl_players WHERE game_id = '.$this->data['stl']['game_id'];
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				while($rs = $db->fetch($result)) {
+	
+					//grid array erstellen
+					$grid_x_array = range(1,$this->config['game_size']);
+					$grid_y_array = range(1,$this->config['game_size']);
+	
+					//x position
+					$num = 1;
+					$rand_x = array();
+					while($num == 1) {
+						srand(microtime()*1000000);
+						$rand = rand(0,$this->config['game_size'] - 1);
+						if(!array_search($rand,$rand_x)) {
+							$rand_x[] = $rand;
+							$grid_x = $grid_x_array[$rand];
+							$num = 0;
+						}
 					}
-				}
-				//y position
-				$num = 1;
-				$rand_y = array();
-				while($num == 1) {
-					srand(microtime()*1000000);
-					$rand = rand(0,$this->config['game_size'] - 1);
-					if(!array_search($rand,$rand_y)) {
-						$rand_y[] = $rand;
-						$grid_y = $grid_y_array[$rand];
-						$num = 0;
+					//y position
+					$num = 1;
+					$rand_y = array();
+					while($num == 1) {
+						srand(microtime()*1000000);
+						$rand = rand(0,$this->config['game_size'] - 1);
+						if(!array_search($rand,$rand_y)) {
+							$rand_y[] = $rand;
+							$grid_y = $grid_y_array[$rand];
+							$num = 0;
+						}
 					}
+					//position
+					$sql = 'INSERT INTO stl_positions
+								(game_id, grid_x, grid_y, ship_user_id, shoot_date)
+							VALUES
+								('.$this->data['stl']['game_id'].','.$grid_x.','.$grid_y.','.$rs['user_id'].', now())';
+					$db->query($sql,__FILE__,__LINE__,__METHOD__);
+					
 				}
-				//position
-				$sql = 'INSERT INTO stl_positions
-							(game_id, grid_x, grid_y, ship_user_id, shoot_date)
-						VALUES
-							('.$this->data['stl']['game_id'].','.$grid_x.','.$grid_y.','.$rs['user_id'].', now())';
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
-				
+			} catch (Exception $e) {
+				error_log($e->getMessage());
 			}
 
 			//team_id in positions table schreiben
-			$sql = 'SELECT 
-						team_id,
-						game_id,
-						user_id
-					FROM stl_players 
-					WHERE game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			try {
+				$sql = 'SELECT 
+							team_id,
+							game_id,
+							user_id
+						FROM stl_players 
+						WHERE game_id = '.$this->data['stl']['game_id'];
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+			}
 			while($rs = $db->fetch($result)) {
-				$sql = 'UPDATE stl_positions
-						SET
-							ship_team_id = '.$rs['team_id'].'
-						WHERE
-							ship_user_id = '.$rs['user_id'].'
-							AND
-							game_id = '.$this->data['stl']['game_id'];
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				try {
+					$sql = 'UPDATE stl_positions
+							SET
+								ship_team_id = '.$rs['team_id'].'
+							WHERE
+								ship_user_id = '.$rs['user_id'].'
+								AND
+								game_id = '.$this->data['stl']['game_id'];
+					$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				} catch (Exception $e) {
+					error_log($e->getMessage());
+				}
 			}
 			//game starten
-			$sql = 'UPDATE stl set status = 1 WHERE game_id = '.$this->data['stl']['game_id'];
-			$db->query($sql,__FILE__,__LINE__,__METHOD__);
+			try {
+				$sql = 'UPDATE stl set status = 1 WHERE game_id = '.$this->data['stl']['game_id'];
+				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+			}
 
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
 			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
