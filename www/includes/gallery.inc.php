@@ -22,10 +22,10 @@
  * @include forum.inc.php
  * @include util.inc.php
  */
-include_once( __DIR__ .'/config.inc.php');
+require_once( __DIR__ .'/config.inc.php');
 include_once( __DIR__ .'/colors.inc.php');
 include_once( __DIR__ .'/forum.inc.php');
-include_once( __DIR__ .'/util.inc.php');
+require_once( __DIR__ .'/util.inc.php');
 
 /**
  * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
@@ -320,8 +320,12 @@ function pic ($id) {
 	$exif_data = exif_read_data($pic_filepath, 1, true);
 	if ($exif_data['FILE.FileDateTime'] != false) {
 		echo '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
-	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) { // APOD Special: use pic_added from database, instead of filemtime
+
+	/** APOD Special: use pic_added from database, instead of filemtime */
+	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
 		echo '<p>Bild von '.datename($cur['timestamp']).'</p>';
+	
+	/** Fallback: Datum aus dem filemtime() des Pics */
 	} else {
 		echo '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
 	}
@@ -361,9 +365,8 @@ function pic ($id) {
 		$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
 		echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 	}
-	
-	
-	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0" '.$cur['picsize'].'>';
+
+	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0">';//.$cur['picsize'].'>';
 	
 	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
 	if ($last) echo '<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$last['id'].'">previous</a>';
@@ -381,24 +384,43 @@ function pic ($id) {
 	getUsersOnPic($cur['id']); // MyPic Markierungen laden
 	echo '</div></td></tr>';
 	*/
-	
+
 	echo '<tr><td colspan="3">';
-	
-	// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
-	if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
+
+	/** Normale Pic Anzeige (wenn nicht APOD UND Pic-Extenion nicht mit '.' anfängt...) */
+	if ($cur['album'] != APOD_GALLERY_ID || mb_substr($cur['extension'],0,1,'utf-8') == '.')
 	{
-		printf('
-		<form action="%1$s" method="post" onsubmit="return markAsMypic()">
-			<input type="hidden" name="picID" value="%2$s" />
-			<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" />
-		</form>'
-				,$_SERVER['PHP_SELF'].'?do=mypic&amp;'.url_params()
-				,$id
-				,imgsrcPic($id)
-		);
-	// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
+		// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
+		if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
+		{
+			printf('
+			<form action="%1$s" method="post" onsubmit="return markAsMypic()">
+				<input type="hidden" name="picID" value="%2$s" />
+				<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" />
+			</form>'
+					,$_SERVER['PHP_SELF'].'?do=mypic&amp;'.url_params()
+					,$id
+					,imgsrcPic($id)
+			);
+		// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
+		} else {
+			echo '<img border="0" src="'. imgsrcPic($id). '">';
+		}
+
+	/** APOD Special: statt Pic ein Video embedden */
 	} else {
-		echo '<img border="0" src="'. imgsrcPic($id). '">';
+		switch ($cur['extension'])
+			{
+				case 'youtube':
+					echo '<iframe width="800" height="450" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+					break;
+				case 'vimeo':
+					echo '<iframe width="800" height="450" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
+					break;
+				case 'website':
+					echo '<iframe width="800" height="800" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" importance="low" style="overflow:hidden;"></iframe>';
+					break;
+			}
 	}
 	
 	echo '</td></tr>';
@@ -1259,19 +1281,19 @@ function doRotatePic($picID, $direction) {
 
 // ************************************ FUNCTIONS *********************************************************************************
 
+/**
+ * @author [z]deep, IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 added support for PNG image file types
+ */
 function isPic($file) {
 	if (!is_file($file)) return 0;
-	
-	$ext = strtolower(substr($file, -4));
-	if (extension($file) == ".jpg") return 1;
-	if (extension($file) == ".gif") return 1;
+	if (extension($file) == '.jpg') return 1;
+	if (extension($file) == '.jpeg') return 1;
+	if (extension($file) == '.gif') return 1;
+	if (extension($file) == '.png') return 1;
 	else return 0;
-	
-	if ($ok) {
-		return 1;
-	}else{
-		return 0;
-	}
 }
 
 /**
@@ -1306,11 +1328,23 @@ function countFiles ($directory) {
 }
 
 function picPath($albID, $id, $extension) {
-	return GALLERY_DIR.$albID."/pic_".$id.$extension;
+	return GALLERY_DIR.$albID.'/pic_'.$id.$extension;
 }
 
+/**
+ * Get Pic-Thumbnail Path
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 15.09.2018 addedd switch-case for handling non-image entries from gallery_pics
+ */
 function tnPath($albID, $id, $extension) {
-	return GALLERY_DIR.$albID."/tn_".$id.$extension;
+	switch ($extension)
+	{
+		case 'website': return GALLERY_DIR.$albID.'/tn_'.$id.'.png';
+		case 'youtube': return GALLERY_DIR.$albID.'/tn_'.$id.'.jpg';
+		case 'vimeo': return GALLERY_DIR.$albID.'/tn_'.$id.'.jpg';
+		default: return GALLERY_DIR.$albID.'/tn_'.$id.$extension;
+	}
 }
 
 function imgsrcPic($id) {
@@ -1371,14 +1405,20 @@ function delDir ($dir) {
 function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 {
 	// errors
-	if (!isPic($srcFile)) user_error('Wrong File Type', E_USER_ERROR);
-	if (extension($srcFile) != extension($dstFile))
-		user_error('Source- and Destination-Files have mismatching File Types.', E_USER_ERROR);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic(): %s, %s, %s, %s, %s', __FUNCTION__, __LINE__, $srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor));
+	if (!isPic($srcFile)) {
+		error_log(sprintf('<%s:%d> Wrong File Type: %s', __FUNCTION__, __LINE__, $srcFile));
+		return false;
+	}
+	if (extension($srcFile) != extension($dstFile)) {
+		error_log(sprintf('<%s:%d> Source- and Destination-Files have mismatching File Types: %s vs. %s', __FUNCTION__, __LINE__, $srcFile, $dstFile));
+		return false;
+	}
 
 	$ext = extension($srcFile);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $ext: %s', __FUNCTION__, __LINE__, $ext));
 
-	// calc new pic size
+	/** calc new pic size */
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> calc new pic size', __FUNCTION__, __LINE__));
 	$img_size = getImageSize($srcFile);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $img_size: %s', __FUNCTION__, __LINE__, print_r($img_size,true)));
@@ -2024,4 +2064,67 @@ function pic2album($id) {
 		return false;
 	}
 	return (!empty($picAlbum['album']) ? $picAlbum['album'] : false);
+}
+
+/**
+ * Video Thumbnail von YouTube & Vimeo holen
+ *
+ * Each YouTube & Vimeo video has multiple sizes of generated images. They are predictably formatted.
+ * @link https://stackoverflow.com/questions/2068344/how-do-i-get-a-youtube-video-thumbnail-from-the-youtube-api
+ * @link https://stackoverflow.com/questions/1361149/get-img-thumbnails-from-vimeo
+ *
+ * @author IneX
+ * @date 14.09.2018
+ * @version 1.0
+ * @since 1.0 14.09.2018 function added
+ *
+ * @TODO If required (later), use $format Parameter to dynamically grab URLs from API response, instead of hard-coded $thumbnailUrl Path
+ *
+ * @see cURLfetchUrl()
+ * @param string $service Name der Plattform, gültige Werte: 'youtube' oder 'vimeo'
+ * @param string $video_id Video-ID für welches ein Thumbnail geholt werden soll
+ * @param string $image_size (Optional) Angabe als string, gültige Werte: 'small', 'medium' oder 'large' - default: 'small'
+ * @param string $output_to (Optional) Angabe als string wie das Thumbnail ausgegeben werden soll, gültige Werte: 'display'=nur anzeigen oder 'datei-zielpfad'=download auf dem server
+ * @return string|boolean Gibt die Bild-URL zurück wenn $output_to='display' - oder true/false wenn $output_to='datei-zielpfad'
+ */
+function getVideoThumbnail($service, $video_id, $image_size='small', $output_to='display')
+{
+	/** Validate & format passed parameters */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> getVideoThumbnail(): %s, %s, %s, %s', __FUNCTION__, __LINE__, $service, $video_id, $image_size, $output_to));
+	if (is_array($service) || is_array($video_id) || is_array($image_size) || is_array($output_to)) return false;
+	if (is_numeric($service) || is_numeric($image_size) || is_numeric($output_to)) return false;
+	if (strpos($video_id, '?') > 0) $video_id = strtok($video_id, '?');
+	$service = strtolower($service);
+
+	$service_data =  [
+					 'youtube' => [
+									 'url' =>	 'https://img.youtube.com/vi/%s/%s.jpg'
+									,'size' =>	 [
+													 'small' => 'default'
+													,'medium' => 'mqdefault'
+													,'large' => 'hqdefault'
+												 ]
+								 ]
+					,'vimeo' => [
+									 'url' =>	 'https://i.vimeocdn.com/video/%s_%s.jpg'
+									,'size' =>	 [
+													 'small' => '100x75'
+													,'medium' => '200x150'
+													,'large' => '640'
+												 ]
+								 ]
+					 ];
+	$thumbnailUrl = sprintf($service_data[$service]['url'], $video_id, $service_data[$service]['size'][$image_size]);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $thumbnailUrl: %s', __FUNCTION__, __LINE__, $thumbnailUrl));
+
+	/** Download Video-Thumbnail from URL to path as specified in $output_to */
+	if ($output_to != 'display')
+	{
+		/** Fetch and save the Thumbnail image to $output_to */
+		return (cURLfetchUrl($thumbnailUrl, $output_to) ? true : false);
+
+	} else {
+		/** Return URL to Video-Thumbnail */
+		return $thumbnailUrl;
+	}
 }

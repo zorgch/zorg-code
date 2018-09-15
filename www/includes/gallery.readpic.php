@@ -41,7 +41,7 @@ $media_type = (!isset($_GET['type']) || empty($_GET['type']) || is_numeric($_GET
 
 try {
 	$query = $db->query('SELECT * FROM gallery_pics WHERE id=' . $media_id, __FILE__, __LINE__, 'SELECT * FROM gallery_pics');
-	$media_data = mysql_fetch_array($query);
+	$media_data = $db->fetch($query);
 } catch (Exception $e) {
 	error_log($e->getMessage());
 	return false;
@@ -51,23 +51,22 @@ try {
 if (!$media_data['zensur'] || ($media_data['zensur'] && $user->typ == USER_MEMBER))
 {
 	/** Set MIME-Type for HTTP response of resource */
-	switch ($media_data['extension'])
-	{
-		case ('.jpg' || '.jpeg' || '.jpe'): $media_mime = 'image/jpeg'; $media_download = false; break;
-		case '.gif': $media_mime = 'image/gif'; $media_download = false; break;
-		case '.png': $media_mime = 'image/png'; $media_download = false; break;
-		case '.mov': $media_mime = 'video/quicktime'; $media_download = false; break;
-		case '.movie': $media_mime = 'video/x-sgi-movie'; $media_download = false; break;
-		case '.m3u': $media_mime = 'audio/x-mpegurl'; $media_download = false; break;
-		case '.mp3': $media_mime = 'audio/mp3'; $media_download = false; break;
-		case ('.mp4' || '.m4v' || '.m4a'): $media_mime = 'video/mp4'; $media_download = false; break;
-		case ('.mpeg' || '.mpe' || '.mpg'): $media_mime = 'video/mpeg'; $media_download = false; break;
-		default: exit( error_log(sprintf('<%s:%d> Unknown Media Extension: %s', __FILE__, __LINE__, $media_data['extension'])) );
-	}
+	if ($media_data['extension'] === '.jpg' || $media_data['extension'] === '.jpeg' || $media_data['extension'] === '.jpe') { $media_mime = 'image/jpeg'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.gif') { $media_mime = 'image/gif'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.png') { $media_mime = 'image/png'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.mov') { $media_mime = 'video/quicktime'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.movie') { $media_mime = 'video/x-sgi-movie'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.m3u') { $media_mime = 'audio/x-mpegurl'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.mp3') { $media_mime = 'audio/mp3'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.mp4' || $media_data['extension'] === '.m4v' || $media_data['extension'] === '.m4a') { $media_mime = 'video/mp4'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === '.mpeg' || $media_data['extension'] === '.mpe' || $media_data['extension'] === '.mpg') { $media_mime = 'video/mpeg'; $media_extension = $media_data['extension']; $media_download = false; }
+	if ($media_data['extension'] === 'youtube' || $media_data['extension'] === 'vimeo') { $media_mime = 'image/jpeg'; $media_extension = '.jpg'; $media_download = false; }
+	if ($media_data['extension'] === 'website') { $media_mime = 'image/png'; $media_extension = '.png'; $media_download = false; }
+	if (empty($media_extension)) { exit( error_log(sprintf('<%s:%d> Unknown Media Extension: %s', __FILE__, __LINE__, $media_data['extension'])) ); }
 
 	/** Build path to the Media Item */
-	$mediafile_name = $media_type.$media_data['id'].$media_data['extension'];
-	$mediafile = GALLERY_DIR . DIRECTORY_SEPARATOR . $media_data['album'] . DIRECTORY_SEPARATOR . $mediafile_name;
+	$mediafile_name = $media_type.$media_data['id'].$media_extension;
+	$mediafile = GALLERY_DIR . $media_data['album'] . DIRECTORY_SEPARATOR . $mediafile_name;
 
 	/**
 	 * Last file modification date HTTP-Headers, must be valid HTTP-Date (in GMT)
@@ -111,5 +110,9 @@ if (!$media_data['zensur'] || ($media_data['zensur'] && $user->typ == USER_MEMBE
 
 	/** If not cached or changed: return $mediafile */
 	readfile($mediafile);
+
+/** Access denied */
+} else {
+	header('HTTP/1.1 403 Forbidden');
+	exit( user_error('Access denied', E_USER_NOTICE) );
 }
-//echo "access denied";
