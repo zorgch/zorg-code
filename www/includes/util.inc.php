@@ -1,5 +1,10 @@
 <?php
 /**
+ * zorg Site Helper Functions
+ * @package Zorg
+ * @subpackage Utils
+ */
+/**
  * Define preferred encryption type for user password encryption
  * @const CRYPT_SALT Sets the Salt encryption type to be used
  * @see crypt_pw()
@@ -72,61 +77,51 @@ function timename($timestamp)
 
 		/** Vergangen oder in der Zukunft? */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Comparing timestamps %s vs %s', __FUNCTION__, __LINE__, $timestamp, $currTime));
-		$prefix = ($timestamp >= $currTime ? 'In ' : 'Vor ');
+		$prefix = ($timestamp >= $currTime ? 'in ' : 'vor ');
 		$timeDiff = ($timestamp >= $currTime ? $timestamp - $currTime : $currTime - $timestamp);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps time difference: %s%d', __FUNCTION__, __LINE__, $prefix, $timeDiff));
-	
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps time difference: %s %d', __FUNCTION__, __LINE__, $prefix, $timeDiff));
+
 		/** Zeitperioden */
 		$timeLengths = array('s' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800, 'mt' => 2592000, 'y' => 31536000);
 	
-		switch ($timeDiff)
-		{
-			case $timeDiff <= 10: /** Gerade eben */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-				return t('datetime-recently');
-				break;
-			
-			case $timeDiff < $timeLengths['m']: /** Sekunden */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-				return $prefix . t('datetime-seconds', 'global', $timeDiff) . $timeSuffix;
-				break;
-			
-			case $timeDiff < $timeLengths['h']: /** Minuten */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
-				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-				return $prefix . t('datetime-minutes', 'global', floor($timeDiff/$timeLengths['m'])) . $timeSuffix;
-				break;
-			
-			case $timeDiff < $timeLengths['d']: /** Stunden */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
-				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-				return $prefix . t('datetime-hours', 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
-				break;
-			
-			case $timeDiff < $timeLengths['w']: /** Tage */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
-				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'en' : '' );
-				return $prefix . t('datetime-days', 'global', floor($timeDiff/$timeLengths['d'])) . $timeSuffix;
-				break;
-			
-			case $timeDiff < $timeLengths['mt']: /** Wochen */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
-				$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-				return $prefix . t('datetime-weeks', 'global', floor($timeDiff/$timeLengths['w'])) . $timeSuffix;
-				break;
-			
-			case $timeDiff < $timeLengths['y']: /** Monate */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
-				$timeSuffix = (floor($timeDiff/$timeLengths['mt']) > 1 ? 'en' : '' );
-				return $prefix . t('datetime-months', 'global', floor($timeDiff/$timeLengths['mt'])) . $timeSuffix;
-				break;
-			
-			case $timeDiff >= $timeLengths['y']: /** Jahre oder mehr */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
-				$timeSuffix = (floor($timeDiff/$timeLengths['y']) > 1 ? 'en' : '' );
-				return $prefix . t('datetime-years', 'global', floor($timeDiff/$timeLengths['y'])) . $timeSuffix;
-				break;
+		if ($timeDiff <= 10) { /** Gerade eben */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
+			return t('datetime-recently');
+
+		} elseif ($timeDiff < $timeLengths['m']) { /** Sekunden */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', $timeDiff) . $timeSuffix;
+
+		} elseif ($timeDiff < $timeLengths['h']) { /** Minuten */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', floor($timeDiff/$timeLengths['m'])) . $timeSuffix;
+
+		} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
+
+		} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'en' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', floor($timeDiff/$timeLengths['d'])) . $timeSuffix;
+
+		} elseif ($timeDiff < $timeLengths['mt']) { /** Wochen */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', floor($timeDiff/$timeLengths['w'])) . $timeSuffix;
+
+		} elseif ($timeDiff < $timeLengths['y']) { /** Monate */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['mt']) > 1 ? 'en' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', floor($timeDiff/$timeLengths['mt'])) . $timeSuffix;
+
+		} elseif ($timeDiff >= $timeLengths['y']) { /** Jahre oder mehr */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
+			//$timeSuffix = (floor($timeDiff/$timeLengths['y']) > 1 ? 'en' : '' );
+			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', floor($timeDiff/$timeLengths['y'])) . $timeSuffix;
 		}
 	} catch (Exception $e) {
 		error_log($e->getMessage());
@@ -558,7 +553,7 @@ function gmt_diff($date) {
  *
  * @see usersystem::usersystem()
  * @param string $userAgent
- * @return string|bool Gibt true oder false zurück
+ * @return int|bool Gibt die numerische Position des ersten Vorkommens zurück (vergleichbar mit 'true') - oder false
  */
 function isMobileClient($userAgent)
 {
@@ -605,6 +600,45 @@ function isMobileClient($userAgent)
 	return array_filter($_mobileClients, function($match) use ($userAgent) {
 		return ( strpos($userAgent, $match) !== false);
 	});
+}
+
+
+/**
+ * Array String-Search
+ * Searches for a matching String in a given Array
+ *
+ * @author IneX
+ * @date 13.09.2018
+ * @version 1.0
+ * @since 13.09.2018 function added
+ *
+ * @param string $searchFor
+ * @param array $inArray A valid Array to $searchFor string, if multidimensional also provide $arrayCoulmn!
+ * @param string $arrayColumn
+ * @param boolean $caseSensitive If false, $searchFor will be compared using all lowercase
+ * @return int|bool Gibt die numerische Position des ersten Vorkommens zurück (vergleichbar mit 'true') - oder false
+ */
+function findStringInArray($searchFor, $inArray, $arrayColumn=null, $caseSensitive=false)
+{
+	/** Validate & format passed parameters */
+	if (empty($searchFor) || is_numeric($searchFor)) return false;
+	if (!is_array($inArray) && !empty($inArray)) $inArray = [ $inArray ];
+	if ($caseSensitive) $searchFor = strtolower($searchFor);
+
+	/** Search through $inArray by $searchFor */
+	If (empty($arrayColumn))
+	{
+		/** $searchFor in a regular Array */
+		return array_filter($inArray, function($match) use ($searchFor) {
+			return ( strpos($searchFor, $match) !== false);
+		});
+
+	} else {
+		/** $searchFor in a multimensional Array $arrayColumn */
+		//return array_search($searchFor, array_column($inArray, $arrayColumn));
+		//return array_keys(array_combine(array_keys($inArray), array_column($inArray,$arrayColumn)), $searchFor);
+		return array_search($searchFor, array_combine(array_keys($inArray), array_column($inArray, $arrayColumn)));
+	}
 }
 
 

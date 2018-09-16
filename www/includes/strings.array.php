@@ -29,9 +29,9 @@ return
 			,'error-game-finish-message' => 'Finish-Message ohne Inhalt bei Game "%d", ausgelöst durch user "%s".<br>Winner: %s<br>Receiver: %s'
 			,'error-game-notyourturn' => 'Du bisch nöd dra, yarak!'
 			,'error-file-notfound' => 'File not found or not linked in database.'
-			,'datetime-today' => 'Heute'
-			,'datetime-yesterday' => 'Gestern'
-			,'datetime-recently' => 'Jetzt'
+			,'datetime-today' => 'heute'
+			,'datetime-yesterday' => 'gestern'
+			,'datetime-recently' => 'jetzt'
 			,'datetime-second' => '%d Sekunde'
 			,'datetime-seconds' => '%d Sekunden'
 			,'datetime-minute' => '%d Minute'
@@ -43,7 +43,7 @@ return
 			,'datetime-week' => '%d Woche'
 			,'datetime-weeks' => '%d Wochen'
 			,'datetime-month' => '%d Monat'
-			,'datetime-months' => '%d Monate'
+			,'datetime-months' => '%d Monaten'
 			,'datetime-year' => '%d Jahr'
 			,'datetime-years' => '%d Jahre'
 		]
@@ -214,9 +214,14 @@ return
 		]
 	,'stl' =>
 		[
-			 'activity-newgame' => 'hat ein neues Shoot the Lamber-Spiel &laquo;%1$s&raquo; er&ouml;ffnet für %2$d vs. %2$d.<br/><a href="%3$s/stl.php?do=game&amp;game_id=%4$d">Jetzt joinen!</a>'
+			 'activity-newgame' => 'hat ein neues Shoot the Lamber-Spiel &laquo;%1$s&raquo; er&ouml;ffnet für %2$d vs. %2$d. <br/><a href="%3$s/stl.php?do=game&amp;game_id=%4$d">Jetzt joinen!</a>'
 			,'activity-won-gelb' => 'hat Team Gelb im STL-Spiel <a href="%s/stl.php?do=game&game_id=%d">%s</a> zum Sieg gef&uuml;hrt!'
 			,'activity-won-gruen' => 'hat Team Gr&uuml;n im STL-Spiel <a href="%s/stl.php?do=game&game_id=%d">%s</a> zum Sieg gef&uuml;hrt!'
 			,'activity-joingame' => 'ist dem STL-Spiel <a href="%s/stl.php?do=game&game_id=%d">%s</a> gejoined.'
+		]
+	,'activity' =>
+		[
+			 'test' => 'hat eine Test Activity im Bereich %s generiert.'
+			,'telegram-notification' => '<b>%s</b> %s'
 		]
 ];

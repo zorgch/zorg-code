@@ -99,45 +99,6 @@ class stl {
 		//Posts
 		$this->exec();
 
-		if(!empty($_GET['game_id']) && $_GET['game_id'] > 0) {
-			$sql = 'SELECT * FROM stl WHERE game_id = '.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-
-			/** Game-ID exists (Game can be loaded) */
-			if ($db->num($result) == 1 && $user->islogged_in()) {
-				$this->data['stl'] = $db->fetch($result);
-	
-				$sql = 'SELECT 
-							team_id 
-						FROM stl_players 
-						WHERE 
-							user_id = '.$user->id.' 
-							AND 
-							game_id = '.$this->data['stl']['game_id'];
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				$rs = $db->fetch($result);
-				$this->data['team_id'] = $rs['team_id'];
-	
-				$this->data['msg'][1] = 'Kommandant, ein Rettungsboot hat keine Torpedos!';
-				$this->data['msg'][2] = 'Kommandant, dieses Ziel ist uninteressant!';
-				$this->data['msg'][3] = 'Torpedos geladen und bereit!';
-				$this->data['msg'][4] = 'Kommandant, man schiesst nicht auf die eigenen Leute!';
-				$this->data['msg'][5] = 'Kommandant, Sie müssen warten bis die Torpedorohre nachgeladen sind!';
-				$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, %s wieder schiessbereit!';
-				$this->data['msg'][7] = 'Kommandant, die Schlacht ist vorbei!';
-	
-				$this->game();
-			
-			/** Invalid Game-ID - Game couldn't be loaded */
-			} else {
-				user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
-			}
-
-		/** Invalid $_GET['game_id'] Game-ID passed */
-		} else {
-			user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
-		}
-
 		/** Legende */
 		$this->data['legende'] = '<br><br><br>
 		<table><tr><td align="center" style="text-align: center" colspan="2">
@@ -212,7 +173,45 @@ class stl {
 		Meerfarbene Felder mit einer Namensabkürzung kennzeichnen gesunkene Teammitglieder
 		</td></tr></table>';
 
-		$this->overview();
+		if(!empty($_GET['game_id']) && $_GET['game_id'] > 0) {
+			$sql = 'SELECT * FROM stl WHERE game_id = '.$_GET['game_id'];
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
+			/** Game-ID exists (Game can be loaded) */
+			if ($db->num($result) == 1 && $user->islogged_in()) {
+				$this->data['stl'] = $db->fetch($result);
+	
+				$sql = 'SELECT 
+							team_id 
+						FROM stl_players 
+						WHERE 
+							user_id = '.$user->id.' 
+							AND 
+							game_id = '.$this->data['stl']['game_id'];
+				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$rs = $db->fetch($result);
+				$this->data['team_id'] = $rs['team_id'];
+	
+				$this->data['msg'][1] = 'Kommandant, ein Rettungsboot hat keine Torpedos!';
+				$this->data['msg'][2] = 'Kommandant, dieses Ziel ist uninteressant!';
+				$this->data['msg'][3] = 'Torpedos geladen und bereit!';
+				$this->data['msg'][4] = 'Kommandant, man schiesst nicht auf die eigenen Leute!';
+				$this->data['msg'][5] = 'Kommandant, Sie müssen warten bis die Torpedorohre nachgeladen sind!';
+				$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, %s wieder schiessbereit!';
+				$this->data['msg'][7] = 'Kommandant, die Schlacht ist vorbei!';
+	
+				$this->game();
+			
+			/** Invalid Game-ID - Game couldn't be loaded */
+			} else {
+				user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
+			}
+
+		/** No $_GET['game_id'] Game-ID passed */
+		} else {
+			$this->overview();
+			//user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
+		}
 	}
 
 
