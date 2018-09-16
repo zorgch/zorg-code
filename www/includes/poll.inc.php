@@ -109,7 +109,7 @@ function getPoll ($id) {
 				while ($pollVoter = $db->fetch($pollVoters)) {
 					$pollVotersArray[$pollVoter['answer']][] = $pollVoter;
 				}
-				error_log('[DEBUG] $pollVotersArray: '.print_r($pollVotersArray,true));
+				if (DEVELOPMENT) error_log('[DEBUG] $pollVotersArray: '.print_r($pollVotersArray,true));
 			} catch (Exception $e) {
 				error_log($e->getMessage());
 				return false;
