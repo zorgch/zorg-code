@@ -64,10 +64,12 @@
  * @include config.inc.php
  * @include mysql.inc.php
  * @include usersystem.inc.php
+ * @include util.inc.php
  */
 require_once( __DIR__ . '/config.inc.php');
 require_once( __DIR__ . '/mysql.inc.php');
 require_once( __DIR__ . '/usersystem.inc.php');
+include_once( __DIR__ . '/util.inc.php');
 
 
 /**
@@ -121,7 +123,7 @@ class stl {
 				$this->data['msg'][3] = 'Torpedos geladen und bereit!';
 				$this->data['msg'][4] = 'Kommandant, man schiesst nicht auf die eigenen Leute!';
 				$this->data['msg'][5] = 'Kommandant, Sie müssen warten bis die Torpedorohre nachgeladen sind!';
-				$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, in '.(60-date('i')).' Minuten ist es soweit';
+				$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, %s wieder schiessbereit!';
 				$this->data['msg'][7] = 'Kommandant, die Schlacht ist vorbei!';
 	
 				$this->game();
@@ -513,7 +515,7 @@ class stl {
 			}
 			$this->data['game'] .= '<br><br>';
 			$this->data['game'] .= '<div class="alert info"><strong>'.($this->config['num_players'] - $num).'/'.$this->config['num_players'].' Spieler fehlen noch...</strong></div>';
-			$this->data['game'] .= '<small>Spiel wird bei vollständiger Spielerzahl automatisch gestarten.<br>Der Spieler wird zufällig einem Team und einer Position auf dem Spielfeld zugewiesen</small>';
+			$this->data['game'] .= '<small>Spiel wird bei vollständiger Spielerzahl automatisch gestartet.<br>Der Spieler wird zufällig einem Team und einer Position auf dem Spielfeld zugewiesen</small>';
 			$this->data['game'] .= '</div>';
 		
 		}
@@ -591,18 +593,28 @@ class stl {
 				$rs = $db->fetch($result);
 				//Wenn der spieler noch im spiel ist
 				if($rs['hit_user_id'] == 0) {
-					//Prüfen wann Seine Torpedos wieder geladen sind
+					/** Prüfen wann Seine Torpedos wieder geladen sind (kein query-result = schussbereit) */
 					$sql = 'SELECT 
-								game_id
+								 game_id
+								,UNIX_TIMESTAMP(last_shoot) as last_shoot
+								,UNIX_TIMESTAMP(last_shoot+INTERVAL 1 HOUR) as next_shoot
 							FROM stl_players 
-							WHERE
+							WHERE 
 								game_id = '.$this->data['stl']['game_id'].'
-							AND user_id = '.$user->id.'
-							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
+								AND user_id = '.$user->id.'
+								AND last_shoot > (NOW() - INTERVAL 1 HOUR)';
 					$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-					
-					//Zuweisung der Message wenn geladen wird oder nicht
-					$msg = ($db->num($result)) ? $this->data['msg'][3] : $this->data['msg'][6];
+
+					/** Zuweisung der Message wenn geladen wird oder nicht */
+					if ($db->num($result)) {
+						/** Torpedorohre werden noch geladen - Schuss war vor < 1 Stunde */
+						$shotData = $db->fetch($result);
+						$time_to_next_shoot = timename($shotData['next_shoot']);//($result['next_shoot']-$result['last_shoot'])/60;
+						$msg = sprintf($this->data['msg'][6], $time_to_next_shoot);
+					} else {
+						/** Torpedorohre sind geladen - Schuss war vor > 1 Stunde */
+						$msg = $this->data['msg'][3];
+					}
 				
 				//Wenn der Spieler abgeschossen wurde.
 				} else {
