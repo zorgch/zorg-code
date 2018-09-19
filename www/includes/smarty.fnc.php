@@ -734,7 +734,7 @@ function var_request ()
 	 		$ret = '/?tpl='.$vars['tpl']['root'];
 	 	}
 
-        if (isset($params['param'])) $ret .= '&'.$params['param'];
+        if (isset($params['param'])) $ret .= str_replace('?&', '?', (strpos($ret, '?') !== false ? '&' : '?').$params['param']);
 
         if (isset($params['hash'])) $ret .= '#'.$params['hash'];
         return $ret;

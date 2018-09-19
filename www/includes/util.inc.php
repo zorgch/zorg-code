@@ -101,7 +101,7 @@ function timename($timestamp)
 		} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
 			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) >= 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
 
 		} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
