@@ -45,7 +45,7 @@ if($_GET['bug_id'] == '') {
 	}
 
 
-	$smarty->assign('tplroot', array('page_title' => 'Bugtracker'));
+	$smarty->assign('tplroot', array('page_title' => 'Bugtracker', 'page_link' => $_SERVER['PHP_SELF']));
 	$smarty->display('file:layout/head.tpl');
 	
 	echo menu("zorg");
@@ -122,7 +122,8 @@ if($_GET['bug_id'] == '') {
 // Bug ausgeben
 } else {
 	//echo head(1, "Bugtracker");
-	$smarty->assign('tplroot', array('page_title' => 'Bugtracker'));
+	$bugTitle = Bugtracker::getBugRS($_GET['bug_id']);
+	$smarty->assign('tplroot', array('page_title' => sprintf('Bug #%d - %s', $_GET['bug_id'], $bugTitle['title']), 'page_link' => '/bug/'.$_GET['bug_id']));
 	$smarty->display('file:layout/head.tpl');
 	
 	echo menu("zorg");

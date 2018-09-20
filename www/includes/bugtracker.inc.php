@@ -365,12 +365,8 @@ Class Bugtracker {
 
 	function getBugRS($bug_id) {
 		global $db;
-		$sql =
-			"SELECT *"
-			." FROM bugtracker_bugs"
-			." WHERE id =".$bug_id
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$sql = 'SELECT * FROM bugtracker_bugs WHERE id ='.$bug_id;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		return $db->fetch($result);
 	}
 
