@@ -62,7 +62,7 @@ $activities_f =
  * 
  * In dieser Klasse befinden sich alle Funktionen zum Commenting-System
  *
- * @author		[z]milamber, IneX
+ * @author		[z]biko
  * @version		1.0
  * @package		Zorg
  * @subpackage	Forum
@@ -155,9 +155,14 @@ class Comment {
 	}
 
 	/**
-	 * @return int
+	 * Anzahl Kinder-Objekte zu beliebigem Post ermitteln
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 method added
+	 *
 	 * @param $comment_id int
-	 * @desc Anzahl Kinder-Objekte zu beliebigem Post ermitteln
+	 * @return int Num Child-Comments
 	 */
 	static function getNumChildposts($board, $comment_id) {
 	  global $db, $user;
@@ -189,9 +194,11 @@ class Comment {
 
 
 	/**
+	 * Fetches a Post and returns its Recordset
+	 *
+	 * @author [z]biko
+	 * @param int $id
 	 * @return Array
-	 * @param $id int
-	 * @desc Fetches a Post and returns its Recordset
 	 */
 	static function getRecordset($id) {
 	  global $db;
@@ -208,7 +215,7 @@ class Comment {
 		  	FROM comments where id = '".$id."'
 		  	"
 		  ;
-		  return $db->fetch($db->query($sql, __FILE__, __LINE__, 'Comment::getRecordset()'));
+		  return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 	  }
 	  catch(Exception $e) {
 			return $e->getMessage();
@@ -216,11 +223,16 @@ class Comment {
 	}
 
 	/**
+	 * HTML der "Additional Posts" Teile
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 method added
+	 *
+	 * @param object $rs SQL-Query Result
+	 * @param array $himages ?
+	 * @param void $viewkeyword DEPRECATED
 	 * @return String
-	 * @param $rs
-	 * @param $himages
-	 * @param $viewkeyword
-	 * @desc HTML der "Additional Posts" Teile
  	 */
 	static function getHTMLadditional($rs, $himages) {
 
@@ -269,7 +281,16 @@ class Comment {
 		else return '';
 	}
 
-
+	/**
+	 * Link to a Board
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 method added
+	 *
+	 * @param string $board Board-Identifier
+	 * @return object SQL-Query Result resource
+	 */
 	static function getBoardlink($board) {
 		global $db;
 		$sql = 'SELECT * FROM comments_boards WHERE board = "'.$board.'"';
@@ -278,6 +299,20 @@ class Comment {
 		return $rs;
 	}
 
+	/**
+	 * Link to a Comment
+	 *
+	 * @author [z]biko, IneX
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 added $addUrlParameters to make Link work with routes (e.g. /thread/23/?parent_id=5 vs. /gallery.php?show=pic&picID=23)
+	 *
+	 * @param string $board Board-Identifier for Comment to Link
+	 * @param integer $parent_id Parent-ID for Comment to Link
+	 * @param integer $id ID of Comment to Link
+	 * @param integer $thread_id Thread-ID for Comment to Link
+	 * @return string Link-URL to Comment
+	 */
 	static function getLink($board, $parent_id, $id, $thread_id) {
 		global $db, $boardlinks;
 
@@ -290,7 +325,8 @@ class Comment {
 			$boardlinks[$board] = $rs;
 		}
 
-		return $boardlinks[$board]['link'].$thread_id.'?parent_id='.$parent_id.'#'.$id;
+		$addUrlParameters = (strpos($boardlinks[$board]['link'].$thread_id, '?')>0 ? '&' : '?').'parent_id='.$parent_id.'#'.$id;
+		return $boardlinks[$board]['link'].$thread_id.$addUrlParameters;
 	}
 
 	/**
@@ -332,7 +368,7 @@ class Comment {
 			}
 		} else if ($board == 'e') { // Events
 			$sql = 'SELECT name FROM events WHERE id='.$thread_id;
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>' : $boardlinks[$board]['link'].$thread_id);
 			return $output;
 		} else if ($board == 'g') { // GO Game
@@ -995,21 +1031,17 @@ class Forum {
 	static function getUnreadLink() {
 		global $db, $user;
 
-		$sql =
-			"
-			SELECT
-			comments.*
-			, IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread
-			, UNIX_TIMESTAMP(comments.date) as date
-			, user.clan_tag
-			, user.username
-			FROM comments
-			LEFT JOIN user on comments.user_id = user.id
-			LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '".$user->id."')
-			WHERE comments_unread.comment_id IS NOT NULL
-			ORDER by date ASC LIMIT 0,1
-			"
-		;
+		$sql = 'SELECT
+					comments.*
+					, IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread
+					, UNIX_TIMESTAMP(comments.date) as date
+					, user.clan_tag
+					, user.username
+				FROM comments
+					LEFT JOIN user on comments.user_id = user.id
+					LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id='.$user->id.')
+				WHERE comments_unread.comment_id IS NOT NULL
+				ORDER by date ASC LIMIT 0,1';
 
   	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
