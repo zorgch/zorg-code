@@ -38,4 +38,5 @@
 		RewriteRule tpl/([0-9]+)(/.*)?$ /?tpl=$1 [QSA,NC,L]
 		RewriteRule page/([\S]+?[^/])(/.*)?$ /?word=$1 [QSA,NE,NC,L]
 		RewriteRule event/([0-9]{4})(?:/([0-9]{2}))?(?:/([0-9]{2}))?(?:/([\w-]+))? /?event=$4&year=$1&month=$2&day=$3 [QSA,NE,NC,L]
+		RewriteRule thread/([0-9]+)(/.*)?$ /?thread=$1 [QSA,NC,L]
 </IfModule>

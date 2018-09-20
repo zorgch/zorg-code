@@ -36,7 +36,7 @@
 			<meta itemprop="description" content="{$meta_description}">
 			<meta name="description" content="{$meta_description}">
 		{/if*}
-		{*assign var=page_image = value='https://zorg.ch/images/zorg.jpg'}
+		{*assign var=page_image = value='{$smarty.const.SITE_URL}/images/zorg.jpg'}
 		<meta name="twitter:image" content="<?php echo $page_image; ?>">
 		<meta property="og:image" content="<?php echo $page_image; ?>">
 		<meta itemprop="image" content="<?php echo $page_image; ?>">*}
@@ -73,6 +73,11 @@
 		<link rel="alternate" type="application/rss+xml" title="Gallery Feed{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum&board=i" />
 		<link rel="alternate" type="application/rss+xml" title="Rezepte Feed{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum&board=r" />
 		<link rel="alternate" type="application/rss+xml" title="Neuste Activities{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=activities" />
+		
+		{if $tplroot.page_link != ''}
+		<!-- SEO -->
+		<link rel="canonical" href="{$smarty.const.SITE_URL}{$tplroot.page_link}" />
+		{/if}
 	</head>
 	
 	{* Wenn es ein eingeloggter User ist, wird im Fenstertitel die Anzahl Unreads angezeigt... *}

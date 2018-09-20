@@ -272,7 +272,7 @@ class Comment {
 
 	static function getBoardlink($board) {
 		global $db;
-		$sql = "SELECT * FROM comments_boards WHERE board = '".$board."'";
+		$sql = 'SELECT * FROM comments_boards WHERE board = "'.$board.'"';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
 		return $rs;
@@ -290,10 +290,21 @@ class Comment {
 			$boardlinks[$board] = $rs;
 		}
 
-		return $boardlinks[$board]['link'].$thread_id.'&parent_id='.$parent_id.'#'.$id;
+		return $boardlinks[$board]['link'].$thread_id.'?parent_id='.$parent_id.'#'.$id;
 	}
 
-	static function getLinkThread($board, $thread_id) {
+	/**
+	 * Link to a Thread
+	 *
+	 * @author [z]biko, IneX
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 added $output_html-Parameter & return only for Thread-URL
+	 *
+	 * @param string $output_html (Optional) Wenn TRUE dann wird HTML-Linktag ausgegeben, ansonsten wird nur die Link-URL returned
+	 * @return string Gibt die Thread-URL als HTML-Link (String) zurück wenn $output_html=true - oder nur die Thread-URL wenn $output_html=false
+	 */
+	static function getLinkThread($board, $thread_id, $output_html=true) {
 		global $db, $boardlinks;
 
 		if(!isset($boardlinks)) {
@@ -307,23 +318,29 @@ class Comment {
 
 		if ($board == 'f') { // Forum
 			$rs = Comment::getRecordset($thread_id);
-			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.Comment::getTitle($rs['text']).'</a>';
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.Comment::getTitle($rs['text']).'</a>' : $boardlinks[$board]['link'].$thread_id);
+			return $output;
 		} else if($board == 'i') { // Pictures
-			$sql = "select name from gallery_pics where id = '$thread_id'";
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			$sql = 'SELECT name FROM gallery_pics WHERE id='.$thread_id;
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			if($rs['name'] != '') {
-				return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Pic] '.substr($rs['name'], 0, 20).'</a>';
+				$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Pic] '.substr($rs['name'], 0, 20).'</a>' : $boardlinks[$board]['link'].$thread_id);
+				return $output;
 			} else {
-				return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
+				$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
+				return $output;
 			}
 		} else if ($board == 'e') { // Events
-			$sql = "select name from events where id = '$thread_id'";
+			$sql = 'SELECT name FROM events WHERE id='.$thread_id;
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>';
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>' : $boardlinks[$board]['link'].$thread_id);
+			return $output;
 		} else if ($board == 'g') { // GO Game
-			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[GO] '.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[GO] '.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
+			return $output;
 		} else {
-			return '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>';
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
+			return $output;
 		}
 
 	}
@@ -367,43 +384,43 @@ class Comment {
 	 */
 	static function getThreadid($board, $id) {
 		global $db;
-	  $sql = "SELECT thread_id FROM comments WHERE board = '".$board."' AND id = ".$id;
-	  $rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-	  return $rs['thread_id'];
+		$sql = 'SELECT thread_id FROM comments WHERE board="'.$board.'" AND id='.$id;
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		return $rs['thread_id'];
 	}
 
 	/**
+	 * Den Titel eines Kommentars holen.
+	 * @param string $text
+	 * @param int $lengthoffset
+	 * @param string $if_empty_use_this (Optional) Wenn Titel leer ist, dann ein besserer Fallback als nur '---' der verwendet werden soll
 	 * @return String
-	 * @param $text String
-	 * @param $lengthoffset int
-	 * @desc Den Titel eines Kommentars holen.
 	 */
-	static function getTitle($text, $length=20) {
+	static function getTitle($text, $length=20, $if_empty_use_this) {
+		$text = strip_tags($text);
 
-	  $text = strip_tags($text);
-
-	  // was macht das?
-	  $pattern = "(((\w|\d|[äöü√®√©√†√Æ√™])(\w|\d|\s|[äöü√®√©√†√Æ√™]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
-	  preg_match($pattern, $text, $out);
-	  if(strlen($out[1]) > $length) {
-	  	$out[1] = substr($out[1], 0, $length);
-	  }
-	  if(strlen($out[1]) == 0) return '---';
-
-	  return $out[1];
+		// @TODO was macht das?
+		$pattern = "(((\w|\d|[äöü√®√©√†√Æ√™])(\w|\d|\s|[äöü√®√©√†√Æ√™]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
+		preg_match($pattern, $text, $out);
+		if(strlen($out[1]) > $length) {
+			$out[1] = substr($out[1], 0, $length);
+		}
+		if(strlen($out[1]) == 0) {
+			return (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
+		} else {
+			return $out[1];
+		}
 	}
 
+	/**
+	 * Mark Comment as 'read'
+	 */
 	static function markasread($comment_id, $user_id) {
 		global $db, $user;
 		if($user->typ != USER_NICHTEINGELOGGT) {
-		  $sql =
-		  	"DELETE from comments_unread"
-		  	." WHERE"
-		  	." user_id = ".$user_id
-		  	." AND comment_id=".$comment_id
-		  ;
-		  $db->query($sql, __FILE__, __LINE__, __METHOD__);
-	  }
+			$sql = 'DELETE from comments_unread WHERE user_id = '.$user_id.' AND comment_id='.$comment_id;
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+		}
 	}
 
 	/**

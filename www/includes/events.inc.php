@@ -230,11 +230,38 @@ class Events {
 	 */
 	static function getEventName($event_id) {
 		global $db;
-		
-		$sql =	"SELECT id, name FROM events WHERE id = ".$event_id; 
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-		
-		return $rs['name'];
+
+		$sql = 'SELECT id, name FROM events WHERE id = '.$event_id; 
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+
+		return remove_html($rs['name']);
+	}
+
+
+	/**
+	 * Returns the Link to an Event based on a given ID
+	 * URL Format: /event/[year]/[month]/[day]/[event-id|eventname]
+	 * @author IneX
+	 * @date 20.09.2018
+	 * @version 1.0
+	 * @since 1.0 function added
+	 *
+	 * @see index.php
+	 * @param int $event_id
+	 * @return string|bool Die relative Event-URL - oder false bei Fehler
+	 */
+	static function getEventLink($event_id)
+	{
+		global $db;
+
+		$sql = 'SELECT DATE_FORMAT(startdate,"%Y/%m/%d") as date_path, id FROM events WHERE id='.$event_id; 
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		if ($rs) {
+			$eventLink = sprintf('/event/%s/%d', $rs['date_path'], $rs['id']);
+			return $eventLink;
+		} else {
+			return false;
+		}
 	}
 	
 	

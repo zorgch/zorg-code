@@ -171,22 +171,18 @@ function exec_uploadimage() {
 
 Messagesystem::execActions();
 
-
-
-if($user->id && $_GET['do'] == "view" && !$_GET['user_id']) {
-		$error = exec_changeprofile();
+if($user->id && $_GET['do'] === 'view' && !$_GET['user_id']) {
+	$error = exec_changeprofile();
 }
-
 
 if(!$_GET['do'] || $_SESSION['user_id']) {
 	$pagetitle = $user->id2user($_GET['user_id'], TRUE);
 } elseif($_GET['regcode']) {
-	$pagetitle = 'Account bestätigung';
-} else {
-	$pagetitle = 'Userlist';
+	$pagetitle = 'Account bestätigen';
 }
+if (empty($pagetitle)) $pagetitle = 'Userlist';
 
-$smarty->assign('tplroot', array('page_title' => $pagetitle));
+$smarty->assign('tplroot', array('page_title' => $pagetitle, 'page_link' => $_SERVER['PHP_SELF']));
 $smarty->display('file:layout/head.tpl');
 echo menu("zorg");
 echo menu("user");
@@ -586,5 +582,3 @@ if(!$user->id) {
 }
 //echo foot(1);
 $smarty->display('file:layout/footer.tpl');
-
-?>

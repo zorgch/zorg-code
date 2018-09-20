@@ -7,57 +7,56 @@ require_once( __DIR__ .'/includes/main.inc.php');
 //=============================================================================
 // Output
 //=============================================================================
-if ($_GET['layout'] == '') {
-	
+if ($_GET['layout'] == '')
+{
 	$id = ($_GET['parent_id'] > 1) ? $_GET['parent_id'] : $_GET['thread_id'];
-	
-  if ($id <= 1) { // Forumübersicht ausgeben
-	
+
+  // Forumübersicht ausgeben
+  if ($id <= 1)
+  {
     $parent_id = 1;
     //echo head(4, "forum");
-    $smarty->assign('tplroot', array('page_title' => 'forum'));
+    $smarty->assign('tplroot', array('page_title' => 'forum', 'page_link' => $_SERVER['PHP_SELF']));
 	$smarty->display('file:layout/head.tpl');
-    echo menu("zorg");
-    
-    
-    
-    if($user->typ == USER_NICHTEINGELOGGT) {
-  	echo Forum::getHTML(array('f', 't', 'e'), 23, $_GET['sortby']); // Boards: f=forum, t=templates, e=events
+    echo menu('zorg');
+
+    if($user->typ == USER_NICHTEINGELOGGT)
+    {
+  		echo Forum::getHTML(array('f', 't', 'e'), 23, $_GET['sortby']); // Boards: f=forum, t=templates, e=events
     } else {
-  	
-  	echo Forum::getHTML(Forum::getBoards($user->id), 23, $_GET['sortby']);
-  	//echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : ''); @DEPRECATED
-			//echo Forum::getFormNewPart2of2('f', 1, 0);
-			$smarty->assign("board", "f");
-			$smarty->assign("thread_id", 1);
-			$smarty->assign("parent_id", 0);
-			//$smarty->display("tpl:194"); @DEPRECATED
-			$smarty->display("file:commentform.tpl");
+  		echo Forum::getHTML(Forum::getBoards($user->id), 23, $_GET['sortby']);
+  		//echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : ''); @DEPRECATED
+		//echo Forum::getFormNewPart2of2('f', 1, 0);
+		$smarty->assign('board', 'f');
+		$smarty->assign('thread_id', 1);
+		$smarty->assign('parent_id', 0);
+		//$smarty->display('tpl:194'); @DEPRECATED
+		$smarty->display('file:commentform.tpl');
     }
-    
-    
-  } else {  // Thread ausgeben
-	
-	
+
+  // Thread ausgeben
+  } else {
+
 		//$rs = Comment::getRecordset(Comment::getThreadid($_GET[parent_id]));
-		
+
 		//echo head(4, "thread");
-		$smarty->assign('tplroot', array('page_title' => 'thread'));
-		$smarty->display('file:layout/head.tpl');
-		echo menu("zorg");
-		
+
 		//if($_SESSION['user_id']) echo Forum::getFormNewPart1of2(); @DEPRECATED
-		
+
 		$rsparent = Comment::getRecordset($id);
 		$parent_id = $rsparent['parent_id'];
-		
-		$thread = $db->fetch($db->query("SELECT * FROM comments WHERE id='$id'", __FILE__, __LINE__));
-		
-		if (!$thread) {
-			echo "Thread not found.";
+		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$id, __FILE__, __LINE__, 'SELECT * FROM comments'));
+
+		$smarty->assign('tplroot', array('page_title' => Comment::getTitle($thread['text'], 38, 'thread #'.$thread['thread_id']), 'page_link' => '/thread/'.$thread['thread_id']));//Comment::getLinkThread($thread['board'], $thread['thread_id'], FALSE)));
+		$smarty->display('file:layout/head.tpl');
+		echo menu('zorg');
+
+		if (!$thread)
+		{
+			http_response_code(404); // Set response code 404 (not found)
+			echo 'Thread not found.';
 			$no_form = true;
 		} else {
-			
 			// damit man die älteren kompilierten comments löschen kann (speicherplatz sparen)
 			Thread::setLastSeen($thread['board'], $thread['thread_id']);
 			
@@ -94,16 +93,14 @@ if ($_GET['layout'] == '') {
 			}
 			
 			// Form zum posten printen
-			if($_SESSION['user_id'] && !$no_form) {
-				
+			if($_SESSION['user_id'] && !$no_form)
+			{
 				//echo Forum::getFormNewPart2of2('f', Comment::getThreadid('f', $id), $id);
-				
 				$smarty->assign("board", "f");
 				$smarty->assign("thread_id", Comment::getThreadid('f', $id));
 				$smarty->assign("parent_id", $id);
 				//$smarty->display("tpl:194"); @DEPRECATED
 				$smarty->display("file:commentform.tpl");
-				
 			}
 		}
   }
@@ -114,7 +111,7 @@ if ($_GET['layout'] == '') {
 
 // Forumsuche ----------------------------------------------------------------
 if($_GET['layout'] == 'search') {
-	$smarty->assign('tplroot', array('page_title' => 'commentsearch'));
+	$smarty->assign('tplroot', array('page_title' => 'commentsearch', 'page_link' => $_SERVER['PHP_SELF'].'?layout=search'));
 	$smarty->display('file:layout/head.tpl');
 	echo menu("zorg");
 	echo Forum::getFormSearch();
