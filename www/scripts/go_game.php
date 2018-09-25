@@ -21,7 +21,6 @@ global $db, $user, $smarty;
 
 /** load game */
 $gameid = $_GET['game'];
-error_log(__FILE__.' $_GET[game]: '.$_GET['game']);
 
 /** no game supplied, choose one randomly */
 if (!$gameid) {

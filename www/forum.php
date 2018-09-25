@@ -47,7 +47,13 @@ if ($_GET['layout'] == '')
 		$parent_id = $rsparent['parent_id'];
 		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$id, __FILE__, __LINE__, 'SELECT * FROM comments'));
 
-		$smarty->assign('tplroot', array('page_title' => Comment::getTitle($thread['text'], 38, 'thread #'.$thread['thread_id']), 'page_link' => '/thread/'.$thread['thread_id']));//Comment::getLinkThread($thread['board'], $thread['thread_id'], FALSE)));
+		/**
+		 * Google typically displays the first 50–60 characters of a title tag.
+		 * If you keep your titles under 60 characters, our research suggests that you can expect about 90% of your titles to display properly.
+		 * @link https://moz.com/learn/seo/title-tag
+		 */
+		$page_title = text_width(remove_html($thread['text']), 50, '', true, true);
+		$smarty->assign('tplroot', array('page_title' => (!empty($page_title) ? $page_title : 'thread #'.$thread['thread_id']), 'page_link' => '/thread/'.$thread['thread_id']));//Comment::getLinkThread($thread['board'], $thread['thread_id'], FALSE)));
 		$smarty->display('file:layout/head.tpl');
 		echo menu('zorg');
 

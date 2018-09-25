@@ -354,7 +354,7 @@ class Comment {
 
 		if ($board == 'f') { // Forum
 			$rs = Comment::getRecordset($thread_id);
-			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.Comment::getTitle($rs['text']).'</a>' : $boardlinks[$board]['link'].$thread_id);
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.Comment::getTitle($rs['text'], 40).'</a>' : $boardlinks[$board]['link'].$thread_id);
 			return $output;
 		} else if($board == 'i') { // Pictures
 			$sql = 'SELECT name FROM gallery_pics WHERE id='.$thread_id;
@@ -427,25 +427,22 @@ class Comment {
 
 	/**
 	 * Den Titel eines Kommentars holen.
+	 *
+	 * @author [z]biko, IneX
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 24.09.2018 method uses now text_width() util-function
+	 *
+	 * @see remove_html(), text_width()
 	 * @param string $text
-	 * @param int $lengthoffset
+	 * @param int $length offset
 	 * @param string $if_empty_use_this (Optional) Wenn Titel leer ist, dann ein besserer Fallback als nur '---' der verwendet werden soll
-	 * @return String
+	 * @return string
 	 */
 	static function getTitle($text, $length=20, $if_empty_use_this) {
-		$text = strip_tags($text);
-
-		// @TODO was macht das?
-		$pattern = "(((\w|\d|[äöü√®√©√†√Æ√™])(\w|\d|\s|[äöü√®√©√†√Æ√™]|[\.,-_\"'?!^`~])[^\\n]+)(\\n|))";
-		preg_match($pattern, $text, $out);
-		if(strlen($out[1]) > $length) {
-			$out[1] = substr($out[1], 0, $length);
-		}
-		if(strlen($out[1]) == 0) {
-			return (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
-		} else {
-			return $out[1];
-		}
+		$text = text_width(remove_html($text), $length, '', true, true);
+		if (empty($text)) $text = (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
+		return $text;
 	}
 
 	/**

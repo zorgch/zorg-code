@@ -444,15 +444,70 @@ function print_array ($arr, $indent=0) {
 	return $ret;
 }
 
-function text_width ($text, $width, $delimiter='') {
-	if (strlen($text) == $width) return $text;
-	if (strlen($text) > $width) return substr($text, 0, $width).$delimiter;
-	else{
-		for ($i=strlen($text); $i<$width; $i++) {
-			$text .= ' ';
-		}
-		return $text;
+
+/**
+ * Cut a string after n characters
+ *
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 added tolerance for full words (don't cut words in half)
+ *
+ * @param boolean $tolerant_full_words If 'true', $text-String will be cut at closest space
+ * @param boolean $first_line_only If 'true', $text-String will be processed only with the first line (anything before line breaks)
+ * @return string
+ */
+function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false, $first_line_only=false)
+{
+	if (!is_numeric($width) || empty($text)) return $text; // Invalid $text or $width
+	if (!empty($delimiter)) $width = $width-strlen($delimiter); // Set real $width
+	$punctuationChars = [ '.' => ''
+						 ,'-' => ''
+						 ,'...' => $delimiter
+						 ,',' => $delimiter
+						 ,';' => $delimiter
+						 ,':' => ''
+						 ,'/' => $delimiter
+						];
+
+	/** Cleanup $text input */
+	if ($first_line_only === true) {
+		$textStripped = strtok(strtok($text, "\r\n"), "\n"); // Set $text until first line-break only
+	} else {
+		$textStripped = str_ireplace(array("\r\n", "\r", "\n"), ' ', $text); // Replace line breaks with spaces
 	}
+	$textStripped = trim($textStripped); // Trim extra spaces at start and end of $text
+	$textStripped = preg_replace('/\s{2,}/', ' ', $textStripped); // Shrink multiple spaces to one space
+
+	/** Shrink $text to $width */
+	$textLength = strlen($textStripped);
+	if ($textLength <= $width) { // $text is within $width
+		foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) { // Replace last punctuation char with $delimiter or as defined in $punctuationChars
+			if (substr($textStripped, -1*strlen($punctuationChar))===$punctuationChar) {
+				$textStrippedEndsWithPunctuation = true;
+				$textStripped = str_ireplace(array_keys($punctuationChars), $punctuationChars, $textStripped);
+				break;
+			}
+		}
+		return $textStripped;
+	}
+	if ($tolerant_full_words===true) { // Respect full words in $text
+		$textStripped = substr($textStripped, 0, strrpos(substr($textStripped, 0, $width), ' ')); // Strip with respecting full words
+	} else { // Hard cut $text according to $width
+		$textStripped = substr($textStripped, 0, $width);
+	}
+	foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) // Replace last punctuation char with $delimiter or as defined in $punctuationChars
+	{
+		if (substr($textStripped, -1*strlen($punctuationChar))===$punctuationChar) {
+			$textStrippedEndsWithPunctuation = true;
+			$textStripped = str_ireplace(array_keys($punctuationChars), $punctuationChars, $textStripped);
+			break;
+		}
+	}
+	if (!empty($delimiter) && $textStrippedEndsWithPunctuation !== true) {
+		return substr($textStripped, 0, $width).$delimiter;
+	}
+	return $textStripped;
 }
 
 
@@ -474,9 +529,12 @@ function text_width ($text, $width, $delimiter='') {
  */
 function remove_html($html, $allowable_tags=NULL)
 {
-	//$s = preg_replace ("@</?[^>]*>*@", "", $html);
-	$s = strip_tags($html, $allowable_tags);
-	return $s;
+	$nohtml = str_ireplace('&nbsp;', ' ', $nohtml); // Replace %nbsp; with spaces
+	$nohtml = str_ireplace('&amp;', '&', $nohtml); // Replace %amp; with &
+	preg_replace("/(<\/h\d+>)/", "$1\n", $nohtml); // Replace heading-Tags (</h1>, </h2>, </h3>,...) with line-breaks
+	$nohtml = strip_tags($html, $allowable_tags); // Strip HTML-Tags
+	$nohtml = str_ireplace(array('http://', 'https://'), '', $nohtml); // Strip "lonely" HTML-Tag parts
+	return $nohtml;
 }
 
 
