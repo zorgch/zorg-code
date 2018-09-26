@@ -33,10 +33,17 @@
 	# !-d or the directory in the browser doesn't exist then proceed to the rewrite rules below
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
-		RewriteRule user/(.*?[^/])(/.*)?$ /?username=$1 [QSA,NC,NE,L]
-		RewriteRule bug/([0-9]+)(/.*)?$ /?bug=$1 [QSA,NC,L]
-		RewriteRule tpl/([0-9]+)(/.*)?$ /?tpl=$1 [QSA,NC,L]
-		RewriteRule page/([\S]+?[^/])(/.*)?$ /?word=$1 [QSA,NE,NC,L]
-		RewriteRule event/([0-9]{4})(?:/([0-9]{2}))?(?:/([0-9]{2}))?(?:/([\w-]+))? /?event=$4&year=$1&month=$2&day=$3 [QSA,NE,NC,L]
-		RewriteRule thread/([0-9]+)(/.*)?$ /?thread=$1 [QSA,NC,L]
+		RewriteRule ^user/(.*?[^/])(/.*)?$ /?username=$1 [QSA,NC,NE,L]
+			RewriteRule ^user/?$ /profil.php [R=301,QSA,NC,L]
+		RewriteRule ^bug/([0-9]+)(/.*)?$ /?bug=$1 [QSA,NC,L]
+			RewriteRule ^bug/?$ /bugtracker.php [R=301,QSA,NC,L]
+		RewriteRule ^tpl/([0-9]+)(/.*)?$ /?tpl=$1 [QSA,NC,L]
+			RewriteRule ^tpl/?$ /?tpl=23 [QSA,NC,L]
+		RewriteRule ^page/([\S]+?[^/])(/.*)?$ /?tpl=23 [QSA,NC,L]
+			RewriteRule ^page/?$ /?word=verein [QSA,NC,L]
+		RewriteRule ^event/([0-9]{4})(?:/([0-9]{2}))?(?:/([0-9]{2}))?(?:/([\w-]+))? /?event=$4&year=$1&month=$2&day=$3 [QSA,NE,NC,L]
+			RewriteRule ^event/?$ /?tpl=158 [QSA,NC,L]
+			RewriteRule ^events(/.*)?$ /?tpl=158 [QSA,NC,L]
+		RewriteRule ^thread/([0-9]+)(/.*)?$ /?thread=$1 [QSA,NC,L]
+			RewriteRule ^thread/?$ /forum.php [R=301,QSA,NC,L]
 </IfModule>

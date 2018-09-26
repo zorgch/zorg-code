@@ -439,7 +439,7 @@ class Comment {
 	 * @param string $if_empty_use_this (Optional) Wenn Titel leer ist, dann ein besserer Fallback als nur '---' der verwendet werden soll
 	 * @return string
 	 */
-	static function getTitle($text, $length=20, $if_empty_use_this) {
+	static function getTitle($text, $length=20, $if_empty_use_this=null) {
 		$text = text_width(remove_html($text), $length, '', true, true);
 		if (empty($text)) $text = (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
 		return $text;
