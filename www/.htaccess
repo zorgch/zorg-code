@@ -39,7 +39,7 @@
 			RewriteRule ^bug/?$ /bugtracker.php [R=301,QSA,NC,L]
 		RewriteRule ^tpl/([0-9]+)(/.*)?$ /?tpl=$1 [QSA,NC,L]
 			RewriteRule ^tpl/?$ /?tpl=23 [QSA,NC,L]
-		RewriteRule ^page/([\S]+?[^/])(/.*)?$ /?tpl=$1 [QSA,NC,L]
+		RewriteRule ^page/([\S]+?[^/])(/.*)?$ /?word=$1 [QSA,NC,L]
 			RewriteRule ^page/?$ /?tpl=23 [QSA,NC,L]
 		RewriteRule ^event/([0-9]{4})(?:/([0-9]{2}))?(?:/([0-9]{2}))?(?:/([\w-]+))? /?event=$4&year=$1&month=$2&day=$3 [QSA,NE,NC,L]
 			RewriteRule ^event/?$ /?tpl=158 [QSA,NC,L]
