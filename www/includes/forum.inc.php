@@ -642,11 +642,14 @@ class Comment {
 			/**
 			 * Activity Eintrag auslösen
 			 * ausser bei der Bärbel, die trollt zuviel
-			 * ...und ausser bei Hz-Games (weil die Comments u.A. noch geheim sein müssen)
 			 */
-			if ($user_id != BARBARA_HARRIS && $rs['board'] !== 'h')
+			if ($user_id != BARBARA_HARRIS)
 			{
-				Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ SITE_URL, Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), Comment::getTitle($text, 100) ]), 'c');
+				/** ...und ausser bei Hz-Games (weil die Comments u.A. noch geheim sein müssen) */
+				if ($rs['board'] !== 'h')
+				{
+					Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ SITE_URL, Comment::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), Comment::getTitle($text, 100) ]), 'c');
+				}
 			}
 
 			/**
