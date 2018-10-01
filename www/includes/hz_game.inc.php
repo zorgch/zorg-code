@@ -464,7 +464,7 @@ function turn_finalize ($game, $uid=0) {
 				$i = $db->query("SELECT user FROM hz_players WHERE game=".$d['id']." AND type!='z'", __FILE__, __LINE__, 'turn_finalize()');
 				while($inspectors = $db->fetch($i))
 				{
-					error_log("[INFO] turn_finalize() triggers sendMessage() for Inspectors from uid=$uid to z=$z");
+					if (DEVELOPMENT) error_log(sprintf("[DEBUG] <%s:%d> sendMessage() from uid=%s to z=%s for Inspectors=%s", __FUNCTION__, __LINE__, $uid, $z, print_r($inspectors['user'],true)));
 					Messagesystem::sendMessage($uid, $inspectors['user'], t('message-subject', 'hz'), t('message-your-turn', 'hz', [ SITE_URL, $game]));
 				}
 
