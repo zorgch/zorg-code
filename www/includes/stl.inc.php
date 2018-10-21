@@ -357,7 +357,7 @@ class stl {
 	}
 
 	/**
-	* Prüft ein Spiel auf Spielstart
+	 * Prüft ein Spiel auf Spielstart
 	 * 
 	 * Prüft ob ein Spiel gestartet werden kann, erstellt grid und weisst die Spieler zufällig einem Team und einem Feld zu
 	 * 
@@ -382,10 +382,9 @@ class stl {
 			$i = 0;
 			foreach ($players as $player_index) {
 				$team = ($i % 2);
-				$shoot_date = date('Y-m-s H:i:s',time()-5000);
+				$shoot_date = date('Y-m-d H:i:s',time()-5000);
 				try {
-					$sql = 'UPDATE stl_players set team_id = '.$team.', last_shoot = "'.$shoot_date.'" WHERE id = '.$player_index;
-					$db->query($sql,__FILE__,__LINE__,__METHOD__);
+					$db->update('stl_players', ['id', $player_index], ['team_id' => $team, 'last_shoot' => $shoot_date],__FILE__,__LINE__,__METHOD__);
 				} catch (Exception $e) {
 					error_log($e->getMessage());
 				}
