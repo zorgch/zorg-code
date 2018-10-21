@@ -396,7 +396,7 @@ class usersystem {
 					$db->query($sql, __FILE__, __LINE__);
 
 					//versende email
-					@mail($email, t('message-newpass-subject', 'user'), t('message-newpass', 'user', [ $rs['username'], $crypted ]), "From: ".ZORG_EMAIL."\n");
+					@mail($email, t('message-newpass-subject', 'user'), t('message-newpass', 'user', [ $rs['username'], $new_pass ]), "From: ".ZORG_EMAIL."\n");
 					$error = t('newpass-confirmation', 'user');
 
 				} else {
