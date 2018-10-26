@@ -6,7 +6,7 @@
 {assign_array var=treasurer value="array('userid'=>52,'value'=>'treasurer','label'=>'Kassiersache')"}
 <head>
 	<meta charset="utf-8">
-	<title>Zorg Verein - Mailer</title>
+	<title>zorg Verein - Mailer</title>
 	<meta name="description" content="Page um schöne Verein E-Mails an die Mitglieder zu verschicken">
 	<meta name="robots" content="none, noarchive, nosnippet, noodp, notranslate, noimageindex" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -37,7 +37,7 @@
 
 <body>{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
 	<header class="text-center">
-		<h1>Zorg Verein - Mailer</h1>
+		<h1>zorg Verein - Mailer</h1>
 		<p class="text-secondary text-small">
 			Eine E-Mailversand Applikation f&uuml;r Mails an die Zorg Verein Mitglieder<br>
 			<a href="{$smarty.const.SITE_URL}">↩ back to zorg</a>

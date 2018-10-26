@@ -1,4 +1,9 @@
-<?PHP
+<?php
+/**
+ * File includes
+ * @include main.inc.php Includes the Main Zorg Configs and Methods
+ * @include setiathome.inc.php Includes SETI@home setiathome() Class and Methods
+ */
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php');
 
@@ -105,6 +110,3 @@ if($_GET['update'] == 1) {
 	//echo foot(1);
 	$smarty->display('file:layout/footer.tpl');
 }
-
-
-?>

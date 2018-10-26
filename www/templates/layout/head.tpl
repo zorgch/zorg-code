@@ -19,16 +19,7 @@
 		{/if}
 		<meta property="og:site_name" content="{$smarty.const.SITE_HOSTNAME}">
 		<meta property="og:url" content="{$smarty.const.SITE_URL}{$smarty.server.REQUEST_URI}">
-		{if $tplroot.page_title == 'forum' || $tplroot.page_title == 'thread'}
-			<meta property="og:type" content="article">
-			<meta itemscope itemtype="http://schema.org/Article">
-		{elseif $tplroot.page_title == 'Events'}
-			<meta property="og:type" content="website">
-			<meta itemscope itemtype="http://schema.org/Event">
-		{else}
-			<meta property="og:type" content="website">
-			<meta itemscope itemtype="http://schema.org/WebSite">
-		{/if}
+		<meta property="og:type" content="website">
 		{*if $meta_description != ''}
 			{assign var=meta_description value=$string|truncate:156:'…'}
 			<meta name="twitter:description" content="{$meta_description}">
@@ -88,5 +79,5 @@
 				<td valign="top" bgcolor="{$smarty.const.BACKGROUNDCOLOR}" height="100%">
 					{if $user->zorger}{include file='tpl:56'}{else}{include file='tpl:672'}{/if}
 					<div {$smarty.const.BODYSETTINGS}>
-						{if $user->mymenu}{include file='tpl:`$user->mymenu`}{/if}
+						{if $user->mymenu}{include file="tpl:`$user->mymenu`"}{/if}
 						

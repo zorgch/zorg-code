@@ -421,7 +421,9 @@ class peter {
 					FROM peter_games
 					WHERE 
 						next_player = '.$_SESSION['user_id'].'
-						AND status = "lauft"';
+						AND status = "lauft"
+					GROUP BY
+						game_id';
 			$peter_games = $db->fetch($db->query($sql,__FILE__,__LINE__,__METHOD__));
 			return (!empty($peter_games) && $peter_games['num_open'] > 0 ? $peter_games : 0);
 		} else {

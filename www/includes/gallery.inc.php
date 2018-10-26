@@ -1717,15 +1717,12 @@ function getTopPics($album_id, $limit, $options) {
 	
 	
 	if ($album_id == 0) {
-		$sql =
-			"
-			SELECT *, AVG(score) as avgScore, COUNT(pic_id) as numVotes
-			FROM gallery_pics_votes
-			WHERE score > 0
-			GROUP BY pic_id
-			ORDER BY avgScore DESC, numVotes DESC
-			LIMIT $limit"
-		;
+		$sql = 'SELECT pic_id, AVG(score) as avgScore, COUNT(pic_id) as numVotes
+				FROM gallery_pics_votes
+				WHERE score > 0
+				GROUP BY pic_id
+				ORDER BY avgScore DESC, numVotes DESC
+				LIMIT '.$limit;
 		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 		
 		while($rs = $db->fetch($result)) {

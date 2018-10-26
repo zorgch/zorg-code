@@ -129,7 +129,7 @@ if($_GET['bug_id'] == '') {
 	echo menu("zorg");
 	echo menu("utilities");
 	if ($user->typ == USER_MEMBER) echo menu("admin");
-	echo '<h1>Bugtracker</h1>';
+	echo '<h1 itemscope itemtype="http://schema.org/QAPage">Bugtracker</h1>';
 
 	if($_GET['action'] == 'editlayout') {
 		echo Bugtracker::getBugHTML($_GET['bug_id'], TRUE);
