@@ -68,11 +68,12 @@
 				<input type="text" name="telegram_chat_id" id="telegram_chat_id" maxlength="35" autocomplete="off" value="{$user->telegram}">
 			</div>
 			<div class="tabs">
-				<span class="input-hint">Anleitung um Deine Telegram Chat-ID zu ermitteln:</span>
+				<span class="input-hint">Anleitung um Deine Telegram Chat-ID zu ermitteln &amp; Benachrichtigungen zu empfangen:</span>
 				<nav class="tabs-nav">
 					<a href="#step-1">1.</a>
 					<a href="#step-2">2.</a>
 					<a href="#step-3">3.</a>
+					<a href="#step-4">4.</a>
 				</nav>
 				<div class="tabs-pane" style="min-height:205px;" id="step-1">
 					<p>Den <a href="https://web.telegram.org/#/im?p=@userinfobot" target="_blank">@userinfobot</a> in Telegram suchen & anklicken</p>
@@ -85,6 +86,10 @@
 				<div class="tabs-pane" style="min-height:205px;" id="step-3">
 					<p>Den Wert von <code>id: <mark>xxxxxxx</mark></code> verwenden als Chat-ID</p>
 					<img {if $user->zorger === '1'} style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step3.png" alt="Den Wert vom id: Feld verwenden als Chat-ID" />
+				</div>
+				<div class="tabs-pane" style="min-height:205px;" id="step-4">
+					<p>Jetzt mit der Bärbel <a href="https://web.telegram.org/#/im?p=@zBarbaraHarris_bot" target="_blank">@zBarbaraHarris_bot</a> auf Telegram connecten, damit sie dir Messages schicken darf. Aktiviere sie via <code>/start</code>.</p>
+					<img {if $user->zorger === '1'} style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step4.png" alt="Mit @zBarbaraHarris_bot connecten und sie via /start-Nachricht aktivieren" />
 				</div>
 			</div>
 		</div>
