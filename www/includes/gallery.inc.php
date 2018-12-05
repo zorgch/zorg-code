@@ -5,7 +5,7 @@
  * Beinhaltet alle Funktionen der Gallery.
  *
  * @author [z]biko
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  * @version 3.0
  * @since 1.0 File & functions added
@@ -57,7 +57,7 @@ $THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
  * 
  * @author [z]biko
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @see ZENSUR
@@ -167,7 +167,7 @@ function galleryOverview ($state="", $error="") {
 /**
  * Thumbnails anzeigen
  *
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
@@ -251,7 +251,7 @@ function albumThumbs ($id, $page=0) {
  * @date 21.10.2013
  * @version 2.0
  * @since 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
@@ -845,7 +845,7 @@ function doZensur ($picID)
  * @date 13.08.2007
  * @version 0.9
  * @since 2.0
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @param integer $pic_id ID des betroffenen Bildes
@@ -956,7 +956,7 @@ function checkUserToPic($userID, $picID)
  * @date 19.08.2008
  * @version 1.0
  * @since 2.0
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @param integer $picID ID des betroffenen Bildes
@@ -997,7 +997,7 @@ function getUsersOnPic($pic_id) {
  * @date 18.10.2013
  * @version 1.0
  * @since 2.0
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  * 
  * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
@@ -1084,7 +1084,7 @@ function getUserPics($userid, $limit=1)
  * @author IneX
  * @version 1.0
  * @since 1.5
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @param integer $pic_id ID des betroffenen Bildes
@@ -1112,7 +1112,9 @@ function doBenoten($pic_id, $score) {
 	//return array('state'=>"Pic $pic_id benotet");
 	
 	// Activity Eintrag auslösen (ausser bei der Bärbel)
-	if ($user_id != 59) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit der Note <b>'.$score.'/6</b> bewertet.<br/><br /><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+	$sternli = '';
+	for ($s=0;$s<$score;$s++){$sternli .= '*';} // Sternli mache
+	if ($user_id != BARBARA_HARRIS) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br /><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 }
 
 
@@ -1633,10 +1635,11 @@ function getDailyThumb()
  *
  * @author IneX
  * @date 18.08.2018
- * @version 1.5
+ * @version 1.6
  * @since 1.0 18.08.2018 function added
  * @since 1.1 20.08.2018 minor code updates after extracting function from getDailyThumb()
  * @since 1.5 10.09.2018 excluded APOD Gallery-Pics from being assigned as Daily Pic
+ * @since 1.6 04.12.2018 Bug #xxx: added Gallery-Name to Telegram-Notification for Daily Pic
  *
  * @see SITE_URL
  * @see imgsrcPic(), picHasTitle()
@@ -1663,22 +1666,22 @@ function setNewDailyPic()
 	if (!$currdp || $currdp['upd'] < 0)
 	{
 		/** Randomly select a new Gallery-Pic */
-		$sql = $db->query('SELECT id FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' AND album<>'.APOD_GALLERY_ID.' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$sql = $db->query('SELECT id, (SELECT name FROM gallery_albums WHERE id = album) galleryname FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' AND album<>'.APOD_GALLERY_ID.' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
 		$newdp = $db->fetch($sql);
 
 		if (!empty($newdp) || $newdp['id'] > 0)
 		{
 			/** Add the new Daily-Pic into the `periodic` Database-Table */
 			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("daily_pic", '.$newdp['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d', __FUNCTION__, __LINE__, $newdp['id']));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d from album "%s"', __FUNCTION__, __LINE__, $newdp['id'], $newdp['galleryname']));
 
 			/**
 			 * Telegram Notification auslösen
 			 *     url = URL to the Pic
-			 *     caption = "Daily Pic[: Title - if available]"
+			 *     caption = "Daily Pic: {Title - if available} [Gallery-Name]"
 			 */
 			$imgUrl = SITE_URL.imgsrcPic($newdp['id']);
-			$imgCaption = 'Daily Pic' . (!picHasTitle($newdp['id']) ? '' : ': '.picHasTitle($newdp['id']));
+			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ picHasTitle($newdp['id']), $newdp['galleryname'] ]);
 			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
 
 			return true;
@@ -1956,7 +1959,7 @@ function formatGalleryThumb($rs)
  * Updates a Pic's Title
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
- * @return none
+ * @return void
  */
 function doEditFotoTitle($picID, $frm)
 {
@@ -1970,20 +1973,20 @@ function doEditFotoTitle($picID, $frm)
 }
 
 /**
- * Checks if Pic has a Title
+ * Checks if Pic has a Title - if yes, return it
  *
  * @author IneX
  * @date 21.01.2017
  *
- * @global object $db	Database Class Object
- * @return string 		If set, returns the Pic's title
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return string|bool If set, returns the Pic's title - otherwise 'false'
  */
 function picHasTitle($picID)
 {
 	global $db;
 
 	if (is_numeric($picID) && $picID > 0) {
-		$e = $db->query("SELECT name FROM gallery_pics WHERE id='$picID' LIMIT 1", __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT name FROM gallery_pics WHERE id='.$picID.' LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 	}
 	if ($d) return $d['name'];
@@ -2043,16 +2046,19 @@ function doImageFlip($imgsrc, $imgout, $type)
  * @author IneX
  * @date 11.09.2018
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 11.09.2018 function added
  *
  * @param integer $id ID des Pics für welches das Album geholt werden soll
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return integer|boolean Album-ID des Pics - oder false
  */
-function pic2album($id) {
+function pic2album($id)
+{
 	global $db;
-	
-	if ($id <= 0 || !is_numeric($id)) user_error("Missing Parameter <i>id</i> ", E_USER_ERROR);
+
+	/** Validate passed $id parameter */
+	if ($id <= 0 || !is_numeric($id)) user_error('Missing Parameter "id"', E_USER_ERROR);
+
 	try {
 		$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 		$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
