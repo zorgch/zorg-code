@@ -45,7 +45,7 @@
 {literal}<style>#form-container{margin-top:10px;}.commenting{height:100%;bottom:0}.#schickenaaab{padding-top:65px;bottom:0;right:0;}.ql-htmleditor{position:absolute;top:0;bottom:0;right:0;left:0;border:none;}.ql-container.ql-snow{border:0px}.ql-toolbar.ql-snow{border:0px}.ql-showHtml{color:{/literal}{if $sun == "up"}#000{else}#444{/if}{literal}}.ql-showHtml:after{content:"html"}.ql-memberOnly{color:{/literal}{if $sun == "up"}#000{else}#444{/if}{literal}}.ql-memberOnly:after{content:"[z]"}.ql-editor p a,a:active{color:{/literal}{if $sun == "up"}#344586{else}#CBBA79{/if}{literal}}.ql-editor p a:hover{text-decoration:underline}.tribute-container ul{background:#42300A;border:1px solid #62502A}.tribute-container li.highlight,.tribute-container li:hover{background:#62502A;}.ql-editor code,.ql-snow.ql-editor pre{padding:5px 10px!important;background-color:{/literal}{if $sun == "up"}#fff{else}#23241f{/if}{literal}!important}</style>{/literal}
 <!-- Zorg Comment-Form -->
 <div id="form-container" class="border">
-	<form name="commentform" id="commentform" action="/actions/comment_new.php" method="post">
+	<!--form name="commentform" id="commentform" action="/actions/comment_new.php" method="post">
 		<input type="hidden" name="action" value="new">
 		<input type="hidden" name="url" value="{$url|base64encode}">
 		<input type="hidden" name="board" value="{$board}">
@@ -59,20 +59,148 @@
 		</div>
 		<input type="hidden" name="msg_users[]" id="notificationList">
 		<input class="button" name="submit" id="schickenaaab" tabindex="2" type="submit" value="Erstellen">
-	</form>
+	</form-->
+	<table class="border" width="100%">
+		<form action="/actions/events.php" method="post">
+			<input name="url" type="hidden" value="{$url|base64encode}">
+			<input name="action" type="hidden" value="new">
+			
+			<tr><td colspan="2"><b>Neuen Event eintragen:</b></td></tr>
+			
+			<tr>
+			<td align="left">Name</td>
+			<td align="left" colspan="4"><input name="name" type="text" class="text" value=""></td>
+			</tr>
+			
+			<tr>
+			<td align="left">Location</td>
+			<td align="left" colspan="4">
+			<input maxlength="90" name="location" size="30" type="text" class="text" value="">
+			</td>
+			</tr>
+			
+			<tr>
+			<td align="left">Link:</td>
+			<td align="left" colspan=4><input class="text" name="link" size="30" maxlength="100" type="text" value="http://"></td>
+			</tr>
+			
+			<tr>
+			<td align="left">Review (url):</td>
+			<td align="left" colspan=4><input class="text" name="review_url" size="30" maxlength="100" type="text" value="http://"></td>
+			</tr>
+			
+			<tr>
+			<td align="left">Gallery:</td>
+			<td align="left" colspan=4>
+			<select class="text" name="gallery_id" size="1">{html_options options=$galleries selected=0}</select>
+			</td>
+			</tr>
+			
+			<tr>
+			<td align="left">Start</td>
+			<td align="left">
+			{html_select_date end_year="2023" prefix="start" start_year="1998" time="`$smarty.now`"}
+			Zeit:
+			{html_select_time display_minutes=false display_seconds=false prefix="start" time="`$smarty.now`"}
+			uhr
+			</td>
+			</tr>
+			
+			<tr>
+			<td align="left">End</td>
+			<td align="left">
+			{html_select_date end_year="2023" prefix="end" start_year="1998" time="`$smarty.now`"}
+			Zeit:
+			{html_select_time display_minutes=false display_seconds=false prefix="end" time="`$smarty.now`"}
+			uhr
+			</td>
+			</tr>
+			
+			<tr><td align="left" valign="top">Beschreibung:</td>
+			<td align="left" colspan=4><textarea name="description" cols=70 rows=8></textarea></td>
+			</tr>
+					
+			<tr><td align="left" colspan="2"><input type="submit" value="eintragen" class="button" size=60></td></tr>
+		
+		</form>
+	</table>
+	<table class="border" width="100%">
+<form action="/actions/events.php" method="post">
+<input name="url" type="hidden" value="{$url|base64encode}">
+<input name="action" type="hidden" value="new">
+
+<tr><td colspan="2"><b>Neuen Event eintragen:</b></td></tr>
+
+<tr>
+<td align="left">Name</td>
+<td align="left" colspan="4"><input name="name" type="text" class="text" value=""></td>
+</tr>
+
+<tr>
+<td align="left">Location</td>
+<td align="left" colspan="4">
+<input maxlength="90" name="location" size="30" type="text" class="text" value="">
+</td>
+</tr>
+
+<tr>
+<td align="left">Link:</td>
+<td align="left" colspan=4><input class="text" name="link" size="30" maxlength="100" type="text" value="http://"></td>
+</tr>
+
+<tr>
+<td align="left">Review (url):</td>
+<td align="left" colspan=4><input class="text" name="review_url" size="30" maxlength="100" type="text" value="http://"></td>
+</tr>
+
+<tr>
+<td align="left">Gallery:</td>
+<td align="left" colspan=4>
+<select class="text" name="gallery_id" size="1">{html_options options=$galleries selected=0}</select>
+</td>
+</tr>
+
+<tr>
+<td align="left">Start</td>
+<td align="left">
+{html_select_date end_year="2023" prefix="start" start_year="1998" time="`$smarty.now`"}
+Zeit:
+{html_select_time display_minutes=false display_seconds=false prefix="start" time="`$smarty.now`"}
+uhr
+</td>
+</tr>
+
+<tr>
+<td align="left">End</td>
+<td align="left">
+{html_select_date end_year="2023" prefix="end" start_year="1998" time="`$smarty.now`"}
+Zeit:
+{html_select_time display_minutes=false display_seconds=false prefix="end" time="`$smarty.now`"}
+uhr
+</td>
+</tr>
+
+<tr><td align="left" valign="top">Beschreibung:</td>
+<td align="left" colspan=4><textarea name="description" cols=70 rows=8></textarea></td>
+</tr>
+		
+<tr><td align="left" colspan="2"><input type="submit" value="eintragen" class="button" size=60></td></tr>
+
+</form>
+</table>
 </div>
 
 <script src="/js/quill-richtexteditor/quill.min.js"></script>
 <script src="/js/quill-richtexteditor/fuse.min.js"></script>
 <script src="/js/quill-richtexteditor/quill-emoji.js"></script>
-{literal}<script>
+{literal}<script type="text/javascript">
 // Quill - Rich Text Editor
 var quill = new Quill('#dinimuetter', {
   modules: {
     syntax: true,
     toolbar: {
       container: [
-        [{ 'header': [2, 3, 4, 5, false] }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
         ['bold', 'italic', 'underline', 'strike',],
         [{ list: 'ordered' }, { list: 'bullet' }],
         ['link', 'blockquote', 'code-block', 'memberOnly'],
@@ -137,16 +265,8 @@ showHtml.addEventListener('click', function() {
 // https://stackoverflow.com/questions/27273444/save-and-load-input-values-using-local-storage
 var Delta = Quill.import('delta');
 var QuillEditorId = 'dinimuetter';
-//var pageId = encodeURI(window.location.pathname).replace('/', '-').replace('.', '-');
-var pageId = {/literal}'{$tplroot.page_title}';{literal}
-//if (pageId == undefined || pageId == 'undefined' || pageId == null || pageId == '') {
-//  pageId = new URLSearchParams(window.location.search).get('tpl');
-//    if (pageId == undefined || pageId == 'undefined' || pageId == null || pageId == '') {
-//      pageId = encodeURI(window.location.pathname).replace('/', '-').replace('.', '-');
-//    }
-//  }
-//}
-var localStoreId = 'z_commentform_draft-' + pageId.toLowerCase();
+var pageId = encodeURI(window.location.pathname).replace('/', '-').replace('.', '-');
+var localStoreId = 'z_commentform_draft' + pageId;
 var localDraft = localStorage[localStoreId];
 // Load Draft
 function loadDraft(key) {
@@ -155,18 +275,16 @@ function loadDraft(key) {
     //console.info('Draft found in Local Storage: ' + localDraft);
     quill.setContents(JSON.parse(key));
   } else {
-    //console.info('No Draft in Local Storage, using default text');
-    quill.insertText(0,{/literal}"{$quotes[$zeigen]}"{literal});
+  //console.info('No Draft in Local Storage, using default text');
+  quill.insertText(0,{/literal}"{$quotes[$zeigen]}"{literal});
   }
   }
 }
 function deleteDraft(key) {
   if (typeof(Storage) !== 'undefined') {
     if (key !== undefined && key !== 'undefined' && key !== null && key !== '') {
-      if (localStorage.removeItem(key)) {
-	    console.info('Deleting draft... ' + key);
-	  	clearInterval(autoSaveOn); // stop Save periodically
-	  }
+      console.info('Deleting draft... ' + key);
+      localStorage.removeItem(key);
     }
   }
 }
@@ -195,7 +313,7 @@ autoSaveOn = setInterval(function() {
 // Check for unsaved data
 window.onbeforeunload = function() {
   if (change.length() > 0) {
-  return 'Du hesch en Comment wo nonig gspeicheret isch. Wötsch würkli abhaue?';
+  return 'There are unsaved changes. Are you sure you want to leave?';
   }
 }
 
@@ -276,7 +394,7 @@ function addUserIdNotification(userid) {
   //console.info('allUserMentions[] adding: ' + userid);
   allUserMentions.push(userid);
   // Remove duplicate UserIDs - https://stackoverflow.com/a/40482714/5750030
-  usersToNotify = allUserMentions.reduce(function(hash){
+  var usersToNotify = allUserMentions.reduce(function(hash){
     return function(prev,curr){
       !hash[curr] && (hash[curr]=prev.push(curr));
       return prev;
@@ -337,7 +455,6 @@ document.getElementById('schickenaaab').onclick = function() {
     replyToId = document.querySelector('input[name=parent_id]:checked').value;
     form.querySelector('input[name=parent_id]').value = replyToId;
   }
-  change = new Delta();
   clearInterval(autoSaveOn); // stop Save periodically
   deleteDraft(localStoreId);
   return true;//false;

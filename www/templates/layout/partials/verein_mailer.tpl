@@ -10,6 +10,7 @@
 	<meta name="description" content="Page um schöne Verein E-Mails an die Mitglieder zu verschicken">
 	<meta name="robots" content="none, noarchive, nosnippet, noodp, notranslate, noimageindex" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	{include file="file:layout/partials/head/favicons.tpl"}
 	<link rel="stylesheet" href="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.css">
 	{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
 	<link href="{if !$dev}https://use.fontawesome.com/releases/v5.0.6/css/all.css{else}{$smarty.const.CSS_DIR}font-awesome.min.css{/if}" rel="stylesheet">
