@@ -12,6 +12,7 @@ if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'temp
 /**
  * FILE INCLUDES
  */
+require_once( __DIR__ .'/../../includes/config.inc.php');
 require_once( __DIR__ .'/../../includes/mysql.inc.php');
 
 /**
