@@ -47,7 +47,6 @@ require_once( __DIR__ .'/sunrise.inc.php');
  * @include gallery.inc.php 	Gallery and Pic functions
  * @include go_game.inc.php 	Go Game functions
  * @include graph.inc.php 		Image Graph Stats functions
- * @include imap.inc.php 		IMAP functions (DEPRECATED)
  * @include messagesystem.inc.php Messagesystem Functions
  * @include peter.inc.php 		Peter Game functions
  * @include poll.inc.php 		Poll functions
@@ -63,7 +62,6 @@ include_once( __DIR__ .'/forum.inc.php');
 include_once( __DIR__ .'/gallery.inc.php');
 include_once( __DIR__ .'/go_game.inc.php');
 include_once( __DIR__ .'/graph.inc.php');
-//include_once( __DIR__ .'/imap.inc.php');
 include_once( __DIR__ .'/messagesystem.inc.php');
 include_once( __DIR__ .'/peter.inc.php');
 include_once( __DIR__ .'/poll.inc.php');
