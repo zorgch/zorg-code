@@ -7,7 +7,7 @@
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
  *
  * @author [z]biko, IneX
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  * @date 01.01.2002
  * @version 1.6

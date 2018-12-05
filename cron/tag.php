@@ -63,7 +63,7 @@ error_log(sprintf('[%s] [NOTICE] <%s> get_apod() finished: %s', date('d.m.Y H:i:
 //setiathome::tagesabschluss();
 
 /** Spaceweather Stats */
-//get_spaceweather();
+//get_spaceweather(); // Fails with 'Undefined index: solarflares_percent_48hr_[]_percent', 'file' => '/www/includes/spaceweather.inc.php', 'line' => 231
 
 /** Forum: alte kompilierte comments löschen (um speicherplatz zu sparen) */
 error_log(sprintf('[%s] [NOTICE] <%s> Forum::deleteOldTemplates() finished: %s', date('d.m.Y H:i:s',time()), __FILE__, ( Forum::deleteOldTemplates() ? 'OK' : 'ERROR' )));

@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * GO Board Funktionen
  * 
@@ -6,10 +6,10 @@
  * ...
  * ...
  *
- * @author [z]berg, [z]domi
+ * @author [z]bert, [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage GO
  */
 /**
@@ -71,5 +71,3 @@ function draw_go_stone(&$im, $x, $y, $which){
     $offset = FIELDSIZE / 2;
     imagecopy($im, $stone, $offset + $x * FIELDSIZE, $offset + $y * FIELDSIZE, 0, 0, imagesx($stone), imagesy($stone));
 }
-
-?>

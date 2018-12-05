@@ -5,7 +5,7 @@
  * Neui Aficks-Wörter und neui Afick-Sprüch
  *
  * @author ?
- * @package Zorg
+ * @package zorg
  * @subpackage Anficker
  */
 

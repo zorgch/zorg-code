@@ -7,7 +7,7 @@
  * @author		IneX
  * @date		13.09.2009
  * @version		1.0
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Activities
  *
  * @TODO Are the globals $db, $smarty & $user really required?

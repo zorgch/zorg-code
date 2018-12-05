@@ -5,7 +5,7 @@
  * Anbindung verschiedener Google APIs
  *
  * @author		IneX
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Vendor
  */
 /**

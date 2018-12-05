@@ -9,7 +9,7 @@
  * - events_to_user
  *
  * @version		1.0
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Events
  */
 /**
@@ -31,7 +31,7 @@ include_once( __DIR__ .'/googleapis.inc.php');
  *
  * @author		[z]milamber, IneX
  * @version		1.0
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Events
  */
 class Events {
@@ -299,7 +299,7 @@ class Events {
  * @date 12.06.2018
  * @version 1.0
  * @since 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Events
  */
 class UpcomingEvent

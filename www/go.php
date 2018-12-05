@@ -8,7 +8,7 @@
  * GO benutzt folgende Tabellen in der DB:
  *		xy, xy_dwz, ...
  *
- * @package Zorg
+ * @package zorg
  * @subpackage GO
  */
 /**
@@ -24,7 +24,7 @@ include_once( __DIR__ .'/includes/main.inc.php');
  * @author [z]bert, [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage GO
  */
 class go {

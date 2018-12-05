@@ -10,7 +10,7 @@
  * @version 2.0
  * @since 1.0 file & functions added initially
  * @since 2.0 added check for valid GET-Parameters, refactored Caching & HTTP-Headers, added Movie-File output variations
- * @package Zorg
+ * @package zorg
  * @subpackage Gallery
  *
  * @param integer $_GET['id'] Passed integer > 0 of an existing Gallery Pic ID

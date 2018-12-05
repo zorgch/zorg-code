@@ -2,10 +2,10 @@
 /**
  * GO Spiel - Smarty Page Actions
  *
- * @author [z]berg, [z]domi
+ * @author [z]bert, [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage GO
  */
 /**

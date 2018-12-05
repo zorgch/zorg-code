@@ -7,7 +7,7 @@
  * @author [z]biko
  * @date 16.05.2003
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Addle
  */
 ?>

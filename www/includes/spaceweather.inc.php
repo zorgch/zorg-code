@@ -103,7 +103,7 @@ function get_spaceweather()
 		//solarflars
 		$pattern = "(FLARE\s0-24\shr\s24-48\shr\sCLASS\s(\w)\s(\d+)%\s(\d+)%\sCLASS\s(\w)\s(\d+)%\s(\w+)%\s)";
 		preg_match_all($pattern,$html,$out);
-		
+		// @FIXME Breaks with 'Undefined index: solarflares_percent_48hr_[]_percent', 'file' => '/www/includes/spaceweather.inc.php', 'line' => 231
 		$space['solarflares_percent_24hr_'.$out[1][0].'_percent'] = $out[2][0];
 		$space['solarflares_percent_48hr_'.$out[1][0].'_percent'] = $out[3][0];
 		$space['solarflares_percent_24hr_'.$out[4][0].'_percent'] = $out[5][0];
@@ -167,7 +167,7 @@ function get_spaceweather()
 					(asteroid,datum,distance,mag)
 				VALUES
 					('".$ps[0]."','".date("Y-m-d",strtotime(str_replace(".","",$ps[1])))."','".$ps[2]."','".$ps[3]."')";
-				$db->query($sql,__LINE__,__FILE__);
+				$db->query($sql,__LINE__,__FILE__,__FUNCTION__);
 			}
 		}
 		
@@ -186,7 +186,7 @@ function get_spaceweather()
 
 function spaceweather_ticker() {
 	global $db;
-	
+
 	$add['solarwind_speed'][0] = "Solarwind";
 	$add['solarwind_speed'][1] = "km/s";
 	$add['solarwind_density'][0] = "Solarwind Dichte";
@@ -220,16 +220,18 @@ function spaceweather_ticker() {
 	$add['magstorm_high_severe_24hr'][0] = 0;
 	$add['magstorm_high_severe_48hr'][0] = 0;
 	$add['PHA'][0] = "Potenziell gef&auml;hrliche Asteroiden";
-	
+
 	try {
-		$sql = "SELECT * FROM spaceweather";
-		$result = $db->query($sql,__LINE__,__FILE__);
+		$sql = 'SELECT * FROM spaceweather';
+		$result = $db->query($sql,__LINE__,__FILE__,__FUNCTION__);
 		while($rs = $db->fetch($result)) {
-			if($rs['wert'] == "") {
-				$rs['wert'] = "unbekannt";
+			if(empty($rs['wert']) || $rs['wert'] === '') {
+				$rs['wert'] = 'unbekannt';
 			}
-			if(strlen($add[$rs['name']][0]) > 2) {
-				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert']." ".$add[$rs['name']][1] ];
+			if(isset($add[$rs['name']]) && !empty($add[$rs['name']][0]))
+			{
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $rs[name] exists: %s | value: %s', __FUNCTION__, __LINE__, $add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')));
+				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert'].(isset($add[$rs['name']][1]) ? " ".$add[$rs['name']][1] : '') ];
 			}
 		}
 

@@ -6,7 +6,7 @@
  * 
  * @author [z]biko
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Addle
  *  
  * @param integer $user->id

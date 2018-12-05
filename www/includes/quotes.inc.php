@@ -10,7 +10,7 @@
  * @version		2.0
  * @since		1.0
  * @since		2.0 added Telegram Notification for new Daily Quote
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Quotes
  */
 Class Quotes {

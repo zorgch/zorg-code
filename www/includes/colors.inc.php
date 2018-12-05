@@ -3,7 +3,8 @@
  * File Includes
  * @include	Sunrise Class
  */
-include_once( __DIR__ .'/sunrise.inc.php');
+require_once( __DIR__ .'/config.inc.php');
+require_once( __DIR__ .'/sunrise.inc.php');
 
 /**
  * Define colors for day layout

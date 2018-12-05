@@ -5,7 +5,7 @@
  * Gibt Spresim erst die Macht die er braucht, um so richtig anzuficken
  * 
  * @author ?
- * @package Zorg
+ * @package zorg
  * @subpackage Anficker
  */
 /**
@@ -29,7 +29,7 @@ define(ANFICKER_USER_ID, 9999);
  * @author ?
  * @version 2.0
  *
- * @package Zorg
+ * @package zorg
  * @subpackage Anficker
  */
 Class Anficker {

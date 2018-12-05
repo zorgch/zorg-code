@@ -6,7 +6,7 @@
  *
  * @author [z]biko
  * @date 01.01.2004
- * @package Zorg
+ * @package zorg
  * @subpackage APOD
  */
 /**

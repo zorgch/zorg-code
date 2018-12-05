@@ -17,6 +17,7 @@ if(!isset($_POST['tpl_id']) || empty($_POST['tpl_id']) || !is_numeric($_POST['tp
 /**
  * FILE INCLUDES
  */
+require_once( __DIR__ .'/../../../includes/config.inc.php');
 require_once( __DIR__ .'/../../../includes/mysql.inc.php');
 
 /**

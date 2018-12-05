@@ -32,7 +32,7 @@ $GLOBALS['strings'] = include_once( __DIR__ .'/strings.array.php');
  * @author IneX
  * @date 04.02.2017
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Strings
  *
  * @param $reference The placeholder reference to be replaced with a string
