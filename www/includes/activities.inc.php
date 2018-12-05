@@ -83,8 +83,7 @@ class Activities
 					FROM
 						activities
 					ORDER BY
-						datum DESC
-					';
+						datum DESC';
 			//if ($activity_area <> '') $sql_WHERE = "activity_area = '".$activity_area."'";
 			if ($date <> '') {
 				$sql_WHERE = ($sql_WHERE <> '' ? ' AND datum = "'.$date.'"' : 'datum = "'.$date.'"');
@@ -93,12 +92,14 @@ class Activities
 
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			while($rs = $db->fetch($result)) {
+			while($rs = $db->fetch($result))
+			{
 				/** sprintf() each Activity */
-					if (!empty($rs['values'])) $rs['values'] = json_decode($rs['values']);
-					t($rs['activity'], $rs['activity_area'], $rs['values']);
+				if (!empty($rs['values']) || $rs['values'] !== false) $rs['values'] = json_decode($rs['values']);
+				t($rs['activity'], $rs['activity_area'], $rs['values']);
+
 				/** Add to $activities Array */
-					$activities[] = $rs;
+				$activities[] = $rs;
 			}
 		} catch (Exception $e) {
 			error_log($e->getMessage());
