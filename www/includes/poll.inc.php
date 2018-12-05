@@ -35,7 +35,7 @@ function getPoll ($id) {
 					 p.*
 					,UNIX_TIMESTAMP(p.date) date
 					,(SELECT count(*) FROM poll_votes WHERE poll='.$id.') total_votes
-					'.($user->islogged_in() ? ',(SELECT answer FROM poll_votes WHERE poll='.$id.' AND user='.$user->id.') myvote' : '').'
+					'.($user->is_loggedin() ? ',(SELECT answer FROM poll_votes WHERE poll='.$id.' AND user='.$user->id.') myvote' : '').'
 				FROM polls p
 				WHERE id='.$id.'
 				GROUP BY p.id';

@@ -79,11 +79,13 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
  * @const ZORG_VEREIN_EMAIL Zorg Verein E-Mail address
  * @const VORSTAND_USER User-ID of the Zorg Verein Vorstand-User
  * @const BARBARA_HARRIS User-ID of [z]Barbara Harris
- * @const ROSENVERKÄUFER User-ID des Rosenverkäufer's (für Peter-Spiele)
+ * @const ROSENVERKAEUFER User-ID des Rosenverkäufer's (für Peter-Spiele)
+ * @const THE_ARCHITECT User-ID des [z]architect
  * @const TWITTER_NAME A Twitter-profile username which can be linked, e.g. ZorgCH (no "@")
  * @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
  * @const FACEBOOK_PAGENAME Facebook page name (as in the group url) of the Zorg Facebook group
  * @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
+ * @const GIT_REPOSITORY zorg Code Git-Repository base URL
  */
 if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
 if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
@@ -91,10 +93,12 @@ if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@go
 if (!defined('VORSTAND_USER')) define('VORSTAND_USER', 451);
 if (!defined('BARBARA_HARRIS')) define('BARBARA_HARRIS', 59);
 if (!defined('ROSENVERKAEUFER')) define('ROSENVERKAEUFER', 439);
+if (!defined('THE_ARCHITECT')) define('THE_ARCHITECT', 582);
 if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH', true);
 if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967', true);
 if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
 if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
+if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://bitbucket.org/zorgvorstand/zorg.ch');
 
 /**
  * Define paths to directories where HTML web resources will be referenced from
@@ -142,6 +146,11 @@ if (!defined('CSS_DIR')) define('CSS_DIR', '/css/', true);
  * @const USER_OLD_AFTER	Zeit bis ein User als "alt" gilt -> 3 Monate
  * @const DEFAULT_MAXDEPTH	Standard Setting für die Anzeigetiefe von Comments in Forum-Threads
  */
+if (!defined('ZORG_SESSION_ID')) define('ZORG_SESSION_ID', 'z');
+if (!defined('ZORG_COOKIE_SESSION')) define('ZORG_COOKIE_SESSION', ZORG_SESSION_ID);
+if (!defined('ZORG_COOKIE_USERID')) define('ZORG_COOKIE_USERID', 'autologin_id');
+if (!defined('ZORG_COOKIE_USERPW')) define('ZORG_COOKIE_USERPW', 'autologin_pw');
+if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_ALLE')) define('USER_ALLE', 0);
 if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
@@ -151,15 +160,15 @@ if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
 //define('USER_NICHTEINGELOGGT', 2);
 //define('USER_ALLE', 3);
 if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
-if (!defined('USER_IMGPATH')) define('USER_IMGPATH',  __DIR__ .'/../../data/userimages/');
+if (!defined('USER_IMGPATH')) define('USER_IMGPATH',  SITE_ROOT.'/../data/userimages/');
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
-if (!defined('USER_IMGSIZE_LARGE')) define('USER_IMGSIZE_LARGE', 427);
+if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE',  SITE_ROOT.'/../data/userimages/archiv/');
+if (!defined('USER_IMGSIZE_LARGE')) define('USER_IMGSIZE_LARGE', 500);
 if (!defined('USER_IMGSIZE_SMALL')) define('USER_IMGSIZE_SMALL', 150);
 if (!defined('USER_IMGPATH_DEFAULT')) define('USER_IMGPATH_DEFAULT', 'none.jpg');
 if (!defined('USER_TIMEOUT')) define('USER_TIMEOUT', 200);
-if (!defined('USER_OLD_AFTER')) define('USER_OLD_AFTER', 60*60*24*30*3); // 3 Monate
+if (!defined('USER_OLD_AFTER')) define('USER_OLD_AFTER', 60*60*24*30*12*3); // 3 Jahre | 3 Monate: 60*60*24*30*3
 if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', 10);
-//define('AUSGESPERRT_BIS', 'ausgesperrt_bis');
 //if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 /**
@@ -169,6 +178,18 @@ if (!defined('SMARTY_DIR')) define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
 if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
 if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
 if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
+
+/**
+ * Define and include various Placeholder-Strings related constants and files
+ * @include strings.inc.php
+ */
+include_once( __DIR__ .'/strings.inc.php');
+
+/**
+ * Define and include various Notification System-related constants and files
+ * @include notifications.inc.php
+ */
+include_once( __DIR__ .'/notifications.inc.php');
 
 /**
  * Grab the NASA API Key
@@ -195,3 +216,13 @@ if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apo
  * @include telegrambot.inc.php Required to send Telegram-Notifications
  */
 include_once( __DIR__ .'/telegrambot.inc.php');
+
+/**
+ * Define various Addle related constants
+ * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
+ * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
+ * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
+ */
+define('MAX_ADDLE_GAMES', 1);
+define('ADDLE_BASE_POINTS', 1600);
+define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);

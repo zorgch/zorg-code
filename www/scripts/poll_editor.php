@@ -3,7 +3,7 @@ require_once(__DIR__.'/../includes/usersystem.inc.php');
 
 global $smarty, $user;
 
-if ($user->islogged_in())
+if ($user->is_loggedin())
 {
 	$types = array();
 	$types_n = array();

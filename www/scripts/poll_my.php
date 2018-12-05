@@ -1,7 +1,7 @@
 <?php
 global $db, $user, $smarty;
 
-if ($user->islogged_in())
+if ($user->is_loggedin())
 {
 	$e = $db->query('SELECT * FROM polls WHERE user='.$user->id.' ORDER BY date DESC', __FILE__, __LINE__, 'SELECT * FROM polls');
 	$polls = array();

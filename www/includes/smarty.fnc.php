@@ -168,7 +168,18 @@ function var_request ()
     	global $user;
     	//Original: return $user->link_userpage($userid, $displayName);
     	//return $user->userpic($userid, $displayName);
-    	return $user->userprofile_link($userid, ['username' => $displayName, 'pic' => TRUE, 'link' => TRUE]);
+    	return $user->userprofile_link($userid, ['username' => $displayName, 'clantag' => TRUE, 'pic' => TRUE, 'link' => TRUE]);
+    }
+    /**
+	 * Smarty Funktion checkimage
+	 * Gibt an, ob Userpic als Gravatar existiert oder nur als zorg Userpic
+	 * @return array Array mit Userpic-Typ (gravatar / zorg) und dazugehörigem Userpic-Pfad
+	 */
+    function smarty_check_userimage ($userid) {
+	    global $user;
+	    if (!empty($userid) && is_numeric($userid)) $userimagePath = $user->checkimage($userid);
+	    if ($userimagePath !== false) return ['type' => (strpos($userimagePath, 'gravatar') !== false ? 'gravatar' : 'zorg'), 'path' => $userimagePath];
+	    else return 'false';
     }
     function smarty_userpage ($userid, $pic=0) {
     	global $user;
@@ -742,6 +753,17 @@ function var_request ()
     function smarty_get_changed_url ($params) {
 		return getChangedURL ($params['change']);
 	}
+	/**
+	 * Smarty Funktion urlExists()
+	 * Utilities Funktion urlExists() um eine URL/Pfad zu validieren.
+	 * Usage: {url_exists url="[url]" assign="[smarty-variable]"}
+	 */
+	function smarty_url_exists ($params, &$smarty)
+	{
+		$checkUrl = (urlExists($params['url']) === true ? 'true' : 'false');
+		if (isset($params['assign'])) $smarty->assign($params['assign'], $checkUrl);
+		else return $checkUrl;
+	}
 
 	/**
 	 * HTML
@@ -868,31 +890,37 @@ function var_request ()
 	   return Forum::get3YearOldThreads();
 	}
 	function smarty_unread_comments ($params) {
-	   return Forum::getLatestUnreadComments($params[title], $params[board]);
+	   return Forum::getLatestUnreadComments($params['title'], $params['board']);
 	}
 
 	/**
-	 * IMAP
+	 * Smarty Function "forum_boards"
+	 *
+	 * Returns all Forum boards
+	 * Usage: {forum_boards boards=$user->forum_boards_unread updatable=true/false}
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 30.09.2018 method added
+	 * @see Forum::getForumBoards()
 	 */
-	function smarty_getNumNewImap ($params) {
-		global $user;
-
-		return ImapStatic::getNumnewmessages($user);
+	function smarty_get_forum_boards ($params) {
+		return Forum::getForumBoards($params['boards'], $params['updateable']);
 	}
 
 	/**
 	 * Smarty Information
 	 */
     function smarty_error ($params) {
-	      if ($params[msg]) {
-	         return '<p><font color="red"><b>'.$params[msg].'</b></font></p>';
+	      if ($params['msg']) {
+	         return '<p><font color="red"><b>'.$params['msg'].'</b></font></p>';
 	      }else{
 	         return "";
 	      }
     }
     function smarty_state ($params) {
-	      if ($params[msg]) {
-	         return '<p><font color="green"><b>'.$params[msg].'</b></font></p>';
+	      if ($params['msg']) {
+	         return '<p><font color="green"><b>'.$params['msg'].'</b></font></p>';
 	      }else{
 	         return "";
 	      }
@@ -907,47 +935,48 @@ function var_request ()
 		function edit_link_url ($tpl) {
 			return "/?tpleditor=1&tplupd=$tpl&location=".base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
 		}
-		/**
-		 * Letze Smarty Updates
-		 *
-		 * Gibt eine Tabelle mit Links zu den letzten upgedateten Smartys
-		 *
-		 * @return String
-		 */
-		function getLatestUpdates($params = array()) {
-			global $db, $user;
 
-			if (!$params['anzahl']) $params['anzahl'] = 5;
+	/**
+	 * Letze Smarty Updates
+	 *
+	 * Gibt eine Tabelle mit Links zu den letzten upgedateten Smartys
+	 *
+	 * @return String
+	 */
+	function getLatestUpdates($params = array()) {
+		global $db, $user;
 
-			$sql =
-				"SELECT *, UNIX_TIMESTAMP(last_update) as date"
-				." FROM templates"
-				." ORDER BY last_update desc"
-				." LIMIT 0, $params[anzahl]"
-			;
-			$result = $db->query($sql, __FILE__, __LINE__);
+		if (!$params['anzahl']) $params['anzahl'] = 5;
 
-			$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
-			while($rs = $db->fetch($result)) {
-		    $i++;
+		$sql =
+			"SELECT *, UNIX_TIMESTAMP(last_update) as date"
+			." FROM templates"
+			." ORDER BY last_update desc"
+			." LIMIT 0, $params[anzahl]"
+		;
+		$result = $db->query($sql, __FILE__, __LINE__);
 
-				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
+		while($rs = $db->fetch($result)) {
+	    $i++;
 
-		    $html .=
-		      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
-		      .'<a href="/?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
-		      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
-		      .$user->link_userpage($rs['update_user'])
-		      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
-		      .datename($rs[date])
-		      .'</nobr></td></tr>'
-		    ;
+			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 
-		  }
-		  $html .= '</table>';
+	    $html .=
+	      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
+	      .'<a href="/?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
+	      .$user->link_userpage($rs['update_user'])
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
+	      .datename($rs[date])
+	      .'</nobr></td></tr>'
+	    ;
 
-		  return $html;
-		}
+	  }
+	  $html .= '</table>';
+
+	  return $html;
+	}
 
 	/**
 	 * Menu
@@ -959,7 +988,7 @@ function var_request ()
 
 		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id']) {
 			if ($params['tpl']) {
-				$e = $db->query("SELECT * FROM templates WHERE id='$params[tpl]'", __FILE__, __LINE__);
+				$e = $db->query('SELECT * FROM templates WHERE id="'.$params['tpl'].'"', __FILE__, __LINE__, __METHOD__);
 				$d = $db->fetch($e);
 				if (tpl_permission($d['read_rights'], $d['owner'])) {
 					return $smarty->fetch("tpl:$params[tpl]");
@@ -967,16 +996,15 @@ function var_request ()
 					return '';
 				}
 			}else{
-				$e = $db->query(
-					"SELECT m.* FROM menus m, templates t
-					WHERE name='$params[name]' AND t.id = m.tpl_id", __FILE__, __LINE__);
+				$e = $db->query('SELECT m.* FROM menus m, templates t
+								 WHERE name="'.$params['name'].'" AND t.id = m.tpl_id', __FILE__, __LINE__, __METHOD__);
 				$d = $db->fetch($e);
 				if ($d && tpl_permission($d['read_rights'], $d['owner'])) {
 					return $smarty->fetch("tpl:$d[tpl_id]");
 				}elseif ($d) {
 					return '';
 				}else{
-					return "<font color='red'><b>[Menu '$params[name]' not found]</b></font><br />";
+					return '<font color="red"><b>[Menu "'.$params['name'].'" not found]</b></font><br />';
 				}
 			}
 		}
@@ -988,22 +1016,54 @@ function var_request ()
 			$tpl = $vars['tpl']['id'];
 
 			$name = htmlentities($name, ENT_QUOTES);
-			$name = explode(" ", $name);
+			$name = explode(' ', $name);
 
 			for ($i=0; $i<sizeof($name); $i++) {
 				if ($it) {
-					$menu = $db->fetch($db->query("SELECT * FROM menus WHERE name='$name[$i]'", __FILE__, __LINE__));
-					if ($menu && $menu['tpl_id'] != $tpl) return "Menuname '$name[$i]' existiert schon und wurde nicht registriert.<br />";
+					$menu = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$name[$i].'"', __FILE__, __LINE__, __METHOD__));
+					if ($menu && $menu['tpl_id'] != $tpl) return 'Menuname "'.$name[$i].'" existiert schon und wurde nicht registriert.<br />';
 					unset($name[$i]);
 				}
 			}
 
-			$db->query("DELETE FROM menus WHERE tpl_id='$tpl'", __FILE__, __LINE__);
+			$db->query('DELETE FROM menus WHERE tpl_id="'.$tpl.'"', __FILE__, __LINE__, __METHOD__);
 			foreach ($name as $it) {
-				$db->query("INSERT INTO menus (tpl_id, name) VALUES ($tpl, '$it')", __FILE__, __LINE__);
+				$db->query('INSERT INTO menus (tpl_id, name) VALUES ("'.$tpl.'", "'.$it.'")', __FILE__, __LINE__, __METHOD__);
 			}
-			return "";
+			return '';
 		}
+		
+		/**
+		 * Smarty Array "$smarty_menus"
+		 *
+		 * Returns all Smarty Menus (Smarty-Menutemplates) as an Array
+		 * Usage: {$smarty_menus}
+		 *
+		 * @author IneX
+		 * @version 1.0
+		 * @since 1.0 30.09.2018 method added
+		 */
+		function smarty_get_menus()
+		{
+			global $db;
+
+			try {
+				$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				if (!empty($result) && $result !== false)
+				{
+					while ($menuTemplate = $db->fetch($result)) $menus[] = $menuTemplate;
+					return $menus;
+					//$smarty->assign('smarty_menus', $menus);
+				} else {
+					return false;
+				}
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+		}
+
 
 	/**
 	 * Gallery
@@ -1053,6 +1113,7 @@ function var_request ()
 	 		//return getUserPics($userid, $limit, $options);
 	 		return getUserPics($userid, $limit);
 		}
+
 
 	/**
 	 * Chat
@@ -1295,7 +1356,7 @@ function smarty_menuname ($name, &$smarty) {
  * @author IneX
  * @date 03.01.2016
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Smarty
  */
 //class SmartyZorgFunctions
@@ -1339,7 +1400,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'num_new_events' => array(Events::getNumNewEvents(), 'Events', 'Zeigt Anzahl neu erstellter Events an', true)
 								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
 								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
-								
+								,'smarty_menus' => array(smarty_get_menus(), 'Smarty', 'Array mit allen verfügbaren Smarty-Menutemplates', true)
   						 );
 	
 	/**
@@ -1347,7 +1408,7 @@ function smarty_menuname ($name, &$smarty) {
      *
 	 * @var array
 	 */
-    $zorg_php_modifiers = array( //Format: [Modifier] => array ([PHP-Funktion] | [Kategorie] | [Beschreibung] | [Members only true/false])
+    $zorg_php_modifiers = array( //Format: [PHP-Funktion] => array ([Smarty-Modifier] | [Kategorie] | [Beschreibung] | [Members only true/false])
 								 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
 								,'stripslashes' => array('stripslashes', 'Variablen', 'Modifier für die Funktion stripslashes() wie in PHP', false)
 								,'strstr' => array('strstr', 'Variablen', 'Modifier für die Funktion strstr() wie in PHP', false)
@@ -1366,6 +1427,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_userpic' => array('userpic', 'Usersystem', '{$userid|userpic:0} zeigt Userpic für eine User-ID, 1.param = Username anzeigen ja/nein', false)
 								,'smarty_usergroup' => array('usergroup', 'Usersystem', '{$id|usergroup} für tpl schreib / lese rechte', false)
 								,'smarty_userpage' => array('userpage', 'Usersystem', '{$userid|userpage:0} , 1.param = username (0) or userpic (1)', false)
+								,'smarty_check_userimage' => array('check_userimage', 'Usersystem', '{$userid|@check_userimage} - ersetzt $userid mit Array["typ","pfad"],', false)
 								,'smarty_userismobile' => array('ismobile', 'Usersystem', '{$userid|ismobile} ermittelt ob letzter Login eines Users per Mobile war', false)
 								,'smarty_strip_anchor' => array('strip_anchor', 'URL Handling', 'link', false)
 								,'smarty_change_url' => array('change_url', 'URL Handling', 'newquerystring', false)
@@ -1374,7 +1436,6 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_floor' => array('floor', 'Mathematische Funktionen', 'util', false)
 								,'print_array' => array('print_array', 'Variablen', '{print_array arr=$hans} gibt die Elemente eines Smarty {$array} aus', false)
 								,'rendertime' => array('smarty_modifier_rendertime', 'System', 'Smarty Template Rendering-Time', false, true)
-
 								);
 
 	/**
@@ -1426,10 +1487,11 @@ function smarty_menuname ($name, &$smarty) {
 								,'error' => [ 'smarty_error', 'error', 'System', '{error msg="Fehler!"}', false, false ]
 								,'state' => [ 'smarty_state', 'state', 'System', '{state msg="Update erfolgreich"}', false, false ]
 								,'gettext' => [ 'smarty_gettext', 'gettext', 'File Manager', 'files / filemanager', false, false ]
-								,'comments' => [ 'smarty_comments', 'comments', 'Commenting', '{comments}  f?gt comments zu diesem tpl an.', false, false ]
+								,'comments' => [ 'smarty_comments', 'comments', 'Commenting', '{comments}  fügt comments zu diesem tpl an.', false, false ]
 								,'latest_comments' => [ 'smarty_latest_comments', 'latest_comments', 'Commenting', '{latest_comments anzahl=10 board=t title="Tabellen-Titel"}  // letzte comments aus board (optional)', false, false ]
 								,'latest_threads' => [ 'smarty_latest_threads', 'latest_threads', 'Forum', '{latest_threads}', false, false ]
 								,'unread_comments' => [ 'smarty_unread_comments', 'unread_comments', 'Forum', '{unread_comments board=t title="Tabellen-Titel"}', false, false ]
+								,'getForumBoards' => [ 'smarty_get_forum_boards', 'forum_boards', 'Forum', '{forum_boards boards=$user->forum_boards_unread updatable=true/false}', false, false ]
 								,'3yearold_threads' => [ 'smarty_3yearold_threads', '3yearold_threads', 'Forum', '{3yearold_threads}', false, false ]
 								,'commentingsystem' => [ 'smarty_commentingsystem', 'commentingsystem', 'Commenting', 'forum, comments', false, false ]
 								,'random_pic' => [ 'getRandomThumb', 'random_pic', 'Gallery', '{random_pic}  displays a random thumb out of the gallery', false, false ]
@@ -1438,7 +1500,6 @@ function smarty_menuname ($name, &$smarty) {
 								,'top_pics' => [ 'smarty_top_pics', 'top_pics', 'Gallery', 'gallery', false, false ]
 								,'user_pics' => [ 'smarty_user_pics', 'user_pics', 'Gallery', 'gallery', false, false ]
 								,'assign_users_on_pic' => [ 'smarty_assign_users_on_pic', 'assign_users_on_pic', 'Gallery', 'gallery', false, false ]
-								//,'new_imap' => [ 'smarty_getNumNewImap', 'new_imap', 'IMAP', 'imap', false, false ]
 								,'menu' => [ 'smarty_menu', 'menu', 'Layout', 'menu', false, false ]
 								,'random_quote' => [ 'smarty_getrandomquote', 'random_quote', 'Quotes', '{random_quote} display a random quote', false, false ]
 								,'daily_quote' => [ 'smarty_getdailyquote', 'daily_quote', 'Quotes', '{daily_quote} display a daily quote', false, false ]
@@ -1474,6 +1535,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'event_hasjoined' => [ 'smarty_event_hasjoined', 'event_hasjoined', 'Events', 'events', true, false ]
 								,'assign_rezept_voted' => [ 'smarty_assign_rezept_voted', 'assign_rezept_voted', 'Rezepte', 'rezepte', true, false ]
 								,'logerror' => [ 'smarty_logerror', 'logerror', 'PHP Error Log', 'errorhandling', false, false ]
+								,'url_exists' => [ 'smarty_url_exists', 'url_exists', 'URL Handling', 'Utilities Funktion urlExists() um eine URL/Pfad zu validieren. Usage: {url_exists url="[url]" assign="[smarty-variable]"}', false, false ]
 							);
 
 

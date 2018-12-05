@@ -6,7 +6,7 @@
  * 
  * @author Milamber
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage STL
  */
 /**
@@ -20,7 +20,7 @@ require_once( __DIR__ .'/includes/stl.inc.php');
 $stl = new stl();
 
 /** Zugriff nur wenn User eingeloggt ist */
-if($user->islogged_in())
+if($user->is_loggedin())
 {	
 	if($_GET['do'] == 'game') {
 		if($_GET['game_id']) {

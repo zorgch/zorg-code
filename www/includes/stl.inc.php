@@ -77,7 +77,7 @@ include_once( __DIR__ . '/util.inc.php');
  * 
  * @author Milamber
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage STL
  */
 class stl {
@@ -178,7 +178,7 @@ class stl {
 			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 			/** Game-ID exists (Game can be loaded) */
-			if ($db->num($result) == 1 && $user->islogged_in()) {
+			if ($db->num($result) == 1 && $user->is_loggedin()) {
 				$this->data['stl'] = $db->fetch($result);
 	
 				$sql = 'SELECT 
@@ -809,7 +809,7 @@ class stl {
 	function overview() {
 		global $db, $user;
 
-		if ($user->islogged_in())
+		if ($user->is_loggedin())
 		{
 			/** selektiert games bei denen ich mitmache */
 			$sql = 'SELECT
@@ -1108,7 +1108,7 @@ class stl {
 		global $db, $user;
 
 		$count = 0;
-		if ($user->islogged_in())
+		if ($user->is_loggedin())
 		{
 			try {
 				$sql = 'SELECT
@@ -1157,7 +1157,7 @@ class stl {
 		global $db, $user;
 
 		$count = 0;
-		if ($user->islogged_in())
+		if ($user->is_loggedin())
 		{
 			try {
 				$sql = 'SELECT

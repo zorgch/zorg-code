@@ -1,7 +1,7 @@
 <?php
 /**
  * zorg Site Helper Functions
- * @package Zorg
+ * @package zorg
  * @subpackage Utils
  */
 /**
@@ -129,12 +129,14 @@ function timename($timestamp)
 }
 
 /**
- * Funktion um ein Datum-Zeit String in einen Timestamp umzuweandeln
+ * Funktion um ein Datum-Zeit String in einen Timestamp umzuwandeln
+ *
  * @author IneX
  * @date 04.02.2018
- * @see main.inc.php DateTime will take default Timezone as in date_default_timezone_set()
+ *
+ * @see date_default_timezone_set(), config.inc.php, getGitCodeVersion()
  * @param $datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
- * @return string
+ * @return string Timestamp - Attention: DateTime will take default Timezone as in date_default_timezone_set()!
  */
 function datetimeToTimestamp($datetime)
 {
@@ -142,7 +144,44 @@ function datetimeToTimestamp($datetime)
 	return $d->getTimestamp();
 }
 
+/**
+ * Timestamp erzeugen wie NOW() oder für spezifisches DateTime
+ *
+ * @author IneX
+ * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
+ * @link http://php.net/manual/de/datetime.createfromformat.php
+ * @date 12.11.2018
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @see usersystem(), usersystem::login()
+ * @param boolean $return_unix_timestamp Wenn 'true', dann wird ein Timestamp in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
+ * @param array $date_array Array mit Date-Time-Werten für welchen Zeitpunkt ein Timestamp erzeugt werden soll (statt 'jetzt') - default: null
+ * @return boolean|string String mit aktuellem Timestamp - oder 'false', falls funktion nicht ausführbar war
+ */
+function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
+{
+	/** Validate passed parameters */
+	if (empty($date_array_or_timestamp) || (!is_array($date_array_or_timestamp) && !is_numeric($date_array_or_timestamp))) $date_array_or_timestamp = null;;
+	if (empty($return_unix_timestamp) || is_array($return_unix_timestamp) || $return_unix_timestamp <= 0) $return_unix_timestamp = null;
+	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generate $timestamp for $date_array_or_timestamp: %s', __FUNCTION__, __LINE__, (is_array($date_array_or_timestamp) ? print_r($date_array_or_timestamp,true) : intval($date_array_or_timestamp))));
 
+	/** Create $timestamp */
+	if ($return_unix_timestamp == true) $timestamp = date('U');
+	elseif (is_array($date_array_or_timestamp) && count($date_array_or_timestamp) > 0) $timestamp = date('Y-m-d G:i:s', mktime($date_array_or_timestamp['second'], $date_array_or_timestamp['minute'], $date_array_or_timestamp['hour'], $date_array_or_timestamp['day'], $date_array_or_timestamp['month'], $$date_array_or_timestamp['year']));
+	elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) $timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
+	else $timestamp = date('Y-m-d G:i:s');
+
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
+	return $timestamp;
+}
+
+/**
+ * @DEPRECATED
+ * Replace unsafe characters in Username for generating E-Mailaddress with safe equivalents
+ * e.g. ä, ö, ü => ae, oe, ue, etc
+ * @see usersystem::create_newuser()
+ */
 function emailusername($username) {
 	$username = strtolower($username);
 	$username = str_replace("ä", "ae", $username);
@@ -166,16 +205,19 @@ function crypt_pw($password) {
 
 /**
  * E-Mailadresse prüfen
+ * Überprüft eine E-Mail Adresse, ob Format stimmt und diese als gültig betrachtet wird
  *
- * Überprüft eine E-Mail Adresse
+ * @author [z]biko, IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 02.10.2018 changed deprecated eregi() to filter_var(): https://stackoverflow.com/a/13719870/5750030
  *
- * @return bool
- * @param $email string E-Mail
+ * @param string $email E-Mailadresse die zu validieren ist
+ * @return bool True or false, depending if $email validated successful or not
  */
 function check_email($email) {
-	if(eregi("^[a-z0-9\._-]+@+[a-z0-9\._-]+\.+[a-z]{2,3}$", $email)) return TRUE;
+	if(filter_var($email, FILTER_VALIDATE_EMAIL)) return TRUE;
 	else return FALSE;
-
 }
 
 /**
@@ -209,88 +251,124 @@ function quote(){
  * @date 22.03.2004
  * @TODO Move this Method to the Quotes-Class
  */
-function set_daily_quote(){
-
-	$date = date("Y-m-d");
-	$sql = "SELECT * FROM daily_quote WHERE date = '$date'";
+function set_daily_quote()
+{
+	$date = date('Y-m-d');
+	$sql = 'SELECT * FROM daily_quote WHERE date = "'.$date.'"';
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
 
-	if (!$rs){
+	if (!$rs) {
 		$quote = quote();
-			$sql = "INSERT INTO daily_quote(
-					date,
-		  			quote
-
-	  			)VALUES(
-
-	  			'$date',
-	  			'$quote'
-	  			)";
-			$db->query($sql,__FILE__, __LINE__);
-			return 1;
-		} else {
-			return 0;
-		}
+		$sql = 'INSERT INTO daily_quote (date, quote) 
+				VALUES ("'.$date.'", '.$quote.')';
+		$db->query($sql,__FILE__, __LINE__, __FUNCTION__);
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 
 /** URL Funktionen */
 /**
  * Get & return current Script's URL & Parameters
- * @FIXME Add 2nd Function-Parameter: $base64_encode=true - to enable/disable base64_encoding
- * @param boolean $preserve_query_string Whether or not to keep & return the QUERY_STRING with the URL, or not
+ *
+ * @author [z]biko, IneX
+ * @version 3.0
+ * @version 1.0 function added
+ * @version 2.0 17.08.2018 added optional $preserve_query_string parameter
+ * @version 3.0 03.10.2018 made base64_encode URL-safe using base64url_encode(), added second $base64_encoding parameter
+ *
+ * @see base64url_encode()
+ * @param boolean $preserve_query_string Whether or not to keep & return the QUERY_STRING with the URL, or not - Default: true
+ * @param boolean $base64_encoding Whether or not to base64_encode the getURL return, or not - Default: true
  */
-function getURL($preserve_query_string=true)
+function getURL($preserve_query_string=true, $base64_encoding=true)
 {
-	return base64_encode(rawurldecode($_SERVER['PHP_SELF'].($preserve_query_string === true ? '?'.$_SERVER['QUERY_STRING'] : '')));
+	$getUrl = rawurldecode($_SERVER['PHP_SELF'].($preserve_query_string === true ? '?'.$_SERVER['QUERY_STRING'] : ''));
+	return ($base64_encoding === true ? base64url_encode($getUrl) : $getUrl);
 }
 
-function glue_url($parsed)
+/**
+ * Modify URL Query-Paramters in current URL
+ *
+ * @author [z]biko
+ * @version 2.0
+ * @since 1.0 function added
+ *
+ * @FIXME use getURL() also for obtaining QUERY_STRING, instead of using $_SERVER variable for that?
+ *
+ * @see getURL(), changeQueryString()
+ * @param string $new_query_string New Query-Paramters to use with (by replacing previous Query-String) in old URL
+ * @return string Full URL with changed Query-Parameters as String
+ */
+function getChangedURL($new_query_string)
 {
-	if (! is_array($parsed)) return false;
-		$url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
-		$url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
-		$url .= $parsed['host'] ? $parsed['host'] : '';
-		$url .= $parsed['port'] ? ':'.$parsed['port'] : '';
-		$url .= $parsed['path'] ? $parsed['path'] : '';
-		$url .= $parsed['query'] ? '?'.$parsed['query'] : '';
-		$url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
-	return $url;
+	return str_replace('?&', '?', $_SERVER['PHP_SELF'].'?'.changeQueryString($_SERVER['QUERY_STRING'], $new_query_string));
 }
 
-function getChangedURL($newquerystring)
-{
-	return(
-		str_replace('?&', '?', $_SERVER['PHP_SELF'].'?'.changeQueryString($_SERVER['QUERY_STRING'], $newquerystring))
-	);
-}
-
-function changeURL($url, $querystringchanges)
+/**
+ * Replace ALL Query-Parameters in a URL with new Parameters
+ *
+ * @author [z]biko
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @see changeQueryString(), glue_url()
+ * @param string $url
+ * @param string $query_string_changes
+ * @return string
+ */
+function changeURL($url, $query_string_changes)
 {
 	$urlarray = parse_url($url);
-	$urlarray['query'] = changeQueryString($urlarray['query'], $querystringchanges);
-	return glue_url($urlarray);
+	$urlarray['query'] = changeQueryString($urlarray['query'], $query_string_changes);
+	$newUrl = glue_url($urlarray);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> url: %s | new query-string: %s | new url: %s', __FUNCTION__, __LINE__, $url, $urlarray['query'], $newUrl));
+	return $newUrl;
 }
 
+/**
+ * Replace only specific Query-Parameters with new Parameters
+ *
+ * @author [z]biko
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @param string $querystring Query-String to be modified
+ * @param string $changed Changed Query-Parameter
+ * @return string
+ */
 function changeQueryString($querystring, $changes)
 {
-	// der 2. Wert überschreibt den 1.
+	/** der 2. Wert überschreibt den 1. */
 	parse_str($querystring.'&'.$changes, $querystringarray);
 
 	foreach ($querystringarray as $key => $value) {
 		if(is_array($value)) {
 			foreach ($value as $key2 => $value2) {
-				if($value2 != '')	$str .= '&'.$key.'[]='.$value2;
+				if($value2 != '') $str .= '&'.$key.'[]='.$value2;
 			}
 		} else {
 			if($value != '') $str .= '&'.$key.'='.$value;
 		}
 	}
-
-	return ltrim($str, '&');
+	$str = ltrim($str, '&');
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new query-string: %s', __FUNCTION__, __LINE__, $str));
+	return $str;
 }
 
+/**
+ * Return all URL $_GET-Parameters in a String, usable to add to an URL as Query-Parameters
+ *
+ * @author [z]biko
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @param array $parsed An Array created using parse_url (splitting string parts into array elements)
+ * @return string Fully glued URL including Path & Query-Parameters, and Hash-Value
+ */
 function url_params()
 {
 	$ret = '';
@@ -300,6 +378,64 @@ function url_params()
 	return substr($ret, 0, -1);
 }
 
+/**
+ * Combine Array parts of an URL back to an URL-String
+ *
+ * @author [z]biko
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @param array $parsed An Array created using parse_url (splitting string parts into array elements)
+ * @return string Fully glued URL including Path & Query-Parameters, and Hash-Value
+ */
+function glue_url($parsed)
+{
+	/** Validate passed $parsed parameter */
+	if (!is_array($parsed)) return false;
+
+	/** Glue an URL together from all URL-Parts from the $parsed Array */
+	$url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
+	$url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
+	$url .= $parsed['host'] ? $parsed['host'] : '';
+	$url .= $parsed['port'] ? ':'.$parsed['port'] : '';
+	$url .= $parsed['path'] ? $parsed['path'] : '';
+	$url .= $parsed['query'] ? '?'.$parsed['query'] : '';
+	$url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
+
+	return $url;
+}
+
+/**
+ * URL-safe Base64 Encoding
+ * @link http://php.net/manual/de/function.base64-encode.php#121767
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @see base64_encode()
+ * @param string $data String-data to encode URL-safe using base64_encode
+ */
+function base64url_encode($data)
+{
+  return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+/**
+ * URL-safe Base64 Decoding
+ * @link http://php.net/manual/de/function.base64-encode.php#121767
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 function added
+ *
+ * @see base64_decode()
+ * @param string $data String-data to encode URL-safe using base64_encode
+ */
+function base64url_decode($data)
+{
+  return base64_decode(strtr($data, '-_', '+/') . str_repeat('=', 3-(3+strlen($data)) % 4 ));
+}
 
 /**
  * Array auf 2d überprüfen
@@ -510,7 +646,6 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 	return $textStripped;
 }
 
-
 /**
  * Entfernt HTML-Tags aus einem String
  *
@@ -522,21 +657,21 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
  *
  * @link http://php.net/manual/de/function.strip-tags.php
  * @link https://www.reddit.com/r/PHP/comments/nj5t0/what_everyone_should_know_about_strip_tags/
- * @see Messagesystem::sendMessage()
+ *
  * @param string $html HTML-String input to strip tags from
  * @param string $allowable_tags Whitelist of HTML-Tags which should NOT be removed
  * @return string Returns clean $html as string
  */
 function remove_html($html, $allowable_tags=NULL)
 {
+	$nohtml = $html;
 	$nohtml = str_ireplace('&nbsp;', ' ', $nohtml); // Replace %nbsp; with spaces
 	$nohtml = str_ireplace('&amp;', '&', $nohtml); // Replace %amp; with &
 	preg_replace("/(<\/h\d+>)/", "$1\n", $nohtml); // Replace heading-Tags (</h1>, </h2>, </h3>,...) with line-breaks
-	$nohtml = strip_tags($html, $allowable_tags); // Strip HTML-Tags
+	$nohtml = strip_tags($nohtml, $allowable_tags); // Strip HTML-Tags
 	$nohtml = str_ireplace(array('http://', 'https://'), '', $nohtml); // Strip "lonely" HTML-Tag parts
 	return $nohtml;
 }
-
 
 /**
  * Escape alle nicht sicheren Zeichen eines Strings
@@ -559,17 +694,19 @@ function escape_text($string) {
 /**
  * Entferne in einem vom User eingegebenen String alle nicht sicheren Zeichen
  *
+ * @FIXME should not use remove_html() !? remove this part
+ *
  * @author IneX
  * @date 24.04.2018
  * @see bugtracker.inc.php
+ * @see exec_changeprofile()
  *
  * @param string	$string String Input which shall be sanitized
  * @param string	$allowable_tags Whitelist of HTML-Tags which should NOT be removed
  * @return string	Returns sanitized $string as string
  */
 function sanitize_userinput($string, $allowable_tags=NULL) {
-	$s = mysql_real_escape_string(remove_html($string, $allowable_tags));
-	return $s;
+	return mysql_real_escape_string(remove_html($string, $allowable_tags));
 }
 
 
@@ -611,7 +748,7 @@ function gmt_diff($date) {
  *
  * @see usersystem::usersystem()
  * @param string $userAgent
- * @return int|bool Gibt die numerische Position des ersten Vorkommens zurück (vergleichbar mit 'true') - oder false
+ * @return array|bool Gibt ein associatives Array im Format [ ## => 'mobileClient' ] zurück passend zum ersten Suchmatch (vergleichbar mit 'true') - oder false
  */
 function isMobileClient($userAgent)
 {
@@ -729,8 +866,8 @@ function urlExists($url)
  * @version 2.0
  * @since 1.0 04.02.2018 function added
  * @since 2.0 20.08.2018 fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
- * @see SITE_ROOT
  *
+ * @see SITE_ROOT
  * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
  */
 function getGitCodeVersion()

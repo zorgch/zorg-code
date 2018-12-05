@@ -1,7 +1,7 @@
 <?php
 /**
  * Activities
- * 
+ *
  * Activities sind die Inhalte, welche auf der Zorg Start-
  * seite angezeigt werden. Man kann sich das ähnlich der
  * Facebook Startseite vorstellen. Damit soll ersichtlich
@@ -16,29 +16,38 @@
  *		activities, activities_areas, activities_votes
  *
  * @TODO make Activities a Global Class-Object!
+ * @TODO Acitivities-String nicht mehr parsed in die DB-speichern, sondern nur die String-Referenz
+ * @TODO Change saved Acitivies-Strings in DB to be sprintf() compatible, e.g.: "sprintf('%s<br/><br/><a href="%s%s">%s</a>", 'hat ein neues Hunting z Spiel auf der Karte cruiser city 2 er&ouml;ffnet.', 'https://zorg.local', '/smarty.php?tpl=103&amp;game=728')" - but save only placeholder-reference to strings.array.php & activity_area = strings.array.php[type]. Add fallback for existing Activities-Strings - or do a DB-Cleanup of the old hardcoded Strings.
  *
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Activities
  */
 /**
  * File includes
- * @include mysql.inc.php
- * @include usersystem.inc.php
+ * @include config.inc.php required
+ * @include mysql.inc.php required
+ * @include usersystem.inc.php required
+ * @include util.inc.php required
+ * @include strings.inc.php required
  */
+require_once( __DIR__ . '/config.inc.php');
 require_once( __DIR__ . '/mysql.inc.php');
 require_once( __DIR__ . '/usersystem.inc.php');
+require_once( __DIR__ . '/util.inc.php');
+require_once( __DIR__ . '/strings.inc.php');
 
 /**
  * Activities Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
  *
  * @author		IneX
  * @date		13.09.2009
- * @date		18.08.2012
- * @date		16.05.2018
  * @version		3.0
- * @package		Zorg
+ * @since		1.0 13.09.2009 initial release
+ * @since		2.0 18.08.2012 added RSS-Feed for Activities
+ * @since		3.0 16.05.2018 added Twitter-Notifications for new Activities
+ * @package		zorg
  * @subpackage	Activities
  */
 class Activities
@@ -48,61 +57,71 @@ class Activities
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
-	 * @version	1.0
-	 * @since	1.0 initial release
+	 * @version	2.0
+	 * @since	1.0 13.09.2009 initial release
+	 * @since	2.0 04.09.2018 Added exception handling & boolean return, added support for Activity-Placeholders from strings.array.php
 	 *
+	 * @TODO Activity-Area wurde entfernt... ev. doch nötig?
+	 *
+	 * @see t()
 	 * @param	integer	$owner			User ID von welchem die Activities ausgegeben werden sollen (Default = alle)
 	 * @param	integer	$start			Von welchem Datensatz aus die Activites ausgegeben werden sollen
 	 * @param	integer	$limit			Anzahl Activities, welche ausgegeben werden sollen
 	 * @param	date	$date			Datum von welchem die Activities angezeigt werden sollen
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
-	 *
-	 * @todo	Activity-Area wurde entfernt... ev. doch nötig?
+	 * @return	array|boolean			Returns all fetched $activities - or false, if execution failed
 	 */
 	static public function getActivities ($owner=0, $start=0, $limit=23, $date='')
 	{
 		global $db;
-		
-		$sql = "SELECT
-					*,
-					TIME_TO_SEC(TIMEDIFF(NOW(),date)) AS date_secs,
-					UNIX_TIMESTAMP(date) AS datum
-				FROM
-					activities
-				ORDER BY
-					datum DESC
-				";
-		//if ($activity_area <> '') $sql_WHERE = "activity_area = '".$activity_area."'";
-		if ($date <> '') {
-			if ($sql_WHERE <> '') {
-				$sql_WHERE .= " AND datum = '".$date."'";
-			} else {
-				$sql_WHERE = "date = '".$date."'";
+
+		try {
+			$sql = 'SELECT
+						*,
+						TIME_TO_SEC(TIMEDIFF(NOW(),date)) AS date_secs,
+						UNIX_TIMESTAMP(date) AS datum
+					FROM
+						activities
+					ORDER BY
+						datum DESC
+					';
+			//if ($activity_area <> '') $sql_WHERE = "activity_area = '".$activity_area."'";
+			if ($date <> '') {
+				$sql_WHERE = ($sql_WHERE <> '' ? ' AND datum = "'.$date.'"' : 'datum = "'.$date.'"');
 			}
+			$sql .= $sql_WHERE . ' LIMIT '.$start.','.$limit;
+
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+
+			while($rs = $db->fetch($result)) {
+				/** sprintf() each Activity */
+					if (!empty($rs['values'])) $rs['values'] = json_decode($rs['values']);
+					t($rs['activity'], $rs['activity_area'], $rs['values']);
+				/** Add to $activities Array */
+					$activities[] = $rs;
+			}
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
 		}
-		$sql .= $sql_WHERE . " LIMIT $start,$limit";
-		
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		
-		while($rs = $db->fetch($result)) {
-			$activities[] = $rs;
-		}
-		
+
 		return $activities;
 	}
-	
-	
+
+
 	/**
 	 * Activity hinzufügen
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
-	 * @version	2.1
-	 * @since	1.0 initial release
-	 * @since	2.0 added Telegram Notification for new Activities
-	 * @since	2.1 Changed to new Telegram Notification-Method
+	 * @version	4.0
+	 * @since	1.0 13.09.2009 initial release
+	 * @since	2.0 16.05.2018 added Telegram Notification for new Activities
+	 * @since	2.1 16.05.2018 Changed to new Telegram Notification-Method
+	 * @since	3.0 02.09.2018 Added exception handling & boolean return, changed Activities to support Placeholders from strings.array.php
+	 * @since	4.0 30.10.2018 Enabled self::checkAllowActivities() for User-ID, if "activities_allowed" is set to "ON"
 	 *
-	 * @see checkAllowActivities()
+	 * @see Activities::checkAllowActivities(), Telegram::send::message()
 	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat
 	 * @param	integer	$forUser		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
 	 * @param	string	$activity		Activity-Nachricht, welche ausgelöst wurde
@@ -110,53 +129,82 @@ class Activities
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
 	 * @global	object	$telegram		Globales Class-Object mit den Telegram-Methoden
+	 * @return	boolean					Returns true/false depending on a the successful execution or not
 	 */
-	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL)
+	static public function addActivity ($fromUser, $forUser, $activity, $activityArea=NULL, $values=NULL)
 	{
 		global $db, $user, $telegram;
 		//$activities = $_ENV['$activities_HZ']; // Globale Activity-Arrays mergen
-		
-		//if (Activities::checkAllowActivities($userID))
-		//{
-			$sql = "INSERT INTO activities
-						(date, activity_area, from_user_id, owner, activity)
-					VALUES
-						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
-					";
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+
+		if (self::checkAllowActivities($fromUser))
+		{
+			/** Array to JSON conversion */
+			if (is_array($values) && !empty($values)) $activityValues = json_encode($values);
+	
+			try {
+				$sql = sprintf('INSERT INTO activities
+									(`date`, `activity_area`, `from_user_id`, `owner`, `activity`, `values`)
+								VALUES
+									(NOW(), "%s", %d, %d, "%s", "%s")',
+									$activityArea, $fromUser, $forUser, (strpos($activity,' ')!==false ? escape_text($activity) : $activity), $values
+								);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> INSERT INTO activities: %s', __METHOD__, __LINE__, $sql));
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
 
 			/** Telegram Notification auslösen */
-			$telegram->send->message('group', sprintf('<b>%s</b> %s', $user->id2user($fromUser, TRUE), $activity), ['disable_notification' => 'true']);
-		//}
-		
+			$telegram->send->message('group', t('telegram-notification', 'activity', [ $user->id2user($fromUser, TRUE), $activity ]), ['disable_notification' => 'true']);
+
+			return true;
+		} else {
+			return false;
+		}
 	}
-	
-	
+
+
 	/**
 	 * Activity aktualisieren
 	 *
 	 * @author	IneX
 	 * @date	16.05.2018
-	 * @version	1.0
-	 * @since	1.0 initial release
+	 * @version	2.0
+	 * @since	1.0 16.05.2018 initial release
+	 * @since	2.0 04.09.2018 enhanced method to work with updating new values
 	 *
-	 * @param	integer	$activityID	ID der Activity, welche aktualisiert werden soll
+	 * @param	integer	$activity_id	ID der Activity, welche aktualisiert werden soll
+	 * @param	array	$newValues	Array containing new Values to be written to the defined Activity
 	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
 	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
 	 * @return	boolean				Gibt TRUE oder FALSE zurück
 	 */
-	static public function updateActivity ($activityID)
+	static public function update ($activity_id, $newValues)
 	{
 		global $db, $user;
-		
-		if($user->id == getActivityOwner($activityID))
+
+		if($user->id === self::getActivityOwner($activity_id))
 		{
-		  	$sql = "INSERT INTO activities
-						(date, activity_area, from_user_id, owner, activity)
-					VALUES
-						(now(), '$activityArea', $fromUser, $forUser, '".addslashes(stripslashes($activity))."')
-					";
-		  	return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? TRUE : FALSE );
+			/** Array to JSON conversion */
+			if (is_array($newValues) && !empty($newValues)) $activityValues = json_encode($newValues);
+
+			try {
+				$sql = sprintf('UPDATE activities SET
+									values = "%s"
+								WHERE
+									id = %d',
+								$activityValues, $activity_id);
+				return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? true : false );
+
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+
+		/** When User is not allowed to edit the specified $activity_id, then exit */
+		} else {
+			return false;
 		}
 	}
 
@@ -165,28 +213,39 @@ class Activities
 	 * Activity entfernen
 	 *
 	 * @author	IneX
-	 * @date	13.09.2009
-	 * @version	1.0
-	 * @since	1.0 initial release
+	 * @date	24.07.2018
+	 * @version	2.0
+	 * @since	1.0 13.09.2009 initial release
+	 * @since	2.0 24.07.2018 minor update to work with AJAX-Request
 	 *
-	 * @param	integer	$activityID	ID der Activity, welche entfernt werden soll
+	 * @see delete-activity.php
+	 * @see Activities::getActivityOwner()
+	 * @param	integer	$activity_id	ID der Activity, welche entfernt werden soll
 	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
 	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
 	 * @return	boolean				Gibt TRUE oder FALSE zurück
 	 */
-	static public function removeActivity ($activityID)
+	static public function remove ($activity_id)
 	{
 		global $db, $user;
 		
-		if($user->id == getActivityOwner($activityID))
+		if($user->id === self::getActivityOwner($activity_id))
 		{
-		  	$sql = "DELETE FROM
-		  				activities
-		  			WHERE
-		  				id = ".$activityID." AND
-		  				owner = ".$user->id
-		  			;
-		  	return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? TRUE : FALSE );
+			try {
+				$sql = 'DELETE FROM
+							activities
+						WHERE
+							id = '.$activity_id.' AND
+							owner = '.$user->id
+						;
+				return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? true : false );
+			}
+			catch(Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+		} else {
+			return false;
 		}
 	}
 	
@@ -199,34 +258,42 @@ class Activities
 	 * @version	1.0
 	 * @since	1.0 initial release
 	 *
-	 * @param	integer	$activityID	ID der Activity, welche bewertet werden soll
+	 * @FIXME Modifier addslahes() für $rating könnte zu Problemen führen wegen der 20 Zeichen Begrenzung!
+	 * @FIXME Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
+	 * @TODO Kein Rating von 1-5, sondern nur ein Like / Disklike machen
+	 *
+	 * @param	integer	$activity_id	ID der Activity, welche bewertet werden soll
 	 * @param	string	$rating		Bewertungstext der Activity - MAXIMAL 20 Zeichen!
 	 * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
-	 *
-	 * @todo Modifier addslahes() für $rating könnte zu Problemen führen wegen der 20 Zeichen Begrenzung!
-	 * @todo Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
 	 */
-	static public function rateActivity ($activityID, $rating)
+	static public function rate ($activity_id, $rating)
 	{
 		global $db, $user;
 		
-		if ($user->typ != USER_NICHTEINGELOGGT && !hasRated($activityID, $user->id))
+		if ($user->typ != USER_NICHTEINGELOGGT && !hasRated($activity_id, $user->id))
 		{
-			if($activityID > 0 && $rating != '') {
-				$sql = "REPLACE INTO
-							activities_votes
-								(activity_id,
-								 date,
-								 user_id,
-								 rating)
-						VALUES
-								($activityID,
-								 now(),
-								 $user->id,
-								 ".addslashes(stripslashes($rating)).")
-						";
-				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			if($activity_id > 0 && $rating != '')
+			{
+				try {
+					$sql = 'REPLACE INTO
+								activities_votes
+									(activity_id,
+									 date,
+									 user_id,
+									 rating)
+							VALUES
+									('.$activity_id.',
+									 now(),
+									 '.$user->id.',
+									 "'.addslashes(stripslashes($rating)).'")
+							';
+					$db->query($sql, __FILE__, __LINE__, __METHOD__);
+				}
+				catch(Exception $e) {
+					error_log($e->getMessage());
+					return false;
+				}
 			}
 		}
 		
@@ -241,25 +308,29 @@ class Activities
 	 * @version	1.0
 	 * @since	1.0 initial release
 	 *
-	 * @param	integer	$activityID	ID der Activity, welche bewertet werden soll
+	 * @TODO Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
+	 *
+	 * @param	integer	$activity_id	ID der Activity, welche bewertet werden soll
 	 * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
-	 *
-	 * @todo Eventuell muss noch ein header("Location: URL") hinzugefügt werden, weil man sonst im Leeren landet?
 	 */
-	static public function unrateActivity ($activityID)
+	static public function unrate ($activity_id)
 	{
 		global $db, $user;
 		
-		if ($activityID > 0 && hasRated($activityID, $user->id))
+		if ($activity_id > 0 && hasRated($activity_id, $user->id))
 		{
-			$sql = "DELETE FROM
-						activities_votes
-					WHERE
-						activity_id = ".$activityID." AND
-		  				user_id = ".$user->id
-					;
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			try {
+				$sql = 'DELETE FROM activities_votes WHERE
+							activity_id = '.$activity_id.'
+							AND user_id = '.$user->id
+						;
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			}
+			catch(Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
 		}
 		
 	}
@@ -273,23 +344,23 @@ class Activities
 	 * @version	1.0
 	 * @since	1.0 initial release
 	 *
-	 * @param	integer	$activityID	ID der Activity, welche überprüft werden soll
-	 * @param	integer	$userID		Benutzer ID welcher eine Bewertung abgeben möchte
+	 * @param	integer	$activity_id	ID der Activity, welche überprüft werden soll
+	 * @param	integer	$user_id		Benutzer ID welcher eine Bewertung abgeben möchte
 	 * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
 	 */
-	static public function hasRated ($activityID, $userID)
+	static public function hasRated ($activity_id, $user_id)
 	{
 		global $db;
 
-		$sql = "SELECT
-					*
-				FROM
-					activities_votes
-				WHERE
-					activity_id = ".$activityID." AND user_id =".$userID
-				;
-		$rs = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		return ( $rs > 0 ? TRUE : FALSE );
+		try {
+			$sql = 'SELECT * FROM activities_votes WHERE activity_id='.$activity_id.' AND user_id='.$user_id;
+			$rs = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			return ( $rs > 0 ? TRUE : FALSE );
+		}
+		catch(Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
 	}
 	
 	
@@ -302,23 +373,23 @@ class Activities
 	 * @version	1.0
 	 * @since	1.0 initial release
 	 *
-	 * @param	integer	$activityID	ID der Activity deren Owner ermittelt werden soll
+	 * @param	integer	$activity_id	ID der Activity deren Owner ermittelt werden soll
 	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
 	 * @return	integer				User ID des Activity Owners
 	 */
-	static public function getActivityOwner ($activityID)
+	static public function getActivityOwner ($activity_id)
 	{
 		global $db;
-		
-		$sql = "SELECT
-					owner
-				FROM
-					activities
-				WHERE
-					id = ".$activityID."
-				";
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		return $rs['owner'];
+
+		try {
+			$sql = 'SELECT owner FROM activities WHERE id = '.$activity_id;
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			return $rs['owner'];
+		}
+		catch(Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
 	}
 	
 	
@@ -330,57 +401,63 @@ class Activities
 	 * @version	1.0
 	 * @since	1.0 initial release
 	 *
-	 * @param	integer	$userID	Wenn angegeben, werden nur die Activities diesesn Benutzers gezählt
+	 * @param	integer	$user_id	Wenn angegeben, werden nur die Activities diesesn Benutzers gezählt
 	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
 	 * @return	integer			Anzahl gefundener Activities aufgrund der Kriterien
 	 */
-	static public function countActivities ($userID=0)
+	static public function countActivities ($user_id=0)
 	{
 		global $db;
 		
-		$sql = "SELECT
-					COUNT(id) AS num
-				FROM
-					activities
-				";
-		
-		if ($userID > 0) $sql .= "WHERE owner = ".$userID;
-		
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		return $rs['num'];
+		try {
+			$sql = 'SELECT COUNT(id) AS num FROM activities'.($user_id > 0 ? ' WHERE owner = '.$user_id : '');
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			return $rs['num'];
+		}
+		catch(Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
 	}
 	
 	
 	/**
 	 * Activity darf geloggt werden
-	 * (Prüft ob der User in seinem Profil das loggen von Activities deaktiviert hat)
+	 *
+	 * Prüft ob der User in seinem Profil das loggen von Activities deaktiviert hat
+	 * Wichtig: prüft auf passable $user_id, weil Activities nicht immer per se für
+	 * den aktiven / auslösenden User sind! Deshalb nicht $user->id verwendet.
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
-	 * @version	1.0
-	 * @since	1.0 initial release
+	 * @version	2.0
+	 * @since	1.0 13.09.2009 initial release
+	 * @since	2.0 30.10.2018 method updated
 	 *
-	 * @param	integer	$userID	Benutzer ID für welchen die Einstellung überprüft werden muss
+	 * @param	integer	$user_id	Benutzer ID für welchen die Einstellung überprüft werden muss
 	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
 	 * @return	boolean			Gibt TRUE oder FALSE zurück, je nach Setting des Users
 	 */
-	static public function checkAllowActivities ($userID)
+	static public function checkAllowActivities ($user_id)
 	{
 		global $db;
-		
-		$sql = "SELECT
-					activities_allow
-				FROM
-					user
-				WHERE
-					id = ".$userID." AND
-					activities_allow = 1
-				";
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		return ($rs['activities_allow'] == 1) ? TRUE : FALSE;
+
+		/** Validte $user_id - valid integer & not empty/null */
+		if (empty($user_id) || $user_id === NULL || $user_id <= 0) return false;
+
+		try {
+			$sql = 'SELECT activities_allow FROM user WHERE id = '.$user_id.' LIMIT 0,1';
+			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_id %d => activities_allow: %s (%s)', __METHOD__, __LINE__, $user_id, $result['activities_allow'], ($result['activities_allow'] === '1' ? 'true' : 'false')));
+			return ( $result ? ($result['activities_allow'] === '1' ? true : false) : false );
+		}
+		catch(Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
 	}
-	
-	
+
+
 	/**
 	 * Activities als RSS ausgeben
 	 * (kann mit RSS Readern abonniert werden)
@@ -388,7 +465,7 @@ class Activities
 	 * @author	IneX
 	 * @date	18.08.2012
 	 * @version	1.0
-	 * @since	2.0 initial release
+	 * @since	1.0 18.08.2012 initial release
 	 *
 	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
 	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
@@ -460,7 +537,9 @@ class Activities
 	 * @author	IneX
 	 * @date	26.05.2018
 	 * @version	1.0
-	 * @since	3.0 initial release
+	 * @since	1.0 initial release
+	 *
+	 * @FIXME Not yet implemented, finish method
 	 *
 	 * @param	date	$date	Tag für welcher Activities-Einträge ausgegeben werden sollen
 	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
@@ -475,6 +554,34 @@ class Activities
 		if (empty($date)) $date = date('Y-m-d');
 	}
 
+
+	/**
+	 * Activity notifications
+	 * Triggers Telegram-Messenger updates for an Activity
+	 *
+	 * @author	IneX
+	 * @date	18.09.2018
+	 * @version	1.0
+	 * @since	1.0 13.09.2009 method added
+	 *
+	 * @see checkAllowActivities()
+	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat
+	 * @param	integer	$forUser		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
+	 * @param	string	$activity		Activity-Nachricht, welche ausgelöst wurde
+	 * @param	string	$activityArea	Activity-Area, Bereich zu dessen die Activity ausgelöst wurde
+	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
+	 * @global	object	$telegram		Globales Class-Object mit den Telegram-Methoden
+	 * @return	boolean					Returns true/false depending on a the successful execution or not
+	 */
+	static public function notify ($fromUser, $forUser, $activity, $activityArea=NULL, $values=NULL)
+	{
+		global $user, $telegram;
+
+		/** Telegram Notification auslösen */
+		$telegram->send->message('group', t('telegram-notification', 'activity', [ $user->id2user($fromUser, TRUE), $activity ]), ['disable_notification' => 'true']);
+
+		return true;
+	}
 }
 
 //$activities = new Activities();

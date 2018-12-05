@@ -53,7 +53,7 @@ $_tpl_stack = array();
 
 function tpl_comment_permission ($thread_id) {
 	global $db;
-	$e = $db->query('SELECT * FROM templates WHERE id='.$thread_id, __FILE__, __LINE__);
+	$e = $db->query('SELECT * FROM templates WHERE id='.$thread_id, __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	return tpl_permission($d['read_rights'], $d['owner']);
 }
@@ -67,7 +67,7 @@ function tpl_permission ($group, $owner) {
 function hasTplAccess ($group, $owner, $userid, $usertyp) {
 	if ($owner == $userid) return true;
 
-  if ($group == USER_MEMBER) {  // member und schöne
+  if ($group == USER_MEMBER) {  // member und schÃ¶ne
      if ($usertyp == USER_MEMBER) {
         return true;
      }else{
@@ -91,19 +91,19 @@ function hasTplAccess ($group, $owner, $userid, $usertyp) {
 function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
 	global $_tpl_stack;
 
-  	if ($repeat == true)  {   // öffnendes tag
+  	if ($repeat == true)  {   // Ã¶ffnendes tag
   		// push wird in get_timestamp gemacht.
 
-  		$smarty->assign("tpl", $_tpl_stack[sizeof($_tpl_stack)-1]);
-		$smarty->assign("tpl_parent", $_tpl_stack[sizeof($_tpl_stack)-2]);
-		$smarty->assign("tpl_level", sizeof($_tpl_stack));
+  		$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
+		$smarty->assign('tpl_parent', $_tpl_stack[sizeof($_tpl_stack)-2]);
+		$smarty->assign('tpl_level', sizeof($_tpl_stack));
 
 	}else{  // schliessendes tag
 		array_pop($_tpl_stack);
 
-		$smarty->assign("tpl", $_tpl_stack[sizeof($_tpl_stack)-1]);
-		$smarty->assign("tpl_parent", $_tpl_stack[sizeof($_tpl_stack)-2]);
-		$smarty->assign("tpl_level", sizeof($_tpl_stack));
+		$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
+		$smarty->assign('tpl_parent', $_tpl_stack[sizeof($_tpl_stack)-2]);
+		$smarty->assign('tpl_level', sizeof($_tpl_stack));
 
 		return $content;
 	}
@@ -112,8 +112,13 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
 
 
 /*
- * tpl resource
- * @TODO Funktion so überarbeiten, dass 'border == 1' schönen Output hat (tplfoot.html soll obsolet werden)
+ * Load Smarty TPL Resource
+ * @author [z]biko, IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 26.09.2018 [Bug #761] enhanced $output with nl2br()
+ *
+ * @TODO Funktion so Ã¼berarbeiten, dass 'border == 1' schÃ¶nen Output hat (tplfoot.html soll obsolet werden)
  * @TODO Views aus dem Code entfernen
  */
 function smartyresource_tpl_get_template ($tpl_name, &$tpl_source, &$smarty) {
@@ -121,21 +126,20 @@ function smartyresource_tpl_get_template ($tpl_name, &$tpl_source, &$smarty) {
   // und '$tpl_source' zuzuweisen
   global $db, $user;
 
-  $e = $db->query("SELECT * FROM templates WHERE id='$tpl_name'");
+  $e = $db->query('SELECT * FROM templates WHERE id="'.$tpl_name.'"', __FILE__, __LINE__, __FUNCTION__);
   $d = mysql_fetch_array($e);
 
   if ($d) {
      if ($d['border'] == 0) {
-        $class = "";
-        $footer = "";
+        $class = '';
+        $footer = '';
      }else if ($d['border'] == 1) {
         $class = 'class="border"';
         $footer = '<tr><td bgcolor="{$color.border}">{include file="file:tplfooter.html"}</td></tr>';
      }else if ($d['border'] == 2) {
         $class = 'class="border"';
-        $footer = "";
+        $footer = '';
      }
-
 
      if ($d['error']) $output = "{literal} $d[error]<br />{/literal}{edit_link}[edit]{/edit_link}";
      else $output = $d['tpl'];
@@ -173,19 +177,19 @@ function smartyresource_tpl_get_template ($tpl_name, &$tpl_source, &$smarty) {
 // tpl resource
 function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty) {
   // Datenbankabfrage um '$tpl_timestamp' zuzuweisen
-  // zusätzlich lokale tpl-infos setzen (smarty-variable $tpl)
+  // zusÃ¤tzlich lokale tpl-infos setzen (smarty-variable $tpl)
 
   global $db, $_tpl_stack;
 
-  $e = $db->query("SELECT id, title, word, LENGTH(tpl) size, owner, update_user, packages,
+  $e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, packages,
                    UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-                   write_rights, force_compile, border FROM templates WHERE id='$tpl_name'", __FILE__, __LINE__);
+                   write_rights, force_compile, border FROM templates WHERE id="'.$tpl_name.'"', __FILE__, __LINE__, __FUNCTION__);
   $d = mysql_fetch_array($e);
 
   // check compile necessary
   if ($d['force_compile']) {
      $tpl_timestamp = 9999999999;
-     $db->query("UPDATE templates SET force_compile='0' WHERE id='$tpl_name'", __FILE__, __LINE__);
+     $db->query('UPDATE templates SET force_compile="0" WHERE id='.$tpl_name, __FILE__, __LINE__, __FUNCTION__);
   }elseif ($d) {
      $tpl_timestamp = $d['last_update'];
   }else{
@@ -206,7 +210,7 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty) 
 
 // tpl resource
 function smartyresource_tpl_get_secure($tpl_name, &$smarty_obj) {
-  // sicherheit des templates $tpl_name überprüfen
+  // sicherheit des templates $tpl_name Ã¼berprÃ¼fen
   return true;
 }
 
@@ -221,13 +225,13 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj) {
  * @author biko
  */
 function load_packages ($packages) {
-  $packs = explode("; ", $packages);
+  $packs = explode('; ', $packages);
   foreach ($packs as $p) {
      if ($p) {
      	if (file_exists(package_path($p))) {
      		require_once(package_path($p));
      	}else{
-     		user_error("Package '$p' not found.", E_USER_WARNING);
+     		user_error('Package "'.$p.'" not found.', E_USER_WARNING);
      	}
      }
   }
@@ -259,7 +263,7 @@ function menu ($name) {
 function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty) {
   global $db;
 
-  $e = $db->query("SELECT id FROM templates WHERE word='$tpl_name'");
+  $e = $db->query('SELECT id FROM templates WHERE word="'.$tpl_name.'"');
   $d = mysql_fetch_array($e);
 
   if ($d) {
@@ -275,7 +279,7 @@ function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty) {
  * Get Templates based on word
  *
  * Datenbankabfrage um '$tpl_timestamp' zuzuweisen
- * zusätzlich lokale tpl-infos setzen (smarty-variable $tpl)
+ * zusÃ¤tzlich lokale tpl-infos setzen (smarty-variable $tpl)
  * based on a word => tpl-id lookup from the database
  *
  * @author biko
@@ -285,7 +289,7 @@ function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty) {
 function smartyresource_word_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty) {
   global $db;
 
-  $e = $db->query("SELECT id FROM templates WHERE word='$tpl_name'", __FILE__, __LINE__);
+  $e = $db->query("SELECT id FROM templates WHERE word='$tpl_name'", __FILE__, __LINE__, __FUNCTION__);
   $d = mysql_fetch_array($e);
 
   smartyresource_tpl_get_timestamp($d['id'], $ts, $smarty);
@@ -296,7 +300,7 @@ function smartyresource_word_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 
 // word resource
 function smartyresource_word_get_secure($tpl_name, &$smarty_obj) {
-  // sicherheit des templates $tpl_name überprüfen
+  // sicherheit des templates $tpl_name Ã¼berprÃ¼fen
   return true;
 }
 
@@ -319,7 +323,7 @@ function package_path ($package) {
 /**
  * Smarty Klassen-Objekt instanzieren
  *
- * Konfiguriert und lädt ein $smarty Objekt basierend auf /smartylib/Smarty.class.php
+ * Konfiguriert und lÃ¤dt ein $smarty Objekt basierend auf /smartylib/Smarty.class.php
  *
  * @author [z]biko, IneX
  * @date 03.01.2016
@@ -390,12 +394,12 @@ function startSmarty () {
 
 
 /**
- * Erweiterungen der Smarty Klasse für Zorg
+ * Erweiterungen der Smarty Klasse fÃ¼r Zorg
  *
  * @author IneX
  * @date 03.01.2016
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Smarty
  */
 Class ZorgSmarty extends Smarty
@@ -509,12 +513,12 @@ Class ZorgSmarty extends Smarty
 }
 
 /**
- * Erweiterungen der Smarty Compiler Klasse für Zorg
+ * Erweiterungen der Smarty Compiler Klasse fÃ¼r Zorg
  *
  * @author IneX
  * @date 03.01.2016
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Smarty
  */
 Class ZorgSmarty_Compiler extends Smarty
