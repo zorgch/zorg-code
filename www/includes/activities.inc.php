@@ -57,13 +57,13 @@ class Activities
 	 *
 	 * @author	IneX
 	 * @date	13.09.2009
-	 * @version	2.0
+	 * @version	2.1
 	 * @since	1.0 13.09.2009 initial release
 	 * @since	2.0 04.09.2018 Added exception handling & boolean return, added support for Activity-Placeholders from strings.array.php
+	 * @since	2.1 05.12.2018 fixed wrong usage of t() causing a lot of log errors and broken activity-stream
 	 *
 	 * @TODO Activity-Area wurde entfernt... ev. doch nötig?
 	 *
-	 * @see t()
 	 * @param	integer	$owner			User ID von welchem die Activities ausgegeben werden sollen (Default = alle)
 	 * @param	integer	$start			Von welchem Datensatz aus die Activites ausgegeben werden sollen
 	 * @param	integer	$limit			Anzahl Activities, welche ausgegeben werden sollen
@@ -94,11 +94,14 @@ class Activities
 
 			while($rs = $db->fetch($result))
 			{
-				/** sprintf() each Activity */
+				/** New way to do it - coming soon... */
 				if (!empty($rs['values']) || $rs['values'] !== false) $rs['values'] = json_decode($rs['values']);
-				t($rs['activity'], $rs['activity_area'], $rs['values']);
+				{
+					/** sprintf() each Activity */
+					$rs['activity'] = sprintf($rs['activity'], $rs['values']);
+				}
 
-				/** Add to $activities Array */
+				/** Puash activity to $activities Array */
 				$activities[] = $rs;
 			}
 		} catch (Exception $e) {
