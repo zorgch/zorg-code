@@ -4,33 +4,57 @@
  *
  * @author [z]milamber
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Bugtracker
  */
 /**
  * File Includes
  */
-include_once( __DIR__ .'/messagesystem.inc.php');
+require_once( __DIR__ .'/config.inc.php');
 include_once( __DIR__ .'/usersystem.inc.php');
 include_once( __DIR__ .'/util.inc.php');
-include_once( __DIR__ .'/strings.inc.php');
 
 /**
  * Bugtracker Klasse
  *
  * @author [z]milamber
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage Bugtracker
  */
 Class Bugtracker {
 
+	/**
+	 * Executing Bugtracker Actions
+	 *
+	 * Execute various Bugtracker GET- & POST-Actions such as:
+	 * - adding new Bug
+	 * - assigning Bug
+	 * - Bug klauen
+	 * - reopen a Bug
+	 * - resolve a Bug
+	 * - edit a Bug
+	 * - deny a Bug
+	 * - adding new Bug Category
+	 *
+	 * @author [z]milamber
+	 * @author IneX
+	 * @version 3.0
+	 * @since 1.0 function added
+	 * @since 2.0 various code optimizations, I don't remember all of them
+	 * @since 3.0 26.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
+	 * @return void Header Location redirect
+	 */
 	function execActions() {
 
-		global $db, $user;
+		global $db, $user, $notification;
 
 		if($_GET['action'] == 'new') {
-			// Validate & escape fields
+			/** Validate & escape fields */
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
 			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
 			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? sanitize_userinput($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
@@ -45,7 +69,7 @@ Class Bugtracker {
 						".$bugCategory."
 						, ".$user->id."
 						, ".$bugPriority."
-						, now()
+						, NOW()
 						, '".$bugTitle."'
 						, '".$bugDescription."'
 					)
@@ -57,11 +81,17 @@ Class Bugtracker {
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
 			/** Activity Eintrag auslösen */
-			Activities::addActivity($user->id, 0, t('activity-newbug', 'bugtracker', [ $rs['id'], $bugTitle ]), 'bu');
+			Activities::addActivity($user->id, 0, t('activity-newbug', 'bugtracker', [ SITE_URL, $rs['id'], $bugTitle ]), 'bu');
 
-			// Benachrichtigungs-Message
+			/** Benachrichtigungs-Message */
 			if(count($_GET['msg_users']) > 0) {
 				for ($i=0; $i < count($_GET['msg_users']); $i++) {
+					$notification_subject = t('message-subject-newbug', 'bugtracker', [ $user->id2user($user->id, true), $rs['id'] ]);
+					$notification_text = t('message-newbug', 'bugtracker', [ remove_html($bugDescription, '<a><br><i><b><code><pre>'), SITE_URL, $rs['id'], $bugTitle]);
+					$notification_status = $notification->send($_GET['msg_users'][$i], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text, 'to_users' => $_GET['msg_users']]);
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $_GET['msg_users'][$i]));
+
+					/** @DEPRECATED
 					Messagesystem::sendMessage(
 						$user->id
 						, $_GET['msg_users'][$i]
@@ -72,18 +102,18 @@ Class Bugtracker {
 							)
 						, addslashes(
 								stripslashes(
-									'<a href="/bugtracker.php?bug_id="'.$rs['id'].'">'.$bugTitle.'</a>'
+									'<a href="/bug/"'.$rs['id'].'">'.$bugTitle.'</a>'
 									.'<br /><i>'
 									.$bugDescription
 									.'</i>'
 								)
 							)
 						, (is_array($_GET['msg_users']) ? implode(',', $_GET['msg_users']) : $_GET['msg_users'])
-					);
+					);*/
 				}
 			}
 
-			header("Location: /bugtracker.php?bug_id=".$rs['id']);
+			header("Location: /bug/".$rs['id']);
 			exit;
 		}
 
@@ -95,7 +125,7 @@ Class Bugtracker {
 				$sql =
 					"UPDATE bugtracker_bugs"
 					." SET assignedto_id=".$user->id
-					." , assigned_date = now()"
+					." , assigned_date = NOW()"
 					." WHERE id = ".$bugId
 				;
 				$db->query($sql, __FILE__, __LINE__);
@@ -112,7 +142,7 @@ Class Bugtracker {
 				$sql =
 					"UPDATE bugtracker_bugs"
 					." SET assignedto_id=".$user->id
-					." , assigned_date = now()"
+					." , assigned_date = NOW()"
 					." WHERE id = ".$bugId
 				;
 				$db->query($sql, __FILE__, __LINE__);
@@ -133,20 +163,28 @@ Class Bugtracker {
 			;
 			$db->query($sql, __FILE__, __LINE__);
 
-			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a> wieder eröffnet.<br/><br/>', 'bu');
+			/** @DEPRECATED weil "too much info"
+				Activity Eintrag auslösen */
+			//Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bug/'.$rs['id'].'">'.$rs['title'].'</a> wieder eröffnet.<br/><br/>', 'bu');
 
-			if($user->id != $rs['reporter_id']) {
+			if($user->id != $rs['reporter_id'])
+			{
+				$notification_subject = t('message-subject-reopenbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
+				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
+
+				/** @DEPRECATED
 				Messagesystem::sendMessage(
 					$user->id,
 					$rs['reporter_id'],
 					'[Bugtracker] Bug '.$_GET['bug_id'].' reopened',
-					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a>'
+					'<i><a href="/bug/'.$rs['id'].'">'.$rs['title'].'</a>'
 					.'<br />'
 					.$rs['description']
 					.'</i>',
 					$rs['reporter_id']
-				);
+				);*/
 			}
 
 			header("Location: ".base64_decode($_GET['url']));
@@ -171,25 +209,31 @@ Class Bugtracker {
 			
 			$sql =
 				"UPDATE bugtracker_bugs
-				SET resolved_date = now()
+				SET resolved_date = NOW()
 				WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 			$rs = Bugtracker::getBugRS($bugId);
 
-			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$bugId.'">'.$rs['title'].'</a> gelöst.<br/><br/>', 'bu');
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bug/'.$bugId.'">'.$rs['title'].'</a> gelöst.<br/><br/>', 'bu');
 
 			if($user->id != $rs['reporter_id']) {
+				$notification_subject = t('message-subject-resolvedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
+				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
+
+				/** @DEPRECATED
 				Messagesystem::sendMessage(
 					$user->id,
 					$rs['reporter_id'],
 					'[Bugtracker] Bug '.$bugId.' resolved',
-					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a> '
+					'<i><a href="/bug/'.$rs['id'].'">'.$rs['title'].'</a> '
 					.'<br />'
 					.$rs['description']
 					.'</i>'
-				);
+				);*/
 			}
 
 			header("Location: ".base64_decode($_GET['url']));
@@ -220,25 +264,31 @@ Class Bugtracker {
 		else if($_GET['action'] == 'deny') {
 			$sql =
 				"UPDATE bugtracker_bugs"
-				." SET denied_date = now()"
+				." SET denied_date = NOW()"
 				." WHERE id = ".$bugId
 			;
 			$db->query($sql, __FILE__, __LINE__);
 			$rs = Bugtracker::getBugRS($bugId);
 
-			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bugtracker.php?bug_id='.$bugId.'">'.$rs['title'].'</a> abgelehnt.<br/><br/>', 'bu');
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bug/'.$bugId.'">'.$rs['title'].'</a> abgelehnt.<br/><br/>', 'bu');
 
 			if($user->id != $rs['reporter_id']) {
+				$notification_subject = t('message-subject-deniedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
+				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
+
+				/** @DEPRECATED
 				Messagesystem::sendMessage(
 					$user->id,
 					$rs['reporter_id'],
 					'[Bugtracker] Bug '.$bugId.' denied',
-					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a>'
+					'<i><a href="/bug/'.$rs['id'].'">'.$rs['title'].'</a>'
 					.'<br />'
 					.$rs['description']
 					.'</i>'
-				);
+				);*/
 			}
 
 			header("Location: ".base64_decode($_GET['url']));
@@ -259,6 +309,15 @@ Class Bugtracker {
 		}
 	}
 
+	/**
+	 * Display Bug / Bug edit form
+	 * @author [z]milamber
+	 * @author IneX
+	 *
+	 * @version 2.0
+	 * @since 1.0 function added
+	 * @since 2.0 10.11.2018 added Code Commit field
+	 */
 	function getBugHTML($bug_id, $edit=FALSE) {
 
 		global $db, $user;
@@ -281,12 +340,15 @@ Class Bugtracker {
 		;
 
 		$result = $db->query($sql, __FILE__, __LINE__);
-
 		$rs = $db->fetch($result);
+
+		$reportedDate_iso8601 = date('c', $rs['reported_date']);
+		if ($rs['resolved_date'] > 0) $resolvedDate_iso8601 = date('c', $rs['resolved_date']);
+		if ($rs['denied_date'] > 0) $deniedDate_iso8601 = date('c', $rs['denied_date']);
 
 		if($edit == TRUE) {
 			$html .=
-				'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
+				'<form action="/bug/'.$rs['id'].'" method="get">'
 				.'<input name="action" type="hidden" value="edit">'
 				.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
 				.'<input name="url" type="hidden" value="'.base64_encode(getChangedURL('action=')).'">'
@@ -294,11 +356,12 @@ Class Bugtracker {
 		}
 
 		$html .=
-			'<table class="border shadedcells" width="100%">'
+			'<table class="border shadedcells" width="100%" itemscope itemtype="http://schema.org/Question">'
+			.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? '<meta itemprop="answerCount" content="'.Thread::getNumPosts('b', $rs['id']).'">' : '')
 
 			.'<tr>'
-			.'<td align="left" width="100">Nummer</td>'
-			.'<td align="left">'.$rs['id'].'</td>'
+			.'<td align="left" width="100">Bug #</td>'
+			.'<td align="left"><a itemprop="url" href="/bug/'.$rs['id'].'">'.$rs['id'].'</a></td>'
 			.'</tr>'
 
 			.'<tr>'
@@ -310,40 +373,48 @@ Class Bugtracker {
 
 			.'<tr>'
 			.'<td align="left">Bereich</td>'
-			.'<td align="left" style="color: #FF0000; font-weight: bold;">'
+			.'<td align="left" style="color: #FF0000; font-weight: bold;" itemprop="keywords">'
 			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCategory($rs['category_id']) : $rs['category'])
 			.'</td>'
 			.'</tr>'
 
 			.'<tr>'
 			.'<td align="left">Title</td>'
-			.'<td align="left" style="font-weight: bold;">'
+			.'<td align="left" style="font-weight: bold;" itemprop="name">'
 			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldTitle($rs['title']) : $rs['title'])
 			.'</td>'
 			.'</tr>'
 
 			.'<tr>'
 			.'<td align="left">Reported by:</td>'
-			.'<td align="left">'.$rs['reporter'].' @ '.datename($rs['reported_date']).'</td>'
+			.'<td align="left"><span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$rs['reporter'].'</span></span> @ <time itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time></td>'//|date_format:"%Y-%m-%d-T%H:00"}
 			.'</tr>'
 
 			.'<tr>'
 			.'<td align="left" valign="top">Beschreibung</td>'
-			.'<td align="left" colspan="5">'
+			.'<td align="left" colspan="5" itemprop="text">'
 			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldDescription($rs['description']) : nl2br($rs['description']))
 			.'<br />&nbsp;'
 			.'</td></tr>'
 
+			.(!empty($rs['assignedto_id']) ? '<tbody itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'" itemscope itemtype="http://schema.org/Answer">' : '')
 			.'<tr>'
 			.'<td align="left">Assigned to:</td>'
-			.'<td align="left">'.$user->link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']).'</td>'
+			.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$user->link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']) : '').'</td>'
 			.'</tr>'
 
 			.'<tr>'
 			.'<td align="left">Status:</td>'
 			.'<td align="left">'
-			.($rs['resolved_date'] > 0 ? '<b>Resolved</b> @ '.datename($rs['resolved_date']) : '')
-			.($rs['denied_date'] > 0 ? '<b>Denied</b> @ '.datename($rs['denied_date']) : '')
+			.($rs['resolved_date'] > 0 ? '<b itemprop="text">Resolved</b> @ <time itemprop="dateCreated" datetime="'.$resolvedDate_iso8601.'">'.datename($rs['resolved_date']).'</time>' : '')
+			.($rs['denied_date'] > 0 ? '<b itemprop="text">Denied</b> @ <time itemprop="dateCreated" datetime="'.$deniedDate_iso8601.'">'.datename($rs['denied_date']).'</time>' : '')
+			.'</td>'
+			.'</tr>'
+
+			.'<tr>'
+			.'<td align="left">Code Commit:</td>'
+			.'<td align="left">'
+			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY.'/commits/'.$rs['code_commit'].'" target="_blank">'.$rs['code_commit'].'</a>' : ''))
 			.'</td>'
 			.'</tr>'
 
@@ -351,7 +422,7 @@ Class Bugtracker {
 			.'<td align="center" colspan="6">'
 			.($user->typ == USER_MEMBER && $edit == TRUE ? '<input class="button" type="submit" value="Updaten">' : Bugtracker::getFormActionsHTML($rs))
 			.'</td></tr>'
-
+			.(!empty($rs['assignedto_id']) ? '</tbody>' : '')
 
 			.'</table>'
 		;
@@ -489,7 +560,7 @@ Class Bugtracker {
 				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['priority'].'</td>'
 				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['category_title'].'</td>'
 				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-				.'<a href="/bugtracker.php?bug_id='.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a>'
+				.'<a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a>'
 				.'</td>'
 				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['reportedby'].'</td>'
 				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['assignedto'].'</td>'
@@ -530,7 +601,7 @@ Class Bugtracker {
 				 t('newbug-headline', 'bugtracker')
 				.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
 				.'<input name="action" type="hidden" value="new">'
-				.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+				.'<input name="url" type="hidden" value="'.getURL(true,true).'">'
 				.'<table>'
 					.'<tr>'
 						.'<td><strong>Bereich:</strong></td>'
@@ -572,9 +643,9 @@ Class Bugtracker {
 		{
 			$html =
 				 t('newcategory-headline', 'bugtracker')
-				.'<form action="'.$_SERVER['PHP_SELF'].'" method="GET">'
+				.'<form action="'.getURL(true,false).'" method="GET">'
 				.'<input name="action" type="hidden" value="newcategory">'
-				.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+				.'<input name="url" type="hidden" value="'.getURL(true,true).'">'
 				.'<table>'
 					.'<tr>'
 						.'<td><input class="text" name="title" maxlength="40" size="40" type="text" value="'.$rs['title'].'" placeholder="Kategorie-Bezeichnung"></td>'
@@ -600,9 +671,9 @@ Class Bugtracker {
 		
 			$html .=
 				'<table>'
-				.'<form action="'.$_SERVER['PHP_SELF'].'" method="GET">'
+				.'<form action="'.getURL(true,false).'" method="GET">'
 				.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
-				.'<input name="url" type="hidden" value="'.base64_encode('http://'.$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+				.'<input name="url" type="hidden" value="'.getURL(true,true).'">'
 				.'<tr>'
 				.'<td>'
 				.'Bug '
@@ -784,5 +855,9 @@ Class Bugtracker {
 			case 4: $descr = 'Niedrig'; break;
 		}
 		return $descr;
+	}
+
+	function getFormFieldCommit($commit='') {
+		return '<input class="text" name="code_commit" type="text" value="'.$commit.'" style="width:25%;" maxlength="7"> <small>Commit-ID, 7 Zeichen. z.B. 7cb0118</small>';
 	}
 }
