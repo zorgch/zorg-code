@@ -1697,27 +1697,38 @@ class Forum {
 	}
 
 	/**
-	 * @return String
-	 * @desc Gibt das HTML des Forums zurück
-	 * @author [z]biko, IneX
-	 * @version 2.0
+	 * Gibt das HTML des Forums zurück
+	 *
+	 * @author [z]biko
+	 * @author IneX
+	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 07.11.2018 code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
+	 * @since 3.0 05.12.2018 fixed and restored Thread-Overview Pagination
+	 *
+	 * @see getNavigation
+	 * @param array|string $showboards Array mit den Boards für welche die Threads angezeigt werden sollen
+	 * @param integer $pagesize Die Anzahl Threads welche pro Page aufgelistet werden sollen
+	 * @param string $sortby Anweisung nach welcher Spalte (Thread DB-Column) die Threads sortiert werden - default: last_post_date
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @return String
  	 */
-	static function getHTML($showboards, $pagesize, $sortby='') {
-
+	static function getHTML($showboards, $pagesize, $sortby='last_post_date')
+	{
 		global $db, $user;
 
 		/** Boards als komma-separierte Liste */
-		$showboards_commaseparated = sprintf('"%s"', implode('","', $showboards));
+		if (is_array($showboards)) $showboards_commaseparated = sprintf('"%s"', implode('","', $showboards));
+		else $showboards_commaseparated = '"'.$showboards.'"';
 
 		/** Sortieren */
 		//if($sortby == '') $sortby = 'ct.sticky DESC, ct.last_comment_id';
 		//if($sortby == '') $sortby = 'ct.last_comment_id';
-		if($sortby == '') $sortby = 'last_post_date';
+		if(empty($sortby) || is_numeric($sortby) || is_array($sortby)) $sortby = 'last_post_date';
 
-		// "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
-		// ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen
+		/** "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text */
+		/** ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
 		if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
 		{
 			switch ($_GET['order']) {
@@ -1739,8 +1750,8 @@ class Forum {
 			$new_order = 'ASC';
 		}
 
-		/** Blättern... */
-		$page = ($_GET['page'] == '') ? 1 : $_GET['page'];
+		/** Threads analog ?page=n anzeigen... */
+		$page = (!isset($_GET['page']) || empty($_GET['page']) || !is_numeric($_GET['page'])) ? 1 : $_GET['page'];
 		$limit = ($page-1) * $pagesize.','.$pagesize;
 
 		/** Query for Thread list */
@@ -1755,7 +1766,8 @@ class Forum {
 					UNIX_TIMESTAMP(t.date) thread_date,
 					'.($user->is_loggedin() ? 'IF(ISNULL(tfav.thread_id ), 0, 1) isfavorite,
 					IF(ISNULL(tignore.thread_id ), 0, 1) ignoreit,' : '').'
-					count(DISTINCT cnum.id) numposts
+					count(DISTINCT cnum.id) numposts,
+					(SELECT count(DISTINCT thread_id) FROM comments WHERE board IN ('.$showboards_commaseparated.')) numthreads
 				
 				FROM
 					comments_threads ct
@@ -1772,23 +1784,20 @@ class Forum {
 				' : '').'
 				WHERE
 					 c.board IN ('.$showboards_commaseparated.')
-					 AND ("'.$user->typ.'" >= ct.rights OR ct.rights="'.USER_SPECIAL.'"'.($user->is_loggedin() ? ' AND ctr.user_id IS NOT NULL' : '').')
+					 AND ('.$user->typ.' >= ct.rights OR ct.rights='.USER_SPECIAL . ($user->is_loggedin() ? ' AND ctr.user_id IS NOT NULL' : '').')
 					 AND ct.comment_id IS NOT NULL
 				
 				GROUP BY
 					ct.thread_id
 				
 				ORDER BY '.$sortby.' '.$order.'
-				
+
 				LIMIT '.$limit
 		;
-
-		/** number of pages */
-		$numpages = floor($db->num($db->query($sql, __FILE__, __LINE__, __METHOD__)) / $pagesize);
-
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		/** Ausgabe ---------------------------------------------------------------- */
+		/** Thread-Table mit Spaltenüberschriften */
 		$html .=
 			'<br />'
 			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
@@ -1801,7 +1810,8 @@ class Forum {
 				.'</tr>';
 
 		$i = 0;
-		while($rs = $db->fetch($result)) {
+		while(($rs = $db->fetch($result)) && ($i < $pagesize))
+		{
 			$i++;
 
 			/** Check for unread comments in Thread */
@@ -1825,7 +1835,7 @@ class Forum {
 			  .'</span>'
 			;
 
-			/*
+		/** DISABLED
     	if($rs['sticky'] == 1) {
     		if($user->typ >= USER_MEMBER) {
     			$html .= ' <a href="/actions/forum.php?action=unsticky&thread_id='.$rs['thread_id'].'">*sticky*</a>';
@@ -1875,12 +1885,12 @@ class Forum {
 				//$html .=	'&nbsp;&nbsp;&nbsp;</span>';
 			}
 
-			### RSS Feed Thread
+			/** RSS Feed-Link für Thread anzeigen */
 			$html .=
 					' <a href="'.RSS_URL.'&amp;type=forum&amp;board='.$rs['board'].'&amp;thread_id='
     				.$rs['thread_id'].'">[rss]</a>';
 
-			// rechtsbündig-span-element schliessen
+			/** rechtsbündig-span-element schliessen */
 			$html .= '</span>';
 
 			$html .= '</td><td align="left" bgcolor="'.$color.'" class="small">&nbsp;&nbsp;&nbsp;'
@@ -1901,8 +1911,13 @@ class Forum {
 			  .'</td>'
 			;
 			$html .= '</tr>';
-
+			
+			$numpages = $rs['numthreads'];
 		}
+
+		/** Pagination für Thread-Liste */
+		$numpages = floor($numpages / $pagesize);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $numpages (from $rs[numthreads]): %d', __FILE__, __LINE__, $numpages));
 
 		$html .=
 		 	'<tr class="title">'

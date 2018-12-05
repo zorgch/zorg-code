@@ -137,6 +137,7 @@ return
 			,'message-commentupdate' => '%s hat Dich in einem bearbeiteten Comment erwähnt:<br>
 										 <p><i>%s</i></p>
 										 <a href="%s">→ Comment lesen</a>'
+			,'forum-new-thread' => '<h3 style="text-align:left;">Neuen Thread erstellen</h3>'
 		]
 	,'tpl' =>
 		[

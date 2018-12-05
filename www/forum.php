@@ -42,6 +42,7 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 			$smarty->assign('thread_id', 1);
 			$smarty->assign('parent_id', 0);
 			//$smarty->display('tpl:194'); @DEPRECATED
+			echo t('forum-new-thread', 'commenting');
 			$smarty->display('file:commentform.tpl');
 		}
 
