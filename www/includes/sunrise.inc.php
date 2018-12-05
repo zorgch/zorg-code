@@ -15,7 +15,7 @@
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 08.05.2004
  * @link http://www.zend.com/codex.php?id=135&single=1
- * @package Zorg
+ * @package zorg
  * @subpackage Sunrise
  *
  * @global array $user
@@ -36,14 +36,15 @@
  * @include util.inc.php
  */
 require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
+//require_once( __DIR__ .'/mysql.inc.php');
 include_once( __DIR__ .'/util.inc.php');
 
 /**
  * Globals
  */
-global $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $layouttype;
+//global $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $layouttype;
 
 
 /**
@@ -52,11 +53,11 @@ global $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $l
  * @author Bolli <bbolli@ewanet.ch>
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 14.12.2003
- * @package Zorg
+ * @package zorg
  * @subpackage Sunrise
  */
-class Astro_Sunrise {
-
+class Astro_Sunrise
+{
   /**
    * coordinates to calculate sunrise/sunset for
    * @var integer -90..+90; > 0 is north of the equator
@@ -312,24 +313,23 @@ function norm($a, $b) {        // normalize $a to be in [0, $b)
   return $a;
 }    // function norm
 
-
-
-
-//Position vom user bestimmen
-$user_ip = sprintf("%u", ip2long($_SERVER['REMOTE_ADDR']));
+/**
+ * Position vom user bestimmen
+ * @FIXME move this somewhere else...
+ */
+$user_ip = sprintf('%u', ip2long($_SERVER['REMOTE_ADDR']));
 //$user_ip = sprintf("%u", ip2long($user->last_ip)); --> tut noed! schickt alle in die USA :-(
-$sql = "
-SELECT 
-	ci.country_code as code, 
-	ci.country as country,
-	ci.country_code2 as image_code,
-	co.lat as lat,
-	co.lon as lon
-FROM country_ip ci
-INNER JOIN country_coords co
-	ON co.country_code = ci.country_code
-WHERE
-	ci.ip_from <= $user_ip and ci.ip_to >= $user_ip";
+$sql = 'SELECT 
+			ci.country_code as code, 
+			ci.country as country,
+			ci.country_code2 as image_code,
+			co.lat as lat,
+			co.lon as lon
+		FROM country_ip ci
+		INNER JOIN country_coords co
+			ON co.country_code = ci.country_code
+		WHERE
+			ci.ip_from <= '.$user_ip.' AND ci.ip_to >= '.$user_ip;
 $result = $db->query($sql,__FILE__,__LINE__);
 $rs = $db->fetch($result);
 $lat = $rs['lat'];
@@ -340,17 +340,17 @@ $country_code = (!empty($rs['image_code']) ? strtoupper($rs['image_code']) : 'ch
 $suncalc = new Astro_Sunrise();
 $suncalc->setCoords($lat, $lon);
 $suncalc->setTimezone(round($lon/15.0)+date("I"));
-$suncalc->setTimestamp(time()+(3600*round($lon/15.0)+date("I")));
+$suncalc->setTimestamp(time()+(3600*round($lon/15.0)+date('I')));
 $sunrise = $suncalc->getSunrise();
 $sunset = $suncalc->getSunset();
 
-$cur_time = time()+(3600*round($lon/15.0)+date("I")) - 3600;
+$cur_time = time()+(3600*round($lon/15.0)+date('I')) - 3600;
 
 if($cur_time > strtotime($suncalc->getSunrise())) {
-	$sun = "up";
-	$layouttype = "day";
+	$sun = 'up';
+	$layouttype = 'day';
 } 
 if($cur_time > strtotime($suncalc->getSunset()) || $cur_time < strtotime($suncalc->getSunrise())) {
-	$sun = "down";
-	$layouttype = "night";
+	$sun = 'down';
+	$layouttype = 'night';
 }
