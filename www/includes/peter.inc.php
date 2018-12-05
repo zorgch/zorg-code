@@ -13,12 +13,10 @@
  * File includes
  * @include config.inc.php required
  * @include forum.inc.php
- * @include messagesystem.inc.php
  * @include usersystem.inc.php required
  */
 require_once( __DIR__ . '/config.inc.php');
 include_once( __DIR__ . '/forum.inc.php');
-include_once( __DIR__ . '/messagesystem.inc.php');
 require_once( __DIR__ . '/usersystem.inc.php');
 
 /**
@@ -217,15 +215,25 @@ class peter {
 	
 	/**
 	 * Nächster Spieler
-	 * 
+	 *
 	 * Schaltet den nächsten Player in einem Spiel frei
-	 * 
-	 * @return void
-	 * @param User_ID $act_player
-	 * @param num_players $players
+	 *
+	 * @author ?
+	 * @version 4.0
+	 * @since 1.0 method added
+	 * @since 2.0 22.08.2011/IneX added (random) Message Notification to next Player
+	 * @since 3.0 code & query optimizations
+	 * @since 4.0 25.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	 *
+	 * @param integer $act_player User-ID des aktuellen Spielers
+	 * @param integer $players Anzahl Spieler (num_players)
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
+	 * @return boolean
 	 */
-	function next_player($act_player,$players) {
-		global $db;
+	function next_player($act_player, $players)
+	{
+		global $db, $notification;
 
 		//Join ID des aktuellen Spielers ermitteln
 		$sql = 'SELECT 
@@ -235,10 +243,10 @@ class peter {
 					pp.user_id = '.$act_player.'
 					AND
 					pp.game_id = '.$this->game_id;
-		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-		$rr = $db->fetch($rr);
+		$rq = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$rr = $db->fetch($rq);
 
-		//Join ID inkrementieren oder wenn max players erreicht wurde wieder bei 1 anfangen
+		/** Join ID inkrementieren oder wenn max players erreicht wurde wieder bei 1 anfangen */
 		$next_join_id = ($rr['join_id'] == $players) ? 1 : $rr['join_id'] + 1;
 
 		$sql = 'SELECT
@@ -252,7 +260,7 @@ class peter {
 		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rr = $db->fetch($rr);
 
-		//Prüfen ob der Spieler nicht bereits fertig ist
+		/** Prüfen ob der Spieler nicht bereits fertig ist */
 		if($rr['make'] == "fertig") {
 			$this->next_player($rr['user_id'],$players);
 		}
@@ -261,11 +269,13 @@ class peter {
 		$sql = 'UPDATE peter_games set next_player = '.$rr['user_id'].', last_activity = now() WHERE game_id = '.$this->game_id;
 		$db->query($sql,__FILE__,__LINE__,__METHOD__);
 
-		//Sendet dem nächsten Spieler eine (random) Message, damit er weiss, dass er dran ist
-		//IneX, 22.08.2011
+		/** Sendet dem nächsten Spieler eine (random) Message, damit er weiss, dass er dran ist */
 		$text = 'I ha min Zug gmacht i &uuml;sem Peter Spiel, etz bisch du wieder dra!<br/><br/>&#8594; <a href="'.SITE_URL.'/peter.php?game_id='.$this->game_id.'">Mach doooo!</a>';
 		$rand_subject = self::$next_zug_messagesubjects[array_rand(self::$next_zug_messagesubjects,1)];
-		Messagesystem::sendMessage($act_player, $rr['user_id'], $rand_subject, $text);
+		//Messagesystem::sendMessage($act_player, $rr['user_id'], $rand_subject, $text);
+		$notification_status = $notification->send($act_player, 'games', ['from_user_id'=>$rr['user_id'], 'subject'=>$rand_subject, 'text'=>$text, 'message'=>$text]);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
+
 		return true;
 	}
 	
@@ -412,7 +422,7 @@ class peter {
 		global $db, $user;
 
 		/** Nur wenn user eingeloggt ist */
-		if($user->islogged_in())
+		if($user->is_loggedin())
 		{
 			/** Anzahl offener Peter Züge des Users holen */
 			$sql = 'SELECT
@@ -816,18 +826,22 @@ class peter {
 	
 	/**
 	 * Spielzug an nächsten Player weitergeben
+	 *
 	 * Aktiviert autom. den nächsten Spieler wenn keiner eine höhere Karte hat
 	 *
 	 * @author [z]Duke, [z]domi, IneX
-	 * @version 2.0
+	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 added feature to FORCE next player, if current player didn't play for a long time
+	 * @since 3.0 25.11.2018 updated to use new $notifcation Class & some code and query optimizations
 	 *
 	 * @param boolean|array $force_next_player Array=Array with game_id,next_player,players - or FALSE, if regular check. Default: FALSE
-	 * @return void
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
+	 * @return boolean
 	 */
 	function auto_nextplayer($force_next_player=false) {
-		global $db;
+		global $db, $notifcation;
 
 		if ($force_next_player === false)
 		{
@@ -934,8 +948,11 @@ class peter {
 							/** Sendet dem nächsten Spieler eine (random) Message, damit er weiss, dass er dran ist */
 							$text = 'I bi z fuul gsii zum min Zug i &uuml;sem Peter Spiel zmache, drum bisch du etz wieder dra!<br/><br/>&#8594; <a href="'.SITE_URL.'/peter.php?game_id='.$force_next_player['game_id'].'">Mach doooo!</a>';
 							$rand_subject = self::$next_zug_messagesubjects[array_rand(self::$next_zug_messagesubjects,1)];
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Messagesystem::sendMessage(): %s', __METHOD__, __LINE__, print_r([$force_next_player['current_player'], $next_player['user_id'], $rand_subject, $text],true)));
-							Messagesystem::sendMessage($force_next_player['current_player'], $next_player['user_id'], $rand_subject, $text);
+							//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Messagesystem::sendMessage(): %s', __METHOD__, __LINE__, print_r([$force_next_player['current_player'], $next_player['user_id'], $rand_subject, $text],true)));
+							//Messagesystem::sendMessage($force_next_player['current_player'], $next_player['user_id'], $rand_subject, $text);
+							$notification_status = $notification->send($next_player['user_id'], 'games', ['from_user_id'=>$force_next_player['current_player'], 'subject'=>$rand_subject, 'text'=>$text, 'message'=>$text]);
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
+
 							return true;
 						}
 					} else {
@@ -1707,5 +1724,5 @@ class peter {
 	}
 }
 
-// Rosenverkäufer einloggen
+/** Rosenverkäufer einloggen */
 if ($user->typ >= USER_USER) peter::rosenverkaufer();

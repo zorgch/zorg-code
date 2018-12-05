@@ -37,22 +37,23 @@ if(Forum::hasPostedRecently($user->id, $_POST['parent_id']))
 	die();
 }
 
-// Validate msg_users is REALLY set
+/** Validate msg_users is REALLY set */
 if(isset($_POST['msg_users']) && $_POST['msg_users'] != ' ' && !empty(array_filter($_POST['msg_users'])))
 {
 	$msg_users = $_POST['msg_users'];
-	
-	// Let's check if it's just a comma-separated String, or an Array
-	if (strpos($msg_users, ',') !== false && !is_array($msg_users))
+
+	/** Let's check if it's just a comma-separated String, or an Array */
+	if (!is_array($msg_users) && strpos($msg_users, ',') !== false)
 	{
-		// make an Array, if necessary
+		/** make an Array, if necessary */
 		$msg_users = explode(',', $_POST['msg_users']);
 	}
-	
-	// Remove any duplicate User-IDs
+
+	/** Remove any duplicate User-IDs */
 	$msg_users = array_unique($msg_users);
 }
 
+/** Post new Comment & get Link */
 if(
 	$commentlink =
 		Comment::post(
@@ -63,11 +64,14 @@ if(
 			$msg_users
 		)
 ) {
-	header("Location: ".$commentlink);
-	die();
+	/** Redirect browser to new Comment */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirect to $commentlink: %s', __FILE__, __LINE__, $commentlink));
+	header('Location: '.$commentlink);
+	exit;
 
+/** Error posting new Comment */
 } else {
 	http_response_code(500); // Set response code 500 (internal error) and exit.
 	user_error('Post konnte nicht erstellt werden.', E_USER_ERROR);
-	die();
+	exit;
 }

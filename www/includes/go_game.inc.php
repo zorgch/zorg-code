@@ -9,17 +9,16 @@
  * @author [z]bert
  * @author [z]domi
  * @date nn.nn.nnnn
- * @package Zorg
+ * @package zorg
  * @subpackage GO
  */
 /**
  * File includes
- * @include main.inc.php DEPRECATED
- * @include config.inc.php
  * @include mysql.inc.php
+ * @include config.inc.php
  */
-require_once( __DIR__ .'/config.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
+require_once( __DIR__ .'/config.inc.php');
 
 /**
  * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.
@@ -751,42 +750,57 @@ function readGame($gameid){
 }
 
 
+/**
+ * GO-Zug in die DB speichern
+ *
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 26.11.2018 updated to use new $notifcation Class
+ *
+ * @param integer $game
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $notification Globales Class-Object mit allen Notification-Methoden
+ * @return void
+ */
 function writeGame($game)
 {
-    global $db, $user;
-    
+    global $db, $user, $notification;
+
     if ($game)
     {
 		$game['data'] = implode("", $game['board']);
-			
+
 		if ($game['round'] >= 0) $game['nextturn'] = ($game['nextturn'] == $game['pl1'] ? $game['pl2'] : $game['pl1']);
-		
+
 		$game['round'] += ($game['nextturn'] == $game['pl2'] ? 1 : 0); //advance a round?
 		$e = $db->query("UPDATE go_games
 			 SET pl1lost='".$game['pl1lost']."', pl2lost='".$game['pl2lost']."', data='".$game['data'].
 			      "', last1='".$game['last1']."', last2='".$game['last2'].
 			      "', ko_sit='".$game['ko_sit']."', nextturn='".$game['nextturn']."', round='".$game['round']."'
 			 WHERE id='".$game['id']."'
-			 AND nextturn='".$user->id."'",
-			__FILE__, __LINE__);
-		
-		// Gegenspieler benachrichten, dass ein Zug gemacht wurde
+			 AND nextturn='".$user->id."'", __FILE__, __LINE__);
+
+		/** Gegenspieler benachrichten, dass ein Zug gemacht wurde */
 		if($user->id != $game['nextturn'])
 		{
+			$notification_text = t('message-your-turn', 'go', [ SITE_URL, $game['id'] ]);
+			$notification_status = $notification->send($game['nextturn'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'go'), 'text'=>$notification_text, 'message'=>$notification_text]);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" for user=%d to user=%d', __FUNCTION__, __LINE__, ($notification_status===true?'true':'false'), $game['nextturn'], $user->id));
+			/** @DEPRECATED
 			Messagesystem::sendMessage(
 				 $user->id
 				,$game['nextturn']
 				,t('message-subject', 'go')
 				,t('message-your-turn', 'go', [ SITE_URL, $game['id'] ])
 				,$game['nextturn']
-			);
+			);*/
 		}
     }
-    
 }
 
 /**
- * ??
+ * GO Board generieren
  *
  * @author [z]bert
  * @author [z]domi
@@ -809,8 +823,8 @@ function writeGame($game)
     $col_bg = imagecolorallocate($im, 200, 200, 200);
     imagefilledrectangle($im, 0, 0, $imgsizex-1, $imgsizey-1, $col_bg);
 
-	    return $im;
-	 }
+    return $im;
+ }
 
 /**
  * ??
@@ -832,13 +846,13 @@ function draw_grid(&$im, $size)
 {
     $offset = -LINEWIDTH / 2;
     imagesetbrush($im, LINE);
-    
+
     for ($i = 0; $i < $size; $i++)
     {
-            imageline($im, $offset + FIELDSIZE,         $offset + ($i+1)*FIELDSIZE + OFFSET_PIC,
-		           $offset + $size*FIELDSIZE,   $offset + ($i+1)*FIELDSIZE + OFFSET_PIC,  IMG_COLOR_BRUSHED);
-            imageline($im, $offset + ($i+1)*FIELDSIZE,  $offset + OFFSET_PIC + FIELDSIZE,
-		           $offset + ($i+1)*FIELDSIZE,  $offset + OFFSET_PIC + $size*FIELDSIZE, IMG_COLOR_BRUSHED);
+        imageline($im, $offset + FIELDSIZE,         $offset + ($i+1)*FIELDSIZE + OFFSET_PIC,
+	           $offset + $size*FIELDSIZE,   $offset + ($i+1)*FIELDSIZE + OFFSET_PIC,  IMG_COLOR_BRUSHED);
+        imageline($im, $offset + ($i+1)*FIELDSIZE,  $offset + OFFSET_PIC + FIELDSIZE,
+	           $offset + ($i+1)*FIELDSIZE,  $offset + OFFSET_PIC + $size*FIELDSIZE, IMG_COLOR_BRUSHED);
 	}
 }
 

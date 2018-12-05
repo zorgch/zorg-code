@@ -13,7 +13,7 @@
  *		messages_telegram_queue
  *
  * @author		IneX
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Messagesystem
  */
 /**
@@ -31,14 +31,14 @@ if ( file_exists(__DIR__.'/../../'.TELEGRAM_BOT.'.php') ) require_once( __DIR__ 
  *
  * @author		IneX
  * @date		10.06.2018
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Messagesystem
  * @version		3.0
  * @since		1.0 Initial Telegram integration
  * @since		2.0 Refactoring of sendMessage-Methods in 2 functions: for single User & for Groups
  * @since		3.0 Major refactoring of the whole Telegram Integration: Class-Object, Flexible send-Methods, More API-Options support
  */
-Class Telegram
+class Telegram
 {
 	/**
 	* Define global default Telegram Bot Settings
@@ -122,7 +122,15 @@ Class Telegram
 					/** Send the Telegram message */
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> using "%s" to Chat "%s"', __METHOD__, __LINE__, $messageType, $telegramChatId));
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> API call: %s', __METHOD__, __LINE__, $telegramAPIcall));
-					if (!empty($messageType)) file_get_contents( $telegramAPIcall );
+					if (!empty($messageType))
+					{
+						if (file_get_contents($telegramAPIcall))
+						{
+							return true;
+						} else {
+							return false;
+						}
+					}
 				} else {
 					error_log(sprintf('[WARN] <%s:%d> "%s" did not pass validation!', __METHOD__, __LINE__, $messageType));
 					return false;
@@ -137,7 +145,7 @@ Class Telegram
 	/**
 	 * (NOT IMPLEMENTED YET!) Format Link to Mention Telegram User inline
 	 * Gibt einen Link aus, welcher Telegram benutzt um einen spezifischen Telegram Benutzer zu @mention
-	 *    Example: <a href="tg://user?id=123456789">inline mention of a user</a>
+	 *	Example: <a href="tg://user?id=123456789">inline mention of a user</a>
 	 *
 	 * @author	IneX
 	 * @date	25.05.2018
@@ -199,9 +207,10 @@ Class Telegram
 	 *
 	 * @author	IneX
 	 * @date	25.05.2018
-	 * @version	2.0
+	 * @version	3.0
 	 * @since	1.0 initial function
 	 * @since	2.0 line breaks are possible using encoded "\n" - won't strip those anymore. Added missing allowed <strong> & <em>.
+	 * @since	3.0 22.10.2018 changed strip_html() to remove_html(), changed order of cleanup, removed valid HTML-Tags due to issue with nested tags
 	 *
 	 * @link https://core.telegram.org/bots/api#html-style
 	 * @link https://stackoverflow.com/questions/31908527/php-telegram-bot-insert-line-break-to-text-message
@@ -214,19 +223,48 @@ Class Telegram
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> passed raw string: %s', __METHOD__, __LINE__, $notificationText));
 
 		/**
-		 * Add missing Server address in HTML-Links inside Notification Text
-		 */
-		if (strpos($notificationText, 'href="/') > 0) $notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
-		if (strpos($notificationText, 'zorg.local') > 0) $notificationText = str_replace('zorg.local', 'zorg.ch', $notificationText);
-
-		/**
 		 * Strip away all HTML-tags & unix line breaks
 		 * Except from the whitelist:
 		 * <b>, <strong>, <i>, <em>, <a>, <code>, <pre>
+		 * -> However: "Tags must not be nested"!
 		 */
-		$notificationText = str_replace('&nbsp;', ' ', $notificationText);
-		$notificationText = str_replace(array("\r\n", "\r"), "\n", $notificationText);
-		$notificationText = strip_tags($notificationText, '<b><strong><i><em><a><code><pre>');
+		$notificationText = stripslashes($notificationText); // remove escaping slashes
+		$notificationText = str_replace(array('&nbsp;', '  '), ' ', $notificationText); // spaces
+		$notificationText = str_replace(array("\r\n", "\r\n ", "\r", "\r ", "\n "), "\n", $notificationText); // line-breaks
+		$notificationText = remove_html($notificationText, '<b><strong><i><em><a><code><pre>'); // html-tags
+
+		/**
+		 * Cleanup nested HTML-Tags, e.g. <a ...><i>text</i></a>
+		 * @link https://stackoverflow.com/a/47105562
+		 */
+		$dom = new DomDocument;
+		$internalErrors = libxml_use_internal_errors(true); // evaporate XML warning
+		$dom->loadHtml(mb_convert_encoding("<body>{$notificationText}</body>", 'HTML-ENTITIES', 'UTF-8'));
+		$nodes = iterator_to_array($dom->getElementsByTagName('body')->item(0)->childNodes);
+		$notificationText = implode(
+			array_map(function($node) {
+				$textContent = $node->nodeValue;
+				if ($node->nodeName === '#text') {
+					return $textContent;
+				}
+				$attr = implode(' ', array_map(function($attr) {
+					return sprintf('%s="%s"', $attr->name, $attr->value);
+				}, iterator_to_array($node->attributes)));
+		
+				return sprintf('<%1$s %3$s>%2$s</%1$s>', $node->nodeName, $textContent, $attr);
+			}, $nodes)
+		);
+
+		/**
+		 * Add missing Server address in HTML-Links inside Notification Text
+		 */
+		$notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
+		$notificationText = str_replace('href="zorg.local/', 'href="' . SITE_URL . '/', $notificationText);
+		$notificationText = str_replace('zorg.local', 'zorg.ch', $notificationText);
+		
+		/**
+		 * Deoce HTML-Entities
+		 */
 		$notificationText = html_entity_decode($notificationText);
 
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> processed string for return: %s', __METHOD__, __LINE__, $notificationText));
@@ -412,7 +450,7 @@ Class Telegram
  *
  * @TODO Add method-call routes for all additional Telegram Message types
  */
-Class send extends Telegram
+class send extends Telegram
 {
 	/** sendMessage */
 	public function message($scope, $text, $parameters=[]) {

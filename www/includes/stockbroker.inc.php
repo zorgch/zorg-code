@@ -1,10 +1,24 @@
 <?php
-/** File includes */
-require_once( __DIR__ .'/messagesystem.inc.php');
+/**
+ * File includes
+ * @include config.inc.php required
+ * @include mysql.inc.php required
+ */
+require_once( __DIR__ .'/config.inc.php');
 require_once( __DIR__ .'/mysql.inc.php');
 
 //set_time_limit(20);
 
+/**
+ * Stockbroker Class
+ *
+ * @author [z]milamber
+ * @date ?
+ * @package zorg
+ * @subpackage Stockbroker
+ * @version 1.0
+ * @since 1.0 class added
+ */
 class Stockbroker {
 	
 	function buyStock($user_id, $symbol, $menge, $max) {
@@ -187,28 +201,37 @@ class Stockbroker {
 
 	
 	/**
+	* Holt sich die neusten (nicht die heutigen) Kurse eines Wertpapiers.
+	*
+	* @author [z]biko
+	* @version 2.0
+	* @since 1.0 method added
+	* @since 2.0 25.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	*
+	* @param String $symbol
+	* @param float(6,3) kurs
+	* @global object $db Globales Class-Object mit allen MySQL-Methoden
+	* @global object $notification Globales Class-Object mit allen Notification-Methoden
 	* @return void
-	* @param String $symbol, float(6,3) kurs
-	* @desc Holt sich die neusten (nicht die heutigen) Kurse eines Wertpapiers.
 	*/
-	function issueStockWarnings($symbol, $kurs) {
-		global $db;
-		$sql = 
-			"
-			SELECT
-				*
-			FROM 
-				stock_warnings
-			WHERE	symbol = '".$symbol."'
-			"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
-		while($rs = $db->fetch($result)) {
-			
+	function issueStockWarnings($symbol, $kurs)
+	{
+		global $db, $notification;
+
+		$sql = 'SELECT 
+					* 
+				FROM 
+					stock_warnings 
+				WHERE symbol = "'.$symbol.'"';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+
+		while($rs = $db->fetch($result))
+		{
 			eval("\$warning=".$kurs.$rs['comparison'].$rs['kurs'].';');
-			
-			if($warning) {
+
+			if ($warning)
+			{
+				/* @DEPRECATED
 				Messagesystem::sendMessage(
 					59
 					, $rs['user_id']
@@ -218,23 +241,20 @@ class Stockbroker {
 						.'<br />'
 						.$symbol.' ist '.$rs['comparison'].' '.$rs['kurs'].' (aktueller Kurs: '.$kurs.')'
 					, $rs['user_id']
-				);
-				
-				$sql = 
-					"
-					DELETE 
-					FROM stock_warnings 
-					WHERE 
-						user_id = ".$rs['user_id']."
-						AND
-						symbol = '".$symbol."'
-						AND
-						comparison = '".$rs['comparison']."'
-					"
-				;
-				$db->query($sql, __FILE__	, __LINE__);
-				
-			} 
+				);*/
+				/** Send $warning Notification */
+				$notification_text = t('message-stock-warning', 'stockbroker', [ SITE_URL, $symbol, $rs['comparison'], $rs['kurs'], $kurs]);
+				$notification_status = $notification->send($rs['user_id'], 'stockbroker', ['from_user_id'=>BARBARA_HARRIS, 'subject'=>t('message-subject', 'stockbroker'), 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Notification status "%s" for $symbol %s to user %d', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $symbol, $rs['user_id']));
+
+				$sql = 'DELETE 
+						FROM stock_warnings 
+						WHERE 
+							user_id = '.$rs['user_id'].' 
+							AND symbol = "'.$symbol.'" 
+							AND comparison = "'.$rs['comparison'].'"';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			}
 		}
 	}	
 	

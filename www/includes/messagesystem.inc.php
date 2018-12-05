@@ -1,7 +1,7 @@
 <?php
 /**
  * Messagesystem
- * 
+ *
  * Das Messagesystem erlaubt es einerseits, dass sich User
  * gegenseitig persönliche Nachrichten zuschicken können.
  * Andererseits wird es verwendet für Benachrichtigungen
@@ -10,43 +10,48 @@
  * Wenn ein User die entsprechende Option in seinen Ein-
  * stellungen aktiviert hat, wird zudem auch eine E-Mail
  * Nachricht verschickt.
- *
+ * 
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		messages
  *
  * @version		2.0
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Messagesystem
- */ 
-
+ */
 /**
  * File Includes
- * @include util.inc.php
+ * @include config.inc.php		Required global configs
+ * @include util.inc.php		Required Helper Functions
  * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
  */
 //require_once( __DIR__ . '/main.inc.php');
+require_once( __DIR__ . '/config.inc.php');
 require_once( __DIR__ . '/util.inc.php');
 include_once( __DIR__ . '/strings.inc.php');
 
 /**
  * Messagesystem Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen zum Senden & Verwalten der Nachrichten
  *
  * @author		[z]milamber
  * @author		IneX
- * @date		25.05.2018
- * @version		3.0
- * @package		Zorg
+ * @package		zorg
  * @subpackage	Messagesystem
+ * @date		25.05.2018
+ * @version		4.0
+ * @since		1.0 class added
+ * @since		2.0 added e-mail notification
+ * @since		3.0 17.03.2018 implemented with telegrambot.inc.php
+ * @since		4.0 21.10.2018 implemented with notifications.inc.php
  */
 class Messagesystem {
 
 	/**
 	 * Message-Actions ausführen
-	 * 
+	 *
 	 * Controller für diverse Message Actions
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @date 
 	 * @version 2.0
@@ -57,18 +62,19 @@ class Messagesystem {
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
-	function execActions()
+	static function execActions()
 	{
 		global $db, $user;
 
 		if($_POST['action'] == 'sendmessage') {
 
 			$to_users = ( empty($_POST['to_users']) ? $user->id : $_POST['to_users'] );
-			
-			for ($i=0; $i < count($to_users); $i++) {
-				
+
+			for ($i=0; $i < count($to_users); $i++)
+			{
 				/** Wenn ich mir selber was schicke, dann nimm die Bärbe als Absender */
-				if ($to_users[$i] == $user->id) {
+				if ($to_users[$i] == $user->id)
+				{
 					Messagesystem::sendMessage(
 						BARBARA_HARRIS,
 						$to_users[$i],
@@ -76,9 +82,10 @@ class Messagesystem {
 						$_POST['text'],
 						implode(',', $to_users)
 					);
-				
+				}
+
 				/** Nachricht an andere Leute */
-				} else {
+				else {
 					Messagesystem::sendMessage(
 						$user->id,
 						$to_users[$i],
@@ -99,8 +106,8 @@ class Messagesystem {
 				$to_users=implode(',', $to_users),
 				1
 			);
-			
-			/** Wieso wird hier die deleteMessage-Funktion aufgerufen in der "sendmessage"-Aktion? Inex/28.10.2013 */
+
+			/** @FIXME Wieso wird hier die deleteMessage-Funktion aufgerufen in der "sendmessage"-Aktion? Inex/28.10.2013 */
 			if($_POST['delete_message_id'] > 0) {
 				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
 			}
@@ -114,8 +121,8 @@ class Messagesystem {
 		}
 
 
-		if($_POST['do'] == 'delete_messages') {
-
+		if($_POST['do'] == 'delete_messages')
+		{
 			/** Delete all passed message_id's */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Deleting Message ID: %d', __METHOD__, __LINE__, $_POST['message_id']));
@@ -189,9 +196,9 @@ class Messagesystem {
 	
 	/**
 	 * Nachrichten löschen
-	 * 
+	 *
 	 * Löscht ausgewählte Nachrichten von der Inbox/Outbox
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @version 1.0
 	 *
@@ -217,7 +224,7 @@ class Messagesystem {
 
 	/**
 	 * Nachrichten als ungelesen ändern
-	 * 
+	 *
 	 * @author IneX
 	 * @date 28.10.2013
 	 * @since 1.0
@@ -241,7 +248,7 @@ class Messagesystem {
 
 	/**
 	 * Nachricht als gelesn markieren
-	 * 
+	 *
 	 * @author IneX
 	 * @date 24.06.2018
 	 * @version 1.0 initial method release
@@ -275,7 +282,7 @@ class Messagesystem {
 
 	/**
 	 * Alle Nachrichten als gelesen markieren
-	 * 
+	 *
 	 * @author IneX
 	 * @date 28.10.2013
 	 * @since 1.0
@@ -299,9 +306,9 @@ class Messagesystem {
 
 	/**
 	 * Nachrichten-Löschfomular
-	 * 
+	 *
 	 * Baut das HTML-Formular um Nachrichten zu löschen
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @author IneX
 	 * @date 23.06.2018
@@ -310,7 +317,6 @@ class Messagesystem {
 	 * @since 2.0 frontend is now a template - as it should be
 	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @param integer $id ID der ausgewählten Nachricht
-	 
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string HTML des Message-Delete Form
 	 */
@@ -328,9 +334,9 @@ class Messagesystem {
 
 	/**
 	 * Nachrichten-Formular
-	 * 
+	 *
 	 * Baut das HTML-Formular um eine neue Nachrichten zu versenden
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @author IneX
 	 * @date 23.06.2018
@@ -364,9 +370,9 @@ class Messagesystem {
 
 	/**
 	 * Message-Inbox/Outbox
-	 * 
+	 *
 	 * Baut das HTML um die Nachrichten-Verwaltung anzuzeigen
-	 * 
+	 *
 	 * @author [z]milamber, IneX
 	 * @date 24.06.2018
 	 * @version 2.0
@@ -436,9 +442,9 @@ class Messagesystem {
 
 	/**
 	 * Anzahl neuer Nachrichten
-	 * 
+	 *
 	 * Berechnet die Anzahl neuer Nachrichten
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @date 
 	 * @version 1.0
@@ -463,10 +469,10 @@ class Messagesystem {
 
 	/**
 	 * Anzahl aller User Nachrichten
-	 * 
+	 *
 	 * Berechnet die Anzahl aller Nachrichten eines Users.
 	 * Wird benötigt für das Paginating in Messagesystem::getInboxHTML()
-	 * 
+	 *
 	 * @author IneX
 	 * @date 24.06.2018
 	 * @version 1.0
@@ -505,7 +511,7 @@ class Messagesystem {
 
 	/**
 	 * Nachricht anzeigen
-	 * 
+	 *
 	 * Zeigt eine Message an
 	 *
 	 * @author [z]milamber, IneX
@@ -513,7 +519,7 @@ class Messagesystem {
 	 * @version 2.0
 	 * @since 1.0 initial method release
 	 * @since 2.0 frontend is now a template - as it should be
-	 * 
+	 *
 	 * @see Messagesystem::getUserMessages()
 	 * @see Messagesystem::doMarkMessageAsRead()
 	 * @param int $id ID der Nachricht
@@ -547,7 +553,7 @@ class Messagesystem {
 
 	/**
 	 * Message holen
-	 * 
+	 *
 	 * @author IneX
 	 * @date 24.06.2018
 	 * @version 1.0
@@ -581,9 +587,9 @@ class Messagesystem {
 
 	/**
 	 * Nächste Nachricht anzeigen
-	 * 
+	 *
 	 * Holt die ID der jeweils älteren Nachricht gegenüber der aktuell geöffneten
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @date 
 	 * @version 1.0
@@ -619,9 +625,9 @@ class Messagesystem {
 
 	/**
 	 * Vorherige Nachricht anzeigen
-	 * 
+	 *
 	 * Holt die ID der jeweils jüngeren Nachricht gegenüber der aktuell geöffneten
-	 * 
+	 *
 	 * @author [z]milamber, IneX
 	 * @date 24.06.2018
 	 * @version 2.0
@@ -654,18 +660,21 @@ class Messagesystem {
 
 	/**
 	 * Persönliche Nachricht senden
-	 * 
+	 *
 	 * Speichert die gesendete Nachricht im Postfach des Empfängers und meinem Postausgang
-	 * 
+	 *
 	 * @author [z]milamber
 	 * @author IneX
 	 * @date 17.03.2018
-	 * @version 3.1
-	 * @since 1.0
+	 * @version 4.0
+	 * @since 1.0 method added
 	 * @since 2.0 verschickt eine Notification über die neue Nachricht per E-Mail
 	 * @since 3.0 verschickt eine Notification per Telegram Messenger
-	 * @since 3.1 changed to new Telegram Send-Method
+	 * @since 3.1 17.03.2018 changed to new Telegram Send-Method
+	 * @since 3.2 15.10.2018 added array-implode for passed $to_users parameter
+	 * @since 4.0 21.10.2018 connected to new Notification() Class
 	 *
+	 * @see Notification::send()
 	 * @param integer	$from_user_id User-ID des Senders
 	 * @param integer	$owner User-ID des Nachrichten-Owners
 	 * @param string	$subject Titel der Nachricht
@@ -674,23 +683,23 @@ class Messagesystem {
 	 * @param string	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
 	 * @global object	$db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object	$user Globales Class-Object mit den User-Methoden & Variablen
-	 * @global object	$telegram Globales Class-Object mit den Telegram-Methoden
 	 * @return boolean	Returns true or false, depening on the susccessful execution
 	 */
 	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
 	{
-		global $db, $user, $telegram;
+		global $db, $user, $notification;
 
 		/** Validate function parameters */
-		if(!isset($owner) || empty($owner) || $owner <= 0) {
+		if (!isset($owner) || empty($owner) || $owner <= 0) {
 			error_log(sprintf('<%s:%d> %s $owner ERROR: %s', __FILE__, __LINE__, __METHOD__, $owner));
 			return false;
 		}
-		if(!isset($to_users) || empty($to_users)) $to_users = $owner;
-		if(empty($text)) $text = t('message-empty-text', 'messagesystem');
+		if (!isset($to_users) || empty($to_users)) $to_users = $owner;
+		if (is_array($to_users)) implode(',', $to_users);
+		if (empty($text)) $text = t('message-empty-text', 'messagesystem');
 
 		/**
-		 * Send Message to recipient(s)
+		 * Send zorg Message to recipient
 		 */
 		try {
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', __METHOD__, __LINE__, $subject, $owner));
@@ -702,8 +711,16 @@ class Messagesystem {
 			error_log($e->getMessage());
 		}
 
-		/** Send E-Mail Notification */
-		if ($owner != $from_user_id)
+		/** Notify $owner about new zorg Message */
+		$notification_status = $notification->send($owner, 'messagesystem', ['from_user_id'=>$from_user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
+
+		/**
+		 * @DEPRECATED
+		 * @see Notification::sendEmailNotification()
+		 * Send E-Mail Notification
+		 */
+		/*if ($owner != $from_user_id)
 		{
 			try {
 				Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
@@ -711,66 +728,18 @@ class Messagesystem {
 				error_log($e->getMessage());
 				return false;
 			}
-
-			/** Send Telegram Notification */
-			try {
+		*/
+			/**
+			 * @DEPRECATED
+			 * Send Telegram Notification
+			 */
+			/*try {
 				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text, '<br>'), 140, '...') ] );
 				$telegram->send->message($owner, $message, ['disable_web_page_preview' => 'true']);
 			} catch (Exception $e) {
 				error_log($e->getMessage());
 				return false;
 			}
-		}
+		}*/
 	}
-
-	/**
-	 * E-Mail Hinweis über neue Nachricht senden
-	 * 
-	 * Generiert eine E-Mail um einen Benutzer auf eine neue persönliche Nachricht hinzuweisen
-	 * 
-	 * @author IneX
-	 * @date 15.05.2009
-	 * @version 1.0
-	 *
-	 * @param	integer	$from_user_id	User-ID des Senders
-	 * @param	integer	$to_user_id		User-ID des Empfängers
-	 * @param	string	$titel			Titel der ursprünglichen Nachricht
-	 * @param	string	$text			Ursprünglicher Text
-	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
-	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
-	 */
-	function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
-	{
-		global $db, $user;
-		
-		/** E-Mailnachricht bauen */
-		if ($to_user_id != 0 && $to_user_id <> '' && is_numeric($to_user_id))
-		{
-			/** Get User E-Mail - if E-Mail Notifications are enabled */
-			$empfaengerMail = $user->id2useremail($to_user_id);
-			
-			/** Nur, wenn User E-Mailbenachrichtigung aktiviert hat...! */
-			if (!empty($empfaengerMail))
-			{
-				$empfaengerName = $user->id2user($to_user_id, TRUE);
-				$senderName = $user->id2user($from_user_id, TRUE);
-				
-				$header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
-				
-				$subject = 	htmlspecialchars( t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]), ENT_DISALLOWED, 'UTF-8' );
-				
-				$body = htmlspecialchars( t('email-notification-body', 'messagesystem', [ SITE_URL, $titel, $senderName, text_width(remove_html($text, '<br>'), 140, '...'), $to_user_id ]), ENT_DISALLOWED, 'UTF-8' );
-				
-				/** Vesende E-Mail an User */
-				try {
-					if (DEVELOPMENT) error_log("[DEBUG] mail() '$subject' to user: $empfaengerName");
-					mail("$empfaengerName <$empfaengerMail>", $subject, $body, $header);
-					//mail("$empfaengerName <$empfaengerMail>", utf8_encode($subject), utf8_encode($body), $header);
-				} catch (Exception $e) {
-					error_log($e->getMessage());
-				}
-			}
-		}
-	}
-
 }
