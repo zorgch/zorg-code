@@ -1,6 +1,6 @@
 <?php
 /**
- * Strings die im Zorg Code benutzt werden
+ * Strings die im zorg Code benutzt werden
  * • Format: 'platzhalter' => 'string durch den der platzhalter ersetzt wird'
  * • Struktur:
  * - Array
@@ -49,27 +49,46 @@ return
 		]
 	,'user' =>
 		[
-			 'lockout-notice' => 'Du bist ausgesperrt! (bis %s)'
+			 'error-userprofile-nochange' => 'Fehler beim Aktualisieren des Userprofil. Oder es gab gar keine Änderungen am Profil.'
+			,'error-userprofile-update' => 'Userprofil update FAILED. Sie sorry, aber äääh...'
+			,'error-lockout-date' => 'Ungültiges aussperren-Datum: %s'
+			,'error-lockout-status' => 'Leider hat es mit dem aussperren nicht geklappt. So eifach chunsch üs nöd devo...'
+			,'error-userpw-update' => 'Passwort konnte nicht aktualisiert werden. Probiers nomel bitte.'
+			,'error-userpic-name' => 'Der "name"-Wert des übertragenen Bildes fehlt oder konnte nicht gelesen werden.'
+			,'error-userpic-upload' => 'Das Bild konnte nicht übertragen werden. Probiers nomel, bitte.'
+			,'error-userpic-permissions' => 'Bild konnte nicht bearbeitet werden.'
+			,'error-userpic-archive' => 'Original Bild konnte nicht archiviert werden.'
+			,'error-userpictn-archive' => 'Thumbail Bild konnte nicht archiviert werden.'
 			,'account-inactive' => 'Dein Account wurde noch nicht aktiviert'
 			,'account-activated' => 'Dein Account wurde erfolgreich aktiviert!'
 			,'authentication-failed' => 'Benutzer/Passwort Kombination falsch!'
-			,'invalid-id' => '<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - Zorg.ch">Bugtracker</a>.</strong><br />You will contribute making Zorg more secure and stable :) Thanks!</p>'
-			,'invalid-email' => 'E-Mail Adresse ist ung&uuml;ltig!'
+			,'invalid-cookie' => 'Dein Browser-Cookie für den zorg Login wurde kompromittiert! Bitte nochmals neu einloggen.'
+			,'invalid-id' => '<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - zorg.ch">Bugtracker</a>.</strong><br>You will contribute making zorg more secure and stable :) Thanks!</p>'
+			,'invalid-email' => 'E-Mailadresse ist ungültig! (wotsch wieder cheatä ?)'
 			,'invalid-username' => 'Username ist ung&uuml;ltig!'
 			,'invalid-regcode' => 'Ungültiger Aktivierungscode!'
+			,'invalid-userpw-match' => 'Du hast dich vertippt, bitte wiederholen! (tippä chasch au nö?)'
+			,'invalid-userpw-old' => 'Das alte Passwort ist falsch! (bisch du däne, hai echt)'
+			,'invalid-userpw-missing' => 'Alle Passwort-Felder müssen zum ändern ausgefüllt werden! (ähä)'
+			,'invalid-userpic-format' => 'Dies ist kein JPEG Bild! (muäsch nöd meinä!)'
+			,'lockout-notice' => 'Du bist ausgesperrt! (bis %s)'
+			,'user-wird-geaechtet' => '%s wird zur Zeit geächtet - weil er sich selber <strong>ausgesperrt</strong> hat. Tz-tz-tz...'
 			,'newpass-confirmation' => 'Ein neues Passwort wurde generiert und Dir zugestellt!'
 			,'account-confirmation' => 'Dein Account wurde erfolgreich erstellt, Du wirst in k&uuml;rze eine E-Mail mit weiteren Informationen bekommen!'
+			,'new-userpw-confirmation' => 'Dein Passwort wurde erfolgreich geändert!'
+			,'userprofile-change-ok' => 'Änderungen wurden erfolgreich gespeichert!'
+			,'userpic-change-ok' => 'Änderungen wurden erfolgreich gespeichert!'
 			,'message-newaccount-subject' => SITE_HOSTNAME . ' Benutzerdaten'
-			,'message-newaccount' =>  "Willkommen auf Zorg!\n
+			,'message-newaccount' =>  "Willkommen auf zorg!\n
 			 							Du hast erfolgreich einen Account erstellt mit folgendem Benutzernamen: %s\n\n
 										Wir bitten Dich deinen Account noch <b>freizuschalten</b>, bevor Du dich das erste mal anmelden kannst. Dazu musst du lediglich folgendem Link aufrufen:\n
 										%s/profil.php?menu_id=13&regcode=%s\n\n
-										Vielen Dank & viel Spass auf Zorg!"
+										Vielen Dank & viel Spass auf zorg!"
 			,'message-newpass-subject' => 'Neues Passwort'
 			,'message-newpass' => "Neues Passwort für den Benutzer: %s\n
 									Passwort: %s\n\n
 									Dieses Passwort kannst du auf unserer Website unter mein Profil wieder ändern.\n
-									Wir wünschen Dir weiterhin viel Spass auf Zorg!"
+									Wir wünschen Dir weiterhin viel Spass auf zorg!"
 			,'activity-newuser' => ', willkommen auf zorg!'
 		]
 	,'messagesystem' =>
@@ -97,10 +116,14 @@ return
 		]
 	,'commenting' =>
 		[
-			 'invalid-parent_id' => 'Parent ID ist ungültig.'
-			,'invalid-thread_id' => 'Thread ID ist ungültig.'
+			 'invalid-parent_id' => 'Die Parent ID existiert nicht oder ist ungültig.'
+			,'invalid-thread_id' => 'Thread ID fehlt oder ist ungültig.'
 			,'invalid-comment_id' => 'Comment ID ist ungültig.'
 			,'invalid-permissions' => 'Permission denied for posting on thread %s / %d.'
+			,'invalid-comment-no-parentid' => 'Du darfst per Edit keine neuen Threads erstellen'
+			,'invalid-comment-edit-permissions' => 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!'
+			,'invalid-comment-empty' => 'Leere Posts sind nicht erlaubt!'
+			,'error-missing-board' => 'Board nicht angegeben!'
 			,'activity-newcomment' =>  'hat <a href="%1$s%2$s">einen %3$s Comment</a> geschrieben:<br>
 										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'
 			,'message-newcomment-subject' => 'Du wurdest von %s in einem Comment erwähnt'
@@ -110,19 +133,23 @@ return
 			,'message-newcomment-subscribed-subject' => 'Neuer Reply von %s zum Post #%d'
 			,'message-newcomment-subscribed' => '%s hat einen Post commented welchen Du abonniert hast:
 												<p><a href="%s">%s &raquo;</a></p>'
+			,'message-commentupdate-subject' => 'Du wurdest von %s bei einem Comment-Edit erwähnt'
+			,'message-commentupdate' => '%s hat Dich in einem bearbeiteten Comment erwähnt:<br>
+										 <p><i>%s</i></p>
+										 <a href="%s">→ Comment lesen</a>'
 		]
 	,'tpl' =>
 		[
-			 'created' =>  'Neue Seite wurde erstellt. ID: %d.<br />'
-			,'updated' => "Seite '%d' erfolgreich aktualisiert.<br />"
-			,'deleted' => "Seite '%d' wurde <strong>gelöscht</strong>.<br />"
-			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br />'
-			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br />'
-			,'invalid-border' => 'Ungültiger Rahmen-Typ.<br />'
-			,'error-empty' => 'Bitte keine leeren Seiten. <br />'
+			 'created' =>  'Neue Seite wurde erstellt. ID: %d.<br>'
+			,'updated' => "Seite '%d' erfolgreich aktualisiert.<br>"
+			,'deleted' => "Seite '%d' wurde <strong>gelöscht</strong>.<br>"
+			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br>'
+			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br>'
+			,'invalid-border' => 'Ungültiger Rahmen-Typ.<br>'
+			,'error-empty' => 'Bitte keine leeren Seiten. <br>'
 			,'error-word-toolong' => "Word '%s' ist zu lang. Max. 30 Zeichen!<br/>"
-			,'error-word-validation' => "Ungültige Zeichen im Word '%s'. Erlaubt sind nur: a-z, A-Z, 0-9, _, -<br />"
-			,'error-package-missing' => 'Package <i>%s</i> existiert nicht.<br />'
+			,'error-word-validation' => "Ungültige Zeichen im Word '%s'. Erlaubt sind nur: a-z, A-Z, 0-9, _, -<br>"
+			,'error-package-missing' => 'Package <i>%s</i> existiert nicht.<br>'
 			,'activity-newpage' =>  'hat die Seite <a href="/tpl/%d">%s</a> erstellt.'
 		]
 	,'gallery' =>
@@ -130,13 +157,19 @@ return
 			 'error-not-logged-in' =>  '<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
 			 							<p>Bitte logge Dich ein oder <a href="%s/profil.php?do=anmeldung&menu_id=13">erstelle einen neuen Benutzer</a></p>'
 			,'permissions-insufficient' => 'Permission denied for <code>%s</code>'
+			,'telegram-dailypic-notification' => 'Daily Pic: %s [%s]'
 		]
 	,'bugtracker' =>
 		[
 			 'buglist-headline' =>  '<h2 style="text-align:left;">Bugs und Features Liste:</h2>'
 			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen:</h2>'
 			,'newcategory-headline' =>  '<h2>Neue Kategorie adden:</h2>'
-			,'activity-newbug' =>  'hat den Bug <a href="/bug/%d">%s</a> gemeldet.'
+			,'activity-newbug' =>  'hat den Bug <a href="%s/bug/%d">%s</a> gemeldet.'
+			,'message-subject-newbug' => '%s hat den Bug #%d neu erstellt'
+			,'message-subject-reopenbug' => '%s hat den Bug #%d reopened'
+			,'message-subject-resolvedbug' => '%s hat den Bug #%d gelöst'
+			,'message-subject-deniedbug' => '%s hat den Bug #%d denied'
+			,'message-newbug' => 'Bug Details:<br><blockquote><i>%s</i></blockquote><br><a href="%s/bug/%d">&raquo; %s</a>'
 		]
 	,'addle' =>
 		[
@@ -147,11 +180,12 @@ return
 					aus einer vertikalen Linie. Das Spiel ist fertig, wenn ein Spieler kein Feld mehr aus seiner Linie auswählen kann.<br>
 					Die Spielerin Barabara Harris ist eine KI, ihr spielt dabei also gegen den Computer.'
 			,'neue-herausforderung' => 'Ich habe Dich zu <a href="%s/addle.php?show=play&id=%d">einem neuen Addle-Game</a> herausgefordert!'
-			,'next' => '%s ist am Zug'
+			,'next' => '<b>%s</b> ist am Zug'
 			,'message-subject' => '-- Addle Game -- (autom. Nachricht)'
 			,'message-game-finish' => '<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game %s.</a>'
 			,'message-game-unentschieden' => '<a href="%s/addle.php?show=play&id=%d">Unser Addle-Game ging unentschieden aus.</a>'
 			,'message-game-forceclosed' => '<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game %s, weil %s nicht mehr weiter gespielt %s.</a>'
+			,'message-your-turn' => 'Ich habe meinen Addle-Zug gemacht, du bist wieder dran in <a href="%s/addle.php?show=play&amp;id=%d">unserem Addle Spiel</a>'
 			,'unentschieden' => 'unentschieden'
 			,'gewinner' => '%s hat gewonnen.'
 			,'gewinner-dwz' => '%s hat %s DWZ-Punkte gewonnen.'
@@ -159,8 +193,9 @@ return
 	,'hz' =>
 		[
 			 'activity-newgame' => 'hat ein neues Hunting z Spiel auf der Karte %s er&ouml;ffnet.<br/><br/><a href="%s/?tpl=103&amp;game=%d">Am Spiel als Inspector teilnehmen</a>'
-			,'activity-won-mrz' => 'konnt als Mr. Z in <a href="%s/?tpl=103&game=%d">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!'
-			,'activity-won-inspectors' => 'wir haben als Inspectors <a href="%s/?tpl=103&game=%d">in diesem Game</a> Mr. Z erfolgreich festgenommen!'
+			,'activity-won-mrz' => 'konnt als Mr. z in <a href="%s/?tpl=103&game=%d">diesem Hunting z Spiel</a> erfolgreich vor den Inspectors in die Bahamas fl&uuml;chten!'
+			,'activity-won-inspectors-me' => 'wir haben als Inspectors <a href="%s/?tpl=103&game=%d">in diesem Game</a> Mr. z erfolgreich festgenommen!'
+			,'activity-won-inspectors-them' => ' & seine Kumpels haben als Inspectors <a href="%s/?tpl=103&game=%d">in diesem Game</a> Mr. z erfolgreich festgenommen!'
 			,'activity-joingame' => 'ist <a href="%s?tpl=103&game=%d">diesem Hunting z Spiel</a> als Inspector beigetreten.'
 			,'unknown-map' => 'Invalid map "%s"'
 			,'unknown-start' => 'Cannot assign start station in game "%d"'
@@ -169,7 +204,7 @@ return
 			,'message-subject' => '-- Hunting z -- (autom. Nachricht)'
 			,'message-your-turn' => 'Du bist wieder an der Reihe in <a href="%s/?tpl=103&game=%d">unserem Hunting z Spiel</a>.'
 			,'message-game-won-mrz' => 'Du hast <a href="%s/?tpl=103&game=%d">dieses Hunting z Spiel</a> als Mister z <b>gewonnen</b>.'
-			,'message-game-lost-mrz' => 'Du hast <a href="%s/?tpl=103&game=%d">dieses Hunting z Spiel</a> als Mister z <b>gewonnen</b>.'
+			,'message-game-lost-mrz' => 'Du hast <a href="%s/?tpl=103&game=%d">dieses Hunting z Spiel</a> als Mister z <b>verloren</b>.'
 			,'message-game-won-inspectors' => 'Ihr habt <a href="%s/?tpl=103&game=%d">dieses Hunting z Spiel</a> als Inspectors <b>gewonnen</b>.'
 			,'message-game-lost-inspectors' => 'Ihr habt <a href="%s/?tpl=103&game=%d">dieses Hunting z Spiel</a> als Inspectors <b>verloren</b>.'
 		]
@@ -223,5 +258,14 @@ return
 		[
 			 'test' => 'hat eine Test Activity im Bereich %s generiert.'
 			,'telegram-notification' => '<b>%s</b> %s'
+		]
+	,'stockbroker' =>
+		[
+			 'message-subject' => '-- Stockbroker -- (autom. Nachricht)'
+			,'message-stock-warning' => '<p>Stockbroker Warning</p><br><a href="%1$s/?tpl=173&symbol=%2$s">Stock Information für %2$s</a><br>%2$s ist %3$g %4$g (aktueller Kurs: %5$g)'
+		]
+	,'verein_mailer' =>
+		[
+			 'webview-link' => "Diese E-Mail in all it's glory anschauen dooooo:\n%s/verein_mailer.php?mail=%s&user=%s&hash=%s"
 		]
 ];
