@@ -1,4 +1,4 @@
-<?php
+<?php /** @DEPRECATED
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
 
@@ -29,4 +29,4 @@ while($rs = $db->fetch($result)) {
 	$sql = "update user set mail_username = '".$username."', mail_userpw = '".$pass."' where id = ".$rs[id];
 	$db->query($sql, $db);
 }
-?>
+*/

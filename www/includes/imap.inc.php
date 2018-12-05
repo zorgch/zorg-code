@@ -1,5 +1,5 @@
-<?PHP
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+<?php /** @DEPRECATED
+include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php'); */
 class imap {	//IMAP connection handle	
 	var $conn; 	//Mailbox overview handle	
 	var $box;	//IMAP server address	
@@ -302,7 +302,7 @@ class ImapStatic {
 			$html .= "				
 			<input type='text' class='text' name='mailto' size='50' value='"				
 			//.usersystem::id2mailuser($toid)." <".usersystem::id2mailuser($toid)."@zooomclan.org>'>				
-			.usersystem::id2mailuser($toid)."@zooomclan.org'			";		
+			.usersystem::id2mailuser($toid).'@'.SITE_HOSTNAME;
 		} else {			
 			$html .= "				
 			<input type='text' class='text' name='mailto' size='50' value=''>			
@@ -362,4 +362,3 @@ class ImapStatic {
 		return $html;	
 	}
 }
-?>

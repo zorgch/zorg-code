@@ -1,8 +1,8 @@
-<?php
+<?php /** @DEPRECATED
 require_once( __DIR__ .'/includes/main.inc.php');
 
 //echo head(27);
-$smarty->assign('tplroot', array('page_title' => 'Messages'));
+$smarty->assign('tplroot', array('page_title' => 'IMAP Messages'));
 $smarty->display('file:layout/head.tpl');
 if($_SESSION['user_id']) {
 	if($_SESSION['user_id']) {
@@ -50,3 +50,4 @@ if($_SESSION['user_id']) {
 }
 //echo foot(1);
 $smarty->display('file:layout/footer.tpl');
+*/
