@@ -9,27 +9,16 @@ require_once( __DIR__ .'/../includes/events.inc.php');
 
 /** Validate $_GET & $_POST variables */
 $error = NULL;
-if (!empty($_POST['url'])) $redirect_url = base64_decode($_POST['url']);
-if (!empty($_GET['url'])) $redirect_url = base64_decode($_GET['url']);
-if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/?tpl=158'; // tpl=158 = Events page (Fallback)
+if (!empty($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_POST['url'])); // preg_replace = entfernt $error Param
+if (!empty($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_GET['url'])); // preg_replace = entfernt $error Param
+if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/events'; // /events = Events page, tpl=158 (Fallback)
 
 /** Validate & escape event fields for new or edit an event */
-/*
-( isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] >= 0 ? $eventId = $_POST['id'] : $error .= 'Event: invalid Event ID ' . $_POST['id'] );
-( isset($_POST['name']) && !empty($_POST['name']) ? $eventName = escape_text($_POST['name']) : $error .= 'Event: invalid Name ' . $_POST['name'] );
-$eventLocation = ( !empty($_POST['location']) ? escape_text($_POST['location']) : '' );
-$eventLink = ( !empty($_POST['link']) ? escape_text(remove_html($_POST['link'])) : '' );
-$eventReviewlink = ( !empty($_POST['review_url']) ? escape_text(remove_html($_POST['review_url'])) : '' );
-$eventDescription = ( !empty($_POST['description']) ? escape_text($_POST['description']) : '' );
-( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0 ? $eventGallery = $_POST['gallery_id'] : $error .= 'Event: invalid Gallery-ID ' . $_POST['gallery_id'] );
-( isset($_GET['join']) && is_numeric($_GET['join']) && $_GET['join'] >= 0 ? $eventJoinId = $_GET['join'] : $error .= 'Event: invalid Event ID "' . $_GET['join'] . '"' );
-( isset($_GET['unjoin']) && is_numeric($_GET['unjoin']) && $_GET['unjoin'] >= 0 ? $eventUnjoinId = $_GET['unjoin'] : $error .= 'Event: invalid Event ID "' . $_GET['unjoin'] . '"' );
-*/
 if ( isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] >= 0) $eventId = $_POST['id'];
-if ( isset($_POST['name']) && !empty($_POST['name'])) $eventName = escape_text($_POST['name']);
-if ( !empty($_POST['location'])) $eventLocation = escape_text($_POST['location']);
-if ( !empty($_POST['link'])) $eventLink = escape_text(remove_html($_POST['link']));
-if ( !empty($_POST['review_url'])) $eventReviewlink = escape_text(remove_html($_POST['review_url']));
+if ( isset($_POST['name']) && !empty($_POST['name'])) $eventName = sanitize_userinput($_POST['name']);
+if ( !empty($_POST['location'])) $eventLocation = sanitize_userinput($_POST['location']);
+if ( !empty($_POST['link'])) $eventLink = escape_text((filter_var($_POST['link'], FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['link'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['link']:$error='Ungültiger Event-Link'):$_POST['link']));
+if ( !empty($_POST['review_url'])) $eventReviewlink = escape_text((filter_var($_POST['review_url'], FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['review_url'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['review_url']:$error='Ungültige Review-URL'):$_POST['review_url']));
 if ( !empty($_POST['description'])) $eventDescription = escape_text($_POST['description']);
 if ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0) $eventGallery = $_POST['gallery_id'];
 if ( isset($_GET['join']) && is_numeric($_GET['join']) && $_GET['join'] >= 0) $eventJoinId = $_GET['join'];
@@ -38,14 +27,14 @@ if ( isset($_GET['unjoin']) && is_numeric($_GET['unjoin']) && $_GET['unjoin'] >=
 
 switch (true)
 {
-/** Validation Error */
+	/** Validation Error */
 	case (!empty($error)):
 		/** If $error break switch() instantly */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Error: %s', __FILE__, __LINE__, $error));
 		break;
 
 
-/** Add new Event */
+	/** Add new Event */
 	case ($_POST['action'] === 'new'):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Event: %s', __FILE__, __LINE__, $eventName));
 		try {
@@ -54,18 +43,18 @@ switch (true)
 							(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url) 
 						VALUES 
 							(
-								"'.$eventName.'"
-								, "'.$eventLocation.'"
-								, "'.$eventLink.'"
-								, "'.$eventDescription.'"
-								, "'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
-								, "'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
-								, '.$eventGallery.'
-								, '.$user->id.'
-								, now()
-								, "'.$eventReviewlink.'"
+								 "'.$eventName.'"
+								,"'.$eventLocation.'"
+								,"'.$eventLink.'"
+								,"'.$eventDescription.'"
+								,"'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
+								,"'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
+								,'.$eventGallery.'
+								,'.$user->id.'
+								,NOW()
+								,"'.$eventReviewlink.'"
 							)';
-			$db->query($sql, __FILE__, __LINE__);
+			$db->query($sql, __FILE__, __LINE__, 'INSERT INTO events');
 
 			$idNewEvent = mysql_insert_id();
 			$redirect_url .= '&event_id='.$idNewEvent;
@@ -79,7 +68,7 @@ switch (true)
 		break;
 
 
-/** Save updated Event details */
+	/** Save updated Event details */
 	case ($_POST['action'] === 'edit'):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Update Event: %d "%s"', __FILE__, __LINE__, $eventId, $eventName));
 		try {		
@@ -95,37 +84,43 @@ switch (true)
 				 		, review_url = "'.$eventReviewlink.'"
 					WHERE id = '.$eventId
 					;
-			if (!$db->query($sql, __FILE__, __LINE__)) $error = 'Error updating Event ID "' . $eventId . '"';
+			if (DEVELOPMENT) error_log($sql);
+			$result = $db->query($sql, __FILE__, __LINE__, 'edit');
+			if ($result === false) $error = 'Error updating Event ID "' . $eventId . '"';
 
 		} catch (Exception $e) {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR UPDATE events: %s', __FILE__, __LINE__, $e->getMessage()));
 			$error = 'Error: ' . $e->getMessage();
 		}
 		break;
 
 
-/** Join User to Event */
+	/** Join User to Event */
 	case (isset($eventJoinId) && is_numeric($eventJoinId)):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Join Event: %d', __FILE__, __LINE__, $eventJoinId));
 		$redirect_url .= '&event_id='.$eventJoinId;
 		try {
-			$sql = 'INSERT INTO events_to_user VALUES('.$user->id.', "'.$eventJoinId.'")"';
-			if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot join Event ID ' . $eventJoinId;
+			$sql = 'INSERT INTO events_to_user VALUES('.$user->id.', '.$eventJoinId.')';
+			if (!$db->query($sql,__FILE__, __LINE__)) {
+				$error = 'Cannot join Event ID ' . $eventJoinId;
+				break;
+			} else {
+				/** Activity Eintrag auslösen */
+				Activities::addActivity($user->id, 0, 'nimmt an <a href="'.$redirect_url.'">'.Events::getEventName($eventJoinId).'</a> teil.', 'ev');
+			}
 
-			/** Activity Eintrag auslösen */
-			Activities::addActivity($user->id, 0, 'nimmt an <a href="'.$redirect_url.'">'.Events::getEventName($eventJoinId).'</a> teil.', 'ev');
-			
 		} catch (Exception $e) {
 			$error = 'Error: ' . $e->getMessage();
 		}
 		break;
 
 
-/** Unjoin User from Event */
+	/** Unjoin User from Event */
 	case (isset($eventUnjoinId) && is_numeric($eventUnjoinId)):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Unjoin Event: %d', __FILE__, __LINE__, $eventUnjoinId));
 		$redirect_url .= '&event_id='.$eventUnjoinId;
 		try {
-			$sql = 'DELTE FOM events_to_user WHERE user_id = '.$user->id.'" AND event_id = '.$eventUnjoinId;
+			$sql = 'DELETE FROM events_to_user WHERE user_id = '.$user->id.' AND event_id = '.$eventUnjoinId;
 			if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot unjoin Event ID ' . $eventUnjoinId;
 		} catch (Exception $e) {
 			$error = 'Error: ' . $e->getMessage();
@@ -133,7 +128,7 @@ switch (true)
 		break;
 
 
-/** Post Event to Twitter */
+	/** Post Event to Twitter */
 	case ($_POST['action'] === 'tweet'):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Tweet Event: %s', __FILE__, __LINE__, $redirect_url));
 
@@ -184,13 +179,13 @@ switch (true)
 		} else {
 			$errormsg = 'Twitter API Keys: ERROR - file missing';
 			$error = $errormsg;
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ' . $errormsg, __FILE__, __LINE__));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $errormsg: %s', __FILE__, __LINE__, $errormsg));
 		}
 		break;
 
-} // end switch()
+}
 
 /** Redirect request */
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting to %s' . $redirect_url . $error, __FILE__, __LINE__));
+if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting to %s', __FILE__, __LINE__, $redirect_url.rawurlencode($error)));
 header('Location: ' . $redirect_url . ( !empty($error) ? '&error='.rawurlencode($error) : '') );
 exit;
