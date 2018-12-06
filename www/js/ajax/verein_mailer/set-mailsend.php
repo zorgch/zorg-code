@@ -45,7 +45,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 			//$recipientEmail = $user->id2useremail($recipient_id); //--> fails when user has disabled 'email_notification'
 			$recipientEmailQuery = 'SELECT email FROM user WHERE id = ' . $recipient_id;
 			$recipientEmailResult = $db->fetch($db->query($recipientEmailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
-			$recipientEmail = $recipientEmailResult['email'];
+			$recipientEmail = trim($recipientEmailResult['email']); // trim() removes any unwanted whitespaces left or right of e-mail, danke duke...
 		} catch(Exception $e) {
 			error_log($e->getMessage());
 			http_response_code(500); // Set response code 500 (internal server error)
