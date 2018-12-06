@@ -13,24 +13,24 @@ if(!isset($_GET['action']) || empty($_GET['action']) || ( $_GET['action'] != 'sa
  */
 require_once( __DIR__ .'/../../../includes/config.inc.php');
 require_once( __DIR__ .'/../../../includes/mysql.inc.php');
+require_once( __DIR__ .'/../../../includes/main.inc.php');
 
 /**
  * Compile template & save or update it into the database
  */
-try {
-	/** Compile the template */
-	$smarty->assign('mail_param', $_POST['template_id']);
-	$smarty->assign('user_param', $user->id);
-	$smarty->assign('hash_param', md5($_POST['template_id'] . $user->id) );
-	$leMailTemplate = 'email/verein/verein_htmlmail.tpl';
-	//$leTemplateInclude = "{include file='file:$leMailTemplate'}";
-	$compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);
+$smarty->assign('mail_param', $_POST['template_id']);
+$smarty->assign('user_param', $user->id);
+$smarty->assign('hash_param', md5($_POST['template_id'] . $user->id) );
+$leMailTemplate = 'email/verein/verein_htmlmail.tpl';
+//$leTemplateInclude = "{include file='file:$leMailTemplate'}";
+$compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);
 
-	if ( $_GET['action'] == 'update' && !empty($_POST['template_id']) && is_numeric($_POST['template_id']) )
-	{
-		/**
-		 * Update existing Template
-		 */
+if ( $_GET['action'] == 'update' && !empty($_POST['template_id']) && is_numeric($_POST['template_id']) )
+{
+	/**
+	 * Update existing Template
+	 */
+	try {
 		error_log('[INFO] Updating existing Mail Template ' . $_POST['template_id']);
 		$updateTplQuery = 'INSERT INTO templates (id, tpl, title, page_title, last_update, update_user)
 							VALUES (
@@ -49,17 +49,23 @@ try {
 								,last_update = VALUES(last_update)
 								,update_user = VALUES(update_user)';
 		$tplid = $db->query($updateTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
+	} catch(Exception $e) {
+		http_response_code(500); // Set response code 500 (internal server error)
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Updating existing Mail Template', __FILE__, __LINE__));
+		echo $e->getMessage();
+	}
 
-		/**
-		 * Update existing E-Mail message entry
-		 */
+	/**
+	 * Update existing E-Mail message entry
+	 */
+	try {
 		error_log('[INFO] Updating E-Mail message entry for ' . $tplid);
 		$updateMailQuery = 'UPDATE verein_correspondence SET
 					 subject_text = "'.escape_text($_POST['text_mail_subject']).'"
 					,preview_text = "'.escape_text($_POST['text_mail_description']).'"
 					,message_text = "'.escape_text($_POST['text_mail_message']).'"
 					WHERE template_id = '.$tplid.' AND recipient_id = '.VORSTAND_USER;
-
+	
 		if ( $db->query($updateMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)') )
 		{
 			http_response_code(200); // Set response code 200 (OK)
@@ -68,36 +74,50 @@ try {
 			http_response_code(500); // Set response code 500 (internal server error)
 			die('Template could not be updated');
 		}
+	} catch(Exception $e) {
+		http_response_code(500); // Set response code 500 (internal server error)
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Updating E-Mail message entry', __FILE__, __LINE__));
+		echo $e->getMessage();
+	}
 
-	} elseif ( $_GET['action'] == 'save' ) {
-		/**
-		 * Save new Template
-		 *
-		 * border '0' = No Border
-		 * read_rights '2' = USER_MEMBER
-		 */
+} elseif ( $_GET['action'] == 'save' ) {
+	/**
+	 * Save new Template
+	 *
+	 * border '0' = No Border
+	 * read_rights '2' = USER_MEMBER
+	 */
+	try {
 		error_log('[INFO] Saving a new Mail Template');
 		$insertTplQuery = 'INSERT INTO templates SET
 							 tpl = "'.escape_text($compiledMailTpl).'"
 							,title = "'.escape_text($_POST['text_mail_subject']).'"
 							,page_title = "'.escape_text($_POST['text_mail_subject']).'"
-							,border = 0
+							,border = "0"
 							,owner = '.VORSTAND_USER.'
 							,read_rights = 2
 							,write_rights = 3
 							,created = NOW()
 							,last_update = NOW()
 							,update_user = '.$user->id;
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Saving a new Mail Template: %s', __FILE__, __LINE__, $insertTplQuery));
 		$tplid = $db->query($insertTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
+	} catch(Exception $e) {
+		http_response_code(500); // Set response code 500 (internal server error)
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Saving a new Mail Template', __FILE__, __LINE__));
+		echo $e->getMessage();
+	}
 
-		if (empty($tplid) || $tplid === 0)
-		{
-			http_response_code(500); // Set response code 500 (internal server error)
-			die('Template could not be created');
-		} else {
-			/**
-			 * Create new E-Mail message entry
-			 */
+	if (empty($tplid) || $tplid === 0)
+	{
+		http_response_code(500); // Set response code 500 (internal server error)
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Template could not be created', __FILE__, __LINE__));
+		die('Template could not be created');
+	} else {
+		/**
+		 * Create new E-Mail message entry
+		 */
+		try {
 			error_log('[INFO] Creating a new E-Mail message entry for ' . $tplid);
 			$insertMailQuery = 'INSERT INTO verein_correspondence SET
 						 communication_type = "EMAIL"
@@ -108,18 +128,18 @@ try {
 						,sender_id = '.$user->id.'
 						,recipient_id = '.VORSTAND_USER;
 			$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
-
-			http_response_code(200); // Set response code 200 (OK)
-			echo $tplid;
+		} catch(Exception $e) {
+			http_response_code(500); // Set response code 500 (internal server error)
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Creating a new E-Mail message entry', __FILE__, __LINE__));
+			echo $e->getMessage();
 		}
 
-	} else {
-		http_response_code(403); // Set response code 403 (forbidden) and exit.
-		die('Method not allowed');
+		http_response_code(200); // Set response code 200 (OK)
+		echo $tplid;
 	}
 
-}
-catch(Exception $e) {
-	http_response_code(500); // Set response code 500 (internal server error)
-	echo $e->getMessage();
+} else {
+	http_response_code(403); // Set response code 403 (forbidden) and exit.
+	if (DEVELOPMENT) error_log('Method not allowed');
+	die('Method not allowed');
 }

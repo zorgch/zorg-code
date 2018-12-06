@@ -59,7 +59,7 @@
             <table class="header" style="height: 55px; margin: 0px; width: 100%; text-align:center;">
               <tr>
                 <td align="left">
-                  <h1 style="margin:0; mso-line-height-rule:exactly; padding-left:10px;"><a href="{$smarty.const.SITE_URL}" style="color: #ffffff; white-space:nowrap;">Zorg.ch</a></h1>
+                  <h1 style="margin:0; mso-line-height-rule:exactly; padding-left:10px;"><a href="{$smarty.const.SITE_URL}" style="color: #ffffff; white-space:nowrap;">{$smarty.const.SITE_HOSTNAME}</a></h1>
                 </td>
 
                 <td align="center" style="font-size: x-small;" width="40%">
@@ -121,5 +121,5 @@
           <div align="center" valign="top" style="margin: 0px 40px;"></div>
 
           <div class="menu" align="center" width="100%">
-            <a class="left">&nbsp;</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein"><b>Zorg Verein</b></a><a class="navlink" href="{$smarty.const.SITE_URL}/page/vereinsvorstand">Vorstand</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/gv">GV</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein-statuten">Statuten</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein-overview">Protokolle</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/vereinskonto">Konto</a><a class="right">&nbsp;</a>
+            <a class="left">&nbsp;</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein"><b>zorg Verein</b></a><a class="navlink" href="{$smarty.const.SITE_URL}/page/vereinsvorstand">Vorstand</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/gv">GV</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein-statuten">Statuten</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/verein-overview">Protokolle</a><a class="navlink" href="{$smarty.const.SITE_URL}/page/vereinskonto">Konto</a><a class="right">&nbsp;</a>
           </div>
