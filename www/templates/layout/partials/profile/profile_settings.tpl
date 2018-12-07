@@ -97,10 +97,11 @@
 			<h3>Userinformationen</h3>
 			{assign_array var='usertypes' value="array(0 => array('group' => 'Nicht eingeloggt', 'badge' => 'badge-secondary'), 1 => array('group' => 'Normaler User', 'badge' => 'badge-primary'), 2 => array('group' => 'Schöne', 'badge' => 'badge-success'))"}
 			{assign var='usertype' value=$user->typ}
-			<span class="badge {$usertypes[$usertype].badge}">{$usertypes[$usertype].group}</span></h4>
-			{if $user->z_gremium}<span class="badge badge-dark">[z] Gremium</span></h4>{/if}
-			{if $user->vereinsmitglied}<span class="badge badge-primary">zorg Verein {$user->vereinsmitglied}</span>{else}<a href="/page/verein" target="_blank" class="badge badge-secondary">kein zorg Vereinsmitglied</a>{/if}</h4>
-			{if $user->typ >= 2}<a href="/page/sql-query-tracker" target="_blank" class="badge {if $user->sql_tracker === '1'}badge-info">SQL-Query Tracker ON{else}badge-secondary">SQL-Query Tracker OFF{/if}</a></h4>{/if}
+			<span class="badge badge-info">ID: {$user->id}</span>
+			<span class="badge {$usertypes[$usertype].badge}">{$usertypes[$usertype].group}</span>
+			{if $user->z_gremium}<span class="badge badge-dark">[z] Gremium</span>{/if}
+			{if $user->vereinsmitglied}<span class="badge badge-primary">zorg Verein {$user->vereinsmitglied}</span>{else}<a href="/page/verein" target="_blank" class="badge badge-secondary">kein zorg Vereinsmitglied</a>{/if}
+			{if $user->typ >= 2}<a href="/page/sql-query-tracker" target="_blank" class="badge {if $user->sql_tracker === '1'}badge-info">SQL-Query Tracker ON{else}badge-secondary">SQL-Query Tracker OFF{/if}</a>{/if}
 		</div>
 	</div>
 	<div class="row pad-b-xl">
