@@ -134,14 +134,24 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
 						write_rights, force_compile, border FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
 		$_TPLROOT = $db->fetch($e);
-		if ($_GET['word']) $_GET['tpl'] = $_TPLROOT['id'];
-		$smarty->assign('tplroot', $_TPLROOT);
+		if (!empty($_GET['word'])) $_GET['tpl'] = $_TPLROOT['id'];
+		if (!empty($_TPLROOT['title']) && $_TPLROOT['title'] !== null) $_TPLROOT['page_title'] = $_TPLROOT['title']; // HTML Page Title
+		if (!empty($_TPLROOT['word']) && $_TPLROOT['word'] !== null) $_TPLROOT['page_link'] = '/page/'.$_TPLROOT['word']; // Canonical URL
+		else $_TPLROOT['page_link'] = '/tpl/'.$_TPLROOT['id'];
 
 		/** Events special... */
-		if ($_TPLROOT['id'] == 158 && !empty($_GET['event_id'])) {
-			$_TPLROOT['page_title'] = Events::getEventName($_GET['event_id']);
-			$_TPLROOT['page_link'] = Events::getEventLink($_GET['event_id']);
+		if ($_TPLROOT['id'] == 158) {
+			if (!empty($_GET['event_id'])) {
+				$_TPLROOT['page_title'] = Events::getEventName($_GET['event_id']);
+				$_TPLROOT['page_link'] = Events::getEventLink($_GET['event_id']);
+			} else {
+				$_TPLROOT['page_link'] = '/events/';
+			}
 		}
+		
+		/** Home(page) special... */
+		if ($_TPLROOT['word'] === 'home' || $_TPLROOT['id'] === 23) $_TPLROOT['page_link'] = ' ';
+
 		$smarty->assign('tplroot', $_TPLROOT);
 	}
 	catch (Exception $e) {

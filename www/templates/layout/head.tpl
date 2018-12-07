@@ -1,7 +1,6 @@
 <!DOCTYPE html>
-{if $sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}
 <html lang="de">
-	<head>
+	<head>{if $sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="geo.position" content="47.4233;9.37">
@@ -39,7 +38,7 @@
 		<script type="text/javascript" src="{$smarty.const.JS_DIR}zorg.js"></script>
 		<script src="{$smarty.const.JS_DIR}highlight-js/highlight.pack.js"></script>
 		<link class="codestyle" rel="stylesheet" href="{$smarty.const.JS_DIR}highlight-js/styles/github-gist.css">
-
+		
 		<!-- RSS Feeds -->
 		<link rel="alternate" type="application/rss+xml" title="RSS{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum" />
 		<link rel="alternate" type="application/rss+xml" title="Forum Feed{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum&board=f" />
@@ -48,7 +47,7 @@
 		<link rel="alternate" type="application/rss+xml" title="Rezepte Feed{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum&board=r" />
 		<link rel="alternate" type="application/rss+xml" title="Neuste Activities{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=activities" />
 		
-		{if $tplroot.page_link != ''}
+		{if $tplroot.page_link != '' || $tplroot.word == 'home' || $tplroot.id == 23}
 		<!-- SEO -->
 		<link rel="canonical" href="{$smarty.const.SITE_URL}{$tplroot.page_link}" />
 		{/if}

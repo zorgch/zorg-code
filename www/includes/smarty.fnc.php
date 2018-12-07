@@ -42,22 +42,6 @@ $color = array(
 	'menu2'				=> MENUCOLOR2
 );
 
-function var_online_users ()
-{
-	global $db;
-
-	$online_users = array();
-	$sql = 'SELECT id FROM user
-			WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - '.USER_TIMEOUT.')
-			ORDER by activity DESC';
-	$e = $db->query($sql, __FILE__, __LINE__);
-
-	while ($d = mysql_fetch_row($e)) {
-		array_push($online_users, $d[0]);
-	}
-	return $online_users;
-}
-
 function var_request ()
 {
    return array("page" => $_SERVER['PHP_SELF'],
@@ -550,9 +534,7 @@ function var_request ()
  *
  * PHP Functions to be used in Smarty Templates
  */
-	/**
-	 * Stockbroker
-	 */
+/** Stockbroker */
 	function stockbroker_assign_stocklist($params, &$smarty) {
 		$smarty->assign("stocklist", Stockbroker::getStocklist($params['anzahl'], $params['page']));
 		//{assign_stocklist anzahl=100 page=$smarty.get.page}
@@ -575,9 +557,7 @@ function var_request ()
 		return Stockbroker::getKurs($params['symbol']);
 	}
 
-	/**
-	 * Tauschbörse
-	 */
+/** Tauschbörse */
 	function smarty_num_new_tauschangebote ($params, &$smarty) {
 		if (isset($user->lastlogin)) {
 			$result = $db->query(
@@ -610,9 +590,22 @@ function var_request ()
 		$smarty->assign("artikel", $rs);
 	}
 
-	/**
-	 * Usersystem
-	 */
+/** Usersystem */
+	function var_online_users ()
+	{
+		global $db;
+	
+		$online_users = array();
+		$sql = 'SELECT id FROM user
+				WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - '.USER_TIMEOUT.')
+				ORDER by activity DESC';
+		$e = $db->query($sql, __FILE__, __LINE__);
+	
+		while ($d = mysql_fetch_row($e)) {
+			array_push($online_users, $d[0]);
+		}
+		return $online_users;
+	}
 	function smarty_FormFieldUserlist($params) {
 		return usersystem::getFormFieldUserlist($params['name'], $params['size']);
 	}
@@ -621,9 +614,7 @@ function var_request ()
 		return usersystem::online_users($params['images']);
 	}
 
-	/**
-	 * Addle
-	 */
+/** Addle */
     function smarty_addle_highscore ($params) {
 	    // wrapper function for addle highscore
         if (!isset($params['anzahl'])) $params['anzahl'] = 5;
@@ -634,24 +625,18 @@ function var_request ()
       return highscore_dwz($params[anzahl]);
     }*/
 
-	/**
-	 * Peter
-	 */
-	function smarty_peter ($params, &$smarty) {
+/** Peter */
+function smarty_peter ($params, &$smarty) {
 		$smarty->assign('peter_zuege', peter::peter_zuege());
 	}
 
-	/**
-	 * Shoot the Lamber
-	 */
+/** Shoot the Lamber */
 	function smarty_stl_games ($params, &$smarty) {
 		$smarty->assign('stl_shots', stl::getOpenSTLLink());
 		$smarty->assign('stl_open_games', stl::getOpenSTLGames());
 	}
 
-    /**
-	 * Quotes
-	 */
+/** Quotes */
     function smarty_getrandomquote ($params) {
 	   return Quotes::getRandomQuote();
 	}
@@ -659,24 +644,18 @@ function var_request ()
 		return Quotes::getDailyQuote();
 	}
 
-    /**
-	 * Polls
-	 */
+/** Polls */
 	function smarty_poll ($params) {
 		return getPoll($params['id']);
 	}
 
-	/**
-	 * APOD
-	 */
+/** APOD */
 	function smarty_apod ($params, &$smarty) {
 		$rs = get_apod_id();
 		return formatGalleryThumb($rs);
 	}
 
-	/**
-	 * Events
-	 */
+/** Events */
 	function smarty_assign_yearevents($params, &$smarty) {
 		$smarty->assign("yearevents", Events::getEvents($params['year']));
 	}
@@ -695,9 +674,7 @@ function var_request ()
 		return Events::hasJoined($user->id, $params['event_id']);
 	}
 
-	/**
-	 * Rezepte
-	 */
+/** Rezepte */
 	function smarty_assign_rezepte ($params, &$smarty) {
 		$smarty->assign("rezepte", Rezepte::getRezepte($params['category']));
 	}
@@ -712,19 +689,21 @@ function var_request ()
 		$smarty->assign("rezept_score", Rezepte::getScore($params['rezept_id']));
 	}
 
-	/**
-	 * SQL Errors
-	 */
+/** SQL Errors */
     function smarty_sql_errors($params) {
  		return  get_sql_errors($params['num'],$params['order'],$params['oby']);
 	}
 
+/**
+ * URL Handling
+ */
 	/**
-	 * URL Handling
+	 * URL to a template called by smarty.php
+	 *
+	 * if parameter button is set, the link is shown as a button.
 	 */
-	function smarty_link ($params) {
-		// url to a template called by smarty.php;
-	    // if parameter button is set, the link is shown as a button.
+	function smarty_link ($params)
+	{
 	 	global $smarty;
 	 	$vars = $smarty->get_template_vars();
 
@@ -765,16 +744,16 @@ function var_request ()
 		else return $checkUrl;
 	}
 
-	/**
-	 * HTML
-	 */
+/**
+ * HTML
+ */
     function smarty_space ($params) { // inserts &nbsp;
         return str_repeat('&nbsp;', $params[i]);
     }
 
-    /**
-	 * String, Integer, Date and Array Functions
-	 */
+/**
+ * String, Integer, Date and Array Functions
+ */
 	function smarty_sizeof ($params) {
 		return sizeof($params['array']);
 	}
@@ -790,9 +769,9 @@ function var_request ()
 		else return $z;
 	}
 
-    /**
-	 * Files
-	 */
+/**
+ * Files
+ */
 	function smarty_gettext ($params, &$smarty) { // Read contents from a textfile on the Server
 		global $db;
 
@@ -840,9 +819,9 @@ function var_request ()
 		return $out;
 	}
 
-	/**
-	 * Commenting System und Forum Threads
-	 */
+/**
+ * Commenting System und Forum Threads
+ */
 	function smarty_commentingsystem($params) {
 		Forum::printCommentingSystem($params['board'], $params['thread_id']);
 	}
@@ -978,9 +957,9 @@ function var_request ()
 	  return $html;
 	}
 
-	/**
-	 * Menu
-	 */
+/**
+ * Menu
+ */
 	function smarty_menu ($params, &$smarty) {
 		global $db, $user;
 
@@ -1009,65 +988,66 @@ function var_request ()
 			}
 		}
 	}
-		function smarty_menuname_exec ($name) {
-			global $db, $smarty;
 
-			$vars = $smarty->get_template_vars();
-			$tpl = $vars['tpl']['id'];
+	function smarty_menuname_exec ($name) {
+		global $db, $smarty;
 
-			$name = htmlentities($name, ENT_QUOTES);
-			$name = explode(' ', $name);
+		$vars = $smarty->get_template_vars();
+		$tpl = $vars['tpl']['id'];
 
-			for ($i=0; $i<sizeof($name); $i++) {
-				if ($it) {
-					$menu = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$name[$i].'"', __FILE__, __LINE__, __METHOD__));
-					if ($menu && $menu['tpl_id'] != $tpl) return 'Menuname "'.$name[$i].'" existiert schon und wurde nicht registriert.<br />';
-					unset($name[$i]);
-				}
+		$name = htmlentities($name, ENT_QUOTES);
+		$name = explode(' ', $name);
+
+		for ($i=0; $i<sizeof($name); $i++) {
+			if ($it) {
+				$menu = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$name[$i].'"', __FILE__, __LINE__, __METHOD__));
+				if ($menu && $menu['tpl_id'] != $tpl) return 'Menuname "'.$name[$i].'" existiert schon und wurde nicht registriert.<br />';
+				unset($name[$i]);
 			}
-
-			$db->query('DELETE FROM menus WHERE tpl_id="'.$tpl.'"', __FILE__, __LINE__, __METHOD__);
-			foreach ($name as $it) {
-				$db->query('INSERT INTO menus (tpl_id, name) VALUES ("'.$tpl.'", "'.$it.'")', __FILE__, __LINE__, __METHOD__);
-			}
-			return '';
 		}
-		
-		/**
-		 * Smarty Array "$smarty_menus"
-		 *
-		 * Returns all Smarty Menus (Smarty-Menutemplates) as an Array
-		 * Usage: {$smarty_menus}
-		 *
-		 * @author IneX
-		 * @version 1.0
-		 * @since 1.0 30.09.2018 method added
-		 */
-		function smarty_get_menus()
-		{
-			global $db;
 
-			try {
-				$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
-				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-				if (!empty($result) && $result !== false)
-				{
-					while ($menuTemplate = $db->fetch($result)) $menus[] = $menuTemplate;
-					return $menus;
-					//$smarty->assign('smarty_menus', $menus);
-				} else {
-					return false;
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
+		$db->query('DELETE FROM menus WHERE tpl_id="'.$tpl.'"', __FILE__, __LINE__, __METHOD__);
+		foreach ($name as $it) {
+			$db->query('INSERT INTO menus (tpl_id, name) VALUES ("'.$tpl.'", "'.$it.'")', __FILE__, __LINE__, __METHOD__);
+		}
+		return '';
+	}
+	
+	/**
+	 * Smarty Array "$smarty_menus"
+	 *
+	 * Returns all Smarty Menus (Smarty-Menutemplates) as an Array
+	 * Usage: {$smarty_menus}
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 30.09.2018 method added
+	 */
+	function smarty_get_menus()
+	{
+		global $db;
+
+		try {
+			$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			if (!empty($result) && $result !== false)
+			{
+				while ($menuTemplate = $db->fetch($result)) $menus[] = $menuTemplate;
+				return $menus;
+				//$smarty->assign('smarty_menus', $menus);
+			} else {
 				return false;
 			}
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
 		}
+	}
 
 
-	/**
-	 * Gallery
-	 */
+/**
+ * Gallery
+ */
 	function smarty_assign_users_on_pic ($params, &$smarty) {
 		$smarty->assign("users_on_pic", Gallery::getUsersOnPic($params['picID']));
 	}
@@ -1115,9 +1095,9 @@ function var_request ()
 		}
 
 
-	/**
-	 * Chat
-	 */
+/**
+ * Chat
+ */
 	/*function smarty_chat() { Inaktiv?! IneX, 2.5.09
   	return Chat::getInterfaceHTML();
 	}*/
