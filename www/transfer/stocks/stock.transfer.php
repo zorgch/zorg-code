@@ -1,8 +1,6 @@
-<?PHP
-include($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
-include($_SERVER['DOCUMENT_ROOT']."/includes/stock.inc.php");
-
-
+<?php
+include(__DIR__ .'/../../../www/includes/main.inc.php');
+include(__DIR__ .'/../../../www/includes/stock.inc.php');
 
 $file = join("",file("swx_swiss_shares_reference_data"));
 $file_array = explode("\n",$file);
@@ -35,10 +33,7 @@ $file_array = explode(";",$file);
 $file_array = array_unique($file_array);
 $file_array = array_filter($file_array,"more");
 
-
-
 /*
-
 foreach($file_array as $key => $val) {
 	$sym = str_replace("\"\"","",$val);
 	if(substr_count($sym,",") && $key != 0) {
@@ -61,7 +56,4 @@ foreach($file_array as $key => $val) {
 		}
 	}
 }
-/*
-
 */
-?>

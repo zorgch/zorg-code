@@ -1,6 +1,6 @@
 <?php /** @DEPRECATED
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+include_once(__DIR__ .'/../../www/includes/mysql.inc.php');
+include_once(__DIR__ .'/../../www/includes/util.inc.php');
 
 function createpass($len=23) {
 	for($i=1;$i<=$len;$i++)	{

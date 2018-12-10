@@ -19,7 +19,7 @@
  * @see /includes/usersystem.inc.php, /templates/layout/pages/profile_page.tpl
  * @see Usersystem::$default_notifications, Usersystem::$default_forum_boards_unread
  */
-if ($_GET['pw'] === 'schmelzigel')
+if ($_GET['migration'] === 'start')
 {
 	error_log(sprintf('[INFO] <%s:%d> Starting...', 'users_convert_forum_boards.php', __LINE__));
 
@@ -27,7 +27,7 @@ if ($_GET['pw'] === 'schmelzigel')
 	 * File includes
 	 * @include usersystem.inc.php required
 	 */
-	require_once( __DIR__ .'/../includes/usersystem.inc.php');
+	require_once( __DIR__ .'/../../www/includes/usersystem.inc.php');
 	error_log(sprintf('[INFO] <%s:%d> Included usersystem.inc.php', 'users_convert_forum_boards.php', __LINE__));
 
 	/**

@@ -1,6 +1,5 @@
-<?PHP
-include($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
-
+<?php
+include(__DIR__ .'/../../www/includes/main.inc.php');
 
 /*
 $us = new usersystem();
@@ -115,4 +114,3 @@ $sql = "UPDATE zooomclan.user set image = id + \".jpg\"";
 echo "done.<br />";
 flush();
 */
-?>

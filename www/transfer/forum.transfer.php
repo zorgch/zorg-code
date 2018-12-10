@@ -1,5 +1,5 @@
 <?php
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
+include_once(__DIR__ .'/../../www/includes/mysql.inc.php');
 /*
 function ubb2html($text) {
   global $u_member;
@@ -73,4 +73,3 @@ flush();
 echo 'done!';
 flush();
 */
-?>

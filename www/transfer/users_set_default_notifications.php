@@ -16,7 +16,7 @@
  * @see /includes/usersystem.inc.php, /templates/layout/pages/profile_page.tpl
  * @see Usersystem::$notifications
  */
-if ($_GET['pw'] === 'schmelzigel')
+if ($_GET['migration'] === 'start')
 {
 	error_log(sprintf('[INFO] <%s:%d> Starting...', 'user_set_default_notifications.php', __LINE__));
 
@@ -24,7 +24,7 @@ if ($_GET['pw'] === 'schmelzigel')
 	 * File includes
 	 * @include usersystem.inc.php required
 	 */
-	require_once( __DIR__ .'/../includes/usersystem.inc.php');
+	require_once( __DIR__ .'/../../www/includes/usersystem.inc.php');
 	error_log(sprintf('[INFO] <%s:%d> Included usersystem.inc.php', 'user_set_default_notifications.php', __LINE__));
 
 	/**
