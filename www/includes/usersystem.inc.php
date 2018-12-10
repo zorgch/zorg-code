@@ -151,10 +151,11 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 3.0
+	 * @version 4.0
 	 * @since 1.0 method added
 	 * @since 2.0 20.11.2018 code & query optimizations, updated Cookie & Session info taken from config.inc.php
 	 * @since 3.0 27.11.2018 refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
+	 * @since 4.0 10.12.2018 adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
 	 *
 	 * @see ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW
 	 * @see usersystem::login(), usersystem::invalidate_session(), timestamp()
@@ -164,20 +165,23 @@ class usersystem
 	{
 		global $db;
 
-		session_name(ZORG_SESSION_ID);
-		$this->typ = USER_ALLE;
-
 		/**
 		 * Session init'en
+		 */
+		session_name(ZORG_SESSION_ID);
+		session_start();
+		$this->typ = USER_ALLE; // grundsätzlich ist jeder zuerst mal "Gast"
+
+		/**
+		 * User Session konfigurieren
 		 *
 		 * Nur wenn...
-		 * - ZORG_SESSION_ID => gesetzt
-		 * - ...und ZORG_COOKIE_USERID & ZORG_COOKIE_USERPW => gesetzt
-		 * - ...oder $_SESSION['user_id'] => gesetzt
+		 * - ...ZORG_SESSION_ID => gesetzt
+		 * - ...oder ZORG_COOKIE_SESSION => gesetzt
 		 */
 		if (!empty($_GET[ZORG_SESSION_ID]) || !empty($_POST[ZORG_SESSION_ID]) || !empty($_COOKIE[ZORG_COOKIE_SESSION]))
 		{
-			session_start();
+			//session_start();
 
 			if (!empty($_SESSION['user_id']))
 			{
@@ -257,13 +261,19 @@ class usersystem
 			}
 
 			/** Falls Session-Cookies existieren */
-			elseif (!empty($_COOKIE[ZORG_COOKIE_USERID]))
+			elseif (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
 				$this->login($_COOKIE[ZORG_COOKIE_USERID]);
 			}
 		}
 
-		/** Falls keine Session: zur Sicherheit Session-Cookie(s) & Session-Paramter in URL invalidieren */
+		/** Oder Login-Passthrough - falls Autologin-Cookies existieren */
+		elseif (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
+		{
+			$this->login($_COOKIE[ZORG_COOKIE_USERID], $_COOKIE[ZORG_COOKIE_USERPW], true);
+		}
+
+		/** Ansonsten falls keine Session: zur Sicherheit Session-Cookie(s) & Session-Paramter in URL invalidieren */
 		else {
 			$this->invalidate_session();
 		}
@@ -275,10 +285,11 @@ class usersystem
 	 * Erstellt eine Session (login)
 	 *
 	 * @author [z]biko, IneX
-	 * @version 2.0
+	 * @version 4.0
 	 * @since 1.0 method added
 	 * @since 2.0 12.11.2018 code & query optimizations
 	 * @since 3.0 21.11.2018 Fixed redirect bei Cookie-Session-Login auf jeweils aktuelle Seite, nicht immer Home
+	 * @since 4.0 10.12.2018 Improved Cookie-Settings (secure and stuff)
 	 *
 	 * @see ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW
 	 * @see crypt_pw(), timestamp(), usersystem::invalidate_session()
@@ -305,13 +316,14 @@ class usersystem
 			 * a) ...wie übergeben vom Login-Formular
 			 * b) ...aus dem - wenn vorhanden - Brwoser-Cookie
 			 */
-			if (!empty($password))
+			if (!empty($password) && empty($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
 				/** a) Login-Form Password Check */
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> !empty($password)', __METHOD__, __LINE__));
 				$crypted_pw = crypt_pw($password);
 			}
-			elseif (!empty($_COOKIE[ZORG_COOKIE_USERPW]) && empty($password))
+
+			elseif (!empty($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
 				/** Cookie-Passwort Plausibilisierung gegen User DB-Eintrag */
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> !empty($_COOKIE[ZORG_COOKIE_USERPW])', __METHOD__, __LINE__));
@@ -320,8 +332,10 @@ class usersystem
 					/** b) Cookie Check */
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_COOKIE[ZORG_COOKIE_USERPW] === $rs[userpw]', __METHOD__, __LINE__));
 					$crypted_pw = $_COOKIE[ZORG_COOKIE_USERPW];
-				} else {
-					/** Cookie Password vs. User DB-Eintrag matchen NICHT! */
+				}
+
+				/** Cookie Password vs. User DB-Eintrag matchen NICHT! */
+				else {
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> User Cookie Password vs. User DB-Eintrag matchen NICHT!', __METHOD__, __LINE__));
 					$this->invalidate_session();
 					http_response_code(403); // Set response code 403 (forbidden)
@@ -372,12 +386,39 @@ class usersystem
 							session_start();
 							$_SESSION['user_id'] = $rs['id'];
 
-							/** wenn cookie aktiviert und user gewünscht */
+							/** Wenn "Autologin" (mit Cookie) aktiviert wurde vom User */
 							if($this->use_cookie == TRUE && $use_cookie)
 							{
-								/** autologin cookies setzen */
-								setcookie(ZORG_COOKIE_USERID, $username, time()+(86400*14));
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, time()+(86400*14));
+								/**
+								 * Cookie settings:
+								 * - name: Der Name des Cookies
+								 * - value: Der Wert des Cookies
+								 * - expires: Der Zeitpunkt, an dem das Cookie ungültig wird. time()+60*60*24*14 wird das Cookie in 30 Tagen ablaufen lassen
+								 * - path: Der Pfad auf dem Server, für welchen das Cookie verfügbar sein wird. '/' = innerhalb der gesamten domain
+								 * - domain*: Die (Sub)-Domain, der das Cookie zur Verfügung steht.
+								 * - secure: Gibt an, dass das Cookie vom Client nur über eine sichere HTTPS-Verbindung übertragen werden soll.
+								 * - httponly:  Wenn auf TRUE gesetzt, ist das Cookie nur via HTTP-Protokoll zugreifbar (z.B. nicht mehr via JavaScript auslesbar/veränderbar)
+								 * 
+								 * *Important remark for 'domain': domain names must contain at least two dots (.),
+								 * hence 'localhost' is invalid and the browser will refuse to set the cookie! instead for localhost you should use false. 
+								 * @link http://php.net/manual/de/function.setcookie.php
+								 * @link http://php.net/manual/de/function.setcookie.php#73107
+								 */
+								$cookieTimeout = time()+60*60*24*14; // 14 Tage
+								$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
+								/** PHP7.x ready
+								$cookieSettings = [
+													 'expires' => $cookieTimeout
+													,'path' => '/'
+													,'domain' => SITE_HOSTNAME
+													,'secure' => $cookieSecure
+													,'httponly' => true
+												  ];
+								setcookie(ZORG_COOKIE_USERID, $username, $cookieSettings);
+								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, $cookieSettings);
+								*/
+								setcookie(ZORG_COOKIE_USERID, $username, $cookieTimeout, '/', SITE_HOSTNAME, $cookieSecure);
+								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, $cookieTimeout, '/', SITE_HOSTNAME, $cookieSecure);
 							}
 
 							/** Last Login & current Login updaten */
@@ -388,9 +429,10 @@ class usersystem
 								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 							], __FILE__, __LINE__, __METHOD__);
 
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, base64_decode($_POST['redirect'])));
+							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']);
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
 							//header('Location: '.changeURL( (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']), session_name().'='.session_id() ));
-							header('Location: '.(isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']));
+							header('Location: '.$loginRedirectUrl);
 							exit;
 						} else {
 							echo t('lockout-message', 'user', date('d.m.Y', $rs[$this->field_ausgesperrt_bis]));
@@ -429,10 +471,10 @@ class usersystem
 	 *
 	 * @return void
 	 */
-	function logout()
+	static function logout()
 	{
 		/** Session destroy & Cookies killen */
-		$this->invalidate_session();
+		self::invalidate_session();
 
 		/** Redirect user back to last page */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logout: redirect url => %s', __METHOD__, __LINE__, base64_decode($_POST['redirect'])));
@@ -450,7 +492,7 @@ class usersystem
 	 *
 	 * @return void
 	 */
-	function invalidate_session()
+	static function invalidate_session()
 	{
 		/** Session destroy */
 		unset($_SESSION['user_id']);
@@ -462,8 +504,8 @@ class usersystem
 		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
-		setcookie(ZORG_COOKIE_SESSION, '', time()-3600);  // zorg Session-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERID, '', time()-3600);  // Login-Cookie invalidieren
+		setcookie(ZORG_COOKIE_SESSION, '', time()-3600); // zorg Session-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERID, '', time()-3600); // Login-Cookie invalidieren
 		setcookie(ZORG_COOKIE_USERPW, '', time()-3600); // Password-Cookie invalidieren
 	}
 
@@ -1958,9 +2000,33 @@ static $_users = array();
 static $_geaechtet = array();
 
 /** Instantiate a new usersystem Class */
+//$user = new usersystem();
+
+/**
+ * LOGOUT
+ * Fun fact: wenn der NACH dem Login-Check kommt, dann wird man wieder eingeloggt...
+ * ...weil dann die Cookies & Session noch nicht gekillt wurden ;)
+ */
+if (isset($_POST['logout']))
+{
+	/** exec the User logout */
+	usersystem::logout();
+}
+
+/** Instantiate a new usersystem Class */
 $user = new usersystem();
 
-/** LOGIN mit Login-Formular */
+/**
+ * LOGIN mit Cookie (autologin)
+ */
+if (isset($_COOKIE[ZORG_COOKIE_USERID]) && empty($_SESSION['user_id']))
+{
+	$login_error = $user->login($_COOKIE[ZORG_COOKIE_USERID], null, true);
+}
+
+/**
+ * LOGIN mit Login-Formular
+ */
 if (isset($_POST['do']) && $_POST['do'] === 'login')
 {
 	if (!empty($_POST['username']) && !empty($_POST['password']))
@@ -1970,18 +2036,4 @@ if (isset($_POST['do']) && $_POST['do'] === 'login')
 	} else {
 		$login_error = t('authentication-failed', 'user');
 	}
-}
-/** LOGIN mit Cookie (autologin) */
-if (isset($_COOKIE[ZORG_COOKIE_USERID]) && empty($_SESSION['user_id']))
-{
-	$login_error = $user->login($_COOKIE[ZORG_COOKIE_USERID], null, true);
-}
-/** LOGOUT */
-if (isset($_POST['logout']))
-{
-	/** exec the User logout */
-	$user->logout();
-
-	/** Instantiate a new, updated $user-Object (because new data...) */
-	$user = new usersystem();
 }
