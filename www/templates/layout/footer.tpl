@@ -23,7 +23,7 @@
 					{/if}
 					<br /><a href="/?word=impressum">Impressum</a> | <a href="/?word=privacy">Privacy-Policy</a> | <a href="/?word=verein">Zorg Verein</a>
 					{if $code_info.version != ''}
-						| Code Version: {if $user->typ == 2} <a href="https://bitbucket.org/zorgvorstand/zorg.ch/commits/{$code_info.last_commit}" target="_blank">{/if}{$code_info.version}#{$code_info.last_commit}{if $user->typ == 2}</a>{/if} (updated: {$code_info.last_update|datename})
+						| Code Version: {if $user->typ == 2} <a href="{$smarty.const.GIT_REPOSITORY}{$code_info.last_commit}" target="_blank">{/if}{$code_info.version}#{$code_info.last_commit}{if $user->typ == 2}</a>{/if} (updated: {$code_info.last_update|datename})
 					{/if}
 				</td>
 			</tr>

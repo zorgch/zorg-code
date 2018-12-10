@@ -98,7 +98,7 @@ if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH', true);
 if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967', true);
 if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
 if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
-if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://bitbucket.org/zorgvorstand/zorg.ch');
+if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zorgch/zorg-code/commit/');
 
 /**
  * Define paths to directories where HTML web resources will be referenced from

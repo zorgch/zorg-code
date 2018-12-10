@@ -414,7 +414,7 @@ Class Bugtracker {
 			.'<tr>'
 			.'<td align="left">Code Commit:</td>'
 			.'<td align="left">'
-			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY.'/commits/'.$rs['code_commit'].'" target="_blank">'.$rs['code_commit'].'</a>' : ''))
+			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY.$rs['code_commit'].'" target="_blank">'.$rs['code_commit'].'</a>' : ''))
 			.'</td>'
 			.'</tr>'
 
