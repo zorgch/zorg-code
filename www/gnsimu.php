@@ -1,6 +1,6 @@
 <?php
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
 
+/** GALAXY-NETWORK Browsergame http://www.galaxy-network.net/game/login.php */
 class GNSimu
 
 {
@@ -25,7 +25,7 @@ class GNSimu
 
     var $gesstolenexenk;
 
-    var $geslostshipsatt; // Schiffe die seit erstellung der Klasse zerstört wurden
+    var $geslostshipsatt; // Schiffe die seit erstellung der Klasse zerstÃ¶rt wurden
 
     var $geslostshipsdeff;
 
@@ -43,21 +43,21 @@ class GNSimu
 
 
 
-    function GNSimu() // Variablen mit Kampfwerten füllen
+    function GNSimu() // Variablen mit Kampfwerten fÃ¼llen
 
     {
 
 
 
-    // Daten Für Jäger Nr. 0
+    // Daten FÃ¼r JÃ¤ger Nr. 0
 
-    $this->name[0] = "Jäger";
+    $this->name[0] = "JÃ¤ger";
 
-    $this->attakpower[0]  = array(0.0246, 0.392, 0.0263); // Wie viele Schiffe ein Schiff mit 100% Feuerkrafft zerstören würde
+    $this->attakpower[0]  = array(0.0246, 0.392, 0.0263); // Wie viele Schiffe ein Schiff mit 100% Feuerkrafft zerstÃ¶ren wÃ¼rde
 
-    $this->shiptoattak[0] = array(11,1,4); // Welche Schiffe/Geschütze angegriffen werden
+    $this->shiptoattak[0] = array(11,1,4); // Welche Schiffe/GeschÃ¼tze angegriffen werden
 
-    $this->percent[0]     = array(0.35,0.30,0.35); // Die Verteilung der Prozente, mit der auf die Schiffe geschoßen wird.
+    $this->percent[0]     = array(0.35,0.30,0.35); // Die Verteilung der Prozente, mit der auf die Schiffe geschoÃŸen wird.
 
     $this->mcost[0] = 4000;
 
@@ -65,7 +65,7 @@ class GNSimu
 
 
 
-    // Daten Für Bomber Nr. 1
+    // Daten FÃ¼r Bomber Nr. 1
 
     $this->attakpower[1]  = array(0.0080,0.0100,0.0075);
 
@@ -81,7 +81,7 @@ class GNSimu
 
 
 
-    // Daten Für Fregatte Nr. 2
+    // Daten FÃ¼r Fregatte Nr. 2
 
     $this->attakpower[2]  = array(4.5,0.85);
 
@@ -97,7 +97,7 @@ class GNSimu
 
 
 
-    // Daten Für Zerstörer Nr. 3
+    // Daten FÃ¼r ZerstÃ¶rer Nr. 3
 
     $this->attakpower[3]  = array(3.5,1.2444);
 
@@ -105,7 +105,7 @@ class GNSimu
 
     $this->percent[3]     = array(0.6,0.4);
 
-    $this->name[3]     = "Zerstörer";
+    $this->name[3]     = "ZerstÃ¶rer";
 
     $this->mcost[3] = 40000;
 
@@ -113,7 +113,7 @@ class GNSimu
 
 
 
-    // Daten Für Kreuzer Nr. 4
+    // Daten FÃ¼r Kreuzer Nr. 4
 
     $this->attakpower[4]  = array(2.0,0.8571,10.0);
 
@@ -129,7 +129,7 @@ class GNSimu
 
 
 
-    // Daten Für Schalchtschiff Nr. 5
+    // Daten FÃ¼r Schalchtschiff Nr. 5
 
     $this->attakpower[5]  = array(1.0,1.0666,0.4,0.3019,26.6667);
 
@@ -145,7 +145,7 @@ class GNSimu
 
 
 
-    // Daten Für Trägerschiff Nr. 6
+    // Daten FÃ¼r TrÃ¤gerschiff Nr. 6
 
     $this->attakpower[6]  = array(25.0,14.0);
 
@@ -157,13 +157,13 @@ class GNSimu
 
     $this->kcost[6] =  50000;
 
-    $this->name[6]     = "Trägerschiff";
+    $this->name[6]     = "TrÃ¤gerschiff";
 
 
 
 
 
-    // Daten für Kaperschiff
+    // Daten fÃ¼r Kaperschiff
 
     $this->mcost[7] = 1500;
 
@@ -175,7 +175,7 @@ class GNSimu
 
 
 
-    // Daten für Schutzschiff
+    // Daten fÃ¼r Schutzschiff
 
     $this->mcost[8] = 1000;
 
@@ -187,7 +187,7 @@ class GNSimu
 
 
 
-    // Daten Für Leichtes Obligtalgeschütz Nr. 9
+    // Daten FÃ¼r Leichtes ObligtalgeschÃ¼tz Nr. 9
 
     $this->attakpower[9]  = array(0.3,1.28);
 
@@ -199,13 +199,13 @@ class GNSimu
 
     $this->kcost[9] = 2000;
 
-    $this->name[9]    = "Leichtes Obligtalgeschütz";
+    $this->name[9]    = "Leichtes ObligtalgeschÃ¼tz";
 
 
 
 
 
-    // Daten Für Leichtes Raumgeschütz Nr. 10
+    // Daten FÃ¼r Leichtes RaumgeschÃ¼tz Nr. 10
 
     $this->attakpower[10]  = array(1.2,0.5334);
 
@@ -217,13 +217,13 @@ class GNSimu
 
     $this->kcost[10] = 10000;
 
-    $this->name[10]     = "Leichtes Raumgeschütz";
+    $this->name[10]     = "Leichtes RaumgeschÃ¼tz";
 
 
 
 
 
-    // Daten Für Mittleres Raumgeschütz Nr. 11
+    // Daten FÃ¼r Mittleres RaumgeschÃ¼tz Nr. 11
 
     $this->attakpower[11]  = array(0.9143,0.4267);
 
@@ -235,13 +235,13 @@ class GNSimu
 
     $this->kcost[11] = 100000;
 
-    $this->name[11]     = "Mittleres Raumgeschütz";
+    $this->name[11]     = "Mittleres RaumgeschÃ¼tz";
 
 
 
 
 
-        // Daten Für Schweres Raumgeschütz Nr. 12
+        // Daten FÃ¼r Schweres RaumgeschÃ¼tz Nr. 12
 
     $this->attakpower[12]  = array(0.5,0.3774);
 
@@ -253,13 +253,13 @@ class GNSimu
 
     $this->kcost[12] = 300000;
 
-    $this->name[12]     = "Schweres Raumgeschütz";
+    $this->name[12]     = "Schweres RaumgeschÃ¼tz";
 
 
 
 
 
-    // Daten Für  Abfangjäger Nr. 13
+    // Daten FÃ¼r  AbfangjÃ¤ger Nr. 13
 
     $this->attakpower[13]  = array(0.0114,0.32);
 
@@ -271,7 +271,7 @@ class GNSimu
 
     $this->kcost[13] = 1000;
 
-    $this->name[13]     = "Abfangjäger";
+    $this->name[13]     = "AbfangjÃ¤ger";
 
     }
 
@@ -281,7 +281,7 @@ class GNSimu
 
 
 
-    function Compute($lasttick) // Dieses ist sie also die mytische Funktion, die Werte in äh ja äh andere Werte verwandeln kann. $lasttick dient dazu im letzten tick die Jäger und Bomber zu zerstören, die über sind.
+    function Compute($lasttick) // Dieses ist sie also die mytische Funktion, die Werte in Ã¤h ja Ã¤h andere Werte verwandeln kann. $lasttick dient dazu im letzten tick die JÃ¤ger und Bomber zu zerstÃ¶ren, die Ã¼ber sind.
 
     {
 
@@ -309,13 +309,13 @@ class GNSimu
 
 
 
-        //Schleife über alle Schiffe
+        //Schleife Ã¼ber alle Schiffe
 
     for($i=0;$i<14;$i++)
 
     {
 
-            //Variablen für das nächste Schiff "nullen"
+            //Variablen fÃ¼r das nÃ¤chste Schiff "nullen"
 
         $RestPercentatt = 0;
 
@@ -357,7 +357,7 @@ class GNSimu
 
             $OldRestpowerdeff = $Restpowerdeff;
 
-                // Schleife über alle Schiffe die angeriffen werden sollen
+                // Schleife Ã¼ber alle Schiffe die angeriffen werden sollen
 
         for($j=0;$j<count($this->attakpower[$i]);$j++)
 
@@ -377,7 +377,7 @@ class GNSimu
 
                 $del = 0;
 
-                        // Dafür sorgen, dass nicht mit einem Prozentsatz von größer als 100% angerifen wird
+                        // DafÃ¼r sorgen, dass nicht mit einem Prozentsatz von grÃ¶ÃŸer als 100% angerifen wird
 
                 if($RestPercentatt+$this->percent[$i][$j] > 1)
 
@@ -385,7 +385,7 @@ class GNSimu
 
 
 
-                         // Maximale Zerstörung die Angerichtet werden kann. Die Power der Prozentsatz mal die Power der Schiffe mal wie viele Schiffe vom andern tyo von einem zerstört werden
+                         // Maximale ZerstÃ¶rung die Angerichtet werden kann. Die Power der Prozentsatz mal die Power der Schiffe mal wie viele Schiffe vom andern tyo von einem zerstÃ¶rt werden
 
                 $MaxDestruction = floor(($RestPercentatt+$this->percent[$i][$j]) * $OldRestpoweratt * $this->attakpower[$i][$j]);
 
@@ -397,13 +397,13 @@ class GNSimu
 
                     echo "<font color=#ff0000>-</font> Angreifende Schiffe: ".$this->Oldatt[$i]." Verteidigende Schiffe:".($this->deffending[$this->shiptoattak[$i][$j]])."<br>";
 
-                echo "<font color=#ff0000>-</font> Maximale Zerstörung: floor(($RestPercentatt+".$this->percent[$i][$j].") * $OldRestpoweratt * ".$this->attakpower[$i][$j].")=$MaxDestruction<br>";
+                echo "<font color=#ff0000>-</font> Maximale ZerstÃ¶rung: floor(($RestPercentatt+".$this->percent[$i][$j].") * $OldRestpoweratt * ".$this->attakpower[$i][$j].")=$MaxDestruction<br>";
 
                 }
 
 
 
-                        // Wie viele Schiffe dann zerstört werden, nich mehr als die maximale zerstörung und nich mehr als mit 100%(was oben eigentlich schon geprüft wird) und nich mehr als Schiffe noch über sind.
+                        // Wie viele Schiffe dann zerstÃ¶rt werden, nich mehr als die maximale zerstÃ¶rung und nich mehr als mit 100%(was oben eigentlich schon geprÃ¼ft wird) und nich mehr als Schiffe noch Ã¼ber sind.
 
                 $del= floor(max(min($MaxDestruction, $Restpoweratt * $this->attakpower[$i][$j], $this->deffending[$this->shiptoattak[$i][$j]]), 0));
 
@@ -411,15 +411,15 @@ class GNSimu
 
 
 
-                        // Im 4ten Strike wird unter bestimmten Umständen(s.u) der Prozentsatz, der beim feuern nicht zum Einsatz gekommen ist zu einer Variable addiert, die zum normalen Prozentsatz dazugerechnet wird.
+                        // Im 4ten Strike wird unter bestimmten UmstÃ¤nden(s.u) der Prozentsatz, der beim feuern nicht zum Einsatz gekommen ist zu einer Variable addiert, die zum normalen Prozentsatz dazugerechnet wird.
 
             if($strike==3)
 
             {
 
-                            // Wenn es das letzte Schiff im Tick ist oder keine Schiffe zerstört wurden wird Rest-Prozent um den Prozentsatz, der nich verbraucht wird erhöht.
+                            // Wenn es das letzte Schiff im Tick ist oder keine Schiffe zerstÃ¶rt wurden wird Rest-Prozent um den Prozentsatz, der nich verbraucht wird erhÃ¶ht.
 
-                            // Alles könnte schön und gut sein, wenn da nicht die Schlachter wären, die flogen der Regel nämlich nur wenn sie auf sich selbst oder Kreuzer schießen, sonnst wird immer der Prozentsatz der nicht gebraucht wurde dazugerechnet, warum auch immer...
+                            // Alles kÃ¶nnte schÃ¶n und gut sein, wenn da nicht die Schlachter wÃ¤ren, die flogen der Regel nÃ¤mlich nur wenn sie auf sich selbst oder Kreuzer schieÃŸen, sonnst wird immer der Prozentsatz der nicht gebraucht wurde dazugerechnet, warum auch immer...
 
                             if ( $j == count($this->attakpower[$i])-1 || $del == 0 || ($i == 5 && $this->shiptoattak[$i][$j]!=5 && $this->shiptoattak[$i][$j]!=4))
 
@@ -439,7 +439,7 @@ class GNSimu
 
 
 
-                        // Schiffe zerstören
+                        // Schiffe zerstÃ¶ren
 
                 $this->deffending[$this->shiptoattak[$i][$j]] -=$del;
 
@@ -451,7 +451,7 @@ class GNSimu
 
                     {
 
-                echo "<font color=#ff0000>-</font> Zerstörte Schiffe: $del<br>
+                echo "<font color=#ff0000>-</font> ZerstÃ¶rte Schiffe: $del<br>
 
                             <font color=#ff0000>-</font> Benutzte Firepower = $del/".$this->attakpower[$i][$j]." = $Firepower; Restpower = $Restpoweratt<br>";
 
@@ -485,7 +485,7 @@ class GNSimu
 
                 echo "<font color=#00ff00>-</font> Angreifende Schiffe: ".$this->Olddeff[$i]." Verteidigende Schiffe:".($this->attaking[$this->shiptoattak[$i][$j]])."<br>";
 
-                echo "<font color=#00ff00>-</font> Maximale Zerstörung: floor(($RestPercentdeff+".$this->percent[$i][$j].") * $OldRestpowerdeff * ".$this->attakpower[$i][$j].")=$MaxDestruction<br>";
+                echo "<font color=#00ff00>-</font> Maximale ZerstÃ¶rung: floor(($RestPercentdeff+".$this->percent[$i][$j].") * $OldRestpowerdeff * ".$this->attakpower[$i][$j].")=$MaxDestruction<br>";
 
 
 
@@ -530,7 +530,7 @@ class GNSimu
 
                     {
 
-                echo "<font color=#00ff00>-</font> Zerstörte Schiffe: $del<br>
+                echo "<font color=#00ff00>-</font> ZerstÃ¶rte Schiffe: $del<br>
 
                             <font color=#00ff00>-</font> Benutzte Firepower = $del/".$this->attakpower[$i][$j]." = $Firepower; Restpower = $Restpowerdeff<br>";
 
@@ -548,7 +548,7 @@ class GNSimu
 
 
 
-        //Wenn wir im letzen Tick sind wird geprüft ob auch alle Jäger und Bomber mit nach hause fliegn dürfen
+        //Wenn wir im letzen Tick sind wird geprÃ¼ft ob auch alle JÃ¤ger und Bomber mit nach hause fliegn dÃ¼rfen
 
 
 
@@ -580,7 +580,7 @@ class GNSimu
 
 
 
-        //Erstmall ausrechnen, wie viele maximal mitgenommen werden können, bin der Meinung mal Iregndwo im Forum gelesen zu haben, dass Metall- auf- und Kristallexen abgerundet werden
+        //Erstmall ausrechnen, wie viele maximal mitgenommen werden kÃ¶nnen, bin der Meinung mal Iregndwo im Forum gelesen zu haben, dass Metall- auf- und Kristallexen abgerundet werden
 
     $maxmexen = ceil((max($this->attaking[7]-$this->deffending[8],0))/2);
 
@@ -588,7 +588,7 @@ class GNSimu
 
 
 
-        //Dann wie viele Metallexen in den meißten fällen geklaut würden
+        //Dann wie viele Metallexen in den meiÃŸten fÃ¤llen geklaut wÃ¼rden
 
     $rmexen = min($maxmexen, floor($this->mexen*0.1));
 
@@ -596,7 +596,7 @@ class GNSimu
 
 
 
-        //Wenn nich alle Schiffe, die für Metallexenlau bereitgestellt waren benutz werden, dürfen diezum Kristallexen klauen Benutzt werden
+        //Wenn nich alle Schiffe, die fÃ¼r Metallexenlau bereitgestellt waren benutz werden, dÃ¼rfen diezum Kristallexen klauen Benutzt werden
 
     if($rmexen != $maxmexen)
 
@@ -604,13 +604,13 @@ class GNSimu
 
 
 
-        //Kristallexen in den meißten fällen
+        //Kristallexen in den meiÃŸten fÃ¤llen
 
     $rkexen = min($maxkexen, floor($this->kexen*0.1));
 
 
 
-        // Wenn nich alle zum Kristallexen bereitgestellten Cleps benutzt wurden, rechnen wir nochmal Metallexen ob nich evtl mehr mit genommen werden können.
+        // Wenn nich alle zum Kristallexen bereitgestellten Cleps benutzt wurden, rechnen wir nochmal Metallexen ob nich evtl mehr mit genommen werden kÃ¶nnen.
 
     if($rkexen != $maxkexen)
 
@@ -626,7 +626,7 @@ class GNSimu
 
 
 
-        // Exen vom bestand abziehen und auch die benutzen Cleps "zerstören"
+        // Exen vom bestand abziehen und auch die benutzen Cleps "zerstÃ¶ren"
 
     $this->mexen -=$rmexen;
 
@@ -638,7 +638,7 @@ class GNSimu
 
 
 
-        //Für die Statistik, wie viele Exen insgesammt gestohlen wurden.
+        //FÃ¼r die Statistik, wie viele Exen insgesammt gestohlen wurden.
 
     $this->gesstolenexenm+=$this->stolenmexen = $rmexen;
 
@@ -648,8 +648,6 @@ class GNSimu
 
 $attacking[7] = 1000;
 $mexen = 100;
-compute();
-print $stolenmexen;
-
-
-?>
+$simulation = new GNSimu();
+$simulation->compute();
+print $simulation->stolenmexen;
