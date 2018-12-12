@@ -123,14 +123,13 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				 * E-Mails shouldn't have more than 76 chars per line, for comapitibility reasons
 				 * - base64_encode() method encodes the HTML message with base64
 				 * - chunk_split() splits the encoded messages into smaller chunks
-				 * - the $mailBoundary is used to indicate where the encoded message part starts
-				 * - "multipart/alternative" ensures, that only 1 body-part of the e-mail is being displaye
 				 *
 				 * @link https://ctrlq.org/code/19840-base64-encoded-email
-				 * @link https://www.drweb.de/aufbau-von-mime-mails-2/
 				 * @link https://www.webdeveloper.com/forum/d/185299-sending-a-html-email-in-base64-help
 				 */
 				$message_text_b64 = chunk_split(base64_encode($mailMessage['message_text']));
+
+				/** @TODO Make a Q Encoding: convert every non ASCII character to an equivalent char understandable by MIME or quoted printable http://php.net/manual/de/function.mb-encode-mimeheader.php#90242 */
 
 				/**
 				 * From:-Address Format "From: Präsident|Aktuar|Kassier <ZORG_EMAIL>\r\n"
@@ -143,6 +142,10 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 
 				/**
 				 * Build E-Mail
+				 *
+				 * - the $mailBoundary is used to indicate where the encoded message part starts
+				 * - "multipart/alternative" ensures, that only 1 body-part of the e-mail is being displayed
+				 * @link https://www.drweb.de/aufbau-von-mime-mails-2/
 				 */
 				$mailTo = sprintf('%s <%s>', $user->id2user($recipient_id), $recipientEmail);
 				//$mailHeaders  = 'Subject: '.$mailMessage['subject_text'].$formatNewline;

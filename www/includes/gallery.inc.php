@@ -1568,7 +1568,7 @@ function getAlbumLinkRandomThumb($album_id) {
 
 	$html =
 		'<a href="/gallery.php?show=albumThumbs&albID='.$album_id.'">'
-		.'<img border="0" src="'.$file.'"/></a>'
+		.'<img border="0" src="'.$file.'" itemprop="image" /></a>'
 	;
 
 	return $html;
