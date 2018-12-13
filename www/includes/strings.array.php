@@ -58,7 +58,7 @@ return
 			,'error-userpic-upload' => 'Das Bild konnte nicht übertragen werden. Probiers nomel, bitte.'
 			,'error-userpic-permissions' => 'Bild konnte nicht bearbeitet werden.'
 			,'error-userpic-archive' => 'Original Bild konnte nicht archiviert werden.'
-			,'error-userpictn-archive' => 'Thumbail Bild konnte nicht archiviert werden.'
+			,'error-userpictn-archive' => 'Thumbnail Bild konnte nicht archiviert werden.'
 			,'account-inactive' => 'Dein Account wurde noch nicht aktiviert'
 			,'account-activated' => 'Dein Account wurde erfolgreich aktiviert!'
 			,'authentication-failed' => 'Benutzer/Passwort Kombination falsch!'

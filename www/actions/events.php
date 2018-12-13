@@ -147,7 +147,13 @@ switch (true)
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Twitter API Keys found: %s', __FILE__, __LINE__, print_r($twitterApiKeys, true)));
 
 			/** Instantiate new Twitter Class */
-			$twitter = new Twitter($twitterApiKey['key'], $twitterApiKey['secret'], $twitterApiKey['token'], $twitterApiKey['tokensecret']);
+			try {
+				$twitter = new Twitter($twitterApiKey['key'], $twitterApiKey['secret'], $twitterApiKey['token'], $twitterApiKey['tokensecret']);
+			} catch(Exception $e) {
+				error_log(sprintf('[ERROR] Twitter API: could not instantiate new Twitter()-Class Object => %s', __FILE__, __LINE__, $e->getMessage()));
+				$error = 'Twitter API: new Twitter() ERROR';
+				break;
+			}
 
 			/**
 			 * Send Tweet

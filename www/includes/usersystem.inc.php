@@ -374,7 +374,7 @@ class usersystem
 				/** überprüft ob passwort korrekt ist */
 				if($db->num($result))
 				{
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->num($result)=>%d', __METHOD__, __LINE__, $db->num($result)));
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: password matches=>%d', __METHOD__, __LINE__, $db->num($result)));
 					$rs = $db->fetch($result);
 
 					/** überprüfe ob user aktiviert wurde */
@@ -383,7 +383,6 @@ class usersystem
 						/** überprüfe ob User nicht ausgesperrt ist */
 						if($this->is_lockedout($rs[$this->field_ausgesperrt_bis]) === false)
 						{
-							session_start();
 							$_SESSION['user_id'] = $rs['id'];
 
 							/** Wenn "Autologin" (mit Cookie) aktiviert wurde vom User */
@@ -404,7 +403,7 @@ class usersystem
 								 * @link http://php.net/manual/de/function.setcookie.php
 								 * @link http://php.net/manual/de/function.setcookie.php#73107
 								 */
-								$cookieTimeout = time()+60*60*24*14; // 14 Tage
+								$cookieTimeout = time()+60*60*24*7; // 1 Woche
 								$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
 								/** PHP7.x ready
 								$cookieSettings = [
@@ -468,7 +467,6 @@ class usersystem
 	 *
 	 * @link https://stackoverflow.com/questions/686155/remove-a-cookie
 	 * @see invalidate_session()
-	 *
 	 * @return void
 	 */
 	static function logout()
@@ -495,10 +493,11 @@ class usersystem
 	static function invalidate_session()
 	{
 		/** Session destroy */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, $_SESSION['user_id']));
 		unset($_SESSION['user_id']);
 		session_destroy();
 
-		/** Cookie killen - einmal unsetten & danach invalidieren */
+		/** Cookies killen - einmal unsetten & danach invalidieren */
 		unset($_GET[ZORG_SESSION_ID]); // Session-Parameter unsetten
 		unset($_POST[ZORG_SESSION_ID]); // Session-Parameter unsetten
 		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
@@ -629,15 +628,18 @@ class usersystem
 				/** E-mailadresse validieren */
 				if(check_email($email))
 				{
+					/** überprüfe ob user mit gleicher email nicht bereits existiert */
 					try {
 						$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_email.' = "'.$email.'"';
 						$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $sql));
 					} catch (Exception $e) {
-						return sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage());
+						error_log(sprintf('[WARN] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+						return false;
 					}
 
-					/** überprüfe ob user mit email bereits existiert */
-					if(!$db->num($result))
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->num($result): %d', __METHOD__, __LINE__, $db->num($result)));
+					if($db->num($result) === 0)
 					{
 						/** überprüfe passwort übereinstimmung */
 						if($pw === $pw2)
@@ -663,9 +665,15 @@ class usersystem
 							*/
 
 							/** email versenden */
-							$error = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.ZORG_EMAIL."\n");
-
-							$error = t('account-confirmation', 'user');
+							$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.ZORG_EMAIL."\n");
+							if ($sendNewaccountConfirmation !== true)
+							{
+								error_log(sprintf('[NOTICE] <%s:%d> Account confirmation e-mail could NOT be sent', __FILE__, __LINE__));
+								$error = t('error-userprofile-update', 'user');
+							} else {
+								//$error = t('account-confirmation', 'user');
+								return true;
+							}
 						} else {
 							$error = t('authentication-failed', 'user');
 						}
@@ -679,6 +687,7 @@ class usersystem
 				$error = t('invalid-username', 'user');
 			}
 		}
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Error: %s', __METHOD__, __LINE__, $error));
 		return $error;
 	}
 
@@ -2010,17 +2019,20 @@ static $_geaechtet = array();
 if (isset($_POST['logout']))
 {
 	/** exec the User logout */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User logout', '$_POST[logout]', __LINE__));
 	usersystem::logout();
+} else {
+	/** Instantiate a new usersystem Class */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Instantiate a new usersystem Class', '$_POST[logout]', __LINE__));
+	$user = new usersystem();
 }
-
-/** Instantiate a new usersystem Class */
-$user = new usersystem();
 
 /**
  * LOGIN mit Cookie (autologin)
  */
-if (isset($_COOKIE[ZORG_COOKIE_USERID]) && empty($_SESSION['user_id']))
+if (!isset($_POST['logout']) && isset($_COOKIE[ZORG_COOKIE_USERID]) && empty($_SESSION['user_id']))
 {
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Cookie)', '$user->login()', __LINE__));
 	$login_error = $user->login($_COOKIE[ZORG_COOKIE_USERID], null, true);
 }
 
@@ -2029,6 +2041,7 @@ if (isset($_COOKIE[ZORG_COOKIE_USERID]) && empty($_SESSION['user_id']))
  */
 if (isset($_POST['do']) && $_POST['do'] === 'login')
 {
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form)', '$user->login()', __LINE__));
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
 		$_POST['cookie'] ? $auto = TRUE : $auto = FALSE;

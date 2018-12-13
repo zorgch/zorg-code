@@ -22,12 +22,12 @@ $smarty->assign('tplroot', array('page_title' => $pagetitle, 'page_link' => $_SE
 /**
  * Userlist anzeigen
  */
-if ( (!$_GET['do'] && !$_GET['user_id'] && !$_GET['regcode']) || ($_GET['do'] && !$user->is_loggedin()) )
+if ( (!$_GET['do'] && !$_GET['user_id'] && !$_GET['regcode']) )
 {
 	$smarty->display('file:layout/head.tpl');
 	echo menu('zorg');
 	echo menu('user');
-	echo "<br />";
+	echo "<br>";
 	$smarty->display('tpl:219');
 	$smarty->display('file:layout/footer.tpl');
 	exit; // make sure only Userlist is processed / displayed
@@ -133,7 +133,7 @@ if($_GET['user_id']) {
 	$smarty->display('file:layout/head.tpl');
 	echo menu('zorg');
 	echo menu('user');
-	echo "<br />";
+	echo "<br>";
 
 	/** Validate required $_GET parameters */
 	if (!is_numeric($_GET['user_id']) || $_GET['user_id'] <= 0 || is_array($_GET['user_id']) || $user->id2user($_GET['user_id']) === false)
@@ -168,12 +168,12 @@ if($_GET['user_id']) {
 
 	if ($user->id > 0 && $_GET['user_id'] != $user->id && $rs['addle']) {
 		?>
-		<br />
+		<br>
 		<form action="/addle.php?show=overview&do=new" method='post'>
 			<INPUT type="hidden" name="id" value="<?=$_GET['user_id']?>">
 			<input type='submit' class='button' value=" <?=$rs['username']?> zum Addle herausfordern ">
 		</FORM>
-		<br />
+		<br>
 		<?
 	}
 
@@ -196,13 +196,13 @@ if($_GET['user_id']) {
 	echo "<br><img src='/images/stats.php?user_id=".$_GET['user_id']."'><br>"; // Post-Statistik ausgeben
 
 	echo
-		'<br />'
+		'<br>'
 		.Forum::getLatestCommentsbyUser($_GET['user_id'])
 		.'</td></tr>'
 		.'</table>'
 	;
 
-	if ($user->typ != USER_NICHTEINGELOGGT) echo '<br />'.getUserPics($_GET['user_id'], 0);
+	if ($user->typ != USER_NICHTEINGELOGGT) echo '<br>'.getUserPics($_GET['user_id'], 0);
 
 	$smarty->display('file:layout/footer.tpl');
 }
@@ -216,86 +216,135 @@ if(!$user->id) {
 	$smarty->display('file:layout/head.tpl');
 	echo menu('zorg');
 	echo menu('user');
-	echo "<br />";
+	echo "<br>";
 
-	if(!$_GET['regcode'] && !$_SESSION['user_id'] && $_GET['do'] == "anmeldung")  {
-		
-		// reCAPTCHA v2 initialisieren (inkl. keys)
-		require('includes/g-recaptcha-src/autoload.php');
-		$siteKey = '6Ld_MgYAAAAAAMiFFL65_-QSB8P2e4Zz2FbSHfUv';
-		$secret = '6Ld_MgYAAAAAADDFApargrMpDLE0g1m4X-q0oOL-';
-		$lang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
-		$recaptcha = new \ReCaptcha\ReCaptcha($secret);
-		
-		//captcha validieren
-		if (isset($_POST['g-recaptcha-response']))
+	if(!$_GET['regcode'] && !$_SESSION['user_id'] && $_GET['do'] == 'anmeldung')
+	{
+		/**
+		 * reCAPTCHA v2 initialisieren (inkl. keys)
+		 * @include includes/g-recaptcha-src/autoload.php Include Google reCaptcha PHP-Class and Methods
+		 * @include googlerecaptchaapi_key.inc.php Include an Array containing valid Google reCaptcha API Keys
+		 * @link https://www.google.com/recaptcha/
+		 */
+		if (fileExists(__DIR__ .'/includes/g-recaptcha-src/autoload.php'))
 		{
-			$recaptcha = new \ReCaptcha\ReCaptcha($secret);
-			$resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
-			
-			//captcha VALID
-			if ($resp->isSuccess()) {
-				$error = "<b class='small'>".$user->create_newuser(htmlentities($_POST['new_username']), $_POST['new_password'],$_POST['new_password2'],$_POST['new_email'])."</b>";
-			
-			//captcha UNGÜLTIG
-			} else {
-				//foreach ($resp->getErrorCodes() as $code) {
-                	$error = "<font color='red'><b>Das reCAPTCHA wurde FALSCH eingegeben oder leer gelassen.<br />Bitte versuch es nochmal!</b></font>";//."<br />(reCAPTCHA error codes: " . $code . ")";
-            	//}
+			require_once( __DIR__ .'/includes/g-recaptcha-src/autoload.php');
+			$reCaptchaApiKeysFile = require_once(__DIR__ .'/includes/googlerecaptchaapi_key.inc.php');
+			$reCaptchaApiKeys = (DEVELOPMENT ? $reCaptchaApiKeysFile['DEVELOPMENT'] : $reCaptchaApiKeysFile['PRODUCTION']);
+			$reCaptchaLang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
+			try {
+				$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
+			} catch(Exception $e) {
+				error_log(sprintf('[ERROR] Google reCAPTCHA: could not instantiate new ReCaptcha()-Class Object => %s', __FILE__, __LINE__, $e->getMessage()));
+				$error = '<font color="red"><b>Google reCAPTCHA konnte nicht geladen werden. Melde uns dieses Problem bitte!</b></font>';
 			}
+	
+			/** reCaptcha validieren */
+			if (isset($_POST['g-recaptcha-response']))
+			{
+				//$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
+				$resp = $reCaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
+	
+				/** reCaptcha VALID */
+				if ($resp->isSuccess())
+				{
+					if (empty($_POST['new_username'])) $registerError = t('invalid-username', 'user');
+					if (empty($_POST['new_email'])) $registerError = t('invalid-email', 'user');
+					if (empty($_POST['new_password']) || empty($_POST['new_password2'])) $registerError = t('invalid-userpw-missing', 'user');
+					if ($_POST['new_password'] != $_POST['new_password2']) $registerError = t('invalid-userpw-match', 'user');
+					if (!check_email($_POST['new_email'])) $registerError = t('invalid-email', 'user');
+	
+					/** Userregistrierung schaut gut aus - User anlegen probieren */
+					if (!isset($registerError) || empty($registerError))
+					{
+						$createUserResult = $user->create_newuser(htmlentities($_POST['new_username']), $_POST['new_password'], $_POST['new_password2'], $_POST['new_email']);
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Result: %s', __FILE__, __LINE__, (is_bool($createUserResult)?'true':$createUserResult)));
+						if (is_bool($createUserResult) && $createUserResult===true) {
+							$error = t('account-confirmation', 'user');
+							$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => $error]);
+						} else {
+							$error = $createUserResult;
+							$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $error]);
+						}
+					} elseif (!empty($registerError)) {
+						$error = $registerError;
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $error]);
+					}
+				}
+
+				/** reCaptcha UNGÜLTIG */
+				else {
+					foreach ($resp->getErrorCodes() as $code) error_log(sprintf('[ERROR] <%s:%d> Google reCAPTCHA: error code %s', __FILE__, __LINE__, $code));
+	            	//$error = '<font color="red"><b>Das reCAPTCHA wurde FALSCH eingegeben oder leer gelassen.<br>Bitte versuch es nochmal!</b></font>';
+	            	$error = 'Das reCAPTCHA wurde FALSCH eingegeben oder leer gelassen.';
+	            	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $error, 'message' => 'Bitte versuch es nochmal!']);
+				}
+			}
+			if (isset($error) && !empty($error) && $error !== true) $smarty->display('file:layout/elements/block_error.tpl');
+			echo "<form action='$_SERVER[PHP_SELF]?do=anmeldung' method='post'>";
+			echo "<table width='600' class='case' align='center'>
+				<tr><td align='center' class='title' colspan='2'>
+				Anmeldung
+				</td></tr>";
+			//gewuenschter username
+			echo "<tr><td align='left'>
+				<b>Gew&uuml;nschter Benutzername:</b><br>
+				<b class='small'>(Clan Zeichen kann seperat angegeben werden)</b>
+				</td><td align='left'>
+				<input type='text' class='text' name='new_username' size='30' value='$_POST[new_username]'>
+				</td></tr>";
+			//gewuenschtes passwort
+			echo "<tr><td align='left'>
+				<b>Passwort:</b>
+				</td><td align='left'>
+				<input type='password' class='text' name='new_password' size='30'>
+				</td></tr><tr><td align='left'>
+				<b>Passwort wiederholen:</b>
+				</td><td align='left'>
+				<input type='password' class='text' name='new_password2' size='30'>
+				</td></tr>";
+			//email adresse:
+			echo "<tr><td align='left'>
+				<b>E-Mail Adresse:</b><br>
+				<b class='small'>(du bekommst einen Aktivierungscode per E-Mail zugeschickt)</b>
+				</td><td align='left'>
+				<input type='text' name='new_email' class='text' size='30' value='$_POST[new_email]'>
+				</td></tr>";
+			// reCAPTCHA v2 form
+			echo '<tr><td align="left" colspan="2">
+				<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$reCaptchaApiKeys['key'].'"></div>
+	            <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl='.$reCaptchaLang.'"></script>
+	            </td></tr>';
+			//submit button
+			echo "<tr><td align='left' colspan='2'>
+				<input type='submit' name='newuser' class='button' value='Account registrieren'>
+				</td></tr>
+				</table>";
+			echo "</form>";
+			echo "<br><br>";
 		}
-		echo "<form action='$_SERVER[PHP_SELF]?do=anmeldung' method='post'>";
-		echo "<table width='600' class='case' align='center'>
-			<tr><td align='center' class='title' colspan='2'>
-			Anmeldung
-			</td></tr>";
-		//gewuenschter username
-		echo "<tr><td align='left'>
-			<b>Gew&uuml;nschter Benutzername:</b><br />
-			<b class='small'>(Clan Zeichen kann seperat angegeben werden)</b>
-			</td><td align='left'>
-			<input type='text' class='text' name='new_username' size='30' value='$_POST[new_username]'>
-			</td></tr>";
-		//gewuenschtes passwort
-		echo "<tr><td align='left'>
-			<b>Passwort:</b>
-			</td><td align='left'>
-			<input type='password' class='text' name='new_password' size='30'>
-			</td></tr><tr><td align='left'>
-			<b>Passwort wiederholen:</b>
-			</td><td align='left'>
-			<input type='password' class='text' name='new_password2' size='30'>
-			</td></tr>";
-		//email adresse:
-		echo "<tr><td align='left'>
-			<b>E-Mail Adresse:</b><br />
-			<b class='small'>(du bekommst einen Aktivierungscode per E-Mail zugeschickt)</b>
-			</td><td align='left'>
-			<input type='text' name='new_email' class='text' size='30' value='$_POST[new_email]'>
-			</td></tr>";
-		// reCAPTCHA v2 form
-		echo '<tr><td align="left" colspan="2">
-			<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$siteKey.'"></div>
-            <script type="text/javascript"
-                    src="https://www.google.com/recaptcha/api.js?hl='.$lang.'">
-            </script>
-            </td></tr>';
-		//submit button
-		echo "<tr><td align='left' colspan='2'>
-			<input type='submit' name='newuser' class='button' value='absenden'>
-			<br /><br />$error</b>
-			</td></tr>
-			</table>";
-		echo "</form>";
-		echo "<br /><br />";
+		else {
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Die Accountregistrierung steht zur zeit nicht zur Verfügung. Melde uns dieses Problem bitte, damit wir es schnellstmöglich beheben können.']);
+			$smarty->display('file:layout/elements/block_error.tpl');
+		}
 
-		
-		//neues passwort zusenden
-		$error = $user->new_pass($_POST['email']);
+		/** neues passwort zusenden */
+		if (!empty($_POST['email'])) $email2check = sanitize_userinput($_POST['email']);
+		$checkEmail = (!empty($email2check) ? check_email($email2check) : '');
+		if ($checkEmail === false)
+		{
+			error_log(sprintf('[NOTICE] <%s:%d> Passwort reset for e-mail was requested, but e-mail is invalid: "%s"', __FILE__, __LINE__, $email2check)); // nur intern Fehler loggen - nicht nach aussen exponieren
+		} elseif ($checkEmail === true) {
+			$user->new_pass($email2check); // Send new Password to User
+		}
+		if (isset($email2check))
+		{
+			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user')]);
+			$smarty->display('file:layout/elements/block_error.tpl');
+		}
 
-
-		echo "<form action='$_SERVER[PHP_SELF]?do=anmeldung' method='post'>";
-		echo "<table width='600' class='case' align='center'>
+		echo "<form action='$_SERVER[PHP_SELF]?do=anmeldung' method='post'>
+			<table width='600' class='case' align='center'>
 			<tr><td align='center' class='title' colspan='2'>
 			<b>Passwort vergessen ?</b>
 			</td></tr><tr><td align='left'>
@@ -303,15 +352,14 @@ if(!$user->id) {
 			</td><td align='left'>
 			<input type='text' name='email' size='40' class='text'>
 			</td></tr><tr><td align='left' colspan='2'>
-			<b class='small'>Achtung!<br />Hiermit wird dir ein neues Passwort gesetzt und zugesendet, dieses kannst du sp&auml;ter wieder &auml;ndern!</b>
-			<br /><br />
-			<font color='red'><b>$error</b></font><br />
+			<b class='small'>Achtung!<br>Hiermit wird dir ein neues Passwort gesetzt und zugesendet, dieses kannst du sp&auml;ter wieder &auml;ndern!</b>
+			<br><br>
 			<input type='submit' name='send' value='neues Passwort zusenden' class='button'>
-			</td></tr></table>";
+			</td></tr></table></form>";
+	}
 
-		echo "</form>";
-	//user reaktivieren
-	} elseif($_GET['regcode']) {
+	/** user reaktivieren */
+	elseif($_GET['regcode']) {
 		$new_user = $user->activate_user($_GET['regcode']);
 		$sql = "UPDATE user set active = 1 WHERE username='$new_user'";
 		$db->query($sql,"profil.php",297);
