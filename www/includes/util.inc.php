@@ -857,6 +857,7 @@ function urlExists($url)
  *
  * Usage: echo getGitVersion();
  * Result: MyApplication v1.2.3-dev.474a1d0 (2016-11-02 14:11:22)
+ * @link https://gist.github.com/rponte/fdc0724dd984088606b0
  * @link https://stackoverflow.com/a/33986403/5750030
  *
  * @author IneX
@@ -866,19 +867,18 @@ function urlExists($url)
  * @since 3.0 17.12.2018 fixed git error from apache2 error.log: "fatal: No tags can describe '<sha1>'" https://stackoverflow.com/a/6445255/5750030
  *
  * @see SITE_ROOT
+ * @see datetimeToTimestamp()
  * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
  */
 function getGitCodeVersion()
 {
 	try {
 		static $codeVersion = array();
-
-		$codeVersion['version'] = trim(exec('git -C '.SITE_ROOT.' describe --tags --abbrev=0 --always'));
+		$codeVersion['version'] = trim(exec('git -C '.SITE_ROOT.' describe --tags `git rev-list --tags --max-count=1`'));
 		$codeVersion['last_commit'] = trim(exec('git -C '.SITE_ROOT.' log --pretty="%h" -n1 HEAD'));
 		$lastCommitDatetime = trim(exec('git -C '.SITE_ROOT.' log -n1 --pretty=%ci HEAD'));
-		
 		$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
-		
+
 		return $codeVersion;
 
 	} catch (Exception $e) {
