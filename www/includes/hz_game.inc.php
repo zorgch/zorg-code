@@ -14,7 +14,7 @@
  * @package zorg
  * @subpackage HuntingZ
  *
- * @todo Sollte das alles hier nicht in einer Class untergebracht werden?
+ * @TODO Sollte das alles hier nicht in einer Class untergebracht werden?
  */
 /**
  * File includes

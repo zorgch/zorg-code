@@ -4,7 +4,7 @@
  * 
  * ...
  * ...
- * @todo Das alles müsste in eine PHP Klasse "class Go { ... }"
+ * @TODO Das alles müsste in eine PHP Klasse "class Go { ... }"
  *
  * @author [z]bert
  * @author [z]domi

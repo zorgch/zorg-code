@@ -11,7 +11,7 @@
  * - keine Sonderzeichen (ä, ö, ü, usw.) als Platzhalter!
  * - %-Zeichen müssen mit % escaped werden. Beispiel: 5% = 5%%
  *
- * @todo JSON anstatt PHP-Array?
+ * @TODO JSON anstatt PHP-Array?
  *
  * @link sprintf() https://secure.php.net/manual/function.sprintf.php
  */

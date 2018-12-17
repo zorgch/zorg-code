@@ -1996,7 +1996,7 @@ function picHasTitle($picID)
 /**
  * Flip an image vertically/horizontally
  *
- * @todo use native PHP Image Flip function! http://php.net/manual/function.imageflip.php
+ * @TODO use native PHP Image Flip function! http://php.net/manual/function.imageflip.php
  *
  * @see http://php.net/manual/function.imageflip.php
  * @see doRotatePic()
