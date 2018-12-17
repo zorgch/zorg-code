@@ -30,7 +30,6 @@ include_once( __DIR__ .'/strings.inc.php');
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
  * @author Milamber
  * @author IneX
- * @date 25.08.03
  * @version 2.0
  * @since 1.0 25.08.2003 function added
  * @since 2.0 09.08.2018 added timestamp validation, string for text, added time-check
@@ -132,7 +131,8 @@ function timename($timestamp)
  * Funktion um ein Datum-Zeit String in einen Timestamp umzuwandeln
  *
  * @author IneX
- * @date 04.02.2018
+ * @version 1.0
+ * @since 1.0 04.02.2018 function added
  *
  * @see date_default_timezone_set(), config.inc.php, getGitCodeVersion()
  * @param $datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
@@ -150,9 +150,8 @@ function datetimeToTimestamp($datetime)
  * @author IneX
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
- * @date 12.11.2018
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 12.11.2018 function added
  *
  * @see usersystem(), usersystem::login()
  * @param boolean $return_unix_timestamp Wenn 'true', dann wird ein Timestamp in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
@@ -223,7 +222,8 @@ function check_email($email) {
 /**
  * Gibt einen random Quote zurück
  * @author keep3r
- * @date 22.03.2004
+ * @version 1.0
+ * @since 1.0 22.03.2004 function added
  * @TODO Move this Method to the Quotes-Class
  */
 function quote(){
@@ -248,7 +248,8 @@ function quote(){
 /**
  * Setzt einmal am Tag einen Quote in die DB daily_quote
  * @author keep3r
- * @date 22.03.2004
+ * @version 1.0
+ * @since 1.0 22.03.2004 function added
  * @TODO Move this Method to the Quotes-Class
  */
 function set_daily_quote()
@@ -650,9 +651,8 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
  * Entfernt HTML-Tags aus einem String
  *
  * @author IneX
- * @date 16.03.2008
  * @version 2.0
- * @since 1.0 initial release
+ * @since 1.0 16.03.2008 initial release
  * @since 2.0 changed preg_replace("@</?[^>]*>*@") => strip_tags()
  *
  * @link http://php.net/manual/de/function.strip-tags.php
@@ -677,11 +677,11 @@ function remove_html($html, $allowable_tags=NULL)
  * Escape alle nicht sicheren Zeichen eines Strings
  *
  * @author IneX
- * @date 27.12.2017
- * @see comment_new.php
- * @see comment_edit.php
- * @see Comment:post()
+ * @version 1.0
+ * @since 1.0 27.12.2017 function added
  *
+ * @see comment_new.php, comment_edit.php
+ * @see Comment:post()
  * @param $string String Input which shall be escaped
  * @return string Returns escaped $string as string
  */
@@ -697,7 +697,8 @@ function escape_text($string) {
  * @FIXME should not use remove_html() !? remove this part
  *
  * @author IneX
- * @date 24.04.2018
+ * @version 1.0
+ * @since 1.0 24.04.2018 function added
  * @see bugtracker.inc.php
  * @see exec_changeprofile()
  *
@@ -714,8 +715,8 @@ function sanitize_userinput($string, $allowable_tags=NULL) {
  * Funktion liefert den Zeitunterschied zur GMT basis
 *
  * @author IneX
- * @verison 1.0
- * @date 16.03.2008
+ * @version 1.0
+ * @since 1.0 16.03.2008 function added
 *
  * @return String
  * @param $date
@@ -741,7 +742,6 @@ function gmt_diff($date) {
  * @TODO Funktion entfernen, wird via JavaScript erledigt
  * @link https://deviceatlas.com/blog/mobile-browser-user-agent-strings
  * @author IneX
- * @date 23.04.2009
  * @version 2.0
  * @since 1.0 23.04.2009 function added
  * @since 2.0 19.07.2018 Array foreach-loop replaced with faster array_filter-search, updated identifiers
@@ -803,7 +803,6 @@ function isMobileClient($userAgent)
  * Searches for a matching String in a given Array
  *
  * @author IneX
- * @date 13.09.2018
  * @version 1.0
  * @since 13.09.2018 function added
  *
@@ -836,15 +835,14 @@ function findStringInArray($searchFor, $inArray, $arrayColumn=null, $caseSensiti
 	}
 }
 
-
 /**
  * Test if a URL returns status code 200 OK
  *
  * @author IneX
  * @version 1.0
- * @date 21.01.2017
- * @link https://stackoverflow.com/a/39811033/5750030
+ * @since 1.0 21.01.2017 function added
  *
+ * @link https://stackoverflow.com/a/39811033/5750030
  * @param string $url 	The URL to validate
  * @return boolean		Returns true or false indicating the validity of the given URL
  */ 
@@ -854,18 +852,18 @@ function urlExists($url)
 	return false;
 }
 
-
 /**
  * Get Code information from Git
+ *
  * Usage: echo getGitVersion();
  * Result: MyApplication v1.2.3-dev.474a1d0 (2016-11-02 14:11:22)
  * @link https://stackoverflow.com/a/33986403/5750030
  *
  * @author IneX
- * @date 04.02.2018
- * @version 2.0
+ * @version 3.0
  * @since 1.0 04.02.2018 function added
  * @since 2.0 20.08.2018 fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
+ * @since 3.0 17.12.2018 fixed git error from apache2 error.log: "fatal: No tags can describe '<sha1>'" https://stackoverflow.com/a/6445255/5750030
  *
  * @see SITE_ROOT
  * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
@@ -875,7 +873,7 @@ function getGitCodeVersion()
 	try {
 		static $codeVersion = array();
 
-		$codeVersion['version'] = trim(exec('git -C '.SITE_ROOT.' describe --tags --abbrev=0'));
+		$codeVersion['version'] = trim(exec('git -C '.SITE_ROOT.' describe --tags --abbrev=0 --always'));
 		$codeVersion['last_commit'] = trim(exec('git -C '.SITE_ROOT.' log --pretty="%h" -n1 HEAD'));
 		$lastCommitDatetime = trim(exec('git -C '.SITE_ROOT.' log -n1 --pretty=%ci HEAD'));
 		
@@ -889,15 +887,13 @@ function getGitCodeVersion()
 	}
 }
 
-
 /**
  * Wraps String with a specified HTML-Tag
  * e.g. 'text', 'b' => returns <b>text</b>
  *
  * @author IneX
- * @date 18.06.2018
  * @version 1.0
- * @since 1.0 initial release
+ * @since 1.0 18.06.2018 initial release
  *
  * @param string $text String input to wrap into HTML-tag $htmlTag
  * @param string $htmlTag HTML-Tag to use for warpping $text inside. Use only "b", "pre", "code", etc.
@@ -920,9 +916,8 @@ function html_tag($text, $htmlTag)
  * Starts a cURL instance to download a passed URL to the defined file path, if the URL status is 200 OK
  *
  * @author IneX
- * @date 17.07.2018
  * @version 1.0
- * @since 1.0 added function
+ * @since 1.0 17.07.2018 function added
  *
  * @param string $url String input containing a URL
  * @param string $save_as_file String input containing a valid local file path to save the $url to
@@ -998,9 +993,8 @@ function cURLfetchUrl($url, $save_as_file)
  * Starts a cURL instance to retrieve a JSON data object from the passed $url, and return it as a PHP array if the JSON response status is 200 OK
  *
  * @author IneX
- * @date 06.08.2018
  * @version 1.0
- * @since 1.0 added function
+ * @since 1.0 06.08.2018 function added
  *
  * @param string $url String input containing a REST API URL
  * @return array|bool Returns a JSON object converted to a PHP array containing the JSON data, or false, depening on if a successful execution was possible
@@ -1054,7 +1048,7 @@ function cURLfetchJSON($url)
  *
  * @author IneX
  * @version 1.0
- * @date 06.08.2018
+ * @since 1.0 06.08.2018 function added
  *
  * @param string $filepath 	The filepath to validate
  * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
@@ -1071,7 +1065,6 @@ function fileExists($filepath)
  * Pass a second file, in order to do a comparison of the two
  *
  * @author IneX
- * @date 13.08.2018
  * @version 2.0
  * @since 1.0 08.08.2018 added function
  * @since 2.0 13.08.2018 added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
