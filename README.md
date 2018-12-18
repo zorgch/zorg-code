@@ -1,5 +1,4 @@
-# Inhaltsverzeichnis
-- [zorg Code in lokaler Instanz inkl. Datenbank aufsetzen](#zorg-code-in-lokaler-instanz-inkl-datenbank-aufsetzen)
+- [zorg Code auf lokaler Instanz einrichten](#zorg-code-auf-lokaler-instanz-einrichten)
   * [Voraussetzungen](#voraussetzungen)
   * [Lokalen Clone des zorg Codes aufsetzen](#lokalen-clone-des-zorg-codes-aufsetzen)
   * [Apache Virtual Host definieren](#apache-virtual-host-definieren)
@@ -7,10 +6,10 @@
 - [Code Anpassungen vornehmen und an zorg mitwirken](#code-anpassungen-vornehmen-und-an-zorg-mitwirken)
   * [Dokumentation nicht vergessen!](#dokumentation-nicht-vergessen-)
   * [Pull-Request mit deinen Änderungen erstellen](#pull-request-mit-deinen--nderungen-erstellen)
-- [zorg Code & Website auf xoli aufsetzen](#zorg-code-website-auf-xoli-aufsetzen)
+- [zorg Code & Website auf xoli aufsetzen](#zorg-code---website-auf-xoli-aufsetzen)
   * [Git serverseitig konfigurieren](#git-serverseitig-konfigurieren)
-  * [Neusten Codestand **regelmässig** aus dem Git Repo auf xoli pullen](#neusten-codestand-regelmässig-aus-dem-git-repo-auf-xoli-pullen)
-  * [**Initiales Setup**: Repo EINMALIG auf xoli runterladen](#initiales-setup-repo-einmalig-auf-xoli-runterladen)
+  * [Neusten Codestand regelmässig aus dem Git Repo auf xoli pullen](#neusten-codestand---regelm-ssig---aus-dem-git-repo-auf-xoli-pullen)
+  * [Initiales Setup: Repo EINMALIG auf xoli runterladen](#--initiales-setup----repo-einmalig-auf-xoli-runterladen)
 
 # zorg Code auf lokaler Instanz einrichten
 
@@ -87,6 +86,8 @@ Die Datei mit folgender neuen Zeile ergänzen:
 
 ## Lokale zorg Datenbank einrichten
 > Kontaktiere [[z]bert][5], [[z]keep3r][6] oder [IneX][7] für einen aktuellen zorg DB-Dump
+
+> Details siehe [MySQL database export, import and setup](migration/initial-setup/mysql-database.md)
 1. Auf dem lokalen MySQL-Server eine neue Datenbank - z.B. `zorg` - anlegen und einen User mit sämtlichen Rechten (minimum aber Select, Insert, Update & Delete-Berechtigungen) dafür konfigurieren
 2. Den zorg DB-Dump nun dort importieren
 
