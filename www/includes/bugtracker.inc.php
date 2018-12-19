@@ -356,8 +356,8 @@ Class Bugtracker {
 		}
 
 		$html .=
-			'<table class="border shadedcells" width="100%" itemscope itemtype="http://schema.org/Question">'
-			.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? '<meta itemprop="answerCount" content="'.Thread::getNumPosts('b', $rs['id']).'">' : '')
+			'<table class="border shadedcells" width="100%" itemscope itemprop="mainEntity" itemtype="http://schema.org/Question">'
+			.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? '<tr style="display:none;"><td itemprop="answerCount">'.Thread::getNumPosts('b', $rs['id']).'</td></tr>' : '')
 
 			.'<tr>'
 			.'<td align="left" width="100">Bug #</td>'
@@ -406,6 +406,7 @@ Class Bugtracker {
 			.'<tr>'
 			.'<td align="left">Status:</td>'
 			.'<td align="left">'
+			.(empty($rs['resolved_date']) && empty($rs['denied_date']) ? '<span itemprop="text" style="display:none;">Antwort ausstehend...</span>' : '')
 			.($rs['resolved_date'] > 0 ? '<b itemprop="text">Resolved</b> @ <time itemprop="dateCreated" datetime="'.$resolvedDate_iso8601.'">'.datename($rs['resolved_date']).'</time>' : '')
 			.($rs['denied_date'] > 0 ? '<b itemprop="text">Denied</b> @ <time itemprop="dateCreated" datetime="'.$deniedDate_iso8601.'">'.datename($rs['denied_date']).'</time>' : '')
 			.'</td>'

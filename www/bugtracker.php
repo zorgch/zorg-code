@@ -126,15 +126,17 @@ if($_GET['bug_id'] == '') {
 	$smarty->assign('tplroot', array('page_title' => sprintf('Bug #%d - %s', $_GET['bug_id'], $bugTitle['title']), 'page_link' => '/bug/'.$_GET['bug_id']));
 	$smarty->display('file:layout/head.tpl');
 	
-	echo menu("zorg");
-	echo menu("utilities");
+	echo menu('zorg');
+	echo menu('utilities');
 	if ($user->typ == USER_MEMBER) echo menu("admin");
-	echo '<h1 itemscope itemtype="http://schema.org/QAPage">Bugtracker</h1>';
+	echo '<h1>Bugtracker</h1>';
 
 	if($_GET['action'] == 'editlayout') {
 		echo Bugtracker::getBugHTML($_GET['bug_id'], TRUE);
 	} else {
+		echo '<div itemscope itemtype="http://schema.org/QAPage">'; // schema.org
 		echo Bugtracker::getBugHTML($_GET['bug_id']);
+		echo '</div>'; // schema.org
 		Forum::printCommentingSystem('b', $_GET['bug_id']);
 	}
 
