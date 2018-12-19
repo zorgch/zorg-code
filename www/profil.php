@@ -148,7 +148,7 @@ if($_GET['user_id']) {
 		$result = $db->query($sql, __FILE__, __LINE__, 'Userprofil anzeigen');
 		$rs = $db->fetch($result);
 	} catch(Exception $e) {
-		trigger_error($e->getMessage(), E_trigger_error);
+		trigger_error($e->getMessage(), E_USER_ERROR);
 	}
 
 	if (isset($_geaechtet[$_GET['user_id']])) {
