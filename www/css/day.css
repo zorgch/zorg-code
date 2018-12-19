@@ -170,7 +170,7 @@ img.forum {
 }
 
 td.end {
-	background-image: url("/images/forum/end.gif");
+	background-image: url("/images/forum/day/end.gif");
 	background-repeat: no-repeat;
 	height: 16px;
 	margin: 0px;
@@ -180,7 +180,7 @@ td.end {
 }
 
 td.space {
-	background-image: url("/images/forum/space.gif");
+	background-image: url("/images/forum/day/space.gif");
 	height: 16px;
 	margin: 0px;
 	padding: 0px;
@@ -189,7 +189,7 @@ td.space {
 }
 
 td.vertline {
-	background-image: url("/images/forum/vertline.gif");
+	background-image: url("/images/forum/day/vertline.gif");
 	height: 16px;
 	margin: 0px;
 	padding: 0px;
