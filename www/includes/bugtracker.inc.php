@@ -355,9 +355,18 @@ Class Bugtracker {
 			;
 		}
 
+		/** schema.org QAPage/Question "itemprop=answerCount" berechnen */
+		$bugNumComments = Thread::getNumPosts('b', $rs['id']);
+		if ($bugNumComments <= 0)
+		{
+			$schemaQuestionAnswerCount = ($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? '1' : '1');
+		} else {
+			$schemaQuestionAnswerCount = $bugNumComments;
+		}
+
 		$html .=
 			'<table class="border shadedcells" width="100%" itemscope itemprop="mainEntity" itemtype="http://schema.org/Question">'
-			.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? '<tr style="display:none;"><td itemprop="answerCount">'.Thread::getNumPosts('b', $rs['id']).'</td></tr>' : '')
+			.'<tr style="display:none;"><td itemprop="answerCount">'.$schemaQuestionAnswerCount.'</td></tr>'
 
 			.'<tr>'
 			.'<td align="left" width="100">Bug #</td>'
@@ -397,7 +406,7 @@ Class Bugtracker {
 			.'<br />&nbsp;'
 			.'</td></tr>'
 
-			.(!empty($rs['assignedto_id']) ? '<tbody itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'" itemscope itemtype="http://schema.org/Answer">' : '')
+			.'<tbody itemtype="http://schema.org/Answer" itemscope itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'">'
 			.'<tr>'
 			.'<td align="left">Assigned to:</td>'
 			.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$user->link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']) : '').'</td>'
