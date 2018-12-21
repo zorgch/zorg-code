@@ -5,7 +5,7 @@
 		{/if}
 		{if $show_username === 'true'}
 			{if $show_profilepic === 'true'}<br>{/if}
-			{$username}
+			<span itemprop="name">{$username}</span>
 		{/if}
 	{if $show_profile_link === 'true'}</a>{/if}
 {if $show_profilepic === 'true'}</div>{/if}{/strip}

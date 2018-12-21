@@ -2,7 +2,7 @@
 					<br/>
 				</td>
 			</tr>
-			<tr>
+			<!--googleoff: all--><tr>
 				<td width="100%" align="center" valign="center" class="small" style="background-color:{$smarty.const.TABLEBACKGROUNDCOLOR}; padding:2px; border-top-style:solid; border-top-width:1px; border-top-color:{$smarty.const.BORDERCOLOR}">
 					{if $tplroot.id != ''}Template: {$tplroot.size} bytes
 						&nbsp;| r: {$tplroot.read_rights|usergroup}
@@ -26,7 +26,7 @@
 						| Code Version: {if $user->typ == 2} <a href="{$smarty.const.GIT_REPOSITORY}{$code_info.last_commit}" target="_blank">{/if}{$code_info.version}#{$code_info.last_commit}{if $user->typ == 2}</a>{/if} (updated: {$code_info.last_update|datename})
 					{/if}
 				</td>
-			</tr>
+			</tr><!--googleon: all-->
 		</table>
 	</center>
 	{*if $tplroot.page_title == 'Home' && !$smarty.get.tpleditor}<!-- Redirect Mobile Devices, kudos to http://detectmobilebrowsers.com/ -->
