@@ -285,11 +285,12 @@ class usersystem
 	 * Erstellt eine Session (login)
 	 *
 	 * @author [z]biko, IneX
-	 * @version 4.0
+	 * @version 4.1
 	 * @since 1.0 method added
 	 * @since 2.0 12.11.2018 code & query optimizations
-	 * @since 3.0 21.11.2018 Fixed redirect bei Cookie-Session-Login auf jeweils aktuelle Seite, nicht immer Home
+	 * @since 3.0 21.11.2018 Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
 	 * @since 4.0 10.12.2018 Improved Cookie-Settings (secure and stuff)
+	 * @since 4.1 21.12.2018 Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
 	 *
 	 * @see ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW
 	 * @see crypt_pw(), timestamp(), usersystem::invalidate_session()
@@ -428,7 +429,7 @@ class usersystem
 								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 							], __FILE__, __LINE__, __METHOD__);
 
-							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']);
+							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).'?'.htmlspecialchars($_SERVER['QUERY_STRING']));
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
 							//header('Location: '.changeURL( (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']), session_name().'='.session_id() ));
 							header('Location: '.$loginRedirectUrl);
