@@ -1681,7 +1681,9 @@ function setNewDailyPic()
 			 *     caption = "Daily Pic: {Title - if available} [Gallery-Name]"
 			 */
 			$imgUrl = SITE_URL.imgsrcPic($newdp['id']);
-			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ picHasTitle($newdp['id']), $newdp['galleryname'] ]);
+			$picTitle = picHasTitle($newdp['id']);
+			$picGallery = $newdp['galleryname'];
+			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ (empty($picTitle) ? ' ' : $picTitle), (empty($picGallery) ? ' ' : $picGallery) ]);
 			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
 
 			return true;
