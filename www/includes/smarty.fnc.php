@@ -1061,17 +1061,19 @@ function smarty_peter ($params, &$smarty) {
 		 * Usage: {top_pics album=41 limit=1}
 		 *
 		 * @author IneX <IneX@gmx.net>
+		 * @version 1.0
+		 * @since 1.0 23.06.2007 function added as part of Bug #609
+		 *
+		 * @see getTopPics()
+		 * @params array $params All passed Smarty-Function parameters, allowed: album, limit, options
+		 * @return string HTML displaying top rated n amount of Gallery-Pics
 		 */
 		function smarty_top_pics ($params)
 		{
-		 	$album_id = ($params['album'] == '' ? 0 : $params['album']);
-
-		 	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
-
-		 	$options = ($params['options'] == '' ? '' : $params['options']);
-
-	 		//Nur zum kontrollieren...
-	 		//print('Album-ID: '.$album_id.'<br />Limit: '.$limit.'<br />');
+			/** Validate and assign passed $params */
+		 	$album_id = (empty($params['album']) ? null : $params['album']);
+		 	$limit = (empty($params['limit']) ? 5 : $params['limit']);
+		 	$options = (empty($params['options']) ? false : true);
 
 	 		return getTopPics($album_id, $limit, $options);
 		}

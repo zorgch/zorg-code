@@ -1701,217 +1701,151 @@ function setNewDailyPic()
 	}
 }
 
-
-function getTopPics($album_id, $limit, $options) {
+/**
+ * Get amount n of best rated pics
+ *
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 23.06.2007 function added as part of Bug #609
+ * @since 2.0 02.01.2019 fixed Bug #770: "'Bestes Pic' soll nur Pics berücksichtigen mit >1 Votes"
+ *
+ * @see imgsrcThum(), imgName(), getNumVotes()
+ * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
+ * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
+ * @param	integer	$album_id	Album-ID für welches die Top Pics angezeigt werden sollen. Default: null (none)
+ * @param	integer	$limit		Max. Anzahl anzuzeigender Top Pics. Default: 5
+ * @param	boolean	$ranking_list	(Optional) Zusätzliche Settings für Darstellung der Top Pics als HTML-Tabelle mit Ranking. Default: false
+ * @return	string	HTML-Code mit den Top Gallery-Pic Thumbnails des $album_id
+ */
+function getTopPics($album_id=null, $limit=5, $ranking_list=false)
+{
 	global $db, $user;
-	
-	//if ($user->typ != USER_MEMBER) $zensur = "WHERE zensur='0'";
-	//else $zensur = "";
-	
-	//$sql = "SELECT *, AVG(score) FROM gallery_pics_votes WHERE score > 0 GROUP BY pic_id ORDER BY score DESC LIMIT $limit";
-	//echo $sql;
-	
-	
+
 	$i=1;
-	
-	if ($options == 'ranking-list') {
-		$html_out .=
-				'<table class="border">'
-		;
-	}
-	
-	
-	if ($album_id == 0) {
-		$sql = 'SELECT pic_id, AVG(score) as avgScore, COUNT(pic_id) as numVotes
-				FROM gallery_pics_votes
-				WHERE score > 0
-				GROUP BY pic_id
-				ORDER BY avgScore DESC, numVotes DESC
-				LIMIT '.$limit;
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		
+	$html_out = '';
+
+	if ($ranking_list === true) $html_out .= '<table class="border">';
+
+	/**
+	 * $album_id specified
+	 * show best rated pics from this Gallery only
+	 */
+	if (!empty($album_id) && is_numeric($album_id) && $album_id > 0)
+	{
+		try {
+			$sql = 'SELECT
+					 p.id,
+					 p.album,
+					 p.name,
+					 p_vote.pic_id,
+					 p.zensur,
+					 AVG(p_vote.score) as avgScore,
+					 COUNT(p_vote.pic_id) as numVotes
+				 FROM
+				 	gallery_pics p LEFT OUTER
+				 JOIN gallery_pics_votes p_vote ON p.id = p_vote.pic_id
+				 WHERE p.album = '.$album_id.' AND p_vote.score > 0 AND p.zensur != "1"
+				 GROUP BY p_vote.pic_id
+				 HAVING numVotes >= 3
+				 ORDER BY avgScore DESC, numVotes DESC, p.id ASC
+				 LIMIT '.$limit;
+			$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_NOTICE);
+			return false;
+		}
+
 		while($rs = $db->fetch($result)) {
 			$file = imgsrcThum($rs['pic_id']);
-			
+
 			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			
+
 			//$anz_votes = getNumVotes($rs['pic_id']);
 			$anz_votes = $rs['numVotes'];
-			
-			if ($options == 'ranking-list') {
+
+			if ($ranking_list === true) {
 				$html_out .=
 					'<tr bgcolor="'.$color.'">'
 					.'<td align="left">'.$i.'.</td>'
 					.'<td align="center">';
 			}
 			
-			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">'
-			;
+			$html_out .= '<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">';
+
+			if ($rs['name']) $html_out .= $rs['name'].'<br />';
 			
+			$html_out .=
+					'<img border="0" src="'.$file.'" /></a>'
+					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
+			;
+
+			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
+			$html_out .=
+				'<small>('.$votes.')</small>'
+				.'<br />'
+			;
+
+			if ($ranking_list === true) $html_out .= '</td></tr>';
+
+			$i++;
+		}
+	}
+
+	/**
+	 * No $album_id given
+	 * Show Top Pics over all Gallery Albums
+	 */
+	else {
+		try {
+			$sql = 'SELECT *, AVG(score) as avgScore, COUNT(pic_id) as numVotes, (SELECT zensur FROM gallery_pics WHERE id = pic_id) zensiert
+					FROM gallery_pics_votes
+					WHERE score > 0
+					GROUP BY pic_id
+					HAVING (zensiert IS NULL OR zensiert = 0) AND numVotes >= 3
+					ORDER BY avgScore DESC, numVotes DESC, pic_id ASC
+					LIMIT '.$limit;
+			$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_NOTICE);
+			return false;
+		}
+
+		while($rs = $db->fetch($result)) {
+			$file = imgsrcThum($rs['pic_id']);
+
+			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+
+			$anz_votes = $rs['numVotes'];
+
+			if ($ranking_list === true) {
+				$html_out .=
+					'<tr bgcolor="'.$color.'">'
+					.'<td align="left">'.$i.'.</td>'
+					.'<td align="center">';
+			}
+
+			$html_out .= '<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">';
+
 			$pic_name = imgName($rs['pic_id']);
-			if ($pic_name) {
-				$html_out .=
-					$pic_name.'<br />'
-				;
-			}
-			
+			if ($pic_name) $html_out .= $pic_name.'<br />';
+
 			$html_out .=
 					'<img border="0" src="'.$file.'" /></a>'
 					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
 			;
-			
-			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			$html_out .=
-				'<small>('.$votes.')</small>'
-				.'<br />'
-			;
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'</td>'
-					.'</tr>'
-				;
-			}
-			
-			$i++;
-		}
-		
-		
-	} elseif ($album_id > 0) {
-		$sql =
-			"
-			SELECT
-				p.id,
-				p.album,
-				p.name,
-				p_vote.pic_id,
-				AVG(p_vote.score) as avgScore,
-				COUNT(p_vote.pic_id) as numVotes
-			FROM
-			gallery_pics p LEFT OUTER
-			JOIN gallery_pics_votes p_vote ON p.id = p_vote.pic_id
-			WHERE p.album = ".$album_id." AND p_vote.score > 0
-			GROUP BY p_vote.pic_id
-			ORDER BY avgScore DESC, numVotes DESC
-			LIMIT $limit"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		
-		while($rs = $db->fetch($result)) {
-			//$file = imgsrcThum($rs['id']);
-			$file = imgsrcThum($rs['pic_id']);
-			
-			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			
-			//$anz_votes = getNumVotes($rs['pic_id']);
-			$anz_votes = $rs['numVotes'];
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'<tr bgcolor="'.$color.'">'
-					.'<td align="left">'.$i.'.</td>'
-					.'<td align="center">';
-			}
-			
-			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">'
-			;
-			
-			if ($rs['name']) {
-				$html_out .=
-					$rs['name'].'<br />'
-				;
-			}
-			
-			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
-			;
-			
-			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			$html_out .=
-				'<small>('.$votes.')</small>'
-				.'<br />'
-			;
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'</td>'
-					.'</tr>'
-				;
-			}
-			
-			$i++;
-		}
-		
-		
-	} else {
-		$sql =
-			"
-			SELECT *, AVG(score) as avgScore, COUNT(pic_id) as numVotes
-			FROM gallery_pics_votes
-			WHERE score > 0
-			GROUP BY pic_id
-			ORDER BY avgScore DESC, numVotes DESC
-			LIMIT $limit"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		
-		while($rs = $db->fetch($result)) {
-			$file = imgsrcThum($rs['pic_id']);
-			
-			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			
-			//$anz_votes = getNumVotes($rs['pic_id']);
-			$anz_votes = $rs['numVotes'];
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'<tr bgcolor="'.$color.'">'
-					.'<td align="left">'.$i.'.</td>'
-					.'<td align="center">';
-			}
-			
-			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">'
-			;
-			
-			$pic_name = imgName($rs['pic_id']);
-			if ($pic_name) {
-				$html_out .=
-					$pic_name.'<br />'
-				;
-			}
-			
-			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
-			;
-			
-			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			$html_out .=
-				'<small>('.$votes.')</small>'
-				.'<br />'
-			;
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'</td>'
-					.'</tr>'
-				;
-			}
-			
+
+			$votes = $anz_votes.' '.(($anz_votes > 1) || ($anz_votes == 0) ? 'Votes' : $anz_votes.'Vote');
+			$html_out .= '<small>('.$votes.')</small>'.'<br />';
+
+			if ($ranking_list === true) $html_out .= '</td></tr>';
+
 			$i++;
 		}
 	}
-	
-	if ($options == 'ranking-list') {
-		$html_out .= '</table>';
-	}
-	
+
+	if ($ranking_list === true) $html_out .= '</table>';
+
 	return $html_out;
-	
 }
 
 /**
