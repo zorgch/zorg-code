@@ -490,7 +490,7 @@ function turn_finalize ($game, $uid=null)
 			while($inspectors = $db->fetch($i))
 			{
 				/** Notification */
-				$notification_text = t('message-your-turn', 'hz', [ SITE_URL, $game]);
+				$notification_text = t('message-your-turn-inspectors', 'hz', [SITE_URL, $game]);
 				$notification_status = $notification->send($inspectors['user'], 'games', ['from_user_id'=>$uid, 'subject'=>t('message-subject', 'hz'), 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from uid=%s to z=%s for Inspectors=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $uid, $z, print_r($inspectors['user'],true)));
 			}
@@ -521,7 +521,7 @@ function turn_finalize ($game, $uid=null)
 			/** Mr. z benachrichtigen */
 			$z = $db->fetch($db->query('SELECT user FROM hz_players WHERE game='.$d['id'].' AND type="z" LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__));
 			if (!empty($z['user']) && is_numeric($z['user'])) {
-				$notification_text = t('message-your-turn', 'hz', [ SITE_URL, $game]);
+				$notification_text = t('message-your-turn-mrz', 'hz', [SITE_URL, $game]);
 				$notification_status = $notification->send($z['user'], 'games', ['from_user_id'=>$uid, 'subject'=>t('message-subject', 'hz'), 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> turn_finalize() triggers $notification->send() with status "%s" for Mr.Z from uid=%s to z=%d', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $uid, $z['user']));
 			} else {
