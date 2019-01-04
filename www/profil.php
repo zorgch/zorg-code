@@ -330,16 +330,18 @@ if(!$user->id) {
 
 		/** neues passwort zusenden */
 		if (!empty($_POST['email'])) $email2check = sanitize_userinput($_POST['email']);
-		$checkEmail = (!empty($email2check) ? check_email($email2check) : '');
+		$checkEmail = (!empty($email2check) ? check_email($email2check) : null);
 		if ($checkEmail === false)
 		{
-			error_log(sprintf('[NOTICE] <%s:%d> Passwort reset for e-mail was requested, but e-mail is invalid: "%s"', __FILE__, __LINE__, $email2check)); // nur intern Fehler loggen - nicht nach aussen exponieren
+			/** Fehler nur INTERN loggen - nicht nach aussen exponieren! */
+			error_log(sprintf('[NOTICE] <%s:%d> Passwort reset was requested, but e-mail is invalid: "%s"', __FILE__, __LINE__, $email2check));
 		} elseif ($checkEmail === true) {
-			$user->new_pass($email2check); // Send new Password to User
+			/** Passwort reset triggern */
+			$pwreset_error = $user->new_pass($email2check); // Send new Password to User
 		}
 		if (isset($email2check))
 		{
-			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user')]);
+			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user'), 'message' => t('newpass-confirmation-text', 'user')]);
 			$smarty->display('file:layout/elements/block_error.tpl');
 		}
 

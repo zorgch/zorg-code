@@ -43,11 +43,12 @@ require_once( __DIR__ .'/activities.inc.php');
  * @author IneX
  * @package zorg
  * @subpackage Usersystem
- * @version 4.0
+ * @version 5.0
  * @since 1.0 class added
  * @since 2.0 additional methods added
  * @since 3.0 code optimizations and new methods
- * @since 4.0 major refactorings & migrated methods from profil.php as part of the usersystem()-class
+ * @since 4.0 10.12.2018 major refactorings & migrated methods from profil.php as part of the usersystem()-class
+ * @since 5.0 26.12.2018 Bug #769: 'usertyp'-Spalte entspricht neu einer Usergruppe aus dem Table 'usergroups' (quasi als Foreign-Key)
  */
 class usersystem
 {
@@ -227,7 +228,7 @@ class usersystem
 				$this->show_comments = ($rs[$this->field_show_comments] == '1' || empty($rs[$this->field_show_comments]) ? true : false);
 				$this->email_notification = ($rs[$this->field_email_notification] === '1' || empty($rs[$this->field_email_notification]) ? true : false); // @DEPRECATED
 				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
-				$this->sql_tracker = $rs[$this->field_sql_tracker];
+				$this->sql_tracker = ($rs[$this->field_sql_tracker] == '1' ? true : false);
 				$this->addle = $rs[$this->field_addle];
 				$this->chess = $rs[$this->field_chess];
 				$this->maxdepth = ($rs[$this->field_maxdepth] ? $rs[$this->field_maxdepth] : $this->maxdepth = DEFAULT_MAXDEPTH);
@@ -429,7 +430,7 @@ class usersystem
 								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 							], __FILE__, __LINE__, __METHOD__);
 
-							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).'?'.htmlspecialchars($_SERVER['QUERY_STRING']));
+							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).'?'.$_SERVER['QUERY_STRING']);
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
 							//header('Location: '.changeURL( (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']), session_name().'='.session_id() ));
 							header('Location: '.$loginRedirectUrl);
@@ -536,13 +537,14 @@ class usersystem
 	 * Neues Passwort
 	 * Generiert ein Passwort für einen bestehenden User
 	 *
-	 * @version 3.0
+	 * @version 4.1
 	 * @since 1.0 method added
 	 * @since 2.0 global strings added
 	 * @since 3.0 17.10.2018 Fixed Bug #763: Passwort vergessen funktioniert nicht
 	 * @since 4.0 21.10.2018 Code & DB-Query improvements
+	 * @since 4.1 04.01.2019 Fixed handling $db->update() result, changed Error messages, added debugging-output on DEV
 	 *
-	 * @see crypt_pw()
+	 * @see usersystem::password_gen(), crypt_pw()
 	 * @param string $email E-Mailadresse für deren User das PW geändert werden soll
 	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
 	 * @return string Error-Message
@@ -552,44 +554,57 @@ class usersystem
 
 		/** Validate passed $email */
 		if (is_numeric($email) || is_array($email) || empty($email)) return t('invalid-email', 'user');
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Passwort reset for e-mail triggered: %s', __METHOD__, __LINE__, $email));
 
 		/** E-mailadresse validieren */
 		if (check_email($email) === true)
 		{
 			/** überprüfe ob User mit dieser Email existiert */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> E-Mail format valid: %s', __METHOD__, __LINE__, $email));
 			$sql = 'SELECT id, username FROM user WHERE email="'.$email.'"';
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			if($db->num($result))
 			{
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->num($result) done', __METHOD__, __LINE__));
 				$rs = $db->fetch($result);
 
 				/** 1. generiere neues passwort */
-				$new_pass = $this->password_gen($rs['username']);
+				$new_pass = $this->password_gen();
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> password_gen() done: %s', __METHOD__, __LINE__, $new_pass));
 
 				/** 2. verschlüssle neues passwort */
 				$crypted = crypt_pw($new_pass);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> crypt_pw() done: %s', __METHOD__, __LINE__, $crypted));
 
 				/** 3. trage aktion in errors ein */
 				$this->logerror(3,$rs['id']);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logerror() done', __METHOD__, __LINE__));
 
 				/** 4. update neues pw in user table */
 				$result = $db->update($this->table_name, ['id', $rs['id']], ['userpw' => $crypted], __FILE__, __LINE__, __METHOD__);
-				if ($result === 0 || !$result)
+				if ($result !== false)
 				{
 					/** 5. versende email mit neuem passwort */
 					$new_pass_mail_status = mail($email, t('message-newpass-subject', 'user'), t('message-newpass', 'user', [ $rs['username'], $new_pass ]), "From: ".ZORG_EMAIL."\n");
-					if ($new_pass_mail_status) $error = t('newpass-confirmation', 'user');
-					else $error = t('invalid-email', 'user');
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Passwort reset mail() sent with status: %s', __METHOD__, __LINE__, ($new_pass_mail_status?'true':'false')));
+					if ($new_pass_mail_status) return true;//$error = t('newpass-confirmation', 'user');
+					else return false;//$error = t('invalid-email', 'user');
 				} else {
-					$error = t('invalid-email', 'user');
+					error_log(sprintf('[NOTICE] <%s:%d> Passwort could not be updated in DB', __METHOD__, __LINE__));
+					//$error = t('error-userpw-update', 'user');
+					return false;
 				}
 			} else {
-				$error = t('invalid-email', 'user');
+				error_log(sprintf('[NOTICE] <%s:%d> No matching User found for Passwort reset', __METHOD__, __LINE__));
+				//$error = t('error-userprofile-update', 'user');
+				return false;
 			}
 		} else {
-			$error = t('invalid-email', 'user');
+			error_log(sprintf('[NOTICE] <%s:%d> %s', __METHOD__, __LINE__, t('invalid-email', 'user')));
+			//$error = t('invalid-email', 'user');
+			return false;
 		}
-		return $error;
+		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Passwort reset finished with: %s', __METHOD__, __LINE__, $error));
 	}
 
 	/**
@@ -861,15 +876,27 @@ class usersystem
 	 *
 	 * Erstellt ein zufälliges Passwort
 	 *
+	 * @author [z]biko
+	 * @author IneX
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 04.01.2019 updated mechanism and form of generated passwords, not using $username string anymore
+	 *
+	 * @param $length integer (Optional) specify length of random password to generate, Default: 12
 	 * @return string Passwort
-	 * @param $username string Benutzername
 	 */
-	function password_gen($username) {
-		for($i=0;$i<strlen($username);$i++) {
-			srand(microtime()*1000000);
-			$rand .= strtolower(chr(rand(65,90)));
+	function password_gen($length=12)
+	{
+		$charsToUse = 'abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ01234567890';
+		$pass = array();
+		$charsLength = strlen($charsToUse)-1;
+		for ($i=0; $i<$length; $i++)
+		{
+			$n = rand(0, $charsLength);
+			$pass[] = $charsToUse[$n];
 		}
-		return $rand;
+		$randpass = implode($pass); // convert the array to a string
+		return $randpass;
 	}
 
 	/**

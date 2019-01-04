@@ -74,6 +74,7 @@ return
 			,'lockout-notice' => 'Du bist ausgesperrt! (bis %s)'
 			,'user-wird-geaechtet' => '%s wird zur Zeit geächtet - weil er sich selber <strong>ausgesperrt</strong> hat. Tz-tz-tz...'
 			,'newpass-confirmation' => 'Ein neues Passwort wurde generiert und Dir zugestellt!'
+			,'newpass-confirmation-text' => 'Falls Du innerhalb der nächsten 15 Minuten keine E-Mail mit dem neuen Passwort erhälst, melde dich bitte <a href="/page/vereinsvorstand">bei uns</a>'
 			,'account-confirmation' => 'Dein Account wurde erfolgreich erstellt, Du wirst in k&uuml;rze eine E-Mail mit weiteren Informationen bekommen!'
 			,'new-userpw-confirmation' => 'Dein Passwort wurde erfolgreich geändert!'
 			,'userprofile-change-ok' => 'Änderungen wurden erfolgreich gespeichert!'
