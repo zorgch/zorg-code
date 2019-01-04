@@ -22,7 +22,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	if (preg_match("([^a-zA-Z0-9_-])", $frm['word']))
 	{
 		$error .= t('error-word-validation', 'tpl', $frm['word']);
-		$frm['word'] = "";
+		$frm['word'] = '';
 	}
 
 	if (!smarty_brackets_ok($frm['tpl'], $brack_err)) $error .= $brack_err;
@@ -41,7 +41,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	}
 
 	/* 
-	* deaktiviert bis ein besserer syntax checker gebaut ist. 
+	* <biko> deaktiviert bis ein besserer syntax checker gebaut ist. 
 	* 
 	$syntaxerr = html_syntax_check($frm['tpl']);
 	if ($syntaxerr) $error .= "<br />HTML Syntax Error: $syntaxerr <br />";
@@ -83,12 +83,12 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		 */
 		} elseif (!$error) {
 			try {
-				if ($frm['word']) $set_word = ", word='".$frm['word']."'";
-				$sql = sprintf("UPDATE templates SET tpl='%s', title='%s', page_title='%s', read_rights='%d', write_rights='%d', last_update=NOW(), update_user='%d', border='%d', 
-								packages='%s' %s, error='' WHERE id='%d'", $frm['tpl'], $frm['title'], $frm['page_title'], $frm['read_rights'], $frm['write_rights'], $user->id, $frm['border'], $frm['packages'], $set_word, $frm['id']);
-				$db->query($sql, __FILE__, __LINE__, 'UPDATE');
+				if ($frm['word']) $set_word = ', word="'.$frm['word'].'"';
+				$sql = sprintf('UPDATE templates SET tpl="%s", title="%s", page_title="%s", read_rights="%d", write_rights="%d", last_update=NOW(), update_user=%d, border="%d", 
+								packages="%s", error="" %s WHERE id=%d', $frm['tpl'], $frm['title'], $frm['page_title'], $frm['read_rights'], $frm['write_rights'], $user->id, $frm['border'], $frm['packages'], $set_word, $frm['id']);
+				$db->query($sql, __FILE__, __LINE__, 'UPDATE templates');
 				Thread::setRights('t', $frm['id'], $frm['read_rights']);
-				$db->query("REPLACE INTO templates_backup SELECT * FROM templates WHERE id=".$frm['id']." AND unix_timestamp(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)", __FILE__, __LINE__, 'REPLACE INTO');
+				$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'].' AND unix_timestamp(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup');
 			}
 			catch (Exception $e) {
 				error_log($e->getMessage(), E_USER_ERROR);
@@ -96,15 +96,50 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		}
 	}
 
-	/** Compile Template */
-	if (!$error) {
+	/**
+	 * Force recompile a Smarty Template
+	 *
+	 * @author [z]biko
+	 * @author IneX
+	 * @version 2.0
+	 * @since 1.0 <biko> procedure added intially
+	 * @since 2.0 <inex> 03.01.2019 Fixed Bug #768: must also recompile template based on /page/word (not only /tpl/id )
+	 */
+	if (!$error)
+	{
+		/** Compile Templated - TPL-ID based */
+		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile() $frm: %s', __FILE__, __LINE__, print_r($frm,true)));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'tpl:'.$frm['id']));
 		if (!$smarty->compile('tpl:'.$frm['id'], $compile_err))
 		{
 			for ($i=0; $i<sizeof($compile_err); $i++) {
 				$error .= "<br />".$compile_err[$i]."<br />";
 			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): ERROR (%s)', __FILE__, __LINE__, $error));
+		} else {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): SUCCESS', __FILE__, __LINE__));
+		}
+
+		/** Compile Templated - TPL-Word based (if applicable) */
+		if (!empty($frm['word']))
+		{
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'word:'.$frm['word']));
+			if (!$smarty->compile('word:'.$frm['word'], $compile_err))
+			{
+				for ($i=0; $i<sizeof($compile_err); $i++) {
+					$error .= "<br />".$compile_err[$i]."<br />";
+				}
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): ERROR (%s)', __FILE__, __LINE__, $error));
+			} else {
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): SUCCESS', __FILE__, __LINE__));
+			}
+		}
+
+		/** If compile-error, write it to the template in the DB */
+		if (!empty($error))
+		{
 			try {
-				$db->query("UPDATE templates SET error='".addslashes($error)."' WHERE id=".$frm['id'], __FILE__, __LINE__, 'UPDATE');
+				$db->query('UPDATE templates SET error="'.addslashes($error).'" WHERE id='.$frm['id'], __FILE__, __LINE__, 'UPDATE templates (tplid)');
 			}
 			catch (Exception $e) {
 				error_log($e->getMessage(), E_USER_ERROR);
@@ -112,7 +147,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		}
 	}
 
-	/** Unlock Template for editing */
+	/** Unlock Template for editing - only if no $error occurred */
 	if (!$error)
 	{
 		tpleditor_unlock($_GET['tplupd']);
@@ -125,12 +160,12 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		header('Location: '.base64_decode($_GET['location']));
 		die();
 
-	/** Error Output */	
+	/** Go back to TPL-Editor & display Errors */	
 	} else {
 		$frm['tpl'] = stripslashes(stripslashes($frm['tpl']));
 		$frm['title'] = stripslashes(stripslashes($frm['title']));
 		$frm['packages'] = stripslashes(stripslashes($frm['packages']));
-		// aus irgend einem grund ist das 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. (biko)
+		/** @FIXME aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. (biko) */
 
 		/** Pass $error to error-log */
 		error_log($error);
