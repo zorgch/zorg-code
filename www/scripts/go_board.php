@@ -1,4 +1,8 @@
-<?
+<?php function shutdown(){
+  var_dump(error_get_last());
+} register_shutdown_function('shutdown');
+// ^- Put this at the very beginning of the php file
+
 /**
  * GO Board
  * 
@@ -20,18 +24,19 @@
  * File Includes
  * @include go_game.inc.php
  */
+require_once( __DIR__ . '/../includes/config.inc.php');
 require_once( __DIR__ . '/../includes/go_game.inc.php');
 
 $gameid = $_GET['game'];
-if (!is_numeric($gameid)) user_error("Invalid game supplied");
+if (!is_numeric($gameid)) user_error(t('error-game-invalid', 'global', $gameid));
 $e = $db->query(
-		"SELECT *
+		'SELECT *
 		FROM go_games g
-		WHERE g.id = '$gameid'", __FILE__, __LINE__);
+		WHERE g.id = '.$gameid, __FILE__, __LINE__, 'SELECT FROM go_games');
 $game = $db->fetch($e);
 
 if (!$game){
-    user_error("Invalid game-ID: '$gameid'");
+    user_error(t('error-game-invalid', 'global', $gameid));
     return;
 }
 

@@ -23,7 +23,7 @@ return
 			,'error-newgame' => 'Cannot create new game.'
 			,'error-play-not-logged-in' => 'You have to log in before you can play.'
 			,'error-game-max-limit-reached' => 'No more games possible.'
-			,'error-game-invalid' => 'Invalid Game ID "%d".'
+			,'error-game-invalid' => 'Invalid Game ID "%s".'
 			,'error-game-already-joined' => 'You have already joined this game.'
 			,'error-game-player-unknown' => 'The selected player does not exist.'
 			,'error-game-finish-message' => 'Finish-Message ohne Inhalt bei Game "%d", ausgelöst durch user "%s".<br>Winner: %s<br>Receiver: %s'

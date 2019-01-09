@@ -138,7 +138,9 @@ if($_GET['user_id']) {
 	/** Validate required $_GET parameters */
 	if (!is_numeric($_GET['user_id']) || $_GET['user_id'] <= 0 || is_array($_GET['user_id']) || $user->id2user($_GET['user_id']) === false)
 	{
-		trigger_error(t('invalid-id', 'user'), E_USER_WARNING);
+		http_response_code(404); // Set response code 404 (not found)
+		trigger_error(t('invalid-id', 'user'), E_USER_NOTICE);
+		error_log(sprintf('[NOTICE] Invalid user_id: %s', $_GET['user_id']));
 		$smarty->display('file:layout/footer.tpl');
 		exit;
 	}

@@ -12,6 +12,7 @@
  * File Includes
  * @include go_game.inc.php Required
  */
+require_once( __DIR__ .'/../includes/config.inc.php');
 require_once( __DIR__ .'/../includes/go_game.inc.php');
 
 /**
