@@ -13,7 +13,6 @@ require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/sunrise.inc.php');
 require_once( __DIR__ .'/colors.inc.php');
 
-
 /**
  * tpl resource - get timestamp
  *
@@ -21,8 +20,9 @@ require_once( __DIR__ .'/colors.inc.php');
  * @version 1.0
  * @since 1.0 function added
  */
-function smartyresource_comments_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty) {
-  // comments werden nie automatisch kompiliert. immer nur manuell.      
+function smartyresource_comments_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
+{
+  /** comments werden nie automatisch kompiliert. immer nur manuell. */
   global $compile_comments;
   
   $tpl_timestamp = 0;
@@ -113,8 +113,10 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
  * tpl resource - comments get navigation
  *
  * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 <biko> function added
+ * @since 2.0 <inex> 14.01.2019 added schema.org tags
  *
  * @param integer $id Comment-ID
  * @param integer $thread_id
@@ -138,7 +140,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 		$html .= '<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">';
 			$html .= '<a itemprop="item" href="{get_changed_url change="parent_id='.$up['id'].'"}">';
 				$html .= '<span itemprop="name">'.$count.' up</span>';
-				$html .= '<meta itemprop="position" content="'.$count.'" />';
+				$html .= '<span itemprop="position" content="'.$count.'"></span>';
 			$html .= '</a> | ';
 		$html .= '</span>';
 
@@ -170,10 +172,12 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  *
  * @author [z]biko
  * @author IneX
- * @version 3.0
- * @since 1.0 function added
- * @since 2.0 26.10.2018 function code cleanup & optimized, added structured data (schema.org), added Thread-Switch
- * @since 3.0 30.10.2018 added check of $user->is_loggedin() to Query for Member-specific joins
+ * @version 3.1
+ * @since 1.0 <biko> function added
+ * @since 2.0 <inex> 26.10.2018 function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
+ * @since 3.0 <inex> 30.10.2018 added check of $user->is_loggedin() to Query for Member-specific joins
+ * @since 3.1 <inex> 14.01.2019 fixed schema.org tags
+ *
  * @TODO ganzes HTML in ein Smarty TPL auslagern
  *
  * @see $layouttype
@@ -305,7 +309,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 			$html .= '<!--googleon: all-->';
 			$html .= '</nobr></td></tr><tr>';
-			($is_thread ? $html .= '<meta itemprop="headline" content="'.remove_html(Comment::getLinkThread($rs['board'], $rs['thread_id'])).'">' : '');
+			($is_thread ? $html .= '<span itemprop="headline" content="'.remove_html(Comment::getLinkThread($rs['board'], $rs['thread_id'])).'"></span>' : '');
 			$html .= '<td class="forum" colspan="3" itemprop="'.($is_thread ? 'articleBody' : 'text').'">';
 			if (!$rs['error']) {
 				$html .= Comment::formatPost($rs['text']);
@@ -315,9 +319,9 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			$replyCount = Comment::getNumChildposts($rs['board'], $rs['id']);
 			if ($replyCount > 0) $html .= '<span itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
 						<link itemprop="interactionType" href="http://schema.org/CommentAction" />
-						<meta itemprop="userInteractionCount" content="'.$replyCount.'" />
+						<span itemprop="userInteractionCount" content="'.$replyCount.'"></span>
 					</span>';
-			if ($replyCount > 0) $html .= '<meta itemprop="commentCount" content="'.$replyCount.'" />';
+			if ($replyCount > 0) $html .= '<span itemprop="commentCount" content="'.$replyCount.'"></span>';
 			$html .= '</td></tr></table></td></tr></table>';
 			$html .= '{/if}';
 
