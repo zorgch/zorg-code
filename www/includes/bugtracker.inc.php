@@ -396,7 +396,7 @@ Class Bugtracker {
 
 			.'<tr>'
 			.'<td align="left">Reported by:</td>'
-			.'<td align="left"><span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$rs['reporter'].'</span></span> @ <time itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time></td>'//|date_format:"%Y-%m-%d-T%H:00"}
+			.'<td align="left"><span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['reporter_id']).'</span> @ <time itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time></td>'//|date_format:"%Y-%m-%d-T%H:00"}
 			.'</tr>'
 
 			.'<tr>'
@@ -409,7 +409,7 @@ Class Bugtracker {
 			.'<tbody itemtype="http://schema.org/Answer" itemscope itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'">'
 			.'<tr>'
 			.'<td align="left">Assigned to:</td>'
-			.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['assignedto_id']).'</span> @ '.datename($rs['assigned_date']) : '').'</td>'
+			.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['assignedto_id']).'</span> @ '.datename($rs['assigned_date']) : '<span style="display:none;" itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['reporter_id']).'</span>').'</td>' // suggestedAnswer:author
 			.'</tr>'
 
 			.'<tr>'
