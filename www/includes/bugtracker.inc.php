@@ -409,7 +409,7 @@ Class Bugtracker {
 			.'<tbody itemtype="http://schema.org/Answer" itemscope itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'">'
 			.'<tr>'
 			.'<td align="left">Assigned to:</td>'
-			.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$user->link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']) : '').'</td>'
+			.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['assignedto_id']).'</span> @ '.datename($rs['assigned_date']) : '').'</td>'
 			.'</tr>'
 
 			.'<tr>'
@@ -418,6 +418,9 @@ Class Bugtracker {
 			.(empty($rs['resolved_date']) && empty($rs['denied_date']) ? '<span itemprop="text" style="display:none;">Antwort ausstehend...</span>' : '')
 			.($rs['resolved_date'] > 0 ? '<b itemprop="text">Resolved</b> @ <time itemprop="dateCreated" datetime="'.$resolvedDate_iso8601.'">'.datename($rs['resolved_date']).'</time>' : '')
 			.($rs['denied_date'] > 0 ? '<b itemprop="text">Denied</b> @ <time itemprop="dateCreated" datetime="'.$deniedDate_iso8601.'">'.datename($rs['denied_date']).'</time>' : '')
+			.(empty($rs['resolved_date']) && empty($rs['denied_date']) ? '<time style="display:none;" itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time>' : '') // suggestedAnswer:dateCreated (hidden)
+			.'<a style="display:none;" itemprop="url" href="/bug/'.$rs['id'].'">'.$rs['id'].'</a>' // suggestedAnswer:url (hidden)
+			.'<span style="display:none;" itemprop="upvoteCount">'.$schemaQuestionAnswerCount.'</span>' // suggestedAnswer:upvoteCount (hidden)
 			.'</td>'
 			.'</tr>'
 
