@@ -1701,18 +1701,19 @@ class Forum {
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 3.0
+	 * @version 3.1
 	 * @since 1.0 method added
-	 * @since 2.0 07.11.2018 code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
-	 * @since 3.0 05.12.2018 fixed and restored Thread-Overview Pagination
+	 * @since 2.0 <inex> 07.11.2018 code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
+	 * @since 3.0 <inex> 05.12.2018 fixed and restored Thread-Overview Pagination
+	 * @since 3.1 <inex> 25.07.2019 fixed Bug #774: In der Forumthreads-Übersicht wird ein falscher "Thread starter" angezeigt
 	 *
-	 * @see getNavigation
+	 * @see Forum::getNavigation()
 	 * @param array|string $showboards Array mit den Boards für welche die Threads angezeigt werden sollen
 	 * @param integer $pagesize Die Anzahl Threads welche pro Page aufgelistet werden sollen
 	 * @param string $sortby Anweisung nach welcher Spalte (Thread DB-Column) die Threads sortiert werden - default: last_post_date
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return String
+	 * @return string
  	 */
 	static function getHTML($showboards, $pagesize, $sortby='last_post_date')
 	{
@@ -1727,8 +1728,9 @@ class Forum {
 		//if($sortby == '') $sortby = 'ct.last_comment_id';
 		if(empty($sortby) || is_numeric($sortby) || is_array($sortby)) $sortby = 'last_post_date';
 
-		/** "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text */
-		/** ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
+		/**
+		 * "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
+		 * ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
 		if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
 		{
 			switch ($_GET['order']) {
@@ -1760,9 +1762,10 @@ class Forum {
 					c.id,
 					c.parent_id,
 					c.text last_post_text,
-					c.user_id,
+					c.user_id as last_comment_poster,
 					UNIX_TIMESTAMP(c.date) last_post_date,
 					t.thread_id,
+					t.user_id as thread_starter,
 					UNIX_TIMESTAMP(t.date) thread_date,
 					'.($user->is_loggedin() ? 'IF(ISNULL(tfav.thread_id ), 0, 1) isfavorite,
 					IF(ISNULL(tignore.thread_id ), 0, 1) ignoreit,' : '').'
@@ -1802,11 +1805,11 @@ class Forum {
 			'<br />'
 			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
 				.'<tr class="title">'
-					.'<td align="left" width="30%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
-					.'<td align="left" class="small" width="11%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=tu_username&amp;order='.$new_order.'">Thread starter</a></td>'
-					.'<td align="center"><a href="'.$_SERVER['PHP_SELF'].'?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
-					.'<td align="center" class="small"><a href="'.$_SERVER['PHP_SELF'].'?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
-					.'<td align="left" class="small" width="25%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
+					.'<td align="left" width="30%"><a href="?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
+					.'<td align="left" class="small" width="11%"><a href="?sortby=tu_username&amp;order='.$new_order.'">Thread starter</a></td>'
+					.'<td align="center"><a href="?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
+					.'<td align="center" class="small"><a href="?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
+					.'<td align="left" class="small" width="25%"><a href="?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
 				.'</tr>';
 
 		$i = 0;
@@ -1822,7 +1825,7 @@ class Forum {
 
 			/** @FIXME move iterative table background colors from PHP => CSS! */
 			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			if($rs['user_id'] == $user->id) $color = OWNCOMMENTCOLOR;
+			if($rs['thread_starter'] == $user->id) $color = OWNCOMMENTCOLOR;
 			if($rs['isfavorite']) $color = FAVCOMMENTCOLOR;
 			if($rs['ignoreit']) $color = IGNORECOMMENTCOLOR;
 			if($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
@@ -1894,7 +1897,7 @@ class Forum {
 			$html .= '</span>';
 
 			$html .= '</td><td align="left" bgcolor="'.$color.'" class="small">&nbsp;&nbsp;&nbsp;'
-			  .$user->userprofile_link($rs['user_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
+			  .$user->userprofile_link($rs['thread_starter'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
 			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 			  .datename($rs['thread_date'])
 			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
@@ -1905,7 +1908,7 @@ class Forum {
 			  .'</a>'
 			  .' &raquo;</a>'
 			  .' by '
-			  .$user->userprofile_link($rs['user_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
+			  .$user->userprofile_link($rs['last_comment_poster'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
 			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 			  .datename($rs['last_post_date'])
 			  .'</td>'
