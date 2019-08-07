@@ -57,9 +57,10 @@ class dbconn
 	/**
 	 * Führt ein SQL-Query aus
 	 *
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 method added
-	 * @since 2.0 06.11.2018 added mysql_affected_rows()-result for UPDATE-queries
+	 * @since 2.0 <inex> 06.11.2018 added mysql_affected_rows()-result for UPDATE-queries
+	 * @since 2.1 <inex> 07.08.2019 changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
 	 *
 	 * @param $sql string SQL
 	 * @param $file string Filename
@@ -87,9 +88,11 @@ class dbconn
 			//$result = mysqli_query($this->conn, $sql); // PHP7.x ready
 			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
 			if ($sql_query_type == 'insert') {
-				return mysql_insert_id($this->conn);
+				$sql_insert_id = mysql_insert_id($this->conn);
+				return (is_numeric($sql_insert_id) && $sql_insert_id !== 0 ? $sql_insert_id : ($sql_insert_id !== false ? true : false));
 			} elseif ($sql_query_type == 'update') {
-				return mysql_affected_rows();
+				$sql_affected_rows = mysql_affected_rows();
+				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
 			} elseif (!$result && $this->display_error == 1) {
 				die($this->msg($sql,$file,$line,$funktion));
 			} else {
@@ -235,26 +238,30 @@ class dbconn
 	}
 
 	/**
-	* Fügt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
-	 * @author biko
-	 * @return Prim?rschl?ssel des neuen Eintrags
-	 * @param $table (String) Tabelle, in die eingef?gt werden soll
-	 * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
-	 * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
-	 * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
+	 * Fügt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
+	 *
+	 * @author [z]biko
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 <inex> 26.05.2019 improved code, additional parameter and logging
+	 *
+	 * @param string $table Tabelle, in die eingefügt werden soll
+	 * @param array $values Array mit Table-Feldern (als Key) und den Werten
+	 * @param string $file (optinal) Datei des Aufrufes (optional, für Fehlermeldung)
+	 * @param int $line (optinal) Zeile des Aufrufes (optional, für Fehlermeldung)
+	 * @param string $funktion (optional) Funktion wo der Aufruf stattfand, für Fehlermeldung
+	 * @return Primärschlüssel des neuen Eintrags
 	 */
-	function insert($table, $values, $file='', $line=0) {
-		if (!is_array($values)) {
+	function insert($table, $values, $file='', $line=0, $funktion=null)
+	{
+		if (!is_array($values))
+		{
+			error_log(sprintf('[ERROR] <%s:%d> db->insert() Wrong Parameter type: %s', __METHOD__, __LINE__, $values));
 			user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
 		}
-
-		$sql =
-			"INSERT INTO ".$table." ("
-			.implode(",", array_keys($values)).") VALUES ('"
-			.implode("','", $values)."')"
-		;
-		$id = $this->query($sql, $file, $line);
-		return $id;
+		$sql = sprintf('INSERT INTO `%s` (`%s`) VALUES ("%s")', $table, implode('`,`', array_keys($values)), implode('","', $values));;
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s', __METHOD__, __LINE__, $sql));
+		return $this->query($sql, $file, $line, $funktion);
 	}
 
 	/**
