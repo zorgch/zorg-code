@@ -248,7 +248,10 @@ class usersystem
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> isMobileClient(): %s => %s', __METHOD__, __LINE__, $_SERVER['HTTP_USER_AGENT'], ( $this->from_mobile ? $this->from_mobile : 'false')));
 
 				try {
-					/** Update last user activity */
+					/**
+					 * Update last user activity
+					 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
+					 */
 					$db->update($this->table_name, ['id', $this->id], [
 						$this->field_activity => timestamp(false),
 						$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
@@ -713,6 +716,8 @@ class usersystem
 	 *
 	 * @TODO HTML can be returned using new function usersystem::userpage_link()
 	 *
+	 * @see USER_TIMEOUT
+	 * @see /js/zorg.js
 	 * @param boolean $pic Userpic anzeigen, oder nur Usernamen - default: false
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return string html
@@ -926,7 +931,7 @@ class usersystem
 		$user_imgpath_gravatar = USER_IMGPATH.$userid.'_gravatar'.USER_IMGEXTENSION;
 
 		/** Check for cached Gravater */
-		if (stream_resolve_include_path($user_imgpath_gravatar) !== false)
+		if (stream_resolve_include_path($user_imgpath_gravatar) !== false) // TODO use fileExists() method from util.inc.php?
 		{
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage GRAVATAR exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_gravatar));
 			return $user_imgpath_gravatar;

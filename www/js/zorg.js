@@ -33,15 +33,28 @@ function selectAllMessages() {
 	document.commentform.text.value = document.commentform.text.value + symbol;
 	document.commentform.text.focus();
 }*/
-	
 
-function unreads_2_title(unreads_indicator)
+
+// Zeigt Unread Comments im Webpage Title an
+// @author IneX
+// @version 2.0
+// @since 1.0 function added
+// @since 2.0 <inex> 27.08.2019 refactored function to work with AJAX updateUnreadComments()
+function unreads_2_title(numUnreads)
 {
-	if (unreads_indicator != null) var unreads_data = unreads_indicator.firstChild.data;
-	else return
-	
-	if (unreads_data != null) {
-		document.title = document.title + ' (' + unreads_data + ')';
+	if (typeof origTitle !== 'undefined' && origTitle != null)
+	{
+		if (numUnreads != null && numUnreads > 0)
+		{
+			// add unreads count to page title
+			var unreads_data = (numUnreads = 1 ? numUnreads + ' Comment' : numUnreads + ' Comments');
+			document.title = origTitle + ' (' + unreads_data + ')';
+		} else {
+			// remove unreads count
+			document.title = origTitle;
+		}
+	} else {
+		return;
 	}
 }
 
@@ -53,6 +66,11 @@ function confirmPopup(question)
 }
 
 
+// Schwiizer Ziit vom Bsuecher usrechne
+// @author IneX
+// @version 1.5
+// @since 1.0 <inex> 21.10.2013 funktion hinzuegfüegt
+// @since 1.5 <inex> 28.08.2019 Mitternachts-Fix ('24' statt 'undefined') und Suffix für i dä Nacht ergänzt
 function swisstimeJS()
 {
 	var jetzt = new Date();
@@ -61,13 +79,12 @@ function swisstimeJS()
 	var tag_i_dae_woche = jetzt.getDay();
 	var johr = jetzt.getFullYear();
 	var minute = Math.floor(jetzt.getMinutes());
-	var stund = "";
-	if (minute <= 25) stund = jetzt.getHours();
-	else  stund = jetzt.getHours()+1;
-	var tagesziit = "";
+	var stund = jetzt.getHours();
+	if (minute >= 25) stund = jetzt.getHours()+1;
+	var tagesziit = '';
 
 	var minute_text = new Array("F&uuml;f ab", "Z&auml;h ab", "Viertel ab", "Zwanzg ab", "F&uuml;f vor halbi", "halbi", "F&uuml;f ab halbi", "Zwanzg vor", "Viertel vor", "Z&auml;h vor", "F&uuml;f vor", "");
-	var stunde_text = new Array("Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi", "Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi");
+	var stunde_text = new Array("Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi", "Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi", "Zw&ouml;lfi");
 	var wochetag = new Array("Sunntig", "M&auml;ntig", "Ziistig", "Mittwoch", "Donschtig", "Friitig", "Samschtig");
 	var moenet = new Array("Januar", "Februar", "M&auml;rz", "April", "Mai", "Juni", "Juli", "Auguscht", "September", "Oktober", "November", "Dezember");
 
@@ -84,18 +101,19 @@ function swisstimeJS()
 	else if (minute > 52 && minute <= 57) minute_ziit = 10;
 	else if (minute > 57 || minute <= 2) minute_ziit = 11;
 
-	if (stund >= 5 && stund < 12) tagesziit = "am Morg&auml;"
-	else if (stund >= 12 && stund < 18) tagesziit = "am Nomitag"
-	else if (stund >= 18 && stund <= 23) tagesziit = "am Abig"
-	else if (stund >= 0 && stund < 5) tagesziit = "i d&auml; Nacht"
+	if (stund >= 0 && stund < 6) tagesziit = "i d&auml; Nacht"
+	else if (stund >= 6 && stund < 12) tagesziit = "am Morg&auml;"
+	else if (stund >= 12 && stund < 17) tagesziit = "am Nomitag"
+	else if (stund >= 17 && stund <= 22) tagesziit = "am Abig"
+	else if (stund > 22 && stund >= 24) tagesziit = "i d&auml; Nacht"
 
-	aktuelli_schwiizerziit = wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + " " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit;
-	htmltag = document.getElementById('swisstime');
+	aktuelli_schwiizerziit = wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + ", " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit;
+	var htmltag = document.getElementById('swisstime');
 
 	if (typeof htmltag !== 'undefined') {
-	  htmltag.innerHTML = aktuelli_schwiizerziit;
+		htmltag.innerHTML = aktuelli_schwiizerziit;
 	} else {
-	  console.log('HTML Element ' + htmltag + ' not found.');
+		console.warn(' HTML Element ' + htmltag + ' not found.');
 	}
 }
 
@@ -117,7 +135,7 @@ function markAsMypic()
 {
 	var canvas = document.getElementById("zpic");
 	var con = canvas.getContext("2d");
-	
+
 	//clear background
 	//con.fillStyle = "white";
 	//con.fillRect(0,0, 200, 200);
@@ -129,11 +147,141 @@ function markAsMypic()
 }*/
 
 
+// Aktuelle Onlineuser dynamisch aktualisieren
+// @author IneX
+// @date 27.08.2019
+function updateOnlineuser(elementId, displayFormat)
+{
+	var domElement = document.getElementById(elementId);
+	if (typeof domElement !== 'undefined' && domElement != null)
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', '/js/ajax/get-onlineuser.php?style='+displayFormat);
+		xhr.onload = function() {
+			//console.info(xhr.responseText);
+			if (xhr.status === 200)
+			{
+				// On Success
+				domElement.innerHTML = xhr.responseText;
+				domElement.firstChild.classList.add('blink');
+			}
+			else {
+				// On Error
+				console.error(xhr.status + ' ' + xhr.responseText);
+			}
+		};
+		xhr.send();
+	}
+	else {
+		clearTimeout(werischonline);
+		werischonline = null;
+		console.info('Stopped checking werischonline');
+		return;
+	}
+}
+
+
+// Anzahl unread Comments dynamisch aktualisieren
+// @author IneX
+// @date 27.08.2019
+function updateUnreadComments()
+{
+	let notificationsContainer = document.getElementById('notifications-list');
+	let unreadsContainer = document.getElementById('unreads');
+	if (typeof unreadsContainer !== 'undefined' && unreadsContainer != null)
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', '/js/ajax/get-unreadcomments.php');
+		xhr.onload = function() {
+			//console.info(xhr.responseText);
+			if (xhr.status === 200)
+			{
+				// New unreads
+				var xhrResponseText = xhr.responseText;
+				var newUnreadCount = parseInt(xhrResponseText.match(/\d/g).join(''), 10);
+				if (typeof unreadsContainer === 'undefined' || unreadsContainer == null)
+				{
+					// Unreads counter doesn't exist, add it
+					let newUnreadsContainer = document.createElement('li');
+					newUnreadsContainer.setAttribute('id', 'unreads');
+					let newUnreadsLinkWrapper = newUnreadsContainer.createElement('a');
+					newUnreadsLinkWrapper.setAttribute('href', '/actions/comment_gotolastunread.php');
+					newUnreadsLinkWrapper.classList.add('blink');
+					newUnreadsLinkWrapper.textContent = xhrResponseText;
+					notificationsContainer.prepend(newUnreadsContainer);
+				}
+				else {
+					// Changed num of unreads (+ or -)
+					if (unreadsContainer.textContent !== '' && unreadsContainer.textContent != null)
+					{
+						var oldUnreadCount = parseInt(unreadsContainer.textContent.match(/\d/g).join(''), 10);
+						// The existing unreadsContainer.textContent is not empty
+						if (oldUnreadCount < newUnreadCount || oldUnreadCount > newUnreadCount)
+						{
+							unreadsContainer.children[0].classList.add('blink');
+						}
+						else {
+							// Same num of unreads
+							unreadsContainer.children[0].classList.remove('blink');
+						}
+					}
+					else {
+						let newUnreadsLinkWrapper = document.createElement('a');
+						newUnreadsLinkWrapper.setAttribute('href', '/actions/comment_gotolastunread.php');
+						unreadsContainer.prepend(newUnreadsLinkWrapper);
+						newUnreadsLinkWrapper.classList.add('blink');
+					}
+					unreadsContainer.children[0].textContent = xhrResponseText;
+				}
+				unreads_2_title(newUnreadCount);
+			}
+			else if (xhr.status === 204) {
+				// No unreads
+				if (unreadsContainer.textContent !== '' && unreadsContainer.textContent != null)
+				{
+					// Unreads counter still visible
+					unreadsContainer.children[0].textContent = '';
+				}
+				unreads_2_title(null);
+			}
+			else {
+				// On Error
+				console.error(xhr.status + ' ' + xhr.responseText);
+			}
+		};
+		xhr.send();
+	}
+	else {
+		clearTimeout(wahaniverpasst);
+		wahaniverpasst = null;
+		console.info('Stopped checking wahaniverpasst');
+		return;
+	}
+}
+let wahaniverpasst = setTimeout(function commentshole() {
+	updateUnreadComments();
+	if (wahaniverpasst) wahaniverpasst = setTimeout(commentshole, 5000);
+}, 100);
+
+
 function init()
 {
-	unreads_2_title(document.getElementById('unreads'));
+	let werischonline = setTimeout(function nomelprobiere() {
+		updateOnlineuser('onlineuser-list', 'list');
+		if (werischonline) werischonline = setTimeout(nomelprobiere, 5000);
+	}, 100);
+
+	let ziitupdate = setTimeout(function aktuelliziit() {
+		swisstimeJS();
+		ziitupdate = setTimeout(aktuelliziit, 60000);
+	}, 100);
+
+	swisstimeJS();
+
 	//drawUsernameOnPic('Username Test Drawing', 200, 300);
-	
+
 	// Highlight.js - http://highlightjs.org
 	//hljs.initHighlightingOnLoad()
 }
+
+const origTitle = document.title;

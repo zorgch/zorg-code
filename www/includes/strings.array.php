@@ -46,6 +46,7 @@ return
 			,'datetime-months' => '%d Monaten'
 			,'datetime-year' => '%d Jahr'
 			,'datetime-years' => '%d Jahre'
+			,'text-abbreviation' => '&hellip;'
 		]
 	,'user' =>
 		[
@@ -125,6 +126,7 @@ return
 			,'invalid-comment-edit-permissions' => 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!'
 			,'invalid-comment-empty' => 'Leere Posts sind nicht erlaubt!'
 			,'error-missing-board' => 'Board nicht angegeben!'
+			,'activity-newthread' =>  'hat einen neuen Thread <a href="%s%s">"%s..."</a> gestartet'
 			,'activity-newcomment' =>  'hat <a href="%1$s%2$s">einen %3$s Comment</a> geschrieben:<br>
 										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'
 			,'message-newcomment-subject' => 'Du wurdest von %s in einem Comment erwähnt'
@@ -139,19 +141,25 @@ return
 										 <p><i>%s</i></p>
 										 <a href="%s">→ Comment lesen</a>'
 			,'forum-new-thread' => '<h3 style="text-align:left;">Neuen Thread erstellen</h3>'
+			,'forum-favorite-thread-action' => '[fav]'
+			,'forum-unfavorite-thread-action' => '[unfav]'
+			,'forum-ignore-thread-action' => '[ignore]'
+			,'forum-unignore-thread-action' => '[follow]'
+			,'forum-rss-thread-action' => '[rss]'
 		]
 	,'tpl' =>
 		[
-			 'created' =>  'Neue Seite wurde erstellt. ID: %d.<br>'
-			,'updated' => "Seite '%d' erfolgreich aktualisiert.<br>"
-			,'deleted' => "Seite '%d' wurde <strong>gelöscht</strong>.<br>"
+			 'created' =>  'Neue Seite wurde erstellt. ID: %d'
+			,'updated' => 'Seite "%d" erfolgreich aktualisiert'
+			,'deleted' => 'Seite "%d" wurde <strong>gelöscht</strong>'
 			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br>'
 			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br>'
-			,'invalid-border' => 'Ungültiger Rahmen-Typ.<br>'
-			,'error-empty' => 'Bitte keine leeren Seiten. <br>'
-			,'error-word-toolong' => "Word '%s' ist zu lang. Max. 30 Zeichen!<br/>"
-			,'error-word-validation' => "Ungültige Zeichen im Word '%s'. Erlaubt sind nur: a-z, A-Z, 0-9, _, -<br>"
-			,'error-package-missing' => 'Package <i>%s</i> existiert nicht.<br>'
+			,'invalid-border' => 'Ungültiger Rahmen-Typ.'
+			,'error-empty' => 'Bitte keine leeren Seiten.'
+			,'error-word-toolong' => 'Word "%s" ist zu lang. Max. 30 Zeichen!'
+			,'error-word-validation' => 'Ungültige Zeichen im Word "%s". Erlaubt sind nur: a-z, A-Z, 0-9, _, -'
+			,'error-package-missing' => 'Package "<strong>%s</strong>" existiert nicht.'
+			,'error-package-loading' => 'Error loading packages for template #%d'
 			,'activity-newpage' =>  'hat die Seite <a href="/tpl/%d">%s</a> erstellt.'
 		]
 	,'gallery' =>
@@ -241,7 +249,7 @@ return
 		]
 	,'event' =>
 		[
-			 'telegram-event-notification' => '%s: %s'
+			 'telegram-event-notification' => '🔜 %s'
 			,'error-invalid-hours' => '[WARN] <%s:%d> Starts in "%s" hours is no valid integer value!'
 			,'error-upcoming-event' => '[NOTICE] <%s:%d> No upcoming Event found within %d hours'
 			,'error-googlemapsapi-geocode' => '[NOTICE] <%s:%d> $googleMapsApi->geocode(): no result'
