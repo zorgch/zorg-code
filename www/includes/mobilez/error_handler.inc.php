@@ -44,7 +44,7 @@ class Error_Handler
 									,'function' => $function
 									,'class'	=> $class
 								));
-		
+		error_log(sprintf('[%s] <%s:%d> %s', $text, $function, $line, $file));
 		return $errors;
 	}
 }

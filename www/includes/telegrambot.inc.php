@@ -159,6 +159,7 @@ class Telegram
 			}
 		} else {
 			error_log( t('invalid-message', 'messagesystem') );
+			return false;
 		}
 	}
 
