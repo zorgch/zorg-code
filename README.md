@@ -241,9 +241,9 @@ TBD
 
         $ cd /var/
 
-* Von dort kann nun mittels `su`-Rechten ein Git Pull gestartet werden
+* Von dort kann nun mittels `sudo`-Rechten ein Git Pull gestartet werden
 
-        $ su git pull
+        $ sudo git pull
 
 * **DONE** - die Änderungen müssten jetzt auch auf [zorg.ch][8] aktiv sein.
 
