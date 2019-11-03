@@ -276,7 +276,7 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 	array_push($_tpl_stack, $d);
 
 	/** Load required packages for the current template */
-	load_packages($d['id']);
+	load_packages($d['id'], $smarty);
 
 	return true;
 }

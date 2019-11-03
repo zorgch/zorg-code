@@ -730,7 +730,14 @@ function escape_text($string) {
  */
 function sanitize_userinput($string, $allowable_tags=NULL) {
 	// TODO: fix deprecated method
-	return mysql_real_escape_string(remove_html($string, $allowable_tags));
+	$search = array(
+		'@<script[^>]*?>.*?</script>@si',   // Strip out javascript
+		'@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
+		'@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
+		'@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments
+	);
+
+	return preg_replace($search, '', $string);
 }
 
 
