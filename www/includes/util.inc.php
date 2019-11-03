@@ -716,20 +716,16 @@ function escape_text($string) {
 /**
  * Entferne in einem vom User eingegebenen String alle nicht sicheren Zeichen
  *
- * @FIXME should not use remove_html() !? remove this part
- *
  * @author IneX
- * @version 1.0
- * @since 1.0 24.04.2018 function added
- * @see bugtracker.inc.php
- * @see exec_changeprofile()
+ * @version 2.0
+ * @since 1.0 <inex> 24.04.2018 function added
+ * @since 2.0 <kassiopaia> 03.11.2019 replaced deprecated mysql_real_escape_string() with custom sanitizer, resolved FIXME to-do
  *
  * @param string	$string String Input which shall be sanitized
- * @param string	$allowable_tags Whitelist of HTML-Tags which should NOT be removed
  * @return string	Returns sanitized $string as string
  */
-function sanitize_userinput($string, $allowable_tags=NULL) {
-	// TODO: fix deprecated method
+function sanitize_userinput($string)
+{
 	$search = array(
 		'@<script[^>]*?>.*?</script>@si',   // Strip out javascript
 		'@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
@@ -762,7 +758,6 @@ function gmt_diff($date) {
 	
 	return $diff2gmt;
 }
-
 
 
 /**

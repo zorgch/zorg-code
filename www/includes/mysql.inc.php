@@ -14,8 +14,7 @@ require_once( (file_exists( __DIR__ .'/mysql_login.inc.local.php') ? 'mysql_logi
 /**
  * MySQL Database Connection Class
  *
- * @package zorg
- * @subpackage MySQL
+ * @package zorg\Database\MySQL
  */
 class dbconn
 {
@@ -29,21 +28,21 @@ class dbconn
 	/**
 	 * dbconn constructor.
 	 *
-	 * @param $database
+	 * @version 1.0
+	 * @since 1.0 <kassiopaia> 03.11.2019 method added
 	 *
+	 * @param $database
 	 * @throws Exception
 	 */
 	public function __construct($database) {
 		try {
-			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // DEPRECATED - PHP5 only
-			//$this->conn = @mysqli_connect( MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS, $database); // PHP7.x ready
+			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // PHP7.x ready
 			if(!$this->conn)
 				header('Location: '.SITE_URL.'/error_static.html');
 			//die("MySQL: can't connect to server");
-			if(!@mysqli_select_db($this->conn, $database)) // DEPRECATED - PHP5 only
+			if(!@mysqli_select_db($this->conn, $database)) // PHP7.x ready
 				die($this->msg());
-			mysqli_set_charset($this->conn, 'utf8mb4'); // DEPRECATED - PHP5 only
-			//mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
+			mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
 		}
 		catch (Exception $e) {
 			throw $e;
@@ -51,13 +50,14 @@ class dbconn
 	}
 
 	/**
-	 * Verbindungsaufbau
+	 * MySQL DB Verbindungsaufbau
 	 *
-	 * @author IneX
-	 * @date 10.11.2017
 	 * @version 3.0
+	 * @since 3.0 <inex> 10.11.2017 method code optimized
 	 *
-	 * @param MYSQL_DBNAME string
+	 * @TODO kassiopaia: mysql_select_charset() & $this->conn() müssen noch => php7.x ready gemacht werden?
+	 *
+	 * @param string MYSQL_DBNAME
 	 */
 	function dbconn($database) {
 		//$this->dbname = $dbname;
@@ -139,10 +139,8 @@ class dbconn
 	 */
 	function msg($sql='',$file='',$line='',$funktion='')
 	{
-		//$num = mysql_errno($this->conn); // DEPRECATED - PHP5 only
-		//$msg = mysql_error($this->conn); // DEPRECATED - PHP5 only
 		$num = mysqli_errno($this->conn); // PHP7.x ready
-		$msg = mysqli_errno($this->conn); // PHP7.x ready
+		$msg = mysqli_error($this->conn); // PHP7.x ready
 		$ausg = "<table cellpadding='5' align='center' cellspacing='0' bgcolor='#FFFFFF' width='800' style='font-family: verdana; font-size:12px; color:black;'>
 		<tr><td align='center' width='800' colspan='2'
 		style='border-bottom-style:solid; border-bottom-color:#000000; border-bottom-width:1px;'>
@@ -187,21 +185,19 @@ class dbconn
 				$_SERVER['HTTP_REFERER'],
 				$funktion
 			);
-		//@mysql_query($sql,$this->conn); // DEPRECATED - PHP5 only
 		@mysqli_query($sql,$this->conn); // PHP7.x ready
 	}
 
 	/**
 	 * Fetcht ein SQL-Resultat in ein Array
 	 *
-	 * @TODO im GANZEN Zorg-Code search & replace "mysql_fetch_array" ersetzen durch "$db->fetch(...)"
+	 * @TODO add 2nd param for MYSQLI_ASSOC feature? See e.g. /js/ajax/get-userpic.php
 	 *
 	 * @return array
 	 * @param $result object SQL-Resultat
 	 */
 	function fetch($result) {
 		global $sql; // notwendig??
-		//return @mysqli_fetch_array($result); // DEPRECATED - PHP5 only
 		return @mysqli_fetch_array($result); // PHP7.x ready
 	}
 
@@ -210,7 +206,6 @@ class dbconn
 	 * @return int
 	 */
 	function lastid() {
-		//return @mysql_insert_id($this->conn); // DEPRECATED - PHP5 only
 		return @mysqli_insert_id($this->conn); // PHP7.x ready
 	}
 
@@ -220,7 +215,7 @@ class dbconn
 	 * @param $result object SQL-Resultat
 	 */
 	function num($result,$errorchk=TRUE) {
-		return @mysqli_num_rows($result); // DEPRECATED - PHP5 only
+		return @mysqli_num_rows($result); // PHP7.x ready
 	}
 
 	/**
@@ -252,7 +247,6 @@ class dbconn
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
-			//$tab[$i] = @mysql_tablename($tables,$i); // DEPRECATED - PHP5 only
 			@mysqli_data_seek($tables,$i); // PHP7.x ready
 			$f = mysql_fetch_array($tables); // PHP7.x ready
 			$tab[$i] = $f[0]; // PHP7.x ready
