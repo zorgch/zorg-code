@@ -184,7 +184,7 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty) 
   $e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, packages,
                    UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
                    write_rights, force_compile, border FROM templates WHERE id="'.$tpl_name.'"', __FILE__, __LINE__, __FUNCTION__);
-  $d = mysql_fetch_array($e);
+  $d = mysqli_fetch_array($e);
 
   // check compile necessary
   if ($d['force_compile']) {

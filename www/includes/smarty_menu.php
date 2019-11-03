@@ -2,7 +2,7 @@
 	require_once( __DIR__ .'/../includes/smarty.inc.php');
 
 	/**
-	 * da php keine pointers kennt, müssen alle MenuTree-objekte mit ihrer id über dieses
+	 * da php keine pointers kennt, mï¿½ssen alle MenuTree-objekte mit ihrer id ï¿½ber dieses
 	 * array aufgerufen werden! beim erzeugen von objekten werden sie automatisch im array
 	 * gespeichert. also bitte keine zuweisungen von solchen objekten machen, sondern nur 
 	 * die id verwenden.
@@ -31,7 +31,7 @@
 		var $subtrees = array();
 	
 		
-		function MenuTree ($id, $parent, $group="all", $tpl="", $link="", $param="") {
+		function __construct ($id, $parent, $group="all", $tpl="", $link="", $param="") {
 			global $menu_tabs;
 			
 			$this->id = $id;
@@ -113,11 +113,11 @@
 
 	/**
 	 * Params:
-	 * id			kannst irgend eine auswählen, darf aber keine duplikate geben / für tab-auswahl im file nötig / 
+	 * id			kannst irgend eine auswï¿½hlen, darf aber keine duplikate geben / fï¿½r tab-auswahl im file nï¿½tig / 
 	 *				0 darf nicht verwendet werden. 
-	 * group		nur angezeigt, wenn recht vorhanden. mögl. werte: [all, user, member, guest], default: all
+	 * group		nur angezeigt, wenn recht vorhanden. mï¿½gl. werte: [all, user, member, guest], default: all
 	 * tpl		[nur wenn url nicht gesetzt] template, das geladen werden soll. 
-	 * url		[nur wenn tpl nicht gesetzt] url, die geladen werden soll (nur in der untersten stufe nötig
+	 * url		[nur wenn tpl nicht gesetzt] url, die geladen werden soll (nur in der untersten stufe nï¿½tig
 	 *
 	 */ 
 

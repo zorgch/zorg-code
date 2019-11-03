@@ -149,7 +149,7 @@ function galleryOverview ($state="", $error="") {
 		}
 		$where = substr($where, 0, -5);
 		$e = $db->query("SELECT * FROM gallery_albums $where", __FILE__, __LINE__, __FUNCTION__);
-		while ($d = mysql_fetch_array($e)) {
+		while ($d = mysqli_fetch_array($e)) {
 		$newexists = 1;
 		$out .= '<tr>';
 		$out .= '<td align="left">- '.$d['name'].' &nbsp; &nbsp; </td>';
@@ -183,7 +183,7 @@ function albumThumbs ($id, $page=0) {
 	
 	$pagepics = $THUMBPAGE['width'] * $THUMBPAGE['height'];
 	$e = $db->query("SELECT count(id) anz FROM gallery_pics p WHERE album=$id ".ZENSUR." GROUP BY album", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
+	$d = mysqli_fetch_array($e);
 	$anz = $d['anz'];
 	
 	$e = $db->query(
@@ -191,7 +191,7 @@ function albumThumbs ($id, $page=0) {
 		FROM gallery_albums g
 		LEFT JOIN events e ON e.gallery_id=g.id
 		WHERE g.id=$id", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
+	$d = mysqli_fetch_array($e);
 	echo '<br /><table width="80%" align="center"><tr>
 	<td align="center" class="bottom_border"><b class="titlebar">'
 	.($d['eventname'] ? $d['eventname'] : $d['name'])
@@ -202,7 +202,7 @@ function albumThumbs ($id, $page=0) {
 	$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
 	$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
 	$rows = 0;
-	while ($d = mysql_fetch_array($e)) {
+	while ($d = mysqli_fetch_array($e)) {
 		$comments = Thread::getNumPosts('i', $d['id']);
 		$unread = Thread::getNumUnread('i', $d['id']);
 	
@@ -264,7 +264,7 @@ function pic ($id) {
 	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
 	
 	$e = $db->query('SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
-	$cur = mysql_fetch_array($e);
+	$cur = mysqli_fetch_array($e);
 	
 	if($cur == false) {
 		echo 'Bild '.$id.' existiert nicht!';
@@ -272,17 +272,17 @@ function pic ($id) {
 	}
 	
 	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
-	$last = mysql_fetch_array($e);
+	$last = mysqli_fetch_array($e);
 	
 	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
-	$next = mysql_fetch_array($e);
+	$next = mysqli_fetch_array($e);
 	
 	$e = $db->query("SELECT a.*, count(p.id) anz, e.name eventname
 				FROM gallery_pics p, gallery_albums a
 							LEFT JOIN events e ON e.gallery_id = a.id
 				WHERE p.id<='$id' AND p.album=$cur[album] AND a.id=$cur[album] ".ZENSUR."
 				GROUP BY album", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
+	$d = mysqli_fetch_array($e);
 	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE[height]));
 	echo '<br /><table width="80%" align="center"><tr>
 	<td align="center" class="bottom_border"><b class="titlebar">'
@@ -517,7 +517,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	
 	if ($id) {
 		$e = $db->query("SELECT * FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
-		$frm = mysql_fetch_array($e);
+		$frm = mysqli_fetch_array($e);
 	
 		echo '<table width="80%" align="center"><tr>
 		<td align="center" class="bottom_border"><b class="titlebar">Album #'.$id.' bearbeiten</b></div></td></tr></table><br /><br />';
@@ -818,7 +818,7 @@ function doZensur ($picID)
 	global $db;
 	if (!$picID) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
 	$e = $db->query("SELECT zensur FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
+	$d = mysqli_fetch_array($e);
 	if ($d[zensur]) {
 		$db->query("UPDATE gallery_pics SET zensur='0' WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
 		Thread::setRights('i', $picID, USER_ALLE);
@@ -1124,7 +1124,7 @@ function doDelPic ($id) {
 	if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
 	
 	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
+	$d = mysqli_fetch_array($e);
 	if (!@unlink(picPath($d[album], $id, $d[extension]))) return array('error'=>"Bild konnte nicht gel&ouml;scht werden");
 	@unlink(tnPath($d[album], $id, $d[extension]));
 	$db->query("DELETE FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
@@ -1175,7 +1175,7 @@ function doRotatePic($picID, $direction) {
 	global $db;
 
 	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
+	$d = mysqli_fetch_array($e);
 
 
 	$origimage = picPath($d[album], $picID, $d[extension]);
@@ -1364,7 +1364,7 @@ function imgName($id) {
 	global $db;
 	
 	$e = $db->query("SELECT id, name FROM gallery_pics WHERE id = $id", __FILE__, __LINE__, __FUNCTION__);
-	$cur = mysql_fetch_array($e);
+	$cur = mysqli_fetch_array($e);
 	
 	return $cur['name'];
 }

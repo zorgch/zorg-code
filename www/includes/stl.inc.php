@@ -92,7 +92,7 @@ class stl {
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return stl
 	 */
-	function stl() {
+	function __construct() {
 		global $db, $user;
 		//Feldchengrösse
 		$this->case = 20;

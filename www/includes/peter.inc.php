@@ -53,7 +53,7 @@ class peter {
 	 * @return klasse
 	 * @param Game_ID $game_id
 	 */
-	function peter($game_id="") {
+	function __construct($game_id="") {
 		global $db;
 		if($game_id) {
 			$this->game_id = $game_id;

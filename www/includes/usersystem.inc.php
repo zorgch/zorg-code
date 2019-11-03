@@ -162,7 +162,7 @@ class usersystem
 	 * @see usersystem::login(), usersystem::invalidate_session(), timestamp()
 	 * @return object usersystem()-Class object
 	 */
-	function usersystem()
+	function __construct()
 	{
 		global $db;
 

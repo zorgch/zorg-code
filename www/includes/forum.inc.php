@@ -1268,7 +1268,7 @@ class Forum {
 
 		global $db, $user;
 
-		if($user->typ != USER_NICHTEINGELOGGT) {
+		if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT) {
 		  $sql = "SELECT count(*) as numunread from comments_unread where user_id='".$user_id."'";
 		  $rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 		  return $rs['numunread'];
@@ -1433,7 +1433,7 @@ class Forum {
 		;
 		while($rs = $db->fetch($result)) {
 	    $i++;
-			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] == true) {
+			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] == true) {
 				$color = NEWCOMMENTCOLOR;
 			} else {
 				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
@@ -1471,7 +1471,7 @@ class Forum {
 
 		global $db, $user;
 
-		if($user->typ == USER_NICHTEINGELOGGT) {
+		if(defined(USER_NICHTEINGELOGGT) && $user->typ == USER_NICHTEINGELOGGT) {
 			$sql =
 			"SELECT comments.*, UNIX_TIMESTAMP(date) as date"
 			." FROM comments"
@@ -1502,7 +1502,7 @@ class Forum {
 		$html = '<table class="border" width="100%"><tr><td align="center" colspan="4"><b>letzte Posts:</b></td></tr>';
 		while($rs = $db->fetch($result)) {
 	    $i++;
-			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
+			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
 				$color = NEWCOMMENTCOLOR;
 			} else {
 				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
@@ -1547,7 +1547,7 @@ class Forum {
 		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>neuste Threads</b></td></tr>';
 		while($rs = $db->fetch($result)) {
 	    $i++;
-			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
+			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
 				$color = NEWCOMMENTCOLOR;
 			} else {
 				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
@@ -1581,7 +1581,7 @@ class Forum {
 		if (!$title) $title = "ungelesene Kommentare";
 		if ($board) $whereboard = "AND comments.board='$board'";
 
-		if($user->typ != USER_NICHTEINGELOGGT) {
+		if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT) {
 			$sql =
 				"
 				SELECT
@@ -1605,7 +1605,7 @@ class Forum {
 
 			    $i++;
 
-					if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
+					if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
 						$color = NEWCOMMENTCOLOR;
 					} else {
 						$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
@@ -1657,7 +1657,7 @@ class Forum {
 		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>Jaja, früher...</b></td></tr>';
 		while($rs = $db->fetch($result)) {
 	    $i++;
-			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
+			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
 				$color = NEWCOMMENTCOLOR;
 			} else {
 				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
@@ -1815,7 +1815,7 @@ class Forum {
 			$i++;
 
 			/** Check for unread comments in Thread */
-			if($user->typ != USER_NICHTEINGELOGGT && $rs['thread_id'] != '') {
+			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['thread_id'] != '') {
 				$lastp = Thread::getLastUnreadComment($rs['board'], $rs['thread_id'], $user->id);
 				$thread_has_unread_comments = ($lastp ? true : false);
 			}
@@ -2024,7 +2024,7 @@ class Forum {
 			}
 
 			/** Wenn User eingeloggt ist, commentform.tpl ausgeben */
-	    	if($user->typ != USER_NICHTEINGELOGGT) {
+	    	if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT) {
 	    		$smarty->assign('board', $board);
 				$smarty->assign('thread_id', $thread_id);
 				$smarty->assign('parent_id', $_GET['parent_id']);

@@ -62,14 +62,14 @@ if (!empty(key($_GET)))
 /**
  * Standardtemplate setzen, wenn tpl oder word nicht oder leer übergeben wurden
  */
-if ($_GET['layout'] != 'rss' && ((!isset($_GET['tpl']) && !isset($_GET['word'])) || (empty($_GET['tpl']) && empty($_GET['word'])) || ($_GET['tpl'] <= 0 || is_numeric($_GET['word'])))) $_GET['tpl'] = 23;
+if (isset($_GET['layout']) && $_GET['layout'] != 'rss' && ((!isset($_GET['tpl']) && !isset($_GET['word'])) || (empty($_GET['tpl']) && empty($_GET['word'])) || ($_GET['tpl'] <= 0 || is_numeric($_GET['word'])))) $_GET['tpl'] = 23;
 
 
 /**
  * RSS Feeds
  * @see Forum::printRSS()
  */
-if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
+if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	$smarty->assign('feeddesc', SITE_HOSTNAME . ' RSS Feed');
 	$smarty->assign('feedlang', 'de-DE');
 	$smarty->assign('feeddate', date('D, d M Y H:i:s').' GMT');
@@ -129,7 +129,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	
 	/** Load Template data */
 	try {
-		$where = ( $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
+		$where = ( isset($_GET['word']) ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
 		$e = $db->query('SELECT id, packages, title, word, LENGTH(tpl) size, owner, update_user, page_title,
 						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
 						write_rights, force_compile, border FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
@@ -162,7 +162,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	/**
 	 * SQL Query Tracker
 	 */
-	if ($user->sql_tracker) {
+	if (isset($user->sql_tracker) && $user->sql_tracker) {
 	   $_SESSION['noquerys'] = $db->noquerys;
 	   $_SESSION['noquerytracks'] = $db->noquerytracks;
 	   $_SESSION['query_track'] = $db->query_track;

@@ -58,7 +58,7 @@ class Line
 		$this->axesCol = ImageColorAllocate($this->image, 100, 100, 100);
 	}
 
-	function Line()
+	function __construct()
 	{
 		$this->image = ImageCreate($this->width, $this->height);
 		$this->InitializeColors();

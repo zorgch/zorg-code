@@ -47,9 +47,9 @@ function var_request ()
    return array("page" => $_SERVER['PHP_SELF'],
                "params" => $_SERVER['QUERY_STRING'],
                "url" => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'],
-               "tpl" => $_GET['tpl'],
-               "_tpl" => 'tpl:'.$_GET['tpl'],
-               "_word" => 'word:'.$_GET['word']);
+               "tpl" => isset($_GET['tpl'])?$_GET['tpl']:'',
+               "_tpl" => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:''),
+               "_word" => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:''));
 }
 
 
@@ -601,7 +601,7 @@ function var_request ()
 				ORDER by activity DESC';
 		$e = $db->query($sql, __FILE__, __LINE__);
 	
-		while ($d = mysql_fetch_row($e)) {
+		while ($d = mysqli_fetch_row($e)) {
 			array_push($online_users, $d[0]);
 		}
 		return $online_users;
@@ -1375,12 +1375,12 @@ function smarty_menuname ($name, &$smarty) {
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)
 								,'user' => array($user, 'Usersystem', 'Array mit allen User-Informationen des aktuellen Besuchers', false)
 								,'usertyp' => array(array('alle'=>USER_ALLE, 'user'=>USER_USER, 'member'=>USER_MEMBER, 'special'=>USER_SPECIAL), 'Usersystem', 'Array mit allen vorhandenen Usertypen: alle, user, member und special', false)
-								,'user_mobile' => array($user->from_mobile, 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
-								,'user_ip' => array($user->last_ip, 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)
+								,'user_mobile' => array((isset($user->from_mobile)?$user->from_mobile:''), 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
+								,'user_ip' => array((isset($user->last_ip)?$user->last_ip:''), 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)
 								,'comments_default_maxdepth' => array(DEFAULT_MAXDEPTH, 'Layout', 'Standart angezeigte Tiefe an Kommentaren z.B. im Forum', false)
 								,'online_users' => array(var_online_users(), 'Usersystem', 'Array mit allen zur Zeit eingeloggten Usern', false)
 								,'num_new_events' => array(Events::getNumNewEvents(), 'Events', 'Zeigt Anzahl neu erstellter Events an', true)
-								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
+								,'login_error' => array((isset($login_error)?$login_error:null), 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
 								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
 								,'smarty_menus' => array(smarty_get_menus(), 'Smarty', 'Array mit allen verfügbaren Smarty-Menutemplates', true)
   						 );
@@ -1547,8 +1547,8 @@ function smarty_menuname ($name, &$smarty) {
 			if (!$smarty_var_data[3]) $smarty->assign($smarty_var_key, $smarty_var_data[0]);
 			$smarty_vars_documentation['{$'.$smarty_var_key.'}'] = array('category' => $smarty_var_data[1], 'description' => $smarty_var_data[2], 'members_only' => $smarty_var_data[3]);
 		}
-		
-		natcasesort($smarty_vars_documentation);
+
+		//natcasesort($smarty_vars_documentation);
 		$smarty->assign('smartyvars_doc', $smarty_vars_documentation); // {smartyvars_doc} Lists all available custom Smarty Vars
 	}
 
@@ -1572,7 +1572,7 @@ function smarty_menuname ($name, &$smarty) {
 		// Globals
 		global $smarty, $user;
 		$documentation = array();
-		natcasesort($php_modifiers_array); // Sort the Array from A-Z
+		//natcasesort($php_modifiers_array); // Sort the Array from A-Z
 		
 		foreach ($php_modifiers_array as $function_name => $data)
 		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
@@ -1615,7 +1615,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
-		natcasesort($documentation); // Sort the Array from A-Z
+		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyblocks_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 
@@ -1653,7 +1653,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[2], 'description' => $data[3], 'members_only' => $data[4], 'compiler_function' => $data[5]);
 		}
 		
-		natcasesort($documentation); // Sort the Array from A-Z
+		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyfunctions_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 

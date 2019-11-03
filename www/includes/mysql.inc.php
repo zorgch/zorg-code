@@ -27,6 +27,30 @@ class dbconn
 	var $query_track = array();
 
 	/**
+	 * dbconn constructor.
+	 *
+	 * @param $database
+	 *
+	 * @throws Exception
+	 */
+	public function __construct($database) {
+		try {
+			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // DEPRECATED - PHP5 only
+			//$this->conn = @mysqli_connect( MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS, $database); // PHP7.x ready
+			if(!$this->conn)
+				header('Location: '.SITE_URL.'/error_static.html');
+			//die("MySQL: can't connect to server");
+			if(!@mysqli_select_db($this->conn, $database)) // DEPRECATED - PHP5 only
+				die($this->msg());
+			mysqli_set_charset($this->conn, 'utf8mb4'); // DEPRECATED - PHP5 only
+			//mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
+		}
+		catch (Exception $e) {
+			throw $e;
+		}
+	}
+
+	/**
 	 * Verbindungsaufbau
 	 *
 	 * @author IneX
@@ -71,7 +95,7 @@ class dbconn
 
 		$this->noquerys++;
 
-		if ($user && $user->sql_tracker) {
+		if ($user && isset($user->sql_tracker)) {
 			$this->noquerytracks++;
 			$qfile = $file;
 			$qline = $line;
@@ -83,13 +107,12 @@ class dbconn
 		}
 
 		try {
-			$result = mysql_query($sql, $this->conn); // DEPRECATED - PHP5 only
-			//$result = mysqli_query($this->conn, $sql); // PHP7.x ready
+			$result = mysqli_query($this->conn, $sql); // DEPRECATED - PHP5 only
 			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
 			if ($sql_query_type == 'insert') {
-				return mysql_insert_id($this->conn);
+				return mysqli_insert_id($this->conn);
 			} elseif ($sql_query_type == 'update') {
-				return mysql_affected_rows();
+				return mysqli_affected_rows($this->conn);
 			} elseif (!$result && $this->display_error == 1) {
 				die($this->msg($sql,$file,$line,$funktion));
 			} else {
@@ -172,7 +195,7 @@ class dbconn
 	 */
 	function fetch($result) {
 		global $sql; // notwendig??
-		return @mysql_fetch_array($result); // DEPRECATED - PHP5 only
+		return @mysqli_fetch_array($result); // DEPRECATED - PHP5 only
 		//return @mysqli_fetch_array($result); // PHP7.x ready
 	}
 
@@ -191,8 +214,7 @@ class dbconn
 	 * @param $result object SQL-Resultat
 	 */
 	function num($result,$errorchk=TRUE) {
-		return @mysql_num_rows($result); // DEPRECATED - PHP5 only
-		//return @mysqli_num_rows($result); // PHP7.x ready
+		return @mysqli_num_rows($result); // DEPRECATED - PHP5 only
 	}
 
 	/**
@@ -202,8 +224,7 @@ class dbconn
 	 * @param $rownum int Rownumber
 	 */
 	function seek($result,$rownum) {
-		return @mysql_data_seek($result,$rownum); // DEPRECATED - PHP5 only
-		//return @mysqli_data_seek($result, $rownum); // PHP7.x ready
+		return @mysqli_data_seek($result, $rownum); // PHP7.x ready
 	}
 
 	/**
@@ -212,8 +233,7 @@ class dbconn
 	 * @param $result object SQL-Resultat
 	 */
 	function numfields($result) {
-		return @mysql_num_fields($result); // DEPRECATED - PHP5 only
-		//return @mysqli_field_count($this->conn); // PHP7.x ready
+		return @mysqli_field_count($this->conn); // PHP7.x ready
 	}
 
 	/**

@@ -158,6 +158,7 @@ if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
 //define('USER_EINGELOGGT', 0);
 //define('USER_MEMBER', 1);
 //define('USER_NICHTEINGELOGGT', 2);
+define('USER_NICHTEINGELOGGT', false);
 //define('USER_ALLE', 3);
 if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
 if (!defined('USER_IMGPATH')) define('USER_IMGPATH',  SITE_ROOT.'/../data/userimages/');

@@ -121,7 +121,7 @@ class Astro_Sunrise
   /**
    * Astro Sunrise Twilight setzen
    */
-  function Astro_Sunrise() {
+  function __construct() {
     $this->setTwilight('effective');
   }
 

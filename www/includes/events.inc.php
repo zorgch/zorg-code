@@ -111,7 +111,7 @@ class Events {
 		global $db, $user;
 		
 		$events = array();
-		
+		$user_id = isset($user->id) ? $user->id : 0;
 		$sql = 
 			"
 			SELECT 
@@ -119,7 +119,7 @@ class Events {
 			  , COUNT(cu.comment_id) AS numunread
 			FROM `events` e
 			LEFT JOIN comments c ON (c.board = 'e' AND c.thread_id = e.id)
-			LEFT JOIN comments_unread cu ON (cu.user_id = '".$user->id."' AND cu.comment_id = c.id)
+			LEFT JOIN comments_unread cu ON (cu.user_id = '".$user_id."' AND cu.comment_id = c.id)
 			WHERE 
 					UNIX_TIMESTAMP(e.enddate) > ".time()."
 				AND
@@ -140,7 +140,7 @@ class Events {
 	static function getNumNewEvents() {
 		global $db, $user;
 		
-		if($user->lastlogin > 0) {
+		if(isset($user->lastlogin) && $user->lastlogin > 0) {
 			$sql =	
 				"
 				SELECT
