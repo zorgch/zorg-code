@@ -50,18 +50,18 @@ function printMap($rules, $numRule)
   ?>
   <table BORDER=1 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
     <tr>
-      <td COLSPAN=3 CLASS="row1" style="text-align: center"><?= $version ?>
+      <td COLSPAN=3 CLASS="row1" style="text-align: center"><?php echo $version ?>
       </td>
     </tr>
     <tr>
       <td WIDTH=40%%>
         <table BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%%>
           <tr>
-            <td CLASS="row2" style="text-align: center">Players: <?= $numPlayers ?>/<?= $maxclients ?>
+            <td CLASS="row2" style="text-align: center">Players: <?php echo $numPlayers ?>/<?php echo $maxclients ?>
 	          </td>
           </tr>
 	        <tr>
-            <td CLASS="row1" style="text-align: center">Cap Limit: <?= $caplimit ?>
+            <td CLASS="row1" style="text-align: center">Cap Limit: <?php echo $caplimit ?>
 	          </td>
           </tr>
           <tr>
@@ -71,12 +71,12 @@ function printMap($rules, $numRule)
                 if($dmflags & 16) { printf("Fixed FOV<br>"); }
                 if($dmflags & 32) { printf("No Footsteps"); }
 		          ?>', CSSCLASS, CAPTION, 'DM Flags:<br>', FGCLASS, 'cellHeading', BGCLASS, 'row2', TEXTFONTCLASS, 'cell1', CAPTIONFONTCLASS, 'caption',  BORDER, 0, TEXTSIZE, 1);" onmouseout="return nd();">
-	              DM Flags: <?= $dmflags ?>
+	              DM Flags: <?php echo $dmflags ?>
 	            </a>
 	          </td>
 	        </tr>
 	        <tr>
-	          <td CLASS="row1" style="text-align: center">Max Rate: <?= $rate ?>
+	          <td CLASS="row1" style="text-align: center">Max Rate: <?php echo $rate ?>
 	          </td>
           </tr>
 	        <?php
@@ -108,9 +108,9 @@ function printMap($rules, $numRule)
         </table>
 			</td>
       <td CLASS="cellHeading" WIDTH=20%%>
-        <?= $mapname ?>
+        <?php echo $mapname ?>
 	      <br>
-        <img TITLE="<?= strtolower($mapname); ?>" WIDTH=128 HEIGHT=128 SRC="images/maps/<?= strtolower($mapname); ?>.jpg">
+        <img TITLE="<?php echo strtolower($mapname); ?>" WIDTH=128 HEIGHT=128 SRC="images/maps/<?php echo strtolower($mapname); ?>.jpg">
       </td>
       <td WIDTH=40%%>
         <table BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%%>
@@ -125,15 +125,15 @@ function printMap($rules, $numRule)
             ?>
           </tr>
           <tr>
-            <td CLASS="row1" style="text-align: center">Frag Limit: <?= $fraglimit ?>
+            <td CLASS="row1" style="text-align: center">Frag Limit: <?php echo $fraglimit ?>
 	          </td>
           </tr>
           <tr>
-            <td CLASS="row2" style="text-align: center">Time Limit: <?= $timelimit ?>
+            <td CLASS="row2" style="text-align: center">Time Limit: <?php echo $timelimit ?>
 	          </td>
           </tr>
           <tr>
-            <td CLASS="row1" style="text-align: center">Time Left: <?= $time ?>
+            <td CLASS="row1" style="text-align: center">Time Left: <?php echo $time ?>
 	          </td>
           </tr>
 	        <?php

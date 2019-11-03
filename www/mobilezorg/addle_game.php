@@ -66,17 +66,17 @@ $d = mysql_fetch_array($e);
 	</li>
 	<li>
 		<table cellspacing='0' cellpadding='2' style="font-size:14px; border-collapse:collapse; background-color:;">
-		<?
+		<?php
 		for ($y=0; $y<8; $y++) {
-			?><tr><?
+			?><tr><?php
 			for ($x=0; $x<8; $x++) {
 			   if (($d[nextturn]==1 && $y==$d[nextrow]) || ($d[nextturn]==2 && $x==$d[nextrow])) {
 				  $bgcolor = '#ffebb1';
 			   }else{
 				  $bgcolor = '#fff';
 			   } ?>
-			   <td style="border-style:solid; border-color:#000; border-width:1px; font-size:18pt; text-align:center; vertical-align:middle; width:32px; height:32px; background-color:<?=$bgcolor?>; color:#6e62ff;">
-			   <?
+			   <td style="border-style:solid; border-color:#000; border-width:1px; font-size:18pt; text-align:center; vertical-align:middle; width:32px; height:32px; background-color:<?php echo $bgcolor ?>; color:#6e62ff;">
+			   <?php
 				  $act = substr($d[data], ($y*8+$x), 1);
 				  if ($act == '.') {
 					if ($d['last_pick_data']) {
@@ -97,9 +97,9 @@ $d = mysql_fetch_array($e);
 					 }
 					 echo $out;
 				  }  ?>
-			   </td>  <?
+			   </td>  <?php
 			}
-			?></tr><?
+			?></tr><?php
 		} ?>
 		</table>
 	</li>

@@ -15,38 +15,38 @@ $layout = (!empty($_GET['layout']) ? $_GET['layout'] : 'day');
 
 /** CSS Vars (default & fallback: "day" layout) */
 :root{
-	--color-font-primary: <?= ($layout === 'night' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.8)'); ?>;
-	--color-font-secondary: <?= ($layout === 'night' ? 'rgba(203,186,121,0.65)' : 'rgba(204,204,204,1)'); ?>;
-	--color-font-input-disabled: <?= ($layout === 'night' ? 'gray' : 'gray'); ?>;
-	--color-font-input: <?= ($layout === 'night' ? 'rgba(255,255,255,0.75)' : 'rgba(56, 57, 61,0.9)'); ?>;
-	--color-link-primary: <?= ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;
-	--color-link-navigation: <?= ($layout === 'night' ? '#cbba79' : '#344586'); ?>;
-	--color-link-navigation-hover: <?= ($layout === 'night' ? '#42300A' : '#9dafd5'); ?>;
-	--color-icon-primary: <?= ($layout === 'night' ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.7)'); ?>;
-	--background-color-base: <?= ($layout === 'night' ? 'rgba(3,12,22,1)' : 'rgba(246, 249, 254, 1)'); ?>;
-	--background-color-main: <?= ($layout === 'night' ? 'linear-gradient(0deg, rgba(10,35,66,1) 0%, rgba(3,12,22,1) 20%)' : 'rgba(250,250,250,1)'); ?>;
-	--background-color-behind: <?= ($layout === 'night' ? 'linear-gradient(0deg, rgba(3,12,22,1) 80%, rgba(10,35,66,1) 100%);' : 'rgba(245,245,245,1)'); ?>;
-	--background-color-unobtrusive: <?= ($layout === 'night' ? '#242424' : '#ddd'); ?>;
-	--background-color-input: <?= ($layout === 'night' ? 'rgba(3,12,22,0.75)' : 'rgba(246, 249, 254, 0.75)'); ?>;
-	--background-color-input-button-hover: <?= ($layout === 'night' ? 'rgba(203, 186, 121, 0.5);' : 'rgba(246, 249, 254, 0.75)'); ?>;
-	--background-color-navigation: <?= ($layout === 'night' ? '#42300a' : '#bdcff5'); ?>;
-	--background-color-navigation-hover: <?= ($layout === 'night' ? '#62502a' : '#9dafd5'); ?>;
-	--background-image-body: <?= ($layout === 'night' ? 'url(/images/background/night.png) repeat-x, radial-gradient(circle, rgba(7,19,44,1), rgba(10,35,66,1)) fixed no-repeat' : 'rgba(7,19,44,1)'); ?>;
-	--filter-invert: <?= ($layout === 'night' ? 'invert(0.75)' : 'none'); ?>;
+	--color-font-primary: <?php echo ($layout === 'night' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.8)'); ?>;
+	--color-font-secondary: <?php echo ($layout === 'night' ? 'rgba(203,186,121,0.65)' : 'rgba(204,204,204,1)'); ?>;
+	--color-font-input-disabled: <?php echo ($layout === 'night' ? 'gray' : 'gray'); ?>;
+	--color-font-input: <?php echo ($layout === 'night' ? 'rgba(255,255,255,0.75)' : 'rgba(56, 57, 61,0.9)'); ?>;
+	--color-link-primary: <?php echo ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;
+	--color-link-navigation: <?php echo ($layout === 'night' ? '#cbba79' : '#344586'); ?>;
+	--color-link-navigation-hover: <?php echo ($layout === 'night' ? '#42300A' : '#9dafd5'); ?>;
+	--color-icon-primary: <?php echo ($layout === 'night' ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.7)'); ?>;
+	--background-color-base: <?php echo ($layout === 'night' ? 'rgba(3,12,22,1)' : 'rgba(246, 249, 254, 1)'); ?>;
+	--background-color-main: <?php echo ($layout === 'night' ? 'linear-gradient(0deg, rgba(10,35,66,1) 0%, rgba(3,12,22,1) 20%)' : 'rgba(250,250,250,1)'); ?>;
+	--background-color-behind: <?php echo ($layout === 'night' ? 'linear-gradient(0deg, rgba(3,12,22,1) 80%, rgba(10,35,66,1) 100%);' : 'rgba(245,245,245,1)'); ?>;
+	--background-color-unobtrusive: <?php echo ($layout === 'night' ? '#242424' : '#ddd'); ?>;
+	--background-color-input: <?php echo ($layout === 'night' ? 'rgba(3,12,22,0.75)' : 'rgba(246, 249, 254, 0.75)'); ?>;
+	--background-color-input-button-hover: <?php echo ($layout === 'night' ? 'rgba(203, 186, 121, 0.5);' : 'rgba(246, 249, 254, 0.75)'); ?>;
+	--background-color-navigation: <?php echo ($layout === 'night' ? '#42300a' : '#bdcff5'); ?>;
+	--background-color-navigation-hover: <?php echo ($layout === 'night' ? '#62502a' : '#9dafd5'); ?>;
+	--background-image-body: <?php echo ($layout === 'night' ? 'url(/images/background/night.png) repeat-x, radial-gradient(circle, rgba(7,19,44,1), rgba(10,35,66,1)) fixed no-repeat' : 'rgba(7,19,44,1)'); ?>;
+	--filter-invert: <?php echo ($layout === 'night' ? 'invert(0.75)' : 'none'); ?>;
 	--font-family-body: -apple-system-body, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif;
 	--font-family-headline: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'Segoe UI', Verdana, Arial, sans-serif;
 	--font-family-logo: 'Segoe UI', sans-serif;
 	--font-family-footer: 'Iosevka Web', sans-serif;
-	--outline-table: <?= ($layout === 'night' ? '1px solid rgba(204,187,123,0.3)' : '1px solid rgba(204,204,204,0.3)'); ?>;
-	--outline-input: <?= ($layout === 'night' ? '1px solid rgba(203,186,121,0.65)' : '1px solid rgba(204,204,204,1)'); ?>;
-	--outline-input-focus: <?= ($layout === 'night' ? '1px solid rgba(255,255,255,0.85)' : '1px solid rgba(52,69,134,1)'); ?>;
-	--border-input: <?= ($layout === 'night' ? 'none' : '1px solid rgba(255,255,255,0.75)'); ?>;
-	--border-input-invisible: <?= ($layout === 'night' ? '1px solid rgba(0,0,0,0)' : 'none'); ?>;
-	--border-input-focus: <?= ($layout === 'night' ? 'inset thin rgba(255,255,255,0.65)' : 'none'); ?>;
-	--border-input-button-hover: <?= ($layout === 'night' ? '1px solid rgba(255,255,255,0.85)' : 'inset thin rgba(52,69,134,0.5)'); ?>;
-	--border-input-disabled: <?= ($layout === 'night' ? 'gray' : 'gray'); ?>;
-	--border-navigation: <?= ($layout === 'night' ? '#cbba79' : 'rgba(255,255,255,0.75)'); ?>;
-	--shadow-input-focus: <?= ($layout === 'night' ? '0 0 1px 1px rgba(255,255,255,0.85)' : '0 0 1px 1px rgba(52,69,134,0.5)'); ?>;
+	--outline-table: <?php echo ($layout === 'night' ? '1px solid rgba(204,187,123,0.3)' : '1px solid rgba(204,204,204,0.3)'); ?>;
+	--outline-input: <?php echo ($layout === 'night' ? '1px solid rgba(203,186,121,0.65)' : '1px solid rgba(204,204,204,1)'); ?>;
+	--outline-input-focus: <?php echo ($layout === 'night' ? '1px solid rgba(255,255,255,0.85)' : '1px solid rgba(52,69,134,1)'); ?>;
+	--border-input: <?php echo ($layout === 'night' ? 'none' : '1px solid rgba(255,255,255,0.75)'); ?>;
+	--border-input-invisible: <?php echo ($layout === 'night' ? '1px solid rgba(0,0,0,0)' : 'none'); ?>;
+	--border-input-focus: <?php echo ($layout === 'night' ? 'inset thin rgba(255,255,255,0.65)' : 'none'); ?>;
+	--border-input-button-hover: <?php echo ($layout === 'night' ? '1px solid rgba(255,255,255,0.85)' : 'inset thin rgba(52,69,134,0.5)'); ?>;
+	--border-input-disabled: <?php echo ($layout === 'night' ? 'gray' : 'gray'); ?>;
+	--border-navigation: <?php echo ($layout === 'night' ? '#cbba79' : 'rgba(255,255,255,0.75)'); ?>;
+	--shadow-input-focus: <?php echo ($layout === 'night' ? '0 0 1px 1px rgba(255,255,255,0.85)' : '0 0 1px 1px rgba(52,69,134,0.5)'); ?>;
 	--shadow-input-focus-moz_mac: 0 0 0 3px -moz-mac-focusring;
 }
 
@@ -126,7 +126,7 @@ body {
 		grid-template-areas:
 			"header header"
 			"nav nav"
-			"main <?= ($sidebarOn === true ? 'sidebar' : 'main'); ?>"
+			"main <?php echo ($sidebarOn === true ? 'sidebar' : 'main'); ?>"
 			"footer footer";
 	}
 		.zorghead {
@@ -158,7 +158,7 @@ body {
 			"header"
 			"nav"
 			"main"
-			<?= ($sidebarOn === true ? '"sidebar"' : null); ?>
+			<?php echo ($sidebarOn === true ? '"sidebar"' : null); ?>
 			"footer";
 	}
 	.zorghead {
@@ -246,7 +246,7 @@ body > * {
 	font-size: 0.5rem;
 	letter-spacing: 0.1em;
 	background: var(--background-color-behind, rgba(1,1,1,1));
-	border-top: <?= ($layout === 'night' ? 'none' : 'solid 1px #ccc'); ?>;
+	border-top: <?php echo ($layout === 'night' ? 'none' : 'solid 1px #ccc'); ?>;
 	padding-top: 0.5vw;
 	padding-bottom: 1vw;
 }
@@ -274,15 +274,15 @@ i.password::before { content: "\01F510"; }
 i.event::before { content: "\01F5D3"; }
 /** SVG */
 i.day::before {
-	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 125" x="0px" y="0px" style="fill: <?= ($layout === 'night' ? 'rgba(240,196,32,0.6)' : 'rgba(227,103,0,0.65)'); ?>;"><path d="M64.17,63a16,16,0,0,0-28-6.25A12.5,12.5,0,0,0,18,65.17a11.49,11.49,0,0,0,1.23,22.91H60.93a1.34,1.34,0,0,0,.35,0A12.83,12.83,0,0,0,64.17,63Zm-3.31,22.1-.21,0h-41l-.23,0-.23,0a8.49,8.49,0,0,1-.06-17,1.54,1.54,0,0,0,1.63-1.36,9.49,9.49,0,0,1,15-6.82,1.49,1.49,0,0,0,1.14.26,1.52,1.52,0,0,0,1-.65,13,13,0,0,1,23.58,4.88,1.5,1.5,0,0,0,1.15,1.2,9.84,9.84,0,0,1-1.7,19.43Z"/><path d="M85.06,48.59A12.93,12.93,0,0,0,62.61,43.5a10.16,10.16,0,0,0-12,2,1.5,1.5,0,0,0,2.18,2.07,7.16,7.16,0,0,1,9.37-.9,1.51,1.51,0,0,0,2.12-.39,9.93,9.93,0,0,1,18.06,3.73,1.5,1.5,0,0,0,1.15,1.2A7.46,7.46,0,0,1,82.17,66L82,66H77.84a1.5,1.5,0,0,0,0,3h4.4a1.65,1.65,0,0,0,.32,0,10.46,10.46,0,0,0,2.5-20.38Z"/><path d="M29.58,51.44a1.48,1.48,0,0,0,1.25.68,1.53,1.53,0,0,0,.82-.24,1.51,1.51,0,0,0,.44-2.08,12.54,12.54,0,0,1,8.59-19.24A12.56,12.56,0,0,1,54,37.81a1.5,1.5,0,1,0,2.73-1.23A15.54,15.54,0,1,0,29.58,51.44Z"/><path d="M17.19,26.19l7.55,5.54a1.54,1.54,0,0,0,.88.29,1.5,1.5,0,0,0,.89-2.71L19,23.77a1.5,1.5,0,0,0-1.77,2.42Z"/><path d="M12.26,46.45h.1l9.34-.62a1.5,1.5,0,1,0-.2-3l-9.34.61a1.5,1.5,0,0,0,.1,3Z"/><path d="M61.85,36a1.49,1.49,0,0,0,.61-.13L71,32.07a1.5,1.5,0,1,0-1.21-2.74L61.25,33.1a1.5,1.5,0,0,0,.6,2.87Z"/><path d="M51.23,25.42a1.47,1.47,0,0,0,.67.16,1.5,1.5,0,0,0,1.34-.84l4.14-8.39A1.5,1.5,0,0,0,54.69,15l-4.14,8.4A1.49,1.49,0,0,0,51.23,25.42Z"/><path d="M36.13,22.87A1.5,1.5,0,0,0,37.59,24,1.49,1.49,0,0,0,38,24a1.5,1.5,0,0,0,1.1-1.81l-2.23-9.09a1.5,1.5,0,0,0-2.92.71Z"/></svg>'); /*url(/images/icons/day.svg)*/ }
+	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 125" x="0px" y="0px" style="fill: <?php echo ($layout === 'night' ? 'rgba(240,196,32,0.6)' : 'rgba(227,103,0,0.65)'); ?>;"><path d="M64.17,63a16,16,0,0,0-28-6.25A12.5,12.5,0,0,0,18,65.17a11.49,11.49,0,0,0,1.23,22.91H60.93a1.34,1.34,0,0,0,.35,0A12.83,12.83,0,0,0,64.17,63Zm-3.31,22.1-.21,0h-41l-.23,0-.23,0a8.49,8.49,0,0,1-.06-17,1.54,1.54,0,0,0,1.63-1.36,9.49,9.49,0,0,1,15-6.82,1.49,1.49,0,0,0,1.14.26,1.52,1.52,0,0,0,1-.65,13,13,0,0,1,23.58,4.88,1.5,1.5,0,0,0,1.15,1.2,9.84,9.84,0,0,1-1.7,19.43Z"/><path d="M85.06,48.59A12.93,12.93,0,0,0,62.61,43.5a10.16,10.16,0,0,0-12,2,1.5,1.5,0,0,0,2.18,2.07,7.16,7.16,0,0,1,9.37-.9,1.51,1.51,0,0,0,2.12-.39,9.93,9.93,0,0,1,18.06,3.73,1.5,1.5,0,0,0,1.15,1.2A7.46,7.46,0,0,1,82.17,66L82,66H77.84a1.5,1.5,0,0,0,0,3h4.4a1.65,1.65,0,0,0,.32,0,10.46,10.46,0,0,0,2.5-20.38Z"/><path d="M29.58,51.44a1.48,1.48,0,0,0,1.25.68,1.53,1.53,0,0,0,.82-.24,1.51,1.51,0,0,0,.44-2.08,12.54,12.54,0,0,1,8.59-19.24A12.56,12.56,0,0,1,54,37.81a1.5,1.5,0,1,0,2.73-1.23A15.54,15.54,0,1,0,29.58,51.44Z"/><path d="M17.19,26.19l7.55,5.54a1.54,1.54,0,0,0,.88.29,1.5,1.5,0,0,0,.89-2.71L19,23.77a1.5,1.5,0,0,0-1.77,2.42Z"/><path d="M12.26,46.45h.1l9.34-.62a1.5,1.5,0,1,0-.2-3l-9.34.61a1.5,1.5,0,0,0,.1,3Z"/><path d="M61.85,36a1.49,1.49,0,0,0,.61-.13L71,32.07a1.5,1.5,0,1,0-1.21-2.74L61.25,33.1a1.5,1.5,0,0,0,.6,2.87Z"/><path d="M51.23,25.42a1.47,1.47,0,0,0,.67.16,1.5,1.5,0,0,0,1.34-.84l4.14-8.39A1.5,1.5,0,0,0,54.69,15l-4.14,8.4A1.49,1.49,0,0,0,51.23,25.42Z"/><path d="M36.13,22.87A1.5,1.5,0,0,0,37.59,24,1.49,1.49,0,0,0,38,24a1.5,1.5,0,0,0,1.1-1.81l-2.23-9.09a1.5,1.5,0,0,0-2.92.71Z"/></svg>'); /*url(/images/icons/day.svg)*/ }
 i.night::before {
-	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 640" x="0px" y="0px" style="fill: <?= ($layout === 'night' ? 'rgba(240,196,32,0.6)' : 'rgba(227,103,0,0.65)'); ?>;"><path d="M208.482,181.648a7,7,0,0,0-7.583-1.316A147.006,147.006,0,0,0,112.48,315.191c0,81.056,65.944,147,147,147a147.444,147.444,0,0,0,138.262-96.958,7,7,0,0,0-9.378-8.8,131.911,131.911,0,0,1-53,10.987c-73.337,0-133-59.663-133-133a132.586,132.586,0,0,1,7.911-45.286A7,7,0,0,0,208.482,181.648ZM335.36,381.421a146.375,146.375,0,0,0,42.918-6.359,133.489,133.489,0,0,1-118.8,73.129c-73.336,0-133-59.663-133-133a133.016,133.016,0,0,1,65.851-114.84,147.148,147.148,0,0,0-3.971,34.07C188.36,315.477,254.3,381.421,335.36,381.421Z"/><path d="M336.291,89.831l-33.445-5.309L287.424,53.678a7,7,0,0,0-12.522,0L259.48,84.522l-33.444,5.309a7,7,0,0,0-3.8,11.917l24.38,23.852-5.826,33.368a7,7,0,0,0,10.156,7.4l30.215-15.9,30.215,15.9a7,7,0,0,0,10.156-7.4L315.708,125.6l24.381-23.852a7,7,0,0,0-3.8-11.917Zm-33.008,28.338a7,7,0,0,0-2,6.208l4.01,22.966-20.869-10.985a7,7,0,0,0-6.521,0l-20.869,10.985,4.01-22.966a7,7,0,0,0-2-6.208l-17.064-16.693,23.25-3.691A7,7,0,0,0,270.393,94l10.77-21.542L291.934,94a7,7,0,0,0,5.163,3.782l23.25,3.691Z"/><path d="M479.587,166.426l-21.079-3.347-9.729-19.459a7,7,0,0,0-12.522,0l-9.73,19.459-21.078,3.347a7,7,0,0,0-3.8,11.917L417,193.36l-3.667,21a7,7,0,0,0,10.156,7.4l19.027-10.015,19.026,10.015a7,7,0,0,0,10.156-7.4l-3.667-21,15.352-15.017a7,7,0,0,0-3.8-11.917Zm-23.978,19.5a7,7,0,0,0-2,6.208l1.851,10.6-9.681-5.094a6.994,6.994,0,0,0-6.52,0l-9.681,5.094,1.851-10.6a7,7,0,0,0-2-6.208l-8.034-7.86,10.883-1.728a7,7,0,0,0,5.164-3.782l5.078-10.157L447.6,172.56a7,7,0,0,0,5.163,3.782l10.884,1.728Z"/><path d="M355.894,247.643a7,7,0,0,0-5.572-4.789l-16.989-2.7-7.848-15.694a7,7,0,0,0-12.522,0l-7.847,15.694-16.989,2.7a7,7,0,0,0-3.8,11.917l12.366,12.1-2.953,16.912a7,7,0,0,0,10.156,7.4l15.326-8.067,15.327,8.067a7,7,0,0,0,10.156-7.4l-2.953-16.912,12.365-12.1A7,7,0,0,0,355.894,247.643Zm-26.565,11.795a7,7,0,0,0-2,6.208l1.136,6.509-5.981-3.147a7,7,0,0,0-6.52,0l-5.981,3.147,1.137-6.509a7,7,0,0,0-2-6.208l-5.048-4.939,6.794-1.079a7,7,0,0,0,5.164-3.782l3.195-6.392,3.2,6.392a7,7,0,0,0,5.163,3.782l6.795,1.079Z"/><path d="M73.51,179.879l21.523,11.327a7,7,0,0,0,10.156-7.4l-4.149-23.76,17.366-16.988a7,7,0,0,0-3.8-11.917l-23.837-3.785-11-22a7,7,0,0,0-12.521,0l-11,22-23.837,3.785a7,7,0,0,0-3.8,11.917l17.366,16.988-4.149,23.76a7,7,0,0,0,10.156,7.4ZM48.357,142.787,62,140.621a7,7,0,0,0,5.164-3.782l6.347-12.7,6.348,12.7a7,7,0,0,0,5.164,3.782l13.642,2.166-10.049,9.83a7,7,0,0,0-2,6.208l2.332,13.358-12.176-6.409a7,7,0,0,0-6.521,0l-12.176,6.409,2.332-13.358a7,7,0,0,0-2-6.208Z"/></svg>'); /*url(/images/icons/night.svg)*/ }
+	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 640" x="0px" y="0px" style="fill: <?php echo ($layout === 'night' ? 'rgba(240,196,32,0.6)' : 'rgba(227,103,0,0.65)'); ?>;"><path d="M208.482,181.648a7,7,0,0,0-7.583-1.316A147.006,147.006,0,0,0,112.48,315.191c0,81.056,65.944,147,147,147a147.444,147.444,0,0,0,138.262-96.958,7,7,0,0,0-9.378-8.8,131.911,131.911,0,0,1-53,10.987c-73.337,0-133-59.663-133-133a132.586,132.586,0,0,1,7.911-45.286A7,7,0,0,0,208.482,181.648ZM335.36,381.421a146.375,146.375,0,0,0,42.918-6.359,133.489,133.489,0,0,1-118.8,73.129c-73.336,0-133-59.663-133-133a133.016,133.016,0,0,1,65.851-114.84,147.148,147.148,0,0,0-3.971,34.07C188.36,315.477,254.3,381.421,335.36,381.421Z"/><path d="M336.291,89.831l-33.445-5.309L287.424,53.678a7,7,0,0,0-12.522,0L259.48,84.522l-33.444,5.309a7,7,0,0,0-3.8,11.917l24.38,23.852-5.826,33.368a7,7,0,0,0,10.156,7.4l30.215-15.9,30.215,15.9a7,7,0,0,0,10.156-7.4L315.708,125.6l24.381-23.852a7,7,0,0,0-3.8-11.917Zm-33.008,28.338a7,7,0,0,0-2,6.208l4.01,22.966-20.869-10.985a7,7,0,0,0-6.521,0l-20.869,10.985,4.01-22.966a7,7,0,0,0-2-6.208l-17.064-16.693,23.25-3.691A7,7,0,0,0,270.393,94l10.77-21.542L291.934,94a7,7,0,0,0,5.163,3.782l23.25,3.691Z"/><path d="M479.587,166.426l-21.079-3.347-9.729-19.459a7,7,0,0,0-12.522,0l-9.73,19.459-21.078,3.347a7,7,0,0,0-3.8,11.917L417,193.36l-3.667,21a7,7,0,0,0,10.156,7.4l19.027-10.015,19.026,10.015a7,7,0,0,0,10.156-7.4l-3.667-21,15.352-15.017a7,7,0,0,0-3.8-11.917Zm-23.978,19.5a7,7,0,0,0-2,6.208l1.851,10.6-9.681-5.094a6.994,6.994,0,0,0-6.52,0l-9.681,5.094,1.851-10.6a7,7,0,0,0-2-6.208l-8.034-7.86,10.883-1.728a7,7,0,0,0,5.164-3.782l5.078-10.157L447.6,172.56a7,7,0,0,0,5.163,3.782l10.884,1.728Z"/><path d="M355.894,247.643a7,7,0,0,0-5.572-4.789l-16.989-2.7-7.848-15.694a7,7,0,0,0-12.522,0l-7.847,15.694-16.989,2.7a7,7,0,0,0-3.8,11.917l12.366,12.1-2.953,16.912a7,7,0,0,0,10.156,7.4l15.326-8.067,15.327,8.067a7,7,0,0,0,10.156-7.4l-2.953-16.912,12.365-12.1A7,7,0,0,0,355.894,247.643Zm-26.565,11.795a7,7,0,0,0-2,6.208l1.136,6.509-5.981-3.147a7,7,0,0,0-6.52,0l-5.981,3.147,1.137-6.509a7,7,0,0,0-2-6.208l-5.048-4.939,6.794-1.079a7,7,0,0,0,5.164-3.782l3.195-6.392,3.2,6.392a7,7,0,0,0,5.163,3.782l6.795,1.079Z"/><path d="M73.51,179.879l21.523,11.327a7,7,0,0,0,10.156-7.4l-4.149-23.76,17.366-16.988a7,7,0,0,0-3.8-11.917l-23.837-3.785-11-22a7,7,0,0,0-12.521,0l-11,22-23.837,3.785a7,7,0,0,0-3.8,11.917l17.366,16.988-4.149,23.76a7,7,0,0,0,10.156,7.4ZM48.357,142.787,62,140.621a7,7,0,0,0,5.164-3.782l6.347-12.7,6.348,12.7a7,7,0,0,0,5.164,3.782l13.642,2.166-10.049,9.83a7,7,0,0,0-2,6.208l2.332,13.358-12.176-6.409a7,7,0,0,0-6.521,0l-12.176,6.409,2.332-13.358a7,7,0,0,0-2-6.208Z"/></svg>'); /*url(/images/icons/night.svg)*/ }
 i.facebook::before {
-	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: <?= ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>'); /*url(/images/icons/facebook-black.svg)*/ }
+	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: <?php echo ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>'); /*url(/images/icons/facebook-black.svg)*/ }
 i.twitter::before {
-	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: <?= ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>'); /*url(/images/icons/twitter-black.svg)*/ }
+	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: <?php echo ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>'); /*url(/images/icons/twitter-black.svg)*/ }
 i.github::before {
-	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: <?= ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>'); /*url(/images/icons/github-black.svg)*/ }
+	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: <?php echo ($layout === 'night' ? 'rgba(204,187,123,1)' : 'rgba(52,69,134,1)'); ?>;"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>'); /*url(/images/icons/github-black.svg)*/ }
 
 /**
  * General Styles
@@ -467,7 +467,7 @@ header > .infos .solarstate .countryflag {
 /** Footer */
 footer > .shadow {
 	border: none;
-	box-shadow: <?= ($layout === 'night' ? '0 0px 1px 1px rgba(3,12,22,0.5)' : 'none'); ?>;
+	box-shadow: <?php echo ($layout === 'night' ? '0 0px 1px 1px rgba(3,12,22,0.5)' : 'none'); ?>;
 	margin: 0 -1vw 0 -1.5vw;
 }
 footer section, .tpl-footer section {
@@ -616,13 +616,13 @@ a.threading, span.threading {
 	margin-left: -1px;
 }
 a.threading.switch:hover { box-shadow: 0 0 0 1px #344586; }
-a.threading.switch.expand { background: url('/images/forum/<?= $layout ?>/plus.gif') no-repeat; }
-a.threading.switch.collapse { background: url('/images/forum/<?= $layout ?>/minus.gif') no-repeat; }
-span.threading.split { background: url('/images/forum/<?= $layout ?>/split.gif'); }
-td.threading.collapsed { background: url('/images/forum/<?= $layout ?>/minus.gif'); }
-td.threading.space { background: url('/images/forum/<?= $layout ?>/space.gif') repeat-y; }
-td.threading.vertline { background: url('/images/forum/<?= $layout ?>/vertline.gif') repeat-y; }
-td.threading.end { background: url('/images/forum/<?= $layout ?>/end.gif') no-repeat; }
+a.threading.switch.expand { background: url('/images/forum/<?php echo $layout ?>/plus.gif') no-repeat; }
+a.threading.switch.collapse { background: url('/images/forum/<?php echo $layout ?>/minus.gif') no-repeat; }
+span.threading.split { background: url('/images/forum/<?php echo $layout ?>/split.gif'); }
+td.threading.collapsed { background: url('/images/forum/<?php echo $layout ?>/minus.gif'); }
+td.threading.space { background: url('/images/forum/<?php echo $layout ?>/space.gif') repeat-y; }
+td.threading.vertline { background: url('/images/forum/<?php echo $layout ?>/vertline.gif') repeat-y; }
+td.threading.end { background: url('/images/forum/<?php echo $layout ?>/end.gif') no-repeat; }
 input.replybutton { margin: 0; }
 
 /** Quill */

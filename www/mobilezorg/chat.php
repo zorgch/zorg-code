@@ -76,7 +76,7 @@ while ($rs = mysql_fetch_array($result)) {
 	<!-- CHAT -->
 	<ul id="chat" title="Chat" selected="true">
 	<?php foreach ((array) $chatmessages as $n => $message) { ?>
-		<li><small><?php echo $message['username']; ?> <? echo($message['from_mobile'] == 1 ? "<img src=\"/images/mobile15x11px.gif\" border=\"none\" width=15 heigh=11 alt=\"von unterwegs geschrieben\">" : "") ?> @ <?php echo strftime('%e. %B %Y %H:%M Uhr', $message['date']) ?></small><br/><?php echo $message['text'] ?></li>
+		<li><small><?php echo $message['username']; ?> <?php echo($message['from_mobile'] == 1 ? "<img src=\"/images/mobile15x11px.gif\" border=\"none\" width=15 heigh=11 alt=\"von unterwegs geschrieben\">" : "") ?> @ <?php echo strftime('%e. %B %Y %H:%M Uhr', $message['date']) ?></small><br/><?php echo $message['text'] ?></li>
 	<?php } ?>
 	</ul>
 		

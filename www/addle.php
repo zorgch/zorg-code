@@ -586,7 +586,7 @@ function play($id=0)
 		<tr>
 			<td style="text-align: center;">
 
-				<table cellspacing="0" cellpadding="2" style="border-collapse:collapse;" bgcolor='<?=TABLEBORDERCOLOR?>'>	<?php
+				<table cellspacing="0" cellpadding="2" style="border-collapse:collapse;" bgcolor='<?php echo TABLEBORDERCOLOR?>'>	<?php
 					for ($y=0; $y<8; $y++) {
 						?><tr><?php
 						for ($x=0; $x<8; $x++) {
@@ -595,7 +595,7 @@ function play($id=0)
 							} else {
 								$bgcolor = TABLEBACKGROUNDCOLOR;
 							} ?>
-							<td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='<?=$bgcolor?>'>
+							<td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='<?php echo $bgcolor?>'>
 								<?php $act = substr($d['data'], ($y*8+$x), 1);
 								if ($act == '.') {
 									if ($d['last_pick_data']) {
@@ -742,12 +742,12 @@ function highscore() {
 					$bgcolor = "";
 				}?>
 				<tr>
-					<td <?=$bgcolor?> align="right"><?=$i+1?>. &nbsp;</td>
-					<td <?=$bgcolor?> align="left"><?=$user->id2user($usr[$i])?> &nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$score[$i]?> &nbsp; &nbsp; &nbsp; &nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$win[$i]?> &nbsp;&nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$unent[$i]?> &nbsp;&nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$loose[$i]?> &nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $i+1?>. &nbsp;</td>
+					<td <?php echo $bgcolor?> align="left"><?php echo $user->id2user($usr[$i])?> &nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $score[$i]?> &nbsp; &nbsp; &nbsp; &nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $win[$i]?> &nbsp;&nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $unent[$i]?> &nbsp;&nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $loose[$i]?> &nbsp;</td>
 				</tr> <?php
 		}	?>
 		</tbody>
@@ -784,13 +784,13 @@ function archiv() {
 	$d = $db->fetch($e);
 	?>
 	<div align="center">
-	<h3>Spieler Stats für <?=$user->id2user($uid)?></h3>
-	<h4>DWZ Punkte:&nbsp;<b><?=$d['score']?></b> (Rank #<?=$d['rank']?>)</h4>
+	<h3>Spieler Stats für <?php echo $user->id2user($uid)?></h3>
+	<h4>DWZ Punkte:&nbsp;<b><?php echo $d['score']?></b> (Rank #<?php echo $d['rank']?>)</h4>
 	<table>
 		<tr class='title'>
 				<td>Gegner &nbsp; &nbsp;</td>
 				<td>letzter Zug &nbsp; &nbsp; </td>
-				<td><?=$user->id2user($uid)?> &nbsp; &nbsp;</td>
+				<td><?php echo $user->id2user($uid)?> &nbsp; &nbsp;</td>
 				<td>Gegner P. &nbsp; &nbsp;</td>
 				<td>Ausgang</td>
 				<td>&nbsp;</td>
@@ -809,10 +809,10 @@ function archiv() {
 			}
 			?>
 			<tr>
-				<td align="left"><a href="?show=archiv&uid=<?=$d['player'.$gegner];?>"><?=$user->id2user($d['player'.$gegner])?></a> &nbsp; &nbsp;</td>
-				<td align="left"><?=datename($d['date'])?> &nbsp; &nbsp;</td>
-				<td align='right'><?=$d['score'.$ich]?> &nbsp; &nbsp;</td>
-				<td align='right'><?=$d['score'.$gegner]?> &nbsp; &nbsp;</td>
+				<td align="left"><a href="?show=archiv&uid=<?php echo $d['player'.$gegner];?>"><?php echo $user->id2user($d['player'.$gegner])?></a> &nbsp; &nbsp;</td>
+				<td align="left"><?php echo datename($d['date'])?> &nbsp; &nbsp;</td>
+				<td align='right'><?php echo $d['score'.$ich]?> &nbsp; &nbsp;</td>
+				<td align='right'><?php echo $d['score'.$gegner]?> &nbsp; &nbsp;</td>
 				<td><?php
 					if (!$d['finish']) {
 						echo '-';
@@ -824,7 +824,7 @@ function archiv() {
 						echo 'unentschieden';
 					}	?>
 				</td>
-				<td align="left"> &nbsp; <a href="?show=play&id=<?=$d['id']?>">ansehen</a></td>
+				<td align="left"> &nbsp; <a href="?show=play&id=<?php echo $d['id']?>">ansehen</a></td>
 			</tr><?php
 			$i++;
 		} ?>

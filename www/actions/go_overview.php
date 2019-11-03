@@ -1,4 +1,10 @@
-<?
+<?php
+/**
+ * Go Game actions
+ * @package zorg\Games\Go
+ */
+
+/** File includes */
 require_once( __DIR__ .'/../includes/main.inc.php');
 require_once( __DIR__ .'/../includes/go_game.inc.php');
 	

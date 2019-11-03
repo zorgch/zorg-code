@@ -35,27 +35,27 @@ print '<html>'
 	 .'<body>';
 ?>
 
-UserEmail:              <?= $seti->email                               ?><br>
-ServerUrl1:             <?= $seti->server1                             ?><br>
-ServerUrl2:             <?= $seti->server2                             ?><br>
-Username:               <?= $seti->viewStats('UserName')               ?><br>
-Wokunits:               <?= $seti->viewStats('Workunits')              ?><br>
-TotalCPUTime:           <?= $seti->viewStats('TotalCPUTime')           ?><br>
-AverageCPUTime:         <?= $seti->viewStats('AverageCPUTime')         ?><br>
-LastResult:             <?= $seti->viewStats('LastResult')             ?><br>
-RegisteredOn:           <?= $seti->viewStats('RegisteredOn')           ?><br>
-SetiUserFor:            <?= $seti->viewStats('SetiUserFor')            ?><br>
-GroupName:              <?= $seti->viewStats('GroupName')              ?><br>
-GroupURL:               <?= $seti->viewStats('GroupURL')               ?><br>
-Rank:                   <?= $seti->viewStats('Rank')                   ?><br>
-TotalUsers:             <?= $seti->viewStats('TotalUsers')             ?><br>
-TotalUsersWithThisRank: <?= $seti->viewStats('TotalUsersWithThisRank') ?><br>
-MoreWorkUnitsThan:      <?= $seti->viewStats('MoreWorkUnitsThan')      ?><br>
-AverageResultsPerDay:   <?= $seti->viewStats('AverageResultsPerDay')   ?><br>
-ResultsPerWeek:         <?= $seti->AverageResultsPerWeek()             ?><br>
-ResultsPerMonth:        <?= $seti->AverageResultsPerMonth()            ?><br>
-RegistrationClass:      <?= $seti->viewStats('RegistrationClass')      ?><br>
-ResultInterval:         <?= $seti->ResultInt()					       ?><br>			  
+UserEmail:              <?php echo $seti->email                               ?><br>
+ServerUrl1:             <?php echo $seti->server1                             ?><br>
+ServerUrl2:             <?php echo $seti->server2                             ?><br>
+Username:               <?php echo $seti->viewStats('UserName')               ?><br>
+Wokunits:               <?php echo $seti->viewStats('Workunits')              ?><br>
+TotalCPUTime:           <?php echo $seti->viewStats('TotalCPUTime')           ?><br>
+AverageCPUTime:         <?php echo $seti->viewStats('AverageCPUTime')         ?><br>
+LastResult:             <?php echo $seti->viewStats('LastResult')             ?><br>
+RegisteredOn:           <?php echo $seti->viewStats('RegisteredOn')           ?><br>
+SetiUserFor:            <?php echo $seti->viewStats('SetiUserFor')            ?><br>
+GroupName:              <?php echo $seti->viewStats('GroupName')              ?><br>
+GroupURL:               <?php echo $seti->viewStats('GroupURL')               ?><br>
+Rank:                   <?php echo $seti->viewStats('Rank')                   ?><br>
+TotalUsers:             <?php echo $seti->viewStats('TotalUsers')             ?><br>
+TotalUsersWithThisRank: <?php echo $seti->viewStats('TotalUsersWithThisRank') ?><br>
+MoreWorkUnitsThan:      <?php echo $seti->viewStats('MoreWorkUnitsThan')      ?><br>
+AverageResultsPerDay:   <?php echo $seti->viewStats('AverageResultsPerDay')   ?><br>
+ResultsPerWeek:         <?php echo $seti->AverageResultsPerWeek()             ?><br>
+ResultsPerMonth:        <?php echo $seti->AverageResultsPerMonth()            ?><br>
+RegistrationClass:      <?php echo $seti->viewStats('RegistrationClass')      ?><br>
+ResultInterval:         <?php echo $seti->ResultInt()					       ?><br>			  
 <?php						   print $seti->ResultInterval['days'].' Days '
 						   		.$seti->ResultInterval['hours'].' Hours '
 						   		.$seti->ResultInterval['minutes'].' Minutes '

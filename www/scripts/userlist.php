@@ -1,4 +1,4 @@
-<?
+<?php
 global $db, $smarty;
 
 switch ($_GET['sort']) {

@@ -557,14 +557,14 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookleftarrow; go to Album</a><br /><br />';
 	?>
 	<table class="border" cellspacing="3">
-	<form action="<?=$_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?=$id?>&do=editAlbum" method="post">
+	<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=editAlbum" method="post">
 		<tr>
 		<td align="left">ID: </td>
-		<td align="left"><?=$id?>
+		<td align="left"><?php echo $id?>
 		</tr>
 		<tr>
 		<td align="left">Name: </td>
-		<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?=$frm['name']?>"></td>
+		<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?php echo $frm['name']?>"></td>
 		</tr>
 		<tr>
 		<td colspan='2' align="center">
@@ -582,7 +582,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	if ($id)
 	{ ?>
 		<table class="border"><tr><td>
-		<form <?='action="'.$SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
+		<form <?php echo 'action="'.$SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
 		Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br /><br />
 			<input class="text" name="del" value="" size="4"> &nbsp;
 			<input type="submit" class="button" value="   l&ouml;schen   ">
@@ -598,9 +598,9 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		?>
 
 		<table class="border"><tr><td>
-		<form action="<?=$_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?=$id?>&do=mkUploadDir" method="post">
+		<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=mkUploadDir" method="post">
 		Upload-Ordner erstellen (in /data/gallery/upload/):<br /><br />
-		<input type="text" class="text" name="frm[folder]" value="<?=$frm['folder']?>"> &nbsp; &nbsp;
+		<input type="text" class="text" name="frm[folder]" value="<?php echo $frm['folder']?>"> &nbsp; &nbsp;
 		<input type="submit" class="button" value="   erstellen   ">
 		</form>
 		</td></tr></table>
@@ -645,7 +645,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		?>
 	
 		<table class="border"><tr><td>
-		<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
+		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
 		Upload-Ordner l&ouml;schen:<br /><br />
 		<select size="1" class="text" name="frm[folder]">
 			<?php
@@ -658,15 +658,15 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</form>
 		</td></tr>
 		<tr><td style="text-align:right">
-		<a <?='href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
+		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 		</td></tr></table>
 		<br />
 	
 		<table class="border"><tr><td align="left" width="450">
-		<form <?='action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
+		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
 		Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
 		Rechte 0664 gibst.
-		(<?='<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br /><br />
+		(<?php echo '<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br /><br />
 		W&auml;hle den Ordner hier aus, um die Pics zu indizieren: <br /><br />
 		<input type="checkbox" checked name="frm[delPics]" value="1">
 		Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br />
@@ -684,7 +684,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</form>
 		</td></tr>
 		<tr><td style="text-align:right">
-		<a <?='href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
+		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 		</td></tr></table>
 		<br />
 		<?php

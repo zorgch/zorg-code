@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Verein Infos
  * 
@@ -7,7 +7,6 @@
  * @author IneX
  * @version 1.0
  * @package mobilezorg
-*
  */ ?>
 		<!-- Verein -->
 		<ul id="verein" title="Zorg Verein">

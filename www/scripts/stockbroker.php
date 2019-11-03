@@ -1,10 +1,14 @@
-<?
+<?php
+/**
+ * Stockbroker Smarty-Function assignments
+ * @package zorg\Games\Stockbroker
+ */
+
+/** File includes */
 require_once($_SERVER['DOCUMENT_ROOT']."/includes/stockbroker.inc.php");
 require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
 
 global $smarty, $user;	
-
-
 
 //$smarty->assign("kurse_aktuell", Stockbroker::getKurseNeuste(10));
 $smarty->assign("kurse_tagesgewinner", Stockbroker::getTodaysWinners());
@@ -16,5 +20,3 @@ $smarty->assign("currentproperty", Stockbroker::getStocksOwned($user->id));
 $smarty->assign("highscore", Stockbroker::getHighscore());
 $smarty->assign("mytrades", Stockbroker::getTrades($user->id));
 $smarty->assign("stock_warnings", Stockbroker::getWarnings($user->id));
-
-?>

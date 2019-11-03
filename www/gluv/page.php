@@ -39,8 +39,8 @@ function printPage($reds, $blues, $specs, $rules)
 ?>
   <html>
   <HEAD>
-  <TITLE><?= $title ?></TITLE>
-  <link rel="stylesheet" type="text/css" href="<?= $css ?>">
+  <TITLE><?php echo $title ?></TITLE>
+  <link rel="stylesheet" type="text/css" href="<?php echo $css ?>">
   <?php require('js.php'); ?>
   </HEAD>
   <body>
@@ -60,7 +60,7 @@ function printPage($reds, $blues, $specs, $rules)
                 <tr>
                   <td style="text-align: center" class="transparent">
                     <font class="headingText">
-                      <?= $servername."<br>".$ip.":".$port ?>
+                      <?php echo $servername."<br>".$ip.":".$port ?>
                     </font>
                   </td>
                   <td align=right valign=top width=10 class="transparent">
@@ -109,7 +109,7 @@ function printPage($reds, $blues, $specs, $rules)
           <a href="http://www.digitaltorque.com/gluv/">
             gLuV
           </a>
-           version <?= $gluVer ?> - Copyright 2002 by 
+           version <?php echo $gluVer ?> - Copyright 2002 by 
           <a href="mailto:SegFault@sc.rr.com">
             John Wu
           </a>

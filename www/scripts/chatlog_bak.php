@@ -1,4 +1,8 @@
-<?
+<?php
+/**
+ * [z]Chat log
+ * @package zorg\Chat
+ */
 global $db, $smarty;
 
 $chatmessages = array();
@@ -23,5 +27,3 @@ while ($rs = mysql_fetch_array($result)) {
 }
 
 $smarty->assign("chatmessages", $chatmessages);
-   
-?>

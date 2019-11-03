@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Activities Packages
  * 
@@ -7,15 +7,14 @@
  * @author		IneX
  * @date		13.09.2009
  * @version		1.0
- * @package		zorg
- * @subpackage	Activities
+ * @package		zorg\Activities
  *
- * @TODO Are the globals $db, $smarty & $user really required?
  *
  * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
  * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
  * @global	array	$smarty	Globales Class-Object mit allen Smarty-Methoden
  */
+
 /**
  * File Includes
  * @include activities.inc.php

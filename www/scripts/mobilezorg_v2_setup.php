@@ -1,4 +1,9 @@
-<?
+<?php
+/**
+ * Mobilezorg V2 Migration-Script
+ * @package zorg\Scripts
+ */
+
 /**
  * FILE INCLUDES
  */

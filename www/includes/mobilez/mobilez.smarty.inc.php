@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * This file handles the Smarty inclusion and configuration.
  * It is not part of the config.php, because smarty.inc.php
