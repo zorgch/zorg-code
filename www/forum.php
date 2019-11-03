@@ -32,7 +32,7 @@ $model = new MVC\Forum();
  */
 if (!isset($_GET['layout']) || empty($_GET['layout']))
 {
-	$id = ($_GET['parent_id'] > 1) ? $_GET['parent_id'] : $_GET['thread_id'];
+	$id = (isset($_GET['parent_id']) && $_GET['parent_id'] > 1) ? $_GET['parent_id'] : (isset($_GET['thread_id'])?$_GET['thread_id']:'');
 
 	/**
 	 * Forumübersicht ausgeben
@@ -57,7 +57,7 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 			echo Forum::getHTML(['e','f','o','t'], 23, $_GET['sortby']); // Boards: e=Events, f=Forum, o=Tauschbörse, t=Templates
 		} else {
 			$userForumBoards = (!empty($user->forum_boards) ? $user->forum_boards : (!empty($user->forum_boards_unread) ? $user->forum_boards_unread : $user->default_forum_boards));
-			echo Forum::getHTML($userForumBoards, 23, $_GET['sortby']);
+			echo Forum::getHTML($userForumBoards, 23, (isset($_GET['sortby'])?$_GET['sortby']:''));
 			$smarty->assign('board', 'f');
 			$smarty->assign('thread_id', 1);
 			$smarty->assign('parent_id', 0);

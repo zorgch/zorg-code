@@ -48,19 +48,19 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	/**
 	 * Validate the passed $values
 	 */
+	$values_count = 0;
 	if (isset($values) && is_array($values)) //&& count($values) > 0)
 	{
 		/** Check if any of the $values is empty */
 		foreach ($values as $key=>$value) {
 			if (empty($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s for string "%s" was passed but is empty!', $key+1, $reference));
 		}
+		$values_count = count($values);
 	} elseif (isset($values) && $values == '') {
 		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
 	}
 	
-	/** Count the number of $values passed */
-	$values_count = count($values);
-	
+
 	/**
 	 * Resolve the placeholder reference
 	 */

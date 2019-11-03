@@ -732,6 +732,7 @@ class usersystem
 				ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$i = 0;
+		$html = '';
 		while($rs = $db->fetch($result))
 		{
 			if ($pic == FALSE)

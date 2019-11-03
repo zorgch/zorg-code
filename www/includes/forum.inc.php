@@ -1788,18 +1788,20 @@ class Forum {
 		 * ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
 		if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
 		{
-			switch ($_GET['order']) {
-				case 'ASC':
-					$order = 'ASC';
-					$new_order = 'DESC';
-					break;
-				case 'DESC':
-					$order = 'DESC';
-					$new_order = 'ASC';
-					break;
-				default:
-					$order = 'DESC';
-					$new_order = 'ASC';
+			if(isset($_GET['order'])) {
+				switch ($_GET['order']) {
+					case 'ASC':
+						$order = 'ASC';
+						$new_order = 'DESC';
+						break;
+					case 'DESC':
+						$order = 'DESC';
+						$new_order = 'ASC';
+						break;
+					default:
+						$order = 'DESC';
+						$new_order = 'ASC';
+				}
 			}
 		} else {
 			/** Wenn wir Textspalten sortieren, immer "DESC" als Sortierreihenfolge verwenden */

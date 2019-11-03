@@ -469,7 +469,7 @@ function smartyresource_word_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
   global $db;
 
   $e = $db->query('SELECT id FROM templates WHERE word="'.$tpl_name.'"', __FILE__, __LINE__, __FUNCTION__);
-  $d = mysql_fetch_array($e);
+  $d = mysqli_fetch_array($e);
 
   smartyresource_tpl_get_timestamp($d['id'], $ts, $smarty);
 
