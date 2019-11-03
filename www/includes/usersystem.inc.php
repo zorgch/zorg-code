@@ -5,8 +5,7 @@
  * Enthält alle User Funktionen von zorg
  *
  * @author [z]biko
- * @package zorg
- * @subpackage Usersystem
+ * @package zorg\Usersystem
  */
 /**
  * File includes
@@ -152,11 +151,12 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 4.0
+	 * @version 4.1
 	 * @since 1.0 method added
-	 * @since 2.0 20.11.2018 code & query optimizations, updated Cookie & Session info taken from config.inc.php
-	 * @since 3.0 27.11.2018 refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
-	 * @since 4.0 10.12.2018 adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
+	 * @since 2.0 <inex> 20.11.2018 code & query optimizations, updated Cookie & Session info taken from config.inc.php
+	 * @since 3.0 <inex> 27.11.2018 refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
+	 * @since 4.0 <inex> 10.12.2018 adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
+	 * @since 4.1 <inex> 02.11.2019 fixed ENUM("0")-Values from User DB-Record wrongfully set=true instead of =false
 	 *
 	 * @see ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW
 	 * @see usersystem::login(), usersystem::invalidate_session(), timestamp()
@@ -224,17 +224,17 @@ class usersystem
 				$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
 				if ($this->ausgesperrt_bis > time()) $_geaechtet[] = $this->id;
 				$this->last_ip = $rs[$this->field_last_ip];
-				$this->activities_allow = $rs[$this->field_activities_allow];
-				$this->show_comments = ($rs[$this->field_show_comments] == '1' || empty($rs[$this->field_show_comments]) ? true : false);
-				$this->email_notification = ($rs[$this->field_email_notification] === '1' || empty($rs[$this->field_email_notification]) ? true : false); // @DEPRECATED
+				$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
+				$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
+				$this->email_notification = ($rs[$this->field_email_notification] === '0' ? false : true); // @DEPRECATED
 				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
-				$this->sql_tracker = ($rs[$this->field_sql_tracker] == '1' ? true : false);
-				$this->addle = $rs[$this->field_addle];
-				$this->chess = $rs[$this->field_chess];
+				$this->sql_tracker = ($rs[$this->field_sql_tracker] === '0' ? false : true);
+				$this->addle = ($rs[$this->field_addle] === '0' ? false : true);
+				$this->chess = ($rs[$this->field_chess] === '0' ? false : true);
 				$this->maxdepth = ($rs[$this->field_maxdepth] ? $rs[$this->field_maxdepth] : $this->maxdepth = DEFAULT_MAXDEPTH);
 				$this->menulayout = $rs[$this->field_menulayout];
 				$this->mymenu = $rs[$this->field_mymenu];
-				$this->zorger = $rs[$this->field_zorger];
+				$this->zorger = ($rs[$this->field_zorger] === '0' ? false : true);
 				$this->vereinsmitglied = $rs[$this->field_vereinsmitglied];
 				$this->forum_boards = json_decode($rs['forum_boards'], true);//explode(',', $rs['forum_boards']);
 				$this->forum_boards_unread = json_decode($rs['forum_boards_unread'], true);//explode(',', $rs['forum_boards_unread']);
@@ -1005,38 +1005,36 @@ class usersystem
 	function getFormFieldUserlist($name, $size, $users_selected=0, $tabindex=10) {
 		global $db;
 
-		// Wenn User ganz neue Message schreibt
-		if ($users_selected == 0) $users_selected = Array();
+		/** Wenn User ganz neue Message schreibt */
+		if (empty($users_selected) || $users_selected === 0) $users_selected = [];
 
-		// check and make an Array, if necessary
-		if (!is_array($users_selected)) // Fixes: PHP Warning:  strpos() expects parameter 1 to be string, array given
+		/** check and make an Array, if necessary */
+		if (!is_array($users_selected)) // Fixes: PHP Warning: strpos() expects parameter 1 to be string, array given
 		{
-			if (strpos($users_selected, ',') !== false)
-			{
-				$users_selected = explode(',', $users_selected);
-			}
+			if (strpos($users_selected, ',') !== false) $users_selected = explode(',', $users_selected);
 		}
-		// Remove any duplicate User-IDs
+		/** Remove any duplicate User-IDs */
 		$users_selected = array_unique($users_selected);
 
 		$sql =
-			"SELECT id, clan_tag, username FROM user"
-			." WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(NOW())-".(USER_OLD_AFTER*2).")"
-			." OR z_gremium = '1' OR (vereinsmitglied != '0' AND vereinsmitglied != '')"
-			." ORDER BY clan_tag DESC, username ASC"
+			'SELECT id, clan_tag, username FROM user'
+			.' WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(NOW())-'.(USER_OLD_AFTER*2).')'
+			.' OR z_gremium = "1" OR (vereinsmitglied != "0" AND vereinsmitglied != "")'
+			.(!empty($users_selected) ? ' OR id IN ('.implode(',', $users_selected).')' : null)
+			.' ORDER BY clan_tag DESC, username ASC'
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
 
 		$html = '<select multiple="multiple" name="'.$name.'" size="'.$size.'" tabindex="'.$tabindex.'">';
-		while ($rs = mysql_fetch_array($result)) {
-			$html .=
-				'<option value="'.$rs['id'].'"'
-				.(in_array($rs['id'], $users_selected) || $rs['id'] == $users_selected[0] ? ' selected' : '')
-				//.($rs['id'] == $users_selected[0] ? ' selected="selected"' : '')
-				.'>'
-				.$rs['clan_tag'].$rs['username'].'</option>'
-			;
+		$htmlSelectElements = [];
+		while ($rs = mysql_fetch_array($result))
+		{
+			$selectCurrent = (in_array($rs['id'], $users_selected) || $rs['id'] == $users_selected[0] ? 'selected' : false);
+			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $rs['clan_tag'].$rs['username']);
+			if ($selectCurrent !== false) array_unshift($htmlSelectElements, $elementHtml);
+			else array_push($htmlSelectElements, $elementHtml);
 		}
+		$html .= implode('', $htmlSelectElements);
 		$html .= '</select>';
 
 		return $html;
@@ -1584,9 +1582,9 @@ class usersystem
 	 */
 	function quote($user_id) {
 		global $db;
-		if($user_id != '') {
-
-			$sql = "SELECT count(*) as anzahl FROM quotes WHERE user_id = $user_id";
+		if($user_id != '')
+		{
+			$sql = 'SELECT count(*) as anzahl FROM quotes WHERE user_id = '.$user_id;
 			$result = $db->query($sql, __FILE__, __LINE__);
 			$rs = $db->fetch($result);
 			$total = $rs['anzahl'];

@@ -1,13 +1,31 @@
 <?php
+/**
+ * Frets on Zorg
+ * "Frets on Fire" Hi-scores für zorg.
+ * coded by [z]keep3r
+ *
+ * @author [z]keep3r
+ * @package zorg\Games\Fretsonzorg
+ */
 
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+/**
+ * File includes
+ */
+require_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Fretsonzorg();
 
 //echo head(35, "fretsonzorg");
-$smarty->assign('tplroot', array('page_title' => 'fretsonzorg'));
+//$smarty->assign('tplroot', array('page_title' => 'fretsonzorg'));
+$model->showOverview($smarty);
 $smarty->display('file:layout/head.tpl');
-echo menu('main');
-echo menu('games');
-echo menu('fretsonzorg');
+//echo menu('main');
+//echo menu('games');
+//echo menu('fretsonzorg');
 
 echo "<h2>Bang Bang, Mystery Man</h2>";
 echo "<table style='width: 100%'><tr>";
@@ -85,6 +103,3 @@ function print_score_table($song,$difficulty){
 	echo "</table></td>";
 
 }
-
-
-?>

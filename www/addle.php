@@ -8,18 +8,25 @@
  *		addle, addle_dwz
  *
  * @author [z]biko
+ * @author [z]keep3r
  * @date 16.05.2003
- * @version 1.5
- * @package zorg
- * @subpackage Addle
+ * @package zorg\Games\Addle
  */
+
 /**
  * File includes
  * @include main.inc.php required
  * @include addle.inc.php required
+ * @include core.model.php required
  */
 require_once( __DIR__ . '/includes/main.inc.php');
 require_once( __DIR__ . '/includes/addle.inc.php');
+require_once( __DIR__ . '/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Addle();
 
 /**
  * Addle KI Einsetzen
@@ -200,7 +207,7 @@ function newgame($player) {
 		user_error($e->getMessage(), E_USER_ERROR);
 	}
 
-	header('Location: /addle.php?show=play&id='.$gameid);
+	header('Location: ?show=play&id='.$gameid);
 	exit;
 }
 
@@ -218,10 +225,11 @@ function newgame($player) {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
-function games() {
+function games()
+{
 	global $db, $user;
 
-	?><h3>Offene Spiele</h3><?php
+	echo '<h3>Laufende Spiele</h3>';
 
 	if ($user->is_loggedin())
 	{
@@ -231,20 +239,20 @@ function games() {
 	}
 	$num = $db->num($e);
 
-	if (!empty($num) || $num !== false || $num > 0)
+	if (!empty($num) && $num !== false && $num > 0)
 	{
 		$i = 1;
 		while ($d = mysql_fetch_array($e)) {
 			/** Eingeloggte User */
-			if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="addle.php?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
+			if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
 
 			/** Nicht eingeloggte User */
-			else printf('<b><a href="addle.php?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
+			else printf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
 			if ($i < $num) echo ', ';
 			$i++;
 		}
 	} else {
-		?><b>Keine laufenden Addle Spiele</b><?php
+		echo '<b>Keine laufenden Addle Spiele</b>';
 	}
 
 	if ($user->is_loggedin())
@@ -253,7 +261,7 @@ function games() {
 		$num = $db->num($e);
 		if (!empty($num) || $num > 0)
 		{
-			?><h3>Warten auf deinen Gegner</h3><?php
+			echo '<h3>Warten auf deinen Gegner</h3>';
 			$i = 1;
 			while ($d = mysql_fetch_array($e)) {
 				if ($d['player1'] != $user->id) {
@@ -261,13 +269,12 @@ function games() {
 				} else {
 						$otherpl = $d['player2'];
 				}
-				printf('<a href="addle.php?show=play&id=%1$d">Game #%1$d - <b>%2$s</b></a>', $d['id'], $user->id2user($otherpl, true));
+				printf('<a href="?show=play&id=%1$d">Game #%1$d - <b>%2$s</b></a>', $d['id'], $user->id2user($otherpl, true));
 				if ($i < $num) $out .= ', ';
 				$i++;
 			}
 		}
 	}
-	echo '<br>';
 }
 
 
@@ -291,27 +298,33 @@ function overview() {
 	/** New Addle Game-Formular anzeigen */
 	if ($user->is_loggedin())
 	{ ?>
-	<h2>Neues Spiel:</h2> <br>
-	<form action="addle.php?show=overview&do=new" method='post'>	<?php
-		$sql = 'SELECT username, id FROM user WHERE addle="1" AND id <> '.$user->id.' ORDER by username ASC';
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		while($rs = $db->fetch($result)) {
-				$values[] = $rs['id'];
-				$texts[] = $rs['username'];
-		}
-		echo selectoption('id',1,$values,$texts); ?>
-		&nbsp; &nbsp;
-		<input type='submit' class='button' value='play'>
-	</form>
-	<br>
-	<?php }
+		<h3>Neues Spiel</h3>
+		<form action="?show=overview&do=new" method="post">
+			<fieldset>
+				<label>Gegen&nbsp;
+				<?php
+					$sql = 'SELECT username, id FROM user WHERE addle="1" AND id <> '.$user->id.' ORDER BY username ASC';
+					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+					$numResult = $db->num($result);
+					while($rs = $db->fetch($result)) {
+							$values[] = $rs['id'];
+							$texts[] = $rs['username'];
+					}
+					mt_srand((double)microtime()*1000000);
+					$preselectId = mt_rand(1, $numResult);
+					echo selectoption('id',1,$values,$texts,$values[$preselectId]);
+				?>
+				</label>
+				<input type="submit" class="button" value="play">
+			</fieldset>
+		</form>
+	<?php
+	}
 
 	/** Laufende Addle Games auflisten */
 	games();
 	
-	?>
-	<br><br>
-	<h2>Anleitung:</h2><br> <?php
+	echo '<h3>Anleitung</h3>';
 	echo t('howto', 'addle');
 }
 
@@ -466,20 +479,22 @@ function doplay($id, $choose) {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
-function play($id=0) {
-	global $db, $user, $smarty;
+function play($id=0)
+{
+	global $db, $user, $smarty, $model;
 
 	/** Validate passed $id */
-	if (empty($id) || !$id || !is_numeric($id) || $id <= 0) {
+	if (empty($id) || !$id || !is_numeric($id) || $id <= 0)
+	{
 		overview();
 		exit;
 	}
-	$e = $db->query('SELECT a.*, d1.score dwz1, d1.rank dwzr1, d2.score dwz2, d2.rank dwzr2
-					FROM addle a 
-					LEFT JOIN addle_dwz d1 ON d1.user=a.player1
-					LEFT JOIN addle_dwz d2 ON d2.user=a.player2
-					WHERE a.id='.$id
-					,__FILE__, __LINE__, __FUNCTION__);
+	$sql = 'SELECT a.*, d1.score dwz1, d1.rank dwzr1, d2.score dwz2, d2.rank dwzr2 
+			FROM addle a 
+			LEFT JOIN addle_dwz d1 ON d1.user=a.player1 
+			LEFT JOIN addle_dwz d2 ON d2.user=a.player2 
+			WHERE a.id='.$id;
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	if ($db->num($e) != 1) {
 		http_response_code(404); // Set response code 404 (not found)
 		user_error(t('error-game-invalid', 'global', $id), E_USER_ERROR);
@@ -487,86 +502,87 @@ function play($id=0) {
 	}
 	$d = mysql_fetch_array($e);
 
-	?>
-	<center>
+	$sidebarHtml = '<center>
 	<table cellspacing="0" cellpadding="5">
 		<tr>
-			<td style="text-align: center;">
-				<div style="font-size: x-large;">
-					<?php if (!$d['finish']) {
-						echo t('next', 'addle', $user->id2user($d['player'.$d['nextturn']], true));
-					} else {
-						if ($d['score1'] == $d['score2']) {
-							echo t('unentschieden', 'addle');
-						} else {
-							if ($d['score1'] > $d['score2']) {
-									$winner = $user->id2user($d['player1']);
-							} else {
-									$winner = $user->id2user($d['player2']);
-							}
-							echo t('gewinner', 'addle', $winner);
-						}
-					} ?>
-				<br>
-				</div>
-				<?php if ($d['finish'] && $d['score1']!=$d['score2'])
-					{
-					echo '<br>';
-					if ($d['score1'] > $d['score2']) {
-						$winner = $user->id2user($d['player1']);
-					} else {
-						$winner = $user->id2user($d['player2']);
-					}
-					echo t('gewinner-dwz', 'addle', [ $winner, $d['dwz_dif'] ]);
-				} ?>
-				</div>
-			</td>
-			<td rowspan="2">
-				<?php if($d['player'.$d['nextturn']] == $d['player1']) {
+			<td>';
+				if($d['player'.$d['nextturn']] == $d['player1']) {
 					$piccolor = 'red';
 				} else {
 					$piccolor = ($sun === 'up' ? BORDERCOLOR : '');
-				} ?>
-				<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150" style="text-align:center;">
+				}
+	$sidebarHtml .= '<table bgcolor="'.$piccolor.'" cellpadding="5" width="150" style="text-align:center;">
 					<tr>
-						<td><?=$user->userprofile_link($d['player1'], ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true])?></td>
+						<td>'.$user->userprofile_link($d['player1'], ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true]).'</td>
 					</tr>
 					<tr>
 						<td>
-							<?='<a href="/addle.php?show=dwz"><small>[DWZ '.$d['dwz1'].' / Pos. '.$d['dwzr1'].']</small></a>'?>
-							<?=' '?>
-							<?='<a href="/addle.php?show=archiv&uid='.$d['player1'].'"><small>[game&nbsp;archive)</small></a>'?>
+							<a href="?show=dwz"><small>[DWZ '.$d['dwz1'].' / Pos. '.$d['dwzr1'].']</small></a>
+							&nbsp;
+							<a href="?show=archiv&uid='.$d['player1'].'"><small>[game&nbsp;archive)</small></a>
 						</td>
 					</tr>
 				</table>
 				<table cellspacing="0" cellpadding="0" border="0" style="font-size: xx-large;" width="100%">
 						<tr>
-							<td align="center"><font size="6"><?=$d['score1']?><br><br></td>
+							<td align="center"><font size="6">'.$d['score1'].'<br><br></td>
 						</tr>
 						<tr>
-							<td align="center"><font size="6"><?=$d['score2']?></td>
+							<td align="center"><font size="6">'.$d['score2'].'</td>
 						</tr>
-				</table>
-				<?php if($d['player'.$d['nextturn']] == $d['player2']) {
+				</table>';
+				if($d['player'.$d['nextturn']] == $d['player2']) {
 					$piccolor = 'red';
 				} else {
 					$piccolor = ($sun === 'up' ? BORDERCOLOR : '');
 				}
-				?>
-				<table bgcolor="<?=$piccolor?>" cellpadding="5" width="150" style="text-align:center;">
+	$sidebarHtml .= '<table bgcolor="'.$piccolor.'" cellpadding="5" width="150" style="text-align:center;">
 					<tr>
-						<td><?=$user->userprofile_link($d['player2'], ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true])?></td>
+						<td>'.$user->userprofile_link($d['player2'], ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true]).'</td>
 					</tr>
 					<tr>
 						<td>
-							<?='<a href="/addle.php?show=dwz"><small>[DWZ '.$d['dwz2'].' / Pos. '.$d['dwzr2'].']</small></a>'?>
-							<?=' '?>
-							<?='<a href="/addle.php?show=archiv&uid='.$d['player2'].'"><small>[game&nbsp;archive)</small></a>'?>
+							<a href="?show=dwz"><small>[DWZ '.$d['dwz2'].' / Pos. '.$d['dwzr2'].']</small></a>
+							&nbsp;
+							<a href="?show=archiv&uid='.$d['player2'].'"><small>[game&nbsp;archive)</small></a>
 						</td>
 					</tr>
 				</table>
 			</td>
 		</tr>
+	</table></center>';
+	$smarty->assign('sidebarHtml', $sidebarHtml);
+	$model->showGame($smarty, $game_id);
+	$smarty->display('file:layout/head.tpl');
+	?>
+
+	<center>
+	<h2 style="font-size: x-large;">
+		<?php if (!$d['finish']) {
+			echo t('next', 'addle', $user->id2user($d['player'.$d['nextturn']], true));
+		} else {
+			if ($d['score1'] == $d['score2']) {
+				echo t('unentschieden', 'addle');
+			} else {
+				if ($d['score1'] > $d['score2']) {
+					$winner = $user->id2user($d['player1']);
+				} else {
+					$winner = $user->id2user($d['player2']);
+				}
+				echo t('gewinner', 'addle', $winner);
+			}
+		} ?>
+	</h2>
+	<?php if ($d['finish'] && $d['score1']!=$d['score2'])
+	{
+		if ($d['score1'] > $d['score2']) {
+			$winner = $user->id2user($d['player1']);
+		} else {
+			$winner = $user->id2user($d['player2']);
+		}
+		echo '<span class="tiny">'.t('gewinner-dwz', 'addle', [ $winner, $d['dwz_dif'] ]).'</span>';
+	} ?>
+	<table cellspacing="0" cellpadding="5">
 		<tr>
 			<td style="text-align: center;">
 
@@ -602,9 +618,9 @@ function play($id=0) {
 									*/
 									$out = '<b>'.(ord($act)-96).'</b>';
 									if ($d['player1']==$user->id && $d['nextturn']==1 && $y==$d['nextrow'] && $d['finish']==0) {
-										$out = "<a href='addle.php?show=play&do=play&id=".$id."&choose=".$x."'>$out</a>";
+										$out = "<a href='?show=play&do=play&id=".$id."&choose=".$x."'>$out</a>";
 									} elseif ($d['player2']==$user->id && $d['nextturn']==2 && $x==$d['nextrow'] && $d['finish']==0) {
-										$out = "<a href='addle.php?show=play&do=play&id=".$id."&choose=".$y."'>$out</a>";
+										$out = "<a href='?show=play&do=play&id=".$id."&choose=".$y."'>$out</a>";
 									}
 									echo $out;
 								} ?>
@@ -619,13 +635,13 @@ function play($id=0) {
 	</table>
 	</center>
 
-	<br><br><?php
-	games();
+	<?php
+	//games(); DISABLED weils scheisse auf Mobile aussieht im Responsive, da nicht in Sidebar...
 
 	/* keep3r's KI-Testing...
 	* @see evil_max()
 	*/
-	if ($_GET['debug'] === 'true' && $user->typ >= USER_MEMBER) {
+	if (sanitize_userinput($_GET['debug']) === 'true' && $user->typ >= USER_MEMBER) {
 		$data = $d['data'];
 		$nextrow = $d['nextrow'];
 		$game_id = $d['id'];
@@ -709,17 +725,17 @@ function highscore() {
 	}
 	array_multisort($score, SORT_NUMERIC, SORT_DESC, $win, SORT_NUMERIC, SORT_DESC, $unent, SORT_NUMERIC, SORT_DESC, $loose, SORT_NUMERIC, SORT_ASC, $usr);
 	?>
-	<div align="center">
-	<table cellspacing="0" cellpadding="2" class="border">
-		<tr class="title">
-				<td>&nbsp;</td>
-				<td>User &nbsp; &nbsp;</td>
-				<td>Punkte &nbsp; &nbsp; &nbsp; &nbsp;</td>
-				<td align="right">G &nbsp; &nbsp;</td>
-				<td align="right">U &nbsp; &nbsp;</td>
-				<td align="right">V &nbsp;</td>
-		</tr> <?php
-		for ($i=0; $i<sizeof($usr); $i++) {
+	<table>
+		<thead><tr>
+			<th>&nbsp;</th>
+			<th>User &nbsp; &nbsp;</th>
+			<th>Punkte &nbsp; &nbsp; &nbsp; &nbsp;</th>
+			<th align="right">G &nbsp; &nbsp;</th>
+			<th align="right">U &nbsp; &nbsp;</th>
+			<th align="right">V &nbsp;</th>
+		</tr></thead>
+		<tbody>
+		<?php for ($i=0; $i<sizeof($usr); $i++) {
 				if ($i%2 == 0) {
 					$bgcolor = "bgcolor='". TABLEBACKGROUNDCOLOR ."'";
 				} else {
@@ -734,8 +750,9 @@ function highscore() {
 					<td <?=$bgcolor?> align="right"><?=$loose[$i]?> &nbsp;</td>
 				</tr> <?php
 		}	?>
+		</tbody>
 	</table>
-	</div><?php
+<?php
 }
 
 
@@ -761,26 +778,22 @@ function archiv() {
 		echo t('error-game-player-unknown');
 		exit;
 	}
-	else $uid = $_GET['uid'];
+	else $uid = sanitize_userinput($_GET['uid']);
 
 	$e = $db->query('SELECT * FROM addle_dwz WHERE user='.$uid, __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	?>
 	<div align="center">
-	<H3>Spieler Stats für <?=$user->id2user($uid)?></H3>
+	<h3>Spieler Stats für <?=$user->id2user($uid)?></h3>
+	<h4>DWZ Punkte:&nbsp;<b><?=$d['score']?></b> (Rank #<?=$d['rank']?>)</h4>
 	<table>
-		<tr><td align="left">DWZ Punkte: &nbsp; </TD><TD align="right"><?=$d['score']?></td></tr>
-		<tr><td align="left">DWZ Rank: </TD><td align="right"><?=$d['rank']?>.</td></tr>
-	</table>
-	<br>
-	<table cellspacing="0" cellpadding="2" class="border">
 		<tr class='title'>
 				<td>Gegner &nbsp; &nbsp;</td>
 				<td>letzter Zug &nbsp; &nbsp; </td>
 				<td><?=$user->id2user($uid)?> &nbsp; &nbsp;</td>
 				<td>Gegner P. &nbsp; &nbsp;</td>
 				<td>Ausgang</td>
-				<TD>&nbsp;</TD>
+				<td>&nbsp;</td>
 		</tr>	<?php
 		
 		$e = $db->query('SELECT * FROM addle WHERE (player1='.$uid.' OR player2='.$uid.') ORDER BY date DESC', __FILE__, __LINE__, __FUNCTION__);
@@ -794,18 +807,13 @@ function archiv() {
 				$ich = 2;
 				$gegner = 1;
 			}
-			if ($i%2 == 0) {
-				$bgcolor = 'bgcolor="'.TABLEBACKGROUNDCOLOR.'"';
-			} else {
-				$bgcolor = "";
-			}
 			?>
 			<tr>
-				<td <?=$bgcolor?> align="left"><a href="addle.php?show=archiv&uid=<?=$d['player'.$gegner];?>"><?=$user->id2user($d['player'.$gegner])?></a> &nbsp; &nbsp;</td>
-				<td <?=$bgcolor?> align="left"><?=datename($d['date'])?> &nbsp; &nbsp;</td>
-				<td <?=$bgcolor?> align='right'><?=$d['score'.$ich]?> &nbsp; &nbsp;</td>
-				<td <?=$bgcolor?> align='right'><?=$d['score'.$gegner]?> &nbsp; &nbsp;</td>
-				<td <?=$bgcolor?>>	<?php
+				<td align="left"><a href="?show=archiv&uid=<?=$d['player'.$gegner];?>"><?=$user->id2user($d['player'.$gegner])?></a> &nbsp; &nbsp;</td>
+				<td align="left"><?=datename($d['date'])?> &nbsp; &nbsp;</td>
+				<td align='right'><?=$d['score'.$ich]?> &nbsp; &nbsp;</td>
+				<td align='right'><?=$d['score'.$gegner]?> &nbsp; &nbsp;</td>
+				<td><?php
 					if (!$d['finish']) {
 						echo '-';
 					}elseif ($d['score'.$ich] > $d['score'.$gegner]) {
@@ -816,7 +824,7 @@ function archiv() {
 						echo 'unentschieden';
 					}	?>
 				</td>
-				<td <?=$bgcolor?> align="left"> &nbsp; <a href="/addle.php?show=play&id=<?=$d['id']?>">ansehen</a></td>
+				<td align="left"> &nbsp; <a href="?show=play&id=<?=$d['id']?>">ansehen</a></td>
 			</tr><?php
 			$i++;
 		} ?>
@@ -828,56 +836,65 @@ function archiv() {
 if ($user->is_loggedin())
 {
 */
+	/** Validate GET-Parameters */
+	if (!empty($_GET['id'])) $game_id = sanitize_userinput($_GET['id']);
+	if (!empty($_GET['do'])) $addle_action = sanitize_userinput($_GET['do']);
+	if (!empty($_GET['choose'])) $addle_choose = sanitize_userinput($_GET['choose']);
+	if (!empty($_GET['show'])) $show_page = sanitize_userinput($_GET['show']);
+
 	/** Addle Actions */
-	if ($user->is_loggedin() && !empty($_GET['do']))
+	if ($user->is_loggedin() && !empty($addle_action))
 	{
-		switch ($_GET['do'])
+		switch ($addle_action)
 		{
 			case 'new': newgame($_POST['id']); break;
-			case 'play': doplay($_GET['id'], $_GET['choose']); break;
+			case 'play': doplay($game_id, $addle_choose); break;
 		}
 	}
 
 	/** Addle Views */
-	$smarty->assign('tplroot', array('page_title' => 'Addle'));
-	$smarty->display('file:layout/head.tpl');
-	echo menu('zorg');
-	echo menu('games');
-	echo menu('addle');
+	//$smarty->assign('tplroot', array('page_title' => 'Addle'));
+	//echo menu('zorg');
+	//echo menu('games');
+	//echo menu('addle');
 
-	switch ($_GET['show'])
+	switch ($show_page)
 	{
-		case 'overview':
-			$smarty->assign('tplroot', array('page_title' => 'Addle'));
-			echo '<h2>Addle</h2>';
-			overview();
-			break;
-
 		case 'play':
-			play($_GET['id']);
+			play($game_id);
 			break;
 
 		case 'howto':
+			$model->showHowto($smarty);
+			$smarty->display('file:layout/head.tpl');
 			echo t('howto', 'addle');
 			break;
 
 		case 'highscore':
-			$smarty->assign('tplroot', array('page_title' => 'Addle Highscores'));
+			//$smarty->assign('tplroot', array('page_title' => 'Addle Highscores'));
+			$model->showHighscore($smarty);
+			$smarty->display('file:layout/head.tpl');
 			highscore(); 
 			break;
 
 		case 'dwz':
-			$smarty->assign('tplroot', array('page_title' => 'Addle DWZ'));
+			//$smarty->assign('tplroot', array('page_title' => 'Addle DWZ'));
+			$model->showDwz($smarty);
+			$smarty->display('file:layout/head.tpl');
 			echo highscore_dwz(999); 
 			break;
 
 		case 'archiv':
-			$smarty->assign('tplroot', array('page_title' => 'Addle Archiv'));
+			//$smarty->assign('tplroot', array('page_title' => 'Addle Archiv'));
+			$model->showArchive($smarty);
+			$smarty->display('file:layout/head.tpl');
 			archiv(); 
 			break;
 
-		default:
-			$smarty->assign('tplroot', array('page_title' => 'Addle'));
+		default: // will also apply to: case 'overview'
+			//$smarty->assign('tplroot', array('page_title' => 'Addle'));
+			$model->showOverview($smarty);
+			$smarty->display('file:layout/head.tpl');
 			echo '<h2>Addle</h2>';
 			overview();
 			/*if ($user->is_loggedin())
@@ -896,7 +913,7 @@ if ($user->is_loggedin())
 	echo '<h2 style="font-size:large; font-weight: bold">Wenn du <a href="'.SITE_URL.'/profil.php?do=anmeldung" title="Account für Zorg.ch erstellen">eingeloggt</a> wärst könntest du gegen Spresim batteln.</h2><img border="0" src="/files/396/aficks.jpg">';
 }
 */
-//echo foot(7);
+
 $smarty->display('file:layout/footer.tpl');
 
 ob_end_flush();

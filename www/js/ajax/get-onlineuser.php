@@ -21,9 +21,14 @@ $onlineUserListstyle = sanitize_userinput($_GET['style']);
 if ($onlineUserListstyle === 'image' || $onlineUserListstyle === 'list')
 {
 	$onlineUserHtml = $user->online_users(($onlineUserListstyle === 'image' ? true : false));
-	http_response_code(200); // Set response code 200 (OK)
-	header('Content-type:document;charset=utf-8');
-	echo $onlineUserHtml;
+	if (!empty($onlineUserHtml) && $onlineUserHtml != false)
+	{
+		http_response_code(200); // Set response code 200 (OK)
+		header('Content-type:document;charset=utf-8');
+		echo $onlineUserHtml;
+	} else {
+		http_response_code(204); // Set response code 204 (OK but no Content)
+	}
 } else {
 	http_response_code(400); // Set response code 400 (Bad Request)
 	die('Invalid GET-Parameter');

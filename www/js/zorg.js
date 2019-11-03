@@ -1,15 +1,19 @@
-function onoff(id)
+function showhide(id, elem)
 {
-	layer = document.getElementById("layer" + id)
-	image = "img" + id;
-	if(layer.style.visibility == "hidden") {
-		document.images[image].src = "/images/forum/" + layout + "/minus.gif";
-		layer.style.display = "block";
-		layer.style.visibility = "visible";
+	var layer = document.getElementById('layer' + id)
+	var toggle = elem;
+	if(layer.style.visibility == 'hidden') {
+		toggle.classList.remove('expand');
+		toggle.classList.remove('collapsed');
+		toggle.classList.add('collapse');
+		layer.style.display = 'block';
+		layer.style.visibility = 'visible';
 	} else {
-		document.images[image].src = "/images/forum/" + layout + "/plus.gif";
-		layer.style.display = "none";
-		layer.style.visibility = "hidden";
+		toggle.classList.remove('collapse');
+		toggle.classList.add('expand');
+		toggle.classList.add('collapsed');
+		layer.style.display = 'none';
+		layer.style.visibility = 'hidden';
 	}
 }
 
@@ -155,15 +159,20 @@ function updateOnlineuser(elementId, displayFormat)
 	var domElement = document.getElementById(elementId);
 	if (typeof domElement !== 'undefined' && domElement != null)
 	{
+		var oldOnlineUserHtml = domElement.innerHTML;
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', '/js/ajax/get-onlineuser.php?style='+displayFormat);
 		xhr.onload = function() {
 			//console.info(xhr.responseText);
-			if (xhr.status === 200)
+			if (xhr.status === 200 || xhr.status === 204)
 			{
 				// On Success
 				domElement.innerHTML = xhr.responseText;
-				domElement.firstChild.classList.add('blink');
+				if (typeof domElement.firstChild !== 'undefined' && domElement.firstChild != null)
+				{
+					if (xhr.responseText.length > oldOnlineUserHtml.length) domElement.firstChild.classList.add('blink');
+					else domElement.firstChild.classList.remove('blink');
+				}
 			}
 			else {
 				// On Error
@@ -263,7 +272,10 @@ let wahaniverpasst = setTimeout(function commentshole() {
 	if (wahaniverpasst) wahaniverpasst = setTimeout(commentshole, 5000);
 }, 100);
 
-
+// Update CSS grid-template-areas of body{} if Sidebar is in HTML DOM
+// @version 4.0
+// @since 1.0 function added
+// @since 4.0 <inex> 09.09.2019 updated init() triggers
 function init()
 {
 	let werischonline = setTimeout(function nomelprobiere() {

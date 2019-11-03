@@ -1,21 +1,432 @@
 @charset "UTF-8";
-html, body { height: 100%; }
+html { font-size: calc(1em + 1vw); }
  
 body {
-	background-color: #000000;
-	color: #000000;
-	font-family: Verdana, Sans-Serif;
-	font-size: 13px;
-	margin: 2px;
+	background-color: #000;
+	color: #000;
+	font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif;
+	line-height: 1.4;
+	display: grid;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
 }
+
+/**
+ * Responsive CSS Grid
+ */
+.zorghead {
+	display: grid;
+	grid-column-gap: 0px;
+	grid-row-gap: 0px;
+}
+@supports (grid-area: auto) {
+	.zorghead {
+		grid-area: header;
+	}
+		.zorghead > .logo {
+			grid-area: logo;
+		}
+		.zorghead > .announcements {
+			grid-area: announcements;
+			align-self: center;
+		}
+		.zorghead > .service {
+			grid-area: service;
+			align-self: start;
+			justify-self: end;
+		}
+		.zorghead > .onlineuser {
+			grid-area: onlineuser;
+			align-self: end;
+		}
+		.zorghead > .notifications {
+			grid-area: notifications;
+			align-self: end;
+			justify-self: start;
+		}
+		.zorghead > .infos {
+			grid-area: infos;
+		}
+	.navigation {
+		grid-area: nav;
+	}
+	.main-content {
+		grid-area: main;
+	}
+	.sidebar {
+		grid-area: sidebar;
+	}
+	.footer {
+		grid-area: footer;
+	}
+}
+
+/* Desktops, Laptops: Screen = B/w 1025px to 1280px */
+@media (min-width: 768px) {
+	body {
+		margin: 0 18vw 0 18vw;
+		grid-template-columns: auto auto;
+		grid-template-rows: minmax(min-content, 190px) minmax(min-content, 120px) minmax(min-content, max-content) 1fr;
+		grid-template-areas:
+			"header header"
+			"nav nav"
+			"main main"
+			"footer footer";
+	}
+		.zorghead {
+			grid-template-columns: 1fr 2fr 1fr;
+			grid-template-rows: 1fr 1fr 1fr;
+			grid-template-areas:
+				"logo announcements service"
+				"infos announcements service"
+				"notifications notifications onlineuser"
+		}
+		header > .announcements {
+			justify-self: center;
+		}
+		header > .infos {
+			align-self: start;
+			font-size: 0.4rem;
+		}
+		header > .infos .solarstate .event {
+			margin-right: 5px;
+		}
+}
+
+/* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
+@media (max-width: 767px) {
+	body {
+		grid-template-columns: auto;
+		grid-template-rows: minmax(min-content, 100px) minmax(min-content, max-content) minmax(min-content, max-content) auto 1fr;
+		grid-template-areas:
+			"header"
+			"nav"
+			"main"
+			"footer";
+	}
+	.zorghead {
+		grid-template-columns: 1fr 1fr;
+		/*grid-template-rows: 1fr 1fr;*/
+		grid-template-areas:
+			"logo service"
+			"announcements service"
+			"onlineuser service"
+			"notifications notifications"
+			"..... infos"
+	}
+		header > .announcements {
+			justify-self: start;
+		}
+		header > .infos {
+			font-size: 0.5rem;
+			align-self: end;
+			justify-self: end;
+		}
+		header > .infos .solarstate .event {
+			/*float: right;
+			margin-left: 5px;*/
+			margin-right: 5px;
+		}
+	.navigation {
+			display: flex;
+		}
+		.navigation div.menu {
+			flex-grow: 1;
+			border-top-color:#CBBA79;
+			border-bottom: none
+		}
+	    div.menu > a {
+		    display: block;
+		    border-left: none;
+		    border-right: none;
+		}
+	    div.menu > a.left, div.menu > a.right {
+		    display: none;
+		}
+}
+/** END: Responsive CSS Grid */
+
+/**
+ * HTML5 Structure Styling
+ */
+body > * {
+	padding: 1vw 1vw 0 1.5vw;
+}
+
+.zorghead, .navigation, .main-content, .sidebar, .footer {
+	background-color: #f2f2f2;
+}
+
+.navigation {
+	font-size: 0.5rem;
+	text-align: center;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.main-content {
+	font-size: 0.5rem;
+	padding-bottom: 1vw;
+}
+
+.sidebar {
+	font-size: 0.5rem;
+	/*text-align: center;*/
+	padding-bottom: 1.5vw;
+}
+
+.footer {
+	font-family: 'Exo', sans-serif;
+	font-size: 0.7rem;
+	background-color: #ddd;
+	border-top: solid 1px #ccc;
+	padding-top: 0.5vw;
+	padding-bottom: 1vw;
+}
+/** END: HTML5 Structure Styling */
+
+/**
+ * General Styles
+ */
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Open Sans';
+	font-weight: 300;
+	line-height: 1.1;
+}
+h1 { font-size: 1.2rem; }
+h2 { font-size: 1.0rem; }
+h3 { font-size: 0.7rem; }
+h4 { font-size: 0.5rem; }
+h5 { font-size: 0.4rem; }
+h6 { font-size: 0.3rem; }
+fieldset { border: none; }
+.center { text-align: center; }
+.tiny { font-size: 0.35rem; }
+.small { font-size: 0.5rem; }
+.uppercase { text-transform: uppercase; }
+.lowercase { text-transform: lowercase; }
+.align-to-text {
+	width: 100%;
+	height: 100%;
+	vertical-align: text-top;
+}
+.blink { -webkit-animation:colorchange 1s infinite alternate;
+		 animation:colorchange 1s infinite alternate; }
+	@-webkit-keyframes colorchange {
+		0% { color: inherit; }
+		100% { color: #8ed47c; }
+	}
+	@keyframes colorchange {
+		0% { color: inherit; }
+		100% { color: #8ed47c; }
+	}
+/** END: General Styles */
+
+/**
+ * Icons
+ */
+i.emoji {
+	font-style: normal;
+	font-size: 0;
+	padding: 0 2px 0 2px;
+	vertical-align: middle;
+	display: inline-block;
+	width: 1.2rem;
+}
+i.user::before { content: "\01F464"; }
+i.password::before { content: "\01F510"; }
+i.day::before { content: url(../images/icons/day.svg) }
+i.night::before { content: url(../images/icons/night.svg) }
+i.facebook::before { content: url(../images/icons/facebook-black.svg); }
+i.twitter::before { content: url(../images/icons/twitter-black.svg); }
+i.github::before { content: url(../images/icons/github-black.svg); }
+
+/**
+ * Header
+ */
+header > .logo {
+	display: block;
+	font-size: 0.85rem;
+	font-family: 'Open Sans';
+	font-weight: 600;
+}
+header > .announcements {
+	display: inline-block;
+	font-size: 0.5rem;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	vertical-align: middle;
+}
+header > .announcements .event > a.join {
+	color: #8274ff;
+}
+header > .announcements .event > a.unjoin {
+	color: #88b351;
+}
+header > .service {
+	font-size: 0.65rem;
+}
+header > .service h5 {
+	margin-top: 0;
+	margin-bottom: 0.5em;
+}
+header > .service .countryflag {
+	margin-left: 5px;
+	height: 0.85em;
+}
+header > .service form fieldset {
+	display: flex;
+	white-space: nowrap;
+	align-items: center;
+	padding-top: 5px;
+	padding-bottom: 0;
+}
+header > .service form fieldset label {
+	flex: 1;
+	margin-right: 10px;
+	padding: 0 2px 0 2px;
+}
+header > .service form fieldset a {
+	flex: 2;
+	font-size: 0.8em;
+}
+header > .service label.user::before { content: "\01F464"; }
+header > .service label.password::before { content: "\01F510"; }
+header > .onlineuser {
+	font-size: 0.4rem;
+}
+header > .onlineuser:not(:empty)::before {
+	content: "Online: ";
+	font-weight: bold;
+}
+header > .onlineuser > * {
+	white-space: nowrap;
+}
+header > .notifications {
+	font-size: 0.4rem;
+	margin-top: 5px;
+}
+header > .notifications ul { padding: 0; }
+header > .notifications ul li {
+	display: inline;
+	white-space: nowrap;
+	list-style-type: none;
+}
+header > .notifications ul li + li:not(:empty)::before {
+	content: "\a0|\a0";
+	color: gray;
+}
+header > .infos {
+	margin-top: 5px;
+}
+header > .infos .solarstate .event,
+header > .infos .solarstate .countryflag {
+	height: 1.2em;
+	vertical-align: text-top;
+}
+/** END: Header */
+
+/** Footer */
+footer > .shadow {
+	border: none;
+	box-shadow: 0 -4px 5px 1px rgba(0,0,0,0.75);
+	margin: 0 -1vw 0 -1.5vw;
+}
+footer section {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 1em;
+}
+footer section.flex-one-column {
+	flex: 1;
+	text-align: center;
+}
+footer section.flex-two-column {
+	flex-flow: nowrap row;
+}
+footer section > div.icon {
+	flex: 1;
+	max-width: 2rem;
+	margin-right: 0.5rem;
+	font-size: 0;
+}
+footer section > div.icon > * {
+	width: 100%;
+	object-fit: contain;
+	filter: drop-shadow(-1px -1px 0 rgba(0,0,0,.25));
+}
+/*footer section > div.icon > object { filter: invert(1); } => make svg white */
+footer section > div.data {
+	flex: 2;
+}
+footer ul, footer li {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+footer ul {
+	padding-bottom: 0.25em;
+}
+footer ul li {
+	display: inline;
+}
+footer ul li + li::before {
+	content: "\a0|\a0";
+	color: gray;
+}
+/** END: Footer */
+
+/** Navigation */
+/** END: Navigation */
+/** END: General Styles */
+
+/**
+ * Content Styles
+ */
+/** Activities */
+div.zorg-activities-list { }
+div.zorg-activity {
+	position:relative;
+	width:100%;
+	height:90px;
+	display:block;
+}
+div.activity-left {
+	position:relative;
+	width:150px;
+	height:150px;
+	float:left;
+	display:block;
+}
+div.activity-right {
+	position:relative;
+	width:100%;
+	height:150px;
+	float:right;
+	clear:right;
+	display:block;
+}
+div.activity-content {
+	position:relative;
+	width:100%;
+	height:100%;
+	display:inline;
+}
+div.activity-footer {
+	position:relative;
+	width:100%;
+	height:25px;
+}
+/** END: Activities */
 
 table {
 	/*background-color: #DDDDDD;*/
-	font-family: Verdana, Sans-Serif;
 	font-size: 12px;
 }
 table.header {
-	background-color: #FFFFFF;
+	background-color: #fff;
 	margin:0px;
 }
 
@@ -82,6 +493,7 @@ div.menu {
 	border-top-color: #FFF;
 	border-top-width: 1px;
 
+	font-size: 0.9em;
 	letter-spacing: 1px;
 	
 	/** Innenabstand */ 
@@ -109,20 +521,16 @@ table.dreid {
 	border-top-width: 1px;
 }
 
-div.menu a {	
+div.menu a {
+	color: #344586;
 	background-color: #BDCFF5; /*EDF2F2*/
-
 	border-bottom: 1px solid #CCCCCC; /*DDD*/
 	border-left: 1px solid #FFF;
 	border-right: 1px solid #CCCCCC; /*DDD*/
-
-	color: #344586;		
-
 	padding-bottom: 1px;
 	padding-left: 15px;
 	padding-right: 15px;
 	padding-top: 1px;
-	
 	text-decoration: none;
 }
 
@@ -132,24 +540,16 @@ div.menu a:hover {
 }
 
 div.menu a.left {
-	background-color: #BDCFF5; /*EDF2F2*/
 	border-left-style: none;
 	padding-left: 0px;
 	padding-right: 1px;
 }
 
-div.menu a.left:hover {
-}
-
 div.menu a.right {
-	background-color: #BDCFF5; /*EDF2F2*/
 	border-right-style: none;
 	padding-left: 1px;
 	padding-right: 0px;
-}
-
-div.menu a.right:hover {
-}		
+}	
 
 table.forum {
 	border-collapse:collapse;
@@ -206,27 +606,23 @@ select {
 	border-style: groove;
 	border-width: 2px;
 	border-color: #CCCCCC;		
-	font-family: Verdana;
-	color: #000000;
+	color: #000;
 	background-color: #F2F2F2;
 	font-size: 10px;
 }
 
 option {
-	font-family: verdana;
 	font-size: 10px;
-	color: #000000;
+	color: #000;
 	background-color: #F2F2F2;
 }
 
-.text, textarea {
+.text, textarea, input[type=text], input[type=password] {
 	border-style: solid;
 	border-width: 1px;
 	border-color: #CCCCCC;
-	font-size: 10px;
-	font-family: verdana;
-	color: #000000;
-	background-color: #FFFFFF;
+	color: #000;
+	background-color: #fff;
 }
 
 .text:focus, textarea:focus {
@@ -252,15 +648,14 @@ input[type=checkbox], input[type=radio] {
 	background-color: #BDCFF5;
 }
 
-.button, dialog button {
+.button, dialog button, input[type=submit] {
 	border-style: outset;
 	border-width: 1px;
 	border-color: #CCCCCC;
 	font-size: 11px;
-	font-family: verdana;
 	font-weight: bold;
-	color: #000000;
-	background-color: #FFFFFF;
+	color: #000;
+	background-color: #fff;
 }
 
 .button:hover, dialog button:hover {
@@ -270,10 +665,6 @@ input[type=checkbox], input[type=radio] {
 .button:disabled, .button:disabled:hover {
 	  border-style: outset;
 	  background-color: #dddddd;
-}
-
-.small{
-	font-size: 9px;
 }
 
 .titlebar{
@@ -379,7 +770,6 @@ div.profilepic img {
 	border: 0;
 	border-radius: 50%;
 	-webkit-border-radius: 50%;
-	-moz-border-radius: 50%;
 }
 div.profilepic a img:hover {
 	text-decoration: none;
@@ -420,3 +810,5 @@ div.profilepic a img:hover {
 }
 /* When moving the mouse over the close button */
 .closebtn:hover {color: black;}
+
+/** END: General Styles */

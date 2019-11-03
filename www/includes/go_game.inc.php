@@ -8,10 +8,9 @@
  *
  * @author [z]bert
  * @author [z]domi
- * @date nn.nn.nnnn
- * @package zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  */
+
 /**
  * File includes
  * @include mysql.inc.php

@@ -116,68 +116,60 @@ function addle_remove_old_games() {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return string Gibt einen String mit dem HTML-Code der Highscore Liste zurueck
  */
-function highscore_dwz($anzahl) {
+function highscore_dwz($anzahl)
+{
 	global $db;
-	
+
 	$sql = 'SELECT u.id, u.username, dwz.rank, dwz.score dwz, (dwz.prev_rank-dwz.rank) tendenz, '
 	  . '     count( IF ( u.id = a.player1 && a.score1 > a.score2 || u.id = a.player2 && a.score2 > a.score1, 1, NULL ) ) g, '
 	  . '     count( IF ( ( u.id = a.player1 || u.id = a.player2 ) && a.score1 = a.score2, 1, NULL ) ) u, '
 	  . '     count( IF ( u.id = a.player1 && a.score1 < a.score2 || u.id = a.player2 && a.score2 < a.score1, 1, NULL ) ) v'
 	  . '   FROM addle_dwz dwz, user u, addle a'
-	  . '   WHERE u.id = dwz.user && a.finish =1'
+	  . '   WHERE u.id = dwz.user && a.finish=1'
 	  . '   GROUP BY u.id'
 	  . '   ORDER BY dwz.rank ASC '
 	  . '   LIMIT 0, '.$anzahl;
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-	
-	$html = '
-		<div align="center">
-		<b>Addle Highscore:</b>
-		<br />
-	  <table cellspacing="0" cellpadding="2" class="border">
-	     <tr class="title">
-	        <td colspan=2>&nbsp;</td>
-	        <td align="left">User &nbsp; &nbsp;</td>
-	        <td align="right">Punkte &nbsp; &nbsp; &nbsp; &nbsp;</td>
-	        <td align="right">G &nbsp; &nbsp;</td>
-	        <td align="right">U &nbsp; &nbsp;</td>
-	        <td align="right">V &nbsp;</td>
-	     </tr> 
-	';
-	
-	$i = 0;
-	while ($d = mysql_fetch_array($e)) {
-		
-		if ($d['tendenz'] > 0) $pic = IMAGES_DIR.'arr_up.gif';
-		elseif ($d['tendenz'] < 0) $pic = IMAGES_DIR.'arr_down.gif';
-		else $pic = "/images/arr_straight.gif";
-		
-	   
-	   if ( $i == 22 || $i == 4 ) {
-           	   $bgcolor = "bgcolor='ff7777'";
-	   } elseif ($i%2 == 0) {
-	      $bgcolor = 'bgcolor="'. TABLEBACKGROUNDCOLOR .'"';
-       } else {
-	      $bgcolor = '';
-	   }
-	   
-	   $html .= '
-	     <tr>
-	        <td '.$bgcolor.' align="right">'.$d['rank'].'. </td>
-	   	  <td '.$bgcolor.' align="left"><img src="'.$pic.'"> </td>
-	        <td '.$bgcolor.' align="left"><a href="/addle.php?show=archiv&uid='.$d['id'].'">'.$d['username'].'</A> &nbsp;</td>
-	        <td '.$bgcolor.' align="right">'.$d['dwz'].' &nbsp; &nbsp; &nbsp; &nbsp;</td>
-	        <td '.$bgcolor.' align="right">'.$d['g'].' &nbsp;&nbsp;</td>
-	        <td '.$bgcolor.' align="right">'.$d['u'].' &nbsp;&nbsp;</td>
-	        <td '.$bgcolor.' align="right">'.$d['v'].' &nbsp;</td>
-	     </tr>
-	   ';
-	   
-	   ++$i;
+
+	$html = '<h2>Addle Highscore</h2>
+			<table>
+				<tr>
+					<th colspan=2>&nbsp;</th>
+					<th align="left">User &nbsp; &nbsp;</th>
+					<th align="right">Punkte &nbsp; &nbsp; &nbsp; &nbsp;</th>
+					<th align="right">G &nbsp; &nbsp;</th>
+					<th align="right">U &nbsp; &nbsp;</th>
+					<th align="right">V &nbsp;</th>
+				</tr></thead>
+				<tbody>';
+
+	while ($d = mysql_fetch_array($e))
+	{
+		if ($d['tendenz'] > 0)
+		{
+			$pic = IMAGES_DIR.'arr_up.gif';
+			$bgcolor = 'bgcolor="#00BD7A"';
+		} elseif ($d['tendenz'] < 0) {
+			$pic = IMAGES_DIR.'arr_down.gif';
+			$bgcolor = 'bgcolor="#ff7777"';
+		} else {
+			$pic = "/images/arr_straight.gif";
+			$bgcolor = null;
+		}
+
+		$html .= '<tr>
+					<td '.$bgcolor.' align="right">'.$d['rank'].'. </td>
+					<td '.$bgcolor.' align="left"><img src="'.$pic.'"> </td>
+					<td '.$bgcolor.' align="left"><a href="/addle.php?show=archiv&uid='.$d['id'].'">'.$d['username'].'</A> &nbsp;</td>
+					<td '.$bgcolor.' align="right">'.$d['dwz'].' &nbsp; &nbsp; &nbsp; &nbsp;</td>
+					<td '.$bgcolor.' align="right">'.$d['g'].' &nbsp;&nbsp;</td>
+					<td '.$bgcolor.' align="right">'.$d['u'].' &nbsp;&nbsp;</td>
+					<td '.$bgcolor.' align="right">'.$d['v'].' &nbsp;</td>
+			     </tr>';
 	}
-	
-	$html .= '</TABLE></div>';
-	
+
+	$html .= '</tbody></table>';
+
 	return $html;
 }
 

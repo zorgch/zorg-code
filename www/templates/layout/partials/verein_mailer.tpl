@@ -13,9 +13,9 @@
 	{include file="file:layout/partials/head/favicons.tpl"}
 	<link rel="stylesheet" href="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.css">
 	{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
-	<link href="{if !$dev}https://use.fontawesome.com/releases/v5.0.6/css/all.css{else}{$smarty.const.CSS_DIR}font-awesome.min.css{/if}" rel="stylesheet">
+	{if !$dev}<script src="https://kit.fontawesome.com/e9effb9c00.js" crossorigin="anonymous"></script>{else}<link href="{$smarty.const.CSS_DIR}fontawesome.min.css" rel="stylesheet">{/if}
 	{*<link href="/js/emoji-picker/css/emoji.css" rel="stylesheet">*}
-	<script src="{if !$dev}https://code.jquery.com/jquery-3.3.1{else}{$smarty.const.JS_DIR}jquery-2.1.4{/if}.min.js" crossorigin="anonymous"></script>
+	<script src="{if !$dev}https://code.jquery.com/{else}{$smarty.const.JS_DIR}{/if}jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 	<script src="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.js"></script>
 	<script {if !$dev}src="https://cdnjs.cloudflare.com/ajax/libs/nanobar/0.4.2/nanobar.js" crossorigin="anonymous">{else}<!-- nanobar.min.js not found -->{/if}</script>
 	<!-- Quill - Rich Text Editor: https://quilljs.com/ -->
@@ -703,7 +703,7 @@
 	<header class="text-center"><h1>Nothing to see here</h1>&hellip;oder Du muesch zerscht iilogge:
 	<div class="row  row-around">
 		<div class="col-4">
-			{include file='file:loginform.tpl'}
+			{include file='file:layout/partials/loginform.tpl'}
 		</div>
 	</div>
 {/if}

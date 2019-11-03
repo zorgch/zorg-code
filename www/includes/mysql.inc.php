@@ -93,7 +93,8 @@ class dbconn
 			} elseif ($sql_query_type == 'update') {
 				$sql_affected_rows = mysql_affected_rows();
 				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
-			} elseif (!$result && $this->display_error == 1) {
+			} elseif ($result === false && $this->display_error == 1) {
+				/** Display MySQL-Error with context */
 				die($this->msg($sql,$file,$line,$funktion));
 			} else {
 				return $result;
@@ -241,9 +242,10 @@ class dbconn
 	 * Fügt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
 	 *
 	 * @author [z]biko
-	 * @version 2.0
+	 * @version 2.5
 	 * @since 1.0 method added
 	 * @since 2.0 <inex> 26.05.2019 improved code, additional parameter and logging
+	 * @since 2.5 <inex> 27.09.2019 added fix for "NOW()" instead of NOW()
 	 *
 	 * @param string $table Tabelle, in die eingefügt werden soll
 	 * @param array $values Array mit Table-Feldern (als Key) und den Werten
@@ -259,7 +261,14 @@ class dbconn
 			error_log(sprintf('[ERROR] <%s:%d> db->insert() Wrong Parameter type: %s', __METHOD__, __LINE__, $values));
 			user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
 		}
-		$sql = sprintf('INSERT INTO `%s` (`%s`) VALUES ("%s")', $table, implode('`,`', array_keys($values)), implode('","', $values));;
+
+		/** Prepare INSERT-Statement */
+		$insertKeys = '(`'.implode('`,`', array_keys($values)).'`)';
+		$insertValues = '("'.implode('","', $values).'")';
+		$insertValues = str_replace('"NOW()"', 'NOW()', $insertValues); // Fix "NOW()" => NOW() without quotes
+		$insertValues = str_replace('"NULL"', 'NULL', $insertValues); // Fix "NULL" => NULL without quotes
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Clean $insertValues: %s', __METHOD__, __LINE__, $insertValues));
+		$sql = sprintf('INSERT INTO `%s` %s VALUES %s', $table, $insertKeys, $insertValues);
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s', __METHOD__, __LINE__, $sql));
 		return $this->query($sql, $file, $line, $funktion);
 	}
@@ -296,7 +305,8 @@ class dbconn
 		/** Build 'UPDATE a SET b=c, d=e, ...' */
 		$sql = 'UPDATE '.$table.' SET ';
 		foreach ($values as $key => $val) {
-			if ((empty($val) || $val === null || $val === 'null') && $val !== 0 && $val !== '0' && $val !== '') $sql .= $key.'=NULL'; // handle NULL
+			if ((empty($val) || $val === null || strtolower($val) === 'null') && $val !== 0 && $val !== '0' && $val !== '') $sql .= $key.'=NULL'; // handle NULL
+			elseif (strtolower($val) === 'now()') $sql .= $key.'=NOW()'; // handle NOW()
 			elseif (is_numeric($val) && strlen((string)$val) === 10) $sql .= $key.'='.$val; // handle Timestamps
 			else $sql .= $key.'="'.$val.'"';
 			end($values); // @link https://stackoverflow.com/a/8780881/5750030 Add Separator if not last Array-Iteration

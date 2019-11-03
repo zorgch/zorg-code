@@ -1,13 +1,277 @@
 @charset "UTF-8";
-html, body { height: 100%; }
+html { font-size: calc(1em + 1vw); }
  
 body {
-	background-color: #000000;
-	color: #FFFFFF;
+	background-color: #000;
+	color: #fff;
 	font-family: Verdana, Sans-Serif;
-	font-size: 13px;
-	margin: 2px;
+	margin: 0;
+	padding: 0;
 }
+
+/**
+ * Responsive CSS Grid
+ */
+.zorg-site {
+	height: 100vh;
+	display: grid;
+	/*grid-column-gap: 20px;*/
+}
+@supports (grid-area: auto) {
+	.zorghead {
+		grid-area: header;
+	}
+		.zorghead > .logo {
+			grid-area: logo;
+		}
+		.zorghead > .announcements {
+			grid-area: announcements;
+		}
+		.zorghead > .service {
+			grid-area: service;
+		}
+		.zorghead > .onlineuser {
+			grid-area: onlineuser;
+		}
+		.zorghead > .notifications {
+			grid-area: notifications;
+		}
+		.zorghead > .infos {
+			grid-area: infos;
+		}
+	.navigation {
+		grid-area: nav;
+	}
+	.main-content {
+		grid-area: main;
+	}
+	.sidebar {
+		grid-area: sidebar;
+	}
+	.footer {
+		grid-area: footer;
+	}
+}
+
+/* Desktops, Laptops: Screen = B/w 1025px to 1280px */
+@media (min-width: 768px) {
+	.zorg-site {
+		width: 75vw;
+		margin: 0 auto;
+		grid-template-columns: 3fr 1fr;
+		grid-template-rows: 2fr 1fr 10fr 1fr;
+		grid-template-areas:
+			"header header"
+			"nav nav"
+			"main sidebar"
+			"footer footer";
+	}
+		.zorghead {
+			grid-template-columns: 1fr 2fr 1fr;
+			grid-template-rows: 1fr 1fr 1fr;
+			grid-template-areas:
+				"logo announcements service"
+				"infos announcements service"
+				"notifications notifications onlineuser"
+		}
+		header > .announcements {
+			text-align: center;
+		}
+		header > .infos {
+			text-align: left;
+		}
+		header > .infos .solarstate .event {
+			margin-right: 5px;
+		}
+}
+
+/* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
+@media (max-width: 767px) {
+	.zorg-site {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr 1fr 8fr auto 1fr;
+		grid-template-areas:
+			"header"
+			"nav"
+			"main"
+			"sidebar"
+			"footer";
+	}
+		.zorghead {
+			grid-template-columns: 1fr 1fr;
+			/*grid-template-rows: 1fr 1fr;*/
+			grid-template-areas:
+				"logo service"
+				"announcements service"
+				"onlineuser service"
+				"notifications notifications"
+				"..... infos"
+		}
+		.navigation {
+			display: flex;
+		}
+		.navigation div.menu {
+			flex-grow: 1;
+		}
+		header > .announcements {
+			text-align: left;
+		}
+		header > .infos {
+			text-align: right;
+		}
+		header > .infos .solarstate .event {
+			float: right;
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+	/* Navigation Menu */
+	div.menu {
+		border-top-color:#CBBA79;
+		border-bottom: none
+	}
+    div.menu > a {
+	    display: block;
+	    border-left: none;
+	    border-right: none;
+	}
+    div.menu > a.left, div.menu > a.right {
+	    display: none;
+	}
+}
+/** END: Responsive CSS Grid */
+
+/* START: HTML5 Structure Styling */
+.zorg-site:before {
+	content: "\200B";
+	background-color: #242424;
+}
+
+.zorg-site > * {
+	padding: 1vw 0.5vw 0 1.5vw;
+	background-color: #242424;
+}
+
+.zorghead {
+	display: grid;
+	grid-column-gap: 0px;
+	grid-row-gap: 0px;
+}
+
+.navigation {
+	font-size: 0.5rem;
+	text-align: center;
+	padding-left: 0;
+}
+
+.main-content {
+	font-size: 0.5rem;
+	padding-bottom: 1vw;
+}
+
+.sidebar {
+	font-size: 0.5rem;
+	text-align: center;
+}
+
+.footer {
+	font-size: 0.4rem;
+	background-color: #242424;
+	border-top: solid 1px #cbba79;
+	padding-top: 0.5vw;
+	padding-bottom: 1vw;
+}
+/* END: HTML5 Structure Styling */
+
+/**
+ * General Styles
+ */
+h1 { font-size: 1.0rem; }
+h2 { font-size: 0.8rem; }
+h3 { font-size: 0.7rem; }
+h4 { font-size: 0.6rem; }
+h5 { font-size: 0.5rem; }
+h6 { font-size: 0.4rem; }
+.small {
+	font-size: 0.35rem;
+}
+/** END: General Styles */
+
+/**
+ * Icons
+ */
+i.emoji {
+	font-style: normal;
+	padding: 0 2px 0 2px;
+	vertical-align: text-bottom;
+}
+i.user:before { content: "\01F464"; }
+i.password:before { content: "\01F510"; }
+
+/**
+ * Header
+ */
+header > .logo {
+	display: block;
+	font-size: 0.85rem;
+}
+header > .announcements {
+	display: inline-block;
+	font-size: 0.5rem;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	vertical-align: middle;
+}
+header > .announcements .event > a.join {
+	color: #8274ff;
+}
+header > .announcements .event > a.unjoin {
+	color: #88b351;
+}
+header > .service {
+	font-size: 0.4rem;
+	text-align: right;
+	vertical-align: top;
+}
+header > .service .countryflag {
+	margin-left: 5px;
+	height: 0.85em;
+}
+header > .onlineuser {
+	font-size: 0.4rem;
+	text-align: left;
+	vertical-align: bottom;
+}
+header > .notifications {
+	font-size: 0.4rem;
+	text-align: left;
+	vertical-align: bottom;
+	margin-top: 5px;
+}
+header > .infos {
+	font-size: 0.35rem;
+	vertical-align: bottom;
+	margin-top: 5px;
+}
+header > .infos .solarstate .time {
+	font-size: 1em;
+}
+header > .infos .solarstate .event,
+header > .infos .solarstate .countryflag {
+	height: 1.2em;
+	vertical-align: text-top;
+}
+header > .service form fieldset {
+	display: flex;
+	border: none;
+}
+header > .service form fieldset label {
+	flex: 1;
+	margin-right: 10px;
+	padding: 0 2px 0 2px;
+}
+header > .service label.user:before { content: "\01F464"; }
+header > .service label.password:before { content: "\01F510"; }
+/** END: Header */
 
 table {
 	/*background-color: #242424;*/
@@ -15,7 +279,7 @@ table {
 	font-size: 12px;
 }
 table.header {
-	background-color: #000000;
+	background-color: #000;
 	margin:0px;
 }
 
@@ -209,7 +473,7 @@ select {
 	border-width: 2px;
 	border-color: #CBBA79;		
 	font-family: Verdana;
-	color: #FFFFFF;
+	color: #fff;
 	background-color: #141414;
 	font-size: 10px;
 }
@@ -217,7 +481,7 @@ select {
 option {
 	font-family: verdana;
 	font-size: 10px;
-	color: #FFFFFF;
+	color: #fff;
 	background-color: #141414;
 
 }
@@ -228,8 +492,8 @@ option {
 	border-color: #CBBA79;
 	font-size: 10px;
 	font-family: verdana;
-	color: #FFFFFF;
-	background-color: #000000;
+	color: #fff;
+	background-color: #000;
 }
 
 .text:focus, textarea:focus {
@@ -262,8 +526,8 @@ input[type=checkbox], input[type=radio] {
 	font-size: 11px;
 	font-family: verdana;
 	font-weight: bold;
-	color: #FFFFFF;
-	background-color: #000000;
+	color: #fff;
+	background-color: #000;
 }
 
 .button:hover, dialog button:hover {

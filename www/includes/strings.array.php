@@ -29,6 +29,10 @@ return
 			,'error-game-finish-message' => 'Finish-Message ohne Inhalt bei Game "%d", ausgelöst durch user "%s".<br>Winner: %s<br>Receiver: %s'
 			,'error-game-notyourturn' => 'Du bisch nöd dra, yarak!'
 			,'error-file-notfound' => 'File not found or not linked in database.'
+			,'game-join' => 'join!'
+			,'game-your-game' => 'Du spielst hier mit!'
+			,'game-waiting-for-players' => 'Warten auf weitere Mitspieler...'
+			,'game-your-turn' => '!!! Du bist am Zug !!!'
 			,'datetime-today' => 'heute'
 			,'datetime-yesterday' => 'gestern'
 			,'datetime-recently' => 'jetzt'
@@ -155,17 +159,21 @@ return
 			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br>'
 			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br>'
 			,'invalid-border' => 'Ungültiger Rahmen-Typ.'
+			,'error-create' => 'Template konnte nicht erstellt werden'
 			,'error-empty' => 'Bitte keine leeren Seiten.'
 			,'error-word-toolong' => 'Word "%s" ist zu lang. Max. 30 Zeichen!'
 			,'error-word-validation' => 'Ungültige Zeichen im Word "%s". Erlaubt sind nur: a-z, A-Z, 0-9, _, -'
 			,'error-package-missing' => 'Package "<strong>%s</strong>" existiert nicht.'
 			,'error-package-loading' => 'Error loading packages for template #%d'
 			,'activity-newpage' =>  'hat die Seite <a href="/tpl/%d">%s</a> erstellt.'
+			,'favorite-page-action' => '[fav]'
+			,'unfavorite-page-action' => '[unfav]'
 		]
 	,'gallery' =>
 		[
 			 'error-not-logged-in' =>  '<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
 			 							<p>Bitte logge Dich ein oder <a href="%s/profil.php?do=anmeldung&menu_id=13">erstelle einen neuen Benutzer</a></p>'
+			,'error-invalid-album' => 'Ung&uuml;ltiges Album!'
 			,'permissions-insufficient' => 'Permission denied for <code>%s</code>'
 			,'telegram-dailypic-notification' => 'Daily Pic: %s [%s]'
 		]
@@ -236,6 +244,10 @@ return
 			,'message-subject' => '-- GO -- (autom. Nachricht)'
 			,'message-your-turn' => 'Ich habe meinen GO-Zug gemacht, du bist jetzt dran in <a href="%s/?tpl=699&amp;game=%d">unserem GO Spiel</a>'
 		]
+	,'peter' =>
+		[
+			 'waiting-for-num-players' => 'Warten auf %d weitere Mitspieler...'
+		]
 	,'poll' =>
 		[
 			 'invalid-poll_id' => 'Invalid Poll id "%d"'
@@ -244,8 +256,8 @@ return
 		[
 			 'array2d_sort-invalid-parameter' => 'Invalid parameter "%s" for array2d_sort.'
 			,'htmlcolor2array-invalid-parameter' => 'Invalid color "%s" for htmlcolor2array.'
-			,'smarty_brackets_ok-invalid-brackets' => 'Ungültige Klammernsetzung &lbrace; oder &rbrace; in der Nähe von: <br><pre>%s</pre><br>'
-			,'smarty_brackets_ok-invalid-argument' => 'Invalid argument type for <pre>%s</pre>'
+			,'smarty_brackets_ok-invalid-brackets' => 'ERROR: Ungültige Klammernsetzung &lbrace; oder &rbrace; in der Nähe von: <br><pre>%s</pre><br>Template wurde NICHT gespeichert!'
+			,'invalid-array' => 'Invalid array type for <pre>%s</pre>'
 		]
 	,'event' =>
 		[

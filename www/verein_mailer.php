@@ -1,5 +1,10 @@
 <?php
 /**
+ * zorg Verein Mailing Manager
+ *
+ * @package zorg\Verein\Mailer
+/**
+ * File includes
  * @include main.inc.php
  */
 require_once( __DIR__ . '/includes/main.inc.php');

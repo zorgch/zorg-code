@@ -2,12 +2,12 @@
 /**
  * GO Spiel - Smarty Page Actions
  *
- * @author [z]bert, [z]domi
- * @date nn.nn.nnnn
+ * @author [z]bert
+ * @author [z]domi
  * @version 1.0
- * @package zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  */
+
 /**
  * File Includes
  * @include go_game.inc.php Required
