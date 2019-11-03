@@ -561,6 +561,7 @@ class Smarty_Compiler extends Smarty {
 
             case 'php':
                 /* handle folded tags replaced by {php} */
+                // TODO: Fix deprecated "each" function
                 list(, $block) = each($this->_folded_blocks);
                 $this->_current_line_no += substr_count($block[0], "\n");
                 /* the number of matched elements in the regexp in _compile_file()
