@@ -90,7 +90,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 			}
 			/** Template has not been added */
 			else {
-				$error .= t('error-create', 'tpl')
+				$error .= t('error-create', 'tpl');
 			}
 
 		/**
