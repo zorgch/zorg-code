@@ -44,12 +44,10 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	if (!$error)
 	{
 		$frm['id'] = htmlentities($frm['id'], ENT_QUOTES);
-		$frm['tpl'] = mysql_real_escape_string($frm['tpl']);
+		$frm['tpl'] = $frm['tpl']; // TODO add appropriate input sanitization for template-content
 		$frm['title'] = sanitize_userinput($frm['title']);
 		$frm['sidebar_tpl'] = (empty($frm['sidebar_tpl']) ? 'NULL' : htmlentities($frm['sidebar_tpl'], ENT_QUOTES));
 		$frm['page_title'] = htmlentities($frm['page_title'], ENT_NOQUOTES);
-		$frm['menus'] = htmlentities($frm['menus'], ENT_QUOTES);
-		$frm['packages'] = htmlentities($frm['packages'], ENT_QUOTES);
 
 		/**
 		 * NEW TEMPLATE
@@ -125,25 +123,31 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		{
 			/** Menus: remove all links between Template & Menus, relink selected Menus */
 			$db->query('DELETE FROM tpl_menus WHERE tpl_id ='.$frm['id']); // delete all
-			$tplmenusInsertData = null;
-			foreach ($_POST['frm']['menus'] as $menu_id) {
-				/** Note: only works when getting Array directly from $_POST, not via $frm.
-				Don't know why, cost me like 2 hours to figure this out WTF */
-				if (!empty($menu_id)) $tplmenusInsertData[] = sprintf('(%d, %d)', $frm['id'], $menu_id);
+			if (!empty($_POST['frm']['menus']))
+			{
+				$tplmenusInsertData = null;
+				foreach ($_POST['frm']['menus'] as $menu_id) {
+					/** Note: only works when getting Array directly from $_POST, not via $frm.
+					Don't know why, cost me like 2 hours to figure this out WTF */
+					if (!empty($menu_id)) $tplmenusInsertData[] = sprintf('(%d, %d)', $frm['id'], $menu_id);
+				}
+				$db->query('INSERT INTO tpl_menus (tpl_id, menu_id) VALUES '.implode(',',$tplmenusInsertData), __FILE__, __LINE__, 'Link Template to selected Menus'); // add new
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Menus: %s', __FILE__, __LINE__, $frm['id'], print_r($tplmenusInsertData, true)));
 			}
-			$db->query('INSERT INTO tpl_menus (tpl_id, menu_id) VALUES '.implode(',',$tplmenusInsertData), __FILE__, __LINE__, 'Link Template to selected Menus'); // add new
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Menus: %s', __FILE__, __LINE__, $frm['id'], print_r($tplmenusInsertData, true)));
-	
+
 			/** Packages: remove all links between Template & Packages, relink selected Packages */
 			$db->query('DELETE FROM tpl_packages WHERE tpl_id ='.$frm['id']); // delete all
-			$tplpackagesInsertData = null;
-			foreach ($_POST['frm']['packages'] as $package_id) {
-				/** Note: only works when getting Array directly from $_POST, not via $frm.
-				Don't know why, cost me like 2 hours to figure this out WTF */
-				if (!empty($package_id)) $tplpackagesInsertData[] = sprintf('(%d, %d)', $frm['id'], $package_id);
+			if (!empty($_POST['frm']['packages']))
+			{
+				$tplpackagesInsertData = null;
+				foreach ($_POST['frm']['packages'] as $package_id) {
+					/** Note: only works when getting Array directly from $_POST, not via $frm.
+					Don't know why, cost me like 2 hours to figure this out WTF */
+					if (!empty($package_id)) $tplpackagesInsertData[] = sprintf('(%d, %d)', $frm['id'], $package_id);
+				}
+				$db->query('INSERT INTO tpl_packages (tpl_id, package_id) VALUES '.implode(',',$tplpackagesInsertData), __FILE__, __LINE__, 'Link Template to selected Packages'); // add new
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Packages: %s', __FILE__, __LINE__, $frm['id'], print_r($tplpackagesInsertData, true)));
 			}
-			$db->query('INSERT INTO tpl_packages (tpl_id, package_id) VALUES '.implode(',',$tplpackagesInsertData), __FILE__, __LINE__, 'Link Template to selected Packages'); // add new
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Packages: %s', __FILE__, __LINE__, $frm['id'], print_r($tplpackagesInsertData, true)));
 		}
 	}
 
