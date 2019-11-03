@@ -130,7 +130,7 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '') {
 	/** Load Template data */
 	// FIXME change this to use Smarty:: Function!
 	try {
-		$where = ( $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
+		$where = ( isset($_GET['word']) && $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
 		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
 						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
 						write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
@@ -184,7 +184,7 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '') {
 			}
 			
 			/** Immer zuletzt: Tpleditor special... */
-			if ($_GET['tpleditor'] == 1) {
+			if ( isset($_GET['tpleditor']) && $_GET['tpleditor'] == 1) {
 				$_TPLROOT['page_title'] = ($_GET['tplupd'] === 'new' ? 'Neues Template erstellen' : 'Template «'.$_TPLROOT['page_title'].'» bearbeiten');
 				$_TPLROOT['sidebar_tpl'] = null; // Clear an assigned Sidebar
 			}
