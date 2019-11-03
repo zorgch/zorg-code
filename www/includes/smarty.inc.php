@@ -392,7 +392,7 @@ function load_navigation($tpl_id, &$smarty)
 		while ($menu = $db->fetch($menusFound))
 		{
 			/** Validate permissions */
-			error_log(sprintf('[DEBUG] <%s:%d> Loading menu (template) %d', __FUNCTION__, __LINE__, $menu['tpl_id']));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading menu (template) %d', __FUNCTION__, __LINE__, $menu['tpl_id']));
 			if (tpl_permission($menu['read_rights'], $menu['owner'])) $tplMenus[] = $menu['name'];
 			elseif (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> No permissions to load menu (template) #%d: owner %d vs read_rights %d', __FUNCTION__, __LINE__, $menu['tpl_id'], $menu['owner'], $menu['read_rights']));
 		}
