@@ -7,8 +7,8 @@
  * @since 1.0 <inex> 10.09.2019 file copied from /css/day.css & /css/night.css, uses ?sidebar=true trigger for page layout
  */
 header('Content-Type: text/css');
-$sidebarOn = ($_GET['sidebar'] == 'true' ? true : false);
-$layout = (!empty($_GET['layout']) ? $_GET['layout'] : 'day');
+$sidebarOn = (isset($_GET['sidebar']) && $_GET['sidebar'] == 'true' ? true : false);
+$layout = (isset($_GET['layout']) ? $_GET['layout'] : 'day');
 //if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $sidebarOn: %s', __FILE__, __LINE__, ($sidebarOn ? 'true' : 'false')));
 ?>
 @charset "UTF-8";

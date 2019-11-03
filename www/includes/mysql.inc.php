@@ -139,10 +139,10 @@ class dbconn
 	 */
 	function msg($sql='',$file='',$line='',$funktion='')
 	{
-		$num = mysql_errno($this->conn); // DEPRECATED - PHP5 only
-		$msg = mysql_error($this->conn); // DEPRECATED - PHP5 only
-		//$num = mysqli_errno($this->conn); // PHP7.x ready
-		//$msg = mysqli_errno($this->conn); // PHP7.x ready
+		//$num = mysql_errno($this->conn); // DEPRECATED - PHP5 only
+		//$msg = mysql_error($this->conn); // DEPRECATED - PHP5 only
+		$num = mysqli_errno($this->conn); // PHP7.x ready
+		$msg = mysqli_errno($this->conn); // PHP7.x ready
 		$ausg = "<table cellpadding='5' align='center' cellspacing='0' bgcolor='#FFFFFF' width='800' style='font-family: verdana; font-size:12px; color:black;'>
 		<tr><td align='center' width='800' colspan='2'
 		style='border-bottom-style:solid; border-bottom-color:#000000; border-bottom-width:1px;'>
@@ -187,8 +187,8 @@ class dbconn
 				$_SERVER['HTTP_REFERER'],
 				$funktion
 			);
-		@mysql_query($sql,$this->conn); // DEPRECATED - PHP5 only
-		//@mysqli_query($sql,$this->conn); // PHP7.x ready
+		//@mysql_query($sql,$this->conn); // DEPRECATED - PHP5 only
+		@mysqli_query($sql,$this->conn); // PHP7.x ready
 	}
 
 	/**
@@ -201,8 +201,8 @@ class dbconn
 	 */
 	function fetch($result) {
 		global $sql; // notwendig??
-		return @mysqli_fetch_array($result); // DEPRECATED - PHP5 only
-		//return @mysqli_fetch_array($result); // PHP7.x ready
+		//return @mysqli_fetch_array($result); // DEPRECATED - PHP5 only
+		return @mysqli_fetch_array($result); // PHP7.x ready
 	}
 
 	/**
@@ -210,8 +210,8 @@ class dbconn
 	 * @return int
 	 */
 	function lastid() {
-		return @mysql_insert_id($this->conn); // DEPRECATED - PHP5 only
-		//return @mysqli_insert_id($this->conn); // PHP7.x ready
+		//return @mysql_insert_id($this->conn); // DEPRECATED - PHP5 only
+		return @mysqli_insert_id($this->conn); // PHP7.x ready
 	}
 
 	/**
@@ -247,15 +247,15 @@ class dbconn
 	 * @return array
 	 */
 	function tables() {
-		$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
-		//$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
+		//$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
+		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
-			$tab[$i] = @mysql_tablename($tables,$i); // DEPRECATED - PHP5 only
-			//@mysqli_data_seek($tables,$i); // PHP7.x ready
-			//$f = mysql_fetch_array($tables); // PHP7.x ready
-			//$tab[$i] = $f[0]; // PHP7.x ready
+			//$tab[$i] = @mysql_tablename($tables,$i); // DEPRECATED - PHP5 only
+			@mysqli_data_seek($tables,$i); // PHP7.x ready
+			$f = mysql_fetch_array($tables); // PHP7.x ready
+			$tab[$i] = $f[0]; // PHP7.x ready
 		}
 		return $tab;
 	}
