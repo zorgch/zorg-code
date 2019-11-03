@@ -328,20 +328,21 @@ class UpcomingEvent
 		if (is_numeric($starts_in_hours))
 		{
 			$nextEvent = $this->getUpcomingEvent($starts_in_hours);
+			
 			if ($nextEvent)
 			{
 				/** If we have lat+lng, send an event... */
 				if (isset($nextEvent['lat']) && isset($nextEvent['lng']))
 				{
 					if (DEVELOPMENT) error_log('[DEBUG] Sending Telegram Notification $telegram->send->event()');
-					$eventTitle = t('telegram-event-notification', 'event', [ timename($nextEvent['time']), $nextEvent['name'] ]);
+					$eventTitle = t('telegram-event-notification', 'event', [ $nextEvent['name'] ]); // timename($nextEvent['time'])
 					$telegram->send->event('group', $nextEvent['lat'], $nextEvent['lng'], $eventTitle, $nextEvent['location']);
 
 				/** ...otherwise just send a message */
 				} else {
 					if (DEVELOPMENT) error_log('[DEBUG] Sending Telegram Notification $telegram->send->message()');
 					$eventName = html_tag($nextEvent['name'], 'b')."\n@ " . $nextEvent['location'];
-					$eventTitle = t('telegram-event-notification', 'event', [ timename($nextEvent['time']), $eventName ]); //[ t('datetime-hours', 'global', $nextEvent['time'] ), $eventName ]);
+					$eventTitle = t('telegram-event-notification', 'event', [ $eventName ]); // timename($nextEvent['time'])
 					$telegram->send->message('group', $eventTitle);
 				}
 				return true;

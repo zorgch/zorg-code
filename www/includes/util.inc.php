@@ -528,21 +528,26 @@ function maxwordlength($text, $max) {
 
 /**
  * Smarty Klammern überprüfen
- * 
  * Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
- * 
- * @return bool
+ *
+ * @author [z]biko
+ * @version 1.0
+ * @since 1.0 <biko> Function added
+ *
  * @param string $text
  * @param string &$error
-*/
-function smarty_brackets_ok ($text, &$error) {
+ * @return bool
+ */
+function smarty_brackets_ok ($text, &$error)
+{
 	$open = false;
 	$last_open_tag = 0;
 
 	$text = preg_replace("/\{\*.*\*\}/", '', $text);
 	$text = preg_replace("/\{\s*literal\s*\}.*{\s*\/\s*literal\s*\}/", '', $text);
 
-	for ($i=0; $i<strlen($text); $i++) {
+	for ($i=0; $i<strlen($text); $i++)
+	{
 		if ($text[$i] == '{') {
 			if ($open) break;
 			$open = true;
@@ -553,16 +558,17 @@ function smarty_brackets_ok ($text, &$error) {
 		}
 	}
 
-	if ($i != strlen($text) || $open) {
-		$error = t('smarty_brackets_ok-invalid-brackets', 'util', substr($text, $last_open_tag, 50) );
+	if ($i != strlen($text) || $open)
+	{
+		$error = t('smarty_brackets_ok-invalid-brackets', 'util', htmlentities(substr($text, $last_open_tag, 50)) );
 		return false;
-	}else{
+	} else {
 		return true;
 	}
 }
 
 function print_array ($arr, $indent=0) {
-	if (!is_array($arr)) user_error( t('smarty_brackets_ok-invalid-argument', 'util', $arr ), E_USER_ERROR);
+	if (!is_array($arr)) user_error( t('invalid-array', 'util', $arr ), E_USER_ERROR);
 
 	$ret = '';
 
@@ -587,11 +593,14 @@ function print_array ($arr, $indent=0) {
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 function added
- * @since 2.0 added tolerance for full words (don't cut words in half)
+ * @since 1.0 <inex> function added
+ * @since 2.0 <inex> added tolerance for full words (don't cut words in half)
  *
  * @param boolean $tolerant_full_words If 'true', $text-String will be cut at closest space
  * @param boolean $first_line_only If 'true', $text-String will be processed only with the first line (anything before line breaks)
+ * @param string $delimiter
+ * @param boolean $tolerant_full_words
+ * @param boolean $first_line_only
  * @return string
  */
 function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false, $first_line_only=false)
@@ -606,10 +615,9 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 						 ,':' => ''
 						 ,'/' => $delimiter
 						];
-
 	/** Cleanup $text input */
 	if ($first_line_only === true) {
-		$textStripped = strtok(strtok($text, "\r\n"), "\n"); // Set $text until first line-break only
+		$textStripped = rtrim(strtok(strtok(strtok($text, "\t"), "\r\n"), "\n")); // Set $text until first line-break only
 	} else {
 		$textStripped = str_ireplace(array("\r\n", "\r", "\n"), ' ', $text); // Replace line breaks with spaces
 	}
@@ -619,7 +627,8 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 	/** Shrink $text to $width */
 	$textLength = strlen($textStripped);
 	if ($textLength <= $width) { // $text is within $width
-		foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) { // Replace last punctuation char with $delimiter or as defined in $punctuationChars
+		/** Replace last punctuation char with $delimiter or as defined in $punctuationChars */
+		foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) {
 			if (substr($textStripped, -1*strlen($punctuationChar))===$punctuationChar) {
 				$textStrippedEndsWithPunctuation = true;
 				$textStripped = str_ireplace(array_keys($punctuationChars), $punctuationChars, $textStripped);
@@ -628,12 +637,14 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 		}
 		return $textStripped;
 	}
-	if ($tolerant_full_words===true) { // Respect full words in $text
+	/** Respect full words in $text */
+	if ($tolerant_full_words===true) {
 		$textStripped = substr($textStripped, 0, strrpos(substr($textStripped, 0, $width), ' ')); // Strip with respecting full words
 	} else { // Hard cut $text according to $width
 		$textStripped = substr($textStripped, 0, $width);
 	}
-	foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) // Replace last punctuation char with $delimiter or as defined in $punctuationChars
+	/** Replace last punctuation char with $delimiter or as defined in $punctuationChars */
+	foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith)
 	{
 		if (substr($textStripped, -1*strlen($punctuationChar))===$punctuationChar) {
 			$textStrippedEndsWithPunctuation = true;
@@ -652,8 +663,9 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 16.03.2008 initial release
- * @since 2.0 changed preg_replace("@</?[^>]*>*@") => strip_tags()
+ * @since 1.0 <inex> 16.03.2008 initial release
+ * @since 2.0 <inex> changed preg_replace("@</?[^>]*>*@") => strip_tags()
+ * @since 3.0 <inex> 19.08.2019 added additional HTML-tags requiring a line-break
  *
  * @link http://php.net/manual/de/function.strip-tags.php
  * @link https://www.reddit.com/r/PHP/comments/nj5t0/what_everyone_should_know_about_strip_tags/
@@ -665,11 +677,21 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 function remove_html($html, $allowable_tags=NULL)
 {
 	$nohtml = $html;
-	$nohtml = str_ireplace('&nbsp;', ' ', $nohtml); // Replace %nbsp; with spaces
-	$nohtml = str_ireplace('&amp;', '&', $nohtml); // Replace %amp; with &
-	preg_replace("/(<\/h\d+>)/", "$1\n", $nohtml); // Replace heading-Tags (</h1>, </h2>, </h3>,...) with line-breaks
-	$nohtml = strip_tags($nohtml, $allowable_tags); // Strip HTML-Tags
+
+	/** HTML-Markup optimizations before stripping HTML */
+	$nohtml = str_ireplace('&nbsp;', ' ', $nohtml); // Replace every %nbsp; with a space
+	$nohtml = str_ireplace('<p>', ' <p>', $nohtml); // Add a preceeding space to every <p>
+	$nohtml = str_ireplace('&amp;', '&', $nohtml); // Replace every %amp; with &
+	$nohtml = preg_replace('/(<\/h\d+.*?>)/', "$1 ".PHP_EOL, $nohtml); // Add space and line-break after every heading-Tag (</h1>, </h2>, </h3>,...)
+	$nohtml = preg_replace('/(<\/p.*?>)/', " $1".PHP_EOL, $nohtml); // Add space and line-break after every </p>-Tag
+	$nohtml = preg_replace('/(<li.*?>)/', "$1 ", $nohtml); // Add a preceeding space and line-break to every <li>
+	$nohtml = preg_replace('/(<br\s?\/?>)/', "$1 ".PHP_EOL, $nohtml); // Add space and line-break after every <br>-Tag
+	$nohtml = preg_replace('/\s+/', ' ', trim($nohtml)); // Remove unneccessary and duplicate whitespaces
+
+	/** Strip unwanted HTML-tags from $html */
+	$nohtml = strip_tags($nohtml, $allowable_tags); // Strip HTML-Tags, except defined in $allowable_tags
 	$nohtml = str_ireplace(array('http://', 'https://'), '', $nohtml); // Strip "lonely" HTML-Tag parts
+
 	return $nohtml;
 }
 

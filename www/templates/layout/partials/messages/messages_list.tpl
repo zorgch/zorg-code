@@ -22,7 +22,7 @@
 					{/if}</h3>
 				</th>
 				<th align="right" colspan="{$cols_total-3}">
-					<a href="{get_changed_url change="newmsg=true"}{*$newmsg_url*}"><button name="button_newMessage" class="button" type="button" style="float:right;">Neue Nachricht</button></a>
+					<a href="{get_changed_url change="newmsg=true"}{*$newmsg_url*}"><button class="button primary" name="button_newMessage" style="float:right;">Neue Nachricht</button></a>
 				</th>
 			</tr>
 			<tr>
@@ -83,9 +83,9 @@
 			</tr>
 			<tr>
 				<td align="left" colspan="{$cols_total}">
-					<button id="do_mark_all_as_read" name="do" class="button" type="submit" value="mark_all_as_read">ALLE als gelesen markieren</button>
-					<button id="do_messages_as_unread" name="do" class="button" type="submit" value="messages_as_unread" disabled>Markierte als ungelesen</button>
-					<button id="do_delete_messages" name="do" class="button" type="submit" value="delete_messages" disabled>Markierte Nachrichten l&ouml;schen</button>
+					<button type="submit" class="button alternate" id="do_mark_all_as_read" name="do" value="mark_all_as_read">ALLE als gelesen markieren</button>
+					<button type="submit" class="button secondary" id="do_messages_as_unread" name="do" value="messages_as_unread" disabled>Markierte als ungelesen</button>
+					<button type="submit" class="button danger" id="do_delete_messages" name="do" value="delete_messages" disabled>Markierte Nachrichten l&ouml;schen</button>
 				</td>
 			</tr>
 		</tfoot>

@@ -21,9 +21,7 @@
  * - comments_threads_rights
  * - comments_unread
  *
- * @version		1.0
- * @package		zorg
- * @subpackage	Forum
+ * @package zorg\Forum
  */
 
 /**
@@ -348,19 +346,17 @@ class Comment
 
 	  // restlicher output
 	  $html .=
-  		'<td class="space">'
-  		.'<a href="'.$_SERVER['PHP_SELF'].'?parent_id='.$rs['id'].'">'
-  		.'<img border="0" class="forum" src="/images/forum/'.$layouttype.'/plus.gif" />'
-  		.'</a>'
+  		'<td class="threading space">'
+	  		.'<a class="threading switch expand" href="'.$_SERVER['PHP_SELF'].'?parent_id='.$rs['id'].'"></a>'
 	  	.'</td>'
 	  	.'<td align="left" class="border forum">'
-	  	.'<table bgcolor="'.Forum::colorfade($hdepth, $color).'" class="forum">'
-	    .'<tr>'
-	  	.'<td bgcolor="'.$color.'" valign="top">'
-	    .'<a href="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'&parent_id='.$rs['parent_id'].'">'
-	    .'<font size="4"> Additional posts</font></a>'
-	    .' <a href="/profil.php?do=view">(du hast Forumanzeigeschwelle '.$user->maxdepth.' eingestellt)</a>'
-	    .'</td></tr></table>'
+		  	.'<table bgcolor="'.Forum::colorfade($hdepth, $color).'" class="forum">'
+			    .'<tr>'
+				  	.'<td bgcolor="'.$color.'" valign="top">'
+					    .'<a href="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'&parent_id='.$rs['parent_id'].'">'
+					    .' <font size="4">Additional posts</font></a>'
+					    .' <a href="/profil.php?do=view">(du hast Forumanzeigeschwelle '.$user->maxdepth.' eingestellt)</a>'
+		    .'</td></tr></table>'
 	  	.'</td></tr></table>'
 	  ;
 	  return $html;
@@ -537,8 +533,8 @@ class Comment
 	 *
 	 * @author [z]biko, IneX
 	 * @version 2.0
-	 * @since 1.0 method added
-	 * @since 2.0 24.09.2018 method uses now text_width() util-function
+	 * @since 1.0 <biko> method added
+	 * @since 2.0 <inex> 24.09.2018 method uses now text_width() util-function
 	 *
 	 * @see remove_html(), text_width()
 	 * @param string $text
@@ -550,6 +546,22 @@ class Comment
 		$text = text_width(remove_html($text), $length, '', true, true);
 		if (empty($text)) $text = (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
 		return $text;
+	}
+
+	/**
+	 * Schnipsel/Auszug eines Kommentars holen.
+	 *
+	 * @version 1.0
+	 * @since 1.0 <inex> 19.08.2019 method added
+	 *
+	 * @see remove_html(), text_width(), t()
+	 * @param string $text
+	 * @param int $length offset
+	 * @return string
+	 */
+	static function getSummary($text, $length=20) {
+		$text = text_width(remove_html($text), $length);
+		return (empty($text) ? t('text-abbreviation') : $text);
 	}
 
 	/**
@@ -653,6 +665,13 @@ class Comment
 	/**
 	 * Post Comment to Board
 	 *
+	 * @version 3.2
+	 * @since 1.0 <biko> method added
+	 * @since 2.0 <inex> added Activities
+	 * @since 3.0 <inex> various code optimizations, new notification class used
+	 * @since 3.1 <inex> minor code optimizations, changed Forum Activity-Notification only if new Forum-Thread
+	 * @since 3.2 <inex> 27.09.2019 changed INSERT to use $db->insert()
+	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
@@ -686,12 +705,8 @@ class Comment
 			$text = escape_text($text);
 
 			/** Comment in die DB abspeichern */
-			$sql = sprintf('INSERT INTO comments (user_id, parent_id, thread_id, text, date, board, error)
-							VALUES ( %d, %d, %d, "%s", NOW(), "%s", "%s" )',
-							$user_id, $parent_id, $thread_id, $text, $board, $comment_error);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $sql));
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			$comment_id = mysql_insert_id();
+			$comment_id = $db->insert('comments', ['user_id'=>$user_id, 'parent_id'=>$parent_id, 'thread_id'=>$thread_id, 'text'=>$text, 'date'=>'NOW()', 'board'=>$board, 'error'=>$comment_error]);
 			if(empty($comment_id) || !is_numeric($comment_id) || $comment_id <= 0) user_error(t('invalid-comment_id', 'commenting'), E_USER_ERROR);
 
 			/**
@@ -713,6 +728,7 @@ class Comment
 			$sql = sprintf('INSERT IGNORE INTO comments_threads (board, thread_id, comment_id) VALUES ("%s", %d, %d)',
 							$rs['board'], $rs['thread_id'], $rs['id']);
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			// TODO use $db->insert('comments_threads', array(key=value)) instead of $db->query()
 
 			/** last post setzen */
 			$sql = 'UPDATE comments_threads
@@ -742,21 +758,27 @@ class Comment
 			self::markasread($rs['id'], $user_id);
 
 			/**
-			 * Activity Eintrag auslösen
-			 * ...ausser bei der Bärbel, die trollt zuviel
+			 * Comment Notifications
 			 */
-			if ($user_id != BARBARA_HARRIS)
+			/** 1) Activity Eintrag auslösen */
+			$addActivity = false; // init
+			$addActivity = ($user_id != BARBARA_HARRIS ? true : false); // ...ausser bei der Bärbel, die trollt zuviel
+			$addActivity = ($rs['board'] !== 'h' ? true : false); // ...ausser bei Hz-Games (weil die Comments u.A. noch geheim sein müssen)
+			$addActivity = ($rs['board'] !== 'f' || $parent_id === 1 ? true : false); // ...und im Forum nur falls ein neuer Thread gestartet wurde (kein Comment)
+			if ($addActivity === true)
 			{
-				/** ...und ausser bei Hz-Games (weil die Comments u.A. noch geheim sein müssen) */
-				if ($rs['board'] !== 'h')
+				/** Neuer Forum-Thread */
+				if ($rs['board'] === 'f' || $parent_id === 1)
 				{
+					Activities::addActivity($user_id, 0, t('activity-newthread', 'commenting', [ SITE_URL, self::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), self::getTitle($text, 100) ]), 'c');
+				}
+				/** Alle anderen Comments */
+				else {
 					Activities::addActivity($user_id, 0, t('activity-newcomment', 'commenting', [ SITE_URL, self::getLink($board, $rs['parent_id'], $rs['id'], $rs['thread_id']), Forum::getBoardTitle($rs['board']), self::getTitle($text, 100) ]), 'c');
 				}
 			}
 
-			/**
-			 * Message an alle markierten (@user) senden
-			 */
+			/** 2) Message an alle markierten (@user) senden */
 			if(!empty($msg_users) && count($msg_users) > 0)
 			{
 				foreach ($msg_users as $msg_recipient_id)
@@ -776,7 +798,7 @@ class Comment
 				}
 			}
 
-			/** Message an alle Subscriber senden */
+			/** 3) Message an alle Subscriber senden */
 			$sql = 'SELECT * FROM comments_subscriptions WHERE comment_id = '.$parent_id.' AND board="'.$board.'"';
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			if($db->num($result) > 0)
@@ -1059,7 +1081,7 @@ class Forum {
 	{
 		global $db;
 
-		$html = '<table cellpadding="0" cellspacing="0" style="font-size: x-small"><tr><td>';
+		$html = '<table cellpadding="0" cellspacing="0"><tr><td>';
 		$html .= Forum::getForumBoards($show, true);
 		$html .= '</td></tr></table>';
 
@@ -1102,7 +1124,7 @@ class Forum {
 	 * @param $comment_id
 	 * @desc Form for editing posts
 	 *
-	 * @TODO merge Forum::getFormEdit() into tpl/commentform.tpl
+	 * @TODO merge Forum::getFormEdit() into /templates/layout/partials/commentform.tpl
 	 */
 	static function getFormEdit($comment_id) {
 	  global $db, $user;
@@ -1164,8 +1186,8 @@ class Forum {
 	
 	/**
 	 * Start Ausgabe Commentform Form HTML-Tag
-	 * Neu als Smarty-Template "/templates/commentform.tpl" verfügbar!
-	 * Usage im Smarty Template: {include file='file:commentform.tpl'}
+	 * Neu als Smarty-Template "/templates/layout/partials/commentform.tpl" verfügbar!
+	 * Usage im Smarty Template: {include file='file:layout/partials/commentform.tpl'}
 	 * 
 	 * @DEPRECATED
 	 * @author unknown
@@ -1264,17 +1286,46 @@ class Forum {
 		;
 	}
 
-	static function getNumunreadposts($user_id) {
-
+	/**
+	 * Total Anzahl unread Comments eines Users
+	 *
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 <inex> 28.08.2019 Code and SQL-query optimized
+	 *
+	 * @param int $user_id User-ID for whom to get unread Comments
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @return integer|null|bool Anzahl laut count(*) aller unread Comments der $user_id - oder false bei error
+	 */
+	static function getNumunreadposts($user_id)
+	{
 		global $db, $user;
 
-		if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT) {
-		  $sql = "SELECT count(*) as numunread from comments_unread where user_id='".$user_id."'";
-		  $rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-		  return $rs['numunread'];
+		if (empty($user_id) || is_array($user_id)) return false;
+
+		if($user->typ != USER_NICHTEINGELOGGT)
+		{
+			$sql = 'SELECT count(*) as numunread from comments_unread where user_id='.$user_id;
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			return $rs['numunread'];
+		} else {
+			return false;
 		}
 	}
 
+	/**
+	 * Link zum letzten unread Comment ausgeben
+	 *
+	 * @author biko
+	 * @version 1.0
+	 * @since 1.0 method added
+	 *
+	 * @see Comment::getNumunreadposts()
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @return string HTML-Link zum ältesten ungelesenen Comment
+	 */
 	static function getUnreadLink() {
 		global $db, $user;
 
@@ -1289,10 +1340,8 @@ class Forum {
 					LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id='.$user->id.')
 				WHERE comments_unread.comment_id IS NOT NULL
 				ORDER by date ASC LIMIT 0,1';
-
-  	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__));
-
-  	return Comment::getLink($rs2['board'], $rs2['parent_id'], $rs2['id'], $rs2['thread_id']);
+	  	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+	  	return Comment::getLink($rs2['board'], $rs2['parent_id'], $rs2['id'], $rs2['thread_id']);
 	}
 
 	/**
@@ -1316,8 +1365,8 @@ class Forum {
 
 	static function getNavigation($page=1, $pagesize, $numpages) {
 		$html .=
-			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border"  style="font-size: x-small">'
-			.'<tr><td>Page '.$page.' von '.$numpages.'</td>'
+			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border">'
+			.'<tr><td class="hide-mobile">Page '.$page.' von '.$numpages.'</td>'
 		;
 
 		if($page > 10) {
@@ -1332,7 +1381,7 @@ class Forum {
 			if($page == $i) {
 				$html .= '<td>'.$i.'</td>';
 			} else {
-				$html .= '<td><a href="'.getChangedURL('page='.$i).'">'.$i.'</a></td>';
+				$html .= '<td class="hide-mobile"><a href="'.getChangedURL('page='.$i).'">'.$i.'</a></td>';
 			}
 
 		}
@@ -1342,7 +1391,7 @@ class Forum {
 		}
 
 		if($page < ($numpages-10)) {
-			$html .=	'<td><a href="'.getChangedURL('page='.$numpages).'">Last &rarrb;</a></td>';
+			$html .= '<td><a href="'.getChangedURL('page='.$numpages).'">Last &rarrb;</a></td>';
 		}
 
 		$html .= '</tr></table>';
@@ -1351,9 +1400,9 @@ class Forum {
 	}
 
 	static function getQueryString($qstr='') {
-		$qstr .= (!strstr($qstr, 'page') && $_GET[page] != '' ? '&page='.$_GET[page] : '');
-		$qstr .= (!strstr($qstr, 'order') && $_GET[order] != '' ? '&order='.$_GET[order] : '');
-		$qstr .= (!strstr($qstr, 'direction') && $_GET[direction] != '' ? '&direction='.$_GET[direction] : '');
+		$qstr .= (!strstr($qstr, 'page') && $_GET['page'] != '' ? '&page='.$_GET['page'] : '');
+		$qstr .= (!strstr($qstr, 'order') && $_GET['order'] != '' ? '&order='.$_GET['order'] : '');
+		$qstr .= (!strstr($qstr, 'direction') && $_GET['direction'] != '' ? '&direction='.$_GET['direction'] : '');
 		return $qstr;
 	}
 
@@ -1464,11 +1513,18 @@ class Forum {
 	/**
 	 * Latest Comments for a specific User
 	 * Gibt eine Tabelle mit Links zu den letzten  eines Users
+	 *
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
-	 * @return String
+	 *
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 <inex> 09.09.2019 updated code & html output
+	 *
+	 * @param int $user_id User-ID for whom to show latest Comments
+	 * @return string HTML-Code
 	 */
-	static function getLatestCommentsbyUser($user_id) {
-
+	static function getLatestCommentsbyUser($user_id)
+	{
 		global $db, $user;
 
 		if(defined(USER_NICHTEINGELOGGT) && $user->typ == USER_NICHTEINGELOGGT) {
@@ -1499,28 +1555,27 @@ class Forum {
 		}
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-		$html = '<table class="border" width="100%"><tr><td align="center" colspan="4"><b>letzte Posts:</b></td></tr>';
-		while($rs = $db->fetch($result)) {
-	    $i++;
-			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
+		$html = '<h4>Letzte Posts</h4>';
+		$html .= '<table class="border" width="100%">';
+		while($rs = $db->fetch($result))
+		{
+			$i++;
+			if($user->typ != USER_NICHTEINGELOGGT && $rs['isunread'] != '') {
 				$color = NEWCOMMENTCOLOR;
 			} else {
 				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 			}
 
-	    $html .=
-	      '<tr class="small"><td align="left" bgcolor="'.$color.'" width="40%">'
-	      .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
-		  	.Comment::getTitle($rs['text'])
-		  	.'</a>'
-	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="20%">'
-	      .datename($rs[date])
-	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="20%">'
-	      .Comment::getLinkThread($rs['board'], $rs['thread_id'])
-	      .'</td></tr>'
-	    ;
-
-	  }
+			$html .=
+				'<tr class="small"><td align="left" bgcolor="'.$color.'" width="40%">'
+				.'&laquo;<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
+			  	.Comment::getTitle($rs['text'])
+			  	.'</a>&raquo;<br>'
+			  	.'<span class="tiny">in '.Comment::getLinkThread($rs['board'], $rs['thread_id']).'</span>'
+				.'</td><td align="center" bgcolor="'.$color.'" class="small" width="20%">'
+				.timename($rs['date'])
+				.'</tr>';
+		}
 	  $html .= '</table>';
 
 	  return $html;
@@ -1701,18 +1756,19 @@ class Forum {
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 3.0
+	 * @version 3.1
 	 * @since 1.0 method added
-	 * @since 2.0 07.11.2018 code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
-	 * @since 3.0 05.12.2018 fixed and restored Thread-Overview Pagination
+	 * @since 2.0 <inex> 07.11.2018 code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
+	 * @since 3.0 <inex> 05.12.2018 fixed and restored Thread-Overview Pagination
+	 * @since 3.1 <inex> 25.07.2019 fixed Bug #774: In der Forumthreads-Übersicht wird ein falscher "Thread starter" angezeigt
 	 *
-	 * @see getNavigation
+	 * @see Forum::getNavigation()
 	 * @param array|string $showboards Array mit den Boards für welche die Threads angezeigt werden sollen
 	 * @param integer $pagesize Die Anzahl Threads welche pro Page aufgelistet werden sollen
 	 * @param string $sortby Anweisung nach welcher Spalte (Thread DB-Column) die Threads sortiert werden - default: last_post_date
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return String
+	 * @return string
  	 */
 	static function getHTML($showboards, $pagesize, $sortby='last_post_date')
 	{
@@ -1727,8 +1783,9 @@ class Forum {
 		//if($sortby == '') $sortby = 'ct.last_comment_id';
 		if(empty($sortby) || is_numeric($sortby) || is_array($sortby)) $sortby = 'last_post_date';
 
-		/** "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text */
-		/** ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
+		/**
+		 * "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
+		 * ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
 		if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
 		{
 			switch ($_GET['order']) {
@@ -1760,9 +1817,10 @@ class Forum {
 					c.id,
 					c.parent_id,
 					c.text last_post_text,
-					c.user_id,
+					c.user_id as last_comment_poster,
 					UNIX_TIMESTAMP(c.date) last_post_date,
 					t.thread_id,
+					t.user_id as thread_starter,
 					UNIX_TIMESTAMP(t.date) thread_date,
 					'.($user->is_loggedin() ? 'IF(ISNULL(tfav.thread_id ), 0, 1) isfavorite,
 					IF(ISNULL(tignore.thread_id ), 0, 1) ignoreit,' : '').'
@@ -1802,11 +1860,12 @@ class Forum {
 			'<br />'
 			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
 				.'<tr class="title">'
-					.'<td align="left" width="30%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
-					.'<td align="left" class="small" width="11%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=tu_username&amp;order='.$new_order.'">Thread starter</a></td>'
-					.'<td align="center"><a href="'.$_SERVER['PHP_SELF'].'?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
-					.'<td align="center" class="small"><a href="'.$_SERVER['PHP_SELF'].'?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
-					.'<td align="left" class="small" width="25%"><a href="'.$_SERVER['PHP_SELF'].'?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
+					.'<td align="left" width="30%"><a href="?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
+					.'<td align="left" class="small hide-mobile" width="11%"><a href="?sortby=tu_username&amp;order='.$new_order.'">Thread starter</a></td>'
+					.'<td align="center" class="hide-mobile"><a href="?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
+					.'<td align="center" class="small hide-mobile"><a href="?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
+					.'<td align="left" class="small" width="25%"><a href="?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
+					.'<td></td>'
 				.'</tr>';
 
 		$i = 0;
@@ -1822,18 +1881,17 @@ class Forum {
 
 			/** @FIXME move iterative table background colors from PHP => CSS! */
 			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			if($rs['user_id'] == $user->id) $color = OWNCOMMENTCOLOR;
+			if($rs['thread_starter'] == $user->id) $color = OWNCOMMENTCOLOR;
 			if($rs['isfavorite']) $color = FAVCOMMENTCOLOR;
 			if($rs['ignoreit']) $color = IGNORECOMMENTCOLOR;
 			if($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
 
-			$html .=
-			  '<tr style="font-size: 9px;">'
-			  /*.'<td>'.$rs['sticky'].'</td>'*/
-			  .'<td align="left" bgcolor="'.$color.'"><span style="float: left">'
-			  .Comment::getLinkThread($rs['board'], $rs['thread_id'])
-			  .'</span>'
-			;
+			$html .= '<tr>'
+					  /*.'<td>'.$rs['sticky'].'</td>'*/
+					  .'<td align="left" bgcolor="'.$color.'"><span style="float: left">'
+					  .Comment::getLinkThread($rs['board'], $rs['thread_id'])
+					  .'</span>'
+					;
 
 		/** DISABLED
     	if($rs['sticky'] == 1) {
@@ -1848,38 +1906,36 @@ class Forum {
     		}
     	}*/
 
-		// alles was jetzt kommt, steht im feld rechtsbündig
-		$html .=	'<span style="float: right">';
+		/** alles was jetzt kommt, steht im feld rechtsbündig */
+		$html .=	'<span class="threadoptions" style="float: right;font-size: 0.8em;">';
 
-    	if($user->id > 0) {
+    	if($user->id > 0)
+    	{
+			/** links ganz rechts ausrichten */
+			//$html .=	'<span style="float: right">';
 
-			// links ganz rechts ausrichten
-			$html .=	'<span style="float: right">';
-
-				### Favorite or unfavorite Thread
-				if($rs['isfavorite'] == 1) {
-    			$html .=
-    				' <a href="/actions/forum.php?action=unfavorite&board='.$rs['board'].'&thread_id='
-    				.$rs['thread_id'].'">[unfav]</a>'
-    			;
+				/** Favorite or unfavorite Thread */
+				if($rs['isfavorite'] == 1)
+				{
+	    			$html .=
+	    				' <a href="/actions/forum.php?action=unfavorite&board='.$rs['board'].'&thread_id='
+	    				.$rs['thread_id'].'">'.t('forum-unfavorite-thread-action', 'commenting').'</a>';
 				} else {
 					$html .=
 						' <a href="/actions/forum.php?action=favorite&board='.$rs['board'].'&thread_id='
-						.$rs['thread_id'].'">[fav]</a>'
-					;
+						.$rs['thread_id'].'">'.t('forum-favorite-thread-action', 'commenting').'</a>';
 				}
 
-			### Ignore or Unignore Thread
-				if($rs['ignoreit'] == 1) {
-    			$html .=
-    				' <a href="/actions/forum.php?action=unignore&board='.$rs['board'].'&thread_id='
-    				.$rs['thread_id'].'">[unignore]</a>'
-    			;
+			/** Ignore or Unignore Thread */
+				if($rs['ignoreit'] == 1)
+				{
+	    			$html .=
+	    				' <a href="/actions/forum.php?action=unignore&board='.$rs['board'].'&thread_id='
+	    				.$rs['thread_id'].'">'.t('forum-unignore-thread-action', 'commenting').'</a>';
 				} else {
 					$html .=
 						' <a href="/actions/forum.php?action=ignore&board='.$rs['board'].'&thread_id='
-						.$rs['thread_id'].'">[ignore]</a>'
-					;
+						.$rs['thread_id'].'">'.t('forum-ignore-thread-action', 'commenting').'</a>';
 				}
 
 				//$html .=	'&nbsp;&nbsp;&nbsp;</span>';
@@ -1888,24 +1944,24 @@ class Forum {
 			/** RSS Feed-Link für Thread anzeigen */
 			$html .=
 					' <a href="'.RSS_URL.'&amp;type=forum&amp;board='.$rs['board'].'&amp;thread_id='
-    				.$rs['thread_id'].'">[rss]</a>';
+    				.$rs['thread_id'].'">'.t('forum-rss-thread-action', 'commenting').'</a>';
 
 			/** rechtsbündig-span-element schliessen */
 			$html .= '</span>';
 
-			$html .= '</td><td align="left" bgcolor="'.$color.'" class="small">&nbsp;&nbsp;&nbsp;'
-			  .$user->userprofile_link($rs['user_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
-			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
+			$html .= '</td><td align="left" bgcolor="'.$color.'" class="small hide-mobile">&nbsp;&nbsp;&nbsp;'
+			  .$user->userprofile_link($rs['thread_starter'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
+			  .'</td><td align="center" bgcolor="'.$color.'" class="small hide-mobile">'
 			  .datename($rs['thread_date'])
-			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
+			  .'</td><td align="center" bgcolor="'.$color.'" class="small hide-mobile">'
 			  .$rs['numposts']
 			  .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 			  .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
-			  .str_pad(Comment::getTitle($rs['last_post_text']), 25, ' . ', STR_PAD_RIGHT)
+			  .str_pad(Comment::getSummary($rs['last_post_text']), 25, ' . ', STR_PAD_RIGHT)
 			  .'</a>'
 			  .' &raquo;</a>'
 			  .' by '
-			  .$user->userprofile_link($rs['user_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
+			  .$user->userprofile_link($rs['last_comment_poster'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
 			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
 			  .datename($rs['last_post_date'])
 			  .'</td>'
@@ -2028,7 +2084,7 @@ class Forum {
 	    		$smarty->assign('board', $board);
 				$smarty->assign('thread_id', $thread_id);
 				$smarty->assign('parent_id', $_GET['parent_id']);
-				$smarty->display('file:commentform.tpl');
+				$smarty->display('file:layout/partials/commentform.tpl');
 	    	}
 		}
 	}
@@ -2409,7 +2465,7 @@ class Thread {
 	static function getNavigation($board, $id, $thread_id)
 	{
 		$html =
-			'<table class="border forum" style="font-size: x-small;table-layout:fixed;" width="100%">'
+			'<table class="border forum" style="table-layout:fixed;" width="100%">'
 			.'<tr><td>';
 
 		if($id > $thread_id)
@@ -2445,16 +2501,24 @@ class Thread {
 	/**
 	 * Get count of total comments per Thread
 	 *
-	 * @version 1.0
+	 * @version 1.1
 	 * @since 1.0 method added
+	 * @since 1.1 <inex> 29.08.2019 try-catch didn't catch a failed mysql-query, changed it therefore
 	 *
 	 * @param string $board
 	 * @param int $thread_id
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return int|bool Containing the amount of mysql_num_rows fro the queried DB-Result as integer - or false on error
 	 */
-	static function getNumPosts($board, $thread_id) {
+	static function getNumPosts($board, $thread_id)
+	{
 		global $db;
+
+		/**
+		 * Validate passed parameters
+		 */
+		if (empty($board) || is_numeric($board) || is_bool($board)) return false;
+		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0) return false;
 
 		try {
 			$sql = 'SELECT id FROM comments WHERE thread_id = '.$thread_id.' AND board="'.$board.'"';
@@ -2482,7 +2546,7 @@ class Thread {
 	*/
 
 	/**
-	 * Get count of total comment unreads for a specific user
+	 * Get count of total comment unreads per Thread for a specific user
 	 *
 	 * @version 1.0
 	 * @since 1.0 method added

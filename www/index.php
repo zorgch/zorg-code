@@ -121,36 +121,74 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '') {
 
 /**
  * Regular Page
- * @see SMARTY_DEFAULT_TPL
+ * @see SMARTY_DEFAULT_TPL, SMARTY_404PAGE_TPL
  */
 } else {
 	/** Fallback for missing Template-ID */
 	if (empty($_GET['word']) && empty($_GET['tpl'])) $_GET['tpl'] = SMARTY_DEFAULT_TPL;
-	
-	/** Load Template data */
-	try {
-		$where = ( isset($_GET['word']) ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
-		$e = $db->query('SELECT id, packages, title, word, LENGTH(tpl) size, owner, update_user, page_title,
-						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-						write_rights, force_compile, border FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
-		$_TPLROOT = $db->fetch($e);
-		if (!empty($_GET['word'])) $_GET['tpl'] = $_TPLROOT['id'];
-		if (!empty($_TPLROOT['title']) && $_TPLROOT['title'] !== null) $_TPLROOT['page_title'] = $_TPLROOT['title']; // HTML Page Title
-		if (!empty($_TPLROOT['word']) && $_TPLROOT['word'] !== null) $_TPLROOT['page_link'] = '/page/'.$_TPLROOT['word']; // Canonical URL
-		else $_TPLROOT['page_link'] = '/tpl/'.$_TPLROOT['id'];
 
-		/** Events special... */
-		if ($_TPLROOT['id'] == 158) {
-			if (!empty($_GET['event_id'])) {
-				$_TPLROOT['page_title'] = Events::getEventName($_GET['event_id']);
-				$_TPLROOT['page_link'] = Events::getEventLink($_GET['event_id']);
-			} else {
-				$_TPLROOT['page_link'] = '/events/';
+	/** Load Template data */
+	// FIXME change this to use Smarty:: Function!
+	try {
+		$where = ( $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
+		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
+						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
+						write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
+
+		/** No Template found (404) */
+		if (empty($db->num($e)) || $db->num($e) === false)
+		{
+			if (isset($_GET['tpl'])) $_TPLROOT['id'] = (string)$_GET['tpl'];
+			if (isset($_GET['word'])) $_TPLROOT['word'] = (string)$_GET['word'];
+			$_TPLROOT['page_title'] = sprintf('Page «%s» not found', (isset($_GET['word']) ? (string)$_GET['word'] : $_GET['tpl']));
+			$_TPLROOT['page_link'] = (isset($_GET['word']) ? '/page/'.(string)$_GET['word'] : '/tpl/'.$_GET['tpl']);
+			$_TPLROOT['title'] = $_TPLROOT['page_title'];
+
+			/** Display 404 page */
+			$smarty->assign('tplroot', $_TPLROOT);
+			$smarty->display(SMARTY_404PAGE_TPL);
+			exit;
+		}
+
+		/** Template found */
+		else {
+			$_TPLROOT = $db->fetch($e);
+
+			/** Load required packages for the current template */
+			load_packages($_TPLROOT['id']);
+
+			/** Load Template menus */
+			$tpl_menus = load_navigation($_TPLROOT['id']);
+			if (is_array($tpl_menus)) $_TPLROOT['menus'] = $tpl_menus;
+
+			/** Assign Tpl Id, Template Titles and Template link */
+			if (!empty($_GET['word'])) $_GET['tpl'] = $_TPLROOT['id'];
+			if (!empty($_TPLROOT['title']) && $_TPLROOT['title'] !== null) $_TPLROOT['page_title'] = $_TPLROOT['title']; // HTML Page Title
+			if (!empty($_TPLROOT['word']) && $_TPLROOT['word'] !== null) $_TPLROOT['page_link'] = '/page/'.$_TPLROOT['word']; // Canonical URL
+			else $_TPLROOT['page_link'] = '/tpl/'.$_TPLROOT['id'];
+	
+			/** Events special... */
+			if ($_TPLROOT['id'] == 158) {
+				if (!empty($_GET['event_id'])) {
+					$_TPLROOT['page_title'] = Events::getEventName($_GET['event_id']);
+					$_TPLROOT['page_link'] = Events::getEventLink($_GET['event_id']);
+				} else {
+					$_TPLROOT['page_link'] = '/events/';
+				}
+			}
+			
+			/** Home(page) special... */
+			if ($_TPLROOT['word'] === 'home' || $_TPLROOT['id'] === 23) {
+				$_TPLROOT['page_title'] = ($user->is_loggedin() ? $_TPLROOT['page_title'] : 'Willkommen auf zorg');
+				$_TPLROOT['page_link'] = ' ';
+			}
+			
+			/** Immer zuletzt: Tpleditor special... */
+			if ($_GET['tpleditor'] == 1) {
+				$_TPLROOT['page_title'] = ($_GET['tplupd'] === 'new' ? 'Neues Template erstellen' : 'Template «'.$_TPLROOT['page_title'].'» bearbeiten');
+				$_TPLROOT['sidebar_tpl'] = null; // Clear an assigned Sidebar
 			}
 		}
-		
-		/** Home(page) special... */
-		if ($_TPLROOT['word'] === 'home' || $_TPLROOT['id'] === 23) $_TPLROOT['page_link'] = ' ';
 
 		$smarty->assign('tplroot', $_TPLROOT);
 	}
@@ -176,7 +214,6 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '') {
 
 	/**
 	 * Display the page
-	 * @TODO add a Canonical tag to each page: <link rel="canonical" href="{main url to page}">
 	 */
 	$smarty->display('file:layout/layout.tpl');
 

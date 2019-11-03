@@ -11,10 +11,10 @@
 	<meta name="description" content="Dein zorg Profil und deine Einstellungen bearbeiten.">
 	<meta name="robots" content="none, noarchive, nosnippet, noodp, notranslate, noimageindex">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}{$daytime}.css">
+	{*<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}{$daytime}.css">*}
 	{if $user->id > 0}
 	<link rel="stylesheet" href="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.css">
-	<script src="{if !$dev}https://code.jquery.com/jquery-3.3.1{else}{$smarty.const.JS_DIR}jquery-2.1.4{/if}.min.js" crossorigin="anonymous"></script>
+	<script src="{if !$dev}https://code.jquery.com/{else}{$smarty.const.JS_DIR}{/if}jquery-3.4.1.slim.min.js" integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
 	<script src="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.js"></script>
 	{/if}
 </head>
@@ -37,7 +37,7 @@
 	<header class="text-center"><h1>Nothing to see here</h1>&hellip;oder Du muesch zerscht iilogge:
 	<div class="row row-around">
 		<div class="col-4">
-			{include file='file:loginform.tpl'}
+			{include file='file:layout/partials/loginform.tpl'}
 		</div>
 	</div>
 {/if}

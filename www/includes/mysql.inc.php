@@ -81,9 +81,10 @@ class dbconn
 	/**
 	 * Führt ein SQL-Query aus
 	 *
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 method added
-	 * @since 2.0 06.11.2018 added mysql_affected_rows()-result for UPDATE-queries
+	 * @since 2.0 <inex> 06.11.2018 added mysql_affected_rows()-result for UPDATE-queries
+	 * @since 2.1 <inex> 07.08.2019 changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
 	 *
 	 * @param $sql string SQL
 	 * @param $file string Filename
@@ -110,10 +111,13 @@ class dbconn
 			$result = mysqli_query($this->conn, $sql); // DEPRECATED - PHP5 only
 			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
 			if ($sql_query_type == 'insert') {
-				return mysqli_insert_id($this->conn);
+				$sql_insert_id = mysqli_insert_id($this->conn);
+				return (is_numeric($sql_insert_id) && $sql_insert_id !== 0 ? $sql_insert_id : ($sql_insert_id !== false ? true : false));
 			} elseif ($sql_query_type == 'update') {
-				return mysqli_affected_rows($this->conn);
-			} elseif (!$result && $this->display_error == 1) {
+				$sql_affected_rows = mysqli_affected_rows();
+				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
+			} elseif ($result === false && $this->display_error == 1) {
+				/** Display MySQL-Error with context */
 				die($this->msg($sql,$file,$line,$funktion));
 			} else {
 				return $result;
@@ -255,26 +259,38 @@ class dbconn
 	}
 
 	/**
-	* Fügt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
-	 * @author biko
-	 * @return Prim?rschl?ssel des neuen Eintrags
-	 * @param $table (String) Tabelle, in die eingef?gt werden soll
-	 * @param $values (Array) Array mit Table-Feldern (als Key) und den Werten
-	 * @param $file (String) Datei des Aufrufes (optional, f?r Fehlermeldung)
-	 * @param $line (int) Zeile des Aufrufes (optional, f?r Fehlermeldung)
+	 * Fügt eine neue Row anhand eines assoziativen Arrays in eine DB-Table. Die Keys des Arrays entsprechen den Feldnamen
+	 *
+	 * @author [z]biko
+	 * @version 2.5
+	 * @since 1.0 method added
+	 * @since 2.0 <inex> 26.05.2019 improved code, additional parameter and logging
+	 * @since 2.5 <inex> 27.09.2019 added fix for "NOW()" instead of NOW()
+	 *
+	 * @param string $table Tabelle, in die eingefügt werden soll
+	 * @param array $values Array mit Table-Feldern (als Key) und den Werten
+	 * @param string $file (optinal) Datei des Aufrufes (optional, für Fehlermeldung)
+	 * @param int $line (optinal) Zeile des Aufrufes (optional, für Fehlermeldung)
+	 * @param string $funktion (optional) Funktion wo der Aufruf stattfand, für Fehlermeldung
+	 * @return Primärschlüssel des neuen Eintrags
 	 */
-	function insert($table, $values, $file='', $line=0) {
-		if (!is_array($values)) {
+	function insert($table, $values, $file='', $line=0, $funktion=null)
+	{
+		if (!is_array($values))
+		{
+			error_log(sprintf('[ERROR] <%s:%d> db->insert() Wrong Parameter type: %s', __METHOD__, __LINE__, $values));
 			user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
 		}
 
-		$sql =
-			"INSERT INTO ".$table." ("
-			.implode(",", array_keys($values)).") VALUES ('"
-			.implode("','", $values)."')"
-		;
-		$id = $this->query($sql, $file, $line);
-		return $id;
+		/** Prepare INSERT-Statement */
+		$insertKeys = '(`'.implode('`,`', array_keys($values)).'`)';
+		$insertValues = '("'.implode('","', $values).'")';
+		$insertValues = str_replace('"NOW()"', 'NOW()', $insertValues); // Fix "NOW()" => NOW() without quotes
+		$insertValues = str_replace('"NULL"', 'NULL', $insertValues); // Fix "NULL" => NULL without quotes
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Clean $insertValues: %s', __METHOD__, __LINE__, $insertValues));
+		$sql = sprintf('INSERT INTO `%s` %s VALUES %s', $table, $insertKeys, $insertValues);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s', __METHOD__, __LINE__, $sql));
+		return $this->query($sql, $file, $line, $funktion);
 	}
 
 	/**
@@ -309,7 +325,8 @@ class dbconn
 		/** Build 'UPDATE a SET b=c, d=e, ...' */
 		$sql = 'UPDATE '.$table.' SET ';
 		foreach ($values as $key => $val) {
-			if ((empty($val) || $val === null || $val === 'null') && $val !== 0 && $val !== '0' && $val !== '') $sql .= $key.'=NULL'; // handle NULL
+			if ((empty($val) || $val === null || strtolower($val) === 'null') && $val !== 0 && $val !== '0' && $val !== '') $sql .= $key.'=NULL'; // handle NULL
+			elseif (strtolower($val) === 'now()') $sql .= $key.'=NOW()'; // handle NOW()
 			elseif (is_numeric($val) && strlen((string)$val) === 10) $sql .= $key.'='.$val; // handle Timestamps
 			else $sql .= $key.'="'.$val.'"';
 			end($values); // @link https://stackoverflow.com/a/8780881/5750030 Add Separator if not last Array-Iteration

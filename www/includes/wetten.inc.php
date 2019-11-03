@@ -1,16 +1,25 @@
 <?php
+/**
+ * zorg Wettbüro
+ *
+ * @author freiländer
+ * @package zorg\Wetten
+ */
 
-
-
+/**
+ * Wettbüro Klasse
+ */
 class wetten {
 
-	function exec() {
-		global $db;
-		if(count($_POST)) {
-			if($_POST['wette'] && $_POST['einsatz'] && is_numeric($_POST['dauer']) && $_POST['titel']) {
-
-				//wette eintragen
-				$sql = "
+	function exec()
+	{
+		global $db, $user;
+		if(count($_POST))
+		{
+			if($_POST['wette'] && $_POST['einsatz'] && is_numeric($_POST['dauer']) && $_POST['titel'])
+			{
+				/** Neue Wette eintragen */
+				$sql = '
 				INSERT into wetten
 					(
 						wette,
@@ -23,18 +32,18 @@ class wetten {
 					)
 				VALUES
 					(
-						'".addslashes(strip_tags($_POST['wette'],"<a> <b> <i> <u> <img>"))."',
-						'".addslashes(strip_tags($_POST['einsatz'],"<a> <b> <i> <u> <img>"))."',
-						".$_SESSION['user_id'].",
-						now(),
-						'".$_POST['dauer']."',
-						'offen',
-						'".addslashes(strip_tags($_POST['titel']))."'
-					)";
+						"'.addslashes(strip_tags($_POST['wette'],"<a> <b> <i> <u> <img>")).'",
+						"'.addslashes(strip_tags($_POST['einsatz'],"<a> <b> <i> <u> <img>")).'",
+						'.$user->id.',
+						NOW(),
+						'.$_POST['dauer'].',
+						"offen",
+						"'.addslashes(strip_tags($_POST['titel'])).'"
+					)';
 				$db->query($sql,__FILE__,__LINE__);
 
-				//teilnehmer eintrag
-				$sql = "
+				/** Teilnehmer eintrag */
+				$sql = '
 				INSERT into wetten_teilnehmer
 					(
 						wetten_id,
@@ -44,31 +53,34 @@ class wetten {
 					)
 				VALUES
 					(
-						'".$db->lastid()."',
-						".$_SESSION['user_id'].",
-						'wetter',
+						'.$db->lastid().',
+						'.$user->id.',
+						"wetter",
 						NOW()
-					)";
+					)';
 				$db->query($sql,__FILE__,__LINE__);
 
-				header("Location: ".SITE_URL."/wetten.php?eintrag=1");
+				header('Location: '.getURL(false,false).'?eintrag=1');
+				exit;
 			}
 
+			/** Wette starten */
 			if ($_GET['id'] && $_POST['start'] && $_POST['dauer']) {
-				$sql = "
+				$sql = '
 				UPDATE wetten
 				SET
-					status = 'laeuft',
+					status = "laeuft",
 					start = NOW(),
-					ende = ADDDATE(DATE(NOW()),$_POST[dauer])
+					ende = ADDDATE(DATE(NOW()),'.$_POST['dauer'].')
 				WHERE
-					id = '$_GET[id]'
+					id = '.$_GET['id'].'
 					AND
-					user_id = '$_SESSION[user_id]'
-				";
+					user_id = '.$user->id;
 				$db->query($sql,__FILE__,__LINE__);
 
 			}
+			
+			/** Wette schliessen */
 			elseif ($_GET['id'] && $_POST['schliessen'])
 			{
 				$sql = "
@@ -86,7 +98,7 @@ class wetten {
 		}
 
 		if($_GET['do'] && $_GET['id']) {
-			//Wette als Wetter joinen
+			/** Wette als Wetter joinen */
 			if($_GET['do'] == "wjoin") {
 				$sql = "
 				SELECT
@@ -110,7 +122,7 @@ class wetten {
 					VALUES
 						(
 							'".$_GET['id']."',
-							'".$_SESSION['user_id']."',
+							'".$user->id."',
 							'wetter',
 							now()
 						)
@@ -119,7 +131,7 @@ class wetten {
 				}
 			}
 
-			//wette unjoinen
+			/** wette unjoinen */
 			if($_GET['do'] == "unjoin") {
 				$sql = "
 				DELETE FROM
@@ -132,7 +144,7 @@ class wetten {
 				$db->query($sql,__FILE__,__LINE__);
 			}
 
-			//wette als gegner joinen
+			/** wette als gegner joinen */
 			if($_GET['do'] == "gjoin") {
 				$sql = "
 				SELECT
@@ -156,7 +168,7 @@ class wetten {
 					VALUES
 						(
 							'".$_GET['id']."',
-							'".$_SESSION['user_id']."',
+							'".$user->id."',
 							'gegner',
 							now()
 						)
@@ -188,11 +200,8 @@ class wetten {
 		ORDER by w.datum DESC";
 		$result = $db->query($sql,__FILE__,__LINE__);
 		echo "
-		<br />
+		<h2>Offene Wetten</h2>
 		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr align='center'  bgcolor='".BORDERCOLOR."'><td colspan='6'>
-		<b>Offene Wetten</b>
-		</td></tr>
 		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
 		<b>Wettstarter</b>
 		</td><td>
@@ -273,11 +282,8 @@ class wetten {
 		ORDER by w.datum DESC";
 		$result = $db->query($sql,__FILE__,__LINE__);
 		echo "
-		<br />
+		<h2>Laufende Wetten</h2>
 		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr align='center'  bgcolor='".BORDERCOLOR."'><td colspan='6'>
-		<b>Laufende Wetten</b>
-		</td></tr>
 		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
 		<b>Wettstarter</b>
 		</td><td>
@@ -359,11 +365,8 @@ class wetten {
 		ORDER by w.datum DESC";
 		$result = $db->query($sql,__FILE__,__LINE__);
 		echo "
-		<br />
+		<h2>Abgeschlossene Wetten</h2>
 		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr align='center'  bgcolor='".BORDERCOLOR."'><td colspan='6'>
-		<b>Geschlossen Wetten</b>
-		</td></tr>
 		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
 		<b>Wettstarter</b>
 		</td><td>
@@ -424,66 +427,62 @@ class wetten {
 		</table>";
 	}
 	
-
-	function newform() {
-
-		echo "
-		<br />
-		<form action='$_SERVER[PHP_SELF]' method='post'>
-		<table class='border'>
-		<tr><td>
-		<b>Neue Wette eintragen</b><br />
-		<br />
-		<small>
-		Eine Wette wird erst gestartet<br />
-		 wenn der Wetter (das bist du, wenn <br />
-		 du eine Wette eintr�gst) die Wette startet.<br />
-		</small>
-		<br />
-		</td></tr>
+	/**
+	 * Formular um neue Wette einzutragen
+	 *
+	 * @version 1.1
+	 * @since 1.0 <cylander> method added
+	 * @since 1.1 <inex> 09.09.2019 changed echo to return() to assign output to Smarty
+	 */
+	function newform()
+	{
+		return '
+		<h2>Neue Wette eintragen</h2>
+		<small>Eine Wette wird erst gestartet wenn der Wetter (das bist DU wenn du eine Wette einträgst) die offene Wette startet.</small>
+		<form action="'.getURL(false,false).'" method="post">
+		<table class="border">
 		<tr><td>
 		<b>Wett Titel:<b> <br />
-		<input type='text' name='titel' class='text' size='40'>
+		<input type="text" name="titel" class="text" size="40">
 		</td></tr><tr><td>
 		<b>Wette: </b><br />
-		<textarea name='wette' cols='40' rows='5' class='text'></textarea>
+		<textarea name="wette" cols="40" rows="5" class="text"></textarea>
 		</td></tr><tr><td>
 		<b>Wetteinsatz: </b><br />
-		<textarea name='einsatz' cols='40' rows='3' class='text'></textarea>
+		<textarea name="einsatz" cols="40" rows="3" class="text"></textarea>
 		</td></tr><tr><td>
-		<b><small>G�ltigkeit (in Tagen ab Wettstart, 0 steht f�r unbegrenzt):</small></b>
+		<b><small>Gültigkeit (in Tagen ab Wettstart, 0 steht für unbegrenzt):</small></b>
 		<br />
-		<input type='text' name='dauer' class='text' size='4'>
+		<input type="text" name="dauer" class="text" size="4">
 		</td></tr><tr><td>
 		<br />
 		<small>
-		Eine Wette ist beendet wenn, beide Parteien <br />
-		sich auf einen Sieg oder eine Niederlage<br />
-		 einigen k�nnen.<br />
+		Eine Wette ist beendet wenn, <b>beide Parteien</b> <br />
+		sich auf einen <b>Sieg oder eine Niederlage einigen</b> können.<br />
 		</small>
 		<br />
-		<input type='submit' value='Wette eintragen' class='button'>
+		<input type="submit" value="Wette eintragen" class="button">
 		</td></tr>
 		</table>
-		</form>";
-
+		</form>';
 	}
 
-	function get_wette ($id) {
+	function get_wette ($id)
+	{
 		global $db, $user;
 		
 		$wetter = array();
 		$gegner = array();
 		$html = "";
 		
-		$sql = "
+		$sql = '
 		SELECT *
 			,UNIX_TIMESTAMP(datum) as datum
 			,UNIX_TIMESTAMP(start) as startdatum
 			,UNIX_TIMESTAMP(ende) as enddatum
 			,UNIX_TIMESTAMP(geschlossen) as geschlossen
 		FROM wetten
-		WHERE id = '$id'";
+		WHERE id = '.$id;
 		if(!$rs = $db->fetch($db->query($sql,__FILE__,__LINE__)))
 		{
 			die("<h2><font color='red'>Diese Wette gibts nicht!</font></h2>
@@ -492,29 +491,26 @@ class wetten {
 		else
 		{
 			
-			$sqli = "
+			$sqli = '
 			SELECT *
 			FROM wetten_teilnehmer
-			WHERE wetten_id = $rs[id]";
+			WHERE wetten_id = '.$rs['id'];
 			$resulti = $db->query($sqli,__FILE__,__LINE__);
 			
 			while ($rsi = $db->fetch($resulti)) {
 				if($rsi['seite'] == "wetter") {
 					array_push($wetter, $user->link_userpage($rsi['user_id']));
 					//$wetter .= " ".$rsi['clan_tag'].$rsi['username'];
-					if($rsi['user_id'] == $_SESSION['user_id']) {
-						$wjoin = 1;
-					}
+					if($rsi['user_id'] == $user->id) $wjoin = 1;
 				} else {
 					array_push($gegner, $user->link_userpage($rsi['user_id']));
 					//$gegner .= " ".$rsi['clan_tag'].$rsi['username'];
-					if($rsi['user_id'] == $_SESSION['user_id']) {
-						$gjoin = 1;
-					}
+					if($rsi['user_id'] == $user->id) $gjoin = 1;
 				}
 			}
 	
-			if($_SESSION['user_id'] != $rs['user_id'] && $user->typ != USER_NICHTEINGELOGGT) {
+			if($user->id != $rs['user_id'] && $user->typ != USER_NICHTEINGELOGGT)
+			{
 				if(!$gjoin && !$wjoin) {
 					$gg = "<a href='?id=$id&do=gjoin'>join</a>";
 					$ww = "<a href='?id=$id&do=wjoin'>join</a>";
@@ -536,11 +532,7 @@ class wetten {
 			<br />
 			<table width='600' cellpadding='10' cellspacing='0'>
 			<tr><td colspan='2'>
-			<h1>".stripslashes($rs['titel'])."</h1>
-			</td></tr><tr><td valign=\"top\">
-			<b>Wettnummer</b>
-			</td><td>
-			".$rs['id']."
+			<h2>Wette #".$rs['id']." &laquo;".stripslashes($rs['titel'])."&raquo;</h2>
 			</td></tr><tr><td valign=\"top\">
 			<b>Wettstarter</b>
 			</td><td>
@@ -578,8 +570,8 @@ class wetten {
 			</td></tr><tr><td valign=\"top\">
 			<b>Ende</b>
 			</td><td>";			
-			$html .= ($rs['enddatum'] < time() && $rs['status'] != 'geschlossen') ? "<font color='red'><b>".date("d.m.Y", $rs['enddatum'])."</b></font>" : "<b>".date("d.m.Y", $rs['enddatum'])."</b>";
-			$html .=  " (".$rs['dauer']." Tage ab ".date("d.m.Y", $rs['startdatum']).")
+			if ($rs['status'] === 'laeuft' || $rs['status'] === 'geschlossen') $html .= ($rs['enddatum'] < time() && $rs['status'] != 'geschlossen') ? "<font color='red'><b>".timename($rs['enddatum'])."</b></font>" : "<b>".timename($rs['enddatum'])."</b>";
+			$html .=  " (".$rs['dauer']." Tage".($rs['status'] === 'laeeft' || $rs['status'] === 'geschlossen' ? " ab ".datename($rs['startdatum']) : ' Dauer geplant').")
 			</td></tr><tr><td valign=\"top\">
 			<b>Status</b>
 			</td><td>";
@@ -588,57 +580,116 @@ class wetten {
 			switch ($rs['status'])
 			{
 				case 'offen':
-					if($_SESSION['user_id'] == $rs['user_id'])
+					if($user->id == $rs['user_id'])
 					{
-						$html .= "
-						<form action='$_SERVER[PHP_SELF]?id=$id' method='post'>
-							<input type='hidden' name='start' value=1>
-							<input type='hidden' name='dauer' value='$rs[dauer]'>
-							<input type='submit' value='starten' class='button'>
-						</form>";
+						$html .= '
+						<form action="'.getURL(true,false).'" method="post">
+							<input type="hidden" name="start" value="1">
+							<input type="hidden" name="dauer" value="'.$rs['dauer'].'">
+							<input type="submit" value="starten" class="button">
+						</form>';
 					}
 					else
 					{
-						$html .= $rs['status'];
+						$html .= '<span class="blink">'.$rs['status'].'</span>';
 					}
 					break;
 					
 				case 'laeuft':
-					if($_SESSION['user_id'] == $rs['user_id'])
+					if($user->id == $rs['user_id'])
 					{
 						
-						$html .= "
-						<form action='$_SERVER[PHP_SELF]?id=$id' method='post'>
-							<input type='hidden' name='schliessen' value=1>
-							<input type='submit' value='schliessen' class='button'>
-						</form>";
+						$html .= '
+						<form action="'.getURL(true,false).'" method="post">
+							<input type="hidden" name="schliessen" value="1">
+							<input type="submit" value="schliessen" class="button">
+						</form>';
 					}
 					else
 					{
-						$html .= $rs['status'];
+						$html .= '<span class="blink">'.$rs['status'].'</span>';
 					}
 					break;
 				
 				case 'geschlossen':
-					$html .= "<font color='green'><b>".$rs['status']." @ ".date("d.m.Y", $rs['geschlossen'])."</b></font>";
+					$html .= '<font color="green"><b>'.$rs['status'].' @ '.date("d.m.Y", $rs['geschlossen']).'</b></font>';
 					break;
 				
 				default:
-					$html .= $rs['status'];
+					$html .= '<span class="blink">'.$rs['status'].'</span>';
 			}
 	
-			$html .= "
+			$html .= '
 			</td></tr>
-			<tr><td colspan='2' align='center'>
-			<a href='wetten.php'>&lt;&lt; Zur&uuml;ck</a>
-			</td></tr>
-			</table>";
+			</table>';
+
+			$html .= '<a href="'.getURL(false, false).'">&lt;&lt; zur&uuml;ck</a>';
 			
 			echo $html;
 			
 		}
+	}
+	
+	/**
+	 * Titel einer Wette holen
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 <inex> 03.09.2019 method added
+	 *
+	 * @param int $wette_id ID der Wette
+	 * @return string Titel der Wette gemäss $wette_id
+	 */
+	public static function getTitle($wette_id)
+	{
+		global $db;
 
+		$wetteId = (int)$wette_id;
+		$sql = 'SELECT titel FROM wetten WHERE id='.$wetteId.' LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		if (!$rs) return false;
+		else return $rs['titel'];
+	}
+
+	/**
+	 * Starter einer Wette holen
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 <inex> 03.09.2019 method added
+	 *
+	 * @param int $wette_id ID der Wette
+	 * @return int User-ID des Users der die Wette $wette_id gestartet hat
+	 */
+	public static function getWettstarter($wette_id)
+	{
+		global $db;
+
+		$wetteId = (int)$wette_id;
+		$sql = 'SELECT user_id FROM wetten WHERE id='.$wetteId.' LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		if (!$rs) return false;
+		else return $rs['user_id'];
+	}
+
+	/**
+	 * Text der Wette holen
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 <inex> 03.09.2019 method added
+	 *
+	 * @param int $wette_id ID der Wette
+	 * @return string Text der Wette gemäss $wette_id
+	 */
+	public static function getWettetext($wette_id)
+	{
+		global $db;
+
+		$wetteId = (int)$wette_id;
+		$sql = 'SELECT wette FROM wetten WHERE id='.$wetteId.' LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		if (!$rs) return false;
+		else return $rs['wette'];
 	}
 }
-
-?>

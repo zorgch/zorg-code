@@ -1,11 +1,6 @@
-<?
-/* Ultra Debug:
-function shutdown(){
-  var_dump(error_get_last());
-} register_shutdown_function('shutdown');*/
-
+<?php
 /**
- * FILE INCLUDES
+ * File includes
  */
 if (!require_once 'config.php') die('ERROR: Configurations could NOT be loaded!'); // Load the general configurations
 if (!require_once __DIR__ .'/../includes/mobilez/mobilez.smarty.inc.php') die('ERROR: Smarty could NOT be loaded!'); // Load Smarty

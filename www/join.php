@@ -1,16 +1,28 @@
 <?php
 /**
+ * zooomclan Beitritts Test
+ *
+ * @package zorg\zooomclan
+ */
+
+/**
  * File includes
  * @include main.inc.php required
  */
 require_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Join();
 
 if($_POST['submit'] && $user->is_loggedin())
 {
 	$content = "Es gibt keine korrekten Antworten.\n"
-							."Die Zukunft haengt von den Entscheidungen ab, die Sie und ich in den naechsten Stunde, in der naechsten Woche, im naechsten "
-							."Jahrzehnt treffen werden.\n"
-							."Die genaue Auswertung ist mit dem noetigen Geschick auf www.zorg.ch zu finden!";
+				."Die Zukunft haengt von den Entscheidungen ab, die Sie und ich in den naechsten Stunde, in der naechsten Woche, im naechsten "
+				."Jahrzehnt treffen werden.\n"
+				."Die genaue Auswertung ist mit dem noetigen Geschick auf www.zorg.ch zu finden!";
 
 	//$header = "From: zorgsche kollektiv intelligenz <illuminatus@zorg.ch>\n";
 	//$sql = "SELECT * FROM user WHERE id = '$_SESSION[user_id]'";
@@ -24,7 +36,7 @@ if($_POST['submit'] && $user->is_loggedin())
 	$insert = $db->query($sql,__FILE__,__LINE__);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $sql: %s', 'join.php', __LINE__, $sql));
 	//mail($rs['email'],'[zorg] Auswertung des Beitrittstests',$content, $header);
-	$subject = '[zorg] Auswertung des Beitrittstests';
+	$subject = '[zooomclan] Auswertung des Beitrittstests';
 	$notification_status = $notification->send($user->id, 'messagesystem', ['from_user_id'=>BARBARA_HARRIS, 'subject'=>$subject, 'text'=>$content, 'message'=>$content]);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', 'join.php', __LINE__, ($notification_status?'true':'false')));
 	Header ("Location: https://www.illuminatiofficial.org/");
@@ -198,18 +210,19 @@ $q14 = "14) F&uuml;ge den N&auml;chsten Begriff bei:";
 
 $a14 = array("nicht Euklidische Geometrie", "nicht Newtonsche Physik", "nicht Aristotelische Logik");
 
-
+/** Layout */
+$model->showOverview($smarty);
+$smarty->display('file:layout/head.tpl');
 
 if($user->is_loggedin())
 {
-	$smarty->assign('tplroot', array('page_title' => 'zooomclan Beitritts Test', 'page_link' => $_SERVER['PHP_SELF']));
-	$smarty->display('file:layout/head.tpl');
-	echo menu('zorg');
-	echo menu('user');
+	//$smarty->assign('tplroot', array('page_title' => 'zooomclan Beitritts Test', 'page_link' => $_SERVER['PHP_SELF']));
+	//echo menu('zorg');
+	//echo menu('user');
 
 	echo(
 
-	 "<br /><b>zooomclan Beitritts Test</b>"
+	 "<h2>zooomclan Beitritts Test</h2>"
 
 	."<br /><br />"
 
@@ -318,9 +331,11 @@ if($user->is_loggedin())
 	$smarty->display('file:layout/footer.tpl');
 } else {
 	http_response_code(403); // Set response code 403 (forbidden)
-	$smarty->assign('tplroot', array('page_title' => 'zooomclan Beitritts Test', 'page_link' => $_SERVER['PHP_SELF']));
-	$smarty->display('file:layout/head.tpl');
-	echo menu('zorg');
-	echo menu('user');
-	echo 'Please login!';
+	//$smarty->assign('tplroot', array('page_title' => 'zooomclan Beitritts Test', 'page_link' => $_SERVER['PHP_SELF']));
+	//$smarty->display('file:layout/head.tpl');
+	//echo menu('zorg');
+	//echo menu('user');
+	echo 'Um den Beitritts Test zu machen, musst Du die erste Prüfung bestehen: please login!';
 }
+
+$smarty->display('file:layout/footer.tpl');

@@ -77,8 +77,7 @@ include_once( __DIR__ . '/util.inc.php');
  * 
  * @author Milamber
  * @version 1.0
- * @package zorg
- * @subpackage STL
+ * @package zorg\Games\STL
  */
 class stl {
 
@@ -483,7 +482,8 @@ class stl {
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return void
 	 */
-	function game() {
+	function game()
+	{
 		global $db, $user;
 		$sql = 'SELECT * FROM stl WHERE game_id = '.$this->data['stl']['game_id'];
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
