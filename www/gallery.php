@@ -6,33 +6,40 @@
  * Folgende Tables gehören zur Gallery:
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
  *
- * @author [z]biko, IneX
- * @package zorg
- * @subpackage Gallery
+ * @author [z]biko
+ * @author IneX
+ * @package zorg\Gallery
  * @date 01.01.2002
  * @version 1.6
  * @since 1.0 01.01.2002 file added
  * @since 1.5 04.11.2013 Gallery nur noch für eingeloggte User anzeigen
  * @since 1.6 11.09.2018 APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
  */
+
 /**
  * File includes
  * @include main.inc.php
+ * @include core.model.php
  */
 require_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Gallery();
 
 // fuer mod_rewrite solltes
 //header("Cache-Control: no-store, no-cache, must-revalidate");
 //echo head(29, 'gallery');
-$smarty->assign('tplroot', array('page_title' => 'gallery'));
-$smarty->display('file:layout/head.tpl');
-
-echo menu("zorg");
-echo menu("gallery");
+//$smarty->assign('tplroot', array('page_title' => 'gallery'));
+//echo menu("zorg");
+//echo menu("gallery");
 
 /** Pic-ID zu Album-ID auflösen */
-if(!empty($_GET['albID'])) $albumId = $_GET['albID'];
-if((!empty($_GET['picID']) && $_GET['picID'] > 0) && empty($albumId)) $albumId = pic2album($_GET['picID']);
+$getAlbId = (int)$_GET['albID'];
+$getPicId = (int)$_GET['picID'];
+$album_id = $model->setAlbumId($getAlbId, $getPicId);
 
 /**
  * [Bug #708] Gallery nur für eingeloggte User anzeigen
@@ -41,78 +48,106 @@ if((!empty($_GET['picID']) && $_GET['picID'] > 0) && empty($albumId)) $albumId =
  */
 if ($user->typ == USER_NICHTEINGELOGGT && $albumId != APOD_GALLERY_ID)
 {
-	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => false]);
-	$smarty->display('file:layout/elements/block_error.tpl');
+	$model->showOverview($smarty);
+	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
+	$smarty->display('file:layout/head.tpl');
 
 /** Gallery / Pics anzeigen */
 } else {
 
-	// Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen...
-	if ($_GET['do'] && $user->typ == USER_NICHTEINGELOGGT) user_error( t('permissions-insufficient', 'gallery', $_GET['do']), E_USER_ERROR);
-	switch ($_GET['do']) {
-		case "benoten":
-	  	 	doBenoten($_POST['picID'], $_POST['score']);
-	  	 	break;
-	  	 	
-	  	 case "mypic":
-	  	 	// Ein <input type="image" ...> übergibt die X & Y Positionen via "inputName_x" & "inputName_y"
-	  	 	if ($_POST['picID'] > 0 && $_POST['mypic_x'] <> "" && $_POST['mypic_y'] <> "") {
-	  	 		//DEBUGGING: print_r($_POST);
-	  	 		doMyPic($_POST['picID'], $_POST['mypic_x'], $_POST['mypic_y']);
-	  	 	}
-	  	 	break;
+	if (!empty($_GET['do']))
+	{
+		$doAction = (string)$_GET['do'];
+		// Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen...
+		if ($user->is_loggedin())
+		{
+			switch ($doAction)
+			{
+				case 'benoten':
+					 	doBenoten($_POST['picID'], $_POST['score']);
+					 	break;
+	
+					 case 'mypic':
+					 	// Ein <input type="image" ...> übergibt die X & Y Positionen via "inputName_x" & "inputName_y"
+					 	if ($_POST['picID'] > 0 && $_POST['mypic_x'] <> "" && $_POST['mypic_y'] <> "") {
+					 		doMyPic($_POST['picID'], $_POST['mypic_x'], $_POST['mypic_y']);
+					 	}
+					 	break;
+			}
+		} else {
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
+		}
+	
+		// Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen
+		if ($user->typ >= USER_MEMBER)
+		{
+			switch ($doAction)
+			{
+				case 'editAlbum':
+					$res = doEditAlbum($album_id, $_POST['frm']);
+					if (!$album_id) $album_id = $res['id'];
+					break;
+				case 'editAlbumFromEvent':
+					$res = doEditAlbumFromEvent($album_id, $_POST['event']);
+					if (!$album_id) $album_id = $res['id'];
+					break;
+				case 'delAlbum':
+					$res = doDelAlbum($album_id, $_POST['del']);
+					$_GET['show'] = $res['show'];
+					break;
+				case 'zensur':
+					doZensur($getPicId);
+					break;
+				case 'delPic':
+					$res = doDelPic($_POST['picID']);
+					break;
+				case 'upload':
+					$res = doUpload($album_id, $_POST['frm']);
+					break;
+				case 'delUploadDir':
+					$res = doDelUploadDir($_POST['frm']['folder']);
+					break;
+				case 'mkUploadDir':
+					$res = doMkUploadDir($_POST['frm']);
+					break;
+				case 'editFotoTitle':
+					$res = doEditFotoTitle($getPicId, $_POST['frm']);
+					break;
+				case 'doRotatePic':
+					$res = doRotatePic($getPicId, $_POST['rotatedir']);
+					break;
+				/*case 'markieren':
+					doMark($getPicId);
+					break;*/
+			}
+		} else {
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
+		}
+	
+		unset($_GET['do']);
+		$doAction = null;
 	}
-	
-	
-	// Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen
-	if ($_GET['do'] && $user->typ != USER_MEMBER) user_error( t('permissions-insufficient', 'gallery', $_GET['do']), E_USER_ERROR);
-	
-	switch ($_GET['do']) {
-	  case "editAlbum":
-	     $res = doEditAlbum($_GET['albID'], $_POST['frm']);
-	     if (!$_GET['albID']) $_GET['albID'] = $res['id'];
-	     break;
-	  case "editAlbumFromEvent":
-	     $res = doEditAlbumFromEvent($_GET['albID'], $_POST['event']);
-	     if (!$_GET['albID']) $_GET['albID'] = $res['id'];
-	     break;
-	  case "delAlbum":
-	     $res = doDelAlbum($_GET['albID'], $_POST['del']);
-	     $_GET['show'] = $res['show'];
-	     break;
-	  case "zensur":
-	     doZensur($_GET['picID']);
-	     break;
-	  case "delPic":
-	     $res = doDelPic($_POST['picID']);
-	     break;
-	  case "upload":
-	     $res = doUpload($_GET['albID'], $_POST['frm']);
-	     break;
-	  case "delUploadDir":
-	     $res = doDelUploadDir($_POST['frm']['folder']);
-	     break;
-	  case "mkUploadDir":
-	     $res = doMkUploadDir($_POST['frm']);
-	     break;
-	  case "editFotoTitle":
-	  	$res = doEditFotoTitle($_GET['picID'], $_POST['frm']);
-	  	break;
-	  case "doRotatePic":
-	  	$res = doRotatePic($_GET['picID'], $_POST['rotatedir']);
-	  	break;
-	  /*case "markieren":
-	     doMark($_GET['picID']);
-	     break;*/
-	}
-	
-	unset($_GET['do']);
-	
-	switch ($_GET['show']) {
-	  case "editAlbum": editAlbum($_GET['albID'], $_GET['do'], $res['state'], $res['error'], $res['frm']); break;
-	  case "albumThumbs": albumThumbs($_GET['albID'], $_GET['page']); break;
-	  case "pic": pic($_GET['picID']); break;
-	  default: echo '<br />'.galleryOverview($res['state'], $res['error']);
+
+	switch ($_GET['show'])
+	{
+		case 'editAlbum':
+			$model->showAlbumedit($smarty, $album_id);
+			$smarty->display('file:layout/head.tpl');
+			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']);
+			break;
+		case 'albumThumbs':
+			$model->showAlbum($smarty, $album_id);
+			albumThumbs($album_id, (int)$_GET['page']);
+			break;
+		case 'pic':
+			$model->showPic($smarty, $user, $getPicId, $album_id);
+			$smarty->display('file:layout/head.tpl');
+			pic($getPicId);
+			break;
+		default:
+			$model->showOverview($smarty);
+			$smarty->display('file:layout/head.tpl');
+			echo galleryOverview($res['state'], $res['error']);
 	}
 
 }

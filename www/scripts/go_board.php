@@ -1,8 +1,4 @@
-<?php function shutdown(){
-  var_dump(error_get_last());
-} register_shutdown_function('shutdown');
-// ^- Put this at the very beginning of the php file
-
+<?php
 /**
  * GO Board
  * 
@@ -13,13 +9,13 @@
  * @author [z]bert, [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  * 
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  */
+
 /**
  * File Includes
  * @include go_game.inc.php

@@ -1,6 +1,12 @@
 <?php
 /**
- * File Includes
+ * zorg Custom Smarty Functions, Variables, Modifiers & Blocks
+ *
+ * @package zorg\Smarty\Templates
+ */
+
+/**
+ * File includes
  */
 include_once( __DIR__ .'/addle.inc.php');
 include_once( __DIR__ .'/apod.inc.php');
@@ -198,43 +204,55 @@ function var_request ()
 	/**
 	 * HTML Elemente
 	 */
-    function smarty_html_link ($params, $content, &$smarty, &$repeat) { // gibt einen link aus
-    	if (!$content) $content = 'link';
+	/**
+	 * gibt einen link aus
+	 *
+	 * @version 1.0
+	 * @since 1.0 <biko> function added
+	 */
+	function smarty_html_link ($params, $content, &$smarty, &$repeat) {
+		if (!$content) $content = 'link';
 		return '<a href="'.smarty_link($params).'">'.$content.'</a>';
-    }
-    function smarty_html_button ($params, $content, &$smarty, &$repeat) { // gibt einen button als link aus
-    	return '<input type="button" class="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'">';
-    }
-    function smarty_form ($params, $content, &$smarty, &$repeat) {
-  	// returns an opening-tag for a html-form. action is always 'smarty.php'
-  	// if you set the parameter 'formid', a hidden input with this formid is added.
-      if (!$_GET['tpl']) $_GET['tpl'] = '0';
+	}
+	/**
+	 * gibt einen button als link aus
+	 *
+	 * @version 1.1
+	 * @since 1.0 <biko> function added
+	 * @since 1.1 <inex> 29.09.2019 added optional $params[class] setting
+	 */
+	function smarty_html_button ($params, $content, &$smarty, &$repeat) {
+		return '<input type="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'" '.($params['class'] ? 'class="'.$params['class'].'"' : '').'>';
+	}
+	/**
+	 * HTML <form>-tag
+	 * returns an opening-tag for a html-form. action is always 'smarty.php'
+	 * if you set the parameter 'formid', a hidden input with this formid is added.
+	 *
+	 * @version 1.1
+	 * @since 1.0 <biko> function added
+	 * @since 1.1 <inex> 29.09.2019 added autocomplete=off as default
+	 */
+	function smarty_form ($params, $content, &$smarty, &$repeat)
+	{
+		$ret = null;
 
-      if ($params['url']) {
-    	$url = $params['url'];
-      }elseif ($params['action']) {
-    	$url = '/actions/'.$params['action'].'?'.url_params();
-      }else{
-    	$url = "/?".url_params();
-    	if ($params['param']) {
-       	$url .= '&'.$params['param'];
-    	}
-      }
+		if (!$_GET['tpl']) $_GET['tpl'] = '0';
 
-      $ret = '<form method="post" action="'.$url.'" ';
+		if ($params['url']) $url = $params['url'];
+		elseif ($params['action']) $url = '/actions/'.$params['action'].'?'.url_params();
+		else $url = "/?".url_params();
 
-      if ($params['upload']) {
-         $ret .= 'enctype="multipart/form-data"';
-      }
-      $ret .= '>';
-      if ($params['formid']) {
-         $ret .= '<input name="formid" type="hidden" value="'.$params['formid'].'">';
-      }
+		if ($params['param']) $url .= '&'.$params['param'];
 
-      $ret .= $content;
-      $ret .= "</form>";
+		$ret .= '<form method="post" action="'.$url.'" autocomplete="off" ';
+		if ($params['upload']) $ret .= 'enctype="multipart/form-data"';
+		$ret .= '>';
+		if ($params['formid']) $ret .= '<input name="formid" type="hidden" value="'.$params['formid'].'">';
+		$ret .= $content;
+		$ret .= '</form>';
 
-      return $ret;
+		return $ret;
     }
 
 	function smarty_table ($params, $content, &$smarty, &$repeat) {
@@ -434,42 +452,56 @@ function var_request ()
 								]);
 		return $smarty->fetch('file:email/verein/elements/block_telegrambutton.tpl');
 	}
-  
+
 	/**
-	 * Smarty Menu
+	 * Smarty Menubar
+	 *
+	 * Usage: 	{menubar}
+	 *				{menuitem tpl=x group="x"}text{/menuitem}
+	 *				{menuitem...}
+	 *			{/menubar}
+	 *
+	 * @author [z]biko
+	 * @version 2.0
+	 * @since 1.0 <biko> migrated from smarty_menu.php (smarty_menu_old)
+	 * @since 2.0 <inex> 02.07.2019 moved inline HTML to block_menubar.tpl, output changed to Array
+	 *
+	 * @see smarty_menuitem()
+	 * @return object
 	 */
-	function smarty_menubar ($params, $content, &$smarty, &$repeat) {
+	function smarty_menubar ($params, $content, &$smarty, &$repeat)
+	{
 		global $user;
-
 		$vars = $smarty->get_template_vars();
-		if (!$repeat) {  // closing tag
-			$out = '';
-			$out .=
-				'</div>'.
-				'<div class="menu" align="center" width="100%" ';
 
-					if (tpl_permission($vars['tpl']['write_rights'], $vars['tpl']['owner'])) {
-						$out .=
-							'onDblClick="document.location.href=\''.edit_link_url($vars['tpl']['id']).'\';"';
-					}
-
-			$out .=
-				'>'.
-					'<a class="left">&nbsp;</a>'.
-					preg_replace('/<\/a> *<a/', '</a><a', trim($content)).
-					'<a class="right">&nbsp;</a>'.
-				'</div>'.
-				'<div '.BODYSETTINGS.'>'
-			;
-
-			return $out;
+		/** One iteration only */
+		if (!$repeat)
+		{
+			$smarty->assign('menubar_content', [
+								 'edit_link' => (tpl_permission($vars['tpl']['write_rights'], $vars['tpl']['owner']) ? edit_link_url($vars['tpl']['id']) : null )
+								,'items' => preg_replace('/<\/a> *<a/', '</a><a', trim($content))
+							]);
+			return $smarty->fetch('file:layout/elements/block_menubar.tpl');
 		}
 	}
-	
+	/**
+	 * Smarty Menubar Menu-Item Link
+	 *
+	 * Usage: {menuitem tpl=TplID-Link|url=URL-Link group="all|guest|user|member"}menuitem text{/menuitem}
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 <biko> migrated from smarty_menu.php (smarty_menu_old)
+	 *
+	 * @see USER_MEMBER, smarty_menubar()
+	 * @return string
+	 */
 	function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
 		global $user;
 
-		if (!$repeat) {  // closing tag
+		/** One iteration only */
+		if (!$repeat)
+		{
 			if (!isset($params['group'])) $params['group'] = "all";
 			if(
 				$params['group'] == "all"
@@ -477,7 +509,6 @@ function var_request ()
 				|| $params['group'] == "user" && $user->id
 				|| $params['group'] == "member" && $user->typ==USER_MEMBER
 			) {
-
 				if (!$content) $content = "???";
 				return '<a href="'.smarty_link($params).'">'.trim($content).'</a>';
 			}
@@ -822,54 +853,75 @@ function smarty_peter ($params, &$smarty) {
 /**
  * Commenting System und Forum Threads
  */
-	function smarty_commentingsystem($params) {
+	function smarty_commentingsystem($params)
+	{
 		Forum::printCommentingSystem($params['board'], $params['thread_id']);
 	}
-    function smarty_comments ($params) {
-    	global $smarty, $user;
+	function smarty_comments ($params)
+	{
+		global $smarty, $user;
 
-    	$tplvars = $smarty->get_template_vars();
-    	if (!$params['board'] || !$params['thread_id']) {
+		$tplvars = $smarty->get_template_vars();
+		if (!$params['board'] || !$params['thread_id'])
+		{
  			$params['board'] = 't';
  			$params['thread_id'] = $tplvars['tpl']['id'];
  		}
 
-		if (Thread::hasRights($params['board'], $params['thread_id'], $user->id)) {
-		      if ($user->show_comments) {
-		         if ($tplvars['tpl']['id'] == $_GET['tpl']) {
-		            echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%" class="small border" align="right">'.
-		                 '<a href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=0">'.
-		                 'Kommentare ausblenden</a>'.
-		                 '</td></tr><tr><td>';
-		            Forum::printCommentingSystem($params['board'], $params['thread_id']);
-		            echo '</td></tr></table>';
-
-		            return "";
-		         }else{
-		            return '<p><font color="green"><i><b>Kommentare</b> werden in Includes ausgeblendent. '
-		                  .'Klick <a href="?tpl='.$tplvars['tpl']['id'].'">hier</a>,'
-		                  .'um sie zu sehen</i></font></p>';
-		         }
-
-		      }else{
-		         return '<table cellspacing="0" width="100%"><tr><td width="100%" class="small" align="right">'.
-		                '<font color="green"><b>Kommentare</b> sind zur Zeit ausgeblendet. '.
-		                '<a href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=1">'.
-		                'Kommentare einblenden</a></font></td></tr></table>';
-		      }
+		if (Thread::hasRights($params['board'], $params['thread_id'], $user->id))
+		{
+			/** Check if Template is not included in another Template */
+			if ($tplvars['tpl']['id'] == $_GET['tpl'])
+			{
+				/** Check User preferences to show/hide Comments */
+				if ($user->is_loggedin() && $user->show_comments)
+				{
+					echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%" class="tiny border">'.
+					 '<a class="threading switch collapse" href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=0">'.
+					 '<span style="padding-left:20px">Kommentare ausblenden</span></a>'.
+					 '</td></tr><tr><td>';
+					Forum::printCommentingSystem($params['board'], $params['thread_id']);
+					echo '</td></tr></table>';
+	
+					return '';
+				}
+				/** User preferences = hide Comments */
+				elseif ($user->is_loggedin()) {
+					return '<table width="100%" cellspacing="0" cellpadding="0"><tr><td width="100%" class="tiny border">'.
+							'<a class="threading switch expand" href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=1">'.
+							'<span style="padding-left: 20px;font-weight: 400;color: green;">Kommentare einblenden</span></a>'.
+							'</td></tr><tr><td>';
+				}
+				/** For Guests, just show Comments (if permissions allow it) */
+				else {
+					echo '<h3>Comments</h3>';
+					echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%">';
+					Forum::printCommentingSystem($params['board'], $params['thread_id']);
+					echo '</td></tr></table>';
+				}
+			}
+			/** On included Templates, hide Comments */
+			else {
+				return '<p><span style="padding-left: 20px;font-style: italic;font-weight: 400;color: green;">Kommentare werden beim include ausgeblendent. '
+						.'<a href="?tpl='.$tplvars['tpl']['id'].'">Klick hier um sie zu sehen</a></span></p>';
+			}
 		}
-    }
-    function smarty_latest_threads ($params) {
-	   return Forum::getLatestThreads();
+		/** Access denied: don't show Comments */
+		else {
+			return '';
+		}
+	}
+	function smarty_latest_threads ($params) {
+	return Forum::getLatestThreads();
 	}
 	function smarty_latest_comments ($params) {
-	   return Forum::getLatestComments($params['anzahl'], $params['title'], $params['board']);
+	return Forum::getLatestComments($params['anzahl'], $params['title'], $params['board']);
 	}
 	function smarty_3yearold_threads ($params) {
-	   return Forum::get3YearOldThreads();
+	return Forum::get3YearOldThreads();
 	}
 	function smarty_unread_comments ($params) {
-	   return Forum::getLatestUnreadComments($params['title'], $params['board']);
+	return Forum::getLatestUnreadComments($params['title'], $params['board']);
 	}
 
 	/**
@@ -960,59 +1012,96 @@ function smarty_peter ($params, &$smarty) {
 /**
  * Menu
  */
-	function smarty_menu ($params, &$smarty) {
+ 	/**
+	 * Display a navigation menu using {menu name=menubar}
+	 *
+	 * @version 2.0
+	 * @since 1.0 <biko> function added
+	 * @since 2.0 <inex> 30.09.2019 adjusted with new responsive HTML Layout structure
+	 */
+	function smarty_menu ($params, &$smarty)
+	{
 		global $db, $user;
 
 		$vars = $smarty->get_template_vars();
 
-		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id']) {
+		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id'])
+		{
 			if ($params['tpl']) {
 				$e = $db->query('SELECT * FROM templates WHERE id="'.$params['tpl'].'"', __FILE__, __LINE__, __METHOD__);
 				$d = $db->fetch($e);
-				if (tpl_permission($d['read_rights'], $d['owner'])) {
-					return $smarty->fetch("tpl:$params[tpl]");
-				}else{
-					return '';
+				if (tpl_permission($d['read_rights'], $d['owner']))
+				{
+					return $smarty->fetch('tpl:'.$params['tpl']);
 				}
-			}else{
+			} else {
 				$e = $db->query('SELECT m.* FROM menus m, templates t
 								 WHERE name="'.$params['name'].'" AND t.id = m.tpl_id', __FILE__, __LINE__, __METHOD__);
 				$d = $db->fetch($e);
-				if ($d && tpl_permission($d['read_rights'], $d['owner'])) {
+				if ($d && tpl_permission($d['read_rights'], $d['owner']))
+				{
 					return $smarty->fetch("tpl:$d[tpl_id]");
-				}elseif ($d) {
-					return '';
-				}else{
+				//}elseif ($d) {
+					//return '</nav>';
+				} else {
 					return '<font color="red"><b>[Menu "'.$params['name'].'" not found]</b></font><br />';
 				}
 			}
 		}
 	}
 
-	function smarty_menuname_exec ($name) {
+	/**
+	 * Add or remove a Menu-Entry from the database table `menus`
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 <biko> function added
+	 * @since 2.0 <inex> 16.09.2019 function updated for zorg v4 to prevent updating new 'id' table row
+	 *
+	 * @param string $name Name of a Menubar (e.g. 'zorg'), containing a {menubar}{menuitem...}{/menubar}-structure
+	 */
+	function smarty_menuname_exec ($name)
+	{
 		global $db, $smarty;
 
 		$vars = $smarty->get_template_vars();
-		$tpl = $vars['tpl']['id'];
+		$tpl_id = $vars['tpl']['id'];
 
-		$name = htmlentities($name, ENT_QUOTES);
-		$name = explode(' ', $name);
+		$namePlain = htmlentities($name, ENT_QUOTES); // remove any html from the menuname
+		$nameArray = explode(' ', $namePlain); // convert menuname into Array
 
-		for ($i=0; $i<sizeof($name); $i++) {
+		/*for ($i=0; $i<sizeof($name); $i++) {
 			if ($it) {
 				$menu = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$name[$i].'"', __FILE__, __LINE__, __METHOD__));
 				if ($menu && $menu['tpl_id'] != $tpl) return 'Menuname "'.$name[$i].'" existiert schon und wurde nicht registriert.<br />';
 				unset($name[$i]);
 			}
+		}*/
+		foreach ($nameArray as $it)
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> smarty_menuname_exec: "%s" on tpl_id %d', __FUNCTION__, __LINE__, $it, $tpl_id));
+			if (!empty($it)) {
+				/** Check if menu with same name already exists... */
+				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$it.'"', __FILE__, __LINE__, __FUNCTION__));
+				//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists Query: %s', __FUNCTION__, __LINE__, print_r($menuExists,true)));
+				if ($menuExists !== false && $menuExists['tpl_id'] === $tpl_id)
+				{
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: TRUE (tpl_id: %d)', __FUNCTION__, __LINE__, $tpl_id));
+					//return sprintf('Menuname "%s" existiert schon mit der id#%d und wurde deshalb nicht gespeichert!<br>Bitte anderen Namen verwenden.', $it, $tpl_id);
+				}
+
+				/** Menu mit $name gibt es noch nicht, deshlab erstellen wir es neu */
+				else {
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: FALSE (adding new)', __FUNCTION__, __LINE__));
+					$db->query('INSERT INTO menus (tpl_id, name) VALUES ('.$tpl_id.', "'.$it.'")', __FILE__, __LINE__, __FUNCTION__);
+					//$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => sprintf('Neues Menu "%s" erfolgreich gespeichert', $it), 'message' => 'Du kannst es jetzt im Template-Editor einer Page auswählen.']);
+				}
+			}
 		}
 
-		$db->query('DELETE FROM menus WHERE tpl_id="'.$tpl.'"', __FILE__, __LINE__, __METHOD__);
-		foreach ($name as $it) {
-			$db->query('INSERT INTO menus (tpl_id, name) VALUES ("'.$tpl.'", "'.$it.'")', __FILE__, __LINE__, __METHOD__);
-		}
 		return '';
 	}
-	
+
 	/**
 	 * Smarty Array "$smarty_menus"
 	 *
@@ -1021,7 +1110,7 @@ function smarty_peter ($params, &$smarty) {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 30.09.2018 method added
+	 * @since 1.0 <inex> 30.09.2018 function added
 	 */
 	function smarty_get_menus()
 	{
@@ -1236,17 +1325,17 @@ function smarty_menuname ($name, &$smarty) {
 		extract($params);
 
 		if (empty($var)) {
-			$smarty->trigger_error("assign_array: missing 'var' parameter");
+			trigger_error("assign_array: missing 'var' parameter");
 			return;
 		}
 
 		if (!in_array('value', array_keys($params))) {
-			$smarty->trigger_error("assign_array: missing 'value' parameter");
+			trigger_error("assign_array: missing 'value' parameter");
 			return;
 		}
 
 		if (!in_array('array', array_keys($params)) XOR !in_array('range', array_keys($params))) {
-			$smarty->trigger_error("assign_array: missing 'value=array()' or 'value=range()'");
+			trigger_error("assign_array: missing 'value=array()' or 'value=range()'");
 			return;
 		}
 
@@ -1454,7 +1543,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @var array
 	 */
     $zorg_php_functions = array(
-  								 'menuname' => [ 'smarty_menuname', 'menuname', 'Layout', 'Compiler Funktion: echo() des Menu Mamens (retourniert PHP)', false, true ] // Compiler Funktion
+  								 'menuname' => [ 'smarty_menuname', 'menuname', 'Layout', 'Compiler Funktion: echo() eines Menus basierend auf dessen Menuname (retourniert PHP)', false, true ] // Compiler Funktion
 								,'addle_highscore' => [ 'smarty_addle_highscore', 'addle_highscore', 'Addle', 'Addle', false, false ]
 								,'apod' => [ 'smarty_apod', 'apod', 'APOD', 'Astronomy Picture of the Day (APOD)', false, false ]
 								,'assign_chatmessages' => [ 'smarty_assign_chatmessages', 'assign_chatmessages', 'Chat', 'Chat', false, false ]
@@ -1532,8 +1621,8 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @global object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_arrays($php_vars_array)
 	{
@@ -1564,8 +1653,8 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @global object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_modifiers($php_modifiers_array)
 	{
@@ -1598,8 +1687,8 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @global object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_blocks($php_blocks_array)
 	{
@@ -1635,8 +1724,8 @@ function smarty_menuname ($name, &$smarty) {
 	 * @since 1.0 function added
 	 * @since 2.0 added support for registering array($class, $method)
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @global object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_functions($php_functions_array)
 	{

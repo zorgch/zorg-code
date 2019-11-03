@@ -8,13 +8,23 @@
  * GO benutzt folgende Tabellen in der DB:
  *		xy, xy_dwz, ...
  *
- * @package zorg
- * @subpackage GO
+ * @author [z]bert
+ * @author [z]domi
+ * @package zorg\Games\Go
  */
+
 /**
+ * File includes
  * @include main.inc.php
+ * @include core.model.php
  */
 include_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Go();
 
 /**
  * GO Klasse
@@ -27,7 +37,7 @@ include_once( __DIR__ .'/includes/main.inc.php');
  * @package zorg
  * @subpackage GO
  */
-class go {
+class Go {
 	
 	/**
 	 * Feldgrösse Standartwert
@@ -97,7 +107,7 @@ class go {
 
 header("Content-Type: Image/PNG");
 
-$go = new go(13);
+$go = new Go(13);
 $go->stone(40,40,0);
 $go->stone(40,120,1);
 $go->display();

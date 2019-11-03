@@ -1,5 +1,5 @@
 {*
-	@TODO merge Forum::getFormEdit() into tpl/commentform.tpl
+	@TODO merge Forum::getFormEdit() into /templates/layout/partials/commentform.tpl
 	@TODO add Fileicons to File-Links: <span class="file-icon file-icon-xs" data-type="' + fileMime + '">' + item.original.fileName + '</span>
 	@TODO make quill.day.css & quill.night.css for Zorg Night-Layout
 	@TODO add User Profilepic to Tribute @mention menu?

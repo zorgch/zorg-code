@@ -1,24 +1,53 @@
 <?php
 /**
+ * SETI@Home Stats for zooomclan
+ *
+ * @author [z]keep3r
+ * @package zorg\SETI
+ */
+
+/**
  * File includes
  * @include main.inc.php Includes the Main Zorg Configs and Methods
  * @include setiathome.inc.php Includes SETI@home setiathome() Class and Methods
+ * @include core.model.php required
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php');
+require_once(__DIR__.'/includes/main.inc.php');
+require_once(__DIR__.'/includes/setiathome.inc.php');
+require_once(__DIR__.'/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Seti();
+
+/**
+ * Validate GET-Parameters
+ */
+if (!empty($_GET['update'])) $doAction = (string)$_GET['update'];
 
 
-if($_GET['update'] == 1) {
-	setiathome::update_group();	
-	header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
+if($doAction === 'true')
+{
+	if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
+	{
+		setiathome::update_group();	
+		header('Location: '.getURL(false,false));//http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
+	} else {
+		$model->showOverview($smarty);
+		$smarty->display('file:layout/head.tpl');
+		echo 'Hier dürfen nur Member was machen. Tschau.';
+		$smarty->display('file:layout/footer.tpl');
+	}
 } else {
 	
 	//echo head(63);
-	$smarty->assign('tplroot', array('page_title' => 'SETI@Home'));
+	//$smarty->assign('tplroot', array('page_title' => 'SETI@Home'));
+	$model->showOverview($smarty);
 	$smarty->display('file:layout/head.tpl');
-	echo menu('main');
-	echo menu('mischt');
-	echo menu('seti');
+	//echo menu('main');
+	//echo menu('mischt');
+	//echo menu('seti');
 	
 	$sql = "
 	SELECT 
@@ -107,6 +136,5 @@ if($_GET['update'] == 1) {
 	}
 	echo "</table>";
 
-	//echo foot(1);
 	$smarty->display('file:layout/footer.tpl');
 }

@@ -53,13 +53,14 @@ class peter {
 	 * @return klasse
 	 * @param Game_ID $game_id
 	 */
-	function peter($game_id="") {
+	function peter($game_id=null)
+	{
 		global $db;
-		if($game_id) {
-			$this->game_id = $game_id;
+		if($game_id)
+		{
+			$this->game_id = (int)$game_id;
 			$this->lc = $this->lastcard();
 		}	
-		
 	}
 	
 	/**
@@ -134,16 +135,14 @@ class peter {
 	 * 
 	 * @return void
 	 */
-	function ausgeben() {
+	function ausgeben()
+	{
 		global $db;
 		
 		//Game selektieren
-		$sql = "
-		SELECT 
-		*
-		FROM peter_games 
-		WHERE 
-			game_id = '".$this->game_id."'";
+		$sql = 'SELECT * 
+				FROM peter_games 
+				WHERE game_id = '.$this->game_id;
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$rs = $db->fetch($result);
 		
@@ -153,38 +152,27 @@ class peter {
 		//Wenn die Karten aufgehen
 		if((36 % $players) == 0) {
 			//Alle Karten selektieren
-			$sql = "
-			SELECT 
-				*
-			FROM peter";
+			$sql = 'SELECT  * FROM peter';
 		//Wenn die Karten nicht aufgehen
 		} else {
 			//Alle Karten selektieren ausser Eichel 6 (id 11)
-			$sql = "
-			SELECT 
-				*
-			FROM peter
-			WHERE 
-				card_id <> 11";
+			$sql = 'SELECT * FROM peter WHERE card_id <> 11';
 		}
 		
 		//karten selektieren
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$num_cards = $db->num($result);
 		while($rs = $db->fetch($result)) {
-			$karten[] = $rs['card_id'];	
+			$karten[] = $rs['card_id'];
 		}
 		
 		//karten mischen
 		shuffle($karten);
 		
 		//spieler selektieren
-		$sql = "
-		SELECT 
-			*
-		FROM peter_players
-		WHERE 
-			game_id = '".$this->game_id."'";
+		$sql = 'SELECT * 
+				FROM peter_players 
+				WHERE game_id = '.$this->game_id;
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		while($rs = $db->fetch($result)) {
 			$in = ($rs['join_id'] - 1);
@@ -192,22 +180,19 @@ class peter {
 		}
 		
 		//karten den spielern ausgeben
-		for($i = 0;$i<$num_cards;$i++) {
+		for($i = 0;$i<$num_cards;$i++)
+		{
 			$in = ($i % $players);
-			
 			$uu = $pp[$in];
-			$sql = "
-			INSERT into peter_cardsets
-			(game_id, card_id, user_id, status, datum)
-			VALUES
-			('".$this->game_id."','$karten[$i]',$uu,'nicht gelegt', now())";
+			$sql = 'INSERT into peter_cardsets 
+					(game_id, card_id, user_id, status, datum) 
+					VALUES ('.$this->game_id.','.$karten[$i].','.$uu.',"nicht gelegt", NOW())';
 			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$card[$uu][] = $karten[$i];
 		}
 		
 		//game status updaten
-		$sql = "
-		UPDATE peter_games set status = 'lauft' WHERE game_id = '".$this->game_id."'";
+		$sql = 'UPDATE peter_games set status = "lauft" WHERE game_id = '.$this->game_id;
 		$db->query($sql,__FILE__,__LINE__,__METHOD__);
 	}
 	
@@ -286,49 +271,57 @@ class peter {
 	 * 
 	 * @return void
 	 */
-	function exec_peter() {
+	function exec_peter()
+	{
 		global $db;
-		
-		//Wenn POST Daten da sind
-		if(count($_POST)) {
-			//Prüfen auf "players" - heisst das ein neues spiel erstellt wird
-			if($_POST['players']) {
-				//Prüfen obs eine Zahl ist, sonst wird 4 angenommen
+
+		/** Wenn POST Daten da sind */
+		if(count($_POST) > 0)
+		{
+			/** Prüfen auf "players" - heisst das ein neues spiel erstellt wird */
+			if ($_POST['players'])
+			{
+				/** Prüfen obs eine Zahl ist, sonst wird 4 angenommen */
 				$players = (!is_numeric($_POST['players']) ? 4 : $_POST['players']);
-				//Prüfen das players nicht 6 übersteigt
+				/** Prüfen das players nicht 6 übersteigt */
 				$players = ($players > 6) ? 6 : $players;
-				//Wenns weniger sind als zwei, werden zwei verwendet
+				/** Wenns weniger sind als zwei, werden zwei verwendet */
 				$players = ($players == 1) ? 2 : $players;
-				//Game aufmachen
+
+				/** Game aufmachen */
 				$this->peteruuf($players);
 			} 
-			//Wenn ein wunsch da ist ;)
-			if($_POST['wunsch']) {
+
+			/** Wenn ein wunsch da ist ;) */
+			if ($_POST['wunsch'])
+			{
 				$this->set_wunsch($_POST['wunsch']);
 				header('Location: '.getChangedURL('game_id='.$this->game_id));
 				exit();
 			}
 		}
-		
-		//Prüfen ob in dem spiel nicht autom. der letzte spieler wieder am zug ist
-		if($this->lc['value'] > 0 && $this->game_id) {
+
+		/** Prüfen ob in dem spiel nicht autom. der letzte spieler wieder am zug ist */
+		if ($this->lc['value'] > 0 && $this->game_id)
+		{
 			$this->auto_nextplayer();
 		}
-		
-		//Inaktive Spieler übergehen
-		$sql = "
-		SELECT 
-			* 
-		FROM peter_games 
-		WHERE
-			(UNIX_TIMESTAMP(now()) - (86400*2)) > UNIX_TIMESTAMP(last_activity)
-			AND
-			status = 'lauft'" ;
+
+		/** Inaktive Spieler übergehen */
+		$sql = 'SELECT 
+					* 
+				FROM peter_games 
+				WHERE 
+					(UNIX_TIMESTAMP(now()) - (86400*2)) > UNIX_TIMESTAMP(last_activity) 
+					AND 
+					status = "lauft"';
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$old_game_id = $this->game_id;
-		while($rs = $db->fetch($result)) {
+		while($rs = $db->fetch($result))
+		{
 			$this->game_id = $rs['game_id'];
-			//Nächster Spieler freischalten
+
+			/** Nächster Spieler freischalten */
 			$this->next_player($rs['next_player'],$rs['players']);
 		}
 		$this->game_id = $old_game_id;
@@ -343,7 +336,7 @@ class peter {
 	 * @param string $wunsch
 	 */
 	function set_wunsch($wunsch) {
-		global $db;
+		global $db, $user;
 		
 		//Prüfen ob noch ein Wunsch gsetzt werden kann
 		if(!$this->checkwunsch()) {
@@ -353,8 +346,8 @@ class peter {
 			INSERT into peter_wunsche
 			(game_id, card_id, user_id, wunsch, datum)
 			VALUES
-			(".$this->game_id.", ".$this->lc['card_id'].", ".$_SESSION['user_id'].",'".$wunsch."', now())";
-			$db->query($sql,__FILE__,__LINE__,__METHOD__);	
+			(".$this->game_id.", ".$this->lc['card_id'].", ".$user->id.",'".$wunsch."', now())";
+			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			
 			//Anzahl Players ermitteln
 			$sql = "
@@ -367,7 +360,7 @@ class peter {
 			$rs = $db->fetch($result);
 			
 			//Nächster Spieler freischalten
-			$this->next_player($_SESSION['user_id'],$rs['players']);
+			$this->next_player($user->id, $rs['players']);
 		}
 	}
 	
@@ -377,28 +370,23 @@ class peter {
 	 * Eröffnet ein Spiel, und joint den erstellen autom.
 	 * 
 	 * @return void
-	 * @param num_players $players
+	 * @param integer $players num_players
 	*/
-	function peteruuf($players) {
-		global $db;
+	function peteruuf($players)
+	{
+		global $db, $user;
 	
 		//spiel erstellen
-		$sql = "
-		INSERT into peter_games
-		(players, next_player, status, last_activity)
-		VALUES
-		($players,".$_SESSION['user_id'].",'offen',now())";
-		$db->query($sql,__FILE__,__LINE__,__METHOD__);
-		
+		$sql = 'INSERT INTO peter_games (players, next_player, status, last_activity) 
+				VALUES ('.$players.', '.$user->id.', "offen", NOW())';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+
 		$game_id = $db->lastid();
-	
+
 		//und grad joinen
-		$sql = "
-		INSERT into peter_players
-		(game_id, join_id, user_id)
-		VALUES
-		('$game_id',1,'$_SESSION[user_id]')";
-		$db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'INSERT INTO peter_players (game_id, join_id, user_id) 
+				VALUES ('.$game_id.',1,'.$user->id.')';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 	}
 
 
@@ -430,7 +418,7 @@ class peter {
 						game_id
 					FROM peter_games
 					WHERE 
-						next_player = '.$_SESSION['user_id'].'
+						next_player = '.$user->id.'
 						AND status = "lauft"
 					GROUP BY
 						game_id';
@@ -443,79 +431,74 @@ class peter {
 
 
 	/**
-	 * Offene Spiele anzeigen
-	 * 
+	 * Offene Peter Spiele anzeigen
+	 *
 	 * Gibt die offenen Spiele zurück
-	 * 
-	 * @return unknown
+	 *
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 code, queries and functions optimized
+	 *
+	 * @return string HTML-Output
 	*/
-	function offene_spiele() {
-		global $db;
-		$html = "
-		<br />
-		<table cellpadding='5'><tr valign='top'><td>
-		<table width='500' cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr><td colspan='4' class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		<b>Offene Spiele</b></td></tr>
-		<tr>
-		<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>Spiel</td>
-		<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>Spieler</td>
-		<td class='title' colspan='2' bgcolor='".TABLEBACKGROUNDCOLOR."'>Anzahl Spieler</td>
-		</tr>";
+	function offene_spiele()
+	{
+		global $db, $user;
+
+		$html = '<h3>Offene Spiele</h3>';
 		
-		$sql = "
-		SELECT
-			*
-		FROM peter_games
-		WHERE 
-			status = 'offen'";
+		$sql = 'SELECT * FROM peter_games WHERE status = "offen"';
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-		while($rs = $db->fetch($result)) {
-			$html .= "
-			<tr>
-				<td bgcolor='".BACKGROUNDCOLOR."'>
-				".$rs['game_id']."
-				</td><td bgcolor='".BACKGROUNDCOLOR."'>";
-			$sql = "
-			SELECT
-				*
-			FROM peter_players pp
-			LEFT JOIN user u
-				ON u.id = pp.user_id
-			WHERE 
-				pp.game_id = '$rs[game_id]'
-			ORDER by pp.join_id ASC";
-			$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-			
-			$gejoint = FALSE;
-			while($rsi = $db->fetch($resulti)) {
-				$html .= $rsi['username']." ";
-				if($rsi['user_id'] == $_SESSION['user_id']) {
-					$gejoint = TRUE;	
-				}
-			}	
-			
-			$html .= "
-			<td bgcolor='".BACKGROUNDCOLOR."'>".$rs['players']."</td>";
-			
-			if($gejoint == FALSE) {
-				$html .= "
-				</td><td bgcolor='".BACKGROUNDCOLOR."'>
-				<a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]' class='button'><B>join</B></a>
-				</td></tr>";
-			} else {
-				$html .= "
-				</td><td bgcolor='".BACKGROUNDCOLOR."'><i>Du spielst hier mit!</i></td></tr>";
-			}
-		}
-		$html .= "
-		</table>
-		</td><td>";
-	
-		$html .= $this->neu_form();
 		
-		$html .= "</td></tr></table>";
+		if ($db->num($result) > 0)
+		{
+			$html .= "<table>
+						<thead>
+							<tr>
+								<th>Spiel</th>
+								<th>Spieler</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>";
+
+			while($rs = $db->fetch($result))
+			{
+				$html .= "
+				<tr>
+					<td>
+					".$rs['game_id']."
+					</td><td>";
 	
+				$sql = 'SELECT * 
+						FROM peter_players pp 
+						WHERE pp.game_id = '.$rs['game_id'].' 
+						ORDER by pp.join_id ASC';
+				$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
+				$gejoint = FALSE;
+				$playerListe = '';
+				while($rsi = $db->fetch($resulti))
+				{
+					$playerListe .= $user->userprofile_link($rsi['user_id'], ['pic' => false, 'link' => TRUE, 'username' => true, 'clantag' => true]).', ';
+					if($rsi['user_id'] == $user->id) $gejoint = TRUE;
+				}
+				$playerListe = substr($playerListe, 0, -2); // substr() entfernt das allerletzte Komma
+				$html .= '['.count(explode(',',$playerListe)).'/'.$rs['players'].'] '.$playerListe; // substr() entfernt das allerletzte Komma
+				$html .= '</td>';
+
+				if ($gejoint == FALSE)
+				{
+					$html .= '<td><a href="?game_id='.$rs['game_id'].'" class="button"><b>'.t('game-join').'</b></a></td></tr>';
+				} else {
+					$html .= sprintf('<td><i>%s %s</i></td></tr>', t('game-your-game'), t('waiting-for-num-players', 'peter', $rs['players']-count(explode(',',$playerListe))));
+				}
+			}
+			$html .= '</tbody></table>';
+		} else {
+			$html .= '<b>Nada...</b> Aber starte doch ä neus! ;)';
+		}
+
 		return $html;
 	}
 	
@@ -537,22 +520,6 @@ class peter {
 	function laufende_spiele($return_html=true) {
 		global $db, $user;
 
-		if ($return_html)
-		{
-			$html = "
-			<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-			<tr><td align='center' class='title' colspan='3' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			Alle laufenden Spiele
-			</td></tr>
-			<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			Spiel ID
-			</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			Spieler
-			</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			am Zug
-			</td></tr>";
-		}
-
 		$sql = 'SELECT
 					pg.game_id,
 					pg.next_player,
@@ -565,23 +532,37 @@ class peter {
 					pg.status = "lauft"
 				GROUP BY pg.game_id';
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-		if ($return_html) {
-			while($rs = $db->fetch($result)) {
-				$spieler = "";
-				$sql = "
-				SELECT
-					pp.user_id
-				FROM peter_players pp
-				WHERE 
-					pp.game_id = $rs[game_id]
-				ORDER by pp.join_id ASC";
-				$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				while($rsi = $db->fetch($resulti)) {
-					$spieler .= $user->link_userpage($rsi['user_id']).", ";
-				}
-	
-				if ($return_html)
+
+		if ($return_html)
+		{
+			$html = '<h3>Alle laufenden Spiele</h3>';
+			
+			if ($db->num($result) > 0)
+			{
+				$html .= "<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+						<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+						Spiel ID
+						</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+						Spieler
+						</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+						am Zug
+						</td></tr>";
+
+				while($rs = $db->fetch($result))
 				{
+					$spieler = "";
+					$sql = "
+					SELECT
+						pp.user_id
+					FROM peter_players pp
+					WHERE 
+						pp.game_id = $rs[game_id]
+					ORDER by pp.join_id ASC";
+					$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+					while($rsi = $db->fetch($resulti)) {
+						$spieler .= $user->link_userpage($rsi['user_id']).", ";
+					}
+		
 					$html .= "
 					<tr align='left' bgcolor='".BACKGROUNDCOLOR."'>
 						<td>
@@ -593,8 +574,10 @@ class peter {
 						</td>
 					</tr>";
 				}
+				$html .= "</table>";
+			} else {
+				$html .= '<b>None.</b> Alles erlediget... oder niermert het bock zum spiele *schulterzuck*';
 			}
-			$html .= "</table>";
 		} else {
 			while($rs = $db->fetch($result))
 			{
@@ -619,65 +602,68 @@ class peter {
 	 * @global $user User Model
 	 * @return string
 	*/
-	function meine_laufende_spiele($user_id) {
+	function meine_laufende_spiele($user_id)
+	{
 		global $db, $user;
-		
-		if ($user_id <> '' && $user_id != NULL)
+
+		if (!empty($user_id) && $user_id > 0)
 		{
-			$html = "
-			<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-			<tr><td align='center' class='title' colspan='3' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			Meine Spiele
-			</td></tr>
-			<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			Spiel ID
-			<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			Spieler
-			</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			am Zug
-			</td></tr>";
-			
-			$sql = "
-			SELECT
-				pg.game_id,
-				pg.next_player
-			FROM peter_players pp
-			LEFT JOIN peter_games pg
-				ON pg.game_id = pp.game_id
-			WHERE 
-				pg.status = 'lauft'
-				AND
-				pp.user_id = $user_id";
+			$sql = 'SELECT
+						pg.game_id,
+						pg.next_player
+					FROM peter_players pp
+					LEFT JOIN peter_games pg
+						ON pg.game_id = pp.game_id
+					WHERE 
+						pg.status = "lauft"
+						AND
+						pp.user_id = '.$user_id;
 			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-			while($rs = $db->fetch($result)) {
-				$spieler = "";
-				$sql = "
-				SELECT
-					pp.user_id
-				FROM peter_players pp
-				WHERE 
-					pp.game_id = $rs[game_id]
-				ORDER by pp.join_id ASC";
-				$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				while($rsi = $db->fetch($resulti)) {
-					$spieler .= $user->link_userpage($rsi['user_id']).", ";
+
+			$html = '<h3>Meine Spiele</h3>';
+			if ($db->num($result) > 0)
+			{
+				$html .= "<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
+				<tr><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+				Spiel ID
+				<td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+				Spieler
+				</td><td class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
+				am Zug
+				</td></tr>";
+	
+				while($rs = $db->fetch($result)) {
+					$spieler = "";
+					$sql = "
+					SELECT
+						pp.user_id
+					FROM peter_players pp
+					WHERE 
+						pp.game_id = $rs[game_id]
+					ORDER by pp.join_id ASC";
+					$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+					while($rsi = $db->fetch($resulti)) {
+						$spieler .= $user->link_userpage($rsi['user_id']).", ";
+					}
+					$col = ($rs['next_player'] == $user_id) ? '#FF0000' : '#'.BACKGROUNDCOLOR;
+					
+					$html .= "
+					<tr align='left' bgcolor='$col'>
+						<td>
+							<strong><a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a></strong>
+						</td>
+						<td>
+							$spieler
+						</td>
+						<td bgcolor='".BACKGROUNDCOLOR."'>
+							".$user->link_userpage($rs['next_player'])."
+						</td>
+					</tr>";
 				}
-				$col = ($rs['next_player'] == $user_id) ? '#FF0000' : '#'.BACKGROUNDCOLOR;
-				
-				$html .= "
-				<tr align='left' bgcolor='$col'>
-					<td>
-						<strong><a href='$_SERVER[PHP_SELF]?game_id=$rs[game_id]'>$rs[game_id]</a></strong>
-					</td>
-					<td>
-						$spieler
-					</td>
-					<td bgcolor='".BACKGROUNDCOLOR."'>
-						".$user->link_userpage($rs['next_player'])."
-					</td>
-				</tr>";
+				$html .= "</table>";
+			} else {
+				$html .= '<b>Keine...</b> *strohballen roll*';
 			}
-			$html .= "</table>";	
 			
 			return $html;
 			
@@ -688,40 +674,38 @@ class peter {
 	}
 	
 	/**
+	 * Joint einen Spieler in ein offenes Peter Game
+	 *
+	 * @version 1.1
+	 * @since 1.0 method added
+	 * @since 1.1 <inex> 01.09.2019 Changed query: INSERT INTO => REPLACE INTO
+	 * @param integer $players Max. Number of Players for game
 	 * @return void
-	 * @param num_players $players
-	 * @desc Joint einen Spieler in ein Game
-	*/
-	function peter_join($players) {
-		global $db;
+	 */
+	function peter_join($players)
+	{
+		global $db, $user;
 		
-		//Anzahl bisher gejointe ermitteln
-		$sql = "
-		SELECT 
-			*
-		FROM peter_players 
-		WHERE 
-			game_id = '".$this->game_id."'";
+		/** Anzahl bisher gejointe ermitteln */
+		$sql = 'SELECT * FROM peter_players 
+				WHERE game_id = '.$this->game_id;
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$num = $db->num($result) + 1;
-		
-		//player eintragen
-		$sql = "
-		INSERT into peter_players
-		(game_id, join_id, user_id)
-		VALUES
-		('".$this->game_id."', '$num', '$_SESSION[user_id]')";
-		$db->query($sql,__FILE__,__LINE__,__METHOD__);
-		
-		//prüfen ob game gestartet werden soll
-		if($num >= $players) {
-			
-			//Karten ausgeben
+
+		/** player eintragen */
+		$sql = 'REPLACE INTO peter_players (game_id, join_id, user_id) 
+				VALUES ('.$this->game_id.', '.$num.', '.$user->id.')';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+
+		/** prüfen ob game gestartet werden soll */
+		if ($num === $players)
+		{
+			/** Karten ausgeben */
 			$this->ausgeben();
 			header('Location: '.getChangedURL('game_id='.$this->game_id));
 			exit();
 		}
-		header('Location: '.getURL(false));
+		header('Location: '.getURL(false, false));
 		exit();
 	}
 	
@@ -778,7 +762,7 @@ class peter {
 			$res = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		}
 		
-		return $db->fetch($res);	
+		return $db->fetch($res);
 	}
 	
 	/**
@@ -976,7 +960,7 @@ class peter {
 	 * @desc ermittelt ob ein Zug zulässig ist oder nicht
 	*/
 	function regelcheck($card_id) {
-		global $db;
+		global $db, $user;
 		
 		//Grundsätzlich den Zug einmal als falsch einstufen
 		$set = 0;
@@ -1012,7 +996,7 @@ class peter {
 		WHERE
 			pc.game_id = ".$this->game_id."
 			AND
-			pc.user_id = $_SESSION[user_id]
+			pc.user_id = $user->id
 			AND
 			pc.card_id = $card_id
 			AND
@@ -1032,26 +1016,25 @@ class peter {
 			$ac = $db->fetch($ac);
 			
 			//Wenn die zulegende Karte ein Zahl ist
-			if($ac['value'] <= 5 && $this->lc['value'] != 0) {
+			if($ac['value'] <= 5 && $this->lc['value'] != 0)
+			{
 				//Prüfen das die gleichen Farben gelegt werden
-				if($ac['col'] == $this->lc['col']) {
+				if($ac['col'] == $this->lc['col'])
+				{
 					//prüfen das der wert der karte höher ist
-					if($ac['value'] > $this->lc['value'] ) {
-						$set = 1;	
-					}
+					if($ac['value'] > $this->lc['value'] ) $set = 1;
 				}
 			//Wenn keine Zahl und kein Nichtraucher
 			} elseif($this->lc['value'] != 0 && $ac['value'] > 5) {
 				//Prüfen das der wert der zulegenden Karte höher ist
-				if($ac['value'] > $this->lc['value']) {
-					$set = 1;	
-				}	
+				if($ac['value'] > $this->lc['value']) $set = 1;
 			//Wenn die letzte Karte ein Nichtraucher wae
 			} elseif($this->lc['value'] == 0) {
 				//wunsch selektieren
 				$wunsch = $this->get_wunsch();
 				//Prüfen ob aktuell zulegende karte eine zahl ist
-				if($ac['value'] <= 5) {
+				if($ac['value'] <= 5)
+				{
 					//prüfen ob die farbe der zahl mit dem wunsch übereinstimmt
 					if($ac['col'] == $wunsch['col_id']) {
 						$set = 1;
@@ -1061,17 +1044,12 @@ class peter {
 					$set = 1;
 				}
 				//Wenn ein Nichtraucher draufgelegt werden soll
-				if($ac['value'] == 0) {
-					$set = 1;
-				}
+				if($ac['value'] == 0) $set = 1;
 			}
 			//Wenn die letzte geleget Karte vom gleichen Spieler ist wie die zulegende
-			if($this->lc['user_id'] == $_SESSION['user_id']) {
-				$set = 1;	
-			}
-			
+			if($this->lc['user_id'] == $user->id) $set = 1;
 		}
-		return $set;	
+		return $set;
 	}
 	
 	/**
@@ -1101,7 +1079,7 @@ class peter {
 			
 			//Wenn bereits ein Wunschvorliegt
 			if($db->num($result)) {
-				return 1;	
+				return 1;
 			} else {
 				return 0;
 			}
@@ -1151,14 +1129,14 @@ class peter {
 	 * @param num_players $players
 	 * @desc Führt einen Zug aus
 	*/
-	function zug($card_id="", $make, $players) {
+	function zug($card_id=null, $make, $players)
+	{
 		global $db, $user;
-		
-		
+
 		//Prüfen ob der Rosenverkäufer umherschleicht
 		$rosen = $this->rosenverkaufer("check");
 		$spezial = ($rosen == 1) ? "rosen" : " ";
-		
+
 		//Wenn eine Karte gesetzt werden soll
 		if($make == "karte") {
 			//prüfen ob der zug zulässig ist
@@ -1174,8 +1152,7 @@ class peter {
 					AND 
 					card_id = $card_id";
 				$db->query($sql,__FILE__,__LINE__,__METHOD__);
-				
-				
+
 				### Zug als Comment eintragen, damit man darüber diskutieren kann ###
 				/*$sql = "
 					SELECT *
@@ -1185,22 +1162,20 @@ class peter {
 				
 				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 				$rs = $db->fetch($result);
-				
 				$text = "Ich habe die Karte '".$rs[description]."' gelegt.";
 				Forum::post($this->game_id, 'p', $user->id, $text, $msg_users='');
 				*/
-				
-				
+
 				//Spieler Table updaten
-				$sql = "
-				UPDATE peter_players set make = '$make' 
-				WHERE user_id = $_SESSION[user_id] AND game_id = ".$this->game_id;
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'UPDATE peter_players SET make = "'.$make.'" 
+						WHERE user_id = '.$user->id.' AND game_id = '.$this->game_id;
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 				
 				//Prüfen ob nicht noch ein Wunsch nötig ist bevor der nächste am zug ist
-				if($this->checkwunsch()) {
+				if($this->checkwunsch())
+				{
 					//Nächster Player aktivieren
-					$this->next_player($_SESSION['user_id'],$players);
+					$this->next_player($user->id, $players);
 				}
 			}
 		}
@@ -1212,23 +1187,19 @@ class peter {
 			*/
 			
 			//Spieler Table updaten
-			$sql = "
-			UPDATE peter_players set make = '$make' 
-			WHERE user_id = $_SESSION[user_id] AND game_id = ".$this->game_id;
+			$sql = 'UPDATE peter_players set make = "'.$make.'" 
+					WHERE user_id = '.$user->id.' AND game_id = '.$this->game_id;
 			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 			
-			$this->next_player($_SESSION['user_id'],$players);
+			$this->next_player($user->id, $players);
 			
 			// Wenn der User noch weitere offen Züge hat, direkt weiterleiten
 			// Prüfen, ob noch Züge offen sind
-			$sqli = "
-			SELECT
-				game_id
-			FROM peter_games
-			WHERE 
-				next_player = $_SESSION[user_id]
-				AND 
-				status = 'lauft'";
+			$sqli = 'SELECT game_id 
+					FROM peter_games 
+					WHERE 
+						next_player = '.$user->id.' 
+						AND status = "lauft"';
 			$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rsi = $db->fetch($resulti);
 			
@@ -1239,25 +1210,20 @@ class peter {
 		}
 		
 		//Prüfen ob Spiel beendet werden soll
-		$sql = "
-		SELECT
-			*
-		FROM peter_cardsets pc
-		WHERE
-			pc.game_id = ".$this->game_id."
-			AND
-			pc.user_id = $_SESSION[user_id]
-			AND
-			pc.status = 'nicht gelegt'";
+		$sql = 'SELECT * 
+				FROM peter_cardsets pc 
+				WHERE 
+					pc.game_id = '.$this->game_id.' 
+					AND pc.user_id = '.$user->id.' 
+					AND pc.status = "nicht gelegt"';
 		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		
 		//Wenn das Spiel beendet werden kann
 		if(!$db->num($rr)) {
 			
 			//Spiel beenden
-			$sql = "
-			UPDATE peter_games set status = 'geschlossen', winner_id = $_SESSION[user_id]
-			WHERE game_id = ".$this->game_id;
+			$sql = 'UPDATE peter_games set status = "geschlossen", winner_id = '.$user->id.' 
+					WHERE game_id = '.$this->game_id;
 			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 		}	
 	}
@@ -1266,24 +1232,19 @@ class peter {
 	 * @return unknown
 	 * @desc Gibt das Formular zum Spiel erstellen zurück
 	*/
-	function neu_form() {
-		
-		$html = "
-		<form action='$_SERVER[PHP_SELF]' method='post'>
-		<table  cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr><td colspan='2' align='center' class='title' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Neues Spiel
-		</td></tr><tr><td bgcolor='".BACKGROUNDCOLOR."'>
-		Anzahl Spieler: 
-		</td><td bgcolor='".BACKGROUNDCOLOR."'>
-		<input type='text' name='players' class='text' size='4'>
-		</td></tr><tr><td colspan='2' align='right' bgcolor='".BACKGROUNDCOLOR."'>
-		<input type='submit' name='maach' class='button' value='starten'>
-		</td></tr></table>
-		</form>	";
-		
+	function neu_form()
+	{
+		$html = '<h3>Neues Spiel</h3>
+				<form action="'.getURL(false, false).'" method="post" style="display: flex;white-space: nowrap;align-items: center;">
+					<fieldset>
+						<label style="flex: 1;">Für Anzahl Spieler: 
+							<input type="number" min="2" max="6" name="players" style="width: 50px;">
+							<br><span class="tiny">mindestens 2, maximal 6</span>
+						</label>
+						<input type="submit" name="maach" class="button" value="starten" style="flex: 2;">
+					</fieldset>
+				</form>';
 		return $html;
-		
 	}
 	
 	/**
@@ -1291,12 +1252,13 @@ class peter {
 	 * @param User_ID $user_id
 	 * @desc Gibt das Cardset für einen User in einem Game als Array zurück
 	*/
-	function player_cardset($user_id) {
+	function player_cardset($user_id)
+	{
 		global $db;
-		
+
 		//Prüfen ob der Rosenverkäufer...
-		$rosen = $this->rosenverkaufer("check");
-		
+		$rosen = $this->rosenverkaufer('check');
+
 		//Wenn der Rosenverkäufer da ist
 		if($rosen == 1 ) {
 			//cardset für den betreffenden user im game selektieren und auf rosen regeln achten
@@ -1331,31 +1293,27 @@ class peter {
 				pc.status = 'nicht gelegt'
 			ORDER by p.value DESC";
 		}
-		return $db->query($sql,__FILE__,__LINE__,__METHOD__);	
+		return $db->query($sql, __FILE__, __LINE__, __METHOD__);
 	}
-	
+
 	/**
 	 * @return unknown
 	 * @desc Gibt die Highscore Seite zurück
 	*/
-	function peterscore() {
-		global $db;	
+	function peterscore()
+	{
+		global $db;
 		
-		$html = "
-		<br /><br />
-		<table cellpadding='2' cellspacing='1'  bgcolor='".BORDERCOLOR."'>
-		<tr><td colspan='3' class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Haiskor
-		</td></tr>
-		<tr><td class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Spieler
-		</td><td class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Anzahl Spiele
-		</td><td class='title' align='center' bgcolor='".TABLEBACKGROUNDCOLOR."'>
-		Gewonnen
-		</td></tr>";
-		
-		//Score Query
+		$html = '<h2>Peter Haiskor</h2>
+				<table>
+					<thead><tr>
+						<th>Spieler</th>
+						<th>Anzahl Spiele</th>
+						<th>Gewonnen</th>
+					</tr></thead>
+					<tbody>';
+
+		/** Score Query */
 		$sql = "
 		SELECT 
 			gp.username, 
@@ -1389,22 +1347,20 @@ class peter {
 			) AS gw 
 			ON gp.username = gw.username
 		ORDER BY num_games DESC";
-	
-		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-		
-		while($rs = $db->fetch($result)) {
-			$html .= "
-			<tr><td bgcolor='".BACKGROUNDCOLOR."'>
-			".$rs['username']."
-			</td><td bgcolor='".BACKGROUNDCOLOR."'>
-			".$rs['num_games_played']."
-			</td><td bgcolor='".BACKGROUNDCOLOR."'>
-			".$rs['num_games']."
-			</td></tr>";	
+
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+
+		while($rs = $db->fetch($result))
+		{
+			$html .= '<tr>
+						<td>'.$rs['username'].'</td>
+						<td>'.$rs['num_games_played'].'</td>
+						<td>'.$rs['num_games'].'</td>
+					</tr>';
 		}
-		
-		$html .= "</table>";
-		
+
+		$html .= '</tbody></table>';
+
 		return $html;
 	}
 	
@@ -1445,69 +1401,61 @@ class peter {
 	* @param (karte|aus) $make
 	* @desc Zeigt ein Spiel an
 	*/
-	function game($gd,$card_id="",$make="") {
-		global $db;
-		
-		
-		//cardset für den betreffenden user im game selektieren
-		$resultp = $this->player_cardset($_SESSION['user_id']);
-		
-		$html = "
-		<br />
-		<b>Aktuelle Karte</b>
-		<br />".$this->lc['description']."<br />
-		<hr size='1' width='100%'>
-		<table width='100%'>
-		<tr>
-		<td align='center' valign='middle'>
-		<br /><br />
-		<img src='".$_SERVER['PHP_SELF']."?img=karten&game_id=".$this->game_id."' title='".$this->lc[description]."'>";
-		
-		//Wenn das Spiel läuft
-		if($gd['status'] == "lauft") {
-			
-		$html .= "
-		<br /><b>Gelegt von: ".$this->lc['username']."</b><br />
-		<br />
-		Am Zug ist: ".$gd['username']."<br /><br />
-		";
-		
-			//Wenn der Spieler noch Karten hat
-			if($db->num($resultp)) {
-	
-				//zug als richtig ansehen
+	function game($gd, $card_id=null, $make=null)
+	{
+		global $db, $user, $smarty;
+
+		/** cardset für den betreffenden user im game selektieren */
+		$resultp = $this->player_cardset($user->id);
+
+		$html = null;
+		$html .= '<h2>Peter Game #'.$this->game_id.'</h2>';
+		$html .= '<h3>Aktuelle Karte: '.$this->lc['description'].'</h3>
+				<hr size="1" width="100%">
+				<img src="?img=karten&game_id='.$this->game_id.'" title="'.$this->lc['description'].'" style="width: 100%;max-width: 100%;">';
+
+		/** Wenn das Spiel läuft */
+		if ($gd['status'] === "lauft")
+		{
+			$html .= '<h5>Gelegt von: '.$this->lc['username'].'</h5>
+					<h5>Am Zug ist: '.$gd['username'].'</h5>';
+
+			/** Wenn der Spieler noch Karten hat */
+			if ($db->num($resultp))
+			{
+				/** zug als richtig ansehen */
 				$zug = TRUE;
-				//Wenn ein nichtraucher gelegt wurde UND noch kein Wunsch vorliegt
-				if(!$this->checkwunsch() && $_SESSION['user_id'] == $this->lc['user_id'] && $this->lc['value'] == 0) {
-					//Formular zum wünschen ausgeben
+
+				/** Wenn ein nichtraucher gelegt wurde UND noch kein Wunsch vorliegt */
+				if (!$this->checkwunsch() && $user->id == $this->lc['user_id'] && $this->lc['value'] == 0)
+				{
+					//Formular zum wünschen ausgeben */
 					$html .= $this->wunscher();
 					//zug falsen
 					$zug = FALSE;
-					
-				//Wenn ein nihtraucher gelegt wurde und ein Wunsch vorliegt
+
+				/** Wenn ein nihtraucher gelegt wurde und ein Wunsch vorliegt */
 				} elseif ($this->lc['value'] == 0 && $this->checkwunsch() && $this->lc['card_id']) {
-					
-					//Daten über den Wunsch ermitteln
+					/** Daten über den Wunsch ermitteln */
 					$wunsch = $this->get_wunsch();
-					//Wunsch anzeigen
-					$html .= "<br /><b>".$wunsch['username']." hat ".$wunsch['col']." gewünscht!</b><br /><br />";	
+					/** Wunsch anzeigen */
+					//$html .= '<h5>'.$wunsch['username'].' hat '.$wunsch['col'].' gewünscht!</h5>';
+					$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => $wunsch['username'].' hat '.$wunsch['col'].' gewünscht!']);
 				}
-				
-				$html .= "</td></tr></table>";
-				
-	
-				if($make) {
-					
-					//Zug ausführen
+
+				if ($make)
+				{
+					/** Zug ausführen */
 					$this->zug($card_id,$make,$gd['players']);
 					//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?game_id=".$this->game_id."&".session_name()."=".session_id());
-					header('Location: '.getChangedURL('game_id='.$this->game_id));
+					header('Location: ?game_id='.$this->game_id);
 					exit();
 				}
-				
-				//Wenn der Spieler am Zug ist, ANZEIGE
-				$add = ($gd['next_player'] == $_SESSION['user_id']) ? "<br /><blink><b>!!! Du bist am Zug !!!</b></blink>" : "";
-				
+
+				/** Wenn der Spieler am Zug ist, ANZEIGE */
+				if ($gd['next_player'] == $user->id) $add .= '<h4 class="blink">'.t('game-your-turn').'</h4>';
+
+				// @TODO <inex> das könnte in $smarty->assign('sidebarHtml', $sidebarHtml) gehen!
 				$html .= "
 				<br />
 				<hr size='1' width='100%'>"
@@ -1516,20 +1464,24 @@ class peter {
 				<b>Meine Karten</b>$add
 				<br /><hr size='1' width='100%'>
 				<br />";
-				
-				//Aussetzen Button anzeigen wenn der spieler am zug ist
-				if ($gd['next_player'] == $_SESSION['user_id']) {
+				// END TODO
+
+				/** Aussetzen Button anzeigen wenn der spieler am zug ist */
+				if ($gd['next_player'] == $user->id)
+				{
 					$html .= "
-					<form action='$_SERVER[PHP_SELF]?game_id=".$this->game_id."&make=aus' method='post'>
+					<form action='?game_id=".$this->game_id."&make=aus' method='post'>
 					<input type='submit' value='aussetzen' class='button'>
 					</form><br /><br />";
 				}
-				
-				//Ausgabe der restlichen karten des Spielers
-				while($rs = $db->fetch($resultp)) {
-					if($gd['next_player'] == $_SESSION['user_id'] && $zug) {
+
+				/** Ausgabe der restlichen karten des Spielers */
+				while($rs = $db->fetch($resultp))
+				{
+					if($gd['next_player'] == $user->id && $zug)
+					{
 						$html .= "
-						<a href='$_SERVER[PHP_SELF]?game_id=".$this->game_id."&card_id=$rs[card_id]&make=karte'>
+						<a href='?game_id=".$this->game_id."&card_id=$rs[card_id]&make=karte'>
 						<img border='0' src='/images/peter/".$rs['card_id'].".gif' alt='$rs[description]' title='$rs[description]'>
 						</a>";
 					} else {
@@ -1540,28 +1492,26 @@ class peter {
 				}
 		
 			}
-		//Wenn Spiel beendet wurde
-		} elseif($gd['status'] == "geschlossen") {
-			$sql = "
-			SELECT
-				username
-			FROM user WHERE id = '$gd[winner_id]'";
-			$res = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+
+		/** Wenn Spiel beendet wurde */
+		} elseif($gd['status'] === "geschlossen") {
+			$sql = 'SELECT username FROM user WHERE id = '.$gd['winner_id'];
+			$res = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$rs = $db->fetch($res);
-			
-			//Gewinner anzeigen
-			$html .= "
-			<br /><b> Gewinner: ".$rs['username']."</b><br /><br />";
+
+			/** Gewinner anzeigen */
+			//$html .= '<h4>Gewinner: '.$rs['username'].'</h4>';
+			$smarty->assign('error', ['type' => 'success', 'dismissable' => 'false', 'title' => 'Gewinner: '.$rs['username']]);
 		}
-		
+
+		/** thread ausgabe */
 		ob_end_flush();
 		ob_start();
-		//thread ausgabe
-		echo "<br /><br />".Forum::printCommentingSystem('p', $this->game_id);
+		echo Forum::printCommentingSystem('p', $this->game_id);
 		$html .= ob_get_contents();
 		ob_end_clean();
 		ob_start();
-		
+
 		return $html;
 	}
 	
@@ -1683,7 +1633,7 @@ class peter {
 			imagettftext($add_img,7,0,13,9,$fontc,"images/peter/verdana.ttf",$username);
 	
 			//w/h vom alten bild ermitteln
-			$o_width = imagesx($old_img);	
+			$o_width = imagesx($old_img);
 			$o_height = imagesy($old_img);
 			
 			//x pos der neuen karte ermitteln

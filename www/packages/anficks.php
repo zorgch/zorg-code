@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Anficker Package
  * 
@@ -6,31 +6,29 @@
  * 
  * @author ?
  * @version 1.0
- * @package zorg
- * @subpackage Anficker
+ * @package zorg\Games\Anficker
  */
 /**
  * File Includes
  * @include main.inc.php
- * @include anficker.inc.php
  * @include smarty.inc.php
+ * @include anficker.inc.php
  */
-require_once( __DIR__ . '/../includes/main.inc.php');
+require_once( __DIR__ . '/../includes/config.inc.php');
 require_once( __DIR__ . '/../includes/smarty.inc.php');
 require_once( __DIR__ . '/../includes/anficker.inc.php');
 
-global $user;
+global $user, $smarty;
 
-if($_GET['del'] != 'no' && $user->is_loggedin()) {
+if($_GET['del'] != 'no' && $user->is_loggedin())
+{
 	Anficker::deleteLog($user->id);
 }
 
-if (usersystem::islogged_in())
+if ($user->is_loggedin())
 {
 	$smarty->assign('anficks', Anficker::getLog($user->id));
 	$smarty->assign('anfickstats', Anficker::getNumAnficks());
-} else {
-	echo menu('zorg');
-	echo menu('games');
-	echo '<h2 style="font-size:large; font-weight: bold">Wenn du <a href="'.SITE_URL.'/profil.php?do=anmeldung" title="Account für Zorg.ch erstellen">eingeloggt</a> wärst könntest du gegen Spresim batteln.</h2><img border="0" src="/files/396/aficks.jpg">';
+} else {;
+	$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => 'Spresim seit: nope!', 'message' => 'Wenn du <a href="/profil.php?do=anmeldung">eingeloggt</a> wärst könntest du gegen Spresim batteln.<br><img border="0" src="/files/396/aficks.jpg">']);
 }

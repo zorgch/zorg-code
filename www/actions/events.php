@@ -101,7 +101,7 @@ switch (true)
 		$redirect_url .= '&event_id='.$eventJoinId;
 		try {
 			$sql = 'INSERT INTO events_to_user VALUES('.$user->id.', '.$eventJoinId.')';
-			if (!$db->query($sql,__FILE__, __LINE__)) {
+			if ($db->query($sql,__FILE__, __LINE__) === false) {
 				$error = 'Cannot join Event ID ' . $eventJoinId;
 				break;
 			} else {

@@ -35,68 +35,50 @@ Class Quotes {
 		}
 	}
 
-	static function formatQuote($rs) {
-
+	static function formatQuote($rs)
+	{
 		global $user;
 
-		$html .=
-			'<table cellpadding="1" cellspacing="1" width="100%">'
-			.'<tr><td style="text-align:left;width:100%">'
-			.'<blockquote><i>'.nl2br(htmlentities($rs["text"])).'</i>'
-			.' - '
-			.$user->id2user($rs["user_id"], 0)
-			.'</blockquote></td></tr>'
-		;
+		$html .= '<div class="quote">'
+					.'<blockquote><i>'.nl2br(htmlentities($rs["text"])).'</i>'
+					.' - '.$user->id2user($rs["user_id"], 0)
+					.($user->id === $rs['user_id'] ? ' <a href="'.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site).'">[delete]</a>' : '')
+					.'</blockquote>';
 
-		if($user->typ != USER_NICHTEINGELOGGT && Quotes::hasVoted($user->id, $rs['id'])) {
-			$html .=
-				'<tr><td align="center" valign="middle">'
-				.'<small>(Note: '.round(Quotes::getScore($rs['id']), 1).')</small>'
-				//.' (votes: '
-				//.Quotes::getNumvotes($rs['id'])
-				//.($user->typ != USER_NICHTEINGELOGGT ? ', deine Note: '.Quotes::getScorebyUser($rs['id'], $user->id) : '')
-				//.')'
-
-			;
+		if ($user->is_loggedin())
+		{
+			if (Quotes::hasVoted($user->id, $rs['id'])) $html .= '<small>(Note: '.round(Quotes::getScore($rs['id']), 1).')</small>';
+				//.' (votes: '.Quotes::getNumvotes($rs['id']).($user->typ != USER_NICHTEINGELOGGT ? ', deine Note: '.Quotes::getScorebyUser($rs['id'], $user->id) : '').')'
+			if (!Quotes::hasVoted($user->id, $rs['id']))
+			{
+				$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" style="display: flex;">'
+							.'<input name="action" type="hidden" value="benoten">'
+							.'<input name="quote_id" type="hidden" value="'.$rs['id'].'">'
+							.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="1">'
+								.'1</label>'
+							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="2">'
+								.'2</label>'
+							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="3">'
+								.'3</label>'
+							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="4">'
+								.'4</label>'
+							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="5">'
+								.'5</label>'
+							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="6">'
+								.'6</label>'
+							.'<input class="button" type="submit" value="benoten">'
+						.'</form>';
+			}
 		}
 
-		if($user->typ != USER_NICHTEINGELOGGT && !Quotes::hasVoted($user->id, $rs['id'])) {
-			$html .=
-				'</table>'
-				.'<table><tr><td align="center" valign="middle">'
-				.'<form action="/quotes.php" name="quotevoteform'.$rs['id'].'" method="post">'
-				.'<input name="action" type="hidden" value="benoten">'
-				.'<input name="quote_id" type="hidden" value="'.$rs['id'].'">'
-				.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-				.'<tr><td valign="middle">'
-				.'<input name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" type="radio" value="1">'
-				.'</td><td>1</td><td>'
-				.'<input name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" type="radio" value="2">'
-				.'</td><td>2</td><td>'
-				.'<input name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" type="radio" value="3">'
-				.'</td><td>3</td><td>'
-				.'<input name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" type="radio" value="4">'
-				.'</td><td>4</td><td>'
-				.'<input name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" type="radio" value="5">'
-				.'</td><td>5</td><td>'
-				.'<input name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" type="radio" value="6">'
-				.'</td><td>6</td><td>'
-				.'<input class="button" type="submit" value="benoten">'
-				.'</td></tr>'
-				.'</form>'
-			;
-		}
-
-		if($user->typ != USER_NICHTEINGELOGGT && $user->id == $rs['user_id']) {
-  			$html .=
-  				' <a href="'
-  				.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site)
-  				.'">[delete]</a>'
-  			;
-		}
-
-		$html .= '</td></tr></table>';
-
+		$html .= '</div>';
 		return $html;
 	}
 

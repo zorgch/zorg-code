@@ -5,8 +5,7 @@
  * Beinhaltet alle Funktionen der Gallery.
  *
  * @author [z]biko
- * @package zorg
- * @subpackage Gallery
+ * @package zorg\Gallery
  * @version 3.0
  * @since 1.0 File & functions added
  * @since 2.0 Added code documentations, polished & optimized various functions
@@ -57,8 +56,7 @@ $THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
  * 
  * @author [z]biko
  * @version 1.0
- * @package zorg
- * @subpackage Gallery
+ * @since 1.0 function added
  *
  * @see ZENSUR
  * @param string $state Aktueller Status des Albums, z.B. wenn es gerade bearbeitet wird
@@ -89,7 +87,7 @@ function galleryOverview ($state="", $error="") {
 	$seen = Array();
 	$i = 0;
 	
-	$out .= '<b class="titlebar">Galleries</b><br /><br />';
+	$out .= '<h2>Galleries</h2>';
 	
 	$out .=
 		'<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border-width:1px; border-style: solid; border-color: #'.BORDERCOLOR.';" width="100%">'
@@ -165,94 +163,106 @@ function galleryOverview ($state="", $error="") {
 }
 
 /**
- * Thumbnails anzeigen
+ * Album Thumbnails anzeigen
  *
- * @package zorg
- * @subpackage Gallery
+ * @version 1.5
+ * @since 1.0 function added
+ * @since 1.5 moved pagination to new Sidebar, output it via $smarty
  *
+ * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
- * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
  */
 function albumThumbs ($id, $page=0) {
-	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user;
-	
-	if (!$id) user_error("Missing Parameter <i>id</i> ", E_USER_ERROR);
-	
-	if (!$page) $page = 0;
-	
+	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user, $smarty;
+
+	if (!$id || !is_numeric($id))
+	{
+		user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
+		exit;
+	}
+
 	$pagepics = $THUMBPAGE['width'] * $THUMBPAGE['height'];
-	$e = $db->query("SELECT count(id) anz FROM gallery_pics p WHERE album=$id ".ZENSUR." GROUP BY album", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT count(id) anz FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' GROUP BY album', __FILE__, __LINE__, __FUNCTION__);
 	$d = mysql_fetch_array($e);
 	$anz = $d['anz'];
-	
-	$e = $db->query(
-		"SELECT g.*, e.name eventname
-		FROM gallery_albums g
-		LEFT JOIN events e ON e.gallery_id=g.id
-		WHERE g.id=$id", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysql_fetch_array($e);
-	echo '<br /><table width="80%" align="center"><tr>
-	<td align="center" class="bottom_border"><b class="titlebar">'
-	.($d['eventname'] ? $d['eventname'] : $d['name'])
-	.'</b></div></td></tr></table><br /><br />';
-	
-	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=$id ".ZENSUR." ORDER BY p.id LIMIT ".($page*$pagepics).", $pagepics", __FILE__, __LINE__, __FUNCTION__);
-	echo '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
-	$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
-	$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
-	$rows = 0;
-	while ($d = mysql_fetch_array($e)) {
-		$comments = Thread::getNumPosts('i', $d['id']);
-		$unread = Thread::getNumUnread('i', $d['id']);
-	
-		if ($rows==0) echo '<tr>';
-		echo '<td class="border" cellpadding="'.$THUMBPAGE['padding'].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
-		.'<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br />':'').'<img border="0" src="'.imgsrcThum($d['id']).'">';
-	
-		if ($comments) {
-			echo "<br />$comments Comments ";
-			if ($unread) echo "<br />($unread unread) ";
-		}
-	
-		echo '</a></td>';
-		if (++$rows == $THUMBPAGE['width']) {
+
+	if (!empty($d) && $d['anz'] > 0)
+	{
+		$htmlOutput = null;
+
+		$e = $db->query('SELECT g.*, e.name eventname
+						FROM gallery_albums g
+						LEFT JOIN events e ON e.gallery_id=g.id
+						WHERE g.id='.$id, __FILE__, __LINE__, __FUNCTION__);
+		$d = mysql_fetch_array($e);
+		$htmlOutput .= '<table width="80%" align="center"><tr><td align="center" class="bottom_border">'
+			.'<h2>'.($d['eventname'] ? $d['eventname'] : $d['name']).($user->typ == USER_MEMBER ? ' <span class="small">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit</a>]</span>' : '').'</h2>'
+			.'</td></tr></table><br><br>';
+
+		$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' ORDER BY p.id LIMIT '.($page*$pagepics).', '.$pagepics, __FILE__, __LINE__, __FUNCTION__);
+		$htmlOutput .= '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
+		$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
+		$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
 		$rows = 0;
-		echo '</tr>';
+		while ($d = mysql_fetch_array($e))
+		{
+			$comments = Thread::getNumPosts('i', $d['id']);
+			$unread = Thread::getNumUnread('i', $d['id']);
+	
+			if ($rows==0) $htmlOutput .= '<tr>';
+			$htmlOutput .= '<td class="border" cellpadding="'.$THUMBPAGE['padding'].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
+							.'<a href="?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br />':'').'<img border="0" src="'.imgsrcThum($d['id']).'" style="width: 100%;max-width: 100%;">';
+	
+			if ($comments) {
+				$htmlOutput .= "<br>$comments Comments ";
+				if ($unread) $htmlOutput .= "<br>($unread unread) ";
+			}
+	
+			$htmlOutput .= '</a></td>';
+			if (++$rows == $THUMBPAGE['width']) {
+				$rows = 0;
+				$htmlOutput .= '</tr>';
+			}
 		}
-	}
 	
-	for ($i=$rows; $i<$THUMBPAGE['width']; $i++) {
-		echo '<td>&nbsp;</td>';
-	}
-	if ($rows) echo '</tr>';
-	echo '</table><br /><font size="4">Seite: ';
-	
-	
-	for ($i=0; $i<$anz/$pagepics; $i++) {
-		if ($page==$i) {
-		echo '<b>['.($i+1).']</b> &nbsp; ';
-		}else{
-		echo '<a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a> &nbsp; ';
+		for ($i=$rows; $i<$THUMBPAGE['width']; $i++)
+		{
+			$htmlOutput .= '<td>&nbsp;</td>';
 		}
+		if ($rows) $htmlOutput .= '</tr>';
+		$htmlOutput .= '</table>';
+	
+		/** Pagination */
+		$paginationHtml = '<h3>Seiten</h3><font size="4">';
+		for ($i=0; $i<$anz/$pagepics; $i++)
+		{
+			$paginationHtml .= ($page==$i ? '<b>['.($i+1).']</b>' : '<a href="?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a>').' &nbsp; ';
+		}
+		$paginationHtml .= '</font>';
 	}
 	
-	echo '</font><br /><br />';
+	/** Invalid / not found Album-ID */
+	else {
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('error-invalid-album', 'gallery')]);
+	}
 	
-	if ($user->typ == USER_MEMBER)
-	echo "<a href='/gallery.php?albID=$id&show=editAlbum'>edit Album</a><br /><br />";
+	if (!empty($paginationHtml)) $smarty->assign('sidebarHtml', $paginationHtml);
+	$smarty->display('file:layout/head.tpl');
+	echo $htmlOutput;
 }
 
 
 /**
  * Bild anzeigen
  *
- * @author Zorg, IneX
+ * @author [z]biko
+ * @author IneX
  * @date 21.10.2013
- * @version 2.0
- * @since 1.0
- * @package zorg
- * @subpackage Gallery
+ * @version 2.1
+ * @since 1.0 <biko> 21.10.2013 function added
+ * @since 2.0 <inex> APOD Special: statt Pic ein Video embedden
+ * @since 2.1 <inex> 01.10.2019 responsive scaling <img> and <iframe> tags
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
@@ -260,17 +270,17 @@ function albumThumbs ($id, $page=0) {
  */
 function pic ($id) {
 	global $user, $db, $THUMBPAGE;
-	
+
 	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
-	
+
 	$e = $db->query('SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
 	$cur = mysql_fetch_array($e);
-	
+
 	if($cur == false) {
 		echo 'Bild '.$id.' existiert nicht!';
 		exit;
 	}
-	
+
 	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 	$last = mysql_fetch_array($e);
 	
@@ -285,35 +295,32 @@ function pic ($id) {
 	$d = mysql_fetch_array($e);
 	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE[height]));
 	echo '<br /><table width="80%" align="center"><tr>
-	<td align="center" class="bottom_border"><b class="titlebar">'
+	<td align="center" class="bottom_border"><h3>'
 	.($d['eventname'] ? $d['eventname'] : $d['name'])
-	.'</b></div></td></tr></table><br /><br />';
-	
+	.'</h3></div></td></tr></table><br /><br />';
+
 	if ($cur['zensur'] && $user->typ != USER_MEMBER) {
 		echo '<b><font color="red">Access denied for this picture</font></b><br /><br />';
 		return;
 	}
-	
-	if ($_GET['editFotoTitle'] && $user->typ == USER_MEMBER) {
-		echo '<form method="post" action="'.$_SERVER['PHP_SELF'].'?do=editFotoTitle&'.url_params().'">';
+
+	if ($_GET['editFotoTitle'] && $user->typ >= USER_MEMBER) {
+		echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
 			echo 'Foto-Titel: <input name="frm[name]" size="30" class="text" value="'.$cur['name'].'"> ';
 			echo '<input type="submit" value=" OK " class="button">';
+			echo '&nbsp;<a class="small" href="?show=pic&picID='.$id.'">cancel</a>';
 		echo "</form>";
 	} else {
-		if (!$cur['name'] && $user->typ == USER_MEMBER) {
-			echo '<form method="post" action="'.$_SERVER['PHP_SELF'].'?do=editFotoTitle&'.url_params().'">';
+		if (!$cur['name'] && $user->typ >= USER_MEMBER) {
+			echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
 				echo 'Foto-Titel: <input name="frm[name]" size="30" class="text">';
 				echo '<input type="submit" value=" OK " class="button">';
 			echo "</form>";
-		}elseif ($cur['name']) {
-			echo '<h2>'.$cur['name'].'</h2>';
-		}
-	
-		if ($cur['name'] && $user->typ == USER_MEMBER) {
-			echo '<small><a href="'.$_SERVER['PHP_SELF'].'?editFotoTitle=1&'.url_params().'">[edit Foto-Titel]</a></small>';
+		} elseif ($cur['name']) {
+			echo '<h2>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small"><a href="?editFotoTitle=1&'.url_params().'">[edit]</a></span>' : '').'</h2>';
 		}
 	}
-	
+
 	//$exif_data = exif_read_data(picPath($cur[album], $id, '.jpg'), 1, true); PHP wurde anscheinend ohne EXIF-Support kompiliert
 	//echo "<p>Bild erstellt am ".date('d. F Y H:i', filemtime(picPath($cur[album], $id, '.jpg')))."</p>";
 	$pic_filepath = picPath($cur['album'], $id, '.jpg');
@@ -324,12 +331,12 @@ function pic ($id) {
 	/** APOD Special: use pic_added from database, instead of filemtime */
 	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
 		echo '<p>Bild von '.datename($cur['timestamp']).'</p>';
-	
+
 	/** Fallback: Datum aus dem filemtime() des Pics */
 	} else {
 		echo '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
 	}
-	
+
 	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.
 	/*if ($user->typ == USER_MEMBER) {
 		echo "<form method='post' action='$_SERVER['PHP_SELF']?do=doRotatePic&".url_params()."'><p>";
@@ -338,8 +345,8 @@ function pic ($id) {
 			echo "<input type='submit' class='button' name='rotatebutton' value='Bild drehen' /></p>";
 		echo "</form>";
 	}*/
-	
-	
+
+
 	## PIC SCORE FORMULAR ##
 	if ($user->typ >= USER_USER) {
 		if (hasVoted($user->id, $cur['id'])) {
@@ -347,18 +354,28 @@ function pic ($id) {
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
 			echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 		} else {
-			echo '
-			<br /><form action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" method="post" name="f_benoten">
-			<input name="picID" type="hidden" value="'.$cur['id'].'">
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="1">1
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="2">2
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="3">3
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="4">4
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="5">5
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="6">6
-			<input class="button" type="submit" value="benoten">
-			</form><br />
-			';
+			echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" style="display: flex;">'
+					.'<input name="picID" type="hidden" value="'.$cur['id'].'">'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="1">'
+						.'1</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="2">'
+						.'2</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="3">'
+						.'3</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="4">'
+						.'4</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="5">'
+						.'5</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="6">'
+						.'6</label>'
+					.'<input class="button" type="submit" value="benoten">'
+				.'</form>';
 		}
 	} else {
 		$anz_votes = getNumVotes($cur['id']);
@@ -367,14 +384,14 @@ function pic ($id) {
 	}
 
 	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0">';//.$cur['picsize'].'>';
-	
+
 	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
-	if ($last) echo '<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$last['id'].'">previous</a>';
+	if ($last) echo '<a href="?show=pic&picID='.$last['id'].'">previous</a>';
 	else echo '&lt;- last';
 	echo '</td><td style="text-align:center"><a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">overview</a></td>';
 	echo '<td style="text-align:right" width="30%">';
 	if ($next) {
-		echo '<a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$next['id'].'">next</a>';
+		echo '<a href="?show=pic&picID='.$next['id'].'">next</a>';
 	} else {
 		echo 'next';
 	}
@@ -387,24 +404,24 @@ function pic ($id) {
 
 	echo '<tr><td colspan="3">';
 
-	/** Normale Pic Anzeige (wenn nicht APOD UND Pic-Extenion nicht mit '.' anfängt...) */
+	/** Normale Pic Anzeige (wenn nicht APOD UND Pic-Extension nicht mit '.' anfängt...) */
 	if ($cur['album'] != APOD_GALLERY_ID || mb_substr($cur['extension'],0,1,'utf-8') == '.')
 	{
 		// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
 		if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
-		{
+		{ // NOTE: %% = needed to prevent printf() stripping e.g. '100%' into '100'
 			printf('
 			<form action="%1$s" method="post" onsubmit="return markAsMypic()">
 				<input type="hidden" name="picID" value="%2$s" />
-				<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" />
+				<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" style="width: 100%%;max-width: 100%%;" />
 			</form>'
-					,$_SERVER['PHP_SELF'].'?do=mypic&amp;'.url_params()
+					,'?do=mypic&amp;'.url_params()
 					,$id
 					,imgsrcPic($id)
 			);
 		// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
 		} else {
-			echo '<img border="0" src="'. imgsrcPic($id). '">';
+			echo '<img border="0" src="'. imgsrcPic($id). '" style="width: 100%;max-width: 100%;">';
 		}
 
 	/** APOD Special: statt Pic ein Video embedden */
@@ -412,19 +429,19 @@ function pic ($id) {
 		switch ($cur['extension'])
 			{
 				case 'youtube':
-					echo '<iframe width="800" height="450" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" allow="autoplay; encrypted-media" allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
 					break;
 				case 'vimeo':
-					echo '<iframe width="800" height="450" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
+					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
 					break;
 				case 'website':
-					echo '<iframe width="800" height="800" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" importance="low" style="overflow:hidden;"></iframe>';
+					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" importance="low" style="overflow:hidden;" style="width: 800px;height: 800px;max-width: 100%;"></iframe>';
 					break;
 			}
 	}
-	
+
 	echo '</td></tr>';
-	
+
 	/*echo '<tr><td clspan="3">';
 	getUsersOnPic($cur['id']);  // MyPic Markierungen laden
 	while($i < count($theusers))
@@ -434,13 +451,13 @@ function pic ($id) {
 	echo '</td></tr>';
 	*/
 	echo '<tr><td colspan="3">';
-	
+
 	// Commenting (Das hier reicht schon :-) ) ------------------------------
 	Forum::printCommentingSystem('i', $id);
 	// End Commenting -------------------------------------------------------
-	
+
 	echo '</td></tr></table></div>';
-	
+
 	if ($user->typ == USER_MEMBER) { // member
 		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br />';
 		if ($cur['zensur']) {
@@ -519,11 +536,9 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		$e = $db->query("SELECT * FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
 		$frm = mysql_fetch_array($e);
 	
-		echo '<table width="80%" align="center"><tr>
-		<td align="center" class="bottom_border"><b class="titlebar">Album #'.$id.' bearbeiten</b></div></td></tr></table><br /><br />';
+		echo '<h2>Album #'.$id.' bearbeiten</h2>';
 	}else {
-		echo '<table width="80%" align="center"><tr>
-		<td align="center" class="bottom_border"><b class="titlebar">Neues Album erstellen</b></div></td></tr></table><br /><br />';
+		echo '<h2>Neues Album erstellen</h2>';
 		$id = 0;
 	}
 	
@@ -539,7 +554,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	if ($editState) echo "<font color='green'><b>$editState</b></font><br /><br />";
 	if ($editError) echo "<font color='red'><b>$editError</b></font><br /><br />";
 	
-	echo "<a href='/gallery.php?albID=$id&show=albumThumbs'>go to Album</a><br /><br />";
+	echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookleftarrow; go to Album</a><br /><br />';
 	?>
 	<table class="border" cellspacing="3">
 	<form action="<?=$_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?=$id?>&do=editAlbum" method="post">
@@ -561,11 +576,11 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	</form>
 	</table>
 	<br />
-	
-	
+
+
 	<?php
-	if ($id) {
-		?>
+	if ($id)
+	{ ?>
 		<table class="border"><tr><td>
 		<form <?='action="'.$SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
 		Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br /><br />
@@ -575,15 +590,13 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</td></tr></table>
 		<br />
 		<?php
-	
-	
-		echo '<br/><br/><table width="80%" align="center"><tr>
-		<td align="center" class="bottom_border"><b class="titlebar">Picture Upload</b></div></td></tr></table><br /><br />';
-	
+
+		echo '<h2>Picture Upload</h2>';
+
 		if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br /><br />";
 		if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br /><br />";
 		?>
-	
+
 		<table class="border"><tr><td>
 		<form action="<?=$_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?=$id?>&do=mkUploadDir" method="post">
 		Upload-Ordner erstellen (in /data/gallery/upload/):<br /><br />
@@ -592,7 +605,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</form>
 		</td></tr></table>
 		<br />
-	
+
 		<?php
 		$d = opendir(UPDIR);
 		$fileoptions = array();
@@ -843,10 +856,8 @@ function doZensur ($picID)
  *
  * @author IneX
  * @date 13.08.2007
- * @version 0.9
- * @since 2.0
- * @package zorg
- * @subpackage Gallery
+ * @version 1.0
+ * @since 1.0 function added
  *
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $pic_x X-Koordinaten wo der User geklickt hat
@@ -921,11 +932,12 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
  * Check User<-->Bild Verknüpfung
  * Prüft ob ein Benutzer bereits auf einem bestimmten Bild markiert wurde
  *
- * @author keep3r, IneX
+ * @author [z]keep3r
+ * @author IneX
  * @date 19.08.2008
  * @version 1.1
- * @since 1.0 19.08.2008 function added
- * @since 1.1 20.08.2018 minor SQL-Query improvements
+ * @since 1.0 <keep3r> 19.08.2008 function added
+ * @since 1.1 <inex> 20.08.2018 minor SQL-Query improvements
  *
  * @param integer $picID ID des betroffenen Bildes
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -949,15 +961,13 @@ function checkUserToPic($userID, $picID)
 
 /**
  * Markierte User holen
- * 
+ *
  * Holt die Benutzer, welche auf einem bestimmten Bild markiert wurden
- * 
+ *
  * @author IneX
  * @date 19.08.2008
  * @version 1.0
- * @since 2.0
- * @package zorg
- * @subpackage Gallery
+ * @since 1.0 function added
  *
  * @param integer $picID ID des betroffenen Bildes
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -990,16 +1000,15 @@ function getUsersOnPic($pic_id) {
 
 /**
  * Alle Bilder eines Users
- * 
+ *
  * Markierte Bilder eines bestimmten Benutzers ausgeben
  *
- * @author IneX <IneX@gmx.net>
+ * @author IneX
  * @date 18.10.2013
- * @version 1.0
- * @since 2.0
- * @package zorg
- * @subpackage Gallery
- * 
+ * @version 1.1
+ * @since 1.0 <inex> 18.10.2013 function added
+ * @since 1.1 <inex> 15.09.2019 HTML-output & general code optimized
+ *
  * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
  * @param integer $limit Maximale Anzahl von Bildern
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1009,65 +1018,50 @@ function getUsersOnPic($pic_id) {
 function getUserPics($userid, $limit=1)
 {
 	global $db, $user;
-	
-	$html_out = '';
+
+	$html_out = null;
 	$i = 1;
 	$table_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; text-align: center;';
 	$td_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; padding: 10px;';
-	
-	if ($userid > 0) {
-		
-		$sql =
-			"
-			SELECT *
-			FROM gallery_pics_users
-			WHERE user_id=$userid
-			ORDER BY id ASC"
-			.($limit > 0 ? " LIMIT ".$limit : ""); // LIMIT only when LIMIT Parameter given; 0 = all pics
-		;
+
+	if ($userid > 0)
+	{
+		$sql = 'SELECT * FROM gallery_pics_users 
+				WHERE user_id='.(integer)$userid.' 
+				ORDER BY id ASC'
+				.($limit > 0 ? ' LIMIT '.$limit : null); // LIMIT only when LIMIT Parameter given; 0 = all pics
 		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		
-		$html_out .=
-				'<table style="'.$table_style.'" width="100%">'
-				.'	<thead>'
-				.'	<tr><th colspan="4">'.$user->id2user($userid, FALSE).'\'s Pics</th></tr>'
-				.'	</thead>';
-		
-		while($rs = $db->fetch($result)) {
-			$img_id = $rs['pic_id'];
-			$img_name = imgName($img_id);
-			$file = imgsrcThum($img_id);
-			
-			if ($i == 1) {
-				$html_out .= '<tr>';
+
+		/** Hey, we've got some pics! */
+		if ($db->num($result) > 0)
+		{
+			$html_out .= '<h3>'.$user->id2user($userid).'\'s Pics</h3>';
+			$html_out .= '<table style="'.$table_style.'" width="100%">';
+
+			while($rs = $db->fetch($result))
+			{
+				$img_id = $rs['pic_id'];
+				$img_name = imgName($img_id);
+				$file = imgsrcThum($img_id);
+				if ($i == 1) {
+					$html_out .= '<tr>';
+				}
+				$html_out .= '<td style="'.$td_style.'">'
+							 .'<a href="/gallery.php?show=pic&picID='.$img_id.'">';
+				
+				$html_out .= '<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"><br>';
+				if ($img_name) $html_out .= $img_name.'</a>';
+				$html_out .= '</td>';
+				$i++;
+				if ($i == 4) {
+					$html_out .= '</tr>';
+					$i = 1;
+				}
 			}
-			
-			$html_out .=
-					'	<td style="'.$td_style.'">'
-					.'		<a href="/gallery.php?show=pic&picID='.$img_id.'">'
-			;
-			
-			$html_out .=
-					'		<img border="0" src="'.$file.'" /><br />'
-			;
-			if ($img_name) {
-				$html_out .= $img_name.'</a>';
-			}
-			
-			$html_out .= '	</td>';
-			
-			$i++;
-			
-			if ($i == 4) {
-				$html_out .='</tr>';
-				$i = 1;
-			}
+			$html_out .= '</table>';
 		}
-		
-		$html_out .= '</table>';
-		
+
 		return $html_out;
-		
 	}
 }
 /*====================================================
@@ -1078,14 +1072,12 @@ function getUserPics($userid, $limit=1)
 
 /**
  * Bild benoten
- * 
+ *
  * Benotet ein Bild mit einer vom User gewählten Score (1-5)
- * 
+ *
  * @author IneX
  * @version 1.0
- * @since 1.5
- * @package zorg
- * @subpackage Gallery
+ * @since 1.0 <inex> function added
  *
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $score Bewertung (1-5) welche der User dem Bild gegeben hat
@@ -1359,7 +1351,11 @@ function imgsrcThum($id) {
 		return "/gallery/thumbs/".$id;
 }
 
-
+/**
+ * @DEPRECATED
+ * @see picHasTitle()
+ * @todo replace all references to this function with new picHasTitle()
+ */
 function imgName($id) {
 	global $db;
 	
@@ -1568,7 +1564,7 @@ function getAlbumLinkRandomThumb($album_id) {
 
 	$html =
 		'<a href="/gallery.php?show=albumThumbs&albID='.$album_id.'">'
-		.'<img border="0" src="'.$file.'" itemprop="image" /></a>'
+		.'<img border="0" src="'.$file.'" itemprop="image" style="width: 100%;max-width: 100%;"></a>'
 	;
 
 	return $html;
@@ -1775,14 +1771,14 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 			if ($rs['name']) $html_out .= $rs['name'].'<br />';
 			
 			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
+					'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"></a>'
+					.'<br>Bild Note: '.round($rs['avgScore'],1).' '
 			;
 
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
 			$html_out .=
 				'<small>('.$votes.')</small>'
-				.'<br />'
+				.'<br>'
 			;
 
 			if ($ranking_list === true) $html_out .= '</td></tr>';
@@ -1830,8 +1826,8 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 			if ($pic_name) $html_out .= $pic_name.'<br />';
 
 			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs['avgScore'],1).' '
+					'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"></a>'
+					.'<br>Bild Note: '.round($rs['avgScore'],1).' '
 			;
 
 			$votes = $anz_votes.' '.(($anz_votes > 1) || ($anz_votes == 0) ? 'Votes' : $anz_votes.'Vote');
@@ -1872,7 +1868,7 @@ function formatGalleryThumb($rs)
 	/** HTML-Markup for Pic Thumbnail */
 	$html = '<a href="/gallery.php?show=pic&picID='.$rs['id'].'">' // Link
 			.text_width(remove_html($rs['name']), 80, '...').'<br>' // Pic-Title
-			.'<img border="0" src="'.$file.'" /><br>' // Image-Tag
+			.'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"><br>' // Image-Tag
 			.Thread::getNumPosts('i', $rs['id']).' Comments</a>'; // No. of Comments
 
 	/** Comment-Unreads bei Member holen & anzeigen... */

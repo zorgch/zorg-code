@@ -221,23 +221,21 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 					'{if $k == (sizeof($hdepth) - 1)}';
 						if($rs['numchildposts'] > 0) {
 					  		$html .=
-					  			'<td class="{$it}">'
-					    		.'<a onClick="onoff(\''.$rs['id'].'\')">'
-					    		.'<img class="forum" name="img'.$rs['id'].'" src="/images/forum/'.$layouttype.'/minus.gif" />'
-						    	.'</a>'
+					  			'<td class="threading {$it}">'
+						    		.'<a class="threading switch collapse" onClick="showhide('.$rs['id'].', this)"></a>'
 						    	.'</td>'
 					    	;
 					  	} else {
 					  		$html .= 
 					  			'{if $it == "space"}'.
-					  				'<td class="end"></td>'.
+					  				'<td class="threading end"></td>'.
 					  			'{else}'.
-					  				'<td class="vertline"><img class="forum" src="/images/forum/'.$layouttype.'/split.gif" /></td>'.
+					  				'<td class="threading vertline"><span class="threading split"></span></td>'.
 					  			'{/if}';
 					  	}
 			$html .= 
 					'{else}'.
-						'<td class="{$it}"></td>'.
+						'<td class="threading {$it}"></td>'.
 					'{/if}'.
 				'{/foreach}';
 
@@ -255,7 +253,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}"'
 			 .' style="table-layout:fixed;" width="100%">'
 			 .'<tr style="font-size: x-small;">'
-				.'<td class="forum" width="75%">'
+				.'<td class="forum" style="width: 70%;">'
 				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? 'itemprop="url"' : '').'>'
 				.'#'.$rs['id']
 				.'</a>'
@@ -270,45 +268,35 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			$html .= '<!--googleoff: all-->';
 			$html .= 
 				' <a href="#top">- nach oben -</a> '
-				.'</td><td class="forum" style="text-align: right;" width="22%"><nobr>'
+				.'</td><td class="forum" style="width: 15%; text-align: right; white-space: nowrap;">'
 			;
 
 			// Subscribe / Unsubscribe
-			$html .=
-				'{if $user->id > 0}'
-				.'{if in_array('.$rs['id'].', $comments_subscribed)}
-				<a href="/actions/commenting.php'
-				.'?do=unsubscribe'
-				.'&board='.$rs['board']
-				.'&comment_id='.$rs['id']
-				.'&url={base64_encode text=$request.url}'
-				.'">[unsubscribe]</a>
-				{else}
-				<a href="/actions/commenting.php'
-				.'?do=subscribe'
-				.'&board='.$rs['board']
-				.'&comment_id='.$rs['id']
-				.'&url={base64_encode text=$request.url}'
-				.'">[subscribe]</a>
-				{/if}
-				{/if}'
-			;
+			$html .= '{if $user->id > 0}'
+						.'{if in_array('.$rs['id'].', $comments_subscribed)}
+							<a href="/actions/commenting.php'
+							.'?do=unsubscribe'
+							.'&board='.$rs['board']
+							.'&comment_id='.$rs['id']
+							.'&url={base64_encode text=$request.url}'
+							.'">[unsubscribe]</a>
+						{else}
+							<a class="hide-mobile" href="/actions/commenting.php?do=subscribe&board='.$rs['board'].'&comment_id='.$rs['id'].'&url={base64_encode text=$request.url}">[subscribe]</a>
+						{/if}
+					{/if}';
 
-			$html .=
-					'{if $user->id == '.$rs['user_id'].'}'.
-			  		'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].
-			  		'&url={base64_encode text=$request.url}">[edit]</a> '.
-			  	'{/if}
-			  	{if $user->id != 0}'.
-			  		'{if $hdepth <= 1}<label for="replyfor-'.$rs['id'].'">Reply:</label>{/if}'.
-			  		'</td><td class="forum" style="text-align: right;" width="3%">'.
-			  		'<input name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" type="radio" value="'.$rs['id'].'" '.
-			  		'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked" {/if}'.
-			  		' />'.
-			  	'{/if}';
-
+			$html .= '{if $user->id == '.$rs['user_id'].'}'
+				  		.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={base64_encode text=$request.url}">[edit]</a> '
+				  	.'{/if}
+				  	  {if $user->id != 0}'
+				  		.'</td><td class="forum" style="width: 15%; text-align: right;">'
+					  		.'<label for="replyfor-'.$rs['id'].'" style="white-space: nowrap;margin-right: 2px;">'
+						  		.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" value="'.$rs['id'].'" '
+						  		.'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked" {/if} /><span class="hide-mobile">&nbsp;reply</span></label>'
+				  	.'{/if}';
 			$html .= '<!--googleon: all-->';
-			$html .= '</nobr></td></tr><tr>';
+			$html .= '</td></tr><tr>';
+
 			($is_thread ? $html .= '<span itemprop="headline" content="'.remove_html(Comment::getLinkThread($rs['board'], $rs['thread_id'])).'"></span>' : '');
 			$html .= '<td class="forum" colspan="3" itemprop="'.($is_thread ? 'articleBody' : 'text').'">';
 			if (!$rs['error']) {
@@ -394,25 +382,22 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 
 			$html .= 
 				'{foreach from=$hdepth item=it}'.
-					'<td class="{$it}"></td>'.
+					'<td class="threading {$it}"></td>'.
 				'{/foreach}';
 
 			// restlicher output
 			$html .=
-				'<td class="space">'
-			
-				.'<a href="{get_changed_url change="parent_id='.$parent_id.'"}">'
-				.'<img border="0" class="forum" src="/images/forum/'.$layouttype.'/plus.gif" />'
-				.'</a>'
+				'<td class="threading space">'
+					.'<a class="threading switch expand" href="{get_changed_url change="parent_id='.$parent_id.'"}"></a>'
 				.'</td>'
 				.'<td align="left" class="border forum">'
 				
 			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$color.newcomment}" class="forum">'
 			 .'<tr>'
-				.'<td bgcolor="{$color.newcomment}" valign="top">'
-			 .'<a href="{get_changed_url change="parent_id='.$parent_id.'"}">'
-			 .'<font size="4"> Additional posts</font></a>'
-			 .' {if $user->id!=0}<a href="/profil.php?do=view">(du hast Forumanzeigeschwelle <b>{$user->maxdepth}</b> eingestellt)</a>{/if}'
+				 .'<td bgcolor="{$color.newcomment}" valign="top">'
+					 .'<a href="{get_changed_url change="parent_id='.$parent_id.'"}">'
+						 .' <font size="4">Additional posts</font></a>'
+						 .' {if $user->id!=0}<a href="/profil.php?do=view">(du hast Forumanzeigeschwelle <b>{$user->maxdepth}</b> eingestellt)</a>{/if}'
 			 .'</td></tr></table>'
 			 
 				.'</td></tr></table>'

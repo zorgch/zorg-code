@@ -3,7 +3,8 @@ require_once( __DIR__ .'/../includes/main.inc.php');
 
 //$path = $_SERVER['DOCUMENT_ROOT']."/../data/smartylib/templates_c/";
 
-if ($user->typ == USER_MEMBER) {
+if ($user->typ >= USER_MEMBER)
+{
 	$handle = opendir(SMARTY_COMPILE);
 
 	$ctr = array("found" => 0, "deleted" => 0, "not_deleted" => 0);
@@ -25,6 +26,6 @@ if ($user->typ == USER_MEMBER) {
 	$smarty->assign('tplroot', $_TPLROOT);
 	$smarty->display('file:layout/layout.tpl');
 
-}else{
+} else {
 	user_error("access denied", E_USER_ERROR);
 }
