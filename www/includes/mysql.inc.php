@@ -104,7 +104,9 @@ class dbconn
 			if (is_object($qfile)) $qfile = '?';  // weil irgend jemand auf die idee kam, ein object zu übergeben (tststs)
 			if (!$qline) $qline = '?';
 			if (!isset($this->query_track[$qfile])) $this->query_track[$qfile] = array();
-			$this->query_track[$qfile]['line '.$qline]++;
+			if(isset($this->query_track[$qfile]['line '.$qline])) {
+				$this->query_track[$qfile]['line '.$qline]++;
+			}
 		}
 
 		try {
@@ -114,7 +116,7 @@ class dbconn
 				$sql_insert_id = mysqli_insert_id($this->conn);
 				return (is_numeric($sql_insert_id) && $sql_insert_id !== 0 ? $sql_insert_id : ($sql_insert_id !== false ? true : false));
 			} elseif ($sql_query_type == 'update') {
-				$sql_affected_rows = mysqli_affected_rows();
+				$sql_affected_rows = mysqli_affected_rows($this->conn);
 				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
 			} elseif ($result === false && $this->display_error == 1) {
 				/** Display MySQL-Error with context */

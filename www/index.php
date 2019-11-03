@@ -155,10 +155,10 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '') {
 			$_TPLROOT = $db->fetch($e);
 
 			/** Load required packages for the current template */
-			load_packages($_TPLROOT['id']);
+			load_packages($_TPLROOT['id'], $smarty);
 
 			/** Load Template menus */
-			$tpl_menus = load_navigation($_TPLROOT['id']);
+			$tpl_menus = load_navigation($_TPLROOT['id'], $smarty);
 			if (is_array($tpl_menus)) $_TPLROOT['menus'] = $tpl_menus;
 
 			/** Assign Tpl Id, Template Titles and Template link */
