@@ -150,15 +150,12 @@ if (!defined('ZORG_SESSION_ID')) define('ZORG_SESSION_ID', 'z');
 if (!defined('ZORG_COOKIE_SESSION')) define('ZORG_COOKIE_SESSION', ZORG_SESSION_ID);
 if (!defined('ZORG_COOKIE_USERID')) define('ZORG_COOKIE_USERID', 'autologin_id');
 if (!defined('ZORG_COOKIE_USERPW')) define('ZORG_COOKIE_USERPW', 'autologin_pw');
-if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_ALLE')) define('USER_ALLE', 0);
 if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
 if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
 //define('USER_EINGELOGGT', 0);
-//define('USER_MEMBER', 1);
 //define('USER_NICHTEINGELOGGT', 2);
-//define('USER_ALLE', 3);
 if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
 if (!defined('USER_IMGPATH')) define('USER_IMGPATH',  SITE_ROOT.'/../data/userimages/');
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
@@ -175,9 +172,12 @@ if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', 10);
  * Define Smarty constants
  */
 if (!defined('SMARTY_DIR')) define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
+if (!defined('SMARTY_TRUSTED_DIRS')) define('SMARTY_TRUSTED_DIRS', SITE_ROOT.'/scripts/'); // TODO PHP7.x: make this an array
 if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
 if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
 if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
+if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/packages/');
+if (!defined('SMARTY_PACKAGES_EXTENSION')) define('SMARTY_PACKAGES_EXTENSION', '.php');
 
 /**
  * Define and include various Placeholder-Strings related constants and files
@@ -226,3 +226,9 @@ include_once( __DIR__ .'/telegrambot.inc.php');
 define('MAX_ADDLE_GAMES', 1);
 define('ADDLE_BASE_POINTS', 1600);
 define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);
+
+/**
+ * Define and include various Layout related constants and files
+ * @include colors.inc.php Required to have various color vars accessible
+ */
+include_once( __DIR__ .'/colors.inc.php');

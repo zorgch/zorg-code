@@ -1,9 +1,9 @@
-<?
+<?php
 /**
  * FILE INCLUDES
  */
 if (!require_once PHP_INCLUDES_DIR.'/usersystem.inc.php') die('ERROR: Usersystem could NOT be loaded!');
-
+if (!require_once PHP_INCLUDES_DIR.'/googleapis.inc.php') die('ERROR: Google API could NOT be loaded!');
 
 /**
  * Mobilezorg Chat
@@ -82,10 +82,11 @@ class mobilezChat
 				// No insert
 				Error_Handler::addError('MySQL table row Insert failed', __FILE__, __LINE__, __FUNCTION__, __CLASS__);
 				return false;
-			}/* else {
+			} else {
 				// Successfully inserted
-				return true;
-			}*/
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> postChatMessage() SUCCESS', __METHOD__, __LINE__));
+				//return true;
+			}
 		} catch(PDOException $err) {
 			Error_Handler::addError('Error: '.$err->getMessage(), __FILE__, __LINE__, __FUNCTION__, __CLASS__);
 			return false;
@@ -148,8 +149,9 @@ class mobilezChat
 	 * Saves an uploaded image file into the user's file directory
 	 * 
 	 * @author IneX
-	 * @version 1.0
-	 * @since 1.0
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 <inex> 27.08.2019 Added Telegram Notification
 	 * 
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$image_path} contains the path to the uploaded image
@@ -162,7 +164,7 @@ class mobilezChat
 	 */
 	function saveImage($user_id, $image_path, $image_size, $image_type, $image_name = '', $image_extension = '', $from_mobile = 0)
 	{
-		global $pdo_db;
+		global $pdo_db, $user, $telegram;
 		
 		if (empty($image_extension)) $image_extension = IMAGE_FORMAT;
 		$target_dir = usersystem::get_and_create_user_files_dir($user_id);
@@ -197,8 +199,22 @@ class mobilezChat
 						$saved_thumb_path = self::saveImageThumbnail($user_id, $full_file_savepath, $image_name);
 						if (!empty($saved_file_path) && !empty($saved_thumb_path))
 						{
+							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $saved_file_path: %s', __METHOD__, __LINE__, $saved_file_path));
 							$message = sprintf('<a href="%1$s" target="_blank"><img name="%2$s" id="%2$s" class="" src="%3$s"></a>', $saved_file_path, $filename, $saved_thumb_path);
 							mobilezChat::postChatMessage($user_id, $message, $from_mobile);
+							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> After mobilezChat::postChatMessage()', __METHOD__, __LINE__));
+
+							/** Telegram Messenger Notification */
+							if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot', true);
+							require_once PHP_INCLUDES_DIR.'/telegrambot.inc.php';
+							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Included telegrambot.inc.php', __METHOD__, __LINE__));
+							$telegramPhotoCaption = sprintf('[z]Chat Bildupload von <b>%s</b>', $user->id2user($user_id, true));
+							$telegramMessageKeyboard = [ 'inline_keyboard' => [[
+															 ['text'=>'View','url'=>SITE_URL.$saved_file_path]
+															,['text'=>'Reply','url'=>SITE_URL.'/mobilezorg-v2/']
+														]] ];
+							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Start $telegram->send->photo(%s, %s, %s, %s)', __METHOD__, __LINE__, 'group', SITE_URL.$saved_thumb_path, $telegramPhotoCaption, print_r($telegramMessageKeyboard,true)));
+							$telegram->send->photo('group', SITE_URL.$saved_thumb_path, $telegramPhotoCaption, ['reply_markup' => json_encode($telegramMessageKeyboard)]);
 						} else {
 							Error_Handler::addError('Function saveImage() failed', __FILE__, __LINE__, __FUNCTION__, __CLASS__);
 							return false;
@@ -214,8 +230,8 @@ class mobilezChat
 			return false;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Save Geolocation as Chat Message
 	 * Saves a Google Maps URL as Chat Message to the Database
@@ -226,38 +242,40 @@ class mobilezChat
  	 * @ToDo Save Google Staticmap in 3 sizes: small, medium, large
  	 * 
 	 * @author IneX
-	 * @version 1.0
-	 * @since 1.0
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 <inex> 27.08.2019 included and added GOOGLE_API_KEY, maps.googleapis.com url and parameter adjustments
 	 *
+	 * @see googleapis.inc.php, GOOGLE_API_KEY
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$latlng} are the latitude & longitude coordinates the user posted
 	 * @param integer {$from_mobile} defines if the user posted from a mobile device
 	 */
 	function postGoogleMapsLocation($user_id, $latlng, $from_mobile = 0)
 	{
-		$googlemaps_staticmap_url = sprintf(
-										'http://maps.googleapis.com/maps/api/staticmap?format=%s&size=%s&scale=%u&zoom=%u&markers=%s%s'
+		$googlemaps_staticmap_url = sprintf('https://maps.googleapis.com/maps/api/staticmap?key=%s&format=%s&size=%s&scale=%u&zoom=%u&markers=%s%s'
+										,GOOGLE_API_KEY // GOOGLE API KEY
 										,IMAGE_FORMAT	// Image MIME-Type
 										,'320x180'		// max: 640x480
-										,'1'			// 1 or 2
+										,'2'			// 1 or 2
 										,'17'			// 0 = entire earth, 25 = single building
 										,'color:red%7Csize:mid%7C' // marker settings
-										,$latlng
+										,$latlng // marker position
 									);
-		error_log('[DEBUG] '.$googlemaps_staticmap_url);//debug
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $googlemaps_staticmap_url: %s', __METHOD__, __LINE__, $googlemaps_staticmap_url));//debug
 		$googlemaps_link_url = 'https://www.google.com/maps/place/' . $latlng;
-		
+
 		$saved_image_url = mobilezChat::saveGoogleMapsImage($user_id, $googlemaps_staticmap_url);
 		if ($saved_image_url != false)
 		{
-			$message = sprintf('<a href="%1$s" target="_blank"><img name="%2$s" id="%2$s" class="" src="%3$s"></a>', $googlemaps_link_url, $latlng, $saved_image_url);
+			$message = sprintf('<a href="%1$s" target="_blank"><img name="%2$s" id="%2$s" class="" src="%3$s" width="320"></a>', $googlemaps_link_url, $latlng, $saved_image_url);
 			mobilezChat::postChatMessage($user_id, $message, $from_mobile);
 		} else {
 			Error_Handler::addError('Function saveGoogleMapsImage() failed', __FILE__, __LINE__, __FUNCTION__, __CLASS__);
 			return false;
 		}
 	}
-	
+
 		/**
 		 * Google Maps API - staticmap
 		 * Grab and save a Google Maps Snapshot and save image into user's file directory

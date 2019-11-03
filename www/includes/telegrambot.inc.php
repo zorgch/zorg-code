@@ -119,16 +119,37 @@ class Telegram
 					$telegramAPIcallParameters = http_build_query($data);
 					$telegramAPIcall = TELEGRAM_API_URI . "/$messageType?" . $telegramAPIcallParameters;
 
-					/** Send the Telegram message */
+					/**
+					 * Sending the Telegram message
+					 */
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> using "%s" to Chat "%s"', __METHOD__, __LINE__, $messageType, $telegramChatId));
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> API call: %s', __METHOD__, __LINE__, $telegramAPIcall));
 					if (!empty($messageType))
 					{
-						if (file_get_contents($telegramAPIcall))
+						/** Create a stream_context for the file_get_contents HTTP request */
+						$httpContext = stream_context_create(array(
+							'http' => array(
+								'ignore_errors' => true
+							)
+						));
+						$httpResponseBody = file_get_contents($telegramAPIcall, false, $httpContext);
+
+						/**
+						 * @var array $http_response_header The HTTP-request resul headers are available in $http_response_header that PHP creates in global scope
+						 */
+						if (is_array($http_response_header))
 						{
-							return true;
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_get_contents() $http_response_header:'."\n\r%s\n\r".'$httpResponseBody:'."\n\r%s", __METHOD__, __LINE__, print_r($http_response_header, true), $httpResponseBody));
+							preg_match('{HTTP\/\S*\s(\d{3})}', $http_response_header[0], $match);
+							if ($match[1] !== '200')
+							{
+								error_log(sprintf('[ERROR] <%s:%d> Telegram %s failed with HTTP status code %s and response:'."\n\r%s", __METHOD__, __LINE__, $messageType, $match[0], $httpResponseBody));
+								return false;
+							} else {
+								return true;
+							}
 						} else {
-							return false;
+							return true;
 						}
 					}
 				} else {
@@ -138,6 +159,7 @@ class Telegram
 			}
 		} else {
 			error_log( t('invalid-message', 'messagesystem') );
+			return false;
 		}
 	}
 

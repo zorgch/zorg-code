@@ -5,8 +5,7 @@
  * Gibt Spresim erst die Macht die er braucht, um so richtig anzuficken
  * 
  * @author ?
- * @package zorg
- * @subpackage Anficker
+ * @package zorg\Games\Anficker
  */
 /**
  * File Includes

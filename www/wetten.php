@@ -1,41 +1,71 @@
 <?php
+/**
+ * Das zorg Wettbüro
+ *
+ * @author freiländer
+ * @package zorg\Wetten
+ */
 
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
-include_once(SITE_ROOT.'/includes/wetten.inc.php');
+/**
+ * File includes
+ */
+require_once(__DIR__.'/includes/main.inc.php');
+require_once(__DIR__.'/includes/wetten.inc.php');
+require_once(__DIR__.'/models/core.model.php');
 
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Wetten();
 
-//Post actions ausf�hren/entgegennehmen
+/**
+ * Validate GET-Parameters
+ */
+if (!empty($_GET['id'])) $wette = (int)$_GET['id'];
+if (!empty($_GET['eintrag'])) $getEintrag = (string)$_GET['eintrag'];
+
+/** Post actions ausführen/entgegennehmen */
 wetten::exec();
 
-//echo head("zorg", "Wettb�ro"); //head($menu, $title)
-$smarty->assign('tplroot', array('page_title' => 'Wettb�ro'));
-$smarty->display('file:layout/head.tpl');
-echo menu("zorg");
-if ($user->typ != USER_NICHTEINGELOGGT) echo menu("eingeloggte_user");
-echo menu("user");
+//echo head("zorg", "Wettbüro"); //head($menu, $title)
+//$smarty->assign('tplroot', array('page_title' => 'Wettbüro'));
+//echo menu("zorg");
+//if ($user->typ != USER_NICHTEINGELOGGT) echo menu("eingeloggte_user");
+//echo menu("user");
 
-if(!$_GET['id']) {
-	if($_GET['eintrag']) {
-		echo "<br /><b>Eintrag erfolgreich</b><br />";
+/** Wettbüro Übersicht */
+if (empty($wette) || $wette <= 0)
+{
+	$model->showOverview($smarty);
+	if ($getEintrag)
+	{
+		//echo "<br /><b>Eintrag erfolgreich</b><br />";
+		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Wette erfolgreich erfasst']);
 	}
 
-	//offene wetten auflisten
+	/**
+	 * neue wette erstellen form anzeigen
+	 * aber nur wenn eingeloggter user
+	 */
+	if ($user->typ != USER_NICHTEINGELOGGT) $smarty->assign('sidebarHtml', wetten::newform());
+	$smarty->display('file:layout/head.tpl');
+	echo '<h1>zorg Wettbüro</h1>';
+
+	/** offene wetten auflisten */
 	wetten::listopen();
 
-	//laufende wetten auflisten
+	/** laufende wetten auflisten */
 	wetten::listlaufende();
 	
-	//geschlossene wetten auflisten
+	/** geschlossene wetten auflisten */
 	wetten::listclosed();
-
-	//neue wette erstellen form anzeigen
-	//aber ur wenn eingeloggter user
-	if ($user->typ != USER_NICHTEINGELOGGT) wetten::newform();
-} else {
-	wetten::get_wette($_GET['id']);
 }
 
-//echo foot(1);
-$smarty->display('file:layout/footer.tpl');
+/** Wette anzeigen */
+else {
+	$model->showWette($smarty, $user, $wette, wetten::getWettstarter($wette), wetten::getTitle($wette), wetten::getWettetext($wette));
+	$smarty->display('file:layout/head.tpl');
+	wetten::get_wette($wette);
+}
 
-?>
+$smarty->display('file:layout/footer.tpl');

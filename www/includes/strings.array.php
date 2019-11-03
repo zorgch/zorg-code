@@ -29,6 +29,10 @@ return
 			,'error-game-finish-message' => 'Finish-Message ohne Inhalt bei Game "%d", ausgelöst durch user "%s".<br>Winner: %s<br>Receiver: %s'
 			,'error-game-notyourturn' => 'Du bisch nöd dra, yarak!'
 			,'error-file-notfound' => 'File not found or not linked in database.'
+			,'game-join' => 'join!'
+			,'game-your-game' => 'Du spielst hier mit!'
+			,'game-waiting-for-players' => 'Warten auf weitere Mitspieler...'
+			,'game-your-turn' => '!!! Du bist am Zug !!!'
 			,'datetime-today' => 'heute'
 			,'datetime-yesterday' => 'gestern'
 			,'datetime-recently' => 'jetzt'
@@ -46,6 +50,7 @@ return
 			,'datetime-months' => '%d Monaten'
 			,'datetime-year' => '%d Jahr'
 			,'datetime-years' => '%d Jahre'
+			,'text-abbreviation' => '&hellip;'
 		]
 	,'user' =>
 		[
@@ -125,6 +130,7 @@ return
 			,'invalid-comment-edit-permissions' => 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!'
 			,'invalid-comment-empty' => 'Leere Posts sind nicht erlaubt!'
 			,'error-missing-board' => 'Board nicht angegeben!'
+			,'activity-newthread' =>  'hat einen neuen Thread <a href="%s%s">"%s..."</a> gestartet'
 			,'activity-newcomment' =>  'hat <a href="%1$s%2$s">einen %3$s Comment</a> geschrieben:<br>
 										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'
 			,'message-newcomment-subject' => 'Du wurdest von %s in einem Comment erwähnt'
@@ -139,25 +145,35 @@ return
 										 <p><i>%s</i></p>
 										 <a href="%s">→ Comment lesen</a>'
 			,'forum-new-thread' => '<h3 style="text-align:left;">Neuen Thread erstellen</h3>'
+			,'forum-favorite-thread-action' => '[fav]'
+			,'forum-unfavorite-thread-action' => '[unfav]'
+			,'forum-ignore-thread-action' => '[ignore]'
+			,'forum-unignore-thread-action' => '[follow]'
+			,'forum-rss-thread-action' => '[rss]'
 		]
 	,'tpl' =>
 		[
-			 'created' =>  'Neue Seite wurde erstellt. ID: %d.<br>'
-			,'updated' => "Seite '%d' erfolgreich aktualisiert.<br>"
-			,'deleted' => "Seite '%d' wurde <strong>gelöscht</strong>.<br>"
+			 'created' =>  'Neue Seite wurde erstellt. ID: %d'
+			,'updated' => 'Seite "%d" erfolgreich aktualisiert'
+			,'deleted' => 'Seite "%d" wurde <strong>gelöscht</strong>'
 			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br>'
 			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br>'
-			,'invalid-border' => 'Ungültiger Rahmen-Typ.<br>'
-			,'error-empty' => 'Bitte keine leeren Seiten. <br>'
-			,'error-word-toolong' => "Word '%s' ist zu lang. Max. 30 Zeichen!<br/>"
-			,'error-word-validation' => "Ungültige Zeichen im Word '%s'. Erlaubt sind nur: a-z, A-Z, 0-9, _, -<br>"
-			,'error-package-missing' => 'Package <i>%s</i> existiert nicht.<br>'
+			,'invalid-border' => 'Ungültiger Rahmen-Typ.'
+			,'error-create' => 'Template konnte nicht erstellt werden'
+			,'error-empty' => 'Bitte keine leeren Seiten.'
+			,'error-word-toolong' => 'Word "%s" ist zu lang. Max. 30 Zeichen!'
+			,'error-word-validation' => 'Ungültige Zeichen im Word "%s". Erlaubt sind nur: a-z, A-Z, 0-9, _, -'
+			,'error-package-missing' => 'Package "<strong>%s</strong>" existiert nicht.'
+			,'error-package-loading' => 'Error loading packages for template #%d'
 			,'activity-newpage' =>  'hat die Seite <a href="/tpl/%d">%s</a> erstellt.'
+			,'favorite-page-action' => '[fav]'
+			,'unfavorite-page-action' => '[unfav]'
 		]
 	,'gallery' =>
 		[
 			 'error-not-logged-in' =>  '<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
 			 							<p>Bitte logge Dich ein oder <a href="%s/profil.php?do=anmeldung&menu_id=13">erstelle einen neuen Benutzer</a></p>'
+			,'error-invalid-album' => 'Ung&uuml;ltiges Album!'
 			,'permissions-insufficient' => 'Permission denied for <code>%s</code>'
 			,'telegram-dailypic-notification' => 'Daily Pic: %s [%s]'
 		]
@@ -228,6 +244,10 @@ return
 			,'message-subject' => '-- GO -- (autom. Nachricht)'
 			,'message-your-turn' => 'Ich habe meinen GO-Zug gemacht, du bist jetzt dran in <a href="%s/?tpl=699&amp;game=%d">unserem GO Spiel</a>'
 		]
+	,'peter' =>
+		[
+			 'waiting-for-num-players' => 'Warten auf %d weitere Mitspieler...'
+		]
 	,'poll' =>
 		[
 			 'invalid-poll_id' => 'Invalid Poll id "%d"'
@@ -236,12 +256,12 @@ return
 		[
 			 'array2d_sort-invalid-parameter' => 'Invalid parameter "%s" for array2d_sort.'
 			,'htmlcolor2array-invalid-parameter' => 'Invalid color "%s" for htmlcolor2array.'
-			,'smarty_brackets_ok-invalid-brackets' => 'Ungültige Klammernsetzung &lbrace; oder &rbrace; in der Nähe von: <br><pre>%s</pre><br>'
-			,'smarty_brackets_ok-invalid-argument' => 'Invalid argument type for <pre>%s</pre>'
+			,'smarty_brackets_ok-invalid-brackets' => 'ERROR: Ungültige Klammernsetzung &lbrace; oder &rbrace; in der Nähe von: <br><pre>%s</pre><br>Template wurde NICHT gespeichert!'
+			,'invalid-array' => 'Invalid array type for <pre>%s</pre>'
 		]
 	,'event' =>
 		[
-			 'telegram-event-notification' => '%s: %s'
+			 'telegram-event-notification' => '🔜 %s'
 			,'error-invalid-hours' => '[WARN] <%s:%d> Starts in "%s" hours is no valid integer value!'
 			,'error-upcoming-event' => '[NOTICE] <%s:%d> No upcoming Event found within %d hours'
 			,'error-googlemapsapi-geocode' => '[NOTICE] <%s:%d> $googleMapsApi->geocode(): no result'

@@ -1,9 +1,31 @@
 <?php
 /**
+ * Forum
+ * 
+ * Das Forum Modul enthält 3 Klassen für alle Features:
+ * - Forum
+ * - Thread
+ * - Comment
+ * Mit diesen drei Bestandteilen wird das ganze Forum,
+ * dessen Threads und das Commenting dazu - oder auch
+ * eigenständige Commenting-Instanzen für Templates
+ * erzeugt und abgehandelt.
+ *
+ * @package zorg\Forum
+ */
+
+/**
  * File includes
  * @include main.inc.php required
+ * @include core.model.php required
  */
 require_once( __DIR__ .'/includes/main.inc.php');
+require_once( __DIR__ .'/models/core.model.php');
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Forum();
 
 /**
  * Forum-Übersicht/-Threads ausgeben
@@ -18,10 +40,10 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 	if ($id <= 1)
 	{
 		$parent_id = 1;
-		//echo head(4, "forum");
-		$smarty->assign('tplroot', array('page_title' => 'forum', 'page_link' => $_SERVER['PHP_SELF']));
+		//$smarty->assign('tplroot', array('page_title' => 'forum', 'page_link' => $_SERVER['PHP_SELF']));
+		//echo menu('zorg');
+		$model->showOverview($smarty);
 		$smarty->display('file:layout/head.tpl');
-		echo menu('zorg');
 
 		/** Forum / Commenting Error anzeigen */
 		if (isset($_GET['error']) && !empty($_GET['error']))
@@ -36,27 +58,18 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 		} else {
 			$userForumBoards = (!empty($user->forum_boards) ? $user->forum_boards : (!empty($user->forum_boards_unread) ? $user->forum_boards_unread : $user->default_forum_boards));
 			echo Forum::getHTML($userForumBoards, 23, $_GET['sortby']);
-			//echo ($_SESSION['user_id'] ? Forum::getFormNewPart1of2() : ''); @DEPRECATED
-			//echo Forum::getFormNewPart2of2('f', 1, 0);
 			$smarty->assign('board', 'f');
 			$smarty->assign('thread_id', 1);
 			$smarty->assign('parent_id', 0);
-			//$smarty->display('tpl:194'); @DEPRECATED
 			echo t('forum-new-thread', 'commenting');
-			$smarty->display('file:commentform.tpl');
+			$smarty->display('file:layout/partials/commentform.tpl');
 		}
 
 	/**
 	 * Thread ausgeben
 	 */
 	} else {
-
-		//$rs = Comment::getRecordset(Comment::getThreadid($_GET[parent_id]));
-
-		//echo head(4, "thread");
-
-		//if($_SESSION['user_id']) echo Forum::getFormNewPart1of2(); @DEPRECATED
-
+		$outputContent = '';
 		$rsparent = Comment::getRecordset($id);
 		$parent_id = $rsparent['parent_id'];
 		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$id, __FILE__, __LINE__, 'SELECT * FROM comments'));
@@ -66,28 +79,30 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 		 * If you keep your titles under 60 characters, our research suggests that you can expect about 90% of your titles to display properly.
 		 * @link https://moz.com/learn/seo/title-tag
 		 */
-		$page_title = text_width(remove_html($thread['text']), 50, '', true, true);
-		$smarty->assign('tplroot', array('page_title' => (!empty($page_title) ? $page_title : 'thread #'.$thread['thread_id']), 'page_link' => '/thread/'.$thread['thread_id']));//Comment::getLinkThread($thread['board'], $thread['thread_id'], FALSE)));
-		$smarty->display('file:layout/head.tpl');
-		echo menu('zorg');
+		//$page_title = text_width(remove_html($thread['text']), 50, '', true, true);
+		//$smarty->assign('tplroot', array('page_title' => (!empty($page_title) ? $page_title : 'thread #'.$thread['thread_id']), 'page_link' => '/thread/'.$thread['thread_id']));
+		//echo menu('zorg');
 
 		/** Forum / Commenting Error anzeigen */
 		if (isset($_GET['error']) && !empty($_GET['error']))
 		{
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $_GET['error']]);
-			$smarty->display('file:layout/elements/block_error.tpl');
+			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
 		}
 
+		/** Thread not found */
 		if (!$thread)
 		{
-			http_response_code(404); // Set response code 404 (not found)
-			//echo 'Thread not found.';
-			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-thread_id', 'commenting')]);
-			$smarty->display('file:layout/elements/block_error.tpl');
 			$no_form = true;
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-thread_id', 'commenting')]);
+			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
+			$model->threadNotFound($smarty);
+			http_response_code(404); // Set response code 404 (not found)
 		} else {
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
 			Thread::setLastSeen($thread['board'], $thread['thread_id']);
+
+			$model->showThread($smarty, $thread['thread_id'], $thread['text']);
 
 			/** Bei eingeloggten Usern... */
 			if ($user->is_loggedin())
@@ -99,7 +114,7 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 						WHERE board="'.$thread['board'].'" AND user_id='.$user->id;
 				$e = $db->query($sql, __FILE__, __LINE__, 'SELECT comment_id');
 				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
-				$smarty->assign("comments_subscribed", $comments_subscribed);
+				$smarty->assign('comments_subscribed', $comments_subscribed);
 	
 				// Unread Posts bauen
 				$comments_unread = array();
@@ -110,35 +125,32 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 							);
 				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
 				$smarty->assign('comments_unread', $comments_unread);
-	
-				echo '<br>';
 			}
 
-			if($parent_id == 1) {
+			if ($parent_id == 1)
+			{
 				$comments_resource = ($id === $thread['thread_id'] ? $thread['board'].'-'.$id : $id);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comment_resource));
-				$smarty->display('comments:'.$comments_resource);
+				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
 			} else {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $id));
 				$smarty->assign('comments_top_additional', 1);
-				$smarty->display('comments:'.$id);
+				$outputContent .= $smarty->fetch('comments:'.$id);
 			}
 
 			/** Commentform zum posten printen */
-			if($user->is_loggedin() && !$no_form)
+			if ($user->is_loggedin() && !$no_form)
 			{
-				//echo Forum::getFormNewPart2of2('f', Comment::getThreadid('f', $id), $id);
 				$smarty->assign('board', 'f');
 				$smarty->assign('thread_id', Comment::getThreadid('f', $id));
 				$smarty->assign('parent_id', $id);
-				//$smarty->display('tpl:194'); @DEPRECATED
-				$smarty->display('file:commentform.tpl');
+				$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
 			}
 		}
-	}
 
-	//echo foot();
-	$smarty->display('file:layout/footer.tpl');
+		$smarty->display('file:layout/head.tpl');
+		echo $outputContent;
+	}
 }
 
 /**
@@ -146,13 +158,12 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
  */
 elseif ($_GET['layout'] == 'search')
 {
-	$smarty->assign('tplroot', array('page_title' => 'commentsearch', 'page_link' => $_SERVER['PHP_SELF'].'?layout=search'));
+	//$smarty->assign('tplroot', array('page_title' => 'commentsearch', 'page_link' => $_SERVER['PHP_SELF'].'?layout=search'));
+	$model->showSearch($smarty);
 	$smarty->display('file:layout/head.tpl');
-	echo menu('zorg');
+	//echo menu('zorg');
 	echo Forum::getFormSearch();
 	echo Forum::printSearchedComments($_GET['keyword']);
-	//echo foot();
-	$smarty->display('file:layout/footer.tpl');
 }
 
 /**
@@ -160,10 +171,10 @@ elseif ($_GET['layout'] == 'search')
  */
 elseif($_GET['layout'] == 'edit' && $user->id > 0)
 {
-	//echo head(4, "commentedit");
-	$smarty->assign('tplroot', array('page_title' => 'commentedit'));
+	//$smarty->assign('tplroot', array('page_title' => 'commentedit'));
+	$model->editComment($smarty);
 	$smarty->display('file:layout/head.tpl');
-	echo menu('zorg');
+	//echo menu('zorg');
 	$rs = Comment::getRecordset($_GET['id']);
 
 	/** Check if $user->id is Comment-Owner */
@@ -173,6 +184,7 @@ elseif($_GET['layout'] == 'edit' && $user->id > 0)
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-comment-edit-permissions', 'commenting')]);
 		$smarty->display('file:layout/elements/block_error.tpl');
 	}
-	//echo foot();
-	$smarty->display('file:layout/footer.tpl');
 }
+
+/** Page Footer */
+$smarty->display('file:layout/footer.tpl');
