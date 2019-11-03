@@ -12,7 +12,7 @@ $f = $db->query("
 	", __FILE__, __LINE__);
 
 $list = array();
-while ($f = mysql_fetch_array($g)) {
+while ($f = $db->fetch($g)) {
 	array_push($list, $g);
 }
 

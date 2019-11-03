@@ -26,7 +26,7 @@ header('Content-type:application/json;charset=utf-8');
 try {
 	$sql = 'SELECT id, username FROM user WHERE username LIKE "'.$_GET['mention'].'%" ORDER BY CHAR_LENGTH(username) ASC, username ASC LIMIT 0,6';
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result))
+	while ($rs = $db->fetch($result))
 	{
 	   $users[] = [
 	   	'userid' => $rs['id'],

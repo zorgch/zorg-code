@@ -23,7 +23,7 @@ try {
 	//error_log('[DEBUG] ' . $_POST['member_type']);
 	$sql = 'SELECT id, username, vereinsmitglied FROM user WHERE vereinsmitglied IS NOT NULL AND vereinsmitglied = "'.$_POST['member_type'].'" ORDER BY username ASC';
 	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientlist)');
-	while ($rs = mysql_fetch_array($result))
+	while ($rs = $db->fetch($result))
 	{
 		//error_log('[DEBUG] ' . $rs['id'] . ', ' . $rs['username'] . ', ' . $rs['vereinsmitglied']);
 		$memberlist[] = [

@@ -1028,7 +1028,7 @@ class usersystem
 
 		$html = '<select multiple="multiple" name="'.$name.'" size="'.$size.'" tabindex="'.$tabindex.'">';
 		$htmlSelectElements = [];
-		while ($rs = mysql_fetch_array($result))
+		while ($rs = $db->fetch($result))
 		{
 			$selectCurrent = (in_array($rs['id'], $users_selected) || $rs['id'] == $users_selected[0] ? 'selected' : false);
 			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $rs['clan_tag'].$rs['username']);
@@ -1188,7 +1188,7 @@ class usersystem
 				try {
 					$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
 					$result = $db->query($sql, __FILE__, __LINE__);
-					while ($rs = mysql_fetch_array($result)) {
+					while ($rs = $db->fetch($result)) {
 						$_users[$id] = $rs;
 					}
 				} catch(Exception $e) {
@@ -1286,7 +1286,7 @@ class usersystem
 				try {
 					$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email <> "" AND active = 1';
 					$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-					while ($result = mysql_fetch_array($userids_list))
+					while ($result = $db->fetch($userids_list))
 					{
 						$userids[] = $result['id'];
 					}

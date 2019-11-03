@@ -180,7 +180,7 @@ function doPlay($id, $choose) {
 
       if ($id) {
          $e = $db->query("SELECT * FROM addle WHERE id=$id", __FILE__, __LINE__);
-         $d = mysql_fetch_array($e);
+         $d = $db->fetch($e);
          
          if ($d && $choose>=0 && $choose<=7) {
             

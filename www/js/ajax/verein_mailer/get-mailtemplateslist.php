@@ -28,7 +28,7 @@ try {
 			WHERE corr.recipient_id = 451
 			ORDER BY updated DESC';
 	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-mailtemplate)');
-	while ($rs = mysql_fetch_array($result))
+	while ($rs = $db->fetch($result))
 	{
 		$templates[] = [
 			 'tplid' => $rs['id']

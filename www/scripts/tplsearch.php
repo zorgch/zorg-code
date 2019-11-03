@@ -10,7 +10,7 @@ if (!empty($search))
 	$found = 0;
 	try {
 		$e = $db->query('SELECT id, title FROM templates WHERE MATCH (title, tpl) AGAINST ("'.$search.'")', __FILE__, __LINE__, 'SELECT FROM templates');
-		while ($d = mysql_fetch_array($e))
+		while ($d = $db->fetch($e))
 		{
 			$d['title'] = stripslashes($d['title']);
 			$search_results[] = $d;

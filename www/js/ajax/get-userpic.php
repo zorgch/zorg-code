@@ -24,7 +24,7 @@ header('Content-type:application/json;charset=utf-8');
 try {
 	$sql = 'SELECT * FROM gallery_pics_faceplusplus WHERE user_id_tagged IS NULL AND width >= "250" AND height >= "250" AND pic_id NOT IN (SELECT pic_id FROM gallery_pics_faceplusplus GROUP BY pic_id HAVING COUNT(pic_id) > 1) ' . ( is_numeric($index) ? 'LIMIT '.$index.',1' : 'ORDER BY RAND() LIMIT 0,1');
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result, MYSQL_ASSOC))
+	while ($rs = $db->mysqli_fetch_array($result, MYSQLI_ASSOC))
 	{
 	    $pics[] = [
 		    'pic_id' => $rs['pic_id'],

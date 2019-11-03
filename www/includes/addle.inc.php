@@ -143,7 +143,7 @@ function highscore_dwz($anzahl)
 				</tr></thead>
 				<tbody>';
 
-	while ($d = mysql_fetch_array($e))
+	while ($d = $db->fetch($e))
 	{
 		if ($d['tendenz'] > 0)
 		{

@@ -93,7 +93,7 @@ function galleryOverview ($state="", $error="") {
 		'<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border-width:1px; border-style: solid; border-color: #'.BORDERCOLOR.';" width="100%">'
 		//.'<tr class="title"><td align="center"colspan="4">Galleries</td></tr><tr>'
 	;
-	while ($d = mysql_fetch_array($e)) {
+	while ($d = $db->fetch($e)) {
 		$seen[$i++] = $d['id'];
 		$out .= '<td align="center"
 		style="border-collapse: collapse; border-width:1px; border-style: solid; border-color: #'.BORDERCOLOR.'; padding: 10px;"
@@ -195,7 +195,7 @@ function albumThumbs ($id, $page=0) {
 						FROM gallery_albums g
 						LEFT JOIN events e ON e.gallery_id=g.id
 						WHERE g.id='.$id, __FILE__, __LINE__, __FUNCTION__);
-		$d = mysql_fetch_array($e);
+		$d = $db->fetch($e);
 		$htmlOutput .= '<table width="80%" align="center"><tr><td align="center" class="bottom_border">'
 			.'<h2>'.($d['eventname'] ? $d['eventname'] : $d['name']).($user->typ == USER_MEMBER ? ' <span class="small">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit</a>]</span>' : '').'</h2>'
 			.'</td></tr></table><br><br>';
@@ -205,7 +205,7 @@ function albumThumbs ($id, $page=0) {
 		$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
 		$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
 		$rows = 0;
-		while ($d = mysql_fetch_array($e))
+		while ($d = $db->fetch($e))
 		{
 			$comments = Thread::getNumPosts('i', $d['id']);
 			$unread = Thread::getNumUnread('i', $d['id']);
@@ -274,7 +274,7 @@ function pic ($id) {
 	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
 
 	$e = $db->query('SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
-	$cur = mysql_fetch_array($e);
+	$cur = $db->fetch($e);
 
 	if($cur == false) {
 		echo 'Bild '.$id.' existiert nicht!';

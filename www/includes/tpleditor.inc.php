@@ -12,11 +12,11 @@ require_once( __DIR__ .'/main.inc.php');
 
 /**
  * HTML Syntax Validator
- *
  * Check's the html syntax of $str
  *
  * @author [z]biko
  * @version 1.0
+ * @since 1.0 <biko> function added
  *
  * @param string $str
  * @return string
@@ -112,7 +112,9 @@ function html_syntax_check ($str) {
  * Unlock the edited Template
  *
  * @author [z]biko
- * @version 1.0
+ * @version 1.1
+ * @since 1.0 <biko> function added
+ * @since 1.1 <inex> SQL-query functions updated, fixed undefined constants
  *
  * @param int $id
  * @return void
@@ -120,11 +122,9 @@ function html_syntax_check ($str) {
 function tpleditor_unlock ($id) {
 	global $db, $user;
 
-	$e = $db->query("SELECT lock_user FROM templates WHERE id='$id'", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
-	if ($d[lock_user] == $user->id) {
-	$db->query("UPDATE templates SET lock_user='0' WHERE id='$id'", __FILE__, __LINE__);
-	}
+	$e = $db->query('SELECT lock_user FROM templates WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+	$d = $db->fetch($e);
+	if ($d['lock_user'] == $user->id) $db->update('templates', ['id', $id], ['lock_user' => '0'], __FILE__, __LINE__, __FUNCTION__);
 }
 
 /**
@@ -132,26 +132,29 @@ function tpleditor_unlock ($id) {
  * Prüft Zugriffsberechtigung und falls gegeben, lockt das Template. Fehler wird in $error gespeichert
  *
  * @author [z]biko
- * @version 1.0
+ * @version 1.1
+ * @since 1.0 <biko> function added
+ * @since 1.1 <inex> SQL-query functions updated, fixed undefined constants
  *
  * @param int $id
  * @param string $error
  * @return bool
  */
-function tpleditor_access_lock ($id, &$error) {
+function tpleditor_access_lock ($id, &$error)
+{
 	global $db, $user;
 
-	$e = $db->query("SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='$_GET[tplupd]'", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
+	$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$_GET['tplupd'], __FILE__, __LINE__, __FUNCTION__);
+	$d = $db->fetch($e);
 
-	if ($d && !tpl_permission($d[write_rights], $d[owner])) {
-		$error = "Access denied";
+	if ($d && !tpl_permission($d['write_rights'], $d['owner'])) {
+		$error = 'Access denied';
 		return false;
-	}elseif ($d[lock_user] && $d[lock_user]!=$user->id && $d[lock_time_stamp]+1800 > $d[now]) {  /** 30 min lock time */
-		$error = "Das Template ist gesperrt, da es gerade von ".$user->id2user($d[lock_user], true)." bearbeitet wird.";
+	}elseif ($d['lock_user'] && $d['lock_user']!=$user->id && $d['lock_time_stamp']+1800 > $d['now']) {  /** 30 min lock time */
+		$error = 'Das Template ist gesperrt, da es gerade von '.$user->id2user($d['lock_user'], true).' bearbeitet wird.';
 		return false;
 	}else{
-		$db->query("UPDATE templates SET lock_user='".$user->id."', lock_time=NOW() WHERE id='$d[id]'", __FILE__, __LINE__);
+		$db->query('UPDATE templates SET lock_user='.$user->id.', lock_time=NOW() WHERE id='.$d['id'], __FILE__, __LINE__);
 		$error = "";
 		return true;
 	}

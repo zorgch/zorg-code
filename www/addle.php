@@ -242,7 +242,7 @@ function games()
 	if (!empty($num) && $num !== false && $num > 0)
 	{
 		$i = 1;
-		while ($d = mysql_fetch_array($e)) {
+		while ($d = $db->fetch($e)) {
 			/** Eingeloggte User */
 			if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
 
@@ -263,7 +263,7 @@ function games()
 		{
 			echo '<h3>Warten auf deinen Gegner</h3>';
 			$i = 1;
-			while ($d = mysql_fetch_array($e)) {
+			while ($d = $db->fetch($e)) {
 				if ($d['player1'] != $user->id) {
 						$otherpl = $d['player1'];
 				} else {
@@ -359,7 +359,7 @@ function doplay($id, $choose) {
 	{
 		try {
 			$e = $db->query('SELECT * FROM addle WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
-			$d = mysql_fetch_array($e);
+			$d = $db->fetch($e);
 		} catch(Exception $e) {
 			error_log($e->getMessage());
 			user_error(t('error-game-invalid'), E_USER_ERROR);
@@ -500,7 +500,7 @@ function play($id=0)
 		user_error(t('error-game-invalid', 'global', $id), E_USER_ERROR);
 		exit;
 	}
-	$d = mysql_fetch_array($e);
+	$d = $db->fetch($e);
 
 	$sidebarHtml = '<center>
 	<table cellspacing="0" cellpadding="5">
@@ -678,7 +678,7 @@ function highscore() {
 	$loose = array();
 	$unent = array();
 	$usr = array();
-	while ($d = mysql_fetch_array($e)) {
+	while ($d = $db->fetch($e)) {
 		$usr[$d['player1']] = $d['player1'];
 		$usr[$d['player2']] = $d['player2'];
 		if ($d['score1'] > $d['score2']) {
@@ -798,7 +798,7 @@ function archiv() {
 		
 		$e = $db->query('SELECT * FROM addle WHERE (player1='.$uid.' OR player2='.$uid.') ORDER BY date DESC', __FILE__, __LINE__, __FUNCTION__);
 		$i = 0;
-		while ($d = mysql_fetch_array($e))
+		while ($d = $db->fetch($e))
 		{
 			if ($d['player1'] == $uid) {
 				$ich = 1;
@@ -900,7 +900,7 @@ if ($user->is_loggedin())
 			/*if ($user->is_loggedin())
 			{
 				$e = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=1) OR (player2='.$user->id.' AND nextturn=2)) AND finish=0', __FILE__, __LINE__, 'SELECT * FROM addle');
-				$d = mysql_fetch_array($e);
+				$d = $db->fetch($e);
 				play($d['id']);
 			}*/
 	}

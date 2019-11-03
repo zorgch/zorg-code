@@ -22,7 +22,7 @@ header('Content-type:application/json;charset=utf-8');
 try {
 	$sql = 'SELECT id, title, read_rights FROM templates WHERE title LIKE "'.$_GET['mention'].'%" AND read_rights <= 1 ORDER BY CHAR_LENGTH(title) ASC, title ASC LIMIT 0,6';
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result))
+	while ($rs = $db->fetch($result))
 	{
 	   $templates[] = [
 	   	'tplId' => $rs['id'],

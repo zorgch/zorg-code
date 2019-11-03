@@ -62,7 +62,7 @@ $sql = 'SELECT
 		GROUP by u.id ' . $sort . ' ' . $order;
 $e = $db->query($sql, __FILE__, __LINE__, 'userlist.php');
 
-while ($d = mysql_fetch_array($e)) {
+while ($d = $db->fetch($e)) {
 	$list[] = $d;
 }
 

@@ -37,7 +37,7 @@ $e = $db->query(
 		, __FILE__, __LINE__
 	  );
 if ($db->num($e) != 1) { http_error(404); exit; }
-$d = mysql_fetch_array($e);
+$d = $db->fetch($e);
 
 
 ?>

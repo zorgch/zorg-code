@@ -729,7 +729,7 @@ Class Bugtracker {
 
 		$html .= '<select name="'.$name.'" size="1">';
 		$html .= '<option value="0"> -- kein Bug --</option>';
-		while ($rs = mysql_fetch_array($result)) {
+		while ($rs = $db->fetch($result)) {
 		   $html .= '<option value="'.$rs['id'].'">#'.$rs['id'].' '.$rs['title'].'</option>';
 		}
 		$html .= '</select>';

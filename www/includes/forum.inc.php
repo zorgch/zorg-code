@@ -494,7 +494,7 @@ class Comment
 			$sql = "select * from comments where parent_id =".$comment_id;
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			while ($rs = mysql_fetch_array($result)) {
+			while ($rs = $db->fetch($result)) {
 				if($rs['id'] != $id) {
 					$html .=
 						'<option value="'.$rs['id'].'"'.($parent_id == $rs['id'] ? ' selected="selected"' : '').'>'

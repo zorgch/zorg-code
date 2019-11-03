@@ -52,7 +52,7 @@ if ($msgFromUser != "")
 	  	LIMIT 0,23"
 	  ;
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result)) {
+	while ($rs = $db->fetch($result)) {
 		$messages[] = $rs;
 	}
 }
