@@ -62,8 +62,8 @@ function tpl_permission ($group, $owner)
 	if ($group === '' || $group === null) $group = USER_ALLE;
 	if ($owner === '' || $owner === null) $owner = ROSENVERKAEUFER;
 
-	$userid = isset($user->id)?$user->id:0;
-	$usertyp = isset($user->typ)?$user->typ:0;
+	$userid = isset($user->id)?$user->id:null;
+	$usertyp = isset($user->typ)?$user->typ:null;
 
 	return hasTplAccess($group, $owner, $userid, $usertyp);
 }
