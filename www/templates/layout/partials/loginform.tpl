@@ -8,14 +8,14 @@
 <form name="loginform" id="loginform" class="login" action="{$self}" method="post">
 	<input type="hidden" name="do" value="login">
 	<input type="hidden" name="redirect" value="{$url}">
-	<fieldset>
+	<div class="login-input">
 		<label class="emoji user">user <input tabindex="1" type="text" name="username" value="{$smarty.post.username}"></label>
 		<a href="/profil.php?do=anmeldung&menu_id=13">new</a>
-	</fieldset>
-	<fieldset>
+	</div>
+	<div class="login-input">
 		<label class="emoji password">pass <input tabindex="2" type="password" name="password"></label>
 		<a href="/profil.php?do=anmeldung&menu_id=13">forgot</a>
-	</fieldset>
+	</div>
 	<fieldset>
 		<label><input tabindex="3" type="checkbox" name="cookie" id="cookie">&nbsp;autologin</label>
 		<input tabindex="4" type="submit" value="login">
