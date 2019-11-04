@@ -835,7 +835,7 @@ class usersystem
 	 */
 	function is_loggedin()
 	{
-		if($_SESSION['user_id']) {
+		if(isset($_SESSION['user_id']) && $_SESSION['user_id']) {
 			return true;
 		} else {
 			return false;
