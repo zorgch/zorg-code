@@ -107,7 +107,7 @@ class Notification
 					/** Validate $content for $notification_type 'message'
 						$from_user_id, $owner, $subject, $text
 					*/
-					if (!empty($content['from_user_id']) && !empty($content['from_user_id']) && !empty($content['subject']) && !empty($content['text']))
+					if (!empty($content['from_user_id']) && !empty($content['subject']) && !empty($content['text']))
 					{
 						/** Send notification */
 						$this->sendEmailNotification($content['from_user_id'], $user_id, $content['subject'], $content['text']);
@@ -274,7 +274,7 @@ class Notification
 		global $db, $user;
 
 		/** Validate passed parameters */
-		if ($to_user_id != 0 && $to_user_id <> '' && is_numeric($to_user_id))
+		if (!empty($to_user_id) && is_numeric($to_user_id))
 		{
 			/** Get User E-Mail - if E-Mail Notifications are enabled */
 			$empfaengerMail = $user->id2useremail($to_user_id);
