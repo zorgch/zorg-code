@@ -46,7 +46,7 @@ $album_id = $model->setAlbumId($getAlbId, $getPicId);
  * Ausnahme: APOD Gallery
  * @link https://zorg.ch/bugtracker.php?bug_id=708
  */
-if ($user->typ == USER_NICHTEINGELOGGT && $albumId != APOD_GALLERY_ID)
+if (!$user->is_loggedin() && $album_id != APOD_GALLERY_ID)
 {
 	$model->showOverview($smarty);
 	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
