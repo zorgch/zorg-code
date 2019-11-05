@@ -1,29 +1,39 @@
 <?php
 require_once( __DIR__ .'/../includes/main.inc.php');
 
-
-if(count($_POST) > 0) {
-	if($_POST['del']) {
-		$sql_del = "UPDATE sql_error set status = 0 WHERE id = '".$_GET['id']."'";
-		$db->query($sql_del,__FILE__,__LINE__);
-		header("Location: /?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
-	} 
-	if($_POST['query']) {
-		header("Location: /?tpl=".$_GET['tpl']."&id=".$_GET['id']."&query=".base64_encode($_POST['query'])."&".session_name()."=".session_id());
-	} 
-	if(@count($_POST['to_del']) > 0) {
-		$sql = "UPDATE sql_error set status = 0 WHERE id in(";
-		foreach($_POST['to_del'] as $del) {
-			$sql .= $del.",";	
-		}
-		$sql .= "0)";
-		$db->query($sql,__FILE__,__LINE__);
-		header("Location: /?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+if(count($_POST) > 0)
+{
+	/** Delete SQL-Error */
+	if($_POST['del'] && !empty($_GET['id']))
+	{
+		$sql_del = 'DELETE FROM sql_error WHERE id='.$_GET['id'];
+		$db->query($sql_del, __FILE__, __LINE__, 'Delete SQL-Error');
+		header('Location: /tpl/'.$_GET['tpl']);
 		die();
 	}
-	if($_POST['num']) {
+
+	/** Show Query details */
+	if($_POST['query'])
+	{
+		header('Location: /tpl/'.$_GET['tpl'].'&id='.$_GET['id'].'&query='.base64_encode($_POST['query']));
+		die();
+	}
+
+	/** Delete multiple SQL-Errors */
+	if(count($_POST['to_del']) > 0)
+	{
+		$del_ids = implode(',', $_POST['to_del']);
+		$sql = 'DELETE FROM sql_error WHERE id IN ('.$del_ids.')';
+		$db->query($sql, __FILE__, __LINE__, 'Delete multiple SQL-Errors');
+		header('Location: /tpl/'.$_GET['tpl']);
+		die();
+	}
+
+	/** Change displayed number of SQL-Error */
+	if($_POST['num'])
+	{
 		$_SESSION['error_num'] = $_POST['num'];
-		header("Location: /?tpl=".$_GET['tpl']."&".session_name()."=".session_id());
+		header('Location: /tpl/'.$_GET['tpl'].'?error_num='.$_POST['num']);
 		die();
 	}
 }
