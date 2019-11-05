@@ -275,19 +275,19 @@ header > .service .countryflag {
 	margin-left: 5px;
 	height: 0.85em;
 }
-header > .service form fieldset {
+header > .service form .login-input {
 	display: flex;
 	white-space: nowrap;
 	align-items: center;
 	padding-top: 5px;
 	padding-bottom: 0;
 }
-header > .service form fieldset label {
+header > .service form .login-input label {
 	flex: 1;
 	margin-right: 10px;
 	padding: 0 2px 0 2px;
 }
-header > .service form fieldset a {
+header > .service form .login-input a {
 	flex: 2;
 	font-size: 0.8em;
 }
