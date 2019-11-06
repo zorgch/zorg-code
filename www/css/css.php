@@ -207,7 +207,7 @@ body {
  * HTML5 Structure Styling
  */
 body > * {
-	padding: 1vw 1vw 0 1.5vw;
+	padding: 1vh 3vw 0 3vw;
 }
 	/** Old table-layout compatibility */
 	table {
