@@ -8,7 +8,7 @@
 		<meta name="geo.region" content="CH-SG">
 		<meta name="geo.placename" content="St. Gallen">
 		<meta name="ICBM" content="47.4233, 9.37">
-		<meta name="viewport" content="width=400, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}</title>
 		<meta name="twitter:card" content="summary">{*summary_large_image*}
 		<meta name="twitter:title" content="{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}">
