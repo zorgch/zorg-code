@@ -10,17 +10,16 @@
 	<input type="hidden" name="redirect" value="{$url}">
 	<div class="login-input">
 		<label class="emoji user">user <input tabindex="1" type="text" name="username" value="{$smarty.post.username}"></label>
-		<a href="/profil.php?do=anmeldung&menu_id=13">new</a>
+		<a href="/profil.php?do=anmeldung#newuser">new</a>
 	</div>
 	<div class="login-input">
 		<label class="emoji password">pass <input tabindex="2" type="password" name="password"></label>
-		<a href="/profil.php?do=anmeldung&menu_id=13">forgot</a>
+		<a href="/profil.php?do=anmeldung#pwreset">forgot</a>
 	</div>
 	<fieldset>
 		<label><input tabindex="3" type="checkbox" name="cookie" id="cookie">&nbsp;autologin</label>
 		<input tabindex="4" type="submit" value="login">
 	</fieldset>
 </form>
-<!--a href="/profil.php?do=anmeldung&menu_id=13">&#10003; New Account</a> | <a href="/profil.php?do=anmeldung&menu_id=13">? PW lost</a-->
 {/if}
 {error msg=$login_error}
