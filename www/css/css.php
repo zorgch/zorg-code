@@ -129,24 +129,23 @@ body {
 			"main <?= ($sidebarOn === true ? 'sidebar' : 'main'); ?>"
 			"footer footer";
 	}
-		.zorghead {
-			grid-template-columns: 1fr 2fr 1fr;
-			grid-template-rows: 1fr 1fr 1fr;
-			grid-template-areas:
-				"logo announcements service"
-				"infos announcements service"
-				"notifications notifications onlineuser"
-		}
-		header > .announcements {
-			justify-self: center;
-		}
+	.zorghead {
+		grid-template-columns: 1fr 2fr 1fr;
+		grid-template-rows: 1fr 1fr 1fr;
+		grid-template-areas:
+			"logo announcements service"
+			"infos announcements service"
+			"notifications notifications onlineuser"
+	}
+		header > .service { font-size: 0.6rem; }
+		header > .service label.user::before { content: "\01F464"; }
+		header > .service label.password::before { content: "\01F510"; }
+		header > .announcements { justify-self: center; }
 		header > .infos {
 			align-self: start;
 			font-size: 0.4rem;
 		}
-		header > .infos .solarstate .event {
-			margin-right: 5px;
-		}
+		header > .infos .solarstate .event { margin-right: 5px; }
 }
 
 /* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
@@ -170,6 +169,9 @@ body {
 			"notifications notifications"
 			"..... infos"
 	}
+		header > .service {
+			font-size: 0.5rem;
+		}
 		header > .announcements {
 			justify-self: start;
 		}
@@ -197,7 +199,6 @@ body {
 	    div.menu > a.left, div.menu > a.right {
 		    display: none;
 		}
-	
 	.main-content > img { max-width: 100%; }
 	.hide-mobile { display: none; }
 }
@@ -397,9 +398,7 @@ header > .announcements span.event::before {
 header > .announcements .event > a > .name { }
 header > .announcements .event > a.join { }
 header > .announcements .event > a.unjoin { color: #cbba79; }
-header > .service {
-	font-size: 0.65rem;
-}
+header > .service { text-align: right; }
 header > .service h5 {
 	margin-top: 0;
 	margin-bottom: 0.5em;
@@ -408,6 +407,7 @@ header > .service .countryflag {
 	margin-left: 5px;
 	height: 0.85em;
 }
+header > .service form fieldset { margin-top: 0; }
 header > .service form .login-input {
 	display: flex;
 	white-space: nowrap;
@@ -428,8 +428,6 @@ header > .service form .login-input a {
 header > .service form .login-input input[type=submit] {
 	flex: 1;
 }
-header > .service label.user::before { content: "\01F464"; }
-header > .service label.password::before { content: "\01F510"; }
 header > .onlineuser {
 	font-size: 0.4rem;
 }
