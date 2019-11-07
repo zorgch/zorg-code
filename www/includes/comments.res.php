@@ -254,15 +254,16 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			 .' style="table-layout:fixed;" width="100%">'
 			 .'<tr style="font-size: x-small;">'
 				.'<td class="forum" style="width: 70%;">'
-				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? 'itemprop="url"' : '').'>'
+				.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
+				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? ' itemprop="url"' : '').'>'
 				.'#'.$rs['id']
 				.'</a>'
-				.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-				.'</span></span> @ <span itemprop="dateCreated" value="{'.$rs['date'].'|date_format:"%Y-%m-%d-T%H:00"}">{datename date='.$rs['date'].'}</span>'
+				.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
+				.'</span> @ <meta itemprop="datePublished" content="{'.$rs['date'].'|date_format:"%Y-%m-%d"}">{datename date='.$rs['date'].'}'
 			;
 
 			if($rs['date_edited'] > 0) {
-				$html .= ', edited @ <span itemprop="dateModified" value="{'.$rs['date_edited'].'|date_format:"%Y-%m-%d-T%H:00"}">{datename date='.$rs['date_edited'].'}</span>';
+				$html .= ', edited @ <meta itemprop="dateModified" content="{'.$rs['date_edited'].'|date_format:"%Y-%m-%d-T%H:00"}">{datename date='.$rs['date_edited'].'}';
 			}
 
 			$html .= '<!--googleoff: all-->';

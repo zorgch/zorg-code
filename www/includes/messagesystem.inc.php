@@ -703,45 +703,21 @@ class Messagesystem {
 		/**
 		 * Send zorg Message to recipient
 		 */
-		try {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', __METHOD__, __LINE__, $subject, $owner));
-			$sql = sprintf('INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
-							VALUES (%d, %d, "%s", "%s", NOW(), "%s", "%s")',
-							$from_user_id, $owner, escape_text($subject), escape_text($text), $isread, $to_users);
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-		}
-
-		/** Notify $owner about new zorg Message */
-		$notification_status = $notification->send($owner, 'messagesystem', ['from_user_id'=>$from_user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', __METHOD__, __LINE__, $subject, $owner));
+		$sql = sprintf('INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
+						VALUES (%d, %d, "%s", "%s", NOW(), "%s", "%s")',
+						$from_user_id, $owner, escape_text($subject), escape_text($text), $isread, $to_users);
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		/**
-		 * @DEPRECATED
-		 * @see Notification::sendEmailNotification()
-		 * Send E-Mail Notification
+		 * Notify $owner about new zorg Message
+		 * ...ausser wenn der $from_user_id & $user->id identisch sind,
+		 * siehe 'Eigene Message für den 'Sent'-Ordner'
 		 */
-		/*if ($owner != $from_user_id)
+		if ($from_user_id != $user->id)
 		{
-			try {
-				Messagesystem::sendEmailNotification($from_user_id, $owner, $subject, $text);
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
-		*/
-			/**
-			 * @DEPRECATED
-			 * Send Telegram Notification
-			 */
-			/*try {
-				$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $owner, $user->id2user($from_user_id, TRUE), SITE_HOSTNAME, text_width(remove_html($text, '<br>'), 140, '...') ] );
-				$telegram->send->message($owner, $message, ['disable_web_page_preview' => 'true']);
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
-		}*/
+			$notification_status = $notification->send($owner, 'messagesystem', ['from_user_id'=>$from_user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
+		}
 	}
 }

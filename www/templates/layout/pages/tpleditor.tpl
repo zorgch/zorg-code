@@ -25,20 +25,25 @@
 	.the-content {
 		flex: 3;
 		flex-basis: minmax(min-content, max-content);
-		padding-bottom: 1vw;
+		padding-bottom: 0.5rem;
 	}
 	.the-sidebar {
 		flex: 1;
 		flex-basis: minmax(min-content, max-content);
 		margin: 1.5em;
-		padding-bottom: 1.5vw;
+		padding-bottom: 0.5em;
+		width: 30%;
 	}
+	select#sidebar { width: 100%; } /** Sidebar-dropdown width fix */
 	@media (max-width: 767px) {
 		.tpleditor-custom-layout {
 			flex-direction: row;
 		}
 		.the-content, .the-sidebar {
 			flex: 1;
+		}
+		.the-sidebar {
+			width: 100%;
 		}
 	}
 	ul.tplinfos { padding: 0; }

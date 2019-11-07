@@ -83,7 +83,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 				/** eine thread_id wurde übergeben */
 				if ($_GET['thread_id'] != '') {
 					/** RSS Feed für einen einzelnen Thread */
-					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($_GET['board'], Comment::getThreadid($_GET['board'], $_GET['thread_id'])) . PAGETITLE_SUFFIX) );
+					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($_GET['board'], $_GET['thread_id']) . PAGETITLE_SUFFIX) );
 					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board'] . '&amp;amp;thread_id=' . $_GET['thread_id']);
 					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
 

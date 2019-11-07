@@ -1991,13 +1991,9 @@ function pic2album($id)
 	/** Validate passed $id parameter */
 	if ($id <= 0 || !is_numeric($id)) user_error('Missing Parameter "id"', E_USER_ERROR);
 
-	try {
-		$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
-		$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
-	} catch (Exception $e) {
-		user_error($e->getMessage(), E_USER_ERROR);
-		return false;
-	}
+	$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
+	$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
+
 	return (!empty($picAlbum['album']) ? $picAlbum['album'] : false);
 }
 

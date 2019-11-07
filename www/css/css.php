@@ -207,7 +207,7 @@ body {
  * HTML5 Structure Styling
  */
 body > * {
-	padding: 1vw 1vw 0 1.5vw;
+	padding: 1vh 3vw 0 3vw;
 }
 	/** Old table-layout compatibility */
 	table {
@@ -408,24 +408,24 @@ header > .service .countryflag {
 	margin-left: 5px;
 	height: 0.85em;
 }
-header > .service form fieldset {
+header > .service form .login-input {
 	display: flex;
 	white-space: nowrap;
 	align-items: flex-start;
 	margin: 0;
 	padding: 0;
 }
-header > .service form fieldset label {
+header > .service form .login-input label {
 	flex: 1;
 	margin: 0 0 0 10px;
 	padding: 0 2px 0 2px;
 	font-size: inherit;
 }
-header > .service form fieldset a {
+header > .service form .login-input a {
 	flex: 1;
 	font-size: 0.8em;
 }
-header > .service form fieldset input[type=submit] {
+header > .service form .login-input input[type=submit] {
 	flex: 1;
 }
 header > .service label.user::before { content: "\01F464"; }
