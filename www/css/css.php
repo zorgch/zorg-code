@@ -46,6 +46,7 @@ $layout = (!empty($_GET['layout']) ? $_GET['layout'] : 'day');
 	--border-input-button-hover: <?= ($layout === 'night' ? '1px solid rgba(255,255,255,0.85)' : 'inset thin rgba(52,69,134,0.5)'); ?>;
 	--border-input-disabled: <?= ($layout === 'night' ? 'gray' : 'gray'); ?>;
 	--border-navigation: <?= ($layout === 'night' ? '#cbba79' : 'rgba(255,255,255,0.75)'); ?>;
+	--border-title: <?= ($layout === 'night' ? '#cbba79' : '#ccc'); ?>;
 	--shadow-input-focus: <?= ($layout === 'night' ? '0 0 1px 1px rgba(255,255,255,0.85)' : '0 0 1px 1px rgba(52,69,134,0.5)'); ?>;
 	--shadow-input-focus-moz_mac: 0 0 0 3px -moz-mac-focusring;
 }
@@ -121,7 +122,7 @@ body {
 @media (min-width: 768px) {
 	body {
 		margin: 0 18vw 0 18vw;
-		grid-template-columns: auto auto;
+		grid-template-columns: 2fr 1fr;
 		grid-template-rows: minmax(min-content, 190px) minmax(min-content, 120px) minmax(min-content, max-content) 1fr;
 		grid-template-areas:
 			"header header"
@@ -360,7 +361,7 @@ blockquote {
 .danger { background-color: #ff4700 !important; }
 .info { color: #2196f3 }
 .border { outline: var(--outline-table, '1px solid #ccc'); }
-.bottom_border { border-bottom: 1px solid var(--border-navigation, #ccc); }
+.bottom_border { border-bottom: 1px solid var(--border-title, #ccc); }
 
 /** Animations */
 	.blink { -webkit-animation:colorchange 1s infinite alternate;
@@ -598,9 +599,17 @@ td.forum {
 	margin: 0;
 	padding: 0;
 }
+td.forum.comment > h1:first-of-type,
+td.forum.comment > h2:first-of-type,
+td.forum.comment > h3:first-of-type,
+td.forum.comment > h4:first-of-type { margin-block-start: .5em; }
 td.forum img {
 	max-width: 100%;
 }
+td.forum.comment { padding: 0 .5em 0 .5em; }
+td.forum.comment.meta { padding-top: .2em; }
+td.forum.comment.meta.left { padding-left: .5em; }
+td.forum.comment.meta.right { padding-right: .5em; }
 .threading {
 	border: none;
 	vertical-align: top;
