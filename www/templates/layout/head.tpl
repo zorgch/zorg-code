@@ -59,7 +59,7 @@
 
 	{* Wenn es ein eingeloggter User ist, wird im Fenstertitel die Anzahl Unreads angezeigt... *}
 	<body onload="init()">
-		<header class="zorghead" {if $tplroot.write_rights neq '' && tpl_permission($tplroot.write_rights, $tplroot.owner)}onDblClick="document.location.href='{edit_url}';"{/if}><a id="top"></a>
+		<header class="zorghead" {if $tplroot.write_rights neq '' && tpl_permission($tplroot.write_rights, $tplroot.owner)}onDblClick="document.location.href='{edit_url}';"{/if}>
 		{include_php file="file:header.php"}
 			{if $user->id}
 				{if $new_messages > 0}{capture append=myUpdates}<li id="messages"><a href="/profil.php?user_id={$user->id}">{$new_messages|quantity:"Message":"Messages"}</a></li>{/capture}{/if}
@@ -84,8 +84,8 @@
 					{if $notification != ''}{$notification}{/if}
 				{/foreach}</ul>{/if}
 				</div>
-			{/if}{*if $user->zorger}{include file='tpl:56'}{else}{include file='tpl:672'}{/if*}
-			<nobr class="logo"><a href="/">{if $user->zorger}zooomclan{else}{$smarty.const.SITE_HOSTNAME}{/if}</a></nobr>
+			{/if}
+			<nobr class="logo"><a href="/" id="top">{if $user->zorger}<img src="{$smarty.const.IMAGES_DIR}logo{if $sun == "down"}_night{/if}.png" border="0">{else}{$smarty.const.SITE_HOSTNAME}{/if}</a></nobr>
 			<div class="announcements">
 				{foreach from=$nextevents item=nextevent}<span class="event">
 					<a href="/smarty.php?tpl=158&event_id={$nextevent.id}">

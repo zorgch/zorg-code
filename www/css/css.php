@@ -94,11 +94,11 @@ body {
 		}
 		.zorghead > .onlineuser {
 			grid-area: onlineuser;
-			align-self: end;
+			align-self: center;
 		}
 		.zorghead > .notifications {
 			grid-area: notifications;
-			align-self: end;
+			align-self: center;
 			justify-self: start;
 		}
 		.zorghead > .infos {
@@ -136,7 +136,8 @@ body {
 		grid-template-areas:
 			"logo announcements service"
 			"infos announcements service"
-			"notifications notifications onlineuser"
+			"notifications notifications onlineuser";
+		padding: .2rem 1rem .2rem 1rem;
 	}
 		header > .service { font-size: 0.6rem; }
 		header > .service label.user::before { content: "\01F464"; }
@@ -147,6 +148,10 @@ body {
 			font-size: 0.4rem;
 		}
 		header > .infos .solarstate .event { margin-right: 5px; }
+	.main-content { padding: .5rem .5rem .5rem 1.25rem; }
+	.sidebar { padding: .5rem 1rem .5rem 1rem; }
+	.footer { padding: .5rem 1rem 1rem 1rem; }
+	.footer > .shadow { margin: 0 -1rem 0 -1rem; } /** Compensate .footer{padding-left & -right} */
 }
 
 /* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
@@ -167,8 +172,8 @@ body {
 			"logo service"
 			"announcements service"
 			"onlineuser service"
-			"notifications notifications"
-			"..... infos"
+			"notifications infos";
+		padding: .2rem .5rem .2rem .5rem;
 	}
 		header > .service {
 			font-size: 0.5rem;
@@ -200,7 +205,12 @@ body {
 	    div.menu > a.left, div.menu > a.right {
 		    display: none;
 		}
+	.main-content { padding: .2rem .5rem 0 .5rem; }
 	.main-content > img { max-width: 100%; }
+	.sidebar { padding: .5rem .5rem .5rem .5rem; }
+	.footer { padding: .2rem .2rem .5rem .5rem; }
+	.footer > .shadow { margin: 0 -0.2rem 0 -0.5rem; } /** Compensate .footer{padding-left & -right} */
+
 	.hide-mobile { display: none; }
 }
 /** END: Responsive CSS Grid */
@@ -208,24 +218,15 @@ body {
 /**
  * HTML5 Structure Styling
  */
-body > * {
-	padding: 1vh 3vw 0 3vw;
-}
-	/** Old table-layout compatibility */
-	table {
-		width: 100%;
-		border: none;
-		border-collapse: collapse;
-		padding: 0;
-	}
-
-.zorghead, .navigation {
-	background: var(--background-color-base, rgba(1,1,1,1));
-}
-.main-content, .sidebar {
-	background: var(--background-color-main, rgba(1,1,1,1));
+/** Old table-layout compatibility */
+table {
+	width: 100%;
+	border: none;
+	border-collapse: collapse;
+	padding: 0;
 }
 
+.zorghead, .navigation { background: var(--background-color-base, rgba(1,1,1,1)); }
 .navigation {
 	font-size: 0.5rem;
 	text-align: center;
@@ -233,15 +234,9 @@ body > * {
 	padding-right: 0;
 }
 
-.main-content {
-	font-size: 0.5rem;
-	padding-bottom: 1vw;
-}
-
-.sidebar {
-	font-size: 0.5rem;
-	padding-bottom: 3vw;
-}
+.main-content, .sidebar { background: var(--background-color-main, rgba(1,1,1,1)); }
+.main-content { font-size: 0.5rem; }
+.sidebar { font-size: 0.5rem; }
 
 .footer, .tpl-footer {
 	font-family: var(--font-family-footer, sans-serif);
@@ -249,13 +244,10 @@ body > * {
 	letter-spacing: 0.1em;
 	background: var(--background-color-behind, rgba(1,1,1,1));
 	border-top: <?= ($layout === 'night' ? 'none' : 'solid 1px #ccc'); ?>;
-	padding-top: 0.5vw;
-	padding-bottom: 1vw;
 }
 .tpl-footer {
 	font-size: 1em;
-	padding-top: 0.1vw;
-	padding-bottom: 0.25vw;
+	padding: .5em 0 .2em 0;
 }
 /** END: HTML5 Structure Styling */
 
@@ -441,7 +433,7 @@ header > .onlineuser > * {
 }
 header > .notifications {
 	font-size: 0.4rem;
-	margin-top: 5px;
+	/*margin-top: 5px;*/
 }
 header > .notifications ul { padding: 0; }
 header > .notifications ul li {
@@ -467,7 +459,6 @@ header > .infos .solarstate .countryflag {
 footer > .shadow {
 	border: none;
 	box-shadow: <?= ($layout === 'night' ? '0 0px 1px 1px rgba(3,12,22,0.5)' : 'none'); ?>;
-	margin: 0 -1vw 0 -1.5vw;
 }
 footer section, .tpl-footer section {
 	display: flex;
