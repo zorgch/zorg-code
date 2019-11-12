@@ -44,7 +44,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	if (!$error)
 	{
 		$frm['id'] = htmlentities($frm['id'], ENT_QUOTES);
-		$frm['tpl'] = $frm['tpl']; // TODO add appropriate user input sanitization, respecting allowed Smarty template content
+		$frm['tpl'] = mysql_real_escape_string($frm['tpl']); // TODO change to PHP7.x compliant user input sanitization, respecting allowed Smarty template content
 		$frm['title'] = sanitize_userinput($frm['title']);
 		$frm['sidebar_tpl'] = (empty($frm['sidebar_tpl']) ? 'NULL' : htmlentities($frm['sidebar_tpl'], ENT_QUOTES));
 		$frm['page_title'] = htmlentities($frm['page_title'], ENT_NOQUOTES);
