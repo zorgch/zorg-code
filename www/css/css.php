@@ -530,6 +530,7 @@ footer #swisstime { font-size: 0.7rem; }
 .alert.success { background-color: #4CAF50 } /**  Green */
 .alert.info { background-color: #2196F3; } /** Blue */
 .alert.warn { background-color: #ff9800; } /**  Orange */
+.alert a { color: #3f3047; } /** Links in Alert message boxes */
 /** Alert message box close button */
 .closebtn {
 	  margin-left: 15px;
