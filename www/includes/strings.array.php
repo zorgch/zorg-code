@@ -88,7 +88,7 @@ return
 			,'message-newaccount' =>  "Willkommen auf zorg!\n
 			 							Du hast erfolgreich einen Account erstellt mit folgendem Benutzernamen: %s\n\n
 										Wir bitten Dich deinen Account noch <b>freizuschalten</b>, bevor Du dich das erste mal anmelden kannst. Dazu musst du lediglich folgendem Link aufrufen:\n
-										%s/profil.php?menu_id=13&regcode=%s\n\n
+										%s/profil.php?regcode=%s\n\n
 										Vielen Dank & viel Spass auf zorg!"
 			,'message-newpass-subject' => 'Neues Passwort'
 			,'message-newpass' => "Neues Passwort für den Benutzer: %s\n
@@ -171,9 +171,12 @@ return
 		]
 	,'gallery' =>
 		[
-			 'error-not-logged-in' =>  '<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
-			 							<p>Bitte logge Dich ein oder <a href="%s/profil.php?do=anmeldung&menu_id=13">erstelle einen neuen Benutzer</a></p>'
+			 'error-not-logged-in' =>  '<h3>Gallery ist nur f&uuml;r eingeloggte Mitglieder sichtbar!</h3>
+			 							<p>Bitte logge Dich ein oder <a href="%s/profil.php?do=anmeldung">erstelle einen neuen Benutzer</a></p>'
 			,'error-invalid-album' => 'Ung&uuml;ltiges Album!'
+			,'error-no-member' =>  '<h3>Gallery ist gem&auml;ss <a href="https://github.com/zorgch/zorg-verein-docs/blob/master/GV/GV%202018/2018-12-23%20zorg%20GV%202018%20Protokoll.md">GV 2018-Beschluss</a> nur f&uuml;r Vereinsmitglieder sichtbar!</h3>
+			 						<p>Du findest das doof? &Auml;ndere es mit deiner Stimme!<br>
+			 						Eine Nachricht <a href="/page/vereinsvorstand">an den Vorstand</a> gen&uuml;gt um Mitglied zu werden - und dadurch von weiteren Vorteilen zu profitieren!</p>'
 			,'permissions-insufficient' => 'Permission denied for <code>%s</code>'
 			,'telegram-dailypic-notification' => 'Daily Pic: %s [%s]'
 		]
