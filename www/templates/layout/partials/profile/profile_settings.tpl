@@ -31,7 +31,7 @@
 						<th><strong>zorg Pic</strong></th>
 						{if $check_userimage.type === 'gravatar'}<th><strong>Gravatar Pic</strong></th>{/if}
 					</tr></thead>
-					<tbody style="vertical-align:top;{if $user->zorger === '1'} filter: invert(100%);{/if}">
+					<tbody style="vertical-align:top;{if $sun == "down" || $user->zorger}filter: invert(100%);{/if}">
 						<tr>
 							<td>
 								<img src="/data/userimages/{$user->id}.jpg?{$smarty.now}"></td>
@@ -77,19 +77,19 @@
 				</nav>
 				<div class="tabs-pane" style="min-height:205px;" id="step-1">
 					<p>Den <a href="https://web.telegram.org/#/im?p=@userinfobot" target="_blank">@userinfobot</a> in Telegram suchen & anklicken</p>
-					<img {if $user->zorger === '1'} style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step1.png" alt="Den @userinfobot in Telegram suchen & anklicken" />
+					<img {if $sun == "down" || $user->zorger}style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step1.png" alt="Den @userinfobot in Telegram suchen & anklicken" />
 				</div>
 				<div class="tabs-pane" style="min-height:205px;" id="step-2">
 					<p><code>/start</code>-Nachricht dem Bot schicken, oder via Button starten</p>
-					<img {if $user->zorger === '1'} style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step2.png" alt="/start-Nachricht dem Bot schicken, oder via Button starten" />
+					<img {if $sun == "down" || $user->zorger}style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step2.png" alt="/start-Nachricht dem Bot schicken, oder via Button starten" />
 				</div>
 				<div class="tabs-pane" style="min-height:205px;" id="step-3">
 					<p>Den Wert von <code>id: <mark>xxxxxxx</mark></code> verwenden als Chat-ID</p>
-					<img {if $user->zorger === '1'} style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step3.png" alt="Den Wert vom id: Feld verwenden als Chat-ID" />
+					<img {if $sun == "down" || $user->zorger}style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step3.png" alt="Den Wert vom id: Feld verwenden als Chat-ID" />
 				</div>
 				<div class="tabs-pane" style="min-height:205px;" id="step-4">
 					<p>Jetzt mit der Bärbel <a href="https://web.telegram.org/#/im?p=@zBarbaraHarris_bot" target="_blank">@zBarbaraHarris_bot</a> auf Telegram connecten, damit sie dir Messages schicken darf. Aktiviere sie via <code>/start</code>.</p>
-					<img {if $user->zorger === '1'} style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step4.png" alt="Mit @zBarbaraHarris_bot connecten und sie via /start-Nachricht aktivieren" />
+					<img {if $sun == "down" || $user->zorger}style="filter: invert(100%);"{/if} src="{$smarty.const.IMAGES_DIR}/profile/telegram-chatid-step4.png" alt="Mit @zBarbaraHarris_bot connecten und sie via /start-Nachricht aktivieren" />
 				</div>
 			</div>
 		</div>
@@ -358,12 +358,12 @@
 		</div>
 		<div class="col-sm-2">
 			<div class="input-field">
-				<label class="pad-xs"><input type="radio" name="zorger" value="0" {if $user->zorger === '0'}checked{/if}> zorg (modern)</label>
+				<label class="pad-xs"><input type="radio" name="zorger" value="0" {if !$user->zorger}checked{/if}> zorg (modern)</label>
 			</div>
 		</div>
 		<div class="col-sm">
 			<div class="input-field">
-				<label class="pad-xs">&nbsp;<input type="radio" name="zorger" value="1" {if $user->zorger === '1'}checked{/if}> zooomclan (retro)</label>
+				<label class="pad-xs">&nbsp;<input type="radio" name="zorger" value="1" {if $user->zorger}checked{/if}> zooomclan (retro)</label>
 			</div>
 		</div>
 	</div>
@@ -463,7 +463,7 @@
 				</div>
 				{assign_array var="error" value="array('type'=>'warn', 'title'=>'⚠️ Achtung: unwiderruflich!', 'message'=>'Du kannst Dich erst nach Ablauf der gesetzten Frist wieder einloggen.')"}
 				{include file="file:layout/elements/block_error.tpl"}
-				{if $smarty.get.viewas == ''}<input type="submit" id="send" name="send" class="button button-block button-danger" value="Aussperren"{if $user->zorger === '1'} style="filter: invert(100%);"{/if}>{/if}
+				{if $smarty.get.viewas == ''}<input type="submit" id="send" name="send" class="button button-block button-danger" value="Aussperren" {if $sun == "down" || $user->zorger}style="filter: invert(100%);"{/if}>{/if}
 			</fieldset>
 		</div>
 	</div>
