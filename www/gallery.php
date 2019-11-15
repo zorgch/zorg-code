@@ -10,10 +10,11 @@
  * @author IneX
  * @package zorg\Gallery
  * @date 01.01.2002
- * @version 1.6
+ * @version 2.0
  * @since 1.0 01.01.2002 file added
  * @since 1.5 04.11.2013 Gallery nur noch für eingeloggte User anzeigen
- * @since 1.6 11.09.2018 APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
+ * @since 1.6 <inex> 11.09.2018 APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
+ * @since 2.0 <inex> 14.11.2019 GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
  */
 
 /**
@@ -29,36 +30,40 @@ require_once( __DIR__ .'/models/core.model.php');
  */
 $model = new MVC\Gallery();
 
-// fuer mod_rewrite solltes
-//header("Cache-Control: no-store, no-cache, must-revalidate");
-//echo head(29, 'gallery');
-//$smarty->assign('tplroot', array('page_title' => 'gallery'));
-//echo menu("zorg");
-//echo menu("gallery");
-
 /** Pic-ID zu Album-ID auflösen */
 $getAlbId = (int)$_GET['albID'];
 $getPicId = (int)$_GET['picID'];
 $album_id = $model->setAlbumId($getAlbId, $getPicId);
 
 /**
- * [Bug #708] Gallery nur für eingeloggte User anzeigen
- * Ausnahme: APOD Gallery
+ * [Bug #708] Gallery nur für eingeloggte User anzeigen. Ausnahme: APOD Gallery
  * @link https://zorg.ch/bugtracker.php?bug_id=708
  */
-if (!$user->is_loggedin() && $album_id != APOD_GALLERY_ID)
+if (!$user->is_loggedin() && (int)$album_id !== APOD_GALLERY_ID)
 {
 	$model->showOverview($smarty);
 	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
 	$smarty->display('file:layout/head.tpl');
+}
+
+/**
+ * User & Vereinsmitglieder-Check: nur Vereinsmitglieder dürfen Pics sehen (Ausnahme: APOD Gallery & Pics)
+ * @link https://github.com/zorgch/zorg-verein-docs/blob/master/GV/GV%202018/2018-12-23%20zorg%20GV%202018%20Protokoll.md
+ */
+elseif ((int)$album_id !== APOD_GALLERY_ID && (empty($user->vereinsmitglied) || $user->vereinsmitglied === '0'))
+{
+	$model->showOverview($smarty);
+	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-no-member', 'gallery'), 'dismissable' => 'false']);
+	$smarty->display('file:layout/head.tpl');
+}
 
 /** Gallery / Pics anzeigen */
-} else {
-
+else {
 	if (!empty($_GET['do']))
 	{
 		$doAction = (string)$_GET['do'];
-		// Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen...
+		/** Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User,
+			deshalb müssen wirs vorziehen... */
 		if ($user->is_loggedin())
 		{
 			switch ($doAction)
@@ -78,7 +83,7 @@ if (!$user->is_loggedin() && $album_id != APOD_GALLERY_ID)
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
 		}
 	
-		// Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen
+		/** Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen */
 		if ($user->typ >= USER_MEMBER)
 		{
 			switch ($doAction)
@@ -152,5 +157,4 @@ if (!$user->is_loggedin() && $album_id != APOD_GALLERY_ID)
 
 }
 
-//echo foot(7);
 $smarty->display('file:layout/footer.tpl');
