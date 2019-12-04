@@ -182,9 +182,9 @@ return
 		]
 	,'bugtracker' =>
 		[
-			 'buglist-headline' =>  '<h2 style="text-align:left;">Bugs und Features Liste:</h2>'
-			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen:</h2>'
-			,'newcategory-headline' =>  '<h2>Neue Kategorie adden:</h2>'
+			 'buglist-headline' =>  '<h1>Bugs und Features Liste</h1>'
+			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen</h2>'
+			,'newcategory-headline' =>  '<h2>Neue Kategorie adden</h2>'
 			,'activity-newbug' =>  'hat den Bug <a href="%s/bug/%d">%s</a> gemeldet.'
 			,'message-subject-newbug' => '%s hat den Bug #%d neu erstellt'
 			,'message-subject-reopenbug' => '%s hat den Bug #%d reopened'

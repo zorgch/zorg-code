@@ -56,7 +56,7 @@
 					{section name=i loop=$spaceweather max=2}
 					<ul><li><span style="font-weight: lighter;">{$spaceweather[i].type}:</span> {$spaceweather[i].value}</li></ul>
 					{/section}
-					<ul><li><a href="spaceweather.php">[more]</a></li></ul>
+					<ul><li><a href="/spaceweather.php">[more]</a></li></ul>
 				</div>
 			</section>{/if}
 			<section class="flex-one-column" style="font-weight: lighter;">

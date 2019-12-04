@@ -351,7 +351,9 @@ blockquote {
 .alternate { background-color: #cbba79 !important; }
 .disabled { color: #aaa; }
 .danger { background-color: #ff4700 !important; }
-.info { color: #2196f3 }
+.warn { color: #ff9800; }
+.info { color: #2196f3; }
+.success { color: #4caf50; }
 .border { outline: var(--outline-table, '1px solid #ccc'); }
 .bottom_border { border-bottom: 1px solid var(--border-title, #ccc); }
 
@@ -527,7 +529,7 @@ footer #swisstime { font-size: 0.7rem; }
 	  -ms-transition: opacity 0.3s;
 	  transition: opacity 0.3s;
 }
-.alert.success { background-color: #4CAF50 } /**  Green */
+.alert.success { background-color: #4caf50 } /**  Green */
 .alert.info { background-color: #2196F3; } /** Blue */
 .alert.warn { background-color: #ff9800; } /**  Orange */
 .alert a { color: #3f3047; } /** Links in Alert message boxes */
