@@ -1259,18 +1259,17 @@ class Forum {
 	 * @desc gibt das HTML des Searchformszurück
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
  	 */
-	static function getFormSearch() {
+	static function getFormSearch()
+	{
 		return
 			'<table>'
 			.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
-			.'<input name="layout" type="hidden" value="search">'
-			.'<tr>'
-		//.'<td><b>Suche:</b></td>'
-		.'<td align="left">'
-			.'<input type="text" name="keyword" class="text">'
-			.'</td><td align="left">'
-			.'<input type="submit" value="search" class="button">'
-			.'</td></tr>'
+				.'<input name="layout" type="hidden" value="search">'
+				.'<tr>'
+					.'<td align="left">'
+					.'<input type="text" name="keyword" class="text" style="width: 120px;">'
+					.'<input type="submit" value="search" class="button">'
+				.'</td></tr>'
 			.'</form>'
 			.'</table>'
 		;
@@ -1355,7 +1354,7 @@ class Forum {
 
 	static function getNavigation($page=1, $pagesize, $numpages) {
 		$html .=
-			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border">'
+			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border small">'
 			.'<tr><td class="hide-mobile">Page '.$page.' von '.$numpages.'</td>'
 		;
 
@@ -1847,7 +1846,7 @@ class Forum {
 		/** Ausgabe ---------------------------------------------------------------- */
 		/** Thread-Table mit Spaltenüberschriften */
 		$html .=
-			'<h2>Discussions</h2>'
+			'<h1>Discussions</h1>'
 			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
 				.'<!--googleoff: all--><tr class="title">'
 					.'<td align="left" width="30%"><a href="?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
@@ -1855,7 +1854,7 @@ class Forum {
 					.'<td align="center" class="hide-mobile"><a href="?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
 					.'<td align="center" class="small hide-mobile"><a href="?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
 					.'<td align="left" class="small" width="25%"><a href="?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
-					.'<td></td>'
+					.'<td class="hide-mobile"></td>'
 				.'</tr><!--googleon: all-->';
 
 		$i = 0;
@@ -1934,7 +1933,7 @@ class Forum {
 			/** RSS Feed-Link für Thread anzeigen */
 			$html .=
 					' <a href="'.RSS_URL.'&amp;type=forum&amp;board='.$rs['board'].'&amp;thread_id='
-    				.$rs['thread_id'].'">'.t('forum-rss-thread-action', 'commenting').'</a>';
+    				.$rs['thread_id'].'" class="hide-mobile">'.t('forum-rss-thread-action', 'commenting').'</a>';
 
 			/** rechtsbündig-span & td-element schliessen */
 			$html .= '</span><!--googleon: all-->
@@ -1946,7 +1945,7 @@ class Forum {
 			  .datename($rs['thread_date'])
 			  .'</td><td class="small center hide-mobile" bgcolor="'.$color.'">'
 			  .$rs['numposts']
-			  .'</td><td class="small" align="left" bgcolor="'.$color.'">'
+			  .'</td><td class="small hide-mobile" align="left" bgcolor="'.$color.'">'
 			  .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
 			  .str_pad(Comment::getSummary($rs['last_post_text']), 25, ' . ', STR_PAD_RIGHT)
 			  .'</a>'

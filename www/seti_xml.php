@@ -26,13 +26,12 @@ $model = new MVC\Seti();
  */
 if (!empty($_GET['update'])) $doAction = (string)$_GET['update'];
 
-
 if($doAction === 'true')
 {
 	if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 	{
 		setiathome::update_group();	
-		header('Location: '.getURL(false,false));//http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
+		header('Location: '.getURL(false,false));
 	} else {
 		$model->showOverview($smarty);
 		$smarty->display('file:layout/head.tpl');
@@ -40,15 +39,9 @@ if($doAction === 'true')
 		$smarty->display('file:layout/footer.tpl');
 	}
 } else {
-	
-	//echo head(63);
-	//$smarty->assign('tplroot', array('page_title' => 'SETI@Home'));
 	$model->showOverview($smarty);
 	$smarty->display('file:layout/head.tpl');
-	//echo menu('main');
-	//echo menu('mischt');
-	//echo menu('seti');
-	
+
 	$sql = "
 	SELECT 
 	count(s.name) as number, 
@@ -76,18 +69,20 @@ if($doAction === 'true')
 		$result = $db->query($sql);
 	}
 	$group = $db->fetch($result);
-	
+
 	echo "
-	<table width='80%' cellpadding='3' cellspacing='1' bgcolor=".TABLEBACKGROUNDCOLOR.">
-	<tr><td align='center' colspan='6' bgcolor=".BORDERCOLOR."><b>SETI - zooomclan.org</b></td></tr>
-	<tr><td align='left' colspan='3' bgcolor=".BACKGROUNDCOLOR."><B>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></B></td>
-	<td align='left' colspan='3' bgcolor=".BACKGROUNDCOLOR."><B>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</B></td></tr>
-	<tr><td align='left' bgcolor=".BACKGROUNDCOLOR." colspan='2'><b>Name</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Units</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>CPU Zeit</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Durchschn. Zeit</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
-	
+	<h1>SETI - zooomclan.org</h1>
+	<h3>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></h3>
+	<h3>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</h3>
+	<table cellpadding='3' cellspacing='1' bgcolor=".TABLEBACKGROUNDCOLOR.">
+		<tr><td align='center' colspan='6' bgcolor=".BORDERCOLOR."><b></b></td></tr>
+		<tr>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR." colspan='2'><b>Name</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Units</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR." class='hide-mobile'><b>CPU Zeit</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR." class='hide-mobile'><b>Durchschn. Zeit</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
+
 	$secadd = (date("I",time()) ? 7200 : 3600);
 	$sql = "
 	SELECT 
@@ -124,15 +119,15 @@ if($doAction === 'true')
 		} else {
 			$add2 = "";
 		}
-		echo "
-		<tr>
-		<td align='left' $add>".$i."</td>
-		<td align='left' $add>".$rs['name']."</td>
-		<td align='left' $add>".$rs['num_results']."$add2</td>
-		<td align='left' $add>".setiathome::seti_time($rs['total_cpu'])."</td>
-	<td align='left' $add>".$rs['avg_cpu']."</td>
-	<td align='left' $add>".datename($rs['date_last_result'])."</td></tr>";	
-	$i++;
+		echo "<tr>
+			<td align='left' $add>".$i."</td>
+			<td align='left' $add>".$rs['name']."</td>
+			<td align='left' $add>".$rs['num_results']."$add2</td>
+			<td align='left' $add class='hide-mobile'>".setiathome::seti_time($rs['total_cpu'])."</td>
+			<td align='left' $add class='hide-mobile'>".$rs['avg_cpu']."</td>
+			<td align='left' $add>".datename($rs['date_last_result'])."</td>
+		</tr>";	
+		$i++;
 	}
 	echo "</table>";
 

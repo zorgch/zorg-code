@@ -61,9 +61,9 @@
 			</section>{/if}
 			<section class="flex-one-column" style="font-weight: lighter;">
 				<ul>
-					<li><a href="https://www.facebook.com/{$smarty.const.FACEBOOK_PAGENAME}"><i class="emoji facebook"></i> fb/{$smarty.const.FACEBOOK_PAGENAME}</a></li>
-					<li><a href="https://www.twitter.com/{$smarty.const.TWITTER_NAME}"><i class="emoji twitter"></i> @{$smarty.const.TWITTER_NAME}</a></li>
-					<li><a href="{$smarty.const.GIT_REPOSITORY}"><i class="emoji github"></i> zorg-code</a></li>
+					<li><a href="https://www.facebook.com/{$smarty.const.FACEBOOK_PAGENAME}"><i class="emoji facebook"></i> <span class="hide-mobile">fb/{$smarty.const.FACEBOOK_PAGENAME}</span></a></li>
+					<li><a href="https://www.twitter.com/{$smarty.const.TWITTER_NAME}"><i class="emoji twitter"></i> <span class="hide-mobile">@{$smarty.const.TWITTER_NAME}</span></a></li>
+					<li><a href="{$smarty.const.GIT_REPOSITORY}"><i class="emoji github"></i> <span class="hide-mobile">zorg-code</span></a></li>
 				</ul>
 			</section>
 			<section class="flex-one-column">

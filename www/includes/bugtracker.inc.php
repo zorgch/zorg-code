@@ -463,8 +463,8 @@ class Bugtracker
 					.'<td><a href="'.getChangedURL('order=priority ASC, category_id ASC, assignedto_id ASC').'">Prio</a></td>'
 					.'<td><a href="'.getChangedURL('order=category_id ASC, priority ASC, assignedto_id ASC').'">Category</a></td>'
 					.'<td>Title</td>'
-					.'<td>Reported by</td>'
-					.'<td><a href="'.getChangedURL('order=assignedto_id DESC, category_id ASC, priority ASC').'">Assignee</a></td>'
+					.'<td class="hide-mobile">Reported by</td>'
+					.'<td class="hide-mobile"><a href="'.getChangedURL('order=assignedto_id DESC, category_id ASC, priority ASC').'">Assignee</a></td>'
 					.'<td>Status</td>'
 				.'</tr></thead>'
 				.'<tbody>';
@@ -476,12 +476,12 @@ class Bugtracker
 					.'<td align="left">'.($rs['priority'] === '1' ? '&#128314;' : ($rs['priority'] === '2' ? '&#128312;' : ($rs['priority'] === '3' ? '&#128313;' : ($rs['priority'] === '4' ? '&#9660;' : '?')))).'</td>'
 					.'<td align="left">'.$rs['category_title'].'</td>'
 					.'<td align="left"><a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a></td>'
-					.'<td align="left">'.$user->userpagelink($rs['reporter_id']).'</td>'
-					.'<td align="left">'.$user->userpagelink($rs['assignedto_id']).'</td>';
+					.'<td align="left" class="hide-mobile">'.$user->userpagelink($rs['reporter_id']).'</td>'
+					.'<td align="left" class="hide-mobile">'.$user->userpagelink($rs['assignedto_id']).'</td>';
 			if (!empty($rs['resolved_date'])) { // wenn der Bug resolved wurde...
-				$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span> '.datename($rs['resolved_date']).'</td>';
+				$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span> <span class="hide-mobile">'.datename($rs['resolved_date']).'</span></td>';
 			} elseif (!empty($rs['denied_date'])) { // wenn der Bug denied wurde...
-				$html .= '<td align="left" class="tiny"><span class="strong warn">Denied</span> '.datename($rs['denied_date']).'</td>';
+				$html .= '<td align="left" class="tiny"><span class="strong warn">Denied</span> <span class="hide-mobile">'.datename($rs['denied_date']).'</span></td>';
 			} else { // wenn der Bug noch offen ist...
 				$html .= '<td align="left"></td>';
 			}

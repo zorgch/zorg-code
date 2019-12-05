@@ -153,7 +153,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 	$html .= '</td></tr></table>';
 
 	$html .= 
-		'<table bgcolor="{$color.background}" class="border forum"  style="table-layout:fixed;" width="100%">'
+		'<table bgcolor="{$color.background}" class="border forum" style="table-layout:fixed;" width="100%">'
 			.'<tr>'
 				.'<td align="left" bgcolor="{$color.background}" valign="top"><nobr>'
 					.'<a href="{get_changed_url change="parent_id='.$id.'"}">'
@@ -250,8 +250,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			 	.'{assign var=comment_color value=$color.background}'
 			 .'{/if}'
 			 .'{capture assign="sizeof_hdepth"}{sizeof array=$hdepth}{/capture}'
-			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}"'
-			 .' style="table-layout:fixed;" width="100%">'
+			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}" style="table-layout:fixed;" width="100%">'
 			 .'<tr style="font-size: x-small;">'
 				.'<td class="forum comment meta left" style="width: 70%;">'
 				.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
@@ -378,7 +377,7 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 			$html .= '{comment_extend_depth depth=$hdepth childposts='.Comment::getNumChildposts($board, $parent_id).' rcount='.$rcount.'}';
 
 			$html .=
-			 '<table class="forum" style="table-layout:fixed;" width="100%">'
+			 '<table class="forum">'
 			 .'<tr>';
 
 			$html .= 
@@ -388,7 +387,8 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 
 			// restlicher output
 			$html .=
-				'<td class="threading space">'
+				 '<td class="threading {$it}"></td>' // Manually added 1 space to fix alignment of "Additional posts"
+				.'<td class="threading space">'
 					.'<a class="threading switch expand" href="{get_changed_url change="parent_id='.$parent_id.'"}"></a>'
 				.'</td>'
 				.'<td align="left" class="border forum">'
