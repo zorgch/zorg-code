@@ -1,14 +1,16 @@
-<?PHP
-require_once( __DIR__ .'/../includes/main.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-
-//echo $user->id, " | ", $user->is_mobile, " | ", $_POST['text'], " | ", $_POST['url'];
-
-//$sql = "INSERT INTO chat (user_id, date, from_mobile, text) VALUES ($user->id, now(), $user->is_mobile, '".$_POST['text']."')";
-$from_mobile = ($_POST['from_mobile'] != '' || $_POST['from_mobile'] > 0) ? 1 : 0 ;
-$sql = "INSERT INTO chat (user_id, date, from_mobile, text) VALUES ($user->id, now(), $from_mobile, '".$_POST['text']."')";
-$db->query($sql, __FILE__, __LINE__);
-
-header("Location: ".base64_decode($_POST['url']));
-exit;
+<?php
+if (!empty($_POST['url']))
+{
+	require_once( __DIR__ .'/../includes/main.inc.php');
+	
+	$from_mobile = ($_POST['from_mobile'] != '' || $_POST['from_mobile'] > 0) ? 1 : 0 ;
+	$chat_text = sanitize_userinput($_POST['text']);
+	$newBugId = $db->insert('chat', [ 'user_id' => $user->id, 'date' => 'NOW()', 'from_mobile' => $from_mobile, 'text' => $chat_text ], __FILE__, __LINE__, __METHOD__);
+	
+	header('Location: '.base64_decode($_POST['url']));
+	exit;
+} else {
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	user_error('Du bist nicht eingeloggt.', E_USER_WARNING);
+	exit;
+}
