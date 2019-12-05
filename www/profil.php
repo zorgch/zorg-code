@@ -45,8 +45,9 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 	/**
 	 * Profil als anderen User anzeigen (DEV only!)
 	 */
-	$model->showOtherprofile($smarty, $user, $_GET['viewas']);
-	if (!empty($_GET['viewas']) && DEVELOPMENT === true) {
+	if (!empty($_GET['viewas']) && DEVELOPMENT === true)
+	{
+		$model->showOtherprofile($smarty, $user, $_GET['viewas']);
 		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user($_GET['viewas'], TRUE).'</strong>']);
 
 		/** Switch to "viewas"-User */
