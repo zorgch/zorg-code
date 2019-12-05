@@ -8,7 +8,7 @@
 		<meta name="geo.region" content="CH-SG">
 		<meta name="geo.placename" content="St. Gallen">
 		<meta name="ICBM" content="47.4233, 9.37">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 		<title>{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}</title>
 		<meta name="twitter:card" content="summary">{*summary_large_image*}
 		<meta name="twitter:title" content="{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}">
@@ -37,8 +37,8 @@
 		<link rel="canonical" href="{$smarty.const.SITE_URL}{$tplroot.page_link}" />
 		{/if}
 		{include file="file:layout/partials/head/favicons.tpl"}
-		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v=4-0-0&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
-		<script src="{$smarty.const.JS_DIR}zorg.js?v=4-0-0"></script>
+		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v=4-0-1&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
+		<script src="{$smarty.const.JS_DIR}zorg.js?v=4-0-1"></script>
 		<script src="{$smarty.const.JS_DIR}ie11cssproperties.min.js"></script>
 		<script src="{$smarty.const.JS_DIR}highlight-js/highlight.pack.js"></script>
 		<link class="codestyle" rel="stylesheet" href="{$smarty.const.JS_DIR}highlight-js/styles/github-gist.css">
