@@ -127,6 +127,12 @@ class usersystem
 	var $default_z_gremium = ''; // no
 	var $default_firstname = null; // none
 	var $default_lastname = null; // none
+	
+	/**
+	 * Object Vars
+	 * @var string (Optional) Error-Message, see: self::activate_user()
+	 */
+	var $error_message;
 
 	/**
 	 * Klassen Konstruktor
@@ -732,32 +738,56 @@ class usersystem
 	 * User aktivieren
 	 * Aktiviert einen Useraccount mittels Regcode
 	 *
+	 * @version 2.0
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> 07.12.2019 Fixed $regcode check and response for profil.php
+	 *
+	 * @see self::$error_message
 	 * @param string $regcode User Registration-Code
-	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
-	 * @return string Error-Message
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return bool True/False whether if user could be activated or not
 	 */
-	function activate_user($regcode) {
+	function activate_user($regcode)
+	{
 		global $db;
 
-		$sql = 'SELECT id, '.$this->field_username.'
-				FROM '.$this->table_name.' WHERE '.$this->field_regcode.' = "'.$regcode.'"';
-		$result = $db->query($sql, __FILE__, __LINE__);
-		if($db->num($result)) {
+		$sql = 'SELECT id, username, active FROM user WHERE regcode = "'.$regcode.'"';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		if($db->num($result))
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: VALID', __FUNCTION__, __LINE__));
 			$rs = $db->fetch($result);
-			$username = $rs[$this->field_username];
-			$result = $db->update($this->table_name, ['id', $rs['id']], [$this->field_user_active => 1], __FILE__, __LINE__, __METHOD__);
-			if ($result === 0 || !$result)
+
+			/** User already activated */
+			if ($rs[$this->field_user_active] == '1')
 			{
-				$error = t('account-activated', 'user');
-				Activities::addActivity($rs['id'], 0, t('activity-newuser', 'user' ), 'u');
-			} else {
-				$error = t('invalid-regcode', 'user');
+				$this->error_message = t('account-is-active', 'user');
+				return false;
+			}
+
+			/** Try activating User */
+			else {
+				$username = $rs[$this->field_username];
+				$user_activated = $db->update($this->table_name, ['id', $rs['id']], [$this->field_user_active => 1], __FILE__, __LINE__, __METHOD__);
+				/** FAILED */
+				if ($user_activated === 0 || !$user_activated)
+				{
+					$this->error_message = t('invalid-regcode', 'user');
+					return false;
+				}
+				/** SUCCESS */
+				else {
+					$this->error_message = t('account-activated', 'user');
+					Activities::addActivity($rs['id'], 0, t('activity-newuser', 'user' ), 'u');
+					return true;
+				}
 			}
 		} else {
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: INVALID', __FUNCTION__, __LINE__));
+			$this->error_message = t('invalid-regcode', 'user');
 			$this->logerror(2,0);
-			$error = t('invalid-regcode', 'user');
+			return false;
 		}
-		return $error;
 	}
 
 	/**
