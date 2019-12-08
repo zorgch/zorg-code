@@ -40,17 +40,10 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 	foreach ($recipients as $recipient_id)
 	{
 		/** Get Recipient's E-Mail address */
-		//error_log('[DEBUG] Processing $recipient_id: ' . $recipient_id);
-		try {
-			//$recipientEmail = $user->id2useremail($recipient_id); //--> fails when user has disabled 'email_notification'
-			$recipientEmailQuery = 'SELECT email FROM user WHERE id = ' . $recipient_id;
-			$recipientEmailResult = $db->fetch($db->query($recipientEmailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
-			$recipientEmail = trim($recipientEmailResult['email']); // trim() removes any unwanted whitespaces left or right of e-mail, danke duke...
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			http_response_code(500); // Set response code 500 (internal server error)
-			echo $e->getMessage();
-		}
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Processing $recipient_id: %d', __FILE__, __LINE__, $recipient_id));
+		$recipientEmailQuery = 'SELECT email FROM user WHERE id = ' . $recipient_id;
+		$recipientEmailResult = $db->fetch($db->query($recipientEmailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
+		$recipientEmail = trim($recipientEmailResult['email']); // trim() removes any unwanted whitespaces left or right of e-mail, danke duke...
 
 		if (!empty($recipientEmail) && check_email($recipientEmail))
 		{
@@ -70,26 +63,20 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 			 * Create new E-Mail message entry for recipient
 			 * @TODO To be discussed: make this work with with "ON DUPLICATE KEY UPDATE..."?
 			 */
-			try {
-				error_log('[INFO] Creating a new E-Mail message for user ' . $recipient_id . ' based on template ' . $_POST['template_id']);
-				$insertMailQuery = 'INSERT INTO verein_correspondence
-										(communication_type, subject_text, preview_text, message_text, template_id, sender_id, recipient_id)
-										SELECT
-											communication_type,
-											subject_text,
-											preview_text,
-											"'.escape_text($compiledMailTpl).'" as message_text,
-											template_id,
-											sender_id,
-											'.$recipient_id.' as recipient_id
-									FROM verein_correspondence
-									WHERE template_id = '.$_POST['template_id'].' AND recipient_id = '.VORSTAND_USER;
-				$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)');
-			} catch(Exception $e) {
-				error_log($e->getMessage());
-				http_response_code(500); // Set response code 500 (internal server error)
-				echo $e->getMessage();
-			}
+			error_log('[INFO] Creating a new E-Mail message for user ' . $recipient_id . ' based on template ' . $_POST['template_id']);
+			$insertMailQuery = 'INSERT INTO verein_correspondence
+									(communication_type, subject_text, preview_text, message_text, template_id, sender_id, recipient_id)
+									SELECT
+										communication_type,
+										subject_text,
+										preview_text,
+										"'.escape_text($compiledMailTpl).'" as message_text,
+										template_id,
+										sender_id,
+										'.$recipient_id.' as recipient_id
+								FROM verein_correspondence
+								WHERE template_id = '.$_POST['template_id'].' AND recipient_id = '.VORSTAND_USER;
+			$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)');
 
 			if ( isset($messageId) && $messageId > 0 )
 			{
@@ -209,10 +196,8 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 	}
 
 	/** Return results */
-	//if (isset($successful) && count($successful) > 0)
 	if (isset($response) && is_array($response))
 	{
-		//error_log('[DEBUG] Return $successful: ' . json_encode($response));
 		http_response_code(200); // Set response code 200 (OK)
 		header('Content-type: application/json');
 		echo json_encode($response);

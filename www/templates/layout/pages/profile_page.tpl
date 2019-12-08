@@ -26,7 +26,7 @@
 			Dein Profil und deine Einstellungen für zorg bearbeiten.<br>
 			<a href="{$smarty.const.SITE_URL}/user/{$user->name}">↩ back to zorg</a>
 		</p>
-		{if $sun == "down" || $user->zorger}<span style="filter: invert(100%);">{/if}{$user->id|userpic:'true'}{if $sun == "down" || $user->zorger}<span>{/if}
+		{if $sun == "down" || $user->zorger}<div style="filter: invert(100%);">{/if}{$user->id|userpic:'true'}{if $sun == "down" || $user->zorger}</div>{/if}
 		<hr>
 	</header>
 	<main class="container">

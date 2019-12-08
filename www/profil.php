@@ -45,8 +45,9 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 	/**
 	 * Profil als anderen User anzeigen (DEV only!)
 	 */
-	$model->showOtherprofile($smarty, $user, $_GET['viewas']);
-	if (!empty($_GET['viewas']) && DEVELOPMENT === true) {
+	if (!empty($_GET['viewas']) && DEVELOPMENT === true)
+	{
+		$model->showOtherprofile($smarty, $user, $_GET['viewas']);
 		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user($_GET['viewas'], TRUE).'</strong>']);
 
 		/** Switch to "viewas"-User */
@@ -220,7 +221,7 @@ if (!empty($user_id))
  *
  * @TODO separate code & view by moving the HTML-parts to a Smarty-Template
  */
-if (!$user->is_loggedin() && $doAction === 'anmeldung')
+if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 {
 	/**
 	 * Registrationsformular anzeigen
@@ -268,7 +269,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung')
 					if (!isset($registerError) || empty($registerError))
 					{
 						$createUserResult = $user->create_newuser(htmlentities($_POST['new_username']), $_POST['new_password'], $_POST['new_password2'], $_POST['new_email']);
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Result: %s', __FILE__, __LINE__, (is_bool($createUserResult)?'true':$createUserResult)));
+						if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Result: %s', __FILE__, __LINE__, (is_bool($createUserResult)?'true':$createUserResult)));
 						if (is_bool($createUserResult) && $createUserResult===true) {
 							$error = t('account-confirmation', 'user');
 							$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => $error]);
@@ -376,11 +377,13 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung')
 	 */
 	elseif (!empty($userRegcode))
 	{
-		$new_user = $user->activate_user($userRegcode);
-		$model->showActivation($smarty, $new_user);
-		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user'), 'message' => t('newpass-confirmation-text', 'user')]);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $userRegcode: %s', __FILE__, __LINE__, $userRegcode));
+		$user_activation_result = $user->activate_user($userRegcode);
+		$model->showActivation($smarty, $user->error_message);
+		if ($user_activation_result === true) $smarty->assign('error', ['type' => 'success', 'dismissable' => 'false', 'title' => t('account-activated', 'user'), 'message' => t('account-activated-text', 'user')]);
+		else $smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $user->error_message]);
 		$smarty->display('file:layout/head.tpl');
-		echo '<b>'.$new_user.'</b>';
+		//if ($user_activation_result === true) $smarty->display('file:layout/partials/loginform.tpl'); => Form Redirect-Error
 	}
 
 	$smarty->display('file:layout/footer.tpl');

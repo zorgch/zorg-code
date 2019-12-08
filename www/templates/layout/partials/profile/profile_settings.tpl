@@ -15,8 +15,8 @@
 			<div class="input-field">
 				<h3>Activities</h3>
 				<span class="switch">
-					<input type="hidden" id="activities_allow" name="checkbox[activities_allow]" value="{if $user->activities_allow === '1'}1{else}0{/if}">
-					<input type="checkbox" id="switch-activities_allow" onclick="$(getElementById('activities_allow')).attr('value', this.checked ? '1' : '0')" {if $user->activities_allow === '1'}checked{/if}>
+					<input type="hidden" id="activities_allow" name="checkbox[activities_allow]" value="{if $user->activities_allow}1{else}0{/if}">
+					<input type="checkbox" id="switch-activities_allow" onclick="$(getElementById('activities_allow')).attr('value', this.checked ? '1' : '0')" {if $user->activities_allow}checked{/if}>
 					<label for="switch-activities_allow">Aktivitäten von mir anzeigen</label>
 				</span>
 				<span class="input-hint hide-sm-down"><span class="badge badge-secondary">?</span> Comments, Game Joins, Pic-Votes, etc. von Dir werden im Acitivies-Stream für alle sichtbar angezeigt. Activities werden auch in die zorg Telegram-Gruppe geteilt.</span>
@@ -28,8 +28,8 @@
 			<fieldset>
 				<table>
 					<thead><tr>
-						<th><strong>zorg Pic</strong></th>
-						{if $check_userimage.type === 'gravatar'}<th><strong>Gravatar Pic</strong></th>{/if}
+						<th class="text-center"><strong>zorg Pic</strong></th>
+						{if $check_userimage.type === 'gravatar'}<th class="text-center"><strong>Gravatar Pic</strong></th>{/if}
 					</tr></thead>
 					<tbody style="vertical-align:top;{if $sun == "down" || $user->zorger}filter: invert(100%);{/if}">
 						<tr>
@@ -101,7 +101,18 @@
 			<span class="badge {$usertypes[$usertype].badge}">{$usertypes[$usertype].group}</span>
 			{if $user->z_gremium}<span class="badge badge-dark">[z] Gremium</span>{/if}
 			{if $user->vereinsmitglied}<span class="badge badge-primary">zorg Verein {$user->vereinsmitglied}</span>{else}<a href="/page/verein" target="_blank" class="badge badge-secondary">kein zorg Vereinsmitglied</a>{/if}
-			{if $user->typ >= 2}<a href="/page/sql-query-tracker" target="_blank" class="badge {if $user->sql_tracker === '1'}badge-info">SQL-Query Tracker ON{else}badge-secondary">SQL-Query Tracker OFF{/if}</a>{/if}
+			{if $user->typ >= 2}<a href="/page/sql-query-tracker" target="_blank" class="badge {if $user->sql_tracker}badge-info">SQL-Query Tracker ON{else}badge-secondary">SQL-Query Tracker OFF{/if}</a>{/if}
+			{if $user->vereinsmitglied neq ''}
+				<h4 style="margin-top: 1.4em;">Personenbezogene Daten</h4>
+				<div class="input-field">
+					<label for="firstname">Vorname</label>
+					<input type="text" maxlength="75" autocomplete="off" value="{$user->firstname}" disabled>
+				</div>
+				<div class="input-field">
+					<label for="firstname">Nachname</label>
+					<input type="text" maxlength="75" autocomplete="off" value="{$user->lastname}" disabled>
+				</div>
+			{/if}
 		</div>
 	</div>
 	<div class="row pad-b-xl">

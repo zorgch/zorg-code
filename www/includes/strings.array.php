@@ -65,7 +65,9 @@ return
 			,'error-userpic-archive' => 'Original Bild konnte nicht archiviert werden.'
 			,'error-userpictn-archive' => 'Thumbnail Bild konnte nicht archiviert werden.'
 			,'account-inactive' => 'Dein Account wurde noch nicht aktiviert'
+			,'account-is-active' => 'Dein Account ist bereits aktiviert!'
 			,'account-activated' => 'Dein Account wurde erfolgreich aktiviert!'
+			,'account-activated-text' => 'Herzlich willkommen - Schön, dass du da bist :)<br>Du kannst dich jetzt mit dem gewählten Username + PW einloggen.'
 			,'authentication-failed' => 'Benutzer/Passwort Kombination falsch!'
 			,'invalid-cookie' => 'Dein Browser-Cookie für den zorg Login wurde kompromittiert! Bitte nochmals neu einloggen.'
 			,'invalid-id' => '<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - zorg.ch">Bugtracker</a>.</strong><br>You will contribute making zorg more secure and stable :) Thanks!</p>'
@@ -182,9 +184,9 @@ return
 		]
 	,'bugtracker' =>
 		[
-			 'buglist-headline' =>  '<h2 style="text-align:left;">Bugs und Features Liste:</h2>'
-			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen:</h2>'
-			,'newcategory-headline' =>  '<h2>Neue Kategorie adden:</h2>'
+			 'buglist-headline' =>  '<h1>Bugs und Features Liste</h1>'
+			,'newbug-headline' =>  '<h2>Neuen Bug/Request eintragen</h2>'
+			,'newcategory-headline' =>  '<h2>Neue Kategorie adden</h2>'
 			,'activity-newbug' =>  'hat den Bug <a href="%s/bug/%d">%s</a> gemeldet.'
 			,'message-subject-newbug' => '%s hat den Bug #%d neu erstellt'
 			,'message-subject-reopenbug' => '%s hat den Bug #%d reopened'

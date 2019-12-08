@@ -119,9 +119,9 @@ class Profile extends Model
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
-	public function showActivation(&$smarty)
+	public function showActivation(&$smarty, $message = null)
 	{
-		$this->page_title = 'Account bestätigen';
+		$this->page_title = (empty($message) ? 'Account bestätigen' : $message);
 		$this->page_link = '/profil.php?do=anmeldung';
 
 		$this->assign_model_to_smarty($smarty);
