@@ -1,28 +1,33 @@
 <?php
-
-
-/*
-
-The Line Graph generator by Ashish Kasturia (http://www.123ashish.com)
-Copyright (C) 2003 Ashish Kasturia (ashish at 123ashish.com)
-
-
-The Line Graph generator is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, 
-USA.
-
-*/
-
+/**
+ * The Line Graph generator by Ashish Kasturia (http://www.123ashish.com)
+ *
+ * Copyright (C) 2003 Ashish Kasturia (ashish at 123ashish.com)
+ * 
+ * The Line Graph generator is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, 
+ * USA.
+ *
+ * @link http://developers-heaven.net/display_source_code.php?id=117
+ * @link http://www.123ashish.com/
+ *
+ * @package zorg\Vendor
+ * @author [z]cylander
+ * @version 2.0
+ * @since 1.0 <cylander> File added
+ * @since 1.5 <cylander> zorg customizing
+ * @since 2.0 <inex> Fixed __construct, added Jahreszahlen
+ */
 class Line
 {
 	var $width = 600;
@@ -39,7 +44,21 @@ class Line
 	var $barCol = array();
 	var $axesCol;
 	var $image;
-	
+
+	/**
+	 * @version 2.0
+	 * @since 1.0 <ashish> Original Method
+	 * @since 2.0 <inex> 09.12.2019 Fixed Class constructor from "function Line()" => __construct(), added option to pass imgage width & height
+	 */
+	function __construct($imgWidth=600, $imgHeight=300)
+	{
+		$this->width = $imgWidth;
+		$this->height = $imgHeight;
+		$this->image = ImageCreate($this->width, $this->height);
+		$this->InitializeColors();
+		ImageFill($this->image, 0, 0, $this->bgCol);	
+	}
+
 	function InitializeColors()
 	{
 		$this->bgCol = ImageColorAllocate($this->image, 255, 255, 255);
@@ -56,13 +75,6 @@ class Line
 		$this->barCol[8] = ImageColorAllocate($this->image, 100, 55, 100);
 
 		$this->axesCol = ImageColorAllocate($this->image, 100, 100, 100);
-	}
-
-	function Line()
-	{
-		$this->image = ImageCreate($this->width, $this->height);
-		$this->InitializeColors();
-		ImageFill($this->image, 0, 0, $this->bgCol);		
 	}
 
 	function SetDimensions($width, $height)
@@ -111,6 +123,7 @@ class Line
 
 	function SetTitle($title)
 	{
+		// @FIXME <inex> 09.12.2019: Needs a different Font to support UTF8 - aktuell Umlaute "garbled"
 		$this->title = $title;
 	}
 
@@ -145,10 +158,17 @@ class Line
 		$this->axesCol = ImagecolorAllocate($this->image, $bgR, $bgG, $bgB);
 	}
 
+	/**
+	 * Spit out the graph
+	 *
+	 * @version 3.0
+	 * @since 1.0 <ashish> Original Method
+	 * @since 2.0 <cylander> zorg customizing, disabled some defaults
+	 * @since 2.5 <cylander> added option for 2nd x-axis label bar (Jahreszahlen)
+	 * @since 3.0 <inex> 09.12.2019 Enabled 2nd x-axis label by [z]cylander, some Styling improvement
+	 */
 	function spit($type)
 	{
-		// spit out the graph
-
 		$black = ImageColorAllocate($this->image, 0, 0, 0);
 
 		// draw the box
@@ -217,7 +237,7 @@ class Line
 
 		// divide the area for the values
 		$xUnit = ($this->width - 120) / sizeof($this->dataValues);
-		$xUnit2 = ($this->width - 120) / sizeof($this->dataXLabels);
+		$xUnit2 = ($this->width - 120) / sizeof($this->dataXLabels2);
 		
 		// finally draw the graphs
 		$x2 = Array();
@@ -227,16 +247,16 @@ class Line
 			$labelWidth = ImageFontWidth(1) * strlen($this->dataXLabels[$i]);
 			$labelHeight = ImageFontHeight(1);
 
-			ImageString($this->image, 1, 
+			ImageString($this->image, (count($this->dataXLabels2) > 1 ? 1 : 2), 
 				40 + $xUnit * ($i + 0.5) - $labelWidth / 2, 
 				$this->height - 35 + ($i % 2) * $labelHeight, 
-				$this->dataXLabels[$i], $this->titleCol);
+				$this->dataXLabels[$i], $this->titleCol); // 2nd param = font-size. Higher = larger (only if dataXLabels2 = empty)
 			
-			// Dieser String sollte nun die Jahreszahlen ausgeben...?!	
-			//ImageString($this->image, 1, 
-			//	40 + $xUnit2 * ($i + 1) - $labelWidth / 2, 
-			//	$this->height - 35 + ($i % 2) * $labelHeight, 
-			//	$this->dataXLabels2[$i], $this->titleCol);
+			/** <cylander> Dieser String sollte nun die Jahreszahlen ausgeben...?! */
+			ImageString($this->image, 2, 
+				40 + $xUnit2 * ($i + 1) - $labelWidth / 2, 
+				$this->height - 22 + ($i % 2) * $labelHeight, 
+				$this->dataXLabels2[$i], $this->titleCol); // 2nd param = font-size. Higher = larger.
 
 			for($j = 0; $j < sizeof($this->dataValues[$i]); $j++)
 			{
@@ -256,7 +276,6 @@ class Line
 			}
 		}
 
-
 		if($type == "jpg")
 		{
 			Header("Content-type: image/jpeg");
@@ -272,11 +291,7 @@ class Line
 			Header("Content-type: image/gif");
 			ImageGif($this->image);
 		}
-		
-		ImageDestroy($this->image);
 
+		ImageDestroy($this->image);
 	}
 }
-
-
-?>

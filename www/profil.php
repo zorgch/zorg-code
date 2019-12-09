@@ -201,7 +201,7 @@ if (!empty($user_id))
 	$sidebarHtml .= $smarty->fetch('tpl:211');
 
 	/** User Post-Statistik */
-	$sidebarHtml .= '<h3>Forum Stats</h3><img src="/images/stats.php?user_id='.$user_id.'" style="width: 100%;max-width: 100%;"><br>';
+	$sidebarHtml .= '<h3>Forum Stats</h3><img src="/images/stats.php?user_id='.$user_id.'&amp;w=490&amp;h=350" style="width: 100%;max-width: 100%;"><br>';
 
 	/** User last Posts */
 	$sidebarHtml .= Forum::getLatestCommentsbyUser($user_id);
