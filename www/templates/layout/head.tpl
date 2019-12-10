@@ -85,7 +85,7 @@
 				{/foreach}</ul>{/if}
 				</div>
 			{/if}
-			<nobr class="logo"><a href="/" id="top">{if $user->zorger}<img src="{$smarty.const.IMAGES_DIR}logo{if $sun == "down"}_night{/if}.png" border="0">{else}{$smarty.const.SITE_HOSTNAME}{/if}</a></nobr>
+			<nobr class="logo"><a href="/" id="top">{if $user->zorger}<img src="{$smarty.const.IMAGES_DIR}logo{if $sun == "down"}_night{/if}.png" border="0" style="max-width: 100%;">{else}{$smarty.const.SITE_HOSTNAME}{/if}</a></nobr>
 			<div class="announcements">
 				{foreach from=$nextevents item=nextevent}<span class="event">
 					<a href="/smarty.php?tpl=158&event_id={$nextevent.id}">

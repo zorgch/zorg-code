@@ -44,9 +44,10 @@ function tpl_comment_permission ($thread_id) {
  * Check permission to access template
  *
  * @author [z]biko
- * @version 2.0
+ * @version 2.1
  * @since 1.0 <biko> function added
  * @since 2.0 <inex> 20.06.2019 Failsafe hinzugefügt
+ * @since 2.1 <kassiopaia> 04.11.2019 fixes undefined indexes errors
  *
  * FIXME ACHTUNG: template read_rights sind != der USER_xxx Level! z.B. read_rights=3 bedeutet "Template Owner only"...
  *
@@ -62,7 +63,9 @@ function tpl_permission ($group, $owner)
 	if ($group === '' || $group === null) $group = USER_ALLE;
 	if ($owner === '' || $owner === null) $owner = ROSENVERKAEUFER;
 
-	return hasTplAccess($group, $owner, $user->id, $user->typ);
+	$userid = isset($user->id)?$user->id:0;
+	$usertyp = isset($user->typ)?$user->typ:0;
+	return hasTplAccess($group, $owner, $userid, $usertyp);
 }
 
 /**

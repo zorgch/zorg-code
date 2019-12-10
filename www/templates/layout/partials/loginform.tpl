@@ -17,10 +17,10 @@
 		<label class="emoji password">pass <input type="password" name="password" tabindex="2"></label>
 		<a href="/profil.php?do=anmeldung#pwreset">forgot</a>
 	</div>
-	<fieldset>
+	<div class="login-input">
 		<label>autologin&nbsp;<input type="checkbox" name="cookie" id="cookie" tabindex="3" style="vertical-align: baseline;"></label>
 		<input type="submit" value="login" tabindex="4">
-	</fieldset>
+	</div>
 </form>
 {/if}
 {error msg=$login_error}
