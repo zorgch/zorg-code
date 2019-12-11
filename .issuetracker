@@ -1,0 +1,11 @@
+# Integration with Issue Tracker
+#
+# (note that '\' need to be escaped).
+
+[issuetracker "zorg Bugtracker autolink reference with Hashtag"]
+  regex = "Bug #(\\d+)"
+  url = "https://zorg.ch/bug/$1"
+
+[issuetracker "zorg Bugtracker autolink reference without Hashtag"]
+  regex = "Bug (\\d+)"
+  url = "https://zorg.ch/bug/$1"
