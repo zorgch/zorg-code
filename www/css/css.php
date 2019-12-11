@@ -177,7 +177,7 @@ body {
 /* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
 @media (max-width: 767px) {
 	body {
-		grid-template-columns: 100%;
+		grid-template-columns: auto;
 		grid-template-rows: minmax(min-content, 100px) minmax(min-content, max-content) minmax(min-content, max-content) auto 1fr;
 		grid-template-areas:
 			"header"
@@ -752,10 +752,10 @@ table.border tr td {
 
 table.dreid {
 	background-color: #E5E5E5; /*EDF2F2*/
-	
+
 	border-bottom-style: solid;
 	border-bottom-color: #CCCCCC; /*DDD*/
-	border-bottom-width: 1px;	
+	border-bottom-width: 1px;
 
 	border-left-style: solid;
 	border-left-color: #FFF;
@@ -763,8 +763,8 @@ table.dreid {
 
 	border-right-style: solid;
 	border-right-color: #CCCCCC; /*DDD*/
-	border-right-width: 1px;	
-	
+	border-right-width: 1px;
+
 	border-top-style: solid;
 	border-top-color: #FFF;
 	border-top-width: 1px;
@@ -827,7 +827,7 @@ div.menu a.right {
 	border-right-style: none;
 	padding-left: 1px;
 	padding-right: 0px;
-}	
+}
 /** END: Menu navigation */
 
 /**
