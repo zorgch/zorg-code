@@ -108,6 +108,7 @@ class Model
  * @include profile.php Required
  * @include quotes.php Required
  * @include seti.php Required
+ * @include sitemap.model.php Required
  * @include spaceweather.php Required
  * @include stl.php Required
  * @include verein_mailer.php Required
@@ -129,6 +130,7 @@ require_once( __DIR__ . '/pimp.php');
 require_once( __DIR__ . '/profile.php');
 require_once( __DIR__ . '/quotes.php');
 require_once( __DIR__ . '/seti.php');
+require_once( __DIR__ . '/sitemap.model.php');
 require_once( __DIR__ . '/spaceweather.php');
 require_once( __DIR__ . '/stl.php');
 //require_once( __DIR__ . '/verein_mailer.php');

@@ -318,13 +318,9 @@ if(empty($action))
 	$sql = 'SELECT * from books_title WHERE id = '.$rs['titel_id'];
 	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
-	$htmlOutput .= '<h2>Boook Detail</h2>';
-	$htmlOutput .= '<table cellpadding="1" cellspacing="1" width="500" class="border" align="center">'
+	$htmlOutput .= '<h1>'.htmlentities($rs['title']).'</h1>';
+	$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="border" align="center" style="max-width: 100%;">'
 		.'<tr><td align="left" style="font-weight: 600;">'
-		.'Titel:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['title'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
 		.'Autor:'
 		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
 		.htmlentities($rs['autor'])

@@ -21,9 +21,7 @@ require_once( __DIR__ .'/models/core.model.php');
  * Initialise MVC Model
  */
 $model = new MVC\Seti();
-
-//echo head(40, "seti");
-//$smarty->assign('tplroot', array('page_title' => 'seti'));
+$model->showOverview($smarty);
 
 if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 {
@@ -60,10 +58,9 @@ if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 }
 /** Nicht eingeloggte User / keine Member */
 else {
-	$model->showOverview($smarty);
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Access denied', 'message' => 'Hier dürfen nur Member was machen. Tschau.']);
 	$smarty->display('file:layout/head.tpl');
-	echo 'Hier dürfen nur Member was machen. Tschau.';
 }
 
-//echo foot(52);
 $smarty->display('file:layout/footer.tpl');
