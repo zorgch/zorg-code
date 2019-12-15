@@ -101,4 +101,21 @@ class Gallery extends Model
 
 		$this->assign_model_to_smarty($smarty);
 	}
+
+	/**
+	 * @version 1.0
+	 * @since 1.0 <inex> 15.12.2019 method added
+	 *
+	 * @global object $smarty Smarty Class-Object
+	 */
+	public function showFacetagging($page_index=null)
+	{
+		global $smarty;
+
+		$this->page_title = 'Fresse Tagging'.($page_index > 0 ? ' - Page #'.$page_index : '');
+		$this->meta_description = 'Game zum Frässene vo Gallery Pics zu Users tagge';
+		$this->page_link = '/facetag.php';
+
+		$this->assign_model_to_smarty($smarty);
+	}
 }

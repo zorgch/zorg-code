@@ -77,7 +77,7 @@ class Profile extends Model
 		$clantagUsername = $user->id2user($user_id, true);
 		$this->page_title = $clantagUsername;
 		$this->meta_description = 'zorg Userprofil von '.$clantagUsername;
-		$this->page_link = '/user/'.$user->id2user($user_id);
+		$this->page_link = '/user/'.rawurlencode($user->id2user($user_id));
 		$this->page_image = SITE_URL.$user->userImage($user_id, 1);
 
 		$this->assign_model_to_smarty($smarty);
