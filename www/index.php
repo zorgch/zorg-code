@@ -145,6 +145,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 			$_TPLROOT['title'] = $_TPLROOT['page_title'];
 
 			/** Display 404 page */
+			http_response_code(404); // Set response code 404 (not found)
 			$smarty->assign('tplroot', $_TPLROOT);
 			$smarty->display(SMARTY_404PAGE_TPL);
 			exit;
@@ -166,7 +167,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 			if (!empty($_TPLROOT['title']) && $_TPLROOT['title'] !== null) $_TPLROOT['page_title'] = $_TPLROOT['title']; // HTML Page Title
 			if (!empty($_TPLROOT['word']) && $_TPLROOT['word'] !== null) $_TPLROOT['page_link'] = '/page/'.$_TPLROOT['word']; // Canonical URL
 			else $_TPLROOT['page_link'] = '/tpl/'.$_TPLROOT['id'];
-	
+
 			/** Events special... */
 			if ($_TPLROOT['id'] == 158) {
 				if (!empty($_GET['event_id'])) {
@@ -176,13 +177,13 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 					$_TPLROOT['page_link'] = '/events/';
 				}
 			}
-			
+
 			/** Home(page) special... */
 			if ($_TPLROOT['word'] === 'home' || $_TPLROOT['id'] === 23) {
 				$_TPLROOT['page_title'] = ($user->is_loggedin() ? $_TPLROOT['page_title'] : 'Willkommen auf zorg');
 				$_TPLROOT['page_link'] = ' ';
 			}
-			
+
 			/** Immer zuletzt: Tpleditor special... */
 			if ( isset($_GET['tpleditor']) && $_GET['tpleditor'] == 1) {
 				$_TPLROOT['page_title'] = ($_GET['tplupd'] === 'new' ? 'Neues Template erstellen' : 'Template «'.$_TPLROOT['page_title'].'» bearbeiten');
