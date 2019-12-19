@@ -195,6 +195,7 @@ class Sitemap extends Controller
 			$xmlOutput .= $this->threadPages;
 			$xmlOutput .= $this->userPages;
 			$xmlOutput .= $this->wettenPages;
+			//$xmlOutput .= $this->filesList; DISABLED VORERST
 		$xmlOutput .= '</urlset>';
 		return $xmlOutput;
 	}
