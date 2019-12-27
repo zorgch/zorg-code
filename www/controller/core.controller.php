@@ -44,3 +44,4 @@ class Controller
  * @include sitemap.controller.php Required
  */
 require_once( __DIR__ . '/sitemap.controller.php');
+require_once( __DIR__ . '/gallery_maker.controller.php');
