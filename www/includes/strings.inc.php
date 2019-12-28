@@ -35,10 +35,10 @@ $GLOBALS['strings'] = include_once( __DIR__ .'/strings.array.php');
  * @package zorg
  * @subpackage Strings
  *
- * @param $reference The placeholder reference to be replaced with a string
- * @param $context The context from where to pull and replace the given reference
- * @param $values Optional: any values which shall be replaced within the string
- * @param $tploutput Optional: reference to template instead of a simple string, e.g. 'db:123', 'file:template.tpl'
+ * @param $reference string The placeholder reference to be replaced with a string
+ * @param $context string The context from where to pull and replace the given reference
+ * @param $values array Optional: any values which shall be replaced within the string
+ * @param $tploutput string Optional: reference to template instead of a simple string, e.g. 'db:123', 'file:template.tpl'
  * @return string|null The string which replaced the passed and matched placeholder
  */
 function t($reference, $context='global', $values=NULL, $tploutput=NULL)

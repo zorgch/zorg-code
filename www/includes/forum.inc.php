@@ -187,29 +187,21 @@ class Comment
  	 */
 	static function formatPost($text)
 	{
-		global $user;
 
 		/** Falls Post HTML beinhaltet, schauen ob was böses[tm] drin ist. */
 		$illegalhtml = false;
 
-		/** Illegale Attribute suchen */
-		/*
-		$illegalattrib = array('style', 'bgcolor');
-		while (!$illegalhtml && list($key, $value) = each ($illegalattrib)) {
-			if(strstr($text, $value.'=')) {
-				$text = htmlentities($text).' <font color="red"><b>[Illegales Attribut: '.$value.']</b></font>';
-				$illegalhtml = true;
-			}
-		}*/
-
 		/** Illegale Tags suchen */
 		$illegaltags = array('link', 'select', 'script', 'style');
-		while (!$illegalhtml && list($key, $value) = current ($illegaltags)) {
-			if(strstr($text, '<'.$value)) {
-				$text = htmlentities($text).' <font color="red"><b>[Illegaler Tag: '.$value.']</b></font>';
+		foreach($illegaltags as $illegaltag) {
+			if($illegalhtml) {
+				continue;
+			}
+
+			if(strstr($text, '<'.$illegaltag)) {
+				$text = htmlentities($text).'<b style="color:red;">[Illegaler Tag: '.$illegaltag.']</b>';
 				$illegalhtml = true;
 			}
-			next($illegaltags);
 		}
 
 		/** Newlines zu BRs machen */
@@ -1354,10 +1346,8 @@ class Forum {
 	}
 
 	static function getNavigation($page=1, $pagesize, $numpages) {
-		$html .=
-			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border small">'
-			.'<tr><td class="hide-mobile">Page '.$page.' von '.$numpages.'</td>'
-		;
+		$html = '<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border small">'
+			.'<tr><td class="hide-mobile">Page '.$page.' von '.$numpages.'</td>';
 
 		if($page > 10) {
 			$html .= '<td><a href="'.getChangedURL('page=1').'">&larrb; First</a></td>';
@@ -1770,13 +1760,13 @@ class Forum {
 		else $showboards_commaseparated = '"'.$showboards.'"';
 
 		/** Sortieren */
-		//if($sortby == '') $sortby = 'ct.sticky DESC, ct.last_comment_id';
-		//if($sortby == '') $sortby = 'ct.last_comment_id';
 		if(empty($sortby) || is_numeric($sortby) || is_array($sortby)) $sortby = 'last_post_date';
 
 		/**
 		 * "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
 		 * ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
+		$order = 'DESC';
+		$new_order = 'ASC';
 		if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
 		{
 			if(isset($_GET['order'])) {
@@ -1794,10 +1784,6 @@ class Forum {
 						$new_order = 'ASC';
 				}
 			}
-		} else {
-			/** Wenn wir Textspalten sortieren, immer "DESC" als Sortierreihenfolge verwenden */
-			$order = 'DESC';
-			$new_order = 'ASC';
 		}
 
 		/** Threads analog ?page=n anzeigen... */
@@ -1849,7 +1835,7 @@ class Forum {
 
 		/** Ausgabe ---------------------------------------------------------------- */
 		/** Thread-Table mit Spaltenüberschriften */
-		$html .=
+		$html =
 			'<h1>Discussions</h1>'
 			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
 				.'<!--googleoff: all--><tr class="title">'
@@ -1867,6 +1853,7 @@ class Forum {
 			$i++;
 
 			/** Check for unread comments in Thread */
+			$thread_has_unread_comments = false;
 			if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT && $rs['thread_id'] != '') {
 				$lastp = Thread::getLastUnreadComment($rs['board'], $rs['thread_id'], $user->id);
 				$thread_has_unread_comments = ($lastp ? true : false);
@@ -2027,7 +2014,7 @@ class Forum {
 		global $db, $user, $smarty;
 
 		/** Get and set missing parent_id */
-	    if($_GET['parent_id'] == '') $_GET['parent_id'] = $thread_id;
+		$_GET['parent_id'] = ( isset( $_GET['parent_id'] ) && $_GET['parent_id'] != '' ) ? $_GET['parent_id'] : $thread_id;
 
 		if (Thread::hasRights($board, $thread_id, $user->id)) {
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */

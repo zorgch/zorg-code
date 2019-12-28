@@ -24,16 +24,16 @@ if (!is_numeric($_GET['map'])) {
 			 ORDER BY name ASC",
 			 __FILE__, __LINE__);
 	while ($d = $db->fetch($e)) {
-		$d['linkparam'] = "map=".$d[id];
-		$d['activate'] = "map_activate=".$d[id];
-		$d['deactivate'] = "map_deactivate=".$d[id];
+		$d['linkparam'] = "map=".$d['id'];
+		$d['activate'] = "map_activate=".$d['id'];
+		$d['deactivate'] = "map_deactivate=".$d['id'];
 		
 		$win_e = $db->query(
 			"SELECT if(g.z_score >= sum(a.score)-g.z_score, 'z', 'i') winner
 			FROM hz_games g
 			JOIN hz_aims a
 			  ON a.map=g.map
-			WHERE g.map='".$d[id]."'
+			WHERE g.map='".$d['id']."'
 			  AND g.state='finished'
 			GROUP BY g.id",
 			__FILE__, __LINE__

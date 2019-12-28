@@ -75,7 +75,7 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 		$model->showProfileupdate($smarty);
 
 		/** Update Userprofile infos & settings */
-		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
 		{
 			/** Validate $_POST-request */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
@@ -85,12 +85,12 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 			}
 		}
 		/** Upload and change new Userpic */
-		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
 		{
 			$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
 		}
 		/** Change User Password */
-		if($user->id && $_POST['do'] === 'change_password')
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'change_password')
 		{
 			$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
 		}

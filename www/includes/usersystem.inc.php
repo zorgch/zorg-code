@@ -159,8 +159,11 @@ class usersystem
 		/**
 		 * Session init'en
 		 */
-		session_name(ZORG_SESSION_ID);
-		session_start();
+		if(!session_id()) {
+			session_name(ZORG_SESSION_ID);
+			session_start();
+		}
+
 		$this->typ = USER_ALLE; // grundsätzlich ist jeder zuerst mal "Gast"
 
 		/**
@@ -1727,7 +1730,8 @@ class usersystem
 		$error[0] = FALSE;
 
 		/** Check e-mail address & dass User nicht einen Force-Logout hat */
-		if (check_email($data_array['email']) && !$_geaechtet[$user_id])
+
+		if (check_email($data_array['email']) && !isset($_geaechtet[$user_id]))
 		{
 			/** Process $data_array values */
 			foreach ($data_array as $dataKey => $dataValue)
@@ -1740,7 +1744,8 @@ class usersystem
 					 * We're building a dynamic variable using ${string}
 					 * refering to any $user->default_var from usersystem()
 					 */
-					$defaultValue = ${'$this->default_'.strtolower($dataKey)};
+
+					$defaultValue = isset(${'$this->default_'.strtolower($dataKey)})?${'$this->default_'.strtolower($dataKey)}:'';
 					if (empty($dataValue) && $dataValue !== $defaultValue)
 					{
 						/**

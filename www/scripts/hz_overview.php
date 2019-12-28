@@ -85,10 +85,10 @@ $open_games = array();
 while ($d = $db->fetch($e)) {
 	$d['maplink'] = "map=$d[map]";
 	$d['joinlink'] = "join=$d[id]";
-        $d['z'] = $d['mrz'];
-        $e2 = $db->query("SELECT * FROM hz_players
+	$d['z'] = $d['mrz'];
+    $e2 = $db->query("SELECT * FROM hz_players
 			   WHERE type!='z'
-			   AND game='".$d[id]."'",
+			   AND game='".$d['id']."'",
 			 __FILE__, __LINE__, 'open games');
 	$d['players'] = array();
 	while ($d2 = $db->fetch($e2)) {

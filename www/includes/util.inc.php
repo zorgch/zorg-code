@@ -89,31 +89,31 @@ function timename($timestamp)
 
 		} elseif ($timeDiff < $timeLengths['m']) { /** Sekunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', $timeDiff);
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', array($timeDiff));
 
 		} elseif ($timeDiff < $timeLengths['h']) { /** Minuten */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', floor($timeDiff/$timeLengths['m']));
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', array(floor($timeDiff/$timeLengths['m'])));
 
 		} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h']));
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', array(floor($timeDiff/$timeLengths['h'])));
 
 		} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', floor($timeDiff/$timeLengths['d']));
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', array(floor($timeDiff/$timeLengths['d'])));
 
 		} elseif ($timeDiff < $timeLengths['mt']) { /** Wochen */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', floor($timeDiff/$timeLengths['w']));
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', array(floor($timeDiff/$timeLengths['w'])));
 
 		} elseif ($timeDiff < $timeLengths['y']) { /** Monate */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', floor($timeDiff/$timeLengths['mt']));
+			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', array(floor($timeDiff/$timeLengths['mt'])));
 
 		} elseif ($timeDiff >= $timeLengths['y']) { /** Jahre oder mehr */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', floor($timeDiff/$timeLengths['y']));
+			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', array(floor($timeDiff/$timeLengths['y'])));
 		}
 	} catch (Exception $e) {
 		error_log($e->getMessage());
@@ -208,8 +208,7 @@ function crypt_pw($password) {
  * @return bool True or false, depending if $email validated successful or not
  */
 function check_email($email) {
-	if(filter_var($email, FILTER_VALIDATE_EMAIL)) return TRUE;
-	else return FALSE;
+	return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 /**
@@ -247,6 +246,7 @@ function quote(){
  */
 function set_daily_quote()
 {
+	global $db;
 	$date = date('Y-m-d');
 	$sql = 'SELECT * FROM daily_quote WHERE date = "'.$date.'"';
 	$result = $db->query($sql);
@@ -338,7 +338,7 @@ function changeQueryString($querystring, $changes)
 {
 	/** der 2. Wert überschreibt den 1. */
 	parse_str($querystring.'&'.$changes, $querystringarray);
-
+	$str = '';
 	foreach ($querystringarray as $key => $value) {
 		if(is_array($value)) {
 			foreach ($value as $key2 => $value2) {
@@ -619,6 +619,7 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 
 	/** Shrink $text to $width */
 	$textLength = strlen($textStripped);
+	$textStrippedEndsWithPunctuation = false;
 	if ($textLength <= $width) { // $text is within $width
 		/** Replace last punctuation char with $delimiter or as defined in $punctuationChars */
 		foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) {

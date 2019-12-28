@@ -779,7 +779,7 @@ function smarty_peter ($params, &$smarty) {
  * HTML
  */
     function smarty_space ($params) { // inserts &nbsp;
-        return str_repeat('&nbsp;', $params[i]);
+        return str_repeat('&nbsp;', $params['i']);
     }
 
 /**

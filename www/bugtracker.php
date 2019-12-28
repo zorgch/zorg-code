@@ -138,7 +138,7 @@ if(empty($bug_id) || $bug_id <= 0)
 	$bug_data = Bugtracker::getBugRS($bug_id);
 
 	$htmlOutput = null;
-	if($_GET['action'] == 'editlayout')
+	if(isset($_GET['action']) && $_GET['action'] == 'editlayout')
 	{
 		$model->showEdit($smarty, $bug_id);
 		$htmlOutput .= '<h1>Bug bearbeiten</h1>';
