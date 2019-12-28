@@ -10,8 +10,11 @@ require_once( __DIR__ .'/models/core.model.php');
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['regcode'])) $userRegcode = sanitize_userinput($_GET['regcode']);
+$doAction    = null;
+$user_id     = null;
+$userRegcode = null;
 if (!empty($_GET['do']) && !is_numeric($_GET['do'])) $doAction = sanitize_userinput($_GET['do']);
+if (!empty($_GET['regcode'])) $userRegcode = sanitize_userinput($_GET['regcode']);
 if (!empty($_GET['user_id']) && is_numeric($_GET['user_id'])) $user_id = sanitize_userinput($_GET['user_id']);
 
 //=============================================================================
@@ -29,9 +32,6 @@ Messagesystem::execActions();
 /**
  * Userlist anzeigen
  */
-$doAction    = isset( $doAction ) ? $doAction : null;
-$user_id     = isset( $user_id ) ? $user_id : null;
-$userRegcode = isset( $userRegcode ) ? $userRegcode : null;
 if ( !$doAction && !$user_id && !$userRegcode )
 {
 	$smarty->display('file:layout/head.tpl');
@@ -75,7 +75,7 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 		$model->showProfileupdate($smarty);
 
 		/** Update Userprofile infos & settings */
-		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
 		{
 			/** Validate $_POST-request */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
@@ -85,12 +85,12 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 			}
 		}
 		/** Upload and change new Userpic */
-		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
 		{
 			$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
 		}
 		/** Change User Password */
-		if($user->id && $_POST['do'] === 'change_password')
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'change_password')
 		{
 			$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
 		}
@@ -163,7 +163,7 @@ if (!empty($user_id))
 	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'" style="width: 100%;max-width: 100%;">';
 
 	/** User Addle */
-	if ($user->id > 0 && $user_id != $user->id && $rs['addle'])
+	if (isset($user->id) && $user->id > 0 && $user_id != $user->id && $rs['addle'])
 	{
 		$sidebarHtml .= '<h3>Addle</h3>
 		<form action="/addle.php?show=overview&do=new" method="post">

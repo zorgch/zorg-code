@@ -329,15 +329,15 @@ function pic ($id) {
 		if ($exif_data['FILE.FileDateTime'] != false) {
 			echo '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
 
+		} else {
+			/** Fallback: Datum aus dem filemtime() des Pics */
+			echo '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
+
 		}
 
 	/** APOD Special: use pic_added from database, instead of filemtime */
 	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
 		echo '<p>Bild von '.datename($cur['timestamp']).'</p>';
-
-	/** Fallback: Datum aus dem filemtime() des Pics */
-	} else {
-		echo '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
 	}
 
 	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.

@@ -49,12 +49,12 @@ class Bugtracker
 	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
 	 * @return void Header Location redirect
 	 */
-	function execActions()
+	static function execActions()
 	{
 		global $db, $user, $notification;
 
 		/** Add new Bug */
-		if($_GET['action'] === 'new')
+		if(isset($_GET['action']) && $_GET['action'] === 'new')
 		{
 			/** Validate & escape fields */
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
@@ -92,7 +92,7 @@ class Bugtracker
 		}
 
 		/** Assign Bug */
-		elseif ($_GET['action'] === 'assign')
+		elseif ( isset($_GET['action']) && $_GET['action'] === 'assign')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			
@@ -105,7 +105,7 @@ class Bugtracker
 		}
 
 		/** Bug klauen */
-		elseif ($_GET['action'] === 'klauen')
+		elseif (isset($_GET['action']) &&  $_GET['action'] === 'klauen')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			
@@ -118,7 +118,7 @@ class Bugtracker
 		}
 
 		/** Bug erneut öffnen */
-		elseif ($_GET['action'] === 'reopen')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'reopen')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NULL', 'denied_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
@@ -137,7 +137,7 @@ class Bugtracker
 		}
 
 		/** Bug wieder freigeben (unassign) */
-		elseif ($_GET['action'] === 'resign')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'resign')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => 'NULL', 'assigned_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
@@ -147,7 +147,7 @@ class Bugtracker
 		}
 
 		/** Bug als gelöst markieren */
-		elseif ($_GET['action'] === 'resolve')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'resolve')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
@@ -169,7 +169,7 @@ class Bugtracker
 		}
 
 		/** Bug bearbeiten */
-		elseif ($_GET['action'] == 'edit')
+		elseif (isset($_GET['action']) && $_GET['action'] == 'edit')
 		{
 			/** Validate & escape fields */
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
@@ -193,7 +193,7 @@ class Bugtracker
 		}
 
 		/** Bug ablehnen */
-		elseif ($_GET['action'] == 'deny')
+		elseif (isset($_GET['action']) && $_GET['action'] == 'deny')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
@@ -215,7 +215,7 @@ class Bugtracker
 		}
 
 		/** Add new Category */
-		elseif ($_GET['action'] == 'newcategory')
+		elseif (isset($_GET['action']) && $_GET['action'] == 'newcategory')
 		{
 			$title_sanitized = sanitize_userinput($_GET['title']);
 			$categoryTitle = ( isset($title_sanitized) && !empty($title_sanitized) ? $title_sanitized : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
@@ -241,7 +241,7 @@ class Bugtracker
 	 * @see Thread::getNumPosts
 	 * @return string HTML-Code for page output
 	 */
-	function getBugHTML($bug_id, $edit=FALSE)
+	static function getBugHTML($bug_id, $edit=FALSE)
 	{
 		global $db, $user;
 
@@ -369,7 +369,7 @@ class Bugtracker
 	 * @param int $bug_id Bug-ID to fetch as record from DB
 	 * @return array
 	 */
-	function getBugRS($bug_id)
+	static function getBugRS($bug_id)
 	{
 		global $db;
 
@@ -559,7 +559,7 @@ class Bugtracker
 	 * @param array $rs Fetched Bug DB-record
 	 * @return string
 	 */
-	function getFormActionsHTML($rs)
+	static function getFormActionsHTML($rs)
 	{
 		global $user;
 
@@ -728,7 +728,7 @@ class Bugtracker
 		return '<input type="text" name="title" value="'.htmlentities($title, ENT_QUOTES).'" placeholder="Feature/Problem Titel" style="width: 90%;">';
 	}
 
-	function getPriorityDescription($priority_id) {
+	static function getPriorityDescription($priority_id) {
 		switch($priority_id) {
 			case 1: $descr = '&#128314; Sehr Hoch'; break;
 			case 2: $descr = '&#128312; Hoch'; break;

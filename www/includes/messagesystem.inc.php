@@ -529,7 +529,7 @@ class Messagesystem {
 	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
 	 */
-	function getMessage($id)
+	static function getMessage($id)
 	{
 		global $user, $smarty;
 
@@ -565,7 +565,7 @@ class Messagesystem {
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return array|boolean Returns an Array containing the query results - or false if the query failed
 	 */
-	function getUserMessage($messageid)
+	static function getUserMessage($messageid)
 	{
 		global $db;
 
@@ -601,7 +601,7 @@ class Messagesystem {
 	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
-	function getNextMessageid($id)
+	static function getNextMessageid($id)
 	{
 		global $db, $user;
 
@@ -641,7 +641,7 @@ class Messagesystem {
 	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
-	function getPrevMessageid($id)
+	static function getPrevMessageid($id)
 	{
 		global $db, $user;
 
