@@ -8,12 +8,12 @@ require_once( __DIR__ . '/config.inc.php');
  * RSS Feeds
  * @const RSS_URL Basic URL for RSS-Feeds
  */
-if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . '/?layout=rss', true);
+if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . '/?layout=rss');
 
 /**
  * @const @DEPRECATED BODYSETTINGS bodysettings wird verwendet, um den div nach den menüs wieder zu öffnen.
  */
-if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"', true);
+if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
 
 /**
  * Require important scripts
@@ -77,8 +77,8 @@ include_once( __DIR__ .'/telegrambot.inc.php');
  * @const SMARTY_DEFAULT_TPL Default (fallback) Smarty-Template tpl:- or file:-ID/Name
  * @const SMARTY_404PAGE_TPL 404 "Page not found" Smarty-Template reference
  */
-if (!defined('SMARTY_DEFAULT_TPL')) define('SMARTY_DEFAULT_TPL', 23, true);
-if (!defined('SMARTY_404PAGE_TPL')) define('SMARTY_404PAGE_TPL', 'file:layout/pages/404_page.tpl', true);
+if (!defined('SMARTY_DEFAULT_TPL')) define('SMARTY_DEFAULT_TPL', 23);
+if (!defined('SMARTY_404PAGE_TPL')) define('SMARTY_404PAGE_TPL', 'file:layout/pages/404_page.tpl');
 $smarty->register_function('sqltracker', 'dbcon::sqltracker');
 $smarty->register_modifier('rendertime', 'smarty_modifier_rendertime');
 $smarty->assign('spaceweather', spaceweather_ticker());

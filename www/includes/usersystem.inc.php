@@ -500,7 +500,7 @@ class usersystem
 	{
 		/** Session destroy */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, $_SESSION['user_id']));
-		unset($_SESSION['user_id']);
+		if(!empty(session_id()))
 		session_destroy();
 
 		/** Cookies killen - einmal unsetten & danach invalidieren */
@@ -870,10 +870,10 @@ class usersystem
 				$_geaechtet[] = $_SESSION['user_id'];
 				return true;
 			}
-		} else if (!empty($_geaechtet[$_SESSION['user_id']])) {
-				return true;
+		} else if (isset($_SESSION['user_id']) && !empty($_geaechtet[$_SESSION['user_id']])) {
+			return true;
 		} else {
-			if ($this->ausgesperrt_bis > time())
+			if (isset($this->ausgesperrt_bis) && $this->ausgesperrt_bis > time())
 			{
 				$_geaechtet[] = $_SESSION['user_id'];
 				return true;
@@ -2031,7 +2031,7 @@ if (isset($_POST['do']) && $_POST['do'] === 'login')
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form)', '$user->login()', __LINE__));
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
-		$_POST['cookie'] ? $auto = TRUE : $auto = FALSE;
+		$auto = isset($_POST['cookie']) && $_POST['cookie'];
 		$login_error = $user->login($_POST['username'], $_POST['password'], $auto);
 	} else {
 		$login_error = t('authentication-failed', 'user');

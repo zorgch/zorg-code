@@ -13,7 +13,7 @@
 * @include googleapis_key.inc.php Include an Array containing a valid Google API Key
 * @const GOOGLE_API_KEY A constant holding the Google API Key required for requests to Google's APIs
 */
-if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once( (file_exists( __DIR__ .'/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') ), true);
+if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once( (file_exists( __DIR__ .'/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') ));
 if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> GOOGLE_API_KEY: found', __FILE__, __LINE__));
 
 /**

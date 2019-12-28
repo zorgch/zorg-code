@@ -205,7 +205,7 @@ class mobilezChat
 							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> After mobilezChat::postChatMessage()', __METHOD__, __LINE__));
 
 							/** Telegram Messenger Notification */
-							if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot', true);
+							if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
 							require_once PHP_INCLUDES_DIR.'/telegrambot.inc.php';
 							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Included telegrambot.inc.php', __METHOD__, __LINE__));
 							$telegramPhotoCaption = sprintf('[z]Chat Bildupload von <b>%s</b>', $user->id2user($user_id, true));

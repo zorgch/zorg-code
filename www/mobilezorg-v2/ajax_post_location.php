@@ -15,7 +15,7 @@ if(!empty($location) && !empty($user->id) && $user->id > 0)
 	error_log(sprintf('[INFO] <%s:%d> Location saved: %s', 'mobilezorg-v2/ajax_post_location', __LINE__, $location));
 
 	/** Telegram Messenger Notification */
-	if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot', true);
+	if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
 	require_once PHP_INCLUDES_DIR.'telegrambot.inc.php';
 	$latlngInfo = explode(',', $location);
 	if (count($latlngInfo) == 2)

@@ -32,7 +32,7 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
 elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
     $isSecure = true;
 }
-define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'), true);				// TCP/IP Protocol used: HTTP or HTTPS
+define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));				// TCP/IP Protocol used: HTTP or HTTPS
 if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']); 		// Extract the Top Level Domain
 if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL.'://'.SITE_HOSTNAME); 		// Complete HTTP-URL to the website
 if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.SITE_HOSTNAME); 		// General suffix for <title>...[suffix]</title> on every page

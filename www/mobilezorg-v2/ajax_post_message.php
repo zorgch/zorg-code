@@ -58,7 +58,7 @@ if(isset($_POST['message']) && !empty($user->id) && $user->id > 0)
 		$mobilezChat->postChatMessage($user_id, $_POST['message'], $from_mobile);
 
 		/** Telegram Messenger Notification */
-		if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot', true);
+		if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
 		require_once PHP_INCLUDES_DIR.'telegrambot.inc.php';
 		$telegramMessage = sprintf('[z]Chat message by <b>%s</b>: <i>%s</i>', $user->id2user($user->id, true), $messageText);
 		$telegramMessageKeyboard = json_encode([ 'inline_keyboard' => [[['text'=>'Reply in [z]Chat','url'=>SITE_URL.'/mobilezorg-v2/']]] ]);

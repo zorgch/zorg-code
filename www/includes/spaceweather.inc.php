@@ -10,14 +10,14 @@ require_once( __DIR__ .'/mysql.inc.php');
 * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
 * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
 */
-if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/../includes/nasaapis_key.inc.local.php') ? __DIR__ . '/../includes/nasaapis_key.inc.local.php' : __DIR__ . '/../includes/nasaapis_key.inc.php') ), true);
+if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/../includes/nasaapis_key.inc.local.php') ? __DIR__ . '/../includes/nasaapis_key.inc.local.php' : __DIR__ . '/../includes/nasaapis_key.inc.php') ));
 if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
 
 
 /**
  * Define various Asteroid related constants (for Spaceweather)
  * NeoWs (Near Earth Object Web Service) is a RESTful web service for near earth Asteroid information. Data-set: All the data is from the NASA JPL Asteroid team (http://neo.jpl.nasa.gov/). 
- * @const SPACEWEATHER_SOURCE (DEPRECATED) Source-URL von wo die Daten für das Spaceweather abgefragt werden
+ * @const SPACEWEATHER_SOURCE (DEPRECATED) Source-URL von wo die Daten fï¿½r das Spaceweather abgefragt werden
  * @const NEO_API NASA Space Weather Database Of Notifications, Knowledge, Information (DONKI) API-URL von wo das aktuelle Spaceweather mit dem NASA_API_KEY geholt werden kann
  */
 define('SPACEWEATHER_SOURCE', 'http://www.spaceweather.com/');

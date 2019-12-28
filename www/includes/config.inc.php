@@ -18,7 +18,7 @@ $sqltracker_numqueries = 0;
  * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false
  * @include	development.config.php	If DEVELOPMENT, load a corresponding config file containing DEV-specific settings. Was already checked to exist at define('DEVELOPMENT', true/false)
  */
-define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( __DIR__ .'/development.config.php') ? true : false ), false);
+define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( __DIR__ .'/development.config.php') ? true : false ));
 if (DEVELOPMENT) include_once( __DIR__ . '/development.config.php');
 
 /**
@@ -33,26 +33,26 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
 elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
     $isSecure = true;
 }
-if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'), true);
+if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));
 
 /**
  * Define preferred Hostname where zorg.ch is accessible on
  * @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../") - Default: zorg.ch
  */
 if (empty($_SERVER['SERVER_NAME'])) $_SERVER['SERVER_NAME'] = 'zorg.ch';
-if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME'], true);
+if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']);
 
 /**
  * Define preferred base URL where zorg.ch is accessible through
  * @const SITE_URL Don't edit! Is generated using SITE_PROTOCOL and SITE_HOSTNAME
  */
-if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME, true);
+if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME);
 
 /**
  * Set a constant for the Site's Web Root
  * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/"
  */
-if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', true);
+if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..');
 
 /**
  * Set a constant for the custom Error Log path
@@ -62,15 +62,15 @@ if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..', tru
  * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
  * @include errlog.inc.php 	Errorlogging Class
  */
-if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log', true);
-if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/', true);
-if (!defined('ERRORLOG_FILEPATH')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE, true);
+if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log');
+if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/');
+if (!defined('ERRORLOG_FILEPATH')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE);
 require_once( __DIR__ .'/errlog.inc.php');
 
 /**
  * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
  */
-if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNAME, true);
+if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNAME);
 
 /**
  * Define global Contact points, such as e-mail addresses (From:)
@@ -87,17 +87,17 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
  * @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
  * @const GIT_REPOSITORY zorg Code Git-Repository base URL
  */
-if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME, true);
-if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN'], true);
-if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com', true);
+if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME);
+if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN']);
+if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com');
 if (!defined('VORSTAND_USER')) define('VORSTAND_USER', 451);
 if (!defined('BARBARA_HARRIS')) define('BARBARA_HARRIS', 59);
 if (!defined('ROSENVERKAEUFER')) define('ROSENVERKAEUFER', 439);
 if (!defined('THE_ARCHITECT')) define('THE_ARCHITECT', 582);
-if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH', true);
-if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967', true);
-if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch', true);
-if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g', true);
+if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH');
+if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967');
+if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch');
+if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g');
 if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zorgch/zorg-code/commit/');
 
 /**
@@ -113,16 +113,16 @@ if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zor
  * @const JS_DIR JavaScripts directory for Frontend-Resources 
  * @const CSS_DIR CSS directory for Frontend-Resources 
  */
-if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/', true);
-if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/', true);
-if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/', true);
-if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/', true);
-if (!defined('GALLERY_DIR')) define('GALLERY_DIR', SITE_ROOT . '/../data/gallery/', true);
-if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/', true);
-if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/', true);
-if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/', true);
-if (!defined('JS_DIR')) define('JS_DIR', '/js/', true);
-if (!defined('CSS_DIR')) define('CSS_DIR', '/css/', true);
+if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
+if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/');
+if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/');
+if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/');
+if (!defined('GALLERY_DIR')) define('GALLERY_DIR', SITE_ROOT . '/../data/gallery/');
+if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/');
+if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
+if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
+if (!defined('JS_DIR')) define('JS_DIR', '/js/');
+if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
 
 /**
  * Define User & Usersystem constants
@@ -198,7 +198,7 @@ include_once( __DIR__ .'/notifications.inc.php');
  * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
  * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
  */
-if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ), true);
+if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ));
 if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
 
 /**
