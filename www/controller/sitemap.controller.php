@@ -33,6 +33,7 @@ class Sitemap extends Controller
 	 * @var array $threadPages
 	 * @var array $userPages
 	 * @var array $wettenPages
+	 * @var array $filesList
 	 */
 	private $sitemapCacheTime;
 	private $apodPages;
@@ -47,6 +48,7 @@ class Sitemap extends Controller
 	private $threadPages;
 	private $userPages;
 	private $wettenPages;
+	private $filesList;
 
 	/**
 	 * @version 1.0
@@ -73,6 +75,7 @@ class Sitemap extends Controller
 		$this->threadPages = $this->process_threads($model->load_threads());
 		$this->userPages = $this->process_users($model->load_users());
 		$this->wettenPages = $this->process_wetten($model->load_wetten());
+		$this->filesList = $this->process_files($model->load_files());
 	}
 
 	/**
@@ -101,7 +104,7 @@ class Sitemap extends Controller
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @param string $urlPath URL to encode 
+	 * @param string $urlPath URL to encode
 	 * @return string
 	 */
 	private function string_encode($urlPath)
@@ -162,7 +165,7 @@ class Sitemap extends Controller
 
 	/**
 	 * Merge and display Sitemap content
-	 * 
+	 *
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
@@ -192,6 +195,7 @@ class Sitemap extends Controller
 			$xmlOutput .= $this->threadPages;
 			$xmlOutput .= $this->userPages;
 			$xmlOutput .= $this->wettenPages;
+			//$xmlOutput .= $this->filesList; DISABLED VORERST
 		$xmlOutput .= '</urlset>';
 		return $xmlOutput;
 	}
@@ -449,6 +453,34 @@ class Sitemap extends Controller
 			//$lastmod = date('d.m.Y', ...);
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
+		}
+		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+
+		return $tplOutput;
+	}
+
+	/**
+	 * Files
+	 * @link /files/[USER-ID]/[FILENAME]
+	 *
+	 * @version 1.0
+	 * @since 1.0 <inex> 19.12.2019 method added
+	 *
+	 * @param array $data
+	 * @return array
+	 */
+	private function process_files($dataArray)
+	{
+		foreach ($dataArray as $element)
+		{
+			$url = sprintf('%s/files/%d/%s',
+								 SITE_URL
+								,$this->string_encode($element['userid'])
+								,$this->string_encode($element['filename'])
+							);
+			$lastmod = date('d.m.Y', $element['dateadded']);
+			$changefreq = 'monthly';
+			$urlElements[] = $this->sitemap_element($url, $lastmod, $changefreq);
 		}
 		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 

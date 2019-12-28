@@ -28,7 +28,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_apods()
 	{
@@ -47,7 +47,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_books()
 	{
@@ -66,7 +66,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_bugs()
 	{
@@ -85,7 +85,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_events()
 	{
@@ -118,7 +118,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_pages()
 	{
@@ -161,7 +161,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_recipies()
 	{
@@ -180,7 +180,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_tauschartikel()
 	{
@@ -199,7 +199,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_templates()
 	{
@@ -218,7 +218,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_threads()
 	{
@@ -237,7 +237,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_users()
 	{
@@ -256,7 +256,7 @@ class Sitemap extends Model
 	 * @version 1.0
 	 * @since 1.0 <inex> 07.12.2019 method added
 	 *
-	 * @return void
+	 * @return array
 	 */
 	function load_wetten()
 	{
@@ -267,6 +267,29 @@ class Sitemap extends Model
 		while ($rs = $db->fetch($result))
 		{
 			$dataArray[] = $rs['id'];
+		}
+		return $dataArray;
+	}
+
+	/**
+	 * @version 1.0
+	 * @since 1.0 <inex> 19.12.2019 method added
+	 *
+	 * @return array
+	 */
+	function load_files()
+	{
+		global $db;
+
+		$sql = 'SELECT user, name, UNIX_TIMESTAMP(upload_date) as timestmap FROM files';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		while ($rs = $db->fetch($result))
+		{
+			$dataArray[] = [
+							 'userid' => $rs['user']
+							,'filename' => $rs['name']
+							,'dateadded' => $rs['timestmap']
+						];
 		}
 		return $dataArray;
 	}
