@@ -280,17 +280,20 @@ class Sitemap extends Controller
 	{
 		foreach ($dataArray as $element)
 		{
-			$url = sprintf('%s/event/%d/%d/%d/%d',
+			error_log('Year: '.$element['year'].' | month: '.$element['month'].' | day: '.$element['day']);
+			$url = sprintf('%s/event/%s/%s/%s/%d',
 								 SITE_URL
 								,$this->string_encode($element['year'])
 								,$this->string_encode($element['month'])
 								,$this->string_encode($element['day'])
 								,$this->string_encode($element['id'])
 							);
+			error_log($url);
 			//$lastmod = date('d.m.Y', ...);
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
+		error_log(print_r($urlElements, true));
 		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
