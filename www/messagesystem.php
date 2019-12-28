@@ -31,7 +31,7 @@ $model->showOverview($smarty);
 
 if ($user->is_loggedin())
 {
-	$model->showInvalidmessage($smarty);
+	$model->showInvalidmessage($smarty, $messageId);
 	if(empty($messageId) || $messageId == '0' || $messageId <= 0)
 	{
 		http_response_code(404); // Set response code 404 (not found) and exit.

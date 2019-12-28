@@ -293,7 +293,7 @@ function pic ($id) {
 				WHERE p.id<='$id' AND p.album=$cur[album] AND a.id=$cur[album] ".ZENSUR."
 				GROUP BY album", __FILE__, __LINE__, __FUNCTION__);
 	$d = mysqli_fetch_array($e);
-	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE[height]));
+	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE['height']));
 	echo '<br /><table width="80%" align="center"><tr>
 	<td align="center" class="bottom_border"><h3>'
 	.($d['eventname'] ? $d['eventname'] : $d['name'])
@@ -304,7 +304,7 @@ function pic ($id) {
 		return;
 	}
 
-	if ($_GET['editFotoTitle'] && $user->typ >= USER_MEMBER) {
+	if (isset($_GET['editFotoTitle']) && $_GET['editFotoTitle'] && $user->typ >= USER_MEMBER) {
 		echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
 			echo 'Foto-Titel: <input name="frm[name]" size="30" class="text" value="'.$cur['name'].'"> ';
 			echo '<input type="submit" value=" OK " class="button">';
@@ -324,9 +324,12 @@ function pic ($id) {
 	//$exif_data = exif_read_data(picPath($cur[album], $id, '.jpg'), 1, true); PHP wurde anscheinend ohne EXIF-Support kompiliert
 	//echo "<p>Bild erstellt am ".date('d. F Y H:i', filemtime(picPath($cur[album], $id, '.jpg')))."</p>";
 	$pic_filepath = picPath($cur['album'], $id, '.jpg');
-	$exif_data = exif_read_data($pic_filepath, 1, true);
-	if ($exif_data['FILE.FileDateTime'] != false) {
-		echo '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
+	if(file_exists($pic_filepath)) {
+		$exif_data = exif_read_data($pic_filepath, 1, true);
+		if ($exif_data['FILE.FileDateTime'] != false) {
+			echo '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
+
+		}
 
 	/** APOD Special: use pic_added from database, instead of filemtime */
 	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {

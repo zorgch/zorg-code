@@ -68,7 +68,7 @@ class Messagesystem {
 	{
 		global $db, $user;
 
-		if($_POST['action'] == 'sendmessage') {
+		if(isset($_POST['action']) && $_POST['action'] == 'sendmessage') {
 
 			$to_users = ( empty($_POST['to_users']) ? $user->id : $_POST['to_users'] );
 
@@ -123,7 +123,7 @@ class Messagesystem {
 		}
 
 
-		if($_POST['do'] == 'delete_messages')
+		if(isset($_POST['do']) && $_POST['do'] == 'delete_messages')
 		{
 			/** Delete all passed message_id's */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
@@ -151,7 +151,7 @@ class Messagesystem {
 		}
 		
 		
-		if($_POST['do'] == 'messages_as_unread') {
+		if(isset($_POST['do']) && $_POST['do'] == 'messages_as_unread') {
 			
 			/** Change Message Status to UNREAD */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
@@ -174,7 +174,7 @@ class Messagesystem {
 		}
 		
 		
-		if($_POST['do'] == 'mark_all_as_read') {
+		if(isset($_POST['do']) && $_POST['do'] == 'mark_all_as_read') {
 			
 			/** Mark all Messages as read */
 			Messagesystem::doMarkAllAsRead($user->id);
@@ -260,7 +260,7 @@ class Messagesystem {
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return boolean Returns true or false depending on the completion
 	 */
-	function doMarkMessageAsRead($messageid)
+	static function doMarkMessageAsRead($messageid)
 	{
 		global $db;
 
@@ -293,7 +293,7 @@ class Messagesystem {
 	 * @param integer $userid User-ID welcher alle Nachricht(en) als gelesen markieren möchte
 	 * @global $db Globales Class-Object mit allen MySQL-Methoden
 	 */
-	function doMarkAllAsRead($userid)
+	static function doMarkAllAsRead($userid)
 	{
 		global $db;
 		
@@ -322,7 +322,7 @@ class Messagesystem {
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string HTML des Message-Delete Form
 	 */
-	function getFormDelete($id)
+	static function getFormDelete($id)
 	{
 		global $user, $smarty;
 
@@ -354,7 +354,7 @@ class Messagesystem {
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string HTML des Send-Message Form
 	 */
-	function getFormSend($to_users, $subject, $text, $delete_message_id=0)
+	static function getFormSend($to_users, $subject, $text, $delete_message_id=0)
 	{
 		global $user, $smarty;
 
@@ -391,7 +391,7 @@ class Messagesystem {
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string
 	 */
-	function getInboxHTML($box='inbox', $pagesize=11, $page=1, $orderby='date', $sortby='DESC')
+	static function getInboxHTML($box='inbox', $pagesize=11, $page=1, $orderby='date', $sortby='DESC')
 	{
 		global $db, $user, $smarty;
 
@@ -413,6 +413,7 @@ class Messagesystem {
 
 		/** Query messages - Neuste (!isread) immer zuoberst */
 		try {
+			$messages = [];
 			$sql = "
 				SELECT *, UNIX_TIMESTAMP(date) as date
 				FROM messages where owner = ".$user->id ."
@@ -425,7 +426,6 @@ class Messagesystem {
 				$messages[] = $rs;
 		 	}
 			$smarty->assign('messages', $messages);
-			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $messages: %s', __METHOD__, __LINE__, print_r($messages,true)));
 		} catch (Exception $e) {
 			error_log($e->getMessage());
 			return false;

@@ -75,7 +75,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 			 * Replace & return - or return only - a matched string
 			 * vsprintf = sprintf with an array for params
 			 */
-			$string = ( !empty($values) && count($values) > 0 ? vsprintf($found_string, $values) : $found_string );
+			$string = ( !empty($values) && $values_count > 0 ? vsprintf($found_string, $values) : $found_string );
 		} catch (Exception $e) {
 			error_log($e->getMessage());
 		}

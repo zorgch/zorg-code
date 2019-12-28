@@ -29,7 +29,10 @@ Messagesystem::execActions();
 /**
  * Userlist anzeigen
  */
-if ( (!$doAction && !$user_id && !$userRegcode) )
+$doAction    = isset( $doAction ) ? $doAction : null;
+$user_id     = isset( $user_id ) ? $user_id : null;
+$userRegcode = isset( $userRegcode ) ? $userRegcode : null;
+if ( !$doAction && !$user_id && !$userRegcode )
 {
 	$smarty->display('file:layout/head.tpl');
 	$smarty->display('tpl:219');
@@ -185,7 +188,11 @@ if (!empty($user_id))
 				}
 			/** User will Inbox sehen */
 			} else {
-				$htmlOutput .= Messagesystem::getInboxHTML($_GET['box'], $pagesize=11, $_GET['page'], $_GET['sort'], $_GET['order']);
+				$box   = isset( $_GET['box'] ) ? $_GET['box'] : null;
+				$page  = isset( $_GET['page'] ) ? $_GET['page'] : null;
+				$sort  = isset( $_GET['sort'] ) ? $_GET['sort'] : null;
+				$order = isset( $_GET['order'] ) ? $_GET['order'] : null;
+				$htmlOutput .= Messagesystem::getInboxHTML($box, 11,$page, $sort, $order);
 			}
 
 		/** Der User ist jemand anderes */

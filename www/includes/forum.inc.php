@@ -204,11 +204,12 @@ class Comment
 
 		/** Illegale Tags suchen */
 		$illegaltags = array('link', 'select', 'script', 'style');
-		while (!$illegalhtml && list($key, $value) = each ($illegaltags)) {
+		while (!$illegalhtml && list($key, $value) = current ($illegaltags)) {
 			if(strstr($text, '<'.$value)) {
 				$text = htmlentities($text).' <font color="red"><b>[Illegaler Tag: '.$value.']</b></font>';
 				$illegalhtml = true;
 			}
+			next($illegaltags);
 		}
 
 		/** Newlines zu BRs machen */
@@ -1546,6 +1547,7 @@ class Forum {
 
 		$html = '<h4>Letzte Posts</h4>';
 		$html .= '<table class="border" width="100%">';
+		$i = 0;
 		while($rs = $db->fetch($result))
 		{
 			$i++;
@@ -2029,7 +2031,7 @@ class Forum {
 
 		if (Thread::hasRights($board, $thread_id, $user->id)) {
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
-			Thread::setLastSeen($$board, $thread_id);
+			Thread::setLastSeen($board, $thread_id);
 
 			/** Subscribed_Comments Array Bauen (nur für eingeloggte User) */
 			if($user->typ >= USER_USER)

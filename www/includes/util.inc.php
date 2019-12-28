@@ -89,38 +89,31 @@ function timename($timestamp)
 
 		} elseif ($timeDiff < $timeLengths['m']) { /** Sekunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', $timeDiff) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', $timeDiff);
 
 		} elseif ($timeDiff < $timeLengths['h']) { /** Minuten */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', floor($timeDiff/$timeLengths['m'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', floor($timeDiff/$timeLengths['m']));
 
 		} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h']));
 
 		} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'en' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', floor($timeDiff/$timeLengths['d'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', floor($timeDiff/$timeLengths['d']));
 
 		} elseif ($timeDiff < $timeLengths['mt']) { /** Wochen */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', floor($timeDiff/$timeLengths['w'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', floor($timeDiff/$timeLengths['w']));
 
 		} elseif ($timeDiff < $timeLengths['y']) { /** Monate */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['mt']) > 1 ? 'en' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', floor($timeDiff/$timeLengths['mt'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', floor($timeDiff/$timeLengths['mt']));
 
 		} elseif ($timeDiff >= $timeLengths['y']) { /** Jahre oder mehr */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['y']) > 1 ? 'en' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', floor($timeDiff/$timeLengths['y'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', floor($timeDiff/$timeLengths['y']));
 		}
 	} catch (Exception $e) {
 		error_log($e->getMessage());

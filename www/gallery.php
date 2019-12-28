@@ -31,8 +31,8 @@ require_once( __DIR__ .'/models/core.model.php');
 $model = new MVC\Gallery();
 
 /** Pic-ID zu Album-ID auflösen */
-$getAlbId = (int)$_GET['albID'];
-$getPicId = (int)$_GET['picID'];
+$getAlbId = isset( $_GET['albID'] ) ? (int) $_GET['albID'] : null;
+$getPicId = isset( $_GET['picID'] ) ? (int) $_GET['picID'] : null;
 $album_id = $model->setAlbumId($getAlbId, $getPicId);
 
 /**
@@ -59,6 +59,7 @@ elseif ((int)$album_id !== APOD_GALLERY_ID && (empty($user->vereinsmitglied) || 
 
 /** Gallery / Pics anzeigen */
 else {
+
 	if (!empty($_GET['do']))
 	{
 		$doAction = (string)$_GET['do'];
@@ -82,7 +83,7 @@ else {
 		} else {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
 		}
-	
+
 		/** Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen */
 		if ($user->typ >= USER_MEMBER)
 		{
@@ -131,9 +132,11 @@ else {
 	
 		unset($_GET['do']);
 		$doAction = null;
+	} else {
+		$res = array( 'state' => '', 'error' => '' );
 	}
-
-	switch ($_GET['show'])
+	$show = isset( $_GET['show'] ) ? $_GET['show'] : null;
+	switch ($show)
 	{
 		case 'editAlbum':
 			$model->showAlbumedit($smarty, $album_id);
