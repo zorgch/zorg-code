@@ -82,7 +82,7 @@ class Gallery extends Model
 		} else {
 			$this->page_title = 'Gallery Album #'.$album_id.': Pic #'.$pic_id;
 		}
-		$this->page_link = '?show=pic&picID='.$bug_id;
+		$this->page_link = '?show=pic&picID='.$pic_id;
 		if($user->is_loggedin()) $this->page_image = SITE_URL.imgsrcPic($pic_id);
 
 		$this->assign_model_to_smarty($smarty);
