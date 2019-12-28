@@ -262,16 +262,13 @@ class Smarty_Compiler extends Smarty {
         reset($this->_folded_blocks);
 
         /* replace special blocks by "{php}" */
-        // TODO: fix this deprecated code in smarty
 	    $callback = function($matches) {
 		    return $this->_quote_replace($this->left_delimiter) . 'php' .
 		           str_repeat('\n\\', substr_count('\\'.$matches[1], '\n\\')) .
-		                              //str_repeat("\n", substr_count($matches[1], "\n"))
 		                              $this->_quote_replace($this->right_delimiter);
 	    };
 
         $source_content = preg_replace_callback($search, $callback, $source_content);
-
 
 
 	    /* Gather all template tags. */
@@ -561,8 +558,8 @@ class Smarty_Compiler extends Smarty {
 
             case 'php':
                 /* handle folded tags replaced by {php} */
-                // TODO: Fix deprecated "each" function
-                list(, $block) = each($this->_folded_blocks);
+                $block = current($this->_folded_blocks);
+	            next($this->_folded_blocks);
                 $this->_current_line_no += substr_count($block[0], "\n");
                 /* the number of matched elements in the regexp in _compile_file()
                    determins the type of folded tag that was found */
@@ -1561,7 +1558,7 @@ class Smarty_Compiler extends Smarty {
                     if ($token == '=') {
                         $state = 2;
                     } else
-                        $this->_syntax_error("expecting '=' after attribute name '$last_token'", E_USER_ERROR, __FILE__, __LINE__);
+                        $this->_syntax_error("expecting '=' after attribute name '$token'", E_USER_ERROR, __FILE__, __LINE__);
                     break;
 
                 case 2:
@@ -1582,7 +1579,9 @@ class Smarty_Compiler extends Smarty {
                             /* treat as a string, double-quote it escaping quotes */
                             $token = '"'.addslashes($token).'"';
                         }
-
+	                    if ( ! isset( $attr_name ) ) {
+		                    $attr_name = '';
+	                    }
                         $attrs[$attr_name] = $token;
                         $state = 0;
                     } else
