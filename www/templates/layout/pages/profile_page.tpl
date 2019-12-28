@@ -19,14 +19,14 @@
 	{/if}
 </head>
 
-<body{if $user->zorger === '1'} style="background:#242424; filter:invert(100%);"{/if}>{if $user->id > 0}
+<body{if $sun == "down" || $user->zorger} style="background:#242424; filter:invert(90%);"{/if}>{if $user->id > 0}
 	<header class="text-center">
 		<h1>zorg Userprofil</h1>
 		<p class="text-secondary text-small">
 			Dein Profil und deine Einstellungen für zorg bearbeiten.<br>
 			<a href="{$smarty.const.SITE_URL}/user/{$user->name}">↩ back to zorg</a>
 		</p>
-		{if $user->zorger === '1'}<span style="filter: invert(100%);">{/if}{$user->id|userpic:'true'}{if $user->zorger === '1'}<span>{/if}
+		{if $sun == "down" || $user->zorger}<div style="filter: invert(100%);">{/if}{$user->id|userpic:'true'}{if $sun == "down" || $user->zorger}</div>{/if}
 		<hr>
 	</header>
 	<main class="container">

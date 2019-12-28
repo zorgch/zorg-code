@@ -18,9 +18,7 @@ require_once( __DIR__ .'/models/core.model.php');
  * Initialise MVC Model
  */
 $model = new MVC\Anficker();
-
 $model->showOverview($smarty);
-$smarty->display('file:layout/head.tpl');
 
 /** Nur für eingeloggte User! */
 if ($user->is_loggedin())
@@ -33,17 +31,17 @@ if ($user->is_loggedin())
 			exit;
 		}
 		if($_POST['new_wort'] && $_POST['new_typ']) {
-			$sql = 'INSERT IGNORE INTO aficks (wort, typ, wort_user_id) 
+			$sql = 'INSERT IGNORE INTO aficks (wort, typ, wort_user_id)
 					VALUES ("'.$_POST['new_wort'].'","'.$_POST['new_typ'].'",'.$_SESSION['user_id'].')';
 			$db->query($sql,__FILE__,__LINE__);
 			header("Location: ".$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
 			exit;
 		}
-			
+
 		if($_SESSION['query']) {
 			$old_query = base64_decode($_SESSION['query']);
 		}
-		
+
 		$aklick = strip_tags($_POST['afick']);
 		$old_query .= "
 		<tr><td align='left'>
@@ -55,7 +53,7 @@ if ($user->is_loggedin())
 			$af[] = $rs['wort'];
 			$id[$rs['wort']] = $rs['id'];
 			$user_ids[$rs['id']] = $rs['wort_user_id'];
-		}	
+		}
 		$num = (strlen($aklick)/5);
 		shuffle($af);
 		$old_query .= "<tr><td align='left'>
@@ -67,7 +65,7 @@ if ($user->is_loggedin())
 				$afick_am .= trim($af[$i])." ";
 			}
 		}
-		
+
 		$sql = 'SELECT * FROM aficks WHERE typ = 2';
 		$result = $db->query($sql,__FILE__,__LINE__);
 		while($rs = $db->fetch($result)) {
@@ -83,11 +81,11 @@ if ($user->is_loggedin())
 		}
 		$old_query .= $afick_am."</td></tr>";
 		$_SESSION['query'] = base64_encode($old_query);
-		
+
 		if($_POST['afick'] == "" && !$_POST['edit_wort'] && !$_POST['new_wort']) {
 			$_SESSION['query'] = "";
 		}
-		
+
 		$sql = 'INSERT into aficks_log (user_id, afick_am, afick_user, datum)
 		VALUES ('.$_SESSION['user_id'].',"'.$afick_am.'","'.$aklick.'",now())';
 		$db->query($sql,__FILE__,__LINE__);
@@ -95,10 +93,7 @@ if ($user->is_loggedin())
 		exit;
 	}
 
-	//echo head(20);
-	//$smarty->assign('tplroot', array('page_title' => 'Aficks'));
-	//echo menu("zorg");
-	//echo menu("games");
+	$smarty->display('file:layout/head.tpl');
 	echo '<h2>Aficks Admin</h2>';
 	echo '
 	<form action="'.$_SERVER['PHP_SELF'].'" method="post">
@@ -106,7 +101,7 @@ if ($user->is_loggedin())
 		<tr>
 			<td align="left">
 				<fieldset>
-					<label style="flex: 1;"><strong>Afick:</strong> 
+					<label style="flex: 1;"><strong>Afick:</strong>
 						<input type="text" class="text" name="afick" tabindex="0" style="width: 80%;">
 					</label>
 					<input type="submit" value="maaaaach" name="del" class="button" style="flex: 2;">
@@ -163,15 +158,15 @@ if ($user->is_loggedin())
 		</from>
 		<br />';
 	}
-	if($_GET['log']) 
+	if($_GET['log'])
 	{
 		$sql = '
-		SELECT 
-			a.afick_am, 
-			a.afick_user, 
-			u.username 
+		SELECT
+			a.afick_am,
+			a.afick_user,
+			u.username
 		FROM aficks_log	a
-		INNER JOIN user u 
+		INNER JOIN user u
 			ON u.id = a.user_id
 		ORDER by a.datum DESC';
 		$result = $db->query($sql,__FILE__,__LINE__);
@@ -187,11 +182,11 @@ if ($user->is_loggedin())
 			</td><td align="left">
 			'.$rs['afick_am'].'
 			</td></tr>';
-			
+
 		}
 		echo "</table><br />";
 	}
-	
+
 	if($_SESSION['query']) {
 		echo "<table>";
 		echo base64_decode($_SESSION['query']);
@@ -200,9 +195,9 @@ if ($user->is_loggedin())
 }
 /** Not loggedin Users */
 else {
-	echo 'Du hesch scho alles gseh, aber das do d&ouml;rfsch n&ouml;d!';
+	http_response_code(403); // Set response code 403 (forbidden) and exit.
+	$smarty->assign('error', ['type' => 'warn', 'title' => 'Access denied', 'message' => 'Du hesch scho alles gseh, aber das do d&ouml;rfsch n&ouml;d!', 'dismissable' => 'false']);
+	$smarty->display('file:layout/head.tpl');
 }
 
-
-//echo foot(1);
 $smarty->display('file:layout/footer.tpl');

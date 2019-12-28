@@ -1012,7 +1012,7 @@ function getUsersOnPic($pic_id) {
  * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
  * @param integer $limit Maximale Anzahl von Bildern
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
- * @global object $user Array mit allen User-Variablen 
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
  */
 function getUserPics($userid, $limit=1)
@@ -1593,11 +1593,11 @@ function getRandomThumb() {
  * @since 2.0 19.03.2018 added Telegram Notification (photo message)
  * @since 2.1 Telegram will send now high-res photo, instead of low-res thumbnail
  * @since 2.2 changed to new Telegram Send-Method
- * @since 3.0 18.08.2018 function now only returns Daily Pic, generating a new Daily Pic is now done in setNewDailyPic()
+ * @since 3.0 <inex> 18.08.2018 function now only returns Daily Pic, generating a new Daily Pic is now done in setNewDailyPic()
  *
  * @see formatGalleryThumb()
- * @global object $db		MySQL-Datenbank Objekt aus mysql.inc.php
- * @return string|boolean	HTML-formatted String with Daily Pic Thumbnail, or false if something went wrong
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return string|boolean HTML-formatted String with Daily Pic Thumbnail, or false if something went wrong
  */
 function getDailyThumb()
 {
@@ -1631,11 +1631,12 @@ function getDailyThumb()
  *
  * @author IneX
  * @date 18.08.2018
- * @version 1.6
+ * @version 1.7
  * @since 1.0 18.08.2018 function added
  * @since 1.1 20.08.2018 minor code updates after extracting function from getDailyThumb()
  * @since 1.5 10.09.2018 excluded APOD Gallery-Pics from being assigned as Daily Pic
  * @since 1.6 04.12.2018 Bug #xxx: added Gallery-Name to Telegram-Notification for Daily Pic
+ * @since 1.7 14.11.2019 Added "&token="-Param for Telegram-Bot API on $telegram->send->photo()
  *
  * @see SITE_URL
  * @see imgsrcPic(), picHasTitle()
@@ -1676,7 +1677,8 @@ function setNewDailyPic()
 			 *     url = URL to the Pic
 			 *     caption = "Daily Pic: {Title - if available} [Gallery-Name]"
 			 */
-			$imgUrl = SITE_URL.imgsrcPic($newdp['id']);
+			$imgAuthToken = md5(TELEGRAM_API_URI);
+			$imgUrl = SITE_URL.imgsrcPic($newdp['id']).'?token='.$imgAuthToken;
 			$picTitle = picHasTitle($newdp['id']);
 			$picGallery = $newdp['galleryname'];
 			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ (empty($picTitle) ? ' ' : $picTitle), (empty($picGallery) ? ' ' : $picGallery) ]);
@@ -1991,13 +1993,9 @@ function pic2album($id)
 	/** Validate passed $id parameter */
 	if ($id <= 0 || !is_numeric($id)) user_error('Missing Parameter "id"', E_USER_ERROR);
 
-	try {
-		$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
-		$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
-	} catch (Exception $e) {
-		user_error($e->getMessage(), E_USER_ERROR);
-		return false;
-	}
+	$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
+	$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
+
 	return (!empty($picAlbum['album']) ? $picAlbum['album'] : false);
 }
 

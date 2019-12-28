@@ -40,8 +40,7 @@ require_once( __DIR__ .'/activities.inc.php');
  *
  * @author [z]biko
  * @author IneX
- * @package zorg
- * @subpackage Usersystem
+ * @package zorg\Usersystem
  * @version 5.0
  * @since 1.0 class added
  * @since 2.0 additional methods added
@@ -69,25 +68,7 @@ class usersystem
 	var $table_name = 'user';
 
 	/**
-	 * User Vars
-	 *
-	 * @var string $activity Letzte Aktivität (Timestamp) des Users
-	 * @var string $addle Ob user addle spielen will.
-	 * @var string $clantag Clan Tag
-	 * @var string $currentlogin Aktueller login (Timestamp)
-	 * @var string $email Benutzer E-Mail Adresse
-	 * @var string $from_mobile wenn <>"", dann nutzt User einen mobilen Browser, bei 0 oder 'false' Desktop-Browser
-	 * @var integer $id user_ID
-	 * @var string $image Benutzer bild (vollst?ndiger Pfad, falls kein Bild: "none.jpg")
-	 * @var string $lastlogin Letzer Login (Timestamp)
-	 * @var integer $maxdepth Forumanzeigeschwelle
-	 * @var integer $member Member (bool)
-	 * @var string $menulayout welches menu layout der user eingestellt hat.
-	 * @var string $password User passwort
-	 * @var string $show_comments Ob die Comments auf den smarty-pages angezeigt werden sollen (=1) oder nicht (=0)
-	 * @var integer $typ Benutzer typ
-	 * @var string $username Benutzername (ohne Clan Tag)
-	 * @var string $zorger hat der user zooomclan.org gewählt? sonst zorg.ch anzeigen
+	 * Var to map User Fields
 	 */
 	var $field_activities_allow = 'activities_allow';
 	var $field_activity = 'activity';
@@ -98,7 +79,6 @@ class usersystem
 	var $field_clantag = 'clan_tag';
 	var $field_currentlogin = 'currentlogin';
 	var $field_email = 'email';
-	var $field_email_notification = 'email_notification'; // @DEPRECATED
 	var $field_from_mobile = 'from_mobile';
 	var $field_irc = 'irc_username';
 	var $field_last_ip = 'last_ip';
@@ -117,8 +97,11 @@ class usersystem
 	var $field_username = 'username';
 	var $field_userpw = 'userpw';
 	var $field_usertyp = 'usertype';
-	var $field_vereinsmitglied = 'vereinsmitglied';
 	var $field_zorger = 'zorger';
+	var $field_z_gremium = 'z_gremium';
+	var $field_vereinsmitglied = 'vereinsmitglied';
+	var $field_firstname = 'firstname';
+	var $field_lastname = 'lastname';
 
 	/**
 	 * Default Userprofile Settings
@@ -126,7 +109,6 @@ class usersystem
 	 */
 	var $default_clan_tag = null; // none
 	var $default_activities_allow = '1'; // enabled
-	var $default_email_notification = '1'; // enabled - @DEPRECATED
 	var $default_telegram_chat_id = null; // none
 	var $default_irc_username = null; // none
 	var $default_addle = '1'; // enabled
@@ -140,9 +122,17 @@ class usersystem
 	var $default_show_comments = '1'; // enabled
 	var $default_sql_tracker = '0'; // disabled
 	var $default_usertype = 0; // nicht-eingeloggt
+	var $default_zorger = '0'; // zorg-Layout
 	var $default_vereinsmitglied = '0'; // kein Mitglied
 	var $default_z_gremium = ''; // no
-	var $default_zorger = '0'; // zorg-Layout
+	var $default_firstname = null; // none
+	var $default_lastname = null; // none
+	
+	/**
+	 * Object Vars
+	 * @var string (Optional) Error-Message, see: self::activate_user()
+	 */
+	var $error_message;
 
 	/**
 	 * Klassen Konstruktor
@@ -186,25 +176,39 @@ class usersystem
 
 			if (!empty($_SESSION['user_id']))
 			{
-				try {
-					/** Query User Infos in der DB */
-					$sql = 'SELECT
-								 *,
-								 UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
-								 UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
-								 UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
-							FROM '.$this->table_name.' 
-							WHERE
-								 id = '.$_SESSION['user_id'];
-					$result = $db->query($sql, __FILE__, __LINE__);
-					$rs = $db->fetch($result);
-				}
-				catch(Exception $e) {
-					user_error($e->getMessage(), E_USER_ERROR);
-				}
+				/** Query User Infos in der DB */
+				$sql = 'SELECT
+							 *,
+							 UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
+							 UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
+							 UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
+						FROM '.$this->table_name.' 
+						WHERE
+							 id = '.$_SESSION['user_id'];
+				$result = $db->query($sql, __FILE__, __LINE__);
+				$rs = $db->fetch($result);
 
 				/**
 				 * Assign User Infos to Vars of the Class-Object
+				 *
+				 * @var integer $id user_ID
+			 	 * @var string $activity Letzte Aktivität (Timestamp) des Users
+				 * @var string $addle Ob user addle spielen will.
+				 * @var string $clantag Clan Tag
+				 * @var string $currentlogin Aktueller login (Timestamp)
+				 * @var string $email Benutzer E-Mail Adresse
+				 * @var string $from_mobile wenn <>"", dann nutzt User einen mobilen Browser, bei 0 oder 'false' Desktop-Browser
+				 * @var string $image Benutzer bild (vollst?ndiger Pfad, falls kein Bild: "none.jpg")
+				 * @var string $lastlogin Letzer Login (Timestamp)
+				 * @var integer $maxdepth Forumanzeigeschwelle
+				 * @var integer $member Member (bool)
+				 * @var string $menulayout welches menu layout der user eingestellt hat.
+				 * @var string $password User passwort
+				 * @var string $show_comments Ob die Comments auf den smarty-pages angezeigt werden sollen (=1) oder nicht (=0)
+				 * @var integer $typ Benutzer typ
+				 * @var string $username Benutzername (ohne Clan Tag)
+				 * @var string $zorger hat der user zooomclan.org (retro) gewählt? sonst zorg.ch (modern) anzeigen
+				 * @var string $vereinsmitglied Vereinsmitglied-Status des user
 				 */
 				$this->id = $_SESSION['user_id'];
 				$this->email = $rs[$this->field_email];
@@ -214,7 +218,7 @@ class usersystem
 				$this->typ = ($rs[$this->field_usertyp] != '' ? $rs[$this->field_usertyp] : USER_ALLE);
 				$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
 				$this->image = self::userImage(intval($_SESSION['user_id']));
-				$this->telegram = $rs[$this->field_telegram];
+				$this->telegram = ($rs[$this->field_telegram] === '0' ? null : $rs[$this->field_telegram]);
 				$this->irc = $rs[$this->field_irc];
 				$this->activity = $rs[$this->field_activity];
 				$this->lastlogin = $rs[$this->field_lastlogin];
@@ -226,18 +230,22 @@ class usersystem
 				$this->last_ip = $rs[$this->field_last_ip];
 				$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
 				$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
-				$this->email_notification = ($rs[$this->field_email_notification] === '0' ? false : true); // @DEPRECATED
 				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
 				$this->sql_tracker = ($rs[$this->field_sql_tracker] === '0' ? false : true);
 				$this->addle = ($rs[$this->field_addle] === '0' ? false : true);
 				$this->chess = ($rs[$this->field_chess] === '0' ? false : true);
+				$this->forum_boards = json_decode($rs['forum_boards'], true);//explode(',', $rs['forum_boards']);
+				$this->forum_boards_unread = json_decode($rs['forum_boards_unread'], true);//explode(',', $rs['forum_boards_unread']);
 				$this->maxdepth = ($rs[$this->field_maxdepth] ? $rs[$this->field_maxdepth] : $this->maxdepth = DEFAULT_MAXDEPTH);
 				$this->menulayout = $rs[$this->field_menulayout];
 				$this->mymenu = $rs[$this->field_mymenu];
 				$this->zorger = ($rs[$this->field_zorger] === '0' ? false : true);
 				$this->vereinsmitglied = $rs[$this->field_vereinsmitglied];
-				$this->forum_boards = json_decode($rs['forum_boards'], true);//explode(',', $rs['forum_boards']);
-				$this->forum_boards_unread = json_decode($rs['forum_boards_unread'], true);//explode(',', $rs['forum_boards_unread']);
+				$this->z_gremium = $rs[$this->field_z_gremium];
+
+				/** Nur für Vereinsmitglieder */
+				if (!empty($this->vereinsmitglied)) $this->firstname = $rs[$this->field_firstname];
+				if (!empty($this->vereinsmitglied)) $this->lastname = $rs[$this->field_lastname];
 
 				/**
 				 * Mobile User Agent abfragen & speichern
@@ -247,21 +255,15 @@ class usersystem
 				$this->from_mobile = (!empty($userMobileClientAgent) ? reset($userMobileClientAgent) : false );
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> isMobileClient(): %s => %s', __METHOD__, __LINE__, $_SERVER['HTTP_USER_AGENT'], ( $this->from_mobile ? $this->from_mobile : 'false')));
 
-				try {
-					/**
-					 * Update last user activity
-					 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
-					 */
-					$db->update($this->table_name, ['id', $this->id], [
-						$this->field_activity => timestamp(false),
-						$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
-						$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
-					], __FILE__, __LINE__, __METHOD__);
-				}
-				catch(Exception $e) {
-					user_error($e->getMessage(), E_USER_ERROR);
-					return false;
-				}
+				/**
+				 * Update last user activity
+				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
+				 */
+				$db->update($this->table_name, ['id', $this->id], [
+					$this->field_activity => timestamp(false),
+					$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
+					$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
+				], __FILE__, __LINE__, __METHOD__);
 			}
 
 			/** Falls Session-Cookies existieren */
@@ -489,9 +491,8 @@ class usersystem
 	 * Session & Cookies invalidieren
 	 *
 	 * @author IneX
-	 * @date 28.11.2018
 	 * @version 1.0
-	 * @since 1.0 28.11.2018 method added
+	 * @since 1.0 <inex> 28.11.2018 method added
 	 *
 	 * @return void
 	 */
@@ -591,23 +592,19 @@ class usersystem
 					$new_pass_mail_status = mail($email, t('message-newpass-subject', 'user'), t('message-newpass', 'user', [ $rs['username'], $new_pass ]), "From: ".ZORG_EMAIL."\n");
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Passwort reset mail() sent with status: %s', __METHOD__, __LINE__, ($new_pass_mail_status?'true':'false')));
 					if ($new_pass_mail_status) return true;//$error = t('newpass-confirmation', 'user');
-					else return false;//$error = t('invalid-email', 'user');
+					else return false;
 				} else {
 					error_log(sprintf('[NOTICE] <%s:%d> Passwort could not be updated in DB', __METHOD__, __LINE__));
-					//$error = t('error-userpw-update', 'user');
 					return false;
 				}
 			} else {
 				error_log(sprintf('[NOTICE] <%s:%d> No matching User found for Passwort reset', __METHOD__, __LINE__));
-				//$error = t('error-userprofile-update', 'user');
 				return false;
 			}
 		} else {
 			error_log(sprintf('[NOTICE] <%s:%d> %s', __METHOD__, __LINE__, t('invalid-email', 'user')));
-			//$error = t('invalid-email', 'user');
 			return false;
 		}
-		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Passwort reset finished with: %s', __METHOD__, __LINE__, $error));
 	}
 
 	/**
@@ -633,13 +630,8 @@ class usersystem
 
 		if($username)
 		{
-			try {
-				$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_username.' = "'.$username.'"';
-				//@DEPRECATED ' OR ".$this->field_mail_username." = '$email_name'";
-				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			} catch (Exception $e) {
-				return sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage());
-			}
+			$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_username.' = "'.$username.'"';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 			/** überprüfe ob user bereits existiert */
 			if(!$db->num($result))
@@ -648,14 +640,9 @@ class usersystem
 				if(check_email($email))
 				{
 					/** überprüfe ob user mit gleicher email nicht bereits existiert */
-					try {
-						$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_email.' = "'.$email.'"';
-						$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $sql));
-					} catch (Exception $e) {
-						error_log(sprintf('[WARN] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
-						return false;
-					}
+					$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_email.' = "'.$email.'"';
+					$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $sql));
 
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->num($result): %d', __METHOD__, __LINE__, $db->num($result)));
 					if($db->num($result) === 0)
@@ -676,12 +663,6 @@ class usersystem
 								".$this->field_email.", ".$this->field_usertyp.") 
 								VALUES ('".$key."',NOW(),'".$crypted_pw."','".$username."','".$email."', 1)";
 							$db->query($sql, __FILE__, __LINE__, __METHOD__);
-
-							/** userdir erstellen
-							@DEPRECATED
-							mkdir($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
-							chmod($_SERVER['DOCUMENT_ROOT']."/users/".emailusername($username),0777);
-							*/
 
 							/** email versenden */
 							$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.ZORG_EMAIL."\n");
@@ -758,32 +739,56 @@ class usersystem
 	 * User aktivieren
 	 * Aktiviert einen Useraccount mittels Regcode
 	 *
+	 * @version 2.0
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> 07.12.2019 Fixed $regcode check and response for profil.php
+	 *
+	 * @see self::$error_message
 	 * @param string $regcode User Registration-Code
-	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
-	 * @return string Error-Message
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return bool True/False whether if user could be activated or not
 	 */
-	function activate_user($regcode) {
+	function activate_user($regcode)
+	{
 		global $db;
 
-		$sql = 'SELECT id, '.$this->field_username.'
-				FROM '.$this->table_name.' WHERE '.$this->field_regcode.' = "'.$regcode.'"';
-		$result = $db->query($sql, __FILE__, __LINE__);
-		if($db->num($result)) {
+		$sql = 'SELECT id, username, active FROM user WHERE regcode = "'.$regcode.'"';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		if($db->num($result))
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: VALID', __FUNCTION__, __LINE__));
 			$rs = $db->fetch($result);
-			$username = $rs[$this->field_username];
-			$result = $db->update($this->table_name, ['id', $rs['id']], [$this->field_user_active => 1], __FILE__, __LINE__, __METHOD__);
-			if ($result === 0 || !$result)
+
+			/** User already activated */
+			if ($rs[$this->field_user_active] == '1')
 			{
-				$error = t('account-activated', 'user');
-				Activities::addActivity($rs['id'], 0, t('activity-newuser', 'user' ), 'u');
-			} else {
-				$error = t('invalid-regcode', 'user');
+				$this->error_message = t('account-is-active', 'user');
+				return false;
+			}
+
+			/** Try activating User */
+			else {
+				$username = $rs[$this->field_username];
+				$user_activated = $db->update($this->table_name, ['id', $rs['id']], [$this->field_user_active => 1], __FILE__, __LINE__, __METHOD__);
+				/** FAILED */
+				if ($user_activated === 0 || !$user_activated)
+				{
+					$this->error_message = t('invalid-regcode', 'user');
+					return false;
+				}
+				/** SUCCESS */
+				else {
+					$this->error_message = t('account-activated', 'user');
+					Activities::addActivity($rs['id'], 0, t('activity-newuser', 'user' ), 'u');
+					return true;
+				}
 			}
 		} else {
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: INVALID', __FUNCTION__, __LINE__));
+			$this->error_message = t('invalid-regcode', 'user');
 			$this->logerror(2,0);
-			$error = t('invalid-regcode', 'user');
+			return false;
 		}
-		return $error;
 	}
 
 	/**
@@ -910,15 +915,12 @@ class usersystem
 	 *
 	 * Überprüft ob ein Bild zum User existiert
 	 *
-	 * @author ?
+	 * @author [z]biko
 	 * @author IneX
-	 * @date 11.07.2018
 	 * @version 2.0
-	 * @since 1.0
-	 * @since 2.0 11.07.2018 added check for locally cached Gravatar, replaced 'file_exists' with 'stream_resolve_include_path'
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> 11.07.2018 added check for locally cached Gravatar, replaced 'file_exists' with 'stream_resolve_include_path'
 	 * @since 3.0 16.07.2018 Method now returns path to userpic (or queried Gravatar result) as string, instead of true.
-	 *
-	 * @TODO this function is f*cking SLOW!!!! // Jan 2016, IneX => fix0red 11.07.2018
 	 *
 	 * @see USER_IMGPATH
 	 * @see USER_IMGEXTENSION
@@ -955,8 +957,8 @@ class usersystem
 	 * Gibt den Pfad zum Bild des Users. Falls kein Bild: none.jpg
 	 *
 	 * @version 2.0
-	 * @since 1.0 initial function
-	 * @since 2.0 Check & load cached Gravatar, optimized if-else
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> Check & load cached Gravatar, optimized if-else
 	 *
 	 * @see USER_IMGPATH
 	 * @see USER_IMGPATH_PUBLIC
@@ -1076,23 +1078,19 @@ class usersystem
 
 		if (!isset($_users[$id]) || !isset($_users[$id]['clan_tag']))
 		{
-			try {
-				if ($clantag === TRUE) {
-					$sql = 'SELECT clan_tag, username FROM user WHERE id="'.$id.'" LIMIT 0,1'; // ATTENTION: Query fails when $id is not quoted with "$id"!
-				} else {
-					$sql = 'SELECT username FROM user WHERE id="'.$id.'" LIMIT 0,1';
-				}
-				$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-				if (!empty($rs) || $rs !== false || !empty($rs['username']))
-				{
-					/** User $id exists - returned a result */
-					$_users[$id] = $rs;
-				} else {
-					/** User $id does NOT exist */
-					return false;
-				}
-		  	} catch(Exception $e) {
-				error_log($e->getMessage());
+			if ($clantag === TRUE)
+			{
+				$sql = 'SELECT clan_tag, username FROM user WHERE id="'.$id.'" LIMIT 0,1'; // ATTENTION: Query fails when $id is not quoted with "$id"!
+			} else {
+				$sql = 'SELECT username FROM user WHERE id="'.$id.'" LIMIT 0,1';
+			}
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			if (!empty($rs) || $rs !== false || !empty($rs['username']))
+			{
+				/** User $id exists - returned a result */
+				$_users[$id] = $rs;
+			} else {
+				/** User $id does NOT exist */
 				return false;
 			}
 		}
@@ -1219,11 +1217,10 @@ class usersystem
 	 *
 	 * @source http://gravatar.com/site/implement/images/php/
 	 * @author IneX
-	 * @date 24.07.2014
 	 * @version 3.0
-	 * @since 1.0 24.07.2014
-	 * @since 2.0 11.01.2017 Fixed Gravatar-URL to https using SITE_PROTOCOL
-	 * @since 3.0 16.07.2018 Removed possibility to return <img>-Tag
+	 * @since 1.0 <inex> 24.07.2014
+	 * @since 2.0 <inex> 11.01.2017 Fixed Gravatar-URL to https using SITE_PROTOCOL
+	 * @since 3.0 <inex> 16.07.2018 Removed possibility to return <img>-Tag
 	 *
 	 * @see SITE_PROTOCOL
 	 * @param string $email The email address
@@ -1254,9 +1251,8 @@ class usersystem
 	 * Fetch Gravatar images for Userlist
 	 *
 	 * @author IneX
-	 * @date 12.07.2018
 	 * @version 1.0
-	 * @since 1.0 12.07.2018 function added
+	 * @since 1.0 <inex> 12.07.2018 function added
 	 *
 	 * @param integer|string $userScope Scope for whom to get the Gravatar image for: a single User-ID integer, or 'all' string for all Useraccounts.
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1267,7 +1263,7 @@ class usersystem
 		global $db;
 
 		/** Validate passed $userScope variable */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $userScope: %s', __METHOD__, __LINE__, $userScope));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $userScope: %s', __METHOD__, __LINE__, $userScope));
 		if (empty($userScope)) return false;
 
 		/** Get the Gravatar image for a User or a List of Users */
@@ -1275,27 +1271,20 @@ class usersystem
 		{
 			/** (integer)USER: If $userScope = User-ID: try to get the User's Gravatar-Image */
 			case is_numeric($userScope) && $userScope > 0:
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for User-ID: %d', __METHOD__, __LINE__, $userScope));
-				//$sql = 'SELECT email FROM user WHERE id = ' . $userid;
-				//$user_emaillist = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Checking for User-ID: %d', __METHOD__, __LINE__, $userScope));
 				if (self::exportGravatarImages([$userScope])) return true;
 
 			/** (array)LIST: If $userScope = User-ID list: try to get Gravatar-Image for all of them */
 			case $userScope === 'all':
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for %s User-IDs', __METHOD__, __LINE__, $userScope));
-				try {
-					$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email <> "" AND active = 1';
-					$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Checking for %s User-IDs', __METHOD__, __LINE__, $userScope));
+				$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email <> "" AND active = 1';
+				$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 					while ($result = $db->fetch($userids_list))
-					{
-						$userids[] = $result['id'];
-					}
-					if (self::exportGravatarImages($userids)) return true;
-
-				} catch (Exception $e) {
-					error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
-					return false;
+				{
+					$userids[] = $result['id'];
 				}
+				if (self::exportGravatarImages($userids)) return true;
+				else return false;
 
 			/** DEFAULT: stop execution */
 			default:
@@ -1311,11 +1300,9 @@ class usersystem
 	 * @link https://en.gravatar.com/site/implement/images/
 	 *
 	 * @author IneX
-	 * @date 11.07.2018
-	 * @version 1.0
 	 * @version 2.0
-	 * @since 1.0 11.07.2018 function added
-	 * @since 2.0 13.08.2018 added md5 file hash check to compare files before downloading
+	 * @since 1.0 <inex> 11.07.2018 function added
+	 * @since 2.0 <inex> 13.08.2018 added md5 file hash check to compare files before downloading
 	 *
 	 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
 	 *
@@ -1334,17 +1321,14 @@ class usersystem
 		$index = 0;
 		foreach($userids as $userid)
 		{
-			try {
-				/**
-				 * Check for a valid user e-mail
-				 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
-				 */
-				//$useremail = self::id2useremail($userid);
-				$queryresult = $db->fetch($db->query('SELECT email FROM user WHERE id = '.$userid.' LIMIT 0,1', __FILE__, __LINE__, __METHOD__));
-				$useremail = $queryresult['email'];
-			} catch(Exception $e) {
-				return $e->getMessage();
-			}
+			/**
+			 * Check for a valid user e-mail
+			 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
+			 */
+			//$useremail = self::id2useremail($userid);
+			$queryresult = $db->fetch($db->query('SELECT email FROM user WHERE id = '.$userid.' LIMIT 0,1', __FILE__, __LINE__, __METHOD__));
+			$useremail = $queryresult['email'];
+
 			if (!empty($useremail))
 			{
 				$gravatar_baseurl = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
@@ -1410,7 +1394,8 @@ class usersystem
 	function ismobile ($id)
 	{
 		global $db;
-		$e = $db->query("SELECT id, from_mobile FROM user WHERE id='$id' LIMIT 1", __FILE__, __LINE__, __METHOD__);
+
+		$e = $db->query('SELECT id, from_mobile FROM user WHERE id='.$id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
 		$d = $db->fetch($e);
 		if ($d) return $d['from_mobile'];
 		else return '';
@@ -1425,8 +1410,10 @@ class usersystem
 	 * @param $id int User ID
 	 * @return string username
 	 */
-	function id2mailuser($id) {
+	function id2mailuser($id)
+	{
 		global $db;
+
 		$sql = 'SELECT mail_username FROM user WHERE id = '.$id;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		return $rs['mail_username'];
@@ -1438,33 +1425,29 @@ class usersystem
 	 * Gibt aufgrund einer User ID dessen E-Mailadresse zurück.
 	 *
 	 * @author IneX
-	 * @date 17.03.2018
-	 * @version 3.0
-	 * @since 1.0 method added
+	 * @version 4.1
+	 * @since 1.0 <inex> 17.03.2018 method added
 	 * @since 2.0 added additional check for "email_notification=TRUE"
 	 * @since 3.0 updated method return values, added query try-catch
 	 * @since 4.0 removed check for "email_notification=TRUE" due to new Notifications() Class
+	 * @since 4.1 <inex> 05.12.2019 removed unneccessary try-catch
 	 *
 	 * @see check_email()
 	 * @param int $id User-ID
 	 * @return string|bool EMail-Adresse, oder false
 	 */
-	function id2useremail($id) {
+	function id2useremail($id)
+	{
 		global $db;
 
-		try {
-			$sql = 'SELECT email FROM user WHERE id = '.$id.' LIMIT 0,1';
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$sql = 'SELECT email FROM user WHERE id = '.$id.' LIMIT 0,1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-			if (!empty($rs['email']) && !is_numeric($rs['email']))
-			{
-				if (check_email($rs['email']) === true) return $rs['email'];
-				else return false;
-			} else {
-				return false;
-			}
-		} catch (Exception $e) {
-			error_log($e->getMessage());
+		if (!empty($rs['email']) && !is_numeric($rs['email']))
+		{
+			if (check_email($rs['email']) === true) return $rs['email'];
+			else return false;
+		} else {
 			return false;
 		}
 	}
@@ -1539,9 +1522,8 @@ class usersystem
 	 *	- Verlinkung auf Userprofil: ja/nein?
 	 *
 	 * @author IneX
-	 * @date 05.07.2018
 	 * @version 1.0
-	 * @since 1.0 initial version (output from Smarty-Template)
+	 * @since 1.0 <inex> 05.07.2018 initial version (output from Smarty-Template)
 	 *
 	 * @see usersystem::userImage()
 	 * @see usersystem::id2user()
@@ -1608,9 +1590,8 @@ class usersystem
 	 * Check if User's /files/{$user_id}/ Directory exists, if not, create it
 	 *
 	 * @author IneX
-	 * @date 27.01.2016
 	 * @version 1.0
-	 * @since 1.0 27.01.2016 method added
+	 * @since 1.0 <inex> 27.01.2016 method added
 	 */
 	function get_and_create_user_files_dir($user_id)
 	{
@@ -1634,9 +1615,8 @@ class usersystem
 	 * -> wenn ja, wird die Telegram Chat-ID zurückgegeben
 	 *
 	 * @author IneX
-	 * @date 22.01.2017
 	 * @version 1.0
-	 * @since 1.0 22.01.2017 method added
+	 * @since 1.0 <inex> 22.01.2017 method added
 	 *
 	 * @param integer $user_id User-ID
 	 * @return integer The User's Telegram Chat-ID
@@ -1648,15 +1628,9 @@ class usersystem
 		/** Validte $user_id - valid integer & not empty/null */
 		if (empty($user_id) || $user_id === NULL || $user_id <= 0) return false;
 
-		try {
-			$query = $db->query('SELECT telegram_chat_id tci FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
-			$result = $db->fetch($query);
-			return ( $result ? $result['tci'] : false );
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$query = $db->query('SELECT telegram_chat_id tci FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
+		$result = $db->fetch($query);
+		return ( $result ? $result['tci'] : false );
 	}
 
 	/**
@@ -1697,21 +1671,15 @@ class usersystem
 				/** Check $new_pass was entered twice & identical */
 				if($new_pass === $new_pass2)
 				{
-					try {
-						/** Hash $new_pass for storing in DB */
-						$crypted_new_pass = crypt_pw($new_pass);
-						$result = $db->update('user', ['id', $_SESSION['user_id']], ['userpw' => $crypted_new_pass], __FILE__, __LINE__, __METHOD__);
-						if ($result === 0 || !$result) {
-							$error[0] = TRUE;
-							$error[1] = t('error-userpw-update', 'user');
-						} else {
-							$error[0] = FALSE;
-							$error[1] = t('new-userpw-confirmation', 'user');
-						}
-					} catch (Exception $e) {
+					/** Hash $new_pass for storing in DB */
+					$crypted_new_pass = crypt_pw($new_pass);
+					$result = $db->update('user', ['id', $_SESSION['user_id']], ['userpw' => $crypted_new_pass], __FILE__, __LINE__, __METHOD__);
+					if ($result === 0 || !$result) {
 						$error[0] = TRUE;
-						$error[1] = $e->getMessage();
-						error_log($e->getMessage());
+						$error[1] = t('error-userpw-update', 'user');
+					} else {
+						$error[0] = FALSE;
+						$error[1] = t('new-userpw-confirmation', 'user');
 					}
 				} else {
 					$error[0] = TRUE;
@@ -1822,17 +1790,11 @@ class usersystem
 
 			if (count($sqlUpdateSetValuesArray) > 0)
 			{
-				try {
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $sqlUpdateSetValuesArray: %s', __METHOD__, __LINE__, print_r($sqlUpdateSetValuesArray,true)));
-					$result = $db->update('user', ['id', $_SESSION['user_id']], $sqlUpdateSetValuesArray, __FILE__, __LINE__, __METHOD__);
-					if ($result === 0 || !$result) {
-						$error[0] = TRUE;
-						$error[1] = t('error-userprofile-nochange', 'user');
-					}
-				} catch (Exception $e) {
-					error_log($e->getMessage());
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $sqlUpdateSetValuesArray: %s', __METHOD__, __LINE__, print_r($sqlUpdateSetValuesArray,true)));
+				$result = $db->update('user', ['id', $_SESSION['user_id']], $sqlUpdateSetValuesArray, __FILE__, __LINE__, __METHOD__);
+				if ($result === 0 || !$result) {
 					$error[0] = TRUE;
-					$error[1] = t('error-userprofile-update', 'user');
+					$error[1] = t('error-userprofile-nochange', 'user');
 				}
 			}
 		} else {
@@ -1939,18 +1901,11 @@ class usersystem
 			return $error;
 		} else {
 			/** db-gschmäus machen */
-			try {
-				$sql = 'INSERT INTO userpics
-							(user_id, image_name, image_title, image_added)
-						VALUES
-							('.$user_id.', "'.$new_pic_files_array['image']['name'].'", "'.$new_pic_files_array['image']['name'].'", NOW())';
-				$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			} catch (Exception $e) {
-				$error[0] = TRUE;
-				$error[1] = $e->getMessage();
-				error_log($e->getMessage());
-				return $error;
-			}
+			$sql = 'INSERT INTO userpics
+						(user_id, image_name, image_title, image_added)
+					VALUES
+						('.$user_id.', "'.$new_pic_files_array['image']['name'].'", "'.$new_pic_files_array['image']['name'].'", NOW())';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 
 		$userpicThumb = createPic($tmpfile, USER_IMGPATH.$user_id.'_tn'.USER_IMGEXTENSION, USER_IMGSIZE_SMALL, USER_IMGSIZE_SMALL, array(0,0,0));

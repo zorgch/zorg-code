@@ -17,14 +17,7 @@ require_once( __DIR__ .'/models/core.model.php');
  * Initialise MVC Model
  */
 $model = new MVC\Dreamjournal();
-
-//echo head(40, "dreamjournal");
-//$smarty->assign('tplroot', array('page_title' => 'dreamjournal'));
 $model->showOverview($smarty);
-$smarty->display('file:layout/head.tpl');
-//echo menu('main');
-//echo menu('user');
-
 
 function dream_add_form()
 {
@@ -59,10 +52,13 @@ function dream_add_form()
 /** Only for logged in users */
 if ($user->is_loggedin())
 {
+	$smarty->display('file:layout/head.tpl');
 	echo dream_add_form();
 }
 else {
-	echo 'You may still be dreaming and therefore not ready for this yet. Or you need to log in.';
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Access denied', 'message' => 'You may still be dreaming and therefore not ready for this yet. Or you need to log in.']);
+	$smarty->display('file:layout/head.tpl');
 }
-  
+
 $smarty->display('file:layout/footer.tpl');

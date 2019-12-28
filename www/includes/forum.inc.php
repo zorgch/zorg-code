@@ -457,28 +457,28 @@ class Comment
 
 		if ($board == 'f') { // Forum
 			$rs = self::getRecordset($thread_id);
-			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.self::getTitle($rs['text'], 40).'</a>' : $boardlinks[$board]['link'].$thread_id);
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'" itemprop="url">'.self::getTitle($rs['text'], 40).'</a>' : $boardlinks[$board]['link'].$thread_id);
 			return $output;
 		} else if($board == 'i') { // Pictures
 			$sql = 'SELECT name FROM gallery_pics WHERE id='.$thread_id;
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			if($rs['name'] != '') {
-				$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Pic] '.substr($rs['name'], 0, 20).'</a>' : $boardlinks[$board]['link'].$thread_id);
+				$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'" itemprop="url">[Pic] '.substr($rs['name'], 0, 20).'</a>' : $boardlinks[$board]['link'].$thread_id);
 				return $output;
 			} else {
-				$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
+				$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'" itemprop="url">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
 				return $output;
 			}
 		} else if ($board == 'e') { // Events
 			$sql = 'SELECT name FROM events WHERE id='.$thread_id;
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>' : $boardlinks[$board]['link'].$thread_id);
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'" itemprop="url">[Event] '.($rs['name'] != '' ? substr($rs['name'], 0, 20) : $thread_id).'</a>' : $boardlinks[$board]['link'].$thread_id);
 			return $output;
 		} else if ($board == 'g') { // GO Game
-			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">[GO] '.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'" itemprop="url">[GO] '.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
 			return $output;
 		} else {
-			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
+			$output = ($output_html === true ? '<a href="'.$boardlinks[$board]['link'].$thread_id.'" itemprop="url">'.$boardlinks[$board]['field'].' '.$thread_id.'</a>' : $boardlinks[$board]['link'].$thread_id);
 			return $output;
 		}
 
@@ -761,10 +761,15 @@ class Comment
 			 * Comment Notifications
 			 */
 			/** 1) Activity Eintrag auslösen */
-			$addActivity = false; // init
-			$addActivity = ($user_id != BARBARA_HARRIS ? true : false); // ...ausser bei der Bärbel, die trollt zuviel
-			$addActivity = ($rs['board'] !== 'h' ? true : false); // ...ausser bei Hz-Games (weil die Comments u.A. noch geheim sein müssen)
-			$addActivity = ($rs['board'] !== 'f' || $parent_id === 1 ? true : false); // ...und im Forum nur falls ein neuer Thread gestartet wurde (kein Comment)
+				/** Blacklist exceptions */
+				$addActivity = false; // init
+				if ($user_id != BARBARA_HARRIS) { // ...ausser bei der Bärbel, die trollt zuviel
+					if ($rs['board'] !== 'h') { // ...ausser bei Hz-Games (weil die Comments u.A. noch geheim sein müssen)
+						if ($rs['board'] !== 'f' || $parent_id === 1) { // ...und im Forum nur falls ein neuer Thread gestartet wurde (kein Comment)
+							$addActivity = true;
+						}
+					}
+				}
 			if ($addActivity === true)
 			{
 				/** Neuer Forum-Thread */
@@ -787,14 +792,6 @@ class Comment
 					$text = t('message-newcomment', 'commenting', [ $user->id2user($user_id,true), addslashes(stripslashes($text)), self::getLink($board, $parent_id, $rs['id'], $thread_id) ]);
 					$notification_status = $notification->send($msg_recipient_id, 'mentions', ['from_user_id'=>$user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
-					/** @DEPRECATED
-					Messagesystem::sendMessage(
-						 $user_id
-						,$msg_users[$i]
-						,t('message-newcomment-subject', 'commenting', $user->id2user($user_id))
-						,t('message-newcomment', 'commenting', [ $user->id2user($user_id), addslashes(stripslashes($text)), Comment::getLink($board, $parent_id, $rs['id'], $thread_id) ])
-						,(is_array($msg_users) ? implode(',', $msg_users) : $msg_users)
-					);*/
 				}
 			}
 
@@ -809,13 +806,6 @@ class Comment
 				{
 					$notification_status = $notification->send($rs2['user_id'], 'subscriptions', ['from_user_id'=>BARBARA_HARRIS, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
-					/** @DEPRECATED
-					Messagesystem::sendMessage(
-						 BARBARA_HARRIS
-						,$rs2['user_id']
-						,t('message-newcomment-subscribed-subject', 'commenting', [ $user->id2user($user_id), $parent_id ])
-						,t('message-newcomment-subscribed', 'commenting', [ $user->id2user($user_id), Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']), addslashes(stripslashes(Comment::getTitle($rs['text']))) ])
-					);*/
 				 }
 			}
 
@@ -1269,18 +1259,17 @@ class Forum {
 	 * @desc gibt das HTML des Searchformszurück
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
  	 */
-	static function getFormSearch() {
+	static function getFormSearch()
+	{
 		return
 			'<table>'
 			.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
-			.'<input name="layout" type="hidden" value="search">'
-			.'<tr>'
-		//.'<td><b>Suche:</b></td>'
-		.'<td align="left">'
-			.'<input type="text" name="keyword" class="text">'
-			.'</td><td align="left">'
-			.'<input type="submit" value="search" class="button">'
-			.'</td></tr>'
+				.'<input name="layout" type="hidden" value="search">'
+				.'<tr>'
+					.'<td align="left">'
+					.'<input type="text" name="keyword" class="text" style="width: 120px;">'
+					.'<input type="submit" value="search" class="button">'
+				.'</td></tr>'
 			.'</form>'
 			.'</table>'
 		;
@@ -1365,7 +1354,7 @@ class Forum {
 
 	static function getNavigation($page=1, $pagesize, $numpages) {
 		$html .=
-			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border">'
+			'<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border small">'
 			.'<tr><td class="hide-mobile">Page '.$page.' von '.$numpages.'</td>'
 		;
 
@@ -1859,16 +1848,16 @@ class Forum {
 		/** Ausgabe ---------------------------------------------------------------- */
 		/** Thread-Table mit Spaltenüberschriften */
 		$html .=
-			'<br />'
+			'<h1>Discussions</h1>'
 			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
-				.'<tr class="title">'
+				.'<!--googleoff: all--><tr class="title">'
 					.'<td align="left" width="30%"><a href="?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
 					.'<td align="left" class="small hide-mobile" width="11%"><a href="?sortby=tu_username&amp;order='.$new_order.'">Thread starter</a></td>'
 					.'<td align="center" class="hide-mobile"><a href="?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
 					.'<td align="center" class="small hide-mobile"><a href="?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
 					.'<td align="left" class="small" width="25%"><a href="?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
-					.'<td></td>'
-				.'</tr>';
+					.'<td class="hide-mobile"></td>'
+				.'</tr><!--googleon: all-->';
 
 		$i = 0;
 		while(($rs = $db->fetch($result)) && ($i < $pagesize))
@@ -1888,9 +1877,9 @@ class Forum {
 			if($rs['ignoreit']) $color = IGNORECOMMENTCOLOR;
 			if($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
 
-			$html .= '<tr>'
+			$html .= '<tr itemscope="" itemtype="http://schema.org/Article">'
 					  /*.'<td>'.$rs['sticky'].'</td>'*/
-					  .'<td align="left" bgcolor="'.$color.'"><span style="float: left">'
+					  .'<td align="left" bgcolor="'.$color.'"><span style="float: left" itemprop="headline">'
 					  .Comment::getLinkThread($rs['board'], $rs['thread_id'])
 					  .'</span>'
 					;
@@ -1909,7 +1898,7 @@ class Forum {
     	}*/
 
 		/** alles was jetzt kommt, steht im feld rechtsbündig */
-		$html .=	'<span class="threadoptions" style="float: right;font-size: 0.8em;">';
+		$html .=	'<!--googleoff: all--><span class="threadoptions" style="float: right;font-size: 0.8em;">';
 
     	if($user->id > 0)
     	{
@@ -1946,25 +1935,26 @@ class Forum {
 			/** RSS Feed-Link für Thread anzeigen */
 			$html .=
 					' <a href="'.RSS_URL.'&amp;type=forum&amp;board='.$rs['board'].'&amp;thread_id='
-    				.$rs['thread_id'].'">'.t('forum-rss-thread-action', 'commenting').'</a>';
+    				.$rs['thread_id'].'" class="hide-mobile">'.t('forum-rss-thread-action', 'commenting').'</a>';
 
-			/** rechtsbündig-span-element schliessen */
-			$html .= '</span>';
+			/** rechtsbündig-span & td-element schliessen */
+			$html .= '</span><!--googleon: all-->
+					</td>';
 
-			$html .= '</td><td align="left" bgcolor="'.$color.'" class="small hide-mobile">&nbsp;&nbsp;&nbsp;'
+			$html .= '<td class="small hide-mobile" style="padding-left: 5px;" align="left" bgcolor="'.$color.'" itemprop="author">'
 			  .$user->userprofile_link($rs['thread_starter'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
-			  .'</td><td align="center" bgcolor="'.$color.'" class="small hide-mobile">'
+			  .'</td><td class="small center hide-mobile" bgcolor="'.$color.'"><meta itemprop="datePublished" content="'.date('Y-m-d', $rs['thread_date']).'">'
 			  .datename($rs['thread_date'])
-			  .'</td><td align="center" bgcolor="'.$color.'" class="small hide-mobile">'
+			  .'</td><td class="small center hide-mobile" bgcolor="'.$color.'">'
 			  .$rs['numposts']
-			  .'</td><td align="left" bgcolor="'.$color.'" class="small">'
+			  .'</td><td class="small hide-mobile" align="left" bgcolor="'.$color.'">'
 			  .'<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'">'
 			  .str_pad(Comment::getSummary($rs['last_post_text']), 25, ' . ', STR_PAD_RIGHT)
 			  .'</a>'
 			  .' &raquo;</a>'
 			  .' by '
-			  .$user->userprofile_link($rs['last_comment_poster'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
-			  .'</td><td align="center" bgcolor="'.$color.'" class="small">'
+			  .'<span itemscope itemtype="http://schema.org/Person">'.$user->userprofile_link($rs['last_comment_poster'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
+			  .'</td><td class="small center" bgcolor="'.$color.'"><meta itemprop="dateModified" datetime="'.date('c', $rs['last_post_date']).'">'
 			  .datename($rs['last_post_date'])
 			  .'</td>'
 			;

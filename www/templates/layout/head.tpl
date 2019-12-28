@@ -8,7 +8,7 @@
 		<meta name="geo.region" content="CH-SG">
 		<meta name="geo.placename" content="St. Gallen">
 		<meta name="ICBM" content="47.4233, 9.37">
-		<meta name="viewport" content="width=400, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 		<title>{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}</title>
 		<meta name="twitter:card" content="summary">{*summary_large_image*}
 		<meta name="twitter:title" content="{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}">
@@ -37,8 +37,8 @@
 		<link rel="canonical" href="{$smarty.const.SITE_URL}{$tplroot.page_link}" />
 		{/if}
 		{include file="file:layout/partials/head/favicons.tpl"}
-		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v=4-0-0&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
-		<script src="{$smarty.const.JS_DIR}zorg.js?v=4-0-0"></script>
+		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v=4-0-1&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
+		<script src="{$smarty.const.JS_DIR}zorg.js?v=4-0-1"></script>
 		<script src="{$smarty.const.JS_DIR}ie11cssproperties.min.js"></script>
 		<script src="{$smarty.const.JS_DIR}highlight-js/highlight.pack.js"></script>
 		<link class="codestyle" rel="stylesheet" href="{$smarty.const.JS_DIR}highlight-js/styles/github-gist.css">
@@ -59,7 +59,7 @@
 
 	{* Wenn es ein eingeloggter User ist, wird im Fenstertitel die Anzahl Unreads angezeigt... *}
 	<body onload="init()">
-		<header class="zorghead" {if $tplroot.write_rights neq '' && tpl_permission($tplroot.write_rights, $tplroot.owner)}onDblClick="document.location.href='{edit_url}';"{/if}><a id="top"></a>
+		<header class="zorghead" {if $tplroot.write_rights neq '' && tpl_permission($tplroot.write_rights, $tplroot.owner)}onDblClick="document.location.href='{edit_url}';"{/if}>
 		{include_php file="file:header.php"}
 			{if $user->id}
 				{if $new_messages > 0}{capture append=myUpdates}<li id="messages"><a href="/profil.php?user_id={$user->id}">{$new_messages|quantity:"Message":"Messages"}</a></li>{/capture}{/if}
@@ -84,8 +84,8 @@
 					{if $notification != ''}{$notification}{/if}
 				{/foreach}</ul>{/if}
 				</div>
-			{/if}{*if $user->zorger}{include file='tpl:56'}{else}{include file='tpl:672'}{/if*}
-			<nobr class="logo"><a href="/">{if $user->zorger}zooomclan{else}{$smarty.const.SITE_HOSTNAME}{/if}</a></nobr>
+			{/if}
+			<nobr class="logo"><a href="/" id="top">{if $user->zorger}<img src="{$smarty.const.IMAGES_DIR}logo{if $sun == "down"}_night{/if}.png" border="0" style="max-width: 100%;">{else}{$smarty.const.SITE_HOSTNAME}{/if}</a></nobr>
 			<div class="announcements">
 				{foreach from=$nextevents item=nextevent}<span class="event">
 					<a href="/smarty.php?tpl=158&event_id={$nextevent.id}">

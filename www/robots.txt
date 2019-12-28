@@ -1,3 +1,8 @@
 User-agent: *
-Disallow: /gallery/
-Disallow: /images/
+Disallow: /gluv/
+Disallow: /mobilezorg/
+Disallow: /mobilezorg-v2/
+Disallow: /test/
+Disallow: /traffic/
+
+Sitemap: https://zorg.ch/sitemap.php

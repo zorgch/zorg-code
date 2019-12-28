@@ -11,11 +11,9 @@
  *		user
  *		- notifications
  *		- email
- * 		- @DEPRECATED email_notification
  *
  * @author		IneX
- * @package		zorg
- * @subpackage	Usersystem
+ * @package		zorg\Usersystem
  */
 /**
  * File includes
@@ -33,11 +31,9 @@ require_once( __DIR__ . '/telegrambot.inc.php' );
  * In dieser Klasse befinden sich alle Funktionen zum Senden von Notifications an User
  *
  * @author		IneX
- * @date		21.10.2018
- * @package		zorg
- * @subpackage	Usersystem
+ * @package		zorg\Usersystem
  * @version		1.0
- * @since		1.0 21.10.2018 Class added
+ * @since		1.0 <inex> 21.10.2018 Class added
  */
 class Notification
 {
@@ -46,9 +42,8 @@ class Notification
 	 * Schickt eine Notification an einen User über die aktivierten Kanäle
 	 *
 	 * @author	IneX
-	 * @date	21.10.2018
 	 * @version	1.0
-	 * @since	1.0 21.10.2018 method added
+	 * @since	1.0 <inex> 21.10.2018 method added
 	 *
 	 * @param integer $user_id Valid User-ID integer
 	 * @param string $notification_source String representing the source of Notification to send $content for. E.g. 'messagesystem', 'mentions', 'games', etc...
@@ -107,7 +102,7 @@ class Notification
 					/** Validate $content for $notification_type 'message'
 						$from_user_id, $owner, $subject, $text
 					*/
-					if (!empty($content['from_user_id']) && !empty($content['from_user_id']) && !empty($content['subject']) && !empty($content['text']))
+					if (!empty($content['from_user_id']) && !empty($content['subject']) && !empty($content['text']))
 					{
 						/** Send notification */
 						$this->sendEmailNotification($content['from_user_id'], $user_id, $content['subject'], $content['text']);
@@ -149,7 +144,7 @@ class Notification
 	 *
 	 * @author IneX
 	 * @since 1.0
-	 * @version 1.0 21.10.2018 method added
+	 * @version 1.0 <inex> 21.10.2018 method added
 	 *
 	 * @see usersystem::$default_notifications, usersystem::$notifications
 	 * @param integer $user_id Valid User-ID integer
@@ -196,10 +191,9 @@ class Notification
 	 * Check if a User's Notification type setting is set to TRUE
 	 *
 	 * @author IneX
-	 * @date 04.10.2018
 	 * @since 1.0
-	 * @version 1.0 04.10.2018 method added
-	 * @version 2.0 21.10.2018 method moved from class usersystem() to class Notification()
+	 * @version 1.0 <inex> 04.10.2018 method added
+	 * @version 2.0 <inex> 21.10.2018 method moved from class usersystem() to class Notification()
 	 *
 	 * @param string $notification_source String representing the source of Notification to check. E.g. 'messagesystem', 'mentions', 'games', etc...
 	 * @param string $notification_type String representing the type of Notification to check. Valid values: 'message', 'email' & 'telegram'.
@@ -256,10 +250,9 @@ class Notification
 	 * Generiert eine E-Mail um einen Benutzer auf eine neue persönliche Nachricht hinzuweisen
 	 *
 	 * @author IneX
-	 * @date 15.05.2009
 	 * @version 2.0
-	 * @since 1.0 15.05.2009 method added
-	 * @version 2.0 21.10.2018 method moved from class Messagesystem() to class Notification()
+	 * @since 1.0 <inex> 15.05.2009 method added
+	 * @version 2.0 <inex> 21.10.2018 method moved from class Messagesystem() to class Notification()
 	 *
 	 * @param	integer	$from_user_id	User-ID des Senders
 	 * @param	integer	$to_user_id		User-ID des Empfängers
@@ -274,7 +267,7 @@ class Notification
 		global $db, $user;
 
 		/** Validate passed parameters */
-		if ($to_user_id != 0 && $to_user_id <> '' && is_numeric($to_user_id))
+		if (!empty($to_user_id) && is_numeric($to_user_id))
 		{
 			/** Get User E-Mail - if E-Mail Notifications are enabled */
 			$empfaengerMail = $user->id2useremail($to_user_id);

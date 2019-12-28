@@ -31,6 +31,7 @@ $layout = (isset($_GET['layout']) ? $_GET['layout'] : 'day');
 	--background-color-input-button-hover: <?php echo ($layout === 'night' ? 'rgba(203, 186, 121, 0.5);' : 'rgba(246, 249, 254, 0.75)'); ?>;
 	--background-color-navigation: <?php echo ($layout === 'night' ? '#42300a' : '#bdcff5'); ?>;
 	--background-color-navigation-hover: <?php echo ($layout === 'night' ? '#62502a' : '#9dafd5'); ?>;
+	--background-color-sidebar-mobile: <?php echo ($layout === 'night' ? 'linear-gradient(0deg, rgba(3,12,22,1) 20%, rgba(10,35,66,1) 100%)' : 'rgba(250,250,250,1)'); ?>;
 	--background-image-body: <?php echo ($layout === 'night' ? 'url(/images/background/night.png) repeat-x, radial-gradient(circle, rgba(7,19,44,1), rgba(10,35,66,1)) fixed no-repeat' : 'rgba(7,19,44,1)'); ?>;
 	--filter-invert: <?php echo ($layout === 'night' ? 'invert(0.75)' : 'none'); ?>;
 	--font-family-body: -apple-system-body, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif;
@@ -46,6 +47,7 @@ $layout = (isset($_GET['layout']) ? $_GET['layout'] : 'day');
 	--border-input-button-hover: <?php echo ($layout === 'night' ? '1px solid rgba(255,255,255,0.85)' : 'inset thin rgba(52,69,134,0.5)'); ?>;
 	--border-input-disabled: <?php echo ($layout === 'night' ? 'gray' : 'gray'); ?>;
 	--border-navigation: <?php echo ($layout === 'night' ? '#cbba79' : 'rgba(255,255,255,0.75)'); ?>;
+	--border-title: <?php echo ($layout === 'night' ? '#cbba79' : '#444'); ?>;
 	--shadow-input-focus: <?php echo ($layout === 'night' ? '0 0 1px 1px rgba(255,255,255,0.85)' : '0 0 1px 1px rgba(52,69,134,0.5)'); ?>;
 	--shadow-input-focus-moz_mac: 0 0 0 3px -moz-mac-focusring;
 }
@@ -76,12 +78,8 @@ body {
 	grid-row-gap: 0px;
 }
 @supports (grid-area: auto) {
-	.zorghead {
-		grid-area: header;
-	}
-		.zorghead > .logo {
-			grid-area: logo;
-		}
+	.zorghead { grid-area: header; }
+		.zorghead > .logo { grid-area: logo; }
 		.zorghead > .announcements {
 			grid-area: announcements;
 			align-self: center;
@@ -93,35 +91,25 @@ body {
 		}
 		.zorghead > .onlineuser {
 			grid-area: onlineuser;
-			align-self: end;
+			align-self: center;
 		}
 		.zorghead > .notifications {
 			grid-area: notifications;
-			align-self: end;
+			align-self: center;
 			justify-self: start;
 		}
-		.zorghead > .infos {
-			grid-area: infos;
-		}
-	.navigation {
-		grid-area: nav;
-	}
-	.main-content {
-		grid-area: main;
-	}
-	.sidebar {
-		grid-area: sidebar;
-	}
-	.footer {
-		grid-area: footer;
-	}
+		.zorghead > .infos { grid-area: infos; }
+	.navigation { grid-area: nav; }
+	.main-content { grid-area: main; }
+	.sidebar { grid-area: sidebar; }
+	.footer { grid-area: footer; }
 }
 
 /* Desktops, Laptops: Screen = B/w 1025px to 1280px */
 @media (min-width: 768px) {
 	body {
-		margin: 0 18vw 0 18vw;
-		grid-template-columns: auto auto;
+		margin: 0 15vw 0 15vw;
+		grid-template-columns: 2fr 1fr;
 		grid-template-rows: minmax(min-content, 190px) minmax(min-content, 120px) minmax(min-content, max-content) 1fr;
 		grid-template-areas:
 			"header header"
@@ -129,24 +117,61 @@ body {
 			"main <?php echo ($sidebarOn === true ? 'sidebar' : 'main'); ?>"
 			"footer footer";
 	}
-		.zorghead {
-			grid-template-columns: 1fr 2fr 1fr;
-			grid-template-rows: 1fr 1fr 1fr;
-			grid-template-areas:
-				"logo announcements service"
-				"infos announcements service"
-				"notifications notifications onlineuser"
-		}
+	.zorghead {
+		grid-template-columns: 1fr 2fr 1fr;
+		grid-template-rows: 1fr 1fr 1fr;
+		grid-template-areas:
+			"logo announcements service"
+			"infos announcements service"
+			"notifications notifications onlineuser";
+		padding: .2rem 1rem .2rem 1rem;
+	}
+		header > .logo { font-size: 0.85rem; }
+		header > .service { font-size: 0.6rem; }
+		header > .service label.user::before { content: "\01F464"; }
+		header > .service label.password::before { content: "\01F510"; }
 		header > .announcements {
 			justify-self: center;
+			font-size: 0.5rem;
 		}
 		header > .infos {
 			align-self: start;
 			font-size: 0.4rem;
 		}
-		header > .infos .solarstate .event {
-			margin-right: 5px;
+		header > .infos .solarstate .event { margin-right: 5px; }
+		header > .onlineuser { font-size: 0.4rem; }
+		header > .notifications { font-size: 0.4rem; }
+	.navigation { font-size: 0.5rem; }
+		div.menu:last-of-type {
+			border-bottom: solid 1px var(--border-navigation, #ccc);
 		}
+		div.menu a {
+			border-left: 1px solid var(--border-navigation, #ccc);
+			border-right: 1px solid var(--border-navigation, #ccc);
+		}
+	.main-content {
+		font-size: 0.5rem;
+		padding: .5rem .5rem .5rem 1.25rem;
+		background: var(--background-color-main, rgba(1,1,1,1));
+	}
+	.sidebar {
+		font-size: 0.5rem;
+		padding: .5rem 1rem .5rem 1rem;
+		background: var(--background-color-main, rgba(1,1,1,1));
+	}
+	.footer {
+		font-size: 0.5rem;
+		padding: .5rem 1rem 1rem 1rem;
+	}
+	.tpl-footer { font-size: 1em; }
+
+	h1 { font-size: 1.2rem; }
+	h2 { font-size: 1.0rem; }
+	h3 { font-size: 0.8rem; }
+	h4 { font-size: 0.7rem; }
+	h5 { font-size: 0.5rem; }
+	h6 { font-size: 0.3rem; }
+	blockquote { font: 0.7rem/0.8rem normal; }
 }
 
 /* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
@@ -167,93 +192,102 @@ body {
 			"logo service"
 			"announcements service"
 			"onlineuser service"
-			"notifications notifications"
-			"..... infos"
+			"notifications infos";
+		padding: .2rem .5rem .2rem .5rem;
 	}
+		header > .logo { font-size: 1.5rem; }
+		header > .service { font-size: 0.65rem; }
+		header > .service input[type=text], header > .service input[type=password] { width: 80px; }
 		header > .announcements {
 			justify-self: start;
+			font-size: 0.7rem;
 		}
 		header > .infos {
-			font-size: 0.5rem;
+			font-size: 0.7rem;
 			align-self: end;
 			justify-self: end;
 		}
-		header > .infos .solarstate .event {
-			margin-right: 5px;
-		}
+		header > .infos .solarstate .event { margin-right: 5px; }
+		header > .onlineuser { font-size: 0.5rem; }
+		header > .notifications { font-size: 0.5rem; }
 	.navigation {
 			display: flex;
+			font-size: 0.75rem;
 		}
-		.navigation div.menu {
+		div.menu {
 			flex-grow: 1;
 			border-top-color: var(--border-navigation, #ccc);
-			border-bottom: none
+			border-bottom: solid 1px var(--border-navigation, #ccc);
 		}
-	    div.menu > a {
+	    div.menu a {
 		    display: block;
 		    border-left: none;
-		    border-right: none;
+		    /*border-right: none;*/
+		    border-right: 1px solid var(--border-navigation, #ccc);
 		}
-	    div.menu > a.left, div.menu > a.right {
-		    display: none;
-		}
-	
+	    div.menu a.left, div.menu a.right { display: none; }
+	.main-content {
+		font-size: 0.85rem;
+		padding: .2rem 1rem 0 1rem;
+		background: var(--background-color-main, rgba(1,1,1,1));
+	}
 	.main-content > img { max-width: 100%; }
+	.sidebar {
+		font-size: 0.85rem;
+		padding: .5rem 1rem .5rem 1rem;
+		background: var(--background-color-sidebar-mobile, rgba(1,1,1,1));
+	}
+	.footer {
+		font-size: 0.7rem;
+		padding: .2rem .5rem 1.5rem 1rem;
+	}
+	.footer > .shadow { margin: 0 -0.5rem 0 -1rem; } /** Compensate .footer{padding-left & -right} */
+	.footer > .flex-one-column { align-items: flex-start; }
+	.tpl-footer { font-size: 1em; }
+
 	.hide-mobile { display: none; }
+
+	h1 { font-size: 2.0rem; }
+	h2 { font-size: 1.8rem; }
+	h3 { font-size: 1.6rem; }
+	h4 { font-size: 1.4rem; }
+	h5 { font-size: 1.2rem; }
+	h6 { font-size: 1.0rem; }
+	blockquote { font: 1rem/1.2rem normal; }
+}
+
+/* Mobile Smartphones (Landscape) */
+@media (max-width: 767px) and (orientation: landscape) {
+	.main-content { padding-left: 1.5rem; padding-right: 1.5rem; }
+	.sidebar { padding-left: 1.5rem; padding-right: 1.5rem; }
+	.footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+	.footer > .shadow { margin-left: -1.5rem; margin-right: -1.5rem; } /** Compensate .footer{padding-left & -right} */
 }
 /** END: Responsive CSS Grid */
 
 /**
  * HTML5 Structure Styling
  */
-body > * {
-	padding: 1vw 1vw 0 1.5vw;
-}
-	/** Old table-layout compatibility */
-	table {
-		width: 100%;
-		border: none;
-		border-collapse: collapse;
-		padding: 0;
-	}
-
-.zorghead, .navigation {
-	background: var(--background-color-base, rgba(1,1,1,1));
-}
-.main-content, .sidebar {
-	background: var(--background-color-main, rgba(1,1,1,1));
-}
-
+.zorghead, .navigation { background: var(--background-color-base, rgba(1,1,1,1)); }
 .navigation {
-	font-size: 0.5rem;
 	text-align: center;
 	padding-left: 0;
 	padding-right: 0;
 }
-
-.main-content {
-	font-size: 0.5rem;
-	padding-bottom: 1vw;
-}
-
-.sidebar {
-	font-size: 0.5rem;
-	padding-bottom: 3vw;
-}
-
 .footer, .tpl-footer {
 	font-family: var(--font-family-footer, sans-serif);
-	font-size: 0.5rem;
 	letter-spacing: 0.1em;
 	background: var(--background-color-behind, rgba(1,1,1,1));
 	border-top: <?php echo ($layout === 'night' ? 'none' : 'solid 1px #ccc'); ?>;
-	padding-top: 0.5vw;
-	padding-bottom: 1vw;
 }
-.tpl-footer {
-	font-size: 1em;
-	padding-top: 0.1vw;
-	padding-bottom: 0.25vw;
+.tpl-footer { padding: .5em 0 .2em 0; }
+
+/** Old table-layout compatibility */
+table {
+	width: 100%;
+	border: none;
+	border-collapse: collapse;
+	padding: 0;
 }
 /** END: HTML5 Structure Styling */
 
@@ -291,14 +325,8 @@ h1, h2, h3, h4, h5, h6 {
 	font-family: var(--font-family-headline, Arial);
 	font-weight: 300;
 	line-height: 1.1;
-	margin-bottom: 0.3rem;
+	margin-bottom: 0.3em;
 }
-h1 { font-size: 1.2rem; }
-h2 { font-size: 1.0rem; }
-h3 { font-size: 0.8rem; }
-h4 { font-size: 0.7rem; }
-h5 { font-size: 0.5rem; }
-h6 { font-size: 0.3rem; }
 h1:first-of-type, h2:first-of-type { margin-block-start: 0.25em}
 p {
 	margin-block-start: 0;
@@ -331,7 +359,6 @@ pre {
 	border-radius: 3px;
 }
 blockquote {
-	font: 0.7rem/0.8rem normal;
 	margin: 10px 0 20px 10px;
 	padding-left: 15px;
 	border-left: 3px solid #CBBA79;
@@ -357,9 +384,11 @@ blockquote {
 .alternate { background-color: #cbba79 !important; }
 .disabled { color: #aaa; }
 .danger { background-color: #ff4700 !important; }
-.info { color: #2196f3 }
+.warn { color: #ff9800; }
+.info { color: #2196f3; }
+.success { color: #4caf50; }
 .border { outline: var(--outline-table, '1px solid #ccc'); }
-.bottom_border { border-bottom: 1px solid var(--border-navigation, #ccc); }
+.bottom_border { border-bottom: 1px solid var(--border-title, #ccc); }
 
 /** Animations */
 	.blink { -webkit-animation:colorchange 1s infinite alternate;
@@ -379,13 +408,11 @@ blockquote {
  */
 header > .logo {
 	display: block;
-	font-size: 0.85rem;
 	font-family: var(--font-family-logo, sans-serif);
 	font-weight: 600;
 }
 header > .announcements {
 	display: inline-block;
-	font-size: 0.5rem;
 	margin-top: 5px;
 	margin-bottom: 5px;
 	vertical-align: middle;
@@ -397,9 +424,7 @@ header > .announcements span.event::before {
 header > .announcements .event > a > .name { }
 header > .announcements .event > a.join { }
 header > .announcements .event > a.unjoin { color: #cbba79; }
-header > .service {
-	font-size: 0.65rem;
-}
+header > .service { text-align: right; }
 header > .service h5 {
 	margin-top: 0;
 	margin-bottom: 0.5em;
@@ -408,6 +433,7 @@ header > .service .countryflag {
 	margin-left: 5px;
 	height: 0.85em;
 }
+header > .service form fieldset { margin-top: 0; }
 header > .service form .login-input {
 	display: flex;
 	white-space: nowrap;
@@ -428,21 +454,12 @@ header > .service form .login-input a {
 header > .service form .login-input input[type=submit] {
 	flex: 1;
 }
-header > .service label.user::before { content: "\01F464"; }
-header > .service label.password::before { content: "\01F510"; }
-header > .onlineuser {
-	font-size: 0.4rem;
-}
 header > .onlineuser:not(:empty)::before {
 	content: "Online: ";
 	font-weight: bold;
 }
 header > .onlineuser > * {
 	white-space: nowrap;
-}
-header > .notifications {
-	font-size: 0.4rem;
-	margin-top: 5px;
 }
 header > .notifications ul { padding: 0; }
 header > .notifications ul li {
@@ -468,7 +485,6 @@ header > .infos .solarstate .countryflag {
 footer > .shadow {
 	border: none;
 	box-shadow: <?php echo ($layout === 'night' ? '0 0px 1px 1px rgba(3,12,22,0.5)' : 'none'); ?>;
-	margin: 0 -1vw 0 -1.5vw;
 }
 footer section, .tpl-footer section {
 	display: flex;
@@ -537,9 +553,10 @@ footer #swisstime { font-size: 0.7rem; }
 	  -ms-transition: opacity 0.3s;
 	  transition: opacity 0.3s;
 }
-.alert.success { background-color: #4CAF50 } /**  Green */
+.alert.success { background-color: #4caf50 } /**  Green */
 .alert.info { background-color: #2196F3; } /** Blue */
 .alert.warn { background-color: #ff9800; } /**  Orange */
+.alert a { color: #3f3047; } /** Links in Alert message boxes */
 /** Alert message box close button */
 .closebtn {
 	  margin-left: 15px;
@@ -600,9 +617,17 @@ td.forum {
 	margin: 0;
 	padding: 0;
 }
+td.forum.comment > h1:first-of-type,
+td.forum.comment > h2:first-of-type,
+td.forum.comment > h3:first-of-type,
+td.forum.comment > h4:first-of-type { margin-block-start: .5em; }
 td.forum img {
 	max-width: 100%;
 }
+td.forum.comment { padding: 0 .5em 0 .5em; }
+td.forum.comment.meta { padding-top: .2em; }
+td.forum.comment.meta.left { padding-left: .5em; }
+td.forum.comment.meta.right { padding-right: .5em; }
 .threading {
 	border: none;
 	vertical-align: top;
@@ -727,10 +752,10 @@ table.border tr td {
 
 table.dreid {
 	background-color: #E5E5E5; /*EDF2F2*/
-	
+
 	border-bottom-style: solid;
 	border-bottom-color: #CCCCCC; /*DDD*/
-	border-bottom-width: 1px;	
+	border-bottom-width: 1px;
 
 	border-left-style: solid;
 	border-left-color: #FFF;
@@ -738,8 +763,8 @@ table.dreid {
 
 	border-right-style: solid;
 	border-right-color: #CCCCCC; /*DDD*/
-	border-right-width: 1px;	
-	
+	border-right-width: 1px;
+
 	border-top-style: solid;
 	border-top-color: #FFF;
 	border-top-width: 1px;
@@ -768,7 +793,6 @@ table.stl tr td del, table.stl tr td del .profilepic {
 div.menu {
 	font-size: 0.9em;
 	background-color: var(--background-color-navigation, #bdcff5);
-	border-bottom: solid 1px var(--border-navigation, #ccc);
 	border-top: solid 1px var(--border-navigation, #ccc);
 	letter-spacing: 1px;
 	padding-bottom: 1px;
@@ -778,8 +802,6 @@ div.menu {
 div.menu a {
 	text-decoration: none;
 	color: var(--color-link-navigation, #333);
-	border-left: 1px solid var(--border-navigation, #ccc);
-	border-right: 1px solid var(--border-navigation, #ccc);
 	padding-left: 15px;
 	padding-right: 15px;
 }
@@ -805,7 +827,7 @@ div.menu a.right {
 	border-right-style: none;
 	padding-left: 1px;
 	padding-right: 0px;
-}	
+}
 /** END: Menu navigation */
 
 /**
@@ -827,6 +849,15 @@ input, textarea, select, button {
 	background: var(--background-color-input, #BDCFF5);
 	font-size: 0.8em;
 	margin: 3px 10px 10px 0;
+}
+/**
+ * Fix input zoom on iPhones
+ * @link https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields/
+ */
+@media screen and (max-width: 767px) {
+	input, textarea, select, button {
+		font-size: 1em;
+	}
 }
 
 input[type=text], input[type=password], input[type=search], input[type=number], textarea, input.text {
@@ -911,10 +942,6 @@ select:disabled, select[aria-disabled=true] {
 	  linear-gradient(to bottom, var(--color-font-input-disabled, graytext) 0%,var(--color-font-input-disabled, graytext) 100%);
 }
 select:disabled:hover, select[aria-disabled=true] { border-color: var(--border-input-disabled, graytext); }
-
-input[name=score] {
-	
-}
 /** END: Form elements */
 
 

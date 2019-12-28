@@ -44,9 +44,10 @@ function tpl_comment_permission ($thread_id) {
  * Check permission to access template
  *
  * @author [z]biko
- * @version 2.0
+ * @version 2.1
  * @since 1.0 <biko> function added
  * @since 2.0 <inex> 20.06.2019 Failsafe hinzugefügt
+ * @since 2.1 <kassiopaia> 04.11.2019 fixes undefined indexes errors
  *
  * FIXME ACHTUNG: template read_rights sind != der USER_xxx Level! z.B. read_rights=3 bedeutet "Template Owner only"...
  *
@@ -62,8 +63,8 @@ function tpl_permission ($group, $owner)
 	if ($group === '' || $group === null) $group = USER_ALLE;
 	if ($owner === '' || $owner === null) $owner = ROSENVERKAEUFER;
 
-	$userid = isset($user->id)?$user->id:null;
-	$usertyp = isset($user->typ)?$user->typ:null;
+	$userid = isset($user->id)?$user->id:0;
+	$usertyp = isset($user->typ)?$user->typ:0;
 
 	return hasTplAccess($group, $owner, $userid, $usertyp);
 }
@@ -395,7 +396,7 @@ function load_navigation($tpl_id, &$smarty)
 		while ($menu = $db->fetch($menusFound))
 		{
 			/** Validate permissions */
-			error_log(sprintf('[DEBUG] <%s:%d> Loading menu (template) %d', __FUNCTION__, __LINE__, $menu['tpl_id']));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading menu (template) %d', __FUNCTION__, __LINE__, $menu['tpl_id']));
 			if (tpl_permission($menu['read_rights'], $menu['owner'])) $tplMenus[] = $menu['name'];
 			elseif (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> No permissions to load menu (template) #%d: owner %d vs read_rights %d', __FUNCTION__, __LINE__, $menu['tpl_id'], $menu['owner'], $menu['read_rights']));
 		}

@@ -55,7 +55,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 			document.error_form.elements[i].checked = !document.error_form.elements[i].checked;
 			}
 			</script>
-			<form action='actions/error_action.php?tpl=$_GET[tpl]' name='error_form' method='post'>";	
+			<form action='/actions/error_action.php?tpl=$_GET[tpl]' name='error_form' method='post'>";	
 		}
 		
 		$html .= "
@@ -166,7 +166,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 				
 				$html .= "
 				<tr><td align='left' colspan='7'>
-				<form action='actions/error_action.php?tpl=".$_GET['tpl']."&id=".$rs['id']."' method='post'>
+				<form action='/actions/error_action.php?tpl=".$_GET['tpl']."&id=".$rs['id']."' method='post'>
 				<table class='border'>
 				<tr><td align='center' valign='top'><small>
 				".$rs['msg']."</small>

@@ -21,11 +21,10 @@ if (!empty($_GET['user_id']) && is_numeric($_GET['user_id'])) $user_id = sanitiz
  * Initialise MVC Model
  */
 $model = new MVC\Profile();
-
-Messagesystem::execActions();
-
-//$smarty->assign('tplroot', array('page_title' => $pagetitle, 'page_link' => $_SERVER['PHP_SELF']));
 $model->showOverview($smarty);
+
+/** Messaging update */
+Messagesystem::execActions();
 
 /**
  * Userlist anzeigen
@@ -33,9 +32,6 @@ $model->showOverview($smarty);
 if ( (!$doAction && !$user_id && !$userRegcode) )
 {
 	$smarty->display('file:layout/head.tpl');
-	//echo menu('zorg');
-	//echo menu('user');
-	//echo "<br>";
 	$smarty->display('tpl:219');
 	$smarty->display('file:layout/footer.tpl');
 	exit; // make sure only Userlist is processed / displayed
@@ -44,62 +40,61 @@ if ( (!$doAction && !$user_id && !$userRegcode) )
 /**
  * Mein Profil ändern
  */
-if ($user->is_loggedin())
+if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 {
-	if($doAction === 'view' && !$user_id)
+	/**
+	 * Profil als anderen User anzeigen (DEV only!)
+	 */
+	if (!empty($_GET['viewas']) && DEVELOPMENT === true)
 	{
-		/**
-		 * Profil als anderen User anzeigen (DEV only!)
-		 */
 		$model->showOtherprofile($smarty, $user, $_GET['viewas']);
-		if (!empty($_GET['viewas']) && DEVELOPMENT === true) {
-			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user($_GET['viewas'], TRUE).'</strong>']);
+		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user($_GET['viewas'], TRUE).'</strong>']);
 
-			/** Switch to "viewas"-User */
-			$saveMyUserID = $user->id;
-			$_SESSION['user_id'] = $_GET['viewas'];
-			$user = new usersystem();
-			$smarty->assign('user', $user);
+		/** Switch to "viewas"-User */
+		$saveMyUserID = $user->id;
+		$_SESSION['user_id'] = $_GET['viewas'];
+		$user = new usersystem();
+		$smarty->assign('user', $user);
 
-			/** Display "viewas"-Userprofile */
-			$smarty->assign('form_action', '?do=nothing');
-			$smarty->display('file:layout/pages/profile_page.tpl');
+		/** Display "viewas"-Userprofile */
+		$smarty->assign('form_action', '?do=nothing');
+		$smarty->display('file:layout/pages/profile_page.tpl');
 
-			/** Switch back to current User */
-			$_SESSION['user_id'] = $saveMyUserID;
-			$user = new usersystem();
-			$smarty->assign('user', $user);
+		/** Switch back to current User */
+		$_SESSION['user_id'] = $saveMyUserID;
+		$user = new usersystem();
+		$smarty->assign('user', $user);
+
+	/**
+	 * Mein Profil
+	 */
+	} elseif ($doAction === 'view' || empty($user_id)) {
+		$model->showProfileupdate($smarty);
+
+		/** Update Userprofile infos & settings */
+		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
+		{
+			/** Validate $_POST-request */
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
+			if (count($_POST) > 1)
+			{
+				$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
+			}
+		}
+		/** Upload and change new Userpic */
+		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
+		{
+			$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
+		}
+		/** Change User Password */
+		if($user->id && $_POST['do'] === 'change_password')
+		{
+			$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
+		}
 
 		/**
-		 * Mein Profil
-		 */
-		} elseif ($doAction === 'view' || empty($user_id)) {
-			$model->showProfileupdate($smarty);
-
-			/** Update Userprofile infos & settings */
-			if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
-			{
-				/** Validate $_POST-request */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
-				if (count($_POST) > 1)
-				{
-					$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
-				}
-			}
-			/** Upload and change new Userpic */
-			if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
-			{
-				$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
-			}
-			/** Change User Password */
-			if($user->id && $_POST['do'] === 'change_password')
-			{
-				$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
-			}
-
-			/**
-			 * Error or Success message handling
-			*/
+		 * Error or Success message handling
+		*/
 			/* Userprofile change */
 			if (isset($changeprofile_result[0])) {
 				if ($changeprofile_result[0] === TRUE) {
@@ -125,25 +120,23 @@ if ($user->is_loggedin())
 				}
 			}
 
-			/** Instantiate a new, updated $user-Object (because new data...) */
-			$user = new usersystem();
-			$smarty->assign('user', $user);
+		/** Instantiate a new, updated $user-Object (because new data...) */
+		$user = new usersystem();
+		$smarty->assign('user', $user);
 
-			/** Display "Mein Profil ändern" */
-			$smarty->assign('form_action', '?do=view');
-			$smarty->display('file:layout/pages/profile_page.tpl');
-		}
+		/** Display "Mein Profil ändern" */
+		$smarty->assign('form_action', '?do=view');
+		$smarty->display('file:layout/pages/profile_page.tpl');
+		
+		exit; // make sure only personal Profile page is processed / displayed
 	}
 }
 
 /**
  * Userprofil anzeigen
  */
-if ($user_id)
+if (!empty($user_id))
 {
-	//echo menu('zorg');
-	//echo menu('user');
-	//echo "<br>";
 	$htmlOutput = null;
 	$sidebarHtml = null;
 
@@ -151,8 +144,6 @@ if ($user_id)
 	if (!is_numeric($user_id) || $user_id <= 0 || is_array($user_id) || $user->id2user($user_id) === false)
 	{
 		http_response_code(404); // Set response code 404 (not found)
-		//trigger_error(t('invalid-id', 'user'), E_USER_NOTICE);
-		//error_log(sprintf('[NOTICE] Invalid user_id: %s', $user_id));
 		$model->showUnknownuser($smarty, $user_id);
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-id', 'user')]);
 		$smarty->display('file:layout/head.tpl');
@@ -160,15 +151,11 @@ if ($user_id)
 		exit;
 	}
 
-	try {
-		$sql = 'SELECT * FROM user WHERE id = '.$user_id;
-		$result = $db->query($sql, __FILE__, __LINE__, 'Userprofil anzeigen');
-		$rs = $db->fetch($result);
-	} catch(Exception $e) {
-		trigger_error($e->getMessage(), E_USER_ERROR);
-	}
+	$sql = 'SELECT * FROM user WHERE id = '.$user_id;
+	$result = $db->query($sql, __FILE__, __LINE__, 'Userprofil anzeigen');
+	$rs = $db->fetch($result);
 	if (isset($_geaechtet[$user_id])) $smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('user-wird-geaechtet', 'user', $user->id2user($user_id, true))]);
-	
+
 	$htmlOutput .= '<h1>'.$rs['clan_tag'].$rs['username'].'</h1>';
 	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'" style="width: 100%;max-width: 100%;">';
 
@@ -183,7 +170,7 @@ if ($user_id)
 	}
 
 	/** User Messaging */
-	if($user->id > 0)
+	if($user->is_loggedin())
 	{
 		/** Der User das bin ich */
 		if($user_id == $user->id)
@@ -214,7 +201,7 @@ if ($user_id)
 	$sidebarHtml .= $smarty->fetch('tpl:211');
 
 	/** User Post-Statistik */
-	$sidebarHtml .= '<h3>Forum Stats</h3><img src="/images/stats.php?user_id='.$user_id.'" style="width: 100%;max-width: 100%;"><br>';
+	$sidebarHtml .= '<h3>Forum Stats</h3><img src="/images/stats.php?user_id='.$user_id.'&amp;w=490&amp;h=350" style="width: 100%;max-width: 100%;"><br>';
 
 	/** User last Posts */
 	$sidebarHtml .= Forum::getLatestCommentsbyUser($user_id);
@@ -225,20 +212,21 @@ if ($user_id)
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
 	$smarty->display('file:layout/footer.tpl');
+	
+	exit; // make sure only Userprofile page is processed / displayed
 }
 
 /**
- * User Login
+ * Registrationsformular / User activation
  *
  * @TODO separate code & view by moving the HTML-parts to a Smarty-Template
  */
-if (!$user->is_loggedin())
+if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 {
-	//echo menu('zorg');
-	//echo menu('user');
-	//echo "<br>";
-
-	if(!$userRegcode && !$_SESSION['user_id'] && $doAction == 'anmeldung')
+	/**
+	 * Registrationsformular anzeigen
+	 */
+	if(empty($userRegcode) && !$_SESSION['user_id'])
 	{
 		$model->showLogin($smarty);
 		$smarty->display('file:layout/head.tpl');
@@ -261,7 +249,7 @@ if (!$user->is_loggedin())
 				error_log(sprintf('[ERROR] Google reCAPTCHA: could not instantiate new ReCaptcha()-Class Object => %s', __FILE__, __LINE__, $e->getMessage()));
 				$error = '<font color="red"><b>Google reCAPTCHA konnte nicht geladen werden. Melde uns dieses Problem bitte!</b></font>';
 			}
-	
+
 			/** reCaptcha validieren */
 			if (isset($_POST['g-recaptcha-response']))
 			{
@@ -281,7 +269,7 @@ if (!$user->is_loggedin())
 					if (!isset($registerError) || empty($registerError))
 					{
 						$createUserResult = $user->create_newuser(htmlentities($_POST['new_username']), $_POST['new_password'], $_POST['new_password2'], $_POST['new_email']);
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Result: %s', __FILE__, __LINE__, (is_bool($createUserResult)?'true':$createUserResult)));
+						if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Result: %s', __FILE__, __LINE__, (is_bool($createUserResult)?'true':$createUserResult)));
 						if (is_bool($createUserResult) && $createUserResult===true) {
 							$error = t('account-confirmation', 'user');
 							$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => $error]);
@@ -300,95 +288,102 @@ if (!$user->is_loggedin())
 					foreach ($resp->getErrorCodes() as $code) error_log(sprintf('[ERROR] <%s:%d> Google reCAPTCHA: error code %s', __FILE__, __LINE__, $code));
 	            	//$error = '<font color="red"><b>Das reCAPTCHA wurde FALSCH eingegeben oder leer gelassen.<br>Bitte versuch es nochmal!</b></font>';
 	            	$error = 'Das reCAPTCHA wurde FALSCH eingegeben oder leer gelassen.';
-	            	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $error, 'message' => 'Bitte versuch es nochmal!']);
+	            	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => 'Bitte versuch es nochmal!', 'message' => $error]);
 				}
 			}
-			echo '<form action="'.$_SERVER['PHP_SELF'].'?do=anmeldung" method="post">';
-			echo "<table width='600' class='case' align='center'>
-				<tr><td align='center' class='title' colspan='2'>
-				Anmeldung
-				</td></tr>";
-			//gewuenschter username
-			echo '<tr><td align="left">
-				<b>Gew&uuml;nschter Benutzername:</b><br>
-				<b class="small">(Clan Zeichen kann separat angegeben werden)</b>
-				</td><td align="left">
-				<input type="text" class="text" name="new_username" size="30" value="'.$_POST['new_username'].'">
-				</td></tr>';
-			//gewuenschtes passwort
-			echo '<tr><td align="left">
-				<b>Passwort:</b>
-				</td><td align="left">
-				<input type="password" class="text" name="new_password" size="30">
-				</td></tr><tr><td align="left">
-				<b>Passwort wiederholen:</b>
-				</td><td align="left">
-				<input type="password" class="text" name="new_password2" size="30">
-				</td></tr>';
-			//email adresse:
-			echo '<tr><td align="left">
-				<b>E-Mail Adresse:</b><br>
-				<b class="small">(du bekommst einen Aktivierungscode per E-Mail zugeschickt)</b>
-				</td><td align="left">
-				<input type="text" name="new_email" class="text" size="30" value="'.$_POST['new_email'].'">
-				</td></tr>';
-			// reCAPTCHA v2 form
-			echo '<tr><td align="left" colspan="2">
-				<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$reCaptchaApiKeys['key'].'"></div>
-	            <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl='.$reCaptchaLang.'"></script>
-	            </td></tr>';
-			//submit button
-			echo '<tr><td align="left" colspan="2">
-				<input type="submit" name="newuser" class="button" value="Account registrieren">
-				</td></tr>
-				</table>';
+
+			echo '<form action="?do=anmeldung#newuser" method="post" style="font-size: 0.65rem">';
+			echo '<h2 id="newuser">Neuen Useraccount erstellen</h2>';
+			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
+			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
+			/** username eingeben */
+			echo '<fieldset>';
+			echo '<label>Gew&uuml;nschter Benutzername
+					<br><input type="text" class="text" name="new_username" value="'.$_POST['new_username'].'">
+					</label>
+					<br><span class="tiny info">Clan Tag kannst du sp&auml;ter separat angeben</span>
+				</fieldset>';
+			/** passwort setzen */
+			echo '<fieldset>';
+			echo '<label>Passwort<br>
+					<input type="password" class="text" name="new_password">
+					</label>
+				<br><label>Passwort wiederholen<br>
+					<input type="password" class="text" name="new_password2">
+					</label>
+				</fieldset>';
+			/** email adresse eingeben */
+			echo '<fieldset>';
+			echo '<label>E-Mail Adresse
+					<br><input type="text" name="new_email" class="text" value="'.$_POST['new_email'].'">
+					</label>
+					<br><span class="tiny info">Du bekommst einen Aktivierungscode per E-Mail zugeschickt
+				</fieldset>';
+			/** reCAPTCHA v2 form */
+			echo '<fieldset>';
+			echo '<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$reCaptchaApiKeys['key'].'" data-theme="'.($sun === 'up' ? 'light' : 'dark').'"></div>
+	            	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl='.$reCaptchaLang.'"></script>
+	            </fieldset>';
+			/** abschickäää */
+			echo '<fieldset>
+					<input type="submit" name="newuser" class="button primary" value="Account erstellen">
+				</fieldset>';
 			echo '</form>';
-			echo '<br><br>';
 		}
+		/** reCAPTCHA not found / not loaded */
 		else {
 			error_log(sprintf('[ERROR] <%s:%d> g-recaptcha-src/autoload.php could not be loaded!', __FILE__, __LINE__));
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Die Accountregistrierung steht zur zeit nicht zur Verfügung. Melde uns dieses Problem bitte, damit wir es schnellstmöglich beheben können.']);
+			$smarty->display('file:layout/elements/block_error.tpl');
 		}
 
-		/** neues passwort zusenden */
-		if (!empty($_POST['email'])) $email2check = sanitize_userinput($_POST['email']);
-		$checkEmail = (!empty($email2check) ? check_email($email2check) : null);
-		if ($checkEmail === false)
+		/**
+		 * Passwort vergessen Formular
+		 */
+		if (!empty($_POST['email']))
 		{
-			/** Fehler nur INTERN loggen - nicht nach aussen exponieren! */
-			error_log(sprintf('[NOTICE] <%s:%d> Passwort reset was requested, but e-mail is invalid: "%s"', __FILE__, __LINE__, $email2check));
-		} elseif ($checkEmail === true) {
-			/** Passwort reset triggern */
-			$pwreset_error = $user->new_pass($email2check); // Send new Password to User
+			$email2check = sanitize_userinput($_POST['email']);
+			$checkEmail = (!empty($email2check) ? check_email($email2check) : null);
+			if ($checkEmail === false)
+			{
+				/** Fehler nur INTERN loggen - nicht nach aussen exponieren! */
+				error_log(sprintf('[NOTICE] <%s:%d> Passwort reset was requested, but e-mail is invalid: "%s"', __FILE__, __LINE__, $email2check));
+			} elseif ($checkEmail === true) {
+				/** Passwort reset triggern */
+				$pwreset_error = $user->new_pass($email2check); // Send new Password to User
+			}
+			if (isset($email2check))
+			{
+				$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user'), 'message' => t('newpass-confirmation-text', 'user')]);
+			}
+			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
+			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 		}
-		if (isset($email2check))
-		{
-			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user'), 'message' => t('newpass-confirmation-text', 'user')]);
-		}
-
-		echo '<form action="'.$_SERVER['PHP_SELF'].'?do=anmeldung" method="post">
-			<table width="600" class="case" align="center">
-			<tr><td align="center" class="title" colspan="2">
-			<b>Passwort vergessen ?</b>
-			</td></tr><tr><td align="left">
-			<b>E-Mail Adresse:</b>
-			</td><td align="left">
-			<input type="text" name="email" size="40" class="text">
-			</td></tr><tr><td align="left" colspan="2">
+		echo '<form action="?do=anmeldung#pwreset" method="post" style="font-size: 0.65rem;margin-top: 30px;">
+			<h2 id="pwreset">Passwort vergessen?</h2>
 			<b class="small">Achtung!<br>Hiermit wird dir ein neues Passwort gesetzt und zugesendet, dieses kannst du sp&auml;ter wieder &auml;ndern!</b>
-			<br><br>
-			<input type="submit" name="send" value="neues Passwort zusenden" class="button">
-			</td></tr></table></form>';
+			<fieldset>
+				<label>E-Mail Adresse<br>
+					<input type="text" class="text" name="email">
+				</label>
+			<fieldset>
+				<input type="submit" class="button secondary" name="send" value="neues Passwort zusenden">
+			</fieldset>
+			</form>';
 	}
 
-	/** Neuen User aktivieren */
-	elseif ($userRegcode)
+	/**
+	 * Neuen User mittels Regcode aktivieren
+	 */
+	elseif (!empty($userRegcode))
 	{
-		$new_user = $user->activate_user($userRegcode);
-		$model->showActivation($smarty, $new_user);
-		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user'), 'message' => t('newpass-confirmation-text', 'user')]);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $userRegcode: %s', __FILE__, __LINE__, $userRegcode));
+		$user_activation_result = $user->activate_user($userRegcode);
+		$model->showActivation($smarty, $user->error_message);
+		if ($user_activation_result === true) $smarty->assign('error', ['type' => 'success', 'dismissable' => 'false', 'title' => t('account-activated', 'user'), 'message' => t('account-activated-text', 'user')]);
+		else $smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $user->error_message]);
 		$smarty->display('file:layout/head.tpl');
-		echo '<b>'.$new_user.'</b>';
+		//if ($user_activation_result === true) $smarty->display('file:layout/partials/loginform.tpl'); => Form Redirect-Error
 	}
 
 	$smarty->display('file:layout/footer.tpl');

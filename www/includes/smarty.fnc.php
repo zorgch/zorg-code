@@ -1149,12 +1149,12 @@ function smarty_peter ($params, &$smarty) {
 		 * Returns a specific amount of best rated images from a given gallery
 		 * Usage: {top_pics album=41 limit=1}
 		 *
-		 * @author IneX <IneX@gmx.net>
+		 * @author IneX
 		 * @version 1.0
-		 * @since 1.0 23.06.2007 function added as part of Bug #609
+		 * @since 1.0 <inex> 23.06.2007 function added as part of Bug #609
 		 *
 		 * @see getTopPics()
-		 * @params array $params All passed Smarty-Function parameters, allowed: album, limit, options
+		 * @param array $params All passed Smarty-Function parameters, allowed: album, limit, options
 		 * @return string HTML displaying top rated n amount of Gallery-Pics
 		 */
 		function smarty_top_pics ($params)
@@ -1172,8 +1172,9 @@ function smarty_peter ($params, &$smarty) {
 		 * Returns a specific amount of Gallery Pictures on which a given User has been tagged
 		 * Usage: {user_pics user=41 limit=1}
 		 *
-		 * @author IneX <IneX@gmx.net>
-		 * @date 18.10.2013
+		 * @author IneX
+		 * @version 1.0
+		 * @since 1.0 <inex> 18.10.2013 Function added
 		 */
 		function smarty_user_pics($params)
 		{
@@ -1424,11 +1425,10 @@ function smarty_menuname ($name, &$smarty) {
  * @ToDo This stuff here doesn't work in a Class Context yet...
  * @ToDo Probably needs to use $this-> context for everything - Functions, Constants, etc.?
  *
+ * @package zorg\Smarty
  * @author IneX
- * @date 03.01.2016
  * @version 1.0
- * @package zorg
- * @subpackage Smarty
+ * @since 1.0 <inex> 03.01.2016 Class added
  */
 //class SmartyZorgFunctions
 //{
@@ -1442,8 +1442,8 @@ function smarty_menuname ($name, &$smarty) {
      * *if Smarty TPL Function Name is empty/false, the PHP Function Name will be used!
      *
      * @author IneX
-     * @date 03.01.2016
      * @version 1.0
+     * @since 1.0 <inex> 03.01.2016 Method added
      * @var array
      */
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
@@ -1462,7 +1462,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'request' => array(var_request(), 'URL Handling', 'associative array:  page = requested page / params = url parameter / url = page+params', false)
 								,'url' => array(getURL(), 'URL Handling', 'Gesamte aktuell aufgerufene URL (inkl. Query-Parameter)', false)
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)
-								,'user' => array($user, 'Usersystem', 'Array mit allen User-Informationen des aktuellen Besuchers', false)
+								,'user' => array($user, 'Usersystem', 'Array mit allen User-Informationen des aktuellen Besuchers', false) // TODO change to $smarty->register_object()
 								,'usertyp' => array(array('alle'=>USER_ALLE, 'user'=>USER_USER, 'member'=>USER_MEMBER, 'special'=>USER_SPECIAL), 'Usersystem', 'Array mit allen vorhandenen Usertypen: alle, user, member und special', false)
 								,'user_mobile' => array((isset($user->from_mobile)?$user->from_mobile:''), 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
 								,'user_ip' => array((isset($user->last_ip)?$user->last_ip:''), 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)

@@ -153,7 +153,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 	$html .= '</td></tr></table>';
 
 	$html .= 
-		'<table bgcolor="{$color.background}" class="border forum"  style="table-layout:fixed;" width="100%">'
+		'<table bgcolor="{$color.background}" class="border forum" style="table-layout:fixed;" width="100%">'
 			.'<tr>'
 				.'<td align="left" bgcolor="{$color.background}" valign="top"><nobr>'
 					.'<a href="{get_changed_url change="parent_id='.$id.'"}">'
@@ -250,25 +250,25 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			 	.'{assign var=comment_color value=$color.background}'
 			 .'{/if}'
 			 .'{capture assign="sizeof_hdepth"}{sizeof array=$hdepth}{/capture}'
-			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}"'
-			 .' style="table-layout:fixed;" width="100%">'
+			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}" style="table-layout:fixed;" width="100%">'
 			 .'<tr style="font-size: x-small;">'
-				.'<td class="forum" style="width: 70%;">'
-				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? 'itemprop="url"' : '').'>'
+				.'<td class="forum comment meta left" style="width: 70%;">'
+				.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
+				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? ' itemprop="url"' : '').'>'
 				.'#'.$rs['id']
 				.'</a>'
-				.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person"><span itemprop="name">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-				.'</span></span> @ <span itemprop="dateCreated" value="{'.$rs['date'].'|date_format:"%Y-%m-%d-T%H:00"}">{datename date='.$rs['date'].'}</span>'
+				.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
+				.'</span> @ <meta itemprop="datePublished" content="{'.$rs['date'].'|date_format:"%Y-%m-%d"}">{datename date='.$rs['date'].'}'
 			;
 
 			if($rs['date_edited'] > 0) {
-				$html .= ', edited @ <span itemprop="dateModified" value="{'.$rs['date_edited'].'|date_format:"%Y-%m-%d-T%H:00"}">{datename date='.$rs['date_edited'].'}</span>';
+				$html .= ', edited @ <meta itemprop="dateModified" content="{'.$rs['date_edited'].'|date_format:"%Y-%m-%d-T%H:00"}">{datename date='.$rs['date_edited'].'}';
 			}
 
 			$html .= '<!--googleoff: all-->';
 			$html .= 
 				' <a href="#top">- nach oben -</a> '
-				.'</td><td class="forum" style="width: 15%; text-align: right; white-space: nowrap;">'
+				.'</td><td class="forum comment meta" style="width: 15%; text-align: right; white-space: nowrap;">'
 			;
 
 			// Subscribe / Unsubscribe
@@ -289,7 +289,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 				  		.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={base64_encode text=$request.url}">[edit]</a> '
 				  	.'{/if}
 				  	  {if $user->id != 0}'
-				  		.'</td><td class="forum" style="width: 15%; text-align: right;">'
+				  		.'</td><td class="forum comment meta right" style="width: 15%; text-align: right;">'
 					  		.'<label for="replyfor-'.$rs['id'].'" style="white-space: nowrap;margin-right: 2px;">'
 						  		.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" value="'.$rs['id'].'" '
 						  		.'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked" {/if} /><span class="hide-mobile">&nbsp;reply</span></label>'
@@ -298,7 +298,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			$html .= '</td></tr><tr>';
 
 			($is_thread ? $html .= '<span itemprop="headline" content="'.remove_html(Comment::getLinkThread($rs['board'], $rs['thread_id'])).'"></span>' : '');
-			$html .= '<td class="forum" colspan="3" itemprop="'.($is_thread ? 'articleBody' : 'text').'">';
+			$html .= '<td class="forum comment" colspan="3" itemprop="'.($is_thread ? 'articleBody' : 'text').'">';
 			if (!$rs['error']) {
 				$html .= Comment::formatPost($rs['text']);
 			} else {
@@ -377,7 +377,7 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 			$html .= '{comment_extend_depth depth=$hdepth childposts='.Comment::getNumChildposts($board, $parent_id).' rcount='.$rcount.'}';
 
 			$html .=
-			 '<table class="forum" style="table-layout:fixed;" width="100%">'
+			 '<table class="forum">'
 			 .'<tr>';
 
 			$html .= 
@@ -387,7 +387,8 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 
 			// restlicher output
 			$html .=
-				'<td class="threading space">'
+				 '<td class="threading {$it}"></td>' // Manually added 1 space to fix alignment of "Additional posts"
+				.'<td class="threading space">'
 					.'<a class="threading switch expand" href="{get_changed_url change="parent_id='.$parent_id.'"}"></a>'
 				.'</td>'
 				.'<td align="left" class="border forum">'
