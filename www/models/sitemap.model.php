@@ -91,7 +91,7 @@ class Sitemap extends Model
 	{
 		global $db;
 
-		$sql = 'SELECT id, name, YEAR(startdate) as yyyy, MONTH(startdate) as mm, DAYOFMONTH(startdate) as dd FROM events';
+		$sql = 'SELECT id, name, YEAR(startdate) as yyyy, DATE_FORMAT(startdate,"%m") as mm, DATE_FORMAT(startdate,"%d") as dd FROM events';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		while ($rs = $db->fetch($result))
 		{
