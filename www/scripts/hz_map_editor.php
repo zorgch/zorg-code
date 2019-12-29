@@ -5,11 +5,11 @@
  */
 
 /** File includes */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
+require_once(__DIR__.'/../includes/hz_map.inc.php');
 
 global $user, $db, $smarty;
 
-define ("MAPFILE", $_SERVER['DOCUMENT_ROOT'].'/../data/hz_maps/'.$user->id.'.txt');
+define('MAPFILE', __DIR__.'/../../data/hz_maps/'.$user->id.'.txt');
 
 if ($_POST['formid'] == "hz_map") {				
 	if (is_uploaded_file($_FILES['map']['tmp_name'])) {

@@ -8,26 +8,27 @@ global $db, $user, $smarty;
 require_once(__DIR__.'/../includes/util.inc.php');
 require_once(__DIR__.'/../includes/hz_game.inc.php');
 
-// wenn kein spiel angegeben: spiel auswählen, wo man am zug ist.
-if (!is_numeric($_GET['game'])) {
+$gameid = (isset($_GET['game']) && is_numeric($_GET['game']) && $_GET['game'] > 0 ? (int)$_GET['game'] : null);
+
+/** wenn kein spiel angegeben: spiel auswählen, wo man am zug ist. */
+if (empty($gameid) && $user->is_loggedin())
+{
 	$e = $db->query(
 		"SELECT hzg.id
 		FROM hz_games hzg
 		LEFT JOIN hz_players p
 		  ON hzg.id=p.game
-		  AND p.user='".$user->id."'
+		  AND p.user=".$user->id."
 		WHERE hzg.state='running'
 			  AND IF(hzg.nextturn='z' AND p.type='z'
 		    OR hzg.nextturn!='z' AND p.type!='z' AND p.turndone='0', '1', '0') = '1'
 		ORDER BY hzg.turndate DESC",
 		__FILE__, __LINE__);
 	$d = $db->fetch($e);
-	$gameid = $d['id'];
-        $_GET['game']=$gameid;
+	$gameid = $avail_tickets['id'];
 }
-    else $gameid=$_GET['game'];
 
-// general assign's
+/** general assigns */
 $smarty->assign("imgpath", IMGPATH);
 $smarty->assign("link_taxi", "game=$gameid&ticket=taxi");
 $smarty->assign("link_bus", "game=$gameid&ticket=bus");
@@ -38,23 +39,24 @@ $smarty->assign("link_stay", "game=$gameid&do=stay");
 $smarty->assign("link_game", "game=$gameid");
 
 
-// choose ticket
-if ($_GET['ticket']) {
+/** choose ticket */
+if (isset($_GET['ticket']))
+{
 	$smarty->assign("ticket_choosen", 1);
-	$smarty->assign("ticket_img", IMGPATH."ticket_$_GET[ticket].gif");
-	switch ($_GET['ticket']) {
+	$smarty->assign("ticket_img", IMGPATH.'ticket_'.$_GET['ticket'].'.gif');
+	switch ((string)$_GET['ticket']) {
 		case 'taxi': $ticket_text = "das Taxi"; break;
 		case 'bus': $ticket_text = "den Bus"; break;
 		case 'ubahn': $ticket_text = "die U-Bahn"; break;
 		case 'black': $ticket_text = "ein beliebiges Verkehrsmittel oder den Fluchtwagen"; break;
-		default: user_error("Invalid ticket type '$_GET[ticket]'", E_USER_ERROR);
+		default: user_error('Invalid ticket type "'.$_GET['ticket'].'"', E_USER_ERROR);
 	}
 	$smarty->assign("ticket_text", $ticket_text);
 	$smarty->assign("ticket_cost", turn_cost($_GET['ticket']));
 }
 
 
-// view
+/** view */
 $e = $db->query(
 	"SELECT hzg.*, m.name mapname,
 	z.user z, me.money mymoney,
@@ -70,20 +72,20 @@ $e = $db->query(
 		".TURN_COUNT."-hzg.turncount, ".TURN_COUNT."-hzg.turncount-1) turns_to_money,
 	catcher.user catcher
 	FROM user u, hz_maps m, hz_games hzg
-	LEFT JOIN hz_players me ON (me.user='$user->id' AND me.game=hzg.id)
+	LEFT JOIN hz_players me ON (me.user=".$user->id." AND me.game=hzg.id)
 	LEFT JOIN hz_stations mys ON (mys.id=me.station AND mys.map=hzg.map)
 	LEFT JOIN hz_aims a ON a.map=hzg.map
 	JOIN hz_players z ON z.game=hzg.id AND z.type='z'
 	LEFT JOIN hz_players catcher ON (catcher.game=hzg.id AND catcher.type!='z' AND catcher.station=z.station) 
-	WHERE hzg.id='$gameid' AND u.id=z.user AND m.id=hzg.map
+	WHERE hzg.id=".$gameid." AND u.id=z.user AND m.id=hzg.map
 	GROUP BY a.map",
-	__FILE__, __LINE__);
-
+	__FILE__, __LINE__, 'Hz View Game Query');
     $game = $db->fetch($e);
-if ($game) {
 
+if (!empty($game))
+{
 	if ($game['i_play']) {
-		if ($_GET['ticket']) $smarty->assign("ticket_map", ticket_map($gameid, $_GET['ticket']));
+		if (isset($_GET['ticket'])) $smarty->assign("ticket_map", ticket_map($gameid, $_GET['ticket']));
 		else $smarty->assign("ticket_map", ticket_map($gameid));
 	}
 
@@ -105,7 +107,7 @@ if ($game) {
 	}
 	$smarty->assign("awaiting_turns", $awaiting_turn);
 
-	$e = $db->query(
+	$tix_query = $db->query(
 			"SELECT s.*, p.type playertype
 			 FROM hz_games g
 			 JOIN hz_stations s
@@ -127,17 +129,17 @@ if ($game) {
 			   AND (other.user is null
 			     OR other.type='z')",
 		         __FILE__, __LINE__);
-    
+
 	$avail_tickets = array("taxi"=>0, "bus"=>0, "ubahn"=>0, "black"=>0);
-	while ($d = $db->fetch($e)) {
+	while ($tix = $db->fetch($tix_query)) {
 		$avail_tickets['taxi'] = 1;
-		if ($d['bus']) $avail_tickets['bus'] = 1;
-		if ($d['ubahn']) $avail_tickets['ubahn'] = 1;
-		if ($d['playertype'] == 'z') $avail_tickets['black'] = 1;
+		if ($tix['bus']) $avail_tickets['bus'] = 1;
+		if ($tix['ubahn']) $avail_tickets['ubahn'] = 1;
+		if ($tix['playertype'] == 'z') $avail_tickets['black'] = 1;
 	}
 	$smarty->assign("avail_tickets", $avail_tickets);
 
-	$e = $db->query(
+	$pl_query = $db->query(
 		"SELECT p.*, if(p.type='z', 'Mister z', 'Inspector') playertype,
 			d.rank, d.score
 		FROM hz_players p
@@ -148,20 +150,20 @@ if ($game) {
 		__FILE__, __LINE__
 	);
 	$players = array();
-	while ($pl = $db->fetch($e)) {
-		$pl['img'] = IMGPATH."player_$pl[type].gif";
+	while ($pl = $db->fetch($pl_query)) {
+		$pl['img'] = IMGPATH.'player_'.$pl['type'].'.gif';
 		$players[] = $pl;
 	}
 	$smarty->assign("players", $players);
 
-	$e = $db->query("SELECT *
+	$tracks_query = $db->query("SELECT *
 			 FROM hz_tracks
 			 WHERE game = '".$gameid."'
 			 ORDER BY nr ASC,
 			   player ASC",
 			 __FILE__, __LINE__);
 	$tracks = array();
-	while ($track = $db->fetch($e)) {
+	while ($track = $db->fetch($tracks_query)) {
 		if ($track['player'] == 'z') {
 			$track['players'] = array();
 			$tracks[] = $track;

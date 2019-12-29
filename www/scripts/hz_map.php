@@ -3,37 +3,34 @@
  * Hunting z Maps
  * @package zorg\Games\Hz
  */
-
-/** File includes */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_map.inc.php');
-
 global $db, $smarty;
 
+/** File includes */
+require_once(__DIR__.'/../includes/hz_map.inc.php');
 
-if (is_numeric($_GET['map_activate'])) {
+if (isset($_GET['map_activate']) && is_numeric($_GET['map_activate'])) {
 	change_map_state($_GET['map_activate'], "active");
-}elseif (is_numeric($_GET['map_deactivate'])) {
+}elseif (isset($_GET['map_deactivate']) && is_numeric($_GET['map_deactivate'])) {
 	change_map_state($_GET['map_deactivate'], "inactive");
 }
 
+$map_id = (isset($_GET['map']) && is_numeric($_GET['map']) ? (int)$_GET['map'] : null);
 
-if (!is_numeric($_GET['map'])) {
+if (empty($map_id))
+{
 	$maps = array();
-	$e = $db->query("SELECT *
-			 FROM hz_maps
-			 ORDER BY name ASC",
-			 __FILE__, __LINE__);
+	$e = $db->query('SELECT * FROM hz_maps ORDER BY name ASC', __FILE__, __LINE__);
 	while ($d = $db->fetch($e)) {
-		$d['linkparam'] = "map=".$d['id'];
-		$d['activate'] = "map_activate=".$d['id'];
-		$d['deactivate'] = "map_deactivate=".$d['id'];
-		
+		$d['linkparam'] = 'map='.$d['id'];
+		$d['activate'] = 'map_activate='.$d['id'];
+		$d['deactivate'] = 'map_deactivate='.$d['id'];
+
 		$win_e = $db->query(
 			"SELECT if(g.z_score >= sum(a.score)-g.z_score, 'z', 'i') winner
 			FROM hz_games g
 			JOIN hz_aims a
 			  ON a.map=g.map
-			WHERE g.map='".$d['id']."'
+			WHERE g.map=".$d['id']."
 			  AND g.state='finished'
 			GROUP BY g.id",
 			__FILE__, __LINE__
@@ -46,10 +43,10 @@ if (!is_numeric($_GET['map'])) {
 
 		$maps[] = $d;
 	}
-	$smarty->assign("hz_maps", $maps);
-}
-    elseif (is_numeric($_GET['map'])){
-	$e = $db->query("SELECT * FROM hz_maps WHERE id='$_GET[map]'", __FILE__, __LINE__);
+	$smarty->assign('hz_maps', $maps);
+
+} else {	
+	$e = $db->query('SELECT * FROM hz_maps WHERE id='.$map_id, __FILE__, __LINE__);
 	$d = $db->fetch($e);
-	$smarty->assign("hz_map", $d);
+	$smarty->assign('hz_map', $d);
 }

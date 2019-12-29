@@ -476,8 +476,8 @@ class Bugtracker
 					.'<td align="left">'.($rs['priority'] === '1' ? '&#128314;' : ($rs['priority'] === '2' ? '&#128312;' : ($rs['priority'] === '3' ? '&#128313;' : ($rs['priority'] === '4' ? '&#9660;' : '?')))).'</td>'
 					.'<td align="left">'.$rs['category_title'].'</td>'
 					.'<td align="left"><a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a></td>'
-					.'<td align="left" class="hide-mobile">'.$user->userpagelink($rs['reporter_id']).'</td>'
-					.'<td align="left" class="hide-mobile">'.$user->userpagelink($rs['assignedto_id']).'</td>';
+					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['reporter_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>'
+					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['assignedto_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>';
 			if (!empty($rs['resolved_date'])) { // wenn der Bug resolved wurde...
 				$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span> <span class="hide-mobile">'.datename($rs['resolved_date']).'</span></td>';
 			} elseif (!empty($rs['denied_date'])) { // wenn der Bug denied wurde...

@@ -22,8 +22,8 @@ $model = new MVC\Bugtracker();
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['bug_id'])) $bug_id = (int)$_GET['bug_id'];
-if (!empty($_GET['show'])) $show = (array)$_GET['show'];
+$bug_id = (isset($_GET['bug_id']) ? (int)$_GET['bug_id'] : null);
+$show = (isset($_GET['show']) && !empty($_GET['show']) ? (array)$_GET['show'] : []);
 
 /** Aktionen ausführen */
 Bugtracker::execActions();
@@ -33,34 +33,30 @@ Bugtracker::execActions();
  */
 if(empty($bug_id) || $bug_id <= 0)
 {
-	if (!empty($show)) $show = array();
 	parse_str($_SERVER['QUERY_STRING']);
-	if(count($show) == 0)
+	if($user->is_loggedin())
 	{
-		if($user->is_loggedin())
-		{
-			header(
-				'Location: '
-				.'?show[]=open'
-				.'&show[]=notdenied'
-				.'&show[]=assigned'
-				.'&show[]=unassigned'
-				.'&show[]=new'
-				.'&show[]=old'
-				.'&show[]=own'
-				.'&show[]=notown'
-			);
-			exit;
-		} else {
-			header(
-				'Location: '
-				.'?show[]=open'
-				.'&show[]=notdenied'
-				.'&show[]=assigned'
-				.'&show[]=unassigned'
-			);
-			exit;
-		}
+		header(
+			'Location: '
+			.'?show[]=open'
+			.'&show[]=notdenied'
+			.'&show[]=assigned'
+			.'&show[]=unassigned'
+			.'&show[]=new'
+			.'&show[]=old'
+			.'&show[]=own'
+			.'&show[]=notown'
+		);
+		exit;
+	} else {
+		header(
+			'Location: '
+			.'?show[]=open'
+			.'&show[]=notdenied'
+			.'&show[]=assigned'
+			.'&show[]=unassigned'
+		);
+		exit;
 	}
 
 	$model->showOverview($smarty);
@@ -154,7 +150,7 @@ if(empty($bug_id) || $bug_id <= 0)
 	/** Layout */
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
-	if ($_GET['action'] !== 'editlayout') Forum::printCommentingSystem('b', $_GET['bug_id']);
+	if (!isset($_GET['action']) || $_GET['action'] !== 'editlayout') Forum::printCommentingSystem('b', $_GET['bug_id']);
 }
 
 $smarty->display('file:layout/footer.tpl');
