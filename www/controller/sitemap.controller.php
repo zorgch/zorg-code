@@ -268,7 +268,7 @@ class Sitemap extends Controller
 
 	/**
 	 * Events
-	 * @link /event/2001/9/5/236
+	 * @link /event/2001/09/05/236
 	 *
 	 * @version 1.0
 	 * @since 1.0 <inex> 15.12.2019 method added
@@ -280,7 +280,6 @@ class Sitemap extends Controller
 	{
 		foreach ($dataArray as $element)
 		{
-			error_log('Year: '.$element['year'].' | month: '.$element['month'].' | day: '.$element['day']);
 			$url = sprintf('%s/event/%s/%s/%s/%d',
 								 SITE_URL
 								,$this->string_encode($element['year'])
@@ -288,14 +287,11 @@ class Sitemap extends Controller
 								,$this->string_encode($element['day'])
 								,$this->string_encode($element['id'])
 							);
-			error_log($url);
 			//$lastmod = date('d.m.Y', ...);
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		error_log(print_r($urlElements, true));
 		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
-
 		return $tplOutput;
 	}
 
