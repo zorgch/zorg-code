@@ -43,6 +43,7 @@ if (!$user->is_loggedin() && (int)$album_id !== APOD_GALLERY_ID)
 {
 	$model->showOverview($smarty);
 	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
+	http_response_code(403); // Set response code 403 (forbidden).
 	$smarty->display('file:layout/head.tpl');
 }
 

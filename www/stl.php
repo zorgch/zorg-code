@@ -103,12 +103,10 @@ if ($user->is_loggedin())
 
 /** ...sonst "Access denied" (für nicht-eingeloggte) */
 } else {
-	//printStlPageHeader();
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Wenn Du eingeloggt wärst...', 'message' => '...könntest Du hier Shoot the Lamber spielen. Aber bis dahin: access denied!']);
 	$smarty->display('file:layout/head.tpl');
 	echo '<h1>'.$model->page_title.'</h1>';
-	$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Wenn Du eingeloggt wärst...', 'message' => '...könntest Du hier Shoot the Lamber spielen. Aber bis dahin: access denied!']);
-	$smarty->display('file:layout/elements/block_error.tpl');
-	//$smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 }
 
 /** Page Footer */
