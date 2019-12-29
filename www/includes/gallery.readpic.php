@@ -48,7 +48,7 @@ $media_data = $db->fetch($query);
  * - Ausnahme #2: Telegram-Bot (Daily Pic)
  * @link https://github.com/zorgch/zorg-verein-docs/blob/master/GV/GV%202018/2018-12-23%20zorg%20GV%202018%20Protokoll.md
  */
-if (isset($_GET['token']) && md5(TELEGRAM_API_URI) === $_GET['token']) $auth_granted = true; // Validate Telegram-Bot Auth-Token
+$auth_granted = (isset($_GET['token']) && md5(TELEGRAM_API_URI) === $_GET['token'] ? true : null); // Validate Telegram-Bot Auth-Token
 if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Auth-Token: %s', __FILE__, __LINE__, ($auth_granted ? $_GET['token'] : 'false')));
 if ((int)$media_data['album'] === APOD_GALLERY_ID || $user->is_loggedin() && (!empty($user->vereinsmitglied) && $user->vereinsmitglied !== '0') || $auth_granted === true)
 {
