@@ -1,13 +1,17 @@
 <?php
 /**
+ * Generic AJAX Handler to reload messages
+ * currently not used in mobilez (see commented lines in templates/layout/mobilez/main.tpl
+ */
+/**
  * FILE INCLUDES
  */
-require_once 'config.php';
+require_once __DIR__.'config.php';
 require_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php';
 
 if(isset($_POST['last_message']))
 {
-	$id_from = mysql_escape_string($_POST['last_message']);
+	$id_from = (int)$_POST['last_message'];
 	$mobilezChat->getChatMessages(null, 1, $id_from);
 	
 	// When the user logs out from another page of the browser window, reload the current page

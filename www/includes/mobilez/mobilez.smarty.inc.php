@@ -10,7 +10,7 @@ if (!defined('SMARTY_INC')) define('SMARTY_INC', __DIR__.'/../smarty.inc.php'); 
 /**
  * FILE INCLUDES
  */
-if (!isset($smarty) && !is_object($smarty))
+if (!isset($smarty) || !is_object($smarty))
 {
 	if (!require_once SMARTY_INC) die('Including SMARTY_INC failed!');
 }

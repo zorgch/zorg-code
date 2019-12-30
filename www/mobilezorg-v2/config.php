@@ -3,6 +3,17 @@
  * DEFINE CONSTANTS
  */
 setlocale(LC_TIME,"de_CH"); // Set locale to German, Switzerland
+date_default_timezone_set('Europe/Zurich');
+
+/**
+ * Environment-specific configurations: can be set in the Apache config using
+ *    SetEnv environment 'development'
+ *
+ * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false
+ * @include	development.config.php	If DEVELOPMENT, load a corresponding config file containing DEV-specific settings. Was already checked to exist at define('DEVELOPMENT', true/false)
+ */
+if (!defined('DEVELOPMENT')) define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( __DIR__ .'/../includes/development.config.php') ? true : false ));
+if (DEVELOPMENT === true) include_once( __DIR__ . '/../includes/development.config.php');
 
 // PHP Files and Folder Paths
 if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\') . '/..'); // Document Root to /www/ directory
@@ -32,7 +43,7 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
 elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
     $isSecure = true;
 }
-define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));				// TCP/IP Protocol used: HTTP or HTTPS
+if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));				// TCP/IP Protocol used: HTTP or HTTPS
 if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']); 		// Extract the Top Level Domain
 if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL.'://'.SITE_HOSTNAME); 		// Complete HTTP-URL to the website
 if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - '.SITE_HOSTNAME); 		// General suffix for <title>...[suffix]</title> on every page

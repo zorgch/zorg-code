@@ -1674,4 +1674,4 @@ class peter {
 }
 
 /** Rosenverkäufer einloggen */
-if ($user->typ >= USER_USER) peter::rosenverkaufer();
+if (is_object($user) && $user->typ >= USER_USER) peter::rosenverkaufer();
