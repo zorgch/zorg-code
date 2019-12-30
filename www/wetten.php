@@ -27,12 +27,6 @@ if (!empty($_GET['eintrag'])) $getEintrag = (string)$_GET['eintrag'];
 /** Post actions ausführen/entgegennehmen */
 wetten::exec();
 
-//echo head("zorg", "Wettbüro"); //head($menu, $title)
-//$smarty->assign('tplroot', array('page_title' => 'Wettbüro'));
-//echo menu("zorg");
-//if ($user->typ != USER_NICHTEINGELOGGT) echo menu("eingeloggte_user");
-//echo menu("user");
-
 /** Wettbüro Übersicht */
 if (empty($wette) || $wette <= 0)
 {

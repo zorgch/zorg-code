@@ -233,9 +233,7 @@ $htmlOutput = null;
 /** Buecherliste */
 if(empty($action))
 {
-	//$smarty->display('file:layout/head.tpl');
-	//if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
-	//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
+	$htmlOutput .= '<h1>Bücherliste der zorger</h1>';
 
 	$sql = 'SELECT * FROM books_title where parent_id = 0 ORDER BY typ ASC';
 	$result = $db->query($sql, __FILE__, __LINE__);
@@ -275,7 +273,7 @@ if(empty($action))
 	{
 		/** Eingabe Screen für neue Kategorie */
 		$sidebarHtml = null;
-		$sidebarHtml .= 'Neue Kategorie<br><br>'
+		$sidebarHtml .= '<h2>Neue Kategorie</h2>'
 			.'<form action="'.$_SERVER['PHP_SELF'].'" method="post" enctype="multipart/form-data">'
 			.'<input type="hidden" name="do" value="insert_titel">'
 			.'<table cellpadding="1" cellspacing="1" width="400" class="border" align="center">'

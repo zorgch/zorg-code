@@ -131,7 +131,7 @@ function highscore_dwz($anzahl)
 	  . '   LIMIT 0, '.$anzahl;
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
-	$html = '<h2>Addle Highscore</h2>
+	$html = '<h1>Addle Highscores</h1>
 			<table>
 				<tr>
 					<th colspan=2>&nbsp;</th>

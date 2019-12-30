@@ -229,7 +229,7 @@ function games()
 {
 	global $db, $user;
 
-	echo '<h3>Laufende Spiele</h3>';
+	echo '<h2>Laufende Spiele</h2>';
 
 	if ($user->is_loggedin())
 	{
@@ -261,7 +261,7 @@ function games()
 		$num = $db->num($e);
 		if (!empty($num) || $num > 0)
 		{
-			echo '<h3>Warten auf deinen Gegner</h3>';
+			echo '<h2>Warten auf deinen Gegner</h2>';
 			$i = 1;
 			while ($d = $db->fetch($e)) {
 				if ($d['player1'] != $user->id) {
@@ -298,7 +298,7 @@ function overview() {
 	/** New Addle Game-Formular anzeigen */
 	if ($user->is_loggedin())
 	{ ?>
-		<h3>Neues Spiel</h3>
+		<h2>Neues Spiel</h2>
 		<form action="?show=overview&do=new" method="post">
 			<fieldset>
 				<label>Gegen&nbsp;
@@ -324,7 +324,7 @@ function overview() {
 	/** Laufende Addle Games auflisten */
 	games();
 	
-	echo '<h3>Anleitung</h3>';
+	echo '<h2>Anleitung</h2>';
 	echo t('howto', 'addle');
 }
 
@@ -784,8 +784,8 @@ function archiv() {
 	$d = $db->fetch($e);
 	?>
 	<div align="center">
-	<h3>Spieler Stats für <?php echo $user->id2user($uid)?></h3>
-	<h4>DWZ Punkte:&nbsp;<b><?php echo $d['score']?></b> (Rank #<?php echo $d['rank']?>)</h4>
+	<h1>Addle Stats von <?php echo $user->userprofile_link($uid, ['username' => true, 'clantag' => true, 'link' => true]) ?></h1>
+	<h3>DWZ Punkte:&nbsp;<b><?php echo $d['score']?></b> (Rank #<?php echo $d['rank']?>)</h3>
 	<table>
 		<tr class='title'>
 				<td>Gegner &nbsp; &nbsp;</td>
@@ -853,11 +853,6 @@ if ($user->is_loggedin())
 	}
 
 	/** Addle Views */
-	//$smarty->assign('tplroot', array('page_title' => 'Addle'));
-	//echo menu('zorg');
-	//echo menu('games');
-	//echo menu('addle');
-
 	switch ($show_page)
 	{
 		case 'play':
@@ -895,7 +890,7 @@ if ($user->is_loggedin())
 			//$smarty->assign('tplroot', array('page_title' => 'Addle'));
 			$model->showOverview($smarty);
 			$smarty->display('file:layout/head.tpl');
-			echo '<h2>Addle</h2>';
+			echo '<h1>Addle</h1>';
 			overview();
 			/*if ($user->is_loggedin())
 			{

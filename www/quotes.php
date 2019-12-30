@@ -98,7 +98,7 @@ if(empty($action) || $action === 'my' )
 	if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 	//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 
-	echo '<h2>Quotes</h2>';
+	echo '<h1>Quotes</h1>';
 
 	while ($rs = $db->fetch($result, __FILE__, __LINE__))
 	{
@@ -161,12 +161,12 @@ elseif($action === 'add' && $user->is_loggedin()) {
 	if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 	//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 
-	echo '<h2>Add Quote</h2>';
+	echo '<h1>Add Quote</h1>';
 	echo '<form action="'.getURL(false,false).'" method="post" enctype="multipart/form-data">'
 			.'<input type="hidden" name="do" value="add_now">'
 			.'<style>@media (max-width: 767px){fieldset#quote{flex-direction: column;}}</style>'
 			.'<fieldset id="quote" style="display: flex;white-space: wrap;align-items: stretch;justify-content: flex-start;"><label style="flex: 1;">Text<br>'
-		 		.'<textarea type="text" name="text" id="text" class="text" style="width: 40em; height: 50px;" onkeypress="updateQuotePreview(this.value)"></textarea></label>'
+		 		.'<textarea type="text" name="text" id="text" class="text" style="width: 90%; height: 50px;" onkeypress="updateQuotePreview(this.value)"></textarea></label>'
 		 		.'<blockquote id="preview" style="flex: 1; display: inline-block;"></blockquote>'
 		 	.'</fieldset>'
 			.'<input type="submit" name="send" value="speichern" class="button">'

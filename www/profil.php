@@ -300,7 +300,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			}
 
 			echo '<form action="?do=anmeldung#newuser" method="post" style="font-size: 0.65rem">';
-			echo '<h2 id="newuser">Neuen Useraccount erstellen</h2>';
+			echo '<h1 id="newuser">Neuen zorg User erstellen</h1>';
 			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 			/** username eingeben */
@@ -366,7 +366,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 		}
-		echo '<form action="?do=anmeldung#pwreset" method="post" style="font-size: 0.65rem;margin-top: 30px;">
+		echo '<form action="?do=anmeldung#pwreset" method="post" style="font-size: 0.65rem;margin-top: 60px;">
 			<h2 id="pwreset">Passwort vergessen?</h2>
 			<b class="small">Achtung!<br>Hiermit wird dir ein neues Passwort gesetzt und zugesendet, dieses kannst du sp&auml;ter wieder &auml;ndern!</b>
 			<fieldset>

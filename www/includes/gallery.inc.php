@@ -25,6 +25,7 @@ require_once( __DIR__ .'/config.inc.php');
 include_once( __DIR__ .'/colors.inc.php');
 include_once( __DIR__ .'/forum.inc.php');
 require_once( __DIR__ .'/util.inc.php');
+require_once( __DIR__ .'/usersystem.inc.php');
 
 /**
  * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
@@ -197,7 +198,7 @@ function albumThumbs ($id, $page=0) {
 						WHERE g.id='.$id, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 		$htmlOutput .= '<table width="80%" align="center"><tr><td align="center" class="bottom_border">'
-			.'<h2>'.($d['eventname'] ? $d['eventname'] : $d['name']).($user->typ == USER_MEMBER ? ' <span class="small">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit</a>]</span>' : '').'</h2>'
+			.'<h1>'.($d['eventname'] ? $d['eventname'] : $d['name']).($user->typ == USER_MEMBER ? ' <span class="small">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit</a>]</span>' : '').'</h1>'
 			.'</td></tr></table><br><br>';
 
 		$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' ORDER BY p.id LIMIT '.($page*$pagepics).', '.$pagepics, __FILE__, __LINE__, __FUNCTION__);
@@ -317,7 +318,7 @@ function pic ($id) {
 				echo '<input type="submit" value=" OK " class="button">';
 			echo "</form>";
 		} elseif ($cur['name']) {
-			echo '<h2>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small"><a href="?editFotoTitle=1&'.url_params().'">[edit]</a></span>' : '').'</h2>';
+			echo '<h1>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small"><a href="?editFotoTitle=1&'.url_params().'">[edit]</a></span>' : '').'</h1>';
 		}
 	}
 
