@@ -95,7 +95,6 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 		{
 			$no_form = true;
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-thread_id', 'commenting')]);
-			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
 			$model->threadNotFound($smarty);
 			http_response_code(404); // Set response code 404 (not found)
 		} else {
