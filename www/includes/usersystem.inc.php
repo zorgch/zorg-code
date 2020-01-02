@@ -1757,7 +1757,7 @@ class usersystem
 				}
 
 				/** Prepare SQL-Update "SET row=value"-Array */
-				$sqlUpdateSetValuesArray[$dataKey] = (!is_array($dataValue) ? sanitize_userinput($dataValue) : $dataValue);
+				$sqlUpdateSetValuesArray[$dataKey] = (!is_array($dataValue) ? mysqli_real_escape_string($db->conn, $dataValue) : $dataValue);
 			}
 
 			/**
@@ -1783,14 +1783,14 @@ class usersystem
 			 * Process Form-Checkbox-Array values with JSON conversion
 			 */
 			if (is_array($data_array['notifications']) && count($data_array['notifications']) > 0) {
-				$sqlUpdateSetValuesArray['notifications'] = sanitize_userinput(json_encode($data_array['notifications']));
+				$sqlUpdateSetValuesArray['notifications'] = mysqli_real_escape_string($db->conn, json_encode($data_array['notifications']));
 			} elseif (!isset($data_array['notifications']) || empty($data_array['notifications'])) {
 				$sqlUpdateSetValuesArray['notifications'] = NULL; // no change
 			}
 			if (is_array($data_array['forum_boards_unread']) && count($data_array['forum_boards_unread']) > 0) {
-				$sqlUpdateSetValuesArray['forum_boards_unread'] = sanitize_userinput(json_encode($data_array['forum_boards_unread']));
+				$sqlUpdateSetValuesArray['forum_boards_unread'] = mysqli_real_escape_string($db->conn, json_encode($data_array['forum_boards_unread']));
 			} elseif (!isset($data_array['forum_boards_unread']) || empty($data_array['forum_boards_unread'])) {
-				$sqlUpdateSetValuesArray['forum_boards_unread'] = escape_text($this->default_forum_boards_unread); // no change
+				$sqlUpdateSetValuesArray['forum_boards_unread'] = mysqli_real_escape_string($db->conn, $this->default_forum_boards_unread); // no change
 			}
 
 			if (count($sqlUpdateSetValuesArray) > 0)
