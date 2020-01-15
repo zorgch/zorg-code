@@ -803,49 +803,65 @@ function smarty_peter ($params, &$smarty) {
 /**
  * Files
  */
-	function smarty_gettext ($params, &$smarty) { // Read contents from a textfile on the Server
+	/**
+	 * Read and print contents from a given textfile or from user files /files/[user-id]/
+	 *
+	 * Usage: {gettext id=[FILE-ID] linelength=[MAX-LINES]}
+	 *    or: {gettext file=[PATH/WITHIN/FILES/FILE-NAME] linelength=[MAX-LINES]}
+	 * @link http://zorg.local/thread/44614 Do ä Biispiel im Forum
+	 *
+	 * @author [z]cylander
+	 * @version 1.1
+	 * @since 1.0 <cylander> 20.08.2004 function added
+	 * @since 1.1 <inex> 15.01.2019 added HTML escapes to file output
+	 */
+	function smarty_gettext ($params, &$smarty) {
 		global $db;
 
 		if ($params['file']) {
 			$file = $params['file'];
-			if (substr($file, -4) != '.txt') return "<font color='red'><b>[gettext: Can only read from txt-File]</b></font><br />";
-			if (substr($file, 0, 1) == '/') $file = $_SERVER['DOCUMENT_ROOT'].$file;
-			if (!file_exists($file)) return "<font color='red'><b>[gettext: File '$file' not found]</b></font><br />";
+			if (substr($file, -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
+			if (substr($file, 0, 1) == '/') $file = FILES_DIR.$file;
+			if (!file_exists($file)) return '<font color="red"><b>[gettext: File "'.$file.'" not found]</b></font><br />';
 		}elseif ($params['id']) {
-			$e = $db->query("SELECT * FROM files WHERE id='$params[id]'", __FILE__, __LINE__);
+			$e = $db->query('SELECT * FROM files WHERE id='.$params['id'], __FILE__, __LINE__, __FUNCTION__);
 			$d = $db->fetch($e);
 			if ($d) {
-				if (substr($d['name'], -4) != '.txt') return "<font color='red'><b>[gettext: Can only read from txt-File]</b></font><br />";
-				$file = $_SERVER['DOCUMENT_ROOT']."/../data/files/$d[user]/$d[name]";
+				if (substr($d['name'], -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
+				$file = sprintf('%s%d/%s', FILES_DIR, $d['user'], $d['name']);
 			}else{
-				return "<font color='red'><b>[gettext: File mit id '$params[id]' in Filemanager nicht gefunden]</b></font><br />";
+				return '<font color="red"><b>[gettext: File mit id "'.$params['id'].'" in Filemanager nicht gefunden]</b></font><br />';
 			}
 		}else{
-			return "<font color='red'><b>[gettext: Gib mittels dem Parameter 'file' oder 'id' eine Datei an]</b></font><br />";
+			return '<font color="red"><b>[gettext: Gib mittels dem Parameter "file" oder "id" eine Datei an]</b></font><br />';
 		}
+		error_log('file path: '.$file);
+		$out = '<div align="left"><pre>';
 
-		$out = "";
-		$out .= "<div align='left'><xmp>";
-
-
-		if ($params['linelength']) {
+		/** Output only n lines (as passed) */
+		if (isset($params['linelength']))
+		{
 			$len = $params['linelength'];
+			error_log('linelength: '.$len);
 			if (!is_numeric($len) || $len < 1) {
-				return "<font color='red'><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />";
+				return '<font color="red"><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />';
 			}
 			$fcontent = file($file);
 			foreach ($fcontent as $it) {
 				while (strlen($it) > $len) {
-					$out .= substr($it, 0, $len) . "\n   ";
-					$it = substr($it, $len);
+					$out .= htmlspecialchars(substr($it, 0, $len)) . "\n   ";
+					$it = htmlspecialchars(substr($it, $len));
 				}
-				$out .= $it;
+				$out .= htmlspecialchars($it);
 			}
-		}else{
-			$out .= file_get_contents($file);
 		}
 
-		$out .= "</xmp></div>";
+		/** Output whole textfile at once */
+		else{
+			$out .= htmlspecialchars(file_get_contents($file));
+		}
+error_log('out: '.$out);
+		$out .= '</pre></div>';
 
 		return $out;
 	}

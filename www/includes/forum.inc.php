@@ -525,9 +525,10 @@ class Comment
 	 * Den Titel eines Kommentars holen.
 	 *
 	 * @author [z]biko, IneX
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 <biko> method added
 	 * @since 2.0 <inex> 24.09.2018 method uses now text_width() util-function
+	 * @since 2.1 <inex> 15.01.2019 enhanced to also remove Smarty curly brackets { and }
 	 *
 	 * @see remove_html(), text_width()
 	 * @param string $text
@@ -537,6 +538,7 @@ class Comment
 	 */
 	static function getTitle($text, $length=20, $if_empty_use_this=null) {
 		$text = text_width(remove_html($text), $length, '', true, true);
+		$text = str_replace('{', '', str_replace('}', '', $text)); // Remove Smarty-brackets { and }
 		if (empty($text)) $text = (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
 		return $text;
 	}
@@ -544,8 +546,9 @@ class Comment
 	/**
 	 * Schnipsel/Auszug eines Kommentars holen.
 	 *
-	 * @version 1.0
+	 * @version 1.1
 	 * @since 1.0 <inex> 19.08.2019 method added
+	 * @since 1.1 <inex> 15.01.2019 enhanced to also remove Smarty curly brackets { and }
 	 *
 	 * @see remove_html(), text_width(), t()
 	 * @param string $text
@@ -554,6 +557,7 @@ class Comment
 	 */
 	static function getSummary($text, $length=20) {
 		$text = text_width(remove_html($text), $length);
+		$text = str_replace('{', '', str_replace('}', '', $text)); // Remove Smarty-brackets { and }
 		return (empty($text) ? t('text-abbreviation') : $text);
 	}
 
