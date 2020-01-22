@@ -786,7 +786,8 @@ function smarty_peter ($params, &$smarty) {
  * String, Integer, Date and Array Functions
  */
 	function smarty_sizeof ($params) {
-		return sizeof($params['array']);
+		/** Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable */
+		return (is_array($params['array']) ? sizeof($params['array']) : 0);
 	}
 	function smarty_rand ($params, &$smarty) {
 		mt_srand();

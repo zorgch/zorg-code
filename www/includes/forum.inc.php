@@ -2000,25 +2000,31 @@ class Forum {
 	 * Commenting-System ausgeben
 	 * Printet das "Pluggable" Commenting-System
 	 *
-	 * @author	biko
+	 * @author	[z]biko
 	 * @author	IneX
-	 * @version	3.0
-	 * @since	1.0 added method
-	 * @since	2.0 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
-	 * @since	3.0 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
+	 * @version	3.1
+	 * @since	1.0 <biko> added method
+	 * @since	2.0 <inex> 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
+	 * @since	3.0 <inex> 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
+	 * @since	3.1 <inex> 22.01.2020 Code optimizations
 	 *
 	 * @see USER_USER, USER_NICHTEINGELOGGT
 	 * @see commentform.tpl
-	 * @param $board
-	 * @param $thread_id
-	 * @param $parent_id
-	 * @return String
+	 * @see Thread::hasRights(), Thread::setLastSeen()
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
+	 * @param string $board
+	 * @param int $thread_id
+	 * @uses $_GET['parent_id'] directly
+	 * @return void
 	 */
-	static function printCommentingSystem($board, $thread_id) {
+	static function printCommentingSystem($board, $thread_id)
+	{
 		global $db, $user, $smarty;
 
 		/** Get and set missing parent_id */
-		$_GET['parent_id'] = ( isset( $_GET['parent_id'] ) && $_GET['parent_id'] != '' ) ? $_GET['parent_id'] : $thread_id;
+		$comment_parent_id = ( isset( $_GET['parent_id'] ) && $_GET['parent_id'] != '' ) ? $_GET['parent_id'] : $thread_id;
 
 		if (Thread::hasRights($board, $thread_id, $user->id)) {
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
@@ -2028,37 +2034,34 @@ class Forum {
 			if($user->typ >= USER_USER)
 			{
 				$comments_subscribed = array();
-				$sql = '
-					SELECT comment_id
-					FROM comments_subscriptions
-					WHERE board="'.$board.'" AND user_id='.$user->id
-					;
+				$sql = ' SELECT comment_id
+						FROM comments_subscriptions
+						WHERE board="'.$board.'" AND user_id='.$user->id;
 				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
 				$smarty->assign('comments_subscribed', $comments_subscribed);
 
 				/** Unread Comment Array Bauen */
 				$comments_unread = array();
-				$sql = '
-					SELECT u.*
-					FROM comments_unread u, comments c
-					WHERE c.id=u.comment_id
-						AND c.thread_id='.$thread_id.'
-						AND c.board="'.$board.'"
-						AND u.user_id='.$user->id
-				;
+				$sql = 'SELECT u.*
+						FROM comments_unread u, comments c
+						WHERE c.id=u.comment_id
+							AND c.thread_id='.$thread_id.'
+							AND c.board="'.$board.'"
+							AND u.user_id='.$user->id;
 				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
 				$smarty->assign('comments_unread', $comments_unread);
 			}
 
 			/** Comments aus DB holen */
-			$sql = "SELECT * FROM comments WHERE id='".$_GET['parent_id']."' AND board='$board'";
+			$sql = 'SELECT * FROM comments WHERE board="'.$board.'" AND id='.$comment_parent_id;
 			$d = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
 			/** Comments an Smarty übergeben */
-			if ($_GET['parent_id'] == $thread_id || $d['parent_id'] == $thread_id) {
-				$smarty->display("comments:$board-$thread_id");
+			if ($comment_parent_id == $thread_id || $d['parent_id'] == $thread_id)
+			{
+				$smarty->display(sprintf('comments:%s-%d', $board, $thread_id));
 			} else {
 				$smarty->assign('comments_top_additional', 1);
 				$smarty->display('comments:'.$d['parent_id']);
@@ -2068,7 +2071,7 @@ class Forum {
 	    	if(defined(USER_NICHTEINGELOGGT) && $user->typ != USER_NICHTEINGELOGGT) {
 	    		$smarty->assign('board', $board);
 				$smarty->assign('thread_id', $thread_id);
-				$smarty->assign('parent_id', $_GET['parent_id']);
+				$smarty->assign('parent_id', $comment_parent_id);
 				$smarty->display('file:layout/partials/commentform.tpl');
 	    	}
 		}
@@ -2079,39 +2082,41 @@ class Forum {
 	 * Gibt einen XML RSS-Feed zurück
 	 *
 	 * @author IneX
-	 * @date ?
 	 * @version 2.0
-	 * @since 1.0 initial method added
-	 * @since 2.0 20.07.2018 Refactored long-running queries, optimized queries and output (e.g. unreads, unnecessary LEFT JOINs, etc.)
+	 * @since 1.0 <inex> initial method added
+	 * @since 2.0 <inex> 20.07.2018 Refactored long-running queries, optimized queries and output (e.g. unreads, unnecessary LEFT JOINs, etc.)
 	 *
 	 * @TODO Param "user_id" can be removed with a refactoring! Doesn't have to be passed & thus Method can be simplified...
 	 *
-	 * @param $board default f (=forum)
-	 * @param user_id default null (=nicht eingeloggt)
-	 * @param $thread_id default null (=kein thread gewählt)
-	 * @return array|boolean Returns XML-Feed-Item-Array - or false, if building the feed failed
+	 * @param string $board Default f (=forum)
+	 * @param int $user_id Default null (=nicht eingeloggt)
+	 * @param int $thread_id Default null (=kein thread gewählt)
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @return array|bool Returns XML-Feed-Item-Array - or false, if building the feed failed
 	 */
-	 static function printRSS($board='f', $user_id=null, $thread_id=null) {
+	 static function printRSS($board='f', $user_id=null, $thread_id=null)
+	 {
 	 	global $db, $user;
 
-	 	// where-board Bedingung für SQL-Query bilden
+	 	/** where-board Bedingung für SQL-Query bilden */
 		$wboard = ( $board ? 'comments.board="'.$board.'"' : '' );
 
+		/** RSS-Feed items configs */
 		$num = 15;		// Anzahl auszugebender Datensätze
-
-	 	$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
 
 		/**
 		 * Ausgabe evaluieren und entsprechendes SQL holen
-		 * @author IneX
 		 */
-		// nicht eingeloggter User...
+		$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
+
+		/** nicht eingeloggter User... */
 		if (is_null($user_id)) {
 
-			// Feed für forum board
+			/** Feed für forum board */
 			if ($board == 'f') {
 
-				// keine thread_id übergeben
+				/** keine thread_id übergeben */
 				if (is_null($thread_id)) {
 
 					$sql =
@@ -2127,7 +2132,7 @@ class Forum {
 						 LIMIT 0,'.$num
 					;
 
-				// thread_id vorhanden
+				/** thread_id vorhanden */
 				} else {
 
 					$sql =
@@ -2151,7 +2156,7 @@ class Forum {
 			} else {
 
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
-				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
+				// @FIXME erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
 					'SELECT
 					comments.*
@@ -2208,7 +2213,7 @@ class Forum {
 			} else {
 
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
-				// erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
+				// @FIXME erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
 					'SELECT
 					  comments.*
