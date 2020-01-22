@@ -1,5 +1,11 @@
 <?php
 /**
+ * This is where it all starts.
+ * The Index. A digital zorg. We tried to picture clusters of information as they traveled through to your computer.
+ * Bits, bytes. With the network like freeways. We kept dreaming of a zorg we thought we'd never see.
+ * And then, one day... we got it running.
+ */
+/**
  * File Includes
  */
 require_once( dirname(__FILE__) . '/includes/main.inc.php');
@@ -191,6 +197,7 @@ if ($_GET['layout'] == 'rss' && $_GET['type'] != '') {
 			}
 		}
 
+		$_TPLROOT['page_title'] = htmlentities($_TPLROOT['page_title'], ENT_QUOTES); // To prevent breaking HTML syntax, convert all special characters to HTML entities
 		$smarty->assign('tplroot', $_TPLROOT);
 	}
 	catch (Exception $e) {
