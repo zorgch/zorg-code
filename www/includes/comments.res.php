@@ -223,7 +223,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 			$html .= 
 				'{foreach from=$hdepth item=it key=k}'.
-					'{if is_array($k) && $k == (sizeof($hdepth) - 1)}';
+					'{if is_array($hdepth) && $k == (sizeof($hdepth) - 1)}';
 						if($rs['numchildposts'] > 0) {
 					  		$html .=
 					  			'<td class="threading {$it}">'
@@ -365,7 +365,7 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 		exit;
 	}
 
-	$html = '{if ($user->id != 0 && is_array($hdepth) && sizeof($hdepth) <= $user->maxdepth) || ($user->id == 0 && is_array($hdepth) && sizeof($hdepth) < $comments_default_maxdepth) || '.Comment::getNumChildposts($board, $parent_id).' == 0}';
+	$html = '{if ($user->id != 0 && sizeof($hdepth) <= $user->maxdepth) || ($user->id == 0 && sizeof($hdepth) < $comments_default_maxdepth) || '.Comment::getNumChildposts($board, $parent_id).' == 0}';
 
 		$html .= '<div id="layer'.$parent_id.'">';
 
