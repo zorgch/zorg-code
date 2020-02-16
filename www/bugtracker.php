@@ -34,7 +34,6 @@ Bugtracker::execActions();
  */
 if(empty($bug_id) || $bug_id <= 0)
 {
-	parse_str($_SERVER['QUERY_STRING'], $show);
 	if(count($show) == 0)
 	{
 		if($user->is_loggedin())
