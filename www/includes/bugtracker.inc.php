@@ -387,7 +387,7 @@ class Bugtracker
 	* @param Array $show
 	* @param String $order
 	*/
-	function getBugList($show, $order)
+	static function getBugList($show, $order)
 	{
 		global $db, $user;
 
@@ -496,7 +496,7 @@ class Bugtracker
 	* Formular für neuen Bug generieren
 	* @return string HTML-Code für das Formular "Neuen Bug eintragen"
 	*/
-	function getFormNewBugHTML()
+	static function getFormNewBugHTML()
 	{
 		global $user;
 
@@ -669,7 +669,7 @@ class Bugtracker
 		return $html;
 	}
 
-	function getFormFieldCategory($category_id='')
+	static function getFormFieldCategory($category_id='')
 	{
 		global $db;
 
@@ -711,11 +711,11 @@ class Bugtracker
 		return $html;
 	}
 
-	function getFormFieldDescription($description='') {
+	static function getFormFieldDescription($description='') {
 		return '<textarea name="description" placeholder="Klare Beschreibung, Herleitung und URL bei Problemen..." style="width: 90%;min-height: 200px;">'.htmlentities($description, ENT_QUOTES).'</textarea>';
 	}
 
-	function getFormFieldPriority($priority=4) {
+	static function getFormFieldPriority($priority=4) {
 		return '<select name="priority" size="1">'
 					.'<option value="1" '.($priority == 1 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(1).'</option>'
 					.'<option value="2" '.($priority == 2 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(2).'</option>'
@@ -724,7 +724,7 @@ class Bugtracker
 				.'</select>';
 	}
 
-	function getFormFieldTitle($title='') {
+	static function getFormFieldTitle($title='') {
 		return '<input type="text" name="title" value="'.htmlentities($title, ENT_QUOTES).'" placeholder="Feature/Problem Titel" style="width: 90%;">';
 	}
 

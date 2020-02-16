@@ -24,6 +24,7 @@ $model = new MVC\Bugtracker();
  */
 $bug_id = (isset($_GET['bug_id']) ? (int)$_GET['bug_id'] : null);
 $show = (isset($_GET['show']) && !empty($_GET['show']) ? (array)$_GET['show'] : []);
+$order = isset($_GET['order'])?$_GET['order']:'';
 
 /** Aktionen ausführen */
 Bugtracker::execActions();
@@ -33,30 +34,33 @@ Bugtracker::execActions();
  */
 if(empty($bug_id) || $bug_id <= 0)
 {
-	parse_str($_SERVER['QUERY_STRING']);
-	if($user->is_loggedin())
+	parse_str($_SERVER['QUERY_STRING'], $show);
+	if(count($show) == 0)
 	{
-		header(
-			'Location: '
-			.'?show[]=open'
-			.'&show[]=notdenied'
-			.'&show[]=assigned'
-			.'&show[]=unassigned'
-			.'&show[]=new'
-			.'&show[]=old'
-			.'&show[]=own'
-			.'&show[]=notown'
-		);
-		exit;
-	} else {
-		header(
-			'Location: '
-			.'?show[]=open'
-			.'&show[]=notdenied'
-			.'&show[]=assigned'
-			.'&show[]=unassigned'
-		);
-		exit;
+		if($user->is_loggedin())
+		{
+			header(
+				'Location: '
+				.'?show[]=open'
+				.'&show[]=notdenied'
+				.'&show[]=assigned'
+				.'&show[]=unassigned'
+				.'&show[]=new'
+				.'&show[]=old'
+				.'&show[]=own'
+				.'&show[]=notown'
+			);
+			exit;
+		} else {
+			header(
+				'Location: '
+				.'?show[]=open'
+				.'&show[]=notdenied'
+				.'&show[]=assigned'
+				.'&show[]=unassigned'
+			);
+			exit;
+		}
 	}
 
 	$model->showOverview($smarty);
@@ -113,7 +117,7 @@ if(empty($bug_id) || $bug_id <= 0)
 		.'<thead>'
 		.'</table>'
 		.'</form>'
-		.Bugtracker::getBugList($show, $_GET['order'])
+		.Bugtracker::getBugList($show, $order)
 	;
 
 	if($user->typ >= USER_USER)

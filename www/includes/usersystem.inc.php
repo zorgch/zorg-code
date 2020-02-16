@@ -1035,7 +1035,7 @@ class usersystem
 		$htmlSelectElements = [];
 		while ($rs = $db->fetch($result))
 		{
-			$selectCurrent = (in_array($rs['id'], $users_selected) || $rs['id'] == $users_selected[0] ? 'selected' : false);
+			$selectCurrent = (in_array($rs['id'], $users_selected) ? 'selected' : false);
 			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $rs['clan_tag'].$rs['username']);
 			if ($selectCurrent !== false) array_unshift($htmlSelectElements, $elementHtml);
 			else array_push($htmlSelectElements, $elementHtml);
