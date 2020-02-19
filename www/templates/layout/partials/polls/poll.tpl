@@ -1,7 +1,7 @@
-<table class="border" style="border-spacing:2px; border-collapse:collapse; width:204px; background-color:{$smarty.const.BACKGROUNDCOLOR}; margin:5px 0 10px 0;">
+<table class="border" style="border-spacing:2px; border-collapse:collapse; width:216px; background-color:{$smarty.const.BACKGROUNDCOLOR}; margin:5px 0 10px 0;">
 	<tr>
 		<td align='left'>
-			<small><b>{$poll.text}</b>{if $poll.state=="closed"}<span style="color:red;"> [closed]</span>{/if}<br>
+			<small><b>{$poll.text}</b>{if $poll.state=='closed'}<span style="color:red;"> [closed]</span>{/if}<br>
 			{$poll.user|userpage:0}, {$poll.date|datename}{if $poll.type=='member'} <nobr>- members only -</nobr>{/if}
 			</small>
 		</td>
@@ -41,11 +41,6 @@
 {else}
 	{foreach name=answers_loop from=$answers item=answer key=answer_id}
 	<tr>
-		<td>
-			<img src="/images/spc.gif" height="2" width="1">
-		</td>
-	</tr>
-	<tr>
 		<td align="left">
 			<small>
 			{if $poll.myvote != $answer.id}{$answer.text} ({$answer.votes}){/if}
@@ -55,22 +50,13 @@
 					{if $voter.user == $user->id}<b>{/if}{$voter.user|name}{if $voter.user == $user->id}</b>{/if}{if $smarty.foreach.voters_loop.last == false},{/if}
 				{/foreach}
 			</i>{/if}
-			{if $poll.myvote == $answer.id && $poll.state=='open' && $user_has_vote_permission} <a href="{$answer.unvote_url}{*$poll_unvoteurl[$answer_id]*}">[unvote]</a>{/if}
+			{if $poll.myvote == $answer.id && $poll.state=='open' && $user_has_vote_permission} <a href="{$answer.unvote_url}">[unvote]</a>{/if}
 			</small>
 		</td>
 	</tr>
 	<tr>
 		<td>
-			<table cellspacing="0" cellpadding="0">
-				<tr>
-					<td style="background:url('/images/poll_bar.gif') repeat-x;">
-						<img src="/images/spc.gif" height="6" width="{$answer.pollbar_size}">
-					</td>
-					<td>
-						<img src="/images/spc.gif" height="1" width="{$answer.pollbar_space}">
-					</td>
-				</tr>
-			</table>
+			<span style="display: inline-block;background: url('/images/poll_bar.gif') repeat-x;height: 6px;width: {$answer.pollbar_size}px;padding-bottom: 10px;">
 		</td>
 	</tr>
 	{/foreach}
@@ -83,7 +69,7 @@
 			{if $poll.state=='open' && $user->id==$poll.user}
 				| <a href="/actions/poll_state.php?poll={$poll.id}&state=closed&{url_params}">close</a> |
 			{elseif $poll.state == 'closed' && $user->id==$poll.user}
-				| <a href="/actions/poll_state.php?poll={$poll.id}&state=open&{url_params}">open</a> |
+				| <a href="/actions/poll_state.php?poll={$poll.id}&state=open&{url_params}">reopen</a> |
 			{/if}
 			</small>
 		</td>

@@ -255,7 +255,7 @@ return
 		]
 	,'poll' =>
 		[
-			 'invalid-poll_id' => 'Invalid Poll id "%d"'
+			 'invalid-poll_id' => 'Invalid Poll id "%s"'
 		]
 	,'util' =>
 		[

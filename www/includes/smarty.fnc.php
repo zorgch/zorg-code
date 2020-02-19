@@ -675,9 +675,19 @@ function smarty_peter ($params, &$smarty) {
 		return Quotes::getDailyQuote();
 	}
 
-/** Polls */
-	function smarty_poll ($params) {
-		return getPoll($params['id']);
+/**
+ * Polls
+ * @since 2.0 <inex> 19.02.2020 Added param validation and Poll Class handling
+ **/
+	function smarty_poll ($params)
+	{
+		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']))
+		{
+			return smarty_error(['msg' => t('invalid-poll_id', 'poll', [$params['id']])]);
+		} else {
+			$poll = new Polls();
+			return $poll->show($params['id']);
+		}
 	}
 
 /** APOD */
