@@ -60,19 +60,16 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 		
 		$html .= "
 		<table class='border'>
-		<tr>
-			<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=1'>User</a></b></td>
-			<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=2'>Page</a></b></td>
-			<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=5'>Referrer</a></b></td>
-			<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=3'>File</a></b></td>
-			<td align='center'><b><b>Line</b></td>
-			<td align='center'><b>SQL</b></td>
-			<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=4'>Datum</a></b></td>
-		";
-		
-		if(!$_GET['id']) {
-			$html .= "<td align='right'><b>del</b></td>";
-		}
+			<tr>
+				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=1'>User</a></b></td>
+				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=2'>Page</a></b></td>
+				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=5'>Referrer</a></b></td>
+				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=3'>File</a></b></td>
+				<td align='center' class='hide-mobile'><b><b>Line</b></td>
+				<td align='center'><b>SQL</b></td>
+				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=4'>Datum</a></b></td>
+			";
+			if(!$_GET['id']) $html .= '<td align="right" class="hide-mobile"><b>del</b></td>';
 		
 		$html .= "</tr>";
 		$i = 0;
@@ -86,20 +83,19 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 			
 			$i++;
 			
-			$html .= "
-			<tr $add><td align='left' ><small>".$rs['username']."</small></td>
-			<td align='left'><small>".substr($rs['page'],0,23)."...</small></td>
-			<td align='left'><small>".substr(str_replace("http://".$_SERVER['SERVER_NAME'],"", $rs['referrer']),0,23)."...</small></td>
-			<td align='left'><small>".str_replace($_SERVER['DOCUMENT_ROOT'],"",$rs['file'])."</small></td>
-			<td align='left'><small>".$rs['line']."</small></td>
-			<td align='left'><small><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&id=".$rs['id']."'>".substr($rs['query'],0,23)."...</a></small></td>
-			<td align='left'><small>".datename($rs['datum'])."</small></td>";
+			$html .= '
+				<tr '.$add.'>
+					<td align="left"><small>'.$rs['username'].'</small></td>
+					<td align="left" class="hide-mobile"><small>'.substr($rs['page'],0,23).'...</small></td>
+					<td align="left" class="hide-mobile"><small>'.substr(str_replace('http://'.$_SERVER['SERVER_NAME'],'', $rs['referrer']),0,23).'...</small></td>
+					<td align="left" class="hide-mobile"><small>'.str_replace($_SERVER['DOCUMENT_ROOT'],'',$rs['file']).'</small></td>
+					<td align="left" class="hide-mobile"><small>'.$rs['line'].'</small></td>
+					<td align="left"><small><a href="'.$_SERVER['PHP_SELF'].'?tpl='.$_GET['tpl'].'&id='.$rs['id'].'">'.substr($rs['query'],0,23).'...</a></small></td>
+					<td align="left"><small>'.datename($rs['datum']).'</small></td>';
 			
-			if(!$_GET['id']) {
-				$html .= '<td align="right" '.$add.'><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"> </td>';
-			}
+				if(!$_GET['id']) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';
 	
-			$html .= "</tr>";
+			$html .= '</tr>';
 			
 			if($_GET['id'] == $rs['id']) {
 				if($_GET['query']) {
@@ -145,7 +141,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 					$html .= "</small></td>
 				</tr>
 				<tr>
-					<td align='right'><small><b>Query korrigiert ?</b></small><input type='submit' name='del' class='button' value='l�schen'></td>
+					<td align='right'><small><b>Query korrigiert ?</b></small><input type='submit' name='del' class='button' value='delete'></td>
 				</tr>
 				</table>
 				</form>
@@ -155,20 +151,20 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 		}
 		
 		if(!$_GET['id']) {
-			$html .= "
+			$html .= '
 			<tr>
-				<td align='left' colspan='2'><input type='text' name='num' class='text' size='5' value='".$_SESSION['error_num']."'><small> Anzahl Errors von <b>".$num_errors."</b></small></td>
-				<td align='left' cospan='2'><input type='submit' class='button' value='anpassen'></td>
-				<td align='right' colspan='4'><input type='submit' class='button' value='schliessen'><input type='button' onClick='selectAll();' class='button' value='Alle'></td>
-			</tr>";
+				<td align="left" colspan="2"><input type="text" name="num" class="text" size="5" value="'.$_SESSION['error_num'].'"><small> Anzahl Errors von <b>'.$num_errors.'</b></small></td>
+				<td align="left" cospan="2"><input type="submit" class="button" value="show"></td>
+				<td align="right" colspan="4" class="hide-mobile"><input type="submit" class="button" value="schliessen"><input type="button" onClick="selectAll();" class="button" value="Alle"></td>
+			</tr>';
 		}
 		
-		$html .= "</tr></table>";
+		$html .= '</tr></table>';
 		
-		if(!$_GET['id']) { $html .= "</form>";}
+		if(!$_GET['id']) { $html .= '</form>';}
 	
 	} else {
-		$html = "<b>Keine offenen SQL-Errors</b>";
+		$html = '<b>Keine offenen SQL-Errors</b>';
 	}
 	
 	return $html;
