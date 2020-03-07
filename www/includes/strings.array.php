@@ -128,6 +128,7 @@ return
 			,'invalid-thread_id' => 'Thread ID fehlt oder ist ungültig.'
 			,'invalid-comment_id' => 'Comment ID ist ungültig.'
 			,'invalid-permissions' => 'Permission denied for posting on thread %s / %d.'
+			,'invalid-permissions-search' => 'Um das Forum zu durchsuchen musst du eingeloggt sein.'
 			,'invalid-comment-no-parentid' => 'Du darfst per Edit keine neuen Threads erstellen'
 			,'invalid-comment-edit-permissions' => 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!'
 			,'invalid-comment-empty' => 'Leere Posts sind nicht erlaubt!'

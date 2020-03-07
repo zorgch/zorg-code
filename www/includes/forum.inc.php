@@ -1967,7 +1967,7 @@ class Forum {
 		 	.'<table cellpadding="0" cellspacing="0" width="100%">'
 
 		 	.'<tr>'
-		 	.'<td align="left" class="s">'.Forum::getFormSearch().'</td>'
+		 	.($user->is_loggedin() ? '<td align="left" class="s">'.Forum::getFormSearch().'</td>' : '') // Forum Suche nur noch für eingeloggte User
 		 	.'<td align="left">'.(defined('USER_USER') && $user->typ >= USER_USER ? Forum::getFormReadall() : '').'</td>'
 			.'<td align="right">'
 			.Forum::getNavigation($page, $pagesize, $numpages)

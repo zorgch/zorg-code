@@ -44,6 +44,11 @@ class Forum extends Model
 	 */
 	public function showThread(&$smarty, $thread_id, $thread_title=null)
 	{
+		/**
+		 * Google typically displays the first 50–60 characters of a title tag.
+		 * If you keep your titles under 60 characters, our research suggests that you can expect about 90% of your titles to display properly.
+		 * @link https://moz.com/learn/seo/title-tag
+		 */
 		$this->page_title = (!empty($thread_title) ? text_width(remove_html($thread_title), 50, '', true, true) : 'thread #'.$thread_id);
 		$this->page_link = '/thread/'.$thread_id;
 
@@ -91,7 +96,7 @@ class Forum extends Model
 	public function showSearch(&$smarty)
 	{
 		$this->page_title = 'commentsearch';
-		$this->page_link = $_SERVER['PHP_SELF'].'?layout=search';
+		$this->page_link = '/forum.php?layout=search';
 
 		$this->assign_model_to_smarty($smarty);
 	}
