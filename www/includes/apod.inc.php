@@ -303,17 +303,13 @@ function get_apod($apod_date_input=NULL)
  * Aktuelleste APOD Bild-ID
  * Holt das aktuellste APOD Bild aus der Datenbank
  *
- * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return array DB-Query Result als Resource (Array)
  */
 function get_apod_id()
 {
 	global $db;
 
-	try {
-		$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
-		return $db->fetch($db->query($sql));
-	} catch (Exception $e) {
-		error_log($e->getMessage());
-		return false;
-	}
+	$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
+	return $db->fetch($db->query($sql));
 }
