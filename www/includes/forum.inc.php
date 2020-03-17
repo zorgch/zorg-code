@@ -1256,7 +1256,7 @@ class Forum {
 	 * @desc gibt das HTML des Searchformszurück
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
  	 */
-	static function getFormSearch()
+	static function getFormSearch($searchText = null)
 	{
 		return
 			'<table>'
@@ -1264,7 +1264,7 @@ class Forum {
 				.'<input name="layout" type="hidden" value="search">'
 				.'<tr>'
 					.'<td align="left">'
-					.'<input type="text" name="keyword" class="text" style="width: 120px;">'
+					.'<input type="text" name="keyword" class="text" style="width: 120px;"'.(!empty($searchText) ? ' value="'.$searchText.'"' : null).'>'
 					.'<input type="submit" value="search" class="button">'
 				.'</td></tr>'
 			.'</form>'
@@ -1390,33 +1390,38 @@ class Forum {
 		return $qstr;
 	}
 
-	static function printSearchedComments($keyword) {
-	  global $db, $smarty;
-	  // Volltext suche geht nicht mit InnoDB
-	  //$sql =
-	  //	"SELECT"
-	  //	." comments.*"
-	  //	.", UNIX_TIMESTAMP(date) as date"
-	  //	." FROM comments"
-	  //	." WHERE MATCH(text) AGAINST ('".$keyword."')"
-	  //	." ORDER by date DESC"
-	  //;
-	  $sql =
-	  	"
-	  	SELECT
-	  		comments.*
-	  		, UNIX_TIMESTAMP(date) as date
-	  	FROM comments
-	  	WHERE text LIKE '%".$keyword."%'
-	  	ORDER by date DESC
-	  	"
-	  ;
-	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+	/**
+	 * Forum Comment Search results
+	 *
+	 * @TODO implement $keyword highlighting in ouput via $smarty->display()
+	 *
+	 * @version 1.1
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> 07.03.2020 Code optimizations
+	 *
+	 * @param string $keyword Search-Text for LIKE %...% search
+	 * @return void
+	 */
+	static function printSearchedComments($keyword)
+	{
+		global $db, $smarty;
+
+		$sql = 'SELECT id, text, UNIX_TIMESTAMP(date) as date
+				FROM comments
+				WHERE text LIKE "%'.$keyword.'%"
+				ORDER by date DESC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$num = $db->num($result);
-		$smarty->assign('comments_no_childposts', 1);
-		while($rs = $db->fetch($result)) {
-	    $smarty->display('comments:'.$rs['id']);
-	  }
+		if ($num > 0)
+		{
+			$smarty->assign('comments_no_childposts', 1);
+			while($rs = $db->fetch($result))
+			{
+		    	$smarty->display('comments:'.$rs['id']);
+			}
+		} else {
+			echo t('error-search-noresult', 'commenting', [(string)$keyword]);
+		}
 	}
 
 	/**

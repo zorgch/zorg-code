@@ -160,15 +160,20 @@ if (empty($doAction))
 elseif ($doAction === 'search')
 {
 	$model->showSearch($smarty);
-	
+
 	/** Only for logged in Users */
 	if ($user->is_loggedin())
 	{
 		$smarty->display('file:layout/head.tpl');
-		echo Forum::getFormSearch();
-		echo Forum::printSearchedComments($_GET['keyword']);
+		echo Forum::getFormSearch($searchKeyword);
+		if (!empty($searchKeyword))
+		{
+			echo Forum::printSearchedComments($searchKeyword);
+		} else {
+			echo t('error-search-noresult', 'commenting', ['[leer]']);
+		}
 	}
-	
+
 	/** Prevent Forum Search for anonymous visitors (wegen ganzen SQL-Inject Attacken) */
 	else {
 		http_response_code(403); // Set response code 403 (Forbidden)
