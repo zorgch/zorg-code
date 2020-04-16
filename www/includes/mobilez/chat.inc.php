@@ -368,7 +368,7 @@ class mobilezChat
 		 */
 		private function postAnfickMessage($from_user_id, $to_user)
 		{
-			global $pdo_db, $user;
+			global $pdo_db, $user, $telegram;
 			
 			try {
 				$adj_query = $pdo_db->query('SELECT wort, typ FROM aficks WHERE typ = 1 ORDER BY RAND() LIMIT 1');
@@ -384,8 +384,15 @@ class mobilezChat
 					//$anfickender = $user->id2user($from_user_id, false);
 					$anfickender = BARBARA; // [z]Barbara Harris *har har*
 					$angefickter = $to_user;//$user->id2user($to_user_id, false);
-					$anfick =  '@'.$angefickter.' du '.$adjektiv.$nomen;//.' (sait zumindest dä '.$anfickender.')';
+					$anfick =  (substr($angefickter, 0, 1) !== '@' ? '@' : '').$angefickter.' du '.$adjektiv.$nomen;//.' (sait zumindest dä '.$anfickender.')';
 					mobilezChat::postChatMessage($anfickender, $anfick);
+
+					/** Telegram Messenger Notification */
+					if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
+					require_once PHP_INCLUDES_DIR.'telegrambot.inc.php';
+					$telegramMessage = sprintf('<i>%s</i>', $anfick); // TODO inline Mention @Telegram-User: <a href="tg://user?id=[TG-USER-ID]">@username</a>
+					$telegramMessageKeyboard = json_encode([ 'inline_keyboard' => [[['text'=>'Reply in [z]Chat','url'=>SITE_URL.'/mobilezorg-v2/'], ['text'=>'Spresim batteln','url'=>SITE_URL.'/page/anficker']]] ]);
+					$telegram->send->message('group', $telegramMessage, ['reply_markup' => $telegramMessageKeyboard]);
 				}
 			} catch(PDOException $err) {
 				Error_Handler::addError('Error: '.$err->getMessage(), __FILE__, __LINE__, __FUNCTION__, __CLASS__);
