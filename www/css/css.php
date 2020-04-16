@@ -860,6 +860,11 @@ input, textarea, select, button {
 	}
 }
 
+input::placeholder, textarea::placeholder {
+  color: var(--color-font-input, #666);
+  opacity: 0.3;
+}
+
 input[type=text], input[type=password], input[type=search], input[type=number], textarea, input.text {
 	padding: 5px 10px;
 	border: none;

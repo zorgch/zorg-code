@@ -504,17 +504,17 @@ class Bugtracker
 		if ($user->typ >= USER_USER)
 		{
 			$html = t('newbug-headline', 'bugtracker')
-					.'<form action="'.getURL(false,false).'" method="get" style="display: flex;white-space: nowrap;align-items: flex-start;align-content: flex-start;">'
+					.'<form action="'.getURL(false,false).'" method="get">'
 						.'<input type="hidden" name="action" value="new">'
 						.'<input type="hidden" name="url" value="'.getURL(true,true).'">'
-						.'<fieldset style="flex: 1;">'
+						.'<fieldset>'
 							.'<label style="display: flex;flex-direction: column;">Titel<br>'.Bugtracker::getFormFieldTitle().'</label>'
 							.'<label style="display: flex;flex-direction: column;">Bereich<br>'.Bugtracker::getFormFieldCategory().'</label>'
 							.'<label style="display: flex;flex-direction: column;">Priorit&auml;t<br>'.Bugtracker::getFormFieldPriority(3).'</label>'
 							.'<label style="display: flex;flex-direction: column;">Beschreibung<br>'.Bugtracker::getFormFieldDescription().'</label>'
 						.'</fieldset>
-						<fieldset style="flex: 1;">'
-							.'<label style="display: flex;flex-direction: column;">User informieren<br>'.$user->getFormFieldUserlist('msg_users[]', 20).'</label>'
+						<fieldset>'
+							.'<label style="display: flex;flex-direction: column;">User informieren<br>'.$user->getFormFieldUserlist('msg_users[]', 10).'</label>'
 							.'<input type="submit" value="Eintragen" class="secondary">'
 						.'</fieldset>'
 					.'</form>';
