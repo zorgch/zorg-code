@@ -44,18 +44,19 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	if (!$error)
 	{
 		$frm['id'] = htmlentities($frm['id'], ENT_QUOTES);
-		$frm['tpl'] = $frm['tpl']; // TODO add appropriate input sanitization for template-content
+		$frm['tpl'] = escape_text($frm['tpl']);
 		$frm['title'] = sanitize_userinput($frm['title']);
 		$frm['sidebar_tpl'] = (empty($frm['sidebar_tpl']) ? 'NULL' : htmlentities($frm['sidebar_tpl'], ENT_QUOTES));
 		$frm['page_title'] = htmlentities($frm['page_title'], ENT_NOQUOTES);
+		$frm['border'] = (isset($frm['border']) && is_numeric($frm['border']) && $frm['border'] <= 2 ? $frm['border'] : '1');; // ENUM('0','1','2'), Default: '1'
+		$frm['allow_comments'] = (isset($frm['allow_comments']) && !empty($frm['allow_comments']) ? '1' : '0'); // ENUM('0','1'), Default: '0'
 
 		/**
 		 * NEW TEMPLATE
 		 */
 		if ($frm['id'] === 'new')
 		{
-			/*$sql = sprintf('INSERT INTO templates (tpl, title, word, border, owner, page_title, read_rights, write_rights, created, last_update, update_user, sidebar_tpl) VALUES ("%s", "%s", "%s", "%s", "%d", "%d", "%s", "%d", "%d", NOW(), NOW(), "%d")', $frm['tpl'], $frm['title'], $frm['word'], $frm['border'], $user->id, $frm['page_title'], $frm['read_rights'], $frm['write_rights'], $user->id, $frm['sidebar_tpl']);
-			$frm['id'] = $db->query($sql, __FILE__, __LINE__, '');*/
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Template Content: %s', __FILE__, __LINE__, print_r($frm, true)));
 			$frm['id'] = $db->insert('templates', [
 											 'title' => $frm['title']
 											,'page_title' => $frm['page_title']
@@ -65,6 +66,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 											,'read_rights' => $frm['read_rights']
 											,'write_rights' => $frm['write_rights']
 											,'sidebar_tpl' => $frm['sidebar_tpl']
+											,'allow_comments' => $frm['allow_comments']
 											,'owner' => $user->id
 											,'update_user' => $user->id
 											,'created' => 'NOW()'
@@ -77,12 +79,12 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 			{
 				Thread::setRights('t', $frm['id'], $frm['read_rights']);
 				$db->query('INSERT INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'], __FILE__, __LINE__, 'Copy Template to templates_backup');
-	
+
 				$_GET['tplupd'] = $frm['id'];
 				$_GET['location'] = base64_encode('/?tpl='.$frm['id']);
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
-	
+
 				/** Activity Eintrag auslösen */
 				Activities::addActivity($user->id, 0, t('activity-newpage', 'tpl', [ $frm['id'], $frm['title'] ]), 't');
 			}
@@ -95,9 +97,10 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		 * UPDATE EXISTING TEMPLATE
 		 */
 		} elseif ($frm['id'] > 0) {
-			/*if ($frm['word']) $set_word = ', word="'.$frm['word'].'"';
-			$sql = sprintf('UPDATE templates SET tpl="%s", title="%s", page_title="%s", read_rights="%d", write_rights="%d", update_user=%d, border="%d", packages="%s", error="" %s, sidebar_tpl="", last_update=NOW() WHERE id=%d', $frm['tpl'], $frm['title'], $frm['page_title'], $frm['read_rights'], $frm['write_rights'], $user->id, $frm['border'], $frm['packages'], $set_word, $frm['sidebar_tpl'], $frm['id']);
-			$db->query($sql, __FILE__, __LINE__, 'UPDATE templates');*/
+			/** Backup current version */
+			$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'].' AND unix_timestamp(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup');
+
+			/*if ($frm['word']) $set_word = ', word="'.$frm['word'].'"';*/
 			$templateUpdateParams = [
 							 'title' => $frm['title']
 							,'page_title' => $frm['page_title']
@@ -106,6 +109,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 							,'read_rights' => $frm['read_rights']
 							,'write_rights' => $frm['write_rights']
 							,'sidebar_tpl' => $frm['sidebar_tpl']
+							,'allow_comments' => $frm['allow_comments']
 							,'error' => ''
 							,'owner' => $user->id
 							,'update_user' => $user->id
@@ -115,7 +119,6 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Update Template SQL-Params: %s', __FILE__, __LINE__, print_r($templateUpdateParams,true)));
 			$result = $db->update('templates', ['id', $frm['id']], $templateUpdateParams, __FILE__, __LINE__, 'Update Template');
 			Thread::setRights('t', $frm['id'], $frm['read_rights']);
-			$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'].' AND unix_timestamp(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup');
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d updated', __FILE__, __LINE__, $frm['id']));
 		}
 
