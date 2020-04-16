@@ -18,29 +18,31 @@ require_once( __DIR__ .'/usersystem.inc.php');
 /**
  * Konstante ANFICKER_USER_ID
  */
-define(ANFICKER_USER_ID, 9999);
+define('ANFICKER_USER_ID', 9999);
 
 /**
  * Spresim Klasse
- * 
- * Klasse für den Anfick-Battle gegen Spresim
- * 
- * @author ?
- * @version 2.0
  *
- * @package zorg
- * @subpackage Anficker
+ * Klasse für den Anfick-Battle gegen Spresim
+ *
+ * @author ?
+ * @version 2.1
+ * @since 2.1 <inex> 16.04.2020 fixed notice Non-static method Anficker::...() should not be called statically
+ *
+ * @package zorg\Games\Anficker
  */
-Class Anficker {
-	
+class Anficker
+{
 	/**
 	 * Anfick des User hinzufügen
-	 * 
-	 * @author ?, IneX
-	 * @version 2.0
-	 * @since 1.0
-	 * @see Anficker::logAnfick(), Anficker::getId()
 	 *
+	 * @author ?, IneX
+	 * @version 2.1
+	 * @since 1.0 function added
+	 * @since 2.0 <inex> code enhancements
+	 * @since 2.1 <inex> 16.04.2020 migrated mysql-functions to mysqli
+	 *
+	 * @see Anficker::logAnfick(), Anficker::getId()
 	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
 	 * @param string $text Anfick des Users
 	 * @param boolean $spresim_trainieren Gibt an, ob Anfick des Users gespeichert werden soll oder nicht
@@ -50,7 +52,7 @@ Class Anficker {
 	 * @todo Unterschied, ob Spresim trainieren oder nur battlen sollte möglich sein (Bug #487) (Mättä, 25.10.04) | IDEE: Eine möglich Lösung wäre, ein zusätzliches Flag in der Tabelle "battle_only" oder so...
 	 * @todo Müsste es nicht "REPLACE INTO..." sein?? Jetzt werden x-Einträge mit gleichem Text gemacht! (IneX, 8.6.09)
 	 */
-	function addAnfick($user_id, $text, $spresim_trainieren=FALSE) {
+	static function addAnfick($user_id, $text, $spresim_trainieren=FALSE) {
 		global $db, $user;
 		
 		// nur Anfick speichern, wenn Spresim trainiert werden soll:
@@ -70,7 +72,7 @@ Class Anficker {
 							now()
 							)
 					";
-				$db->query($sql, __FILE__, __LINE__);
+				$insert_id = $db->query($sql, __FILE__, __LINE__);
 			}
 			//else
 			//{
@@ -86,13 +88,13 @@ Class Anficker {
 		// DEBUGGING
 		//error_log('[DEBUG] ' . __FILE__ . ':' . __LINE__ . ' mysql_insert_id() = ' . mysql_insert_id());
 		//error_log('[DEBUG] ' . __FILE__ . ':' . __LINE__ . ' Anficker::getId($text) = `' . $text . '`');
-		
-		$anfick_id = (mysql_insert_id() > 0 ? mysql_insert_id() : Anficker::getId($text));
-		
+
+		$anfick_id = ($insert_id > 0 ? $insert_id : Anficker::getId($text));
+
 		Anficker::logAnfick($anfick_id, $user_id, $user_id);
 	}
-	
-	
+
+
 	/**
 	 * Anfick im Anfick-Log ergänzen
 	 * 
@@ -104,9 +106,9 @@ Class Anficker {
 	 * @param integer $anfick_id ID des Anficks wo das Log ergänzt werden soll
 	 * @param integer $user_id ID des Users, welcher angefickt wurde
 	 * @param integer $anficker_id ID des Users, welcher den Anfick gemacht hat
-	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 */
-	function logAnfick($anfick_id, $user_id, $anficker_id) {
+	static function logAnfick($anfick_id, $user_id, $anficker_id) {
 		global $db;
 		$sql = 
 			"
@@ -123,7 +125,7 @@ Class Anficker {
 	}
 	
 	
-	function deleteLog($user_id) {
+	static function deleteLog($user_id) {
 		global $db;
 		$sql = 
 			"
@@ -136,7 +138,7 @@ Class Anficker {
 	}
 	
 	
-	function getId($text) {
+	static function getId($text) {
 		global $db;
 		$sql = 
 			"
@@ -161,10 +163,10 @@ Class Anficker {
 	 * @see Anficker::logAnfick(), Anficker::anfickenMit()
 	 *
 	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
-	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return string Gibt das gesamte bisherige Anfick-Log des Battles 'User vs. Spresim' aus
 	 */
-	function getLog($user_id) {
+	static function getLog($user_id) {
 		global $db;
 		
 		//Anficker::addRandomAnfick2Log($user_id, ANFICKER_USER_ID);
@@ -198,31 +200,24 @@ Class Anficker {
 	
 	/**
 	 * Anzahl existierender Anficks holen
-	 * 
-	 * @author ?
-	 * @version 1.0
-	 * @since 1.0
-	 * @see Anficker::anfickenMit()
 	 *
-	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
+	 * @author ?
+	 * @version 1.1
+	 * @since 1.0 function added
+	 * @since 1.1 <inex> 16.04.2020 changed function @param $user_id to be optional, fixed "Too few arguments to function Anficker::getNumAnficks(), 0 passed"
+	 *
+	 * @param integer $user_id (Optional) ID des Users, welcher gerade mit Spresim batteld
 	 * @return array Gibt ein Array mit der Anzahl Anficks (für Funktion anfickenMit()), durchschnittlicher Noten und Anzahl Votes (für /packages/anficks.php) zurück
 	 */
-	function getNumAnficks($user_id) {
-		global $db;		
-		$sql = 
-			"
-			SELECT
-				COUNT(*) AS num
-				, AVG(note) AS note
-				, SUM(votes) AS votes
-			FROM anficker_anficks
-			"
-		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+	static function getNumAnficks($user_id=null)
+	{
+		global $db;
+		$sql =  'SELECT COUNT(*) AS num, AVG(note) AS note, SUM(votes) AS votes FROM anficker_anficks'.(!empty($user_id) ? ' WHERE user_id='.$user_id : '');
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
 		return $rs;
 	}
-	
-	
+
+
 	/**
 	 * Anfick ins Log schreiben und selbiges Ausgeben
 	 * 
@@ -236,8 +231,8 @@ Class Anficker {
 	 *
 	 * @DEPRECATED
 	 */
-	function addRandomAnfick2Log($user_id) {
-		/*global $db;		
+	static function addRandomAnfick2Log($user_id) {
+		/*global $db;
 		$sql = 
 			"
 			SELECT 
@@ -260,46 +255,39 @@ Class Anficker {
 		//return Anficker::logAnfick($rs['id'], $user_id, ANFICKER_USER_ID);
 		Anficker::logAnfick(Anficker::anfickenMit(), $user_id, ANFICKER_USER_ID);
 	}
-	
-	
+
+
 	/**
 	 * Spresim's Anfick an den User
-	 * 
-	 * @author IneX
-	 * @date 08.06.2009
-	 * @version 1.0
-	 * @since 2.0
 	 *
-	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
+	 * @author IneX
+	 * @version 1.1
+	 * @since 1.0 <inex> 08.06.2009 function added
+	 * @since 1.1 <inex> 16.04.2020 code optimizations, migrated mysql-functions to mysqli
+	 *
+	 * @see Anficker::getNumAnficks()
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return integer ID des Anfick von Spresim
 	 */
-	function anfickenMit()
+	static function anfickenMit()
 	{
-		global $db;		
-		
-		$sql = 
-			"
-			SELECT 
-				* 
-			FROM
-				anficker_anficks
-			ORDER BY note ASC
-			"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
-		// zufällige id holen	
+		global $db;
+
+		$sql = 'SELECT * FROM anficker_anficks ORDER BY note ASC';
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+
+		/** zufällige id holen */
 		$rs = Anficker::getNumAnficks();
 		$id = rand(0, $rs['num']-1); // Zufalls #
 		$id = rand($id, $rs['num']-1); // die besten bevorzugen.
-		mysql_data_seek($result, $id);
-		
+		mysqli_data_seek($result, $id);
+
 		$rs = $db->fetch($result);
-		
+
 		return $rs['id'];
 	}
-	
-	
+
+
 	/**
 	 * Anfick-Spruch benoten
 	 * 
@@ -309,9 +297,9 @@ Class Anficker {
 	 *
 	 * @param integer $anfick_id ID des benoteten Anficks
 	 * @param integer $note Bewertung des Anficks
-	 * @global array $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 */
-	function vote($anfick_id, $note) {
+	static function vote($anfick_id, $note) {
 		global $db;
 		$sql = 
 			"
