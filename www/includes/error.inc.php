@@ -5,6 +5,13 @@ require_once( __DIR__ .'/main.inc.php');
 $sql = $db->fetch($db->query('SELECT count(*) as num_errors FROM sql_error WHERE status = 1', __FILE__, __LINE__, '$db->fetch($db->query())'));
 $num_errors = $sql['num_errors'];
 
+/**
+ * Get all SQL-Error Entries from the database
+ *
+ * @version 1.1
+ * @since 1.0 function added
+ * @since 1.1 <inex> 17.04.2020 SQL Slow-Query optimization
+ */
 function get_sql_errors($num=23,$order=3,$oby=0) {
 	global $db, $num_errors;
 	if($num_errors > 0) {
@@ -23,31 +30,45 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 				$_SESSION['error_order'] = $_GET['o'];
 			}
 		} 
-	
-		$order_by = array("","u.username", "s.page", "s.file", "s.date", "s.referer");
-		$by = array("DESC","ASC");
-		$sql = "
-		SELECT 
-			COALESCE(u.username,'ausgeloggt') as username,
-			COALESCE(u.last_ip,'ausgeloggt') as host,
-			s.page as page,
-			s.file as file,
-			s.line as line,
-			s.function as function,
-			s.query as query,
-			s.msg as msg,
-			s.referer as referrer,
-			s.id as id,
-			UNIX_TIMESTAMP(s.date) as datum
-		FROM sql_error s
-		LEFT JOIN user u ON u.id = s.user_id
-		WHERE s.status = 1
-		ORDER by ".$order_by[$_SESSION['error_order']]." ".$by[$_SESSION['error_oby']]."
-		LIMIT 0,".$_SESSION['error_num'];
-	
+
+		$order_by = array('','u.username', 's.page', 's.file', 's.date', 's.referer');
+		$by = array('DESC','ASC');
+		$sql = 'SELECT 
+					COALESCE(u.username,"ausgeloggt") AS username,
+					COALESCE(u.last_ip,"ausgeloggt") AS host,
+					s.page,
+					s.file,
+					s.line,
+					s.function,
+					s.query,
+					s.msg,
+					s.referrer,
+					s.id,
+					s.s_date AS datum
+				FROM 
+					(SELECT
+			            s.page AS page,
+			            s.file AS file,
+			            s.line AS line,
+			            s.function AS function,
+			            s.query AS query,
+			            s.msg AS msg,
+			            s.referer AS referrer,
+			            s.id AS id,
+			            UNIX_TIMESTAMP(s.date) AS s_date,
+			            s.user_id AS s_user_id 
+			        FROM 
+			            sql_error s 
+			        WHERE 
+			            s.status = 1 
+			        ORDER BY '.$order_by[$_SESSION['error_order']].' '.$by[$_SESSION['error_oby']].' 
+			        LIMIT '.$_SESSION['error_num'].') s
+				LEFT JOIN user u ON u.id = s.s_user_id 
+				WHERE 1 = 1';
 		$result = $db->query($sql,__FILE__,__LINE__);
-		$html = "";
-		if(!$_GET['id']) {
+		$html = '';
+		if(!$_GET['id'])
+		{
 			$html .= "
 			<script language='javascript'>
 			function selectAll() {  
@@ -57,7 +78,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 			</script>
 			<form action='/actions/error_action.php?tpl=$_GET[tpl]' name='error_form' method='post'>";	
 		}
-		
+
 		$html .= "
 		<table class='border'>
 			<tr>

@@ -1,5 +1,10 @@
 <?php
 /**
+ * Event Actions
+ *
+ * @package zorg\Events
+ */
+/**
  * File includes
  * @include main.inc.php Includes the Main Zorg Configs and Methods
  * @include events.inc.php Includes the Event Class and Methods
@@ -37,33 +42,35 @@ switch (true)
 	/** Add new Event */
 	case ($_POST['action'] === 'new'):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Event: %s', __FILE__, __LINE__, $eventName));
-		try {
-			$sql = 'INSERT INTO 
-						events
-							(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url) 
-						VALUES 
-							(
-								 "'.$eventName.'"
-								,"'.$eventLocation.'"
-								,"'.$eventLink.'"
-								,"'.$eventDescription.'"
-								,"'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
-								,"'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
-								,'.$eventGallery.'
-								,'.$user->id.'
-								,NOW()
-								,"'.$eventReviewlink.'"
-							)';
-			$db->query($sql, __FILE__, __LINE__, 'INSERT INTO events');
-
-			$idNewEvent = mysql_insert_id();
+		$sql = 'INSERT INTO 
+					events
+						(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url) 
+					VALUES 
+						(
+							 "'.$eventName.'"
+							,"'.$eventLocation.'"
+							,"'.$eventLink.'"
+							,"'.$eventDescription.'"
+							,"'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
+							,"'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
+							,'.$eventGallery.'
+							,'.$user->id.'
+							,NOW()
+							,"'.$eventReviewlink.'"
+						)';
+		$idNewEvent = $db->query($sql, __FILE__, __LINE__, 'INSERT INTO events');
+		
+		/** Error */
+		if (empty($idNewEvent))
+		{
+			$error = 'Error: Event konnte nicht gespeichert werden!';
+		}
+		/** Success */
+		else {
 			$redirect_url .= '&event_id='.$idNewEvent;
 
 			/** Activity Eintrag auslösen */
 			Activities::addActivity($user->id, 0, 'hat den Event <a href="'.$redirect_url.'">'.$eventName.'</a> erstellt.<br/><br/>', 'ev');
-
-		} catch (Exception $e) {
-			$error = 'Error: ' . $e->getMessage();
 		}
 		break;
 

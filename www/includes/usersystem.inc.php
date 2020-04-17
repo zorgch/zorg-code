@@ -698,21 +698,26 @@ class usersystem
 	 * Online Users
 	 * Gibt Online Users als HTML aus
 	 *
+	 * @version 2.1
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> Code optimizations
+	 * @since 2.1 <inex> 17.04.2020 SQL Slow-Query optimization
+	 *
 	 * @TODO HTML can be returned using new function usersystem::userpage_link()
 	 *
 	 * @see USER_TIMEOUT
 	 * @see /js/zorg.js
 	 * @param boolean $pic Userpic anzeigen, oder nur Usernamen - default: false
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
-	 * @return string html
+	 * @return string HTML-Code
 	 */
 	function online_users($pic=FALSE)
 	{
 		global $db;
 
-		$sql = 'SELECT id, username, clan_tag
+		$sql = 'SELECT id, username, clan_tag, activity
 				FROM user
-				WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(NOW()) - '.USER_TIMEOUT.')
+				WHERE activity > (NOW() - '.USER_TIMEOUT.')
 				ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$i = 0;
