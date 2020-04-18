@@ -233,7 +233,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 	/**
 	 * Registrationsformular anzeigen
 	 */
-	if(empty($userRegcode) && !$_SESSION['user_id'])
+	if(empty($userRegcode) && !isset($_SESSION['user_id']))
 	{
 		$model->showLogin($smarty);
 		$smarty->display('file:layout/head.tpl');
@@ -244,10 +244,10 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 		 * @include googlerecaptchaapi_key.inc.php Include an Array containing valid Google reCaptcha API Keys
 		 * @link https://www.google.com/recaptcha/
 		 */
-		if (fileExists(__DIR__ .'/includes/g-recaptcha-src/autoload.php'))
+		if (fileExists(__DIR__.'/includes/g-recaptcha-src/autoload.php'))
 		{
-			require_once( __DIR__ .'/includes/g-recaptcha-src/autoload.php');
-			$reCaptchaApiKeysFile = require_once(__DIR__ .'/includes/googlerecaptchaapi_key.inc.php');
+			require_once(__DIR__.'/includes/g-recaptcha-src/autoload.php');
+			$reCaptchaApiKeysFile = require_once(APIKEYS_DIR.'/google/googlerecaptchaapi_key.inc.php');
 			$reCaptchaApiKeys = (DEVELOPMENT ? $reCaptchaApiKeysFile['DEVELOPMENT'] : $reCaptchaApiKeysFile['PRODUCTION']);
 			$reCaptchaLang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
 			try {

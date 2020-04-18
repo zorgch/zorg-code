@@ -145,8 +145,8 @@ switch (true)
 		 * @include twitterapis_key.inc.php Include an Array containing valid Twitter API Keys
 		 * @see Twitter::send()
 		 */
-		require_once __DIR__ .'/../includes/twitter-php/twitter.class.php';
-		$twitterApiKeysFile = __DIR__ .'/../includes/twitterapis_key.inc.php';
+		require_once __DIR__.'/../includes/twitter-php/twitter.class.php';
+		$twitterApiKeysFile = APIKEYS_DIR.'/twitter/twitterapis_key.inc.php';
 		if (file_exists($twitterApiKeysFile))
 		{
 			$twitterApiKeys = require_once($twitterApiKeysFile);

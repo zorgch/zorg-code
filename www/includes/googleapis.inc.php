@@ -5,15 +5,16 @@
  * Anbindung verschiedener Google APIs
  *
  * @author		IneX
- * @package		zorg
- * @subpackage	Vendor
+ * @package		zorg\Vendor
  */
 /**
-* Grab the Google API Key
-* @include googleapis_key.inc.php Include an Array containing a valid Google API Key
-* @const GOOGLE_API_KEY A constant holding the Google API Key required for requests to Google's APIs
-*/
-if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once( (file_exists( __DIR__ .'/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') ));
+ * File includes
+ * @include config.inc.php
+ * @include googleapis_key.inc.php Grab the Google API Key: include an Array containing a valid Google API Key
+ * @const GOOGLE_API_KEY A constant holding the Google API Key required for requests to Google's APIs
+ */
+require_once(__DIR__ . '/config.inc.php');
+if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once( APIKEYS_DIR .'/google/'.(file_exists( APIKEYS_DIR .'/google/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') ));
 if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> GOOGLE_API_KEY: found', __FILE__, __LINE__));
 
 /**
@@ -26,7 +27,7 @@ if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> GO
  * @author		IneX
  * @date		12.06.2018
  */
-Class GoogleMapsApi
+class GoogleMapsApi
 {
 	/**
 	 * Google Maps Geocoding API

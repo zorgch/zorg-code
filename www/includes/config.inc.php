@@ -103,6 +103,7 @@ if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zor
 /**
  * Define paths to directories where HTML web resources will be referenced from
  * @const INCLUDES_DIR PHP-Script includes directory for using in PHP-Scripts
+ * @const APIKEYS_DIR Base directory for various API key files required. No trailing slash /
  * @const IMAGES_DIR Images directory for Frontend-Resources (don't use in PHP Scripts! Refer to PHP_IMAGES_DIR)
  * @const PHP_IMAGES_DIR Images directory for including Images in PHP-Scripts
  * @const FILES_DIR Files directory (local server path)
@@ -114,6 +115,7 @@ if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zor
  * @const CSS_DIR CSS directory for Frontend-Resources 
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
+if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys');
 if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/');
 if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/');
 if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/');
@@ -198,7 +200,7 @@ include_once( __DIR__ .'/notifications.inc.php');
  * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
  * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
  */
-if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( (file_exists( __DIR__ .'/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ));
+if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ));
 if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
 
 /**
