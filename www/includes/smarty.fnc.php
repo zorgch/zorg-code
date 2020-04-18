@@ -955,7 +955,7 @@ error_log('out: '.$out);
 	 * Smarty Function "forum_boards"
 	 *
 	 * Returns all Forum boards
-	 * Usage: {forum_boards boards=$user->forum_boards_unread updatable=true/false}
+	 * Usage: {forum_boards boards=$user->forum_boards_unread updateable=true/false}
 	 *
 	 * @author IneX
 	 * @version 1.0

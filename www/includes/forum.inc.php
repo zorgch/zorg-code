@@ -1017,13 +1017,15 @@ class Forum {
 	 * Print Forum Boards
 	 *
 	 * @author [z]biko, IneX
-	 * @version 2.0
+	 * @version 2.5
 	 * @since 1.0 method added
-	 * @since 2.0 30.09.2018 markup extracted into Smarty-Template 'forum_boards.tpl'
+	 * @since 2.0 <inex> 30.09.2018 markup extracted into Smarty-Template 'forum_boards.tpl'
+	 * @since 2.5 <inex> 18.04.2020 added option to only show selected Boards (without active checkbox)
 	 *
 	 * @see forum_boards.tpl, profil.php, Forum::getForumBoardsShown
+	 * @see /actions/forum_setboards.php Um ausgewählte Boards via /actions/forum_setboards.php zu aktualisieren
 	 * @param array $selected_boards_array Array with Forum-Board IDs to set 'checked' in HTML-Markup
-	 * @param boolean $update_mode Wenn true dann können ausgewählte Boards via /actions/forum_setboards.php aktualisiert
+	 * @param string|bool $update_mode 'set_show_boards' = Board-Selektion anpassen; 'set_unread_boards' = Unread subscriptions ändern; Default: false
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string HTML-Markup fetched from Smarty-Template
@@ -1043,7 +1045,9 @@ class Forum {
 				while ($forumBoard = $db->fetch($result)) $boards[] = $forumBoard;
 				$smarty->assign('boards', $boards);
 				$smarty->assign('boards_checked', $selected_boards_array);
-				if ($update_mode === true) $smarty->assign('do', 'set_show_boards');
+				if ($update_mode === 'threads') $smarty->assign('do', 'set_show_boards'); // for on Forum Overview
+				elseif ($update_mode === 'unreads') $smarty->assign('do', 'set_unread_boards'); // for on User's Edit Profile
+				else $smarty->assign('do', 'disable'); // only show subscribed boards, no selection possible
 				return $smarty->fetch('file:layout/partials/forum/forum_boards.tpl');
 			} else {
 				return false;
@@ -1069,7 +1073,7 @@ class Forum {
 		global $db;
 
 		$html = '<table cellpadding="0" cellspacing="0"><tr><td>';
-		$html .= Forum::getForumBoards($show, true);
+		$html .= Forum::getForumBoards($show, 'threads');
 		$html .= '</td></tr></table>';
 
 		return $html;

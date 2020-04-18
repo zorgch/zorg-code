@@ -339,7 +339,7 @@
 			<h3>Forum</h3>
 			<fieldset>
 				<legend>Abonnierte Forum-Boards</legend>
-				{forum_boards boards=$user->forum_boards_unread}
+				{forum_boards boards=$user->forum_boards_unread updateable='unreads'}
 				<span class="input-hint hide-sm-down"><span class="badge badge-secondary">?</span> für die gewählten Boards werden Dir alle ungelesenen Comments angezeigt.</span>
 			</fieldset>
 			<div class="input-field">
