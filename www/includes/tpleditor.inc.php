@@ -138,24 +138,29 @@ function tpleditor_unlock ($id) {
  *
  * @param int $id
  * @param string $error
- * @return bool
+ * @return bool True = unlocked | False = locked
  */
 function tpleditor_access_lock ($id, &$error)
 {
 	global $db, $user;
 
-	$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$_GET['tplupd'], __FILE__, __LINE__, __FUNCTION__);
-	$d = $db->fetch($e);
-
-	if ($d && !tpl_permission($d['write_rights'], $d['owner'])) {
-		$error = 'Access denied';
-		return false;
-	}elseif ($d['lock_user'] && $d['lock_user']!=$user->id && $d['lock_time_stamp']+1800 > $d['now']) {  /** 30 min lock time */
-		$error = 'Das Template ist gesperrt, da es gerade von '.$user->id2user($d['lock_user'], true).' bearbeitet wird.';
-		return false;
-	}else{
-		$db->query('UPDATE templates SET lock_user='.$user->id.', lock_time=NOW() WHERE id='.$d['id'], __FILE__, __LINE__);
-		$error = "";
+	if (!is_string($id) && $id > 0)
+	{
+		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$_GET['tplupd'], __FILE__, __LINE__, __FUNCTION__);
+		$d = $db->fetch($e);
+	
+		if ($d && !tpl_permission($d['write_rights'], $d['owner'])) {
+			$error = 'Access denied';
+			return false;
+		}elseif ($d['lock_user'] && $d['lock_user']!=$user->id && $d['lock_time_stamp']+1800 > $d['now']) {  /** 30 min lock time */
+			$error = 'Das Template ist gesperrt, da es gerade von '.$user->id2user($d['lock_user'], true).' bearbeitet wird.';
+			return false;
+		}else{
+			$db->query('UPDATE templates SET lock_user='.$user->id.', lock_time=NOW() WHERE id='.$d['id'], __FILE__, __LINE__);
+			$error = "";
+			return true;
+		}
+	} else {
 		return true;
 	}
 }
