@@ -9,7 +9,8 @@ $FORBIDDEN_DIRS = array('.', '..', 'smartylib', 'phpmyadmin', 'phpmyadmin.old', 
 
 
 // code stats
-$stats = code_stats($_SERVER['DOCUMENT_ROOT']);
+$rootdir = $_SERVER['DOCUMENT_ROOT'];
+$stats = code_stats($rootdir);
 $stats['avg_size'] = round($stats['size'] / $stats['files']);
 $stats['avg_lines'] = round($stats['lines'] / $stats['files']);
 $smarty->assign("code_stats", $stats);
@@ -22,13 +23,13 @@ function code_stats ($dir) {
 	$hdir = opendir($dir);
 	while (false !== ($file = readdir($hdir))) {
 		if (!in_array($file, $FORBIDDEN_DIRS)) {
-			if (is_dir("$dir/$file")) {
-				$t = code_stats("$dir/$file");
+			if (is_dir($dir.'/'.$file)) {
+				$t = code_stats($dir.'/'.$file);
 				foreach ($t as $key=>$val) $ret[$key] += $val;
-			}elseif (is_file("$dir/$file") && substr($file, -4) == '.php') {
+			}elseif (is_file($dir.'/'.$file) && substr($file, -4) == '.php') {
 				$ret['files']++;
-				$ret['size'] += filesize("$dir/$file");
-				$ret['lines'] += sizeof(file("$dir/$file"));
+				$ret['size'] += filesize($dir.'/'.$file);
+				$ret['lines'] += sizeof(file($dir.'/'.$file));
 			}
 		}
 	}
@@ -50,18 +51,18 @@ function search_code ($query, $dir='') {
 	
 	$ret = array();
 	
-	$hdir = opendir($_SERVER['DOCUMENT_ROOT'].$dir);
+	$hdir = opendir($rootdir.'/'.$dir);
 	while (false !== ($file = readdir($hdir))) {
 		if (!in_array($file, $FORBIDDEN_DIRS)) {
-			if (is_dir($_SERVER['DOCUMENT_ROOT'].$dir.'/'.$file)) {
+			if (is_dir($rootdir.'/'.$dir.'/'.$file)) {
 				$ret = array_merge(search_code($query, $dir.'/'.$file), $ret);
 
-			}elseif (is_file($_SERVER['DOCUMENT_ROOT'].$dir.'/'.$file) && substr($file, -4) == '.php') {
-				$lines = file($_SERVER['DOCUMENT_ROOT'].$dir.'/'.$file);
+			}elseif (is_file($rootdir.'/'.$dir.'/'.$file) && substr($file, -4) == '.php') {
+				$lines = file($rootdir.'/'.$dir.'/'.$file);
 				for ($i=0; $i<sizeof($lines); $i++) {
 					if (stristr($lines[$i], $query)) {
-						if (!isset($ret["$dir/$file"])) $ret["$dir/$file"] = array();
-						$ret["$dir/$file"][] = array('line'=>$i+1, 'text'=>$lines[$i]);
+						if (!isset($ret[$dir.'/'.$file])) $ret[$dir.'/'.$file] = array();
+						$ret[$dir.'/'.$file][] = array('line'=>$i+1, 'text'=>$lines[$i]);
 					}
 				}
 			}

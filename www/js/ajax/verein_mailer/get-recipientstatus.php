@@ -26,8 +26,8 @@ try {
 			AND recipient_id = '.$_POST['recipient_id'].'
 			ORDER BY recipient_confirmationdate DESC
 			LIMIT 0,1';
-	$recipientStatus = mysql_fetch_assoc($db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientstatus)'));
-	
+	$recipientStatus = $db->fetch($db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientstatus)'));
+
 	http_response_code(200); // Set response code 200 (OK)
 	if ($recipientStatus) {
 		echo json_encode($recipientStatus);

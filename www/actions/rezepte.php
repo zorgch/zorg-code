@@ -1,9 +1,18 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+/**
+ * Rezepte Actions
+ * @package zorg\Rezepte
+ */
+/**
+ * File includes
+ */
+require_once(__DIR__.'/../includes/main.inc.php');
+require_once(__DIR__.'/../includes/mysql.inc.php');
+require_once(__DIR__.'/../includes/usersystem.inc.php');
 
-if($_POST['action'] == 'new') {
+/** Neues Rezept hinzufügen */
+if(isset($_POST['action']) && $_POST['action'] == 'new')
+{
   $sql =
   	"
   	INSERT INTO
@@ -11,25 +20,27 @@ if($_POST['action'] == 'new') {
   		(category_id, title, zutaten, anz_personen, prep_time, cook_time, difficulty, description, ersteller_id, erstellt_date)
   	VALUES
   		(
-	  		'".$_POST[category]."'
-	  		, '".$_POST[title]."'
-	  		, '".$_POST[zutaten]."'
-	  		, '".$_POST[personen]."'
-  			, '".$_POST[preparation]."'
-  			, '".$_POST[cookingtime]."'
-  			, '".$_POST[difficulty]."'
-  			, '".$_POST[description]."'
+	  		'".$_POST['category']."'
+	  		, '".$_POST['title']."'
+	  		, '".$_POST['zutaten']."'
+	  		, '".$_POST['personen']."'
+  			, '".$_POST['preparation']."'
+  			, '".$_POST['cookingtime']."'
+  			, '".$_POST['difficulty']."'
+  			, '".$_POST['description']."'
   			, ".$user->id."
   			, now()
   		)
   	"
   ;
-  $db->query($sql, __FILE__, __LINE__);
-  header('Location: '.base64_decode($_POST['url']).'&rezept_id='.mysql_insert_id());
+  $rezeptId = $db->query($sql, __FILE__, __LINE__);
+  header('Location: '.base64_decode($_POST['url']).'&rezept_id='.$rezeptId);
   exit;
 }
 
-else if($_POST['action'] == 'edit' ) {
+/** Rezept aktualisieren */
+else if(isset($_POST['action']) && $_POST['action'] == 'edit' )
+{
 	$sql =
 	 "
 		UPDATE `rezepte`
@@ -50,7 +61,9 @@ else if($_POST['action'] == 'edit' ) {
 	exit;
 }
 
-elseif($_POST['action'] == 'newcategory') {
+/** Neue Rezepte-Kategorie hinzufügen */
+elseif(isset($_POST['action']) && $_POST['action'] == 'newcategory')
+{
   $sql =
   	"
   	INSERT INTO
@@ -63,8 +76,9 @@ elseif($_POST['action'] == 'newcategory') {
   exit;
 }
 
-elseif($_POST['action'] == 'benoten' && $_POST['score'] != '') {
-
+/** Ein Rezept bewerten */
+elseif(isset($_POST['action']) && $_POST['action'] == 'benoten' && $_POST['score'] > 0)
+{
 	$sql =
 	"REPLACE INTO rezepte_votes (rezept_id, user_id, score) "
   	." VALUES ("
@@ -77,4 +91,3 @@ elseif($_POST['action'] == 'benoten' && $_POST['score'] != '') {
   	$db->query($sql, __FILE__, __LINE__);
 	header("Location: ".base64_decode($_POST['url']));
 }
-?>

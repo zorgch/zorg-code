@@ -1,10 +1,20 @@
 <?php
-require_once( __DIR__ .'/smarty.inc.php');
+/**
+ * zorg Rezepte Datenbank
+ * @package zorg\Rezepte
+ */
+/**
+ * File includes
+ */
 require_once( __DIR__ .'/usersystem.inc.php');
 require_once( __DIR__ .'/util.inc.php');
 
-Class Rezepte {
-
+/**
+ * zorg Rezepte Datenbank Klasse
+ * @package zorg\Rezepte
+ */
+class Rezepte
+{
 	static function getRezept($rezept_id) {
 		global $db;
 
@@ -159,8 +169,5 @@ Class Rezepte {
 
 		return $db->num($result, __FILE__, __LINE__);
 	}
-
-
-
 
 }

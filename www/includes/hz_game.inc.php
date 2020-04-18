@@ -259,27 +259,33 @@ function start_game ($game) {
  * Generiert eine HTML-Map mit den klickbaren Stationen für den Spieler, auf welche er akutell fortfahren kann
  *
  * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
+ * @version 1.1
+ * @since 1.0 <biko> function added
+ * @since 1.1 <inex> 18.04.2020 Migrate to mysqli_
  *
  * @param integer $game ID des Hunting z Spiels
  * @param array $ticket Array mit den verschiedenen Arten von Stationen
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
- * @return HTML mit klickbaren Map-Buttons der möglichen, ansteuerbaren Stationen
+ * @return string HTML mit klickbaren Map-Buttons der möglichen, ansteuerbaren Stationen
  */
-function ticket_map ($game, $ticket='all') {
+function ticket_map ($game, $ticket='all')
+{
 	global $db, $user;
-	
+
 	if (!in_array($ticket, array("taxi", "ubahn", "bus", "black", 'all'))) user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
 	if ($ticket == "black") $where_ticket = "p.type='z'";
 	elseif ($ticket == 'all') $where_ticket = "(p.type='z' OR r.type!='black')";
 	else $where_ticket = "r.type='$ticket'";
-	
-	
+
 	$ret = '<map name="moves">';
-	$e = $db->query( //select all possible destinations from the current location, excluding taken ones, but including z's station
-			 "SELECT s. * , p.type, p.money, r.type routetype
+
+	/** Select all possible destinations from the current location, excluding taken ones, but including z's station */
+	$sql = 'SELECT
+				s.*,
+				p.type,
+				p.money,
+				r.type routetype
 			 FROM hz_games g
 			 JOIN hz_players p ON p.game = g.id
 			 JOIN hz_routes r ON r.map = g.map
@@ -289,16 +295,15 @@ function ticket_map ($game, $ticket='all') {
 			   AND IF(r.start = p.station, r.end, r.start) = other.station
 			 LEFT JOIN hz_stations s ON s.map = g.map
 			   AND s.id = IF(r.start = p.station, r.end, r.start)
-			 WHERE g.id = '$game'
-			   AND p.user = '$user->id'
-			   AND $where_ticket
-			   AND (other.user IS NULL
-			   OR other.type = 'z')",
-		__FILE__, __LINE__, __FUNCTION__
-	);
-	if (mysql_num_rows($e) == 0) user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
-	
-	while ($d = $db->fetch($e)) {
+			 WHERE g.id = '.$game.'
+			   AND p.user = '.$user->id.'
+			   AND '.$where_ticket.'
+			   AND (other.user IS NULL OR other.type = "z")';
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	if (empty($db->num($e))) user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
+
+	while ($d = $db->fetch($e))
+	{
 		if ($d['money'] >= turn_cost($d['routetype'])) {
 			if ($ticket == 'all') $vkt = $d['routetype'];
 			else $vkt = $ticket;
@@ -319,7 +324,7 @@ function ticket_map ($game, $ticket='all') {
 						 'title="Mit '.$vk.' hier hin fahren ('.turn_cost($vkt).'$)">';
 		}
 	}
-	
+
 	$ret .= '</map>';
 	return $ret;
 }

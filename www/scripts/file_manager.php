@@ -11,7 +11,7 @@ define("USERPATH", $_SERVER['DOCUMENT_ROOT'].'/../data/files/'.$user->id.'/');
 $error = "";
 $state = "";
 
-switch ($_GET[sort]) {
+switch ($_GET['sort']) {
 	case "datum":
 			$sort = "ORDER BY upload_date DESC";
 			break;

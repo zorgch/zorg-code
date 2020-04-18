@@ -171,8 +171,9 @@ class Telegram
 	 *
 	 * @author	IneX
 	 * @date	25.05.2018
-	 * @version	1.0
-	 * @since	1.0
+	 * @version	1.1
+	 * @since	1.0 <inex> 25.05.2018 Method added
+	 * @since	1.1 <inex> 18.04.2020 Code optimization and migration to mysqli_
 	 *
 	 * @TODO Database column "telegram_user_id" must be added first, for this to work
 	 * @TODO probably it's more common that a userNAME is passed? => needs usersystem::user2id()
@@ -188,38 +189,33 @@ class Telegram
 	{
 		global $db, $user;
 
-		try {
-			if (isset($userid) && $userid > 0 && is_numeric($userid))
+		if (isset($userid) && $userid > 0 && is_numeric($userid))
+		{
+			$sql = 'SELECT
+						telegram_user_id tui
+					FROM
+						user
+					WHERE
+						telegram_user_id IS NOT NULL
+						AND id = '.$userid.'
+					LIMIT 1';
+			$telegramUserIds = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$telegramUserId = $telegramUserIds['tui'];
+			if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> found Telegram User ID $telegramUserId");
+
+			if (!empty($telegramUserId))
 			{
-				$sql = "SELECT
-							telegram_user_id tui
-						FROM
-							user
-						WHERE
-							telegram_user_id IS NOT NULL
-							AND id = $userid
-						LIMIT 0,1";
-				$telegramUserIds = mysql_fetch_assoc($db->query($sql, __FILE__, __LINE__, __METHOD__));
-				$telegramUserId = $telegramUserIds['tui'];
-				if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> found Telegram User ID $telegramUserId");
-
-				if (!empty($telegramUserId))
-				{
-					$username = $user->id2user($telegramUserId);
-					$link = sprintf('<a href="tg://user?id=%d">%s</a>', $telegramUserId, $username);
-					if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> returns HTML-link: $link");
-					return $telegramUserIds['tui'];
-				} else {
-					return false;
-				}
-
+				$username = $user->id2user($telegramUserId);
+				$link = sprintf('<a href="tg://user?id=%d">%s</a>', $telegramUserId, $username);
+				if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> returns HTML-link: $link");
+				return $telegramUserIds['tui'];
 			} else {
-				error_log( t('invalid-userid', 'messagesystem') );
 				return false;
 			}
 
-		} catch (Exception $e) {
-			error_log($e->getMessage());
+		} else {
+			error_log( t('invalid-userid', 'messagesystem') );
+			return false;
 		}
 	}
 

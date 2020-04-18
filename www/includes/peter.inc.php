@@ -1516,64 +1516,69 @@ class peter {
 	
 	/**
 	 * Kartenberg
-	 * 
+	 *
 	 * Gibt das Kartenberg Image komplett zurück
-	 * 
+	 *
+	 * @version 2.1
+	 * @since 1.0 Method added
+	 * @since 2.0 <inex> Code optimizations
+	 * @since 2.1 <inex> 18.04.2020 Migrate to mysqli_
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return img_handle
 	 */
-	function kartenberg() {
+	function kartenberg()
+	{
 		global $db;
-		
-		$sql = "
-		SELECT
-			pc.card_id,
-			u.username,
-			p.description
-		FROM peter_cardsets pc
-		LEFT JOIN user u
-			ON u.id = pc.user_id
-		LEFT JOIN peter p
-			ON p.card_id = pc.card_id
-		WHERE 
-			pc.game_id = '".$this->game_id."'
-			AND
-			pc.status = 'gelegt'
-		ORDER by datum ASC";
-		
+
+		$sql = 'SELECT
+					pc.card_id,
+					u.username,
+					p.description
+				FROM peter_cardsets pc
+				LEFT JOIN user u
+					ON u.id = pc.user_id
+				LEFT JOIN peter p
+					ON p.card_id = pc.card_id
+				WHERE 
+					pc.game_id = '.$this->game_id.'
+					AND
+					pc.status = "gelegt"
+				ORDER by datum ASC';
+
 		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 		$i = 0;
-		
-		if (mysql_num_rows($result) > 0 && mysql_num_rows($result) != NULL)
+
+		if (!empty($db->num($result)))
 		{
-		
-			while($rs = $db->fetch($result)) {
-				if($i == 0) {
+			while($rs = $db->fetch($result))
+			{
+				if ($i == 0)
+				{
 					$img = $this->img_kartenberg($rs['username'],$rs['card_id'],1,1);
 				} else {
 					$img = $this->img_kartenberg($rs['username'],$rs['card_id'],$img,2,$i);
 				}
 				$i++;
 			}
-			
 			$db->seek($result,0);
 			$i = 0;
-			
-			//Schriftfarbe anlegen
+
+			/** Schriftfarben anlegen */
 			$red = hexdec(substr(FONTCOLOR,0,2));
 			$green = hexdec(substr(FONTCOLOR,2,2));
 			$blue = hexdec(substr(FONTCOLORR,4,2));
 			$fontc = imagecolorallocate($img,$red,$green,$blue);
-			
-			while($rs = $db->fetch($result)) {
+
+			while($rs = $db->fetch($result))
+			{
 				imagettftext($img,8,0,5,350+($i * 11),$fontc,"images/peter/verdana.ttf",$rs['description']);
 				$i++;
 			}
-		}
-		else
-		{
+		} else {
 			$img = imagecreatefromgif($_SERVER['DOCUMENT_ROOT']."/images/peter/jassteppich.gif");
 		}
-		
+
 		return $img;
 	}
 	
