@@ -5,8 +5,8 @@
  */
 global $db, $user, $smarty;
 
-require_once(__DIR__.'/../includes/util.inc.php');
-require_once(__DIR__.'/../includes/hz_game.inc.php');
+require_once dirname(__FILE__).'/../includes/util.inc.php';
+require_once INCLUDES_DIR.'hz_game.inc.php';
 
 $gameid = (isset($_GET['game']) && is_numeric($_GET['game']) && $_GET['game'] > 0 ? (int)$_GET['game'] : null);
 

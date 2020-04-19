@@ -18,8 +18,8 @@ $sqltracker_numqueries = 0;
  * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false
  * @include	development.config.php	If DEVELOPMENT, load a corresponding config file containing DEV-specific settings. Was already checked to exist at define('DEVELOPMENT', true/false)
  */
-define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( __DIR__ .'/development.config.php') ? true : false ));
-if (DEVELOPMENT) include_once( __DIR__ . '/development.config.php');
+define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( dirname(__FILE__).'/development.config.php') ? true : false ));
+if (DEVELOPMENT) include_once dirname(__FILE__).'/development.config.php';
 
 /**
  * Define preferred Protocol that zorg.ch is running on
@@ -52,7 +52,7 @@ if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNA
  * Set a constant for the Site's Web Root
  * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/"
  */
-if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..');
+if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'/..');
 
 /**
  * Set a constant for the custom Error Log path
@@ -60,12 +60,10 @@ if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim( __DIR__ ,'/\\').'/..');
  * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
  * @const ERRORLOG_DIR sets the directory for logging the custom user_errors
  * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
- * @include errlog.inc.php 	Errorlogging Class
  */
 if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log');
 if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/');
 if (!defined('ERRORLOG_FILEPATH')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE);
-require_once( __DIR__ .'/errlog.inc.php');
 
 /**
  * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
@@ -104,6 +102,8 @@ if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zor
  * Define paths to directories where HTML web resources will be referenced from
  * @const INCLUDES_DIR PHP-Script includes directory for using in PHP-Scripts
  * @const APIKEYS_DIR Base directory for various API key files required. No trailing slash /
+ * @const MODELS_DIR MVC-Models directory
+ * @const CONTROLLERS_DIR MVC-Controllers directory
  * @const IMAGES_DIR Images directory for Frontend-Resources (don't use in PHP Scripts! Refer to PHP_IMAGES_DIR)
  * @const PHP_IMAGES_DIR Images directory for including Images in PHP-Scripts
  * @const FILES_DIR Files directory (local server path)
@@ -114,8 +114,10 @@ if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zor
  * @const JS_DIR JavaScripts directory for Frontend-Resources 
  * @const CSS_DIR CSS directory for Frontend-Resources 
  */
-if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
-if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys');
+if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', rtrim(SITE_ROOT, '.'));//SITE_ROOT . '/includes/');
+if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys'); // No trailing slash /
+if (!defined('MODELS_DIR')) define('MODELS_DIR', SITE_ROOT . '/models/');
+if (!defined('CONTROLLERS_DIR')) define('CONTROLLERS_DIR', SITE_ROOT . '/controller/');
 if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/');
 if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/');
 if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/');
@@ -161,7 +163,7 @@ if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
 define('USER_NICHTEINGELOGGT', false);
 //define('USER_ALLE', 3);
 if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
-if (!defined('USER_IMGPATH')) define('USER_IMGPATH',  SITE_ROOT.'/../data/userimages/');
+if (!defined('USER_IMGPATH')) define('USER_IMGPATH', SITE_ROOT.'/../data/userimages/');
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
 if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE',  SITE_ROOT.'/../data/userimages/archiv/');
 if (!defined('USER_IMGSIZE_LARGE')) define('USER_IMGSIZE_LARGE', 500);
@@ -170,7 +172,6 @@ if (!defined('USER_IMGPATH_DEFAULT')) define('USER_IMGPATH_DEFAULT', 'none.jpg')
 if (!defined('USER_TIMEOUT')) define('USER_TIMEOUT', 200);
 if (!defined('USER_OLD_AFTER')) define('USER_OLD_AFTER', 60*60*24*30*12*3); // 3 Jahre | 3 Monate: 60*60*24*30*3
 if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', 10);
-//if (!defined('FILES_DIR')) define('FILES_DIR', rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/'); // /data/files/ directory outside the WWW-Root
 
 /**
  * Define Smarty constants
@@ -184,23 +185,29 @@ if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/p
 if (!defined('SMARTY_PACKAGES_EXTENSION')) define('SMARTY_PACKAGES_EXTENSION', '.php');
 
 /**
+ * Load Error Handling
+ * @include errlog.inc.php 	Errorlogging Class
+ */
+require_once INCLUDES_DIR.'errlog.inc.php';
+
+/**
  * Define and include various Placeholder-Strings related constants and files
  * @include strings.inc.php
  */
-include_once( __DIR__ .'/strings.inc.php');
+include_once INCLUDES_DIR.'strings.inc.php';
 
 /**
  * Define and include various Notification System-related constants and files
  * @include notifications.inc.php
  */
-include_once( __DIR__ .'/notifications.inc.php');
+include_once INCLUDES_DIR.'notifications.inc.php';
 
 /**
  * Grab the NASA API Key
  * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
  * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
  */
-if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ));
+if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') );
 if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
 
 /**
@@ -211,15 +218,15 @@ if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA
  * @const APOD_API NASA APOD API-URL von wo das tägliche APOD-Bild mit dem NASA_API_KEY geholt werden kann, mittels ?apod_date=yyyy-mm-dd kann ein spezifisches APOD geholt werden
  */
 if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', 41);
-if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', __DIR__.'/../../data/temp/');
+if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', SITE_ROOT.'/../../data/temp/');
 if (!defined('APOD_SOURCE')) define('APOD_SOURCE', 'https://apod.nasa.gov/apod/');
-if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key=' . NASA_API_KEY);
+if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key='.NASA_API_KEY);
 
 /**
  * Define and include various Telegram-Bot/Telegram-Messaging related constants and files
  * @include telegrambot.inc.php Required to send Telegram-Notifications
  */
-include_once( __DIR__ .'/telegrambot.inc.php');
+include_once INCLUDES_DIR.'telegrambot.inc.php';
 
 /**
  * Define various Addle related constants
@@ -235,4 +242,4 @@ define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);
  * Define and include various Layout related constants and files
  * @include colors.inc.php Required to have various color vars accessible
  */
-include_once( __DIR__ .'/colors.inc.php');
+include_once INCLUDES_DIR.'colors.inc.php';

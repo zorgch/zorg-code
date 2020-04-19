@@ -13,11 +13,11 @@ if (!empty($argv[1])) {
 
 error_log(sprintf('[%s] [NOTICE] <%s> Starting...', date('d.m.Y H:i:s',time()), __FILE__));
 
-require_once( __DIR__ .'/../www/includes/config.inc.php');
-require_once( __DIR__ .'/../www/includes/events.inc.php');
-require_once( __DIR__ .'/../www/includes/gallery.inc.php');
-require_once( __DIR__ .'/../www/includes/messagesystem.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/dnd/dnd.inc.php');
+require_once( dirname(__FILE__).'/../www/includes/config.inc.php');
+require_once( INCLUDES_DIR.'events.inc.php');
+require_once( INCLUDES_DIR.'gallery.inc.php');
+require_once( INCLUDES_DIR.'messagesystem.inc.php');
+//require_once(SITE_ROOT.'/dnd/dnd.inc.php');
 error_log(sprintf('[%s] [NOTICE] <%s> Files included', date('d.m.Y H:i:s',time()), __FILE__));
 
 /** D&D */

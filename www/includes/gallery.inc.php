@@ -17,15 +17,14 @@
 /**
  * File includes
  * @include config.inc.php
- * @include colors.inc.php
  * @include forum.inc.php
  * @include util.inc.php
+ * @include usersystem.inc.php
  */
-require_once( __DIR__ .'/config.inc.php');
-include_once( __DIR__ .'/colors.inc.php');
-include_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/util.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf

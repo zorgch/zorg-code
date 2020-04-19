@@ -1,10 +1,11 @@
 <?php
 /**
  * Hunting z Map Queries
- * @package zorg\Games\Hz
+ * @package zorg\Games\HuntingZ
  */
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/hz_map.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'hz_map.inc.php';
 
 /** Check Map ID */
 $mapid = (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0 ? (int)$_GET['id'] : null);

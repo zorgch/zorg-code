@@ -3,10 +3,11 @@
  * Chess game tester
  * @package zorg\Games\Chess
  */
-
-/** File includes */
-require_once(__DIR__.'/includes/main.inc.php');
-include_once(__DIR__.'/includes/usersystem.inc.php');
-include_once(__DIR__.'/includes/chess.inc.php');
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/includes/main.inc.php';
+include_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'chess.inc.php';
 
 $board = Chess::get_board(1);

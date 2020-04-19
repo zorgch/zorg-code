@@ -7,8 +7,8 @@
 /**
  * FILE INCLUDES
  */
-if (!require_once rtrim(__DIR__.'/../mobilezorg-v2/config.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
-if (!require_once rtrim(__DIR__.'/../includes/usersystem.inc.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
+if (!require_once rtrim(dirname(__FILE__).'/../mobilezorg-v2/config.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
+if (!require_once rtrim(dirname(__FILE__).'/../includes/usersystem.inc.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
 
 /**
  * CONSTANTS

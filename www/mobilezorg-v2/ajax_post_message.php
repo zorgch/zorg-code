@@ -2,9 +2,9 @@
 /**
  * FILE INCLUDES
  */
-require_once 'config.php';
-require_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php';
-require_once PHP_INCLUDES_DIR.'util.inc.php';
+require_once dirname(__FILE__).'/config.php';
+require_once MOBILEZ_INCLUDES_DIR.'chat.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 if(isset($_POST['message']) && !empty($user->id) && $user->id > 0)
 {
@@ -59,7 +59,7 @@ if(isset($_POST['message']) && !empty($user->id) && $user->id > 0)
 
 		/** Telegram Messenger Notification */
 		if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
-		require_once PHP_INCLUDES_DIR.'telegrambot.inc.php';
+		require_once INCLUDES_DIR.'telegrambot.inc.php';
 		$telegramMessage = sprintf('[z]Chat message by <b>%s</b>: <i>%s</i>', $user->id2user($user->id, true), $messageText);
 		$telegramMessageKeyboard = json_encode([ 'inline_keyboard' => [[['text'=>'Reply in [z]Chat','url'=>SITE_URL.'/mobilezorg-v2/']]] ]);
 		$telegram->send->message('group', $telegramMessage, ['reply_markup' => $telegramMessageKeyboard]);

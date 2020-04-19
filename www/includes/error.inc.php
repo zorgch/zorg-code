@@ -1,8 +1,8 @@
 <?php
-require_once( __DIR__ .'/main.inc.php');
+require_once dirname(__FILE__).'/main.inc.php';
 
 /** Query errors Table for all open errors (status = 1) */
-$sql = $db->fetch($db->query('SELECT count(*) as num_errors FROM sql_error WHERE status = 1', __FILE__, __LINE__, '$db->fetch($db->query())'));
+$sql = $db->fetch($db->query('SELECT count(*) as num_errors FROM sql_error WHERE status = 1', __FILE__, __LINE__, 'SELECT num_errors'));
 $num_errors = $sql['num_errors'];
 
 /**

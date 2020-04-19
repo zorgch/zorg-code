@@ -12,8 +12,8 @@
  * File Includes
  * @include go_game.inc.php Required
  */
-require_once( __DIR__ .'/../includes/config.inc.php');
-require_once( __DIR__ .'/../includes/go_game.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'go_game.inc.php';
 
 /**
  * Globals

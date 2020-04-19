@@ -15,21 +15,17 @@
  *		messages
  *
  * @version		2.0
- * @package		zorg
- * @subpackage	Messagesystem
+ * @package		zorg\Messagesystem
  */
 /**
  * File Includes
  * @include config.inc.php		Required global configs
  * @include util.inc.php		Required Helper Functions
- * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
+ * @include usersystem.inc.php	Required User Class and Functions
  */
-//require_once( __DIR__ . '/main.inc.php');
-require_once( __DIR__ . '/config.inc.php');
-require_once( __DIR__ . '/util.inc.php');
-require_once( __DIR__ . '/smarty.inc.php');
-include_once( __DIR__ . '/strings.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Messagesystem Class

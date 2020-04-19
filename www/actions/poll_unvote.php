@@ -1,5 +1,5 @@
 <?php
-require_once( __DIR__ .'/../includes/poll.inc.php');
+require_once dirname(__FILE__).'/../includes/poll.inc.php';
 
 if(!is_numeric($user->id)) {
 	http_response_code(403); // Set response code 403 (Access denied)

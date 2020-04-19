@@ -17,7 +17,7 @@
  * File includes
  * @include core.controller.php Required
  */
-require_once( __DIR__ .'/controller/core.controller.php');
+require_once dirname(__FILE__).'/controller/core.controller.php';
 
 /** [DEBUG] Start execution time measurement (total) */
 if (DEVELOPMENT === true) $timerStart = microtime(true);

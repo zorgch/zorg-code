@@ -5,7 +5,7 @@
  */
 
 /** File includes */
-include_once(__DIR__.'/../includes/chess.inc.php');
+include_once dirname(__FILE__).'/../includes/chess.inc.php';
 
 global $db, $user, $smarty;
 

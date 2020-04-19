@@ -1,15 +1,15 @@
 <?php
 /**
+ * Poll Klasse und Funktionen
+ * @package zorg\Polls
+ */
+/**
  * File includes
  * @include config.inc.php
  * @include usersystem.inc.php
- * @include colors.inc.php
- * @include strings.inc.php	Strings die im Zorg Code benutzt werden
  */
-require_once( __DIR__ . '/config.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
-include_once( __DIR__ . '/colors.inc.php');
-include_once( __DIR__ . '/strings.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * zorg Polls

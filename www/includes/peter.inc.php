@@ -15,9 +15,9 @@
  * @include forum.inc.php
  * @include usersystem.inc.php required
  */
-require_once( __DIR__ . '/config.inc.php');
-include_once( __DIR__ . '/forum.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Peter Klasse

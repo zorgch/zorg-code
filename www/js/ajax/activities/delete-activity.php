@@ -16,7 +16,7 @@ if(!isset($_POST['activity']) || empty($_POST['activity']) || !is_numeric($_POST
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../../includes/activities.inc.php');
+require_once dirname(__FILE__).'/../../../includes/activities.inc.php';
 
 /**
  * Delete Activity

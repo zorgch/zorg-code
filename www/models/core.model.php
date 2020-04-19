@@ -45,14 +45,14 @@ class Model
 	 */
 	/*public function load()
 	{
-		require_once( __DIR__ .'/../includes/util.inc.php');
-		$modelFile = __DIR__ . '/' . strtolower($this->model) . '.php';
+		require_once dirname(__FILE__).'/../includes/util.inc.php';
+		$modelFile = MODELS_DIR. '/' . strtolower($this->model) . '.php';
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $modelFile for $model "%s": %s', __METHOD__, __LINE__, $this->model, $modelFile));
 
 		if (fileExists($modelFile))
 		{
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> require_once: %s', __METHOD__, __LINE__, $modelFile));
-			require_once($modelFile);
+			require_once $modelFile;
 			//$modelClass = 'MVC\\'.$model;
 			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Instantiating $modelClass: %s', __METHOD__, __LINE__, $modelClass));
 			//${$model} = new $modelClass;
@@ -114,24 +114,24 @@ class Model
  * @include verein_mailer.php Required
  * @include wetten.php Required
  */
-require_once( __DIR__ . '/addle.php');
-require_once( __DIR__ . '/anficker.php');
-require_once( __DIR__ . '/books.php');
-require_once( __DIR__ . '/bugtracker.php');
-require_once( __DIR__ . '/dreamjournal.php');
-require_once( __DIR__ . '/forum.php');
-require_once( __DIR__ . '/gallery.php');
-require_once( __DIR__ . '/go.php');
-require_once( __DIR__ . '/fretsonzorg.php');
-require_once( __DIR__ . '/join.php');
-require_once( __DIR__ . '/messagesystem.php');
-require_once( __DIR__ . '/peter.php');
-require_once( __DIR__ . '/pimp.php');
-require_once( __DIR__ . '/profile.php');
-require_once( __DIR__ . '/quotes.php');
-require_once( __DIR__ . '/seti.php');
-require_once( __DIR__ . '/sitemap.model.php');
-require_once( __DIR__ . '/spaceweather.php');
-require_once( __DIR__ . '/stl.php');
-//require_once( __DIR__ . '/verein_mailer.php');
-require_once( __DIR__ . '/wetten.php');
+require_once dirname(__FILE__).'/addle.php';
+require_once dirname(__FILE__).'/anficker.php';
+require_once dirname(__FILE__).'/books.php';
+require_once dirname(__FILE__).'/bugtracker.php';
+require_once dirname(__FILE__).'/dreamjournal.php';
+require_once dirname(__FILE__).'/forum.php';
+require_once dirname(__FILE__).'/gallery.php';
+require_once dirname(__FILE__).'/go.php';
+require_once dirname(__FILE__).'/fretsonzorg.php';
+require_once dirname(__FILE__).'/join.php';
+require_once dirname(__FILE__).'/messagesystem.php';
+require_once dirname(__FILE__).'/peter.php';
+require_once dirname(__FILE__).'/pimp.php';
+require_once dirname(__FILE__).'/profile.php';
+require_once dirname(__FILE__).'/quotes.php';
+require_once dirname(__FILE__).'/seti.php';
+require_once dirname(__FILE__).'/sitemap.model.php';
+require_once dirname(__FILE__).'/spaceweather.php';
+require_once dirname(__FILE__).'/stl.php';
+//require_once dirname(__FILE__).'/verein_mailer.php';
+require_once dirname(__FILE__).'/wetten.php';

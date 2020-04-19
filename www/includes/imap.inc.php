@@ -1,5 +1,13 @@
-<?php /** @DEPRECATED
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php'); */
+<?php
+/**
+ * @DEPRECATED
+ */
+//include_once dirname(__FILE__).'/util.inc.php';
+
+/**
+ * IMAP Class
+ * @DEPRECATED
+ */
 class imap {	//IMAP connection handle	
 	var $conn; 	//Mailbox overview handle	
 	var $box;	//IMAP server address	

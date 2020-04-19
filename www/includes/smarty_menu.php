@@ -2,8 +2,9 @@
 /**
  * smarty_menu_old
  * @DEPRECATED
+ * @package zorg\Smarty
  */
-require_once( __DIR__ .'/smarty.inc.php');
+require_once dirname(__FILE__).'/smarty.inc.php';
 
 /**
  * da php keine pointers kennt, müssen alle MenuTree-objekte mit ihrer id über dieses

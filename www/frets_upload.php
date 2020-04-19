@@ -6,7 +6,7 @@
 /**
  * File includes
  */
-require_once(__DIR__.'/includes/main.inc.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
 
 /** fetch GET Data */
 $scores_frets = $_GET['scores'];

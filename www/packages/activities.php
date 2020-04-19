@@ -20,8 +20,8 @@
  * @include activities.inc.php
  * @include smarty.inc.php
  */
-require_once( __DIR__ . '/../includes/activities.inc.php');
-require_once( __DIR__ . '/../includes/smarty.inc.php');
+require_once INCLUDES_DIR.'activities.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
 
 global $db, $smarty, $user;
 

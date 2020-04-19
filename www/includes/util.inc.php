@@ -1,9 +1,18 @@
 <?php
 /**
  * zorg Site Helper Functions
- * @package zorg
- * @subpackage Utils
+ * @package zorg\Utils
  */
+/**
+ * File includes
+ * @include config.inc.php
+ * @include mysql.inc.php 		
+ * @include activities.inc.php 	
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'mysql.inc.php';
+include_once INCLUDES_DIR.'activities.inc.php';
+
 /**
  * Define preferred encryption type for user password encryption
  * @const CRYPT_SALT Sets the Salt encryption type to be used
@@ -15,16 +24,6 @@
  * @see usersystem::create_newuser()
 */
 if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
-
-/**
- * File includes
- * @include mysql.inc.php 		
- * @include activities.inc.php 	
- * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
- */
-include_once( __DIR__ .'/mysql.inc.php');
-include_once( __DIR__ .'/activities.inc.php');
-include_once( __DIR__ .'/strings.inc.php');
 
 /**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
@@ -1065,16 +1064,19 @@ function cURLfetchJSON($url)
 /**
  * Test if a File exists on the Server
  *
+ * @TODO add check for string ending in '/' then validate if dir exists
+ *
  * @author IneX
- * @version 1.0
- * @since 1.0 06.08.2018 function added
+ * @version 1.1
+ * @since 1.0 <inex> 06.08.2018 function added
+ * @since 1.1 <inex> 18.04.2020 replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
  *
  * @param string $filepath 	The filepath to validate
  * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
  */ 
 function fileExists($filepath)
 {
-	return (stream_resolve_include_path($filepath) !== false ? $filepath : false);
+	return (is_file($filepath) !== false ? $filepath : false);
 }
 
 

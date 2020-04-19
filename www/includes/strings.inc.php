@@ -2,7 +2,7 @@
 /**
  * @include config.inc.php Include required global site configurations
  */
-require_once( __DIR__ . '/config.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
 
 /**
  * @const NO_STRING_FOUND String for empty / not found references to be replaced
@@ -13,7 +13,7 @@ if (!defined('NO_STRING_FOUND')) define('NO_STRING_FOUND', 'Reference not found 
  * Import an Array with strings and make it globally available
  * @include strings.array.php 	Strings die im Zorg Code benutzt werden
  */
-$GLOBALS['strings'] = include_once( __DIR__ .'/strings.array.php');
+$GLOBALS['strings'] = include_once INCLUDES_DIR.'strings.array.php';
 
 /**
  * Get text string

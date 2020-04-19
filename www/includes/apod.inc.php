@@ -6,8 +6,7 @@
  *
  * @author [z]biko
  * @date 01.01.2004
- * @package zorg
- * @subpackage APOD
+ * @package zorg\APOD
  */
 /**
  * File includes
@@ -17,11 +16,11 @@
  * @include	gallery.inc.php Gallery and Pic functions
  * @include util.inc.php 	Various Helper Functions
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/gallery.inc.php');
-require_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'gallery.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Astronomy Picture of the Day (APOD)

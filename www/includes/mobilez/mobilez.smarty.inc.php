@@ -5,7 +5,7 @@
  * contains lots of sh*t that we don't need whenever working
  * or including the config.php ;)
  */
-if (!defined('SMARTY_INC')) define('SMARTY_INC', __DIR__.'/../smarty.inc.php'); // Smarty Class file
+if (!defined('SMARTY_INC')) define('SMARTY_INC', INCLUDES_DIR.'smarty.inc.php'); // Smarty Class file
 
 /**
  * FILE INCLUDES

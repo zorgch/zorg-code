@@ -6,8 +6,8 @@
 /**
  * File includes
  */
-require_once(__DIR__.'/../includes/main.inc.php');
-include_once(__DIR__.'/../includes/chess.inc.php');
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+include_once INCLUDES_DIR.'chess.inc.php';
 
 /** move */
 if (isset($_GET['game']) && $_GET['game'] > 0 && isset($_GET['from']) && isset($_GET['to']))

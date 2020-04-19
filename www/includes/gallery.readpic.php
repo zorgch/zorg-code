@@ -24,10 +24,10 @@
  * @include usersystem.inc.php Usersystem Functions and User definitions
  * @include util.inc.php Various Helper Functions
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+include_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 /** Check if passed $_GET['id'] is valid / integer & not empty */
 if (empty($_GET['id']) || !is_numeric($_GET['id']) || $_GET['id'] <= 0) {

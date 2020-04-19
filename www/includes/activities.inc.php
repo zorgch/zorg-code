@@ -19,8 +19,7 @@
  * @TODO Acitivities-String nicht mehr parsed in die DB-speichern, sondern nur die String-Referenz
  * @TODO Change saved Acitivies-Strings in DB to be sprintf() compatible, e.g.: "sprintf('%s<br/><br/><a href="%s%s">%s</a>", 'hat ein neues Hunting z Spiel auf der Karte cruiser city 2 er&ouml;ffnet.', 'https://zorg.local', '/smarty.php?tpl=103&amp;game=728')" - but save only placeholder-reference to strings.array.php & activity_area = strings.array.php[type]. Add fallback for existing Activities-Strings - or do a DB-Cleanup of the old hardcoded Strings.
  *
- * @package		zorg
- * @subpackage	Activities
+ * @package zorg\Activities
  */
 /**
  * File includes
@@ -30,11 +29,10 @@
  * @include util.inc.php required
  * @include strings.inc.php required
  */
-require_once( __DIR__ . '/config.inc.php');
-require_once( __DIR__ . '/mysql.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
-require_once( __DIR__ . '/util.inc.php');
-require_once( __DIR__ . '/strings.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Activities Class
@@ -47,8 +45,7 @@ require_once( __DIR__ . '/strings.inc.php');
  * @since		1.0 13.09.2009 initial release
  * @since		2.0 18.08.2012 added RSS-Feed for Activities
  * @since		3.0 16.05.2018 added Twitter-Notifications for new Activities
- * @package		zorg
- * @subpackage	Activities
+ * @package		zorg\Activities
  */
 class Activities
 {

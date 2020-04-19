@@ -6,9 +6,9 @@
 /**
  * File Includes
  */
-require_once(__DIR__.'/../includes/main.inc.php');
-require_once(__DIR__.'/../includes/mysql.inc.php');
-require_once(__DIR__.'/../includes/usersystem.inc.php');
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /** Subscribe */
 if(isset($_GET['do']) && $_GET['do'] == 'subscribe')

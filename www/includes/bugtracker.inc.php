@@ -10,9 +10,9 @@
 /**
  * File Includes
  */
-require_once( __DIR__ .'/config.inc.php');
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Bugtracker Klasse

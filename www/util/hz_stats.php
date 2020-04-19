@@ -1,6 +1,14 @@
 <?php
-require_once(__DIR__.'/../includes/mysql.inc.php');
-require_once(__DIR__.'/../includes/util.inc.php');
+/**
+ * Hunting z Stats Output als XMP-File
+ * @package zorg\Games\HuntingZ
+ */
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 $ge = $db->query(
 	"SELECT g.id, if(sum(a.score)-g.z_score > g.z_score, 'i', 'z') winner, u.username mrz

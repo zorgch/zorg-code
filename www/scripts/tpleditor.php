@@ -8,7 +8,7 @@
 /**
  * File includes
  */
-include_once( __DIR__ .'/../includes/tpleditor.inc.php');
+include_once dirname(__FILE__).'/../includes/tpleditor.inc.php';
 
 global $smarty, $db, $user;
 

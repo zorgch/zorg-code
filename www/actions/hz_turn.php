@@ -1,6 +1,6 @@
 <?php
-require_once( __DIR__ .'/../includes/hz_game.inc.php');
-require_once( __DIR__ .'/../includes/usersystem.inc.php');
+require_once dirname(__FILE__).'/../includes/hz_game.inc.php';
+require_once dirname(__FILE__).'/../includes/usersystem.inc.php';
 
 /** hz actions */
 if (!empty($_GET['game']) && is_numeric($_GET['game']))

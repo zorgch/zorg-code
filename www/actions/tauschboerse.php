@@ -7,9 +7,9 @@
 /**
  * File includes
  */
-require_once(__DIR__.'/../includes/main.inc.php');
-require_once(__DIR__.'/../includes/mysql.inc.php');
-require_once(__DIR__.'/../includes/gallery.inc.php');
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'gallery.inc.php';
 
 define('TAUSCHARTIKEL_IMGPATH', SITE_ROOT.'/../data/tauschboerse/');
 

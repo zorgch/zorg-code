@@ -2,8 +2,8 @@
 /**
  * FILE INCLUDES
  */
-if (!require_once PHP_INCLUDES_DIR.'/usersystem.inc.php') die('ERROR: Usersystem could NOT be loaded!');
-if (!require_once PHP_INCLUDES_DIR.'/googleapis.inc.php') die('ERROR: Google API could NOT be loaded!');
+if (!require_once INCLUDES_DIR.'usersystem.inc.php') die('ERROR: Usersystem could NOT be loaded!');
+if (!require_once INCLUDES_DIR.'googleapis.inc.php') die('ERROR: Google API could NOT be loaded!');
 
 /**
  * Mobilezorg Chat
@@ -168,7 +168,7 @@ class mobilezChat
 		
 		if (empty($image_extension)) $image_extension = IMAGE_FORMAT;
 		$target_dir = usersystem::get_and_create_user_files_dir($user_id);
-		$target_dir = USER_FILES_DIR.$user_id.'/';
+		$target_dir = FILES_DIR.$user_id.'/';
 		$filename  = (!empty($image_name) ? str_replace('.','',str_replace(',','_',str_replace(' ','_',$image_name))) : 'file');
 		$filename .= '_'.time().IMG_FULL_SUFFIX.'.'.$image_extension;
 		$full_file_savepath = $target_dir.$filename;
@@ -206,7 +206,7 @@ class mobilezChat
 
 							/** Telegram Messenger Notification */
 							if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
-							require_once PHP_INCLUDES_DIR.'/telegrambot.inc.php';
+							require_once INCLUDES_DIR.'telegrambot.inc.php';
 							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Included telegrambot.inc.php', __METHOD__, __LINE__));
 							$telegramPhotoCaption = sprintf('[z]Chat Bildupload von <b>%s</b>', $user->id2user($user_id, true));
 							$telegramMessageKeyboard = [ 'inline_keyboard' => [[
@@ -293,7 +293,7 @@ class mobilezChat
 			global $pdo_db;
 			
 			$target_dir = usersystem::get_and_create_user_files_dir($user_id);
-			$target_dir = USER_FILES_DIR.$user_id.'/';
+			$target_dir = FILES_DIR.$user_id.'/';
 			$filename = 'staticmap_'.time().'.'.IMAGE_FORMAT;
 			$full_file_savepath = $target_dir.$filename;
 			
@@ -382,14 +382,14 @@ class mobilezChat
 				} else {
 					// If query returned a positive result set
 					//$anfickender = $user->id2user($from_user_id, false);
-					$anfickender = BARBARA; // [z]Barbara Harris *har har*
+					$anfickender = BARBARA_HARRIS; // [z]Barbara Harris *har har*
 					$angefickter = $to_user;//$user->id2user($to_user_id, false);
 					$anfick =  (substr($angefickter, 0, 1) !== '@' ? '@' : '').$angefickter.' du '.$adjektiv.$nomen;//.' (sait zumindest dä '.$anfickender.')';
 					mobilezChat::postChatMessage($anfickender, $anfick);
 
 					/** Telegram Messenger Notification */
 					if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
-					require_once PHP_INCLUDES_DIR.'telegrambot.inc.php';
+					require_once INCLUDES_DIR.'telegrambot.inc.php';
 					$telegramMessage = sprintf('<i>%s</i>', $anfick); // TODO inline Mention @Telegram-User: <a href="tg://user?id=[TG-USER-ID]">@username</a>
 					$telegramMessageKeyboard = json_encode([ 'inline_keyboard' => [[['text'=>'Reply in [z]Chat','url'=>SITE_URL.'/mobilezorg-v2/'], ['text'=>'Spresim batteln','url'=>SITE_URL.'/page/anficker']]] ]);
 					$telegram->send->message('group', $telegramMessage, ['reply_markup' => $telegramMessageKeyboard]);
@@ -589,7 +589,7 @@ class mobilezChat
 				if (is_numeric($lastInsertId))
 				{
 					$chatMessage = sprintf('%1$s hat einen Bug gemeldet: <a href="/bugtracker.php?bug_id=%2$u" target="_blank">%3$s</a>', usersystem::id2user($user_id, false), $lastInsertId, $title);
-					mobilezChat::postChatMessage(BARBARA, $chatMessage);
+					mobilezChat::postChatMessage(BARBARA_HARRIS, $chatMessage);
 				}
 			}
 		} catch(PDOException $err) {

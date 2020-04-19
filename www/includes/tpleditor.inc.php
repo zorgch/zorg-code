@@ -8,7 +8,7 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/main.inc.php');
+require_once dirname(__FILE__).'/main.inc.php';
 
 /**
  * HTML Syntax Validator

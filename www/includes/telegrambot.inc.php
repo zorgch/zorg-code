@@ -22,7 +22,7 @@
 * @include TELEGRAM_BOT.php Include Telegram Bot Configs
 */
 if (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot');
-if ( file_exists(APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php') ) require_once( APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php' );
+if ( file_exists(APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php') ) require_once APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php' ;
 
 /**
  * Telegram Messaging Class

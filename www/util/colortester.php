@@ -6,9 +6,9 @@
 /**
  * File includes
  */
-require_once(__DIR__.'/../includes/colors.inc.php');
-require_once(__DIR__.'/../includes/forum.inc.php');
-require_once(__DIR__.'/../includes/smarty.inc.php');
+require_once dirname(__FILE__).'/../includes/colors.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
 
 echo '<html><body text="#FFFFFF">';
 

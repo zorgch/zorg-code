@@ -6,7 +6,8 @@
 /**
  * File includes
  */
-include_once(__DIR__.'/../includes/usersystem.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 if ($user->is_loggedin() && !empty(USER_SPECIAL) && $user->typ >= USER_SPECIAL)
 {

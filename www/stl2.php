@@ -67,7 +67,7 @@
 /**
  * File includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
 
 /** =====================================================================================
 config:

@@ -12,8 +12,9 @@
  * @include mysql.inc.php
  * @include usersystem.inc.php
  */
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Konstante ANFICKER_USER_ID

@@ -58,6 +58,7 @@
 				datum an dem der spieler das torpedo geschossen hat.
  *
  * @author Milamber
+ * @package zorg\Games\STL
  */
 /**
  * File includes
@@ -66,10 +67,10 @@
  * @include usersystem.inc.php
  * @include util.inc.php
  */
-require_once( __DIR__ . '/config.inc.php');
-require_once( __DIR__ . '/mysql.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
-include_once( __DIR__ . '/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 
 /**

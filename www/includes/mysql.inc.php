@@ -5,11 +5,15 @@
  * der DB-Info-Datei mit folgendem Namen angelegt werden:
  *	  mysql_login.inc.local.php
  *
+ * @package zorg\Database
+ */
+/**
+ * File includes
  * @include mysql_login.inc.local.php Include MySQL Database login information file
  * @include config.inc.php
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( (file_exists( __DIR__ .'/mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.( file_exists( INCLUDES_DIR.'mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') ;
 
 /**
  * MySQL Database Connection Class

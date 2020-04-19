@@ -11,8 +11,8 @@ if(!isset($_GET['style']) || empty($_GET['style']) || is_numeric($_GET['style'])
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../includes/config.inc.php');
-require_once( __DIR__ .'/../../includes/usersystem.inc.php');
+require_once dirname(__FILE__).'/../../includes/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Get online user HTML

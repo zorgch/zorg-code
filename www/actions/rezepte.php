@@ -6,9 +6,9 @@
 /**
  * File includes
  */
-require_once(__DIR__.'/../includes/main.inc.php');
-require_once(__DIR__.'/../includes/mysql.inc.php');
-require_once(__DIR__.'/../includes/usersystem.inc.php');
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /** Neues Rezept hinzufügen */
 if(isset($_POST['action']) && $_POST['action'] == 'new')

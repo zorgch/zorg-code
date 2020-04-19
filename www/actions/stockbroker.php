@@ -1,10 +1,10 @@
 <?PHP
 
 // Includes --------------------------------------------------------------------
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/stockbroker.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/stockbroker.inc.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php';
 
 
 // Warning ändern -------------------------------------------------------------

@@ -10,18 +10,14 @@
 /**
  * File includes
  * @include	config.inc.php 		Include required global site configurations
- * @include	colors.inc.php 		Colors
  * @include util.inc.php 		Various Helper Functions
  * @include mysql.inc.php 		MySQL-DB Connection and Functions
- * @include strings.inc.php 	Text strings to be replaced within code functions etc.
  * @include	activities.inc.php	Activities Functions and Stream
  */
-require_once( __DIR__ .'/config.inc.php');
-include_once( __DIR__ .'/colors.inc.php');
-require_once( __DIR__ .'/util.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/strings.inc.php');
-require_once( __DIR__ .'/activities.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'activities.inc.php';
 
 /**
  * Usersystem Klasse
@@ -925,10 +921,11 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 2.0
+	 * @version 3.1
 	 * @since 1.0 Method added
 	 * @since 2.0 <inex> 11.07.2018 added check for locally cached Gravatar, replaced 'file_exists' with 'stream_resolve_include_path'
-	 * @since 3.0 16.07.2018 Method now returns path to userpic (or queried Gravatar result) as string, instead of true.
+	 * @since 3.0 <inex> 16.07.2018 Method now returns path to userpic (or queried Gravatar result) as string, instead of true.
+	 * @since 3.1 <inex> 18.04.2020 replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
 	 *
 	 * @see USER_IMGPATH
 	 * @see USER_IMGEXTENSION
@@ -942,13 +939,13 @@ class usersystem
 		$user_imgpath_gravatar = USER_IMGPATH.$userid.'_gravatar'.USER_IMGEXTENSION;
 
 		/** Check for cached Gravater */
-		if (stream_resolve_include_path($user_imgpath_gravatar) !== false) // TODO use fileExists() method from util.inc.php?
+		if (is_file($user_imgpath_gravatar) !== false) // TODO use fileExists() method from util.inc.php?
 		{
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage GRAVATAR exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_gravatar));
 			return $user_imgpath_gravatar;
 
 		/** Check for custom Userpic */
-		} elseif (stream_resolve_include_path($user_imgpath_custom) !== false) {
+		} elseif (is_file($user_imgpath_custom) !== false) {
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage ZORG exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_custom));
 			return $user_imgpath_custom;
 
@@ -1603,8 +1600,8 @@ class usersystem
 	 */
 	function get_and_create_user_files_dir($user_id)
 	{
-		$files_dir = rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/';
-		$user_files_dir = $files_dir.$user_id.'/'; //FILES_DIR.$user_id.'/';
+		//$files_dir = rtrim($_SERVER['DOCUMENT_ROOT'],'/\\').'/../data/files/';
+		$user_files_dir = FILES_DIR.$user_id.'/';//$files_dir.$user_id.'/';
 		if (!file_exists($user_files_dir)) { // User Files folder doesn't exist yet...
 			if (mkdir($user_files_dir, 0775)) { // ...so create it!
 				return $user_files_dir;

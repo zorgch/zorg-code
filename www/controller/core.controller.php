@@ -20,14 +20,14 @@ class Controller
 	 */
 	/*public function load()
 	{
-		require_once( __DIR__ .'/../includes/util.inc.php');
-		$controllerFile = __DIR__ . '/' . strtolower($this->controller) . '.controller.php';
+		require_once dirname(__FILE__) .'/../includes/util.inc.php';
+		$controllerFile = CONTROLLERS_DIR . '/' . strtolower($this->controller) . '.controller.php';
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $controllerFile for $controller "%s": %s', __METHOD__, __LINE__, $this->controller, $controllerFile));
 
 		if (fileExists($controllerFile))
 		{
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> require_once: %s', __METHOD__, __LINE__, $controllerFile));
-			require_once($controllerFile);
+			require_once $controllerFile;
 			//$controllerClass = 'MVC\\'.$controller;
 			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Instantiating $controllerClass: %s', __METHOD__, __LINE__, $controllerClass));
 			//${$controller} = new $controllerClass;
@@ -43,4 +43,4 @@ class Controller
  * Include Controller Files
  * @include sitemap.controller.php Required
  */
-require_once( __DIR__ . '/sitemap.controller.php');
+require_once dirname(__FILE__).'/sitemap.controller.php';

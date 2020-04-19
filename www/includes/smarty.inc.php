@@ -17,10 +17,10 @@
  * @include usersystem.inc.php Include
  * @include comments.res.php Include
  */
-require_once(__DIR__ . '/config.inc.php');
-require_once(__DIR__ . '/../smartylib/Smarty.class.php');
-include_once(__DIR__ . '/usersystem.inc.php');
-include_once(__DIR__ . '/comments.res.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once SMARTY_DIR.'Smarty.class.php';
+include_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'comments.res.php';
 
 /**
  * OWN BY BIKO
@@ -307,9 +307,10 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj)
  * 
  * @author [z]biko
  * @author IneX
- * @version 2.0
+ * @version 2.1
  * @since 1.0 function added
  * @since 2.0 <inex> 19.06.2019 Updated to process Packages from tpl_packages > packages relationship instead of a Field-String
+ * @since 2.1 <inex> 18.04.2020 replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
  *
  * TODO sollte das besser als Smarty PREfilter gelöst werden? https://www.smarty.net/docsv2/en/advanced.features.prefilters.tpl
  *
@@ -341,9 +342,9 @@ function load_packages($tpl_id, &$smarty)
 			/** Check if $package matches a PHP-File (Package) */
 			$package_filepath = SMARTY_PACKAGES_DIR.$package['name'].SMARTY_PACKAGES_EXTENSION;
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading package "%s" from %s', __FUNCTION__, __LINE__, $package['name'], $package_filepath));
-			if (stream_resolve_include_path($package_filepath) !== false)
+			if (is_file($package_filepath) !== false)
 			{
-				require_once($package_filepath);
+				require_once $package_filepath;
 				return true;
 			}
 			/** Package-File NOT FOUND */
@@ -689,12 +690,12 @@ class ZorgSmarty extends Smarty
         if ($this->_compile_source($resource_name, $_source_content, $_compiled_content, $_cache_include)) {
             // if a _cache_serial was set, we also have to write an include-file:
             if ($this->_cache_include_info) {
-                require_once(SMARTY_CORE_DIR . 'core.write_compiled_include.php');
+                require_once SMARTY_CORE_DIR . 'core.write_compiled_include.php';
                 smarty_core_write_compiled_include(array_merge($this->_cache_include_info, array('compiled_content'=>$_compiled_content, 'resource_name'=>$resource_name)),  $this);
             }
 
             $_params = array('compile_path'=>$compile_path, 'compiled_content' => $_compiled_content);
-            require_once(SMARTY_CORE_DIR . 'core.write_compiled_resource.php');
+            require_once SMARTY_CORE_DIR . 'core.write_compiled_resource.php';
             smarty_core_write_compiled_resource($_params, $this);
 
             return true;
@@ -760,6 +761,6 @@ class ZorgSmarty_Compiler extends Smarty
 if (!isset($smarty)) $smarty = startSmarty();
 
 // required smarty files for registering all smarty features etc.
-require_once(__DIR__.'/smarty.fnc.php');
-//require_once(__DIR__.'/smarty_menu.php'); // @DEPRECATED
-require_once(__DIR__.'/comments.fnc.php');
+require_once INCLUDES_DIR.'smarty.fnc.php';
+//require_once __DIR__.'/smarty_menu.php'; // @DEPRECATED
+require_once INCLUDES_DIR.'comments.fnc.php';

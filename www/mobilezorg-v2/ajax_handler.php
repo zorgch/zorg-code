@@ -6,8 +6,8 @@
 /**
  * FILE INCLUDES
  */
-require_once __DIR__.'config.php';
-require_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php';
+require_once dirname(__FILE__).'/config.php';
+require_once MOBILEZ_INCLUDES_DIR.'chat.inc.php';
 
 if(isset($_POST['last_message']))
 {

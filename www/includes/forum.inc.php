@@ -32,17 +32,13 @@
  * @include	util.inc.php Utilities, required
  * @include	sunrise.inc.php Sunrise, required
  * @include	Messagesystem DEPRECATED
- * @include notifications.inc.php required
- * @include strings.inc.php Strings die im Zorg Code benutzt werden, required
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/smarty.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
-require_once( __DIR__ .'/util.inc.php');
-require_once( __DIR__ .'/sunrise.inc.php');
-//require_once( __DIR__ .'/messagesystem.inc.php');
-include_once( __DIR__ .'/notifications.inc.php');
-require_once( __DIR__ .'/strings.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+require_once INCLUDES_DIR.'sunrise.inc.php';
+//require_once INCLUDES_DIR.'messagesystem.inc.php';
 
 /**
  * GLOBALS

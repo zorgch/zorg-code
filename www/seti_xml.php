@@ -12,9 +12,9 @@
  * @include setiathome.inc.php Includes SETI@home setiathome() Class and Methods
  * @include core.model.php required
  */
-require_once(__DIR__.'/includes/main.inc.php');
-require_once(__DIR__.'/includes/setiathome.inc.php');
-require_once(__DIR__.'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once INCLUDES_DIR.'setiathome.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model

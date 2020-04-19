@@ -15,8 +15,7 @@
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 08.05.2004
  * @link http://www.zend.com/codex.php?id=135&single=1
- * @package zorg
- * @subpackage Sunrise
+ * @package zorg\Layout
  *
  * @global array $user
  * @global integer $suncalc
@@ -30,16 +29,15 @@
  */
 /**
  * File Includes
- * @include config.inc.php
+ * @include config.inc.php -> notifications already included within config.inc.php
  * @include usersystem.inc.php
  * @include mysql.inc.php
  * @include util.inc.php
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
-//require_once( __DIR__ .'/mysql.inc.php');
-include_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Globals
@@ -53,8 +51,7 @@ include_once( __DIR__ .'/util.inc.php');
  * @author Bolli <bbolli@ewanet.ch>
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 14.12.2003
- * @package zorg
- * @subpackage Sunrise
+ * @package zorg\Layout
  */
 class Astro_Sunrise
 {

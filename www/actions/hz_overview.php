@@ -1,5 +1,9 @@
 <?php
-require_once( __DIR__ .'/../includes/hz_game.inc.php');
+/**
+ * Hunting z Game Actions
+ * @package zorg\Games\Hz
+ */
+require_once dirname(__FILE__).'/../includes/hz_game.inc.php';
 
 unset($_GET['tplupd']);
 

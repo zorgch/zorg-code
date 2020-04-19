@@ -5,9 +5,10 @@
  * @include forum.inc.php required
  * @include usersystem.inc.php required
  */
-require_once( __DIR__ .'/smarty.inc.php');
-require_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Register Smarty-Template functions & variables

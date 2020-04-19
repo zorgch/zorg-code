@@ -1,5 +1,9 @@
 <?php
-require_once( __DIR__ .'/../includes/poll.inc.php');
+/**
+ * Poll Actions
+ * @package zorg\Polls
+ */
+require_once dirname(__FILE__).'/../includes/poll.inc.php';
 
 if (!$user->id) {
 	http_response_code(403); // Set response code 403 (Access denied)

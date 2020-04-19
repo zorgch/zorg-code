@@ -7,7 +7,7 @@
  * File includes
  * @include main.inc.php
  */
-require_once( __DIR__ . '/includes/main.inc.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
 
 /**
  * Show a mail message's webview

@@ -13,11 +13,11 @@
 
 /**
  * File includes
- * @include mysql.inc.php
  * @include config.inc.php
+ * @include mysql.inc.php
  */
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/config.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.

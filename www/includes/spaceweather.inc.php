@@ -10,15 +10,15 @@
  * @include config.inc.php
  * @include mysql.inc.php 	MySQL-DB Connection and Functions
  */
-include_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
 * Grab the NASA API Key
 * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
 * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
 */
-//if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once( APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') ));
+//if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') );
 
 /**
  * Define various Asteroid related constants (for Spaceweather)

@@ -6,7 +6,7 @@
 global $db, $smarty;
 
 /** File includes */
-require_once(__DIR__.'/../includes/hz_map.inc.php');
+require_once dirname(__FILE__).'/../includes/hz_map.inc.php';
 
 if (isset($_GET['map_activate']) && is_numeric($_GET['map_activate'])) {
 	change_map_state($_GET['map_activate'], "active");

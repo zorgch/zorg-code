@@ -8,7 +8,7 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/../includes/tpleditor.inc.php');
+require_once dirname(__FILE__).'/../includes/tpleditor.inc.php';
 
 /** Initialize Vars */
 $error = null;

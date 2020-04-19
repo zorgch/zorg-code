@@ -4,8 +4,8 @@
  * @include main.inc.php required
  * @include core.model.php required
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Validate GET-Parameters
@@ -244,10 +244,10 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 		 * @include googlerecaptchaapi_key.inc.php Include an Array containing valid Google reCaptcha API Keys
 		 * @link https://www.google.com/recaptcha/
 		 */
-		if (fileExists(__DIR__.'/includes/g-recaptcha-src/autoload.php'))
+		if (fileExists(INCLUDES_DIR.'g-recaptcha-src/autoload.php'))
 		{
-			require_once(__DIR__.'/includes/g-recaptcha-src/autoload.php');
-			$reCaptchaApiKeysFile = require_once(APIKEYS_DIR.'/google/googlerecaptchaapi_key.inc.php');
+			require_once INCLUDES_DIR.'g-recaptcha-src/autoload.php';
+			$reCaptchaApiKeysFile = require_once APIKEYS_DIR.'/google/googlerecaptchaapi_key.inc.php';
 			$reCaptchaApiKeys = (DEVELOPMENT ? $reCaptchaApiKeysFile['DEVELOPMENT'] : $reCaptchaApiKeysFile['PRODUCTION']);
 			$reCaptchaLang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
 			try {

@@ -6,8 +6,8 @@
 /**
  * File includes
  */
-include_once(__DIR__.'/../includes/usersystem.inc.php');
-include_once(__DIR__.'/../includes/mysql.inc.php');
+include_once dirname(__FILE__).'/../includes/usersystem.inc.php';
+include_once INCLUDES_DIR.'mysql.inc.php';
 
 if ($user->is_loggedin() && !empty(USER_SPECIAL) && $user->typ >= USER_SPECIAL)
 {

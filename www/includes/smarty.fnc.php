@@ -8,25 +8,23 @@
 /**
  * File includes
  */
-include_once( __DIR__ .'/addle.inc.php');
-include_once( __DIR__ .'/apod.inc.php');
-include_once( __DIR__ .'/bugtracker.inc.php');
-require_once( __DIR__ .'/events.inc.php');
-include_once( __DIR__ .'/forum.inc.php');
-include_once( __DIR__ .'/gallery.inc.php');
-include_once( __DIR__ .'/hz_game.inc.php');
-include_once( __DIR__ .'/go_game.inc.php');
-include_once( __DIR__ .'/quotes.inc.php');
-include_once( __DIR__ .'/smarty.inc.php');
-include_once( __DIR__ .'/stockbroker.inc.php');
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/util.inc.php');
-include_once( __DIR__ .'/poll.inc.php');
-include_once( __DIR__ .'/stl.inc.php');
-include_once( __DIR__ .'/error.inc.php');
-include_once( __DIR__ .'/peter.inc.php');
-include_once( __DIR__ .'/rezepte.inc.php');
-//include_once( __DIR__ .'/chat.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'addle.inc.php';
+include_once INCLUDES_DIR.'apod.inc.php';
+include_once INCLUDES_DIR.'bugtracker.inc.php';
+include_once INCLUDES_DIR.'events.inc.php';
+include_once INCLUDES_DIR.'forum.inc.php';
+include_once INCLUDES_DIR.'gallery.inc.php';
+include_once INCLUDES_DIR.'hz_game.inc.php';
+include_once INCLUDES_DIR.'go_game.inc.php';
+include_once INCLUDES_DIR.'quotes.inc.php';
+include_once INCLUDES_DIR.'stockbroker.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
+include_once INCLUDES_DIR.'poll.inc.php';
+include_once INCLUDES_DIR.'stl.inc.php';
+include_once INCLUDES_DIR.'error.inc.php';
+include_once INCLUDES_DIR.'peter.inc.php';
+include_once INCLUDES_DIR.'rezepte.inc.php';
 
 
 /**

@@ -3,9 +3,11 @@
  * Hunting z Game Map Queries
  * @package zorg\Games\Hz
  */
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/hz_map.inc.php');
-include_once( __DIR__ .'/strings.inc.php');
+/**
+ * File includes
+ */
+include_once dirname(__FILE__).'/usersystem.inc.php';
+include_once INCLUDES_DIR.'hz_map.inc.php';
 
 /** Check Game ID */
 $gameid = (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0 ? (int)$_GET['id'] : null);

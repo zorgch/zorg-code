@@ -28,18 +28,17 @@
  *		wetten_teilnehmer
  *
  * @author		IneX
- * @package		zorg
- * @subpackage	Usersystem
+ * @package		zorg\Usersystem
  */
 /**
  * File includes
  * @include config.inc.php
  * @include mysql.inc.php
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/addle.inc.php');
-require_once( __DIR__ .'/bugtracker.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'addle.inc.php';
+require_once INCLUDES_DIR.'bugtracker.inc.php';
 
 /**
  * zorg User Stats Class

@@ -20,8 +20,8 @@
  * File Includes
  * @include go_game.inc.php
  */
-require_once( __DIR__ . '/../includes/config.inc.php');
-require_once( __DIR__ . '/../includes/go_game.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'go_game.inc.php';
 
 $gameid = $_GET['game'];
 if (!is_numeric($gameid)) user_error(t('error-game-invalid', 'global', $gameid));

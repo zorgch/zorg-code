@@ -10,13 +10,13 @@
  */
 /**
  * File Includes
- * @include main.inc.php
+ * @include config.inc.php
  * @include smarty.inc.php
  * @include anficker.inc.php
  */
-require_once( __DIR__ . '/../includes/config.inc.php');
-require_once( __DIR__ . '/../includes/smarty.inc.php');
-require_once( __DIR__ . '/../includes/anficker.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'anficker.inc.php';
 
 global $user, $smarty;
 

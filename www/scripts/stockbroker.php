@@ -5,8 +5,8 @@
  */
 
 /** File includes */
-require_once(__DIR__.'/../includes/stockbroker.inc.php');
-require_once(__DIR__.'/../includes/usersystem.inc.php');
+require_once dirname(__FILE__).'/../includes/stockbroker.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 global $smarty, $user;	
 

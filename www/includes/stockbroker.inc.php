@@ -1,11 +1,15 @@
 <?php
 /**
+ * Stockbroker Funktionen
+ * @package zorg\Games\Stockbroker
+ */
+/**
  * File includes
  * @include config.inc.php required
  * @include mysql.inc.php required
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 //set_time_limit(20);
 

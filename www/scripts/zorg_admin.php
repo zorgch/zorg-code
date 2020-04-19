@@ -90,7 +90,7 @@ $smarty->assign('admin_quota', $quota);
  */
 if ($_GET['apod_fetch'] === 'true')
 {
-	require_once(__DIR__ . '/../includes/apod.inc.php');
+	require_once dirname(__FILE__).'/../includes/apod.inc.php';
 	$fetch_date = (isset($_GET['apod_date']) && false !== strtotime($_GET['apod_date']) ? date('Y-m-d',strtotime($_GET['apod_date'])) : null);
 	$fetch_result = get_apod($fetch_date);
 	if ($fetch_result === true)

@@ -26,7 +26,7 @@
  * @include forum.inc.php		(DEPRECATED) Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele
  * @include strings.inc.php		(DEPRECATED) Strings die im Zorg Code benutzt werden
  */
-require_once( __DIR__ .'/main.inc.php');
+require_once dirname(__FILE__).'/main.inc.php';
 
 /**
  * @const IMGPATH			Pfad zu den Bildern fürs Hunting Z

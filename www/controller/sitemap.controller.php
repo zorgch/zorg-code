@@ -11,7 +11,7 @@ namespace MVC\Controller;
  * File includes
  * @include core.model.php Required
  */
-require_once(__DIR__ .'/../models/core.model.php');
+require_once dirname(__FILE__).'/../models/core.model.php';
 use MVC; // Fix namespace reference compatibility for MVC Model
 
 /**

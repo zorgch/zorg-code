@@ -15,7 +15,7 @@
 /**
  * File Includes
  */
-require_once( __DIR__ .'/../includes/config.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
 
 /**
  * Globals

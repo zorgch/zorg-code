@@ -6,16 +6,15 @@
  *
  * @author [z]biko
  * @version 1.0
- * @package zorg
- * @subpackage Addle
+ * @package zorg\Games\Addle
  */
 /**
  * File includes
  * @include config.inc.php required
  * @include mysql.inc.php required
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Anzahl offene Addle Spiele ermitteln

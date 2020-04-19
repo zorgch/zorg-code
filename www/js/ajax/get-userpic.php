@@ -13,9 +13,9 @@ $index = ((isset($_GET['index']) && $_GET['index'] >= 0 && is_numeric($_GET['ind
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../includes/config.inc.php');
-require_once( __DIR__ .'/../../includes/mysql.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php"); // zu lange Ladezeiten
+require_once dirname(__FILE__).'/../../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+//require_once INCLUDES_DIR.'gallery.inc.php'; // zu lange Ladezeiten
 
 /**
  * Get records from database

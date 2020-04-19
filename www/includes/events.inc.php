@@ -13,15 +13,17 @@
  */
 /**
  * File includes
+ * @include config.inc.php
  * @include DEPRECATED smarty.inc.php Includes the Smarty Class and Methods
  * @include usersystem.inc.php Includes the Usersystem Class and Methods
  * @include util.inc.php Includes the Helper Utilities Class and Methods
  * @include googleapis.inc.php Include the Google API Class and Methods
  */
-//require_once( __DIR__ .'/smarty.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
-require_once( __DIR__ .'/util.inc.php');
-include_once( __DIR__ .'/googleapis.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+//require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+include_once INCLUDES_DIR.'googleapis.inc.php';
 
 /**
  * Events Class

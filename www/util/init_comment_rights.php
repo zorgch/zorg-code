@@ -1,9 +1,15 @@
 <?php
-require_once( __DIR__ .'/../includes/mysql.inc.php');
-require_once( __DIR__ .'/../includes/usersystem.inc.php');
-require_once( __DIR__ .'/../includes/forum.inc.php');
+/**
+ * Fix Comment Threads Rights
+ * @package zorg\Forum\Utils
+ */
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
 
-if ($user->typ >= USER_SPECIAL || $user->id == 7) {
+if ($user->typ >= USER_SPECIAL || $user->id == 7)
+{
 	// gallery
 	/*
 	$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='1'", __FILE__, __LINE__);

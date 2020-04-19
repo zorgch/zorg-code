@@ -1,19 +1,22 @@
 <?php
 /**
  * Hunting z Map generator
- * @package zorg\Games\Hz
+ * @package zorg\Games\HuntingZ
  */
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
-/** File includes */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/colors.inc.php');
-
-define("MAPIMGPATH", $_SERVER['DOCUMENT_ROOT'].'/images/hz/');
+/** Hunting Z-Maps special Constants */
+define("MAPIMGPATH", PHP_IMAGES_DIR.'hz/');
+define("HZMAPS_DIR", FILES_DIR.'../hz_maps/');
 
 
 function create_map ($mapfile, &$map_config, &$error, &$img_map) {
 	global $user, $map_stations, $map_routes;
-	$imgfile = $_SERVER['DOCUMENT_ROOT'].'/../data/hz_maps/'.$user->id.'.gif';
+	$imgfile = HZMAPS_DIR.$user->id.'.gif';
 	
 	$cfg = read_config($mapfile);
 	if ($err = check_config ($cfg)) {

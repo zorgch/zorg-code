@@ -17,13 +17,9 @@
  */
 /**
  * File includes
- * @include config.inc.php Required global configs
  * @include messagesystem.inc.php Required Messagesystem Class
- * @include telegrambot.inc.php Required Telegram Messaging Class
  */
-require_once( __DIR__ . '/config.inc.php' );
-require_once( __DIR__ . '/messagesystem.inc.php' );
-require_once( __DIR__ . '/telegrambot.inc.php' );
+require_once INCLUDES_DIR.'messagesystem.inc.php' ;
 
 /**
  * Class for Notification handling

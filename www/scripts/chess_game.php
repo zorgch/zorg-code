@@ -1,6 +1,10 @@
 <?php
-require_once( __DIR__ .'/../includes/config.inc.php');
-require_once( __DIR__ .'/../includes/chess.inc.php');
+/**
+ * zorg Schach Scripts
+ * @package zorg\Games\Schach
+ */
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'chess.inc.php';
 
 global $db, $user, $smarty;
 

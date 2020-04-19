@@ -6,7 +6,7 @@
 global $smarty, $db, $user;
 
 define("MAX_DISCSPACE", 10485760 * 5);   // 50 MB
-define("USERPATH", $_SERVER['DOCUMENT_ROOT'].'/../data/files/'.$user->id.'/');
+define("USERPATH", FILES_DIR.$user->id.'/');
 
 $error = "";
 $state = "";

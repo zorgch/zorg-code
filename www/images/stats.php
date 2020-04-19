@@ -22,10 +22,10 @@ $h = (is_numeric($_GET['h']) && (int)$_GET['h'] > 100 ? (int)$_GET['h'] : 300); 
 
 /**
  * File includes
- * @include main.inc.php
+ * @include config.inc.php
  */
-require_once( __DIR__ .'/../includes/config.inc.php');
-require_once( __DIR__ .'/../includes/graph.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'graph.inc.php';
 
 /**
  * Define some vars

@@ -1,5 +1,5 @@
 <?php
-require_once( __DIR__ .'/../includes/main.inc.php');
+require_once dirname(__FILE__).'/../includes/main.inc.php';
 	
 if (!$user->id) {
 	http_response_code(403); // Set response code 403 (Access denied)

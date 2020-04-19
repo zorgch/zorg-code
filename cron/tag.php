@@ -13,18 +13,18 @@ if (!empty($argv[1])) {
 
 error_log(sprintf('[%s] [NOTICE] <%s> Starting...', date('d.m.Y H:i:s',time()), __FILE__));
 
-require_once( __DIR__ .'/../www/includes/config.inc.php');
-include_once( __DIR__ .'/../www/includes/addle.inc.php');
-include_once( __DIR__ .'/../www/includes/hz_game.inc.php');
-include_once( __DIR__ .'/../www/includes/peter.inc.php');
-include_once( __DIR__ .'/../www/includes/apod.inc.php');
-include_once( __DIR__ .'/../www/includes/forum.inc.php');
-include_once( __DIR__ .'/../www/includes/quotes.inc.php');
-include_once( __DIR__ .'/../www/includes/gallery.inc.php');
+require_once( dirname(__FILE__).'/../www/includes/config.inc.php');
+include_once( INCLUDES_DIR.'addle.inc.php');
+include_once( INCLUDES_DIR.'hz_game.inc.php');
+include_once( INCLUDES_DIR.'peter.inc.php');
+include_once( INCLUDES_DIR.'apod.inc.php');
+include_once( INCLUDES_DIR.'forum.inc.php');
+include_once( INCLUDES_DIR.'quotes.inc.php');
+include_once( INCLUDES_DIR.'gallery.inc.php');
 /*
-include_once( __DIR__ .'/../www/includes/setiathome.inc.php'); --> lässt Script aufhängen
-include_once( __DIR__ .'/../www/includes/spaceweather.inc.php');  --> tut irgendwie nicht
-include_once( __DIR__ .'/../www/dnd/dnd.inc.php');
+include_once( INCLUDES_DIR.'setiathome.inc.php'); --> lässt Script aufhängen
+include_once( INCLUDES_DIR.'spaceweather.inc.php');  --> tut irgendwie nicht
+include_once( SITE_ROOT.'/dnd/dnd.inc.php');
 */
 error_log(sprintf('[%s] [NOTICE] <%s> Files included', date('d.m.Y H:i:s',time()), __FILE__));
 

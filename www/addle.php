@@ -19,9 +19,9 @@
  * @include addle.inc.php required
  * @include core.model.php required
  */
-require_once( __DIR__ . '/includes/main.inc.php');
-require_once( __DIR__ . '/includes/addle.inc.php');
-require_once( __DIR__ . '/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once INCLUDES_DIR.'addle.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -189,7 +189,7 @@ function newgame($player) {
 		Addle KI - start
 	========================================*/
 	if($player == 59) {
-		//include_once($_SERVER['DOCUMENT_ROOT']."/addle_ki.php");
+		//include_once $_SERVER['DOCUMENT_ROOT']."/addle_ki.php";
 	}
 	/*========================================
 		Addle KI - end
