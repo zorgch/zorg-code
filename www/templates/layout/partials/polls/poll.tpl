@@ -21,10 +21,10 @@
 				<table>
 					<tr>
 						<td align="left" valign="middle" width=10>
-							<input type="radio" value="{$answer.id}" name="vote" onClick="document.location.href=\"{$action}&poll={$poll.id}&vote={$answer.id}\"">
+							<input type="radio" id="{$poll.id}-{$answer.id}" name="vote" value="{$answer.id}" onClick="document.location.href='{$form_action}&poll={$poll.id}&vote={$answer.id}'">
 						</td>
 						<td align="left" valign="middle">
-							<small>{$answer.text}</small>
+							<label for="{$poll.id}-{$answer.id}" class="small">{$answer.text}</label>
 						</td>
 					</tr>
 				</table>
@@ -41,8 +41,7 @@
 {else}
 	{foreach name=answers_loop from=$answers item=answer key=answer_id}
 	<tr>
-		<td align="left">
-			<small>
+		<td align="left" class="small">
 			{if $poll.myvote != $answer.id}{$answer.text} ({$answer.votes}){/if}
 			{if $poll.myvote == $answer.id}<b>{$answer.text}</b> ({$answer.votes}){/if}
 			{if $poll.type=='member'}: <i>
@@ -50,8 +49,7 @@
 					{if $voter.user == $user->id}<b>{/if}{$voter.user|name}{if $voter.user == $user->id}</b>{/if}{if $smarty.foreach.voters_loop.last == false},{/if}
 				{/foreach}
 			</i>{/if}
-			{if $poll.myvote == $answer.id && $poll.state=='open' && $user_has_vote_permission} <a href="{$answer.unvote_url}">[unvote]</a>{/if}
-			</small>
+			{if $poll.myvote == $answer.id && $poll.state=='open' && $user_has_vote_permission} <a href="{$answer.unvote_url}" class="tiny">[unvote]</a>{/if}
 		</td>
 	</tr>
 	<tr>
@@ -64,14 +62,12 @@
 
 {if ($poll.myvote=='1' && $poll.state=='open') || ($user->id==$poll.user && $user_has_vote_permission)}
 	<tr>
-		<td align="center">
-			<small>
+		<td align="center" class="tiny">
 			{if $poll.state=='open' && $user->id==$poll.user}
 				| <a href="/actions/poll_state.php?poll={$poll.id}&state=closed&{url_params}">close</a> |
 			{elseif $poll.state == 'closed' && $user->id==$poll.user}
 				| <a href="/actions/poll_state.php?poll={$poll.id}&state=open&{url_params}">reopen</a> |
 			{/if}
-			</small>
 		</td>
 	</tr>
 {/if}
