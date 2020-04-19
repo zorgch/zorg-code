@@ -98,8 +98,8 @@
 					{if $nextevent.numunread > 0} {$nextevent.numunread} unread{/if}</a>&nbsp;
 					{if $user->id}
 						{assign_event_hasjoined event_id=$nextevent.id}
-						{if $event_hasjoined == true}<a class="unjoin" href="/actions/events.php?unjoin={$nextevent.id}&url={$url|base64encode}">unjoin</a>
-						{else}<a class="join" href="/actions/events.php?join={$nextevent.id}&url={$url|base64encode}">join</a>{/if}
+						{if $event_hasjoined == true}<a class="unjoin" href="/actions/events.php?unjoin={$nextevent.id}&url={$url}">unjoin</a>
+						{else}<a class="join" href="/actions/events.php?join={$nextevent.id}&url={$url}">join</a>{/if}
 					{/if}
 				</span><br>{/foreach}
 			</div>

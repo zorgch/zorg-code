@@ -9,13 +9,13 @@
  * @include main.inc.php Includes the Main Zorg Configs and Methods
  * @include events.inc.php Includes the Event Class and Methods
  */
-require_once( __DIR__ .'/../includes/main.inc.php');
-require_once( __DIR__ .'/../includes/events.inc.php');
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once INCLUDES_DIR.'events.inc.php';
 
 /** Validate $_GET & $_POST variables */
 $error = NULL;
-if (!empty($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_POST['url'])); // preg_replace = entfernt $error Param
-if (!empty($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_GET['url'])); // preg_replace = entfernt $error Param
+if (isset($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_POST['url'])); // preg_replace = entfernt $error Param
+if (isset($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_GET['url'])); // preg_replace = entfernt $error Param
 if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/events'; // /events = Events page, tpl=158 (Fallback)
 
 /** Validate & escape event fields for new or edit an event */
@@ -40,7 +40,7 @@ switch (true)
 
 
 	/** Add new Event */
-	case ($_POST['action'] === 'new'):
+	case ((isset($_POST['action']) && $_POST['action'] === 'new')):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Event: %s', __FILE__, __LINE__, $eventName));
 		$sql = 'INSERT INTO 
 					events
@@ -76,29 +76,25 @@ switch (true)
 
 
 	/** Save updated Event details */
-	case ($_POST['action'] === 'edit'):
+	case ((isset($_POST['action']) && $_POST['action'] === 'edit')):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Update Event: %d "%s"', __FILE__, __LINE__, $eventId, $eventName));
-		try {		
-			$sql = 'UPDATE events 
-				 	SET 
-						name = "'.$eventName.'"
-						, location = "'.$eventLocation.'"
-						, link = "'.$eventLink.'"
-						, description = "'.$eventDescription.'"
-						, startdate = "'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
-				 		, enddate = "'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
-				 		, gallery_id = '.$eventGallery.'
-				 		, review_url = "'.$eventReviewlink.'"
-					WHERE id = '.$eventId
-					;
-			if (DEVELOPMENT) error_log($sql);
-			$result = $db->query($sql, __FILE__, __LINE__, 'edit');
-			if ($result === false) $error = 'Error updating Event ID "' . $eventId . '"';
 
-		} catch (Exception $e) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR UPDATE events: %s', __FILE__, __LINE__, $e->getMessage()));
-			$error = 'Error: ' . $e->getMessage();
-		}
+		$sql = 'UPDATE events 
+			 	SET 
+					name = "'.$eventName.'"
+					, location = "'.$eventLocation.'"
+					, link = "'.$eventLink.'"
+					, description = "'.$eventDescription.'"
+					, startdate = "'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
+			 		, enddate = "'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
+			 		, gallery_id = '.$eventGallery.'
+			 		, review_url = "'.$eventReviewlink.'"
+				WHERE id = '.$eventId
+				;
+		if (DEVELOPMENT) error_log($sql);
+		$result = $db->query($sql, __FILE__, __LINE__, 'edit');
+		if ($result === false) $error = 'Error updating Event ID "' . $eventId . '"';
+
 		break;
 
 
@@ -106,19 +102,17 @@ switch (true)
 	case (isset($eventJoinId) && is_numeric($eventJoinId)):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Join Event: %d', __FILE__, __LINE__, $eventJoinId));
 		$redirect_url .= '&event_id='.$eventJoinId;
-		try {
-			$sql = 'INSERT INTO events_to_user VALUES('.$user->id.', '.$eventJoinId.')';
-			if ($db->query($sql,__FILE__, __LINE__) === false) {
-				$error = 'Cannot join Event ID ' . $eventJoinId;
-				break;
-			} else {
-				/** Activity Eintrag auslösen */
-				Activities::addActivity($user->id, 0, 'nimmt an <a href="'.$redirect_url.'">'.Events::getEventName($eventJoinId).'</a> teil.', 'ev');
-			}
 
-		} catch (Exception $e) {
-			$error = 'Error: ' . $e->getMessage();
+		$sql = 'INSERT INTO events_to_user VALUES('.$user->id.', '.$eventJoinId.')';
+		if ($db->query($sql,__FILE__, __LINE__) === false)
+		{
+			$error = 'Cannot join Event ID ' . $eventJoinId;
+			break;
+		} else {
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, 'nimmt an <a href="'.$redirect_url.'">'.Events::getEventName($eventJoinId).'</a> teil.', 'ev');
 		}
+
 		break;
 
 
@@ -126,17 +120,15 @@ switch (true)
 	case (isset($eventUnjoinId) && is_numeric($eventUnjoinId)):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Unjoin Event: %d', __FILE__, __LINE__, $eventUnjoinId));
 		$redirect_url .= '&event_id='.$eventUnjoinId;
-		try {
-			$sql = 'DELETE FROM events_to_user WHERE user_id = '.$user->id.' AND event_id = '.$eventUnjoinId;
-			if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot unjoin Event ID ' . $eventUnjoinId;
-		} catch (Exception $e) {
-			$error = 'Error: ' . $e->getMessage();
-		}
+
+		$sql = 'DELETE FROM events_to_user WHERE user_id = '.$user->id.' AND event_id = '.$eventUnjoinId;
+		if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot unjoin Event ID ' . $eventUnjoinId;
+
 		break;
 
 
 	/** Post Event to Twitter */
-	case ($_POST['action'] === 'tweet'):
+	case ((isset($_POST['action']) && $_POST['action'] === 'tweet')):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Tweet Event: %s', __FILE__, __LINE__, $redirect_url));
 
 		/**
@@ -145,11 +137,11 @@ switch (true)
 		 * @include twitterapis_key.inc.php Include an Array containing valid Twitter API Keys
 		 * @see Twitter::send()
 		 */
-		require_once __DIR__.'/../includes/twitter-php/twitter.class.php';
+		require_once INCLUDES_DIR.'twitter-php/twitter.class.php';
 		$twitterApiKeysFile = APIKEYS_DIR.'/twitter/twitterapis_key.inc.php';
 		if (file_exists($twitterApiKeysFile))
 		{
-			$twitterApiKeys = require_once($twitterApiKeysFile);
+			$twitterApiKeys = require_once $twitterApiKeysFile;
 			$twitterApiKey = (DEVELOPMENT ? $twitterApiKeys['DEVELOPMENT'] : $twitterApiKeys['PRODUCTION']);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Twitter API Keys found: %s', __FILE__, __LINE__, print_r($twitterApiKeys, true)));
 
@@ -178,12 +170,10 @@ switch (true)
 			{
 				/** Update Event-Entry in the Database */
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Tweet "%s" sent => https://twitter.com/%s/status/%s', __FILE__, __LINE__, $tweet->text, TWITTER_NAME, $tweet->id_str));
-				try {
-					$sql = 'UPDATE events SET tweet = "'.$tweet->id_str.'" WHERE id = '.$eventId;
-					if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot update Tweet-Status for Event ID ' . $eventId;
-				} catch (Exception $e) {
-					$error = 'Error: ' . $e->getMessage();
-				}
+
+				$sql = 'UPDATE events SET tweet = "'.$tweet->id_str.'" WHERE id = '.$eventId;
+				if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot update Tweet-Status for Event ID ' . $eventId;
+
 			} else {
 				$error = 'Twitter API: $twitter->send() ERROR';
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __FILE__, __LINE__, $error));
