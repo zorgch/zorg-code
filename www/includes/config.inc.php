@@ -218,7 +218,7 @@ if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA
  * @const APOD_API NASA APOD API-URL von wo das tägliche APOD-Bild mit dem NASA_API_KEY geholt werden kann, mittels ?apod_date=yyyy-mm-dd kann ein spezifisches APOD geholt werden
  */
 if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', 41);
-if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', SITE_ROOT.'/../../data/temp/');
+if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', SITE_ROOT.'/../data/temp/');
 if (!defined('APOD_SOURCE')) define('APOD_SOURCE', 'https://apod.nasa.gov/apod/');
 if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key='.NASA_API_KEY);
 
