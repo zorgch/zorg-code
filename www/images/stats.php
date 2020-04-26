@@ -1,13 +1,14 @@
 <?php
 /**
- * Forum Comments Stats Generator
+ * Forum Comments Stats Generator.
+ *
  * Zeigt Forum Post Stats in Form eines Diagramm Posts/Monat mittels Line Graph generator
  *
  * @author [z]cylander
  * @version 2.0
- * @since 1.0 <cylander> 16.12.2004 File added
- * @since 1.5 <cylander> test zweite x-Achse mit Jahreszahlen
- * @since 2.0 <inex> 07.12.2019 [Bug #602] "0 posts/mon gehen unter" fixed, Code & styling optimizations
+ * @since 1.0 `16.12.2004` `[z]cylander` File added
+ * @since 1.5 `[z]cylander` test zweite x-Achse mit Jahreszahlen
+ * @since 2.0 `07.12.2019` `IneX` [Bug #602] "0 posts/mon gehen unter" fixed, Code & styling optimizations
  *
  * @package zorg\Forum
  * @see graph.inc.php

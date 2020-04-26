@@ -32,7 +32,7 @@ class Peter extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $peter Ein Peter Game Class-Objekt
 	 * @return void
@@ -48,7 +48,7 @@ class Peter extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param integer $game_id Eine gültige Peter Game-ID
 	 * @return resource
@@ -69,7 +69,7 @@ class Peter extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -80,7 +80,7 @@ class Peter extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -94,7 +94,7 @@ class Peter extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */

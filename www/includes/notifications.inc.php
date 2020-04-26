@@ -26,10 +26,10 @@ require_once INCLUDES_DIR.'messagesystem.inc.php' ;
  *
  * In dieser Klasse befinden sich alle Funktionen zum Senden von Notifications an User
  *
- * @author		IneX
- * @package		zorg\Usersystem
- * @version		1.0
- * @since		1.0 <inex> 21.10.2018 Class added
+ * @author IneX
+ * @package zorg\Usersystem
+ * @version 1.0
+ * @since 1.0 `21.10.2018` `IneX` Class added
  */
 class Notification
 {
@@ -39,7 +39,7 @@ class Notification
 	 *
 	 * @author	IneX
 	 * @version	1.0
-	 * @since	1.0 <inex> 21.10.2018 method added
+	 * @since	1.0 `21.10.2018` `IneX` method added
 	 *
 	 * @param integer $user_id Valid User-ID integer
 	 * @param string $notification_source String representing the source of Notification to send $content for. E.g. 'messagesystem', 'mentions', 'games', etc...
@@ -140,9 +140,10 @@ class Notification
 	 *
 	 * @author IneX
 	 * @since 1.0
-	 * @version 1.0 <inex> 21.10.2018 method added
+	 * @since 1.0 `21.10.2018` `IneX` method added
 	 *
-	 * @see usersystem::$default_notifications, usersystem::$notifications
+	 * @var array $default_notifications Array-Reference to Default Notification Settings
+	 * @var array $notifications Array-Reference with Notifications Types
 	 * @param integer $user_id Valid User-ID integer
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -187,9 +188,9 @@ class Notification
 	 * Check if a User's Notification type setting is set to TRUE
 	 *
 	 * @author IneX
-	 * @since 1.0
-	 * @version 1.0 <inex> 04.10.2018 method added
-	 * @version 2.0 <inex> 21.10.2018 method moved from class usersystem() to class Notification()
+	 * @version 2.0
+	 * @since 1.0 `04.10.2018` `IneX` method added
+	 * @since 2.0 `21.10.2018` `IneX` method moved from class usersystem() to class Notification()
 	 *
 	 * @param string $notification_source String representing the source of Notification to check. E.g. 'messagesystem', 'mentions', 'games', etc...
 	 * @param string $notification_type String representing the type of Notification to check. Valid values: 'message', 'email' & 'telegram'.
@@ -247,8 +248,8 @@ class Notification
 	 *
 	 * @author IneX
 	 * @version 2.0
-	 * @since 1.0 <inex> 15.05.2009 method added
-	 * @version 2.0 <inex> 21.10.2018 method moved from class Messagesystem() to class Notification()
+	 * @since 1.0 `15.05.2009` `IneX` method added
+	 * @since 2.0 `21.10.2018` `IneX` method moved from class Messagesystem() to class Notification()
 	 *
 	 * @param	integer	$from_user_id	User-ID des Senders
 	 * @param	integer	$to_user_id		User-ID des Empfängers

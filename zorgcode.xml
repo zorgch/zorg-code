@@ -5,10 +5,12 @@
 	<parser>
 		<target>/var/zorgcode</target>
 		<encoding>utf8</encoding>
-		<default-package-name>Zorg</default-package-name>
+		<default-package-name>zorg</default-package-name>
 		<markers>
 			<item>TODO</item>
+			<item>todo</item>
 			<item>FIXME</item>
+			<item>fixme</item>
 		</markers>
 		<extensions>
 			<extension>php</extension>
@@ -21,10 +23,10 @@
 	</transformer>
 	<logging>
 		<level>warn</level>
-		<paths>
-			<default>/var/log/phpdoc/{DATE}.log</default>
-			<errors>/var/log/phpdoc/{DATE}.errors.log</errors>
-		</paths>
+		<!--paths-->
+			<!--default>/var/log/phpdoc/{DATE}.log</default-->
+			<!--errors>/var/log/phpdoc/{DATE}.errors.log</errors-->
+		<!--/paths-->
 	</logging>
 	<transformations>
 		<template name="clean" />

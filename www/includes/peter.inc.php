@@ -1,13 +1,13 @@
 <?php
 /**
  * Peter Funktionen
- * 
+ *
  * Hier ist die Hauptklasse zum Peter Spiel zu finden,
  * sowie all seine Funktionen.
- * 
- * @author [z]Duke, [z]domi
- * @package Zorg
- * @subpackage Peter
+ *
+ * @author [z]Duke
+ * @author [z]domi
+ * @package zorg\Games\Peter
  */
 /**
  * File includes
@@ -21,16 +21,17 @@ require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Peter Klasse
- * 
+ *
  * Dies ist die Hauptklasse zum Peter Spiel
- * 
- * @author [z]Duke, [z]domi, IneX
- * package Zorg
- * @subpackage Peter
+ *
+ * @author [z]Duke
+ * @author [z]domi
+ * @author IneX
+ * @package zorg\Games\Peter
  * @version 3.0
  * @since 1.0 Class added
- * @since 2.0
- * @since 3.0 18.08.2018 Moved function for pending Peter-Games of a User as part of the Class
+ * @since 2.0 ?
+ * @since 3.0 `18.08.2018` `IneX` Moved function for pending Peter-Games of a User as part of the Class
  */
 class peter {
 
@@ -47,9 +48,9 @@ class peter {
 
 	/**
 	 * Peter Klassenkonstruktor
-	 * 
+	 *
 	 * Der Peter Klassenkonstruktor
-	 * 
+	 *
 	 * @return klasse
 	 * @param Game_ID $game_id
 	 */
@@ -64,9 +65,9 @@ class peter {
 	
 	/**
 	 * Rosenverkäufer
-	 * 
+	 *
 	 * Prüft und loggt den Rosenverkäufer ein, gibt beim Prüfen zurück ob er angemeldet ist
-	 * 
+	 *
 	 * @return int
 	 * @param string $mode
 	 */
@@ -129,9 +130,9 @@ class peter {
 	
 	/**
 	 * Karten Ausgeben
-	 * 
+	 *
 	 * Gibt die Karten den Spielern aus
-	 * 
+	 *
 	 * @return void
 	 */
 	function ausgeben()
@@ -207,7 +208,7 @@ class peter {
 	 * @since 1.0 method added
 	 * @since 2.0 22.08.2011/IneX added (random) Message Notification to next Player
 	 * @since 3.0 code & query optimizations
-	 * @since 4.0 25.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	 * @since 4.0 `25.11.2018` updated to use new $notifcation Class & some code and query optimizations
 	 *
 	 * @param integer $act_player User-ID des aktuellen Spielers
 	 * @param integer $players Anzahl Spieler (num_players)
@@ -265,9 +266,9 @@ class peter {
 	
 	/**
 	 * POST-Befehl ausführen
-	 * 
+	 *
 	 * Führt POST im Peter aus
-	 * 
+	 *
 	 * @return void
 	 */
 	function exec_peter()
@@ -328,9 +329,9 @@ class peter {
 	
 	/**
 	 * Farbe wünschen
-	 * 
+	 *
 	 * Setzt einen Wunsch für ein Game
-	 * 
+	 *
 	 * @return void
 	 * @param string $wunsch
 	 */
@@ -365,9 +366,9 @@ class peter {
 	
 	/**
 	 * Spiel erstellen
-	 * 
+	 *
 	 * Eröffnet ein Spiel, und joint den erstellen autom.
-	 * 
+	 *
 	 * @return void
 	 * @param integer $players num_players
 	*/
@@ -393,13 +394,15 @@ class peter {
 	 * Ausstehende Peter Züge
 	 * Gibt die Anzahl ausstehenden Peter züge zurück
 	 *
-	 * @author [z]Duke, [z]domi, IneX
+	 * @author [z]Duke
+	 * @author [z]domi
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 function added
-	 * @since 2.0 18.08.2018 function moved as method of peter()-Class
-	 * @since 3.0 06.09.2018 function returns now only game_id if >0 open Games are found - or 0 if none
+	 * @since 2.0 `18.08.2018` function moved as method of peter()-Class
+	 * @since 3.0 `06.09.2018` function returns now only game_id if >0 open Games are found - or 0 if none
 	 *
-	 * @see /scripts/header.php
+	 * @see header.php
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return boolean True/false depening if query result exists or not
@@ -505,15 +508,17 @@ class peter {
 	 * Laufende Spiele
 	 * Gibt alle laufenden Spiele zurück
 	 *
-	 * @author [z]Duke, [z]domi, IneX
+	 * @author [z]Duke
+	 * @author [z]domi
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 fixed SQL-Query, added Code docu
-	 * @since 3.0 05.09.2018 added method param $return_html to allow also non-view output as return
+	 * @since 3.0 `05.09.2018` added method param $return_html to allow also non-view output as return
 	 *
 	 * @param boolean $return_html TRUE=return view (HTML), FALSE=only IDs of running Peter games - Default: TRUE
-	 * @global $db Datenbank Model
-	 * @global $user User Model
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string|array
 	*/
 	function laufende_spiele($return_html=true) {
@@ -590,15 +595,15 @@ class peter {
 
 	/**
 	 * Meine offene Spiele
-	 * 
+	 *
 	 * Gibt die laufenden Spiele eines Benutzers zurück
-	 * 
+	 *
 	 * @since 2.0
 	 * @version 1.0
 	 * @author IneX
-	 * 
-	 * @global $db Datenbank Model
-	 * @global $user User Model
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
 	*/
 	function meine_laufende_spiele($user_id)
@@ -677,7 +682,7 @@ class peter {
 	 *
 	 * @version 1.1
 	 * @since 1.0 method added
-	 * @since 1.1 <inex> 01.09.2019 Changed query: INSERT INTO => REPLACE INTO
+	 * @since 1.1 `01.09.2019` `IneX` Changed query: INSERT INTO => REPLACE INTO
 	 * @param integer $players Max. Number of Players for game
 	 * @return void
 	 */
@@ -709,9 +714,10 @@ class peter {
 	}
 	
 	/**
+	 * Gibt alle wichtigen Infos zur zuletzt gelegten Karte als Array zurück
+	 *
 	 * @return Array
-	 * @desc Gibt alle wichtigen Infos zur zuletzt gelegten Karte als Array zurück
-	*/
+	 */
 	function lastcard() {
 		global $db;
 		$sql = "
@@ -765,9 +771,10 @@ class peter {
 	}
 	
 	/**
+	 * Gibt den Status (anzahl noch verbleibende Karten) zu jedem Spieler zurück
+	 *
 	 * @return string
-	 * @desc Gibt den Status (anzahl noch verbleibende Karten) zu jedem Spieler zurück
-	*/
+	 */
 	function spielerstatus() {
 		global $db;
 	
@@ -812,11 +819,13 @@ class peter {
 	 *
 	 * Aktiviert autom. den nächsten Spieler wenn keiner eine höhere Karte hat
 	 *
-	 * @author [z]Duke, [z]domi, IneX
+	 * @author [z]Duke
+	 * @author [z]domi
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 added feature to FORCE next player, if current player didn't play for a long time
-	 * @since 3.0 25.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	 * @since 3.0 `25.11.2018` updated to use new $notifcation Class & some code and query optimizations
 	 *
 	 * @param boolean|array $force_next_player Array=Array with game_id,next_player,players - or FALSE, if regular check. Default: FALSE
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -954,10 +963,11 @@ class peter {
 	}
 
 	/**
+	 * ermittelt ob ein Zug zulässig ist oder nicht
+	 *
 	 * @return bool
 	 * @param $card_id Card_ID
-	 * @desc ermittelt ob ein Zug zulässig ist oder nicht
-	*/
+	 */
 	function regelcheck($card_id) {
 		global $db, $user;
 		
@@ -1052,9 +1062,10 @@ class peter {
 	}
 	
 	/**
+	 * Prüft ob bereits ein Wunsch zu einem Nichtraucher abgegeben wurde oder nicht
+	 *
 	 * @return bool
-	 * @desc Prüft ob bereits ein Wunsch zu einem Nichtraucher abgegeben wurde oder nicht
-	*/
+	 */
 	function checkwunsch() {
 		global $db;
 		
@@ -1088,9 +1099,10 @@ class peter {
 	}
 	
 	/**
+	 * Gibt die Daten zum letzten Wunsch als Array zurück
+	 *
 	 * @return array
-	 * @desc Gibt die Daten zum letzten Wunsch als Array zurück
-	*/
+	 */
 	function get_wunsch() {
 		global $db;
 	
@@ -1122,12 +1134,15 @@ class peter {
 	}
 	
 	/**
+	 * Führt einen Zug aus
+	 *
+	 * @TODO Zug als Comment eintragen, damit man darüber diskutieren kann
+	 *
 	 * @return void
 	 * @param Card_ID $card_id
 	 * @param (karte|aus) $make
 	 * @param num_players $players
-	 * @desc Führt einen Zug aus
-	*/
+	 */
 	function zug($card_id=null, $make, $players)
 	{
 		global $db, $user;
@@ -1169,7 +1184,7 @@ class peter {
 				$sql = 'UPDATE peter_players SET make = "'.$make.'" 
 						WHERE user_id = '.$user->id.' AND game_id = '.$this->game_id;
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
-				
+
 				//Prüfen ob nicht noch ein Wunsch nötig ist bevor der nächste am zug ist
 				if($this->checkwunsch())
 				{
@@ -1178,20 +1193,20 @@ class peter {
 				}
 			}
 		}
-		
+
 		if($make == "aus") {
 			### Zug als Comment eintragen, damit man darüber diskutieren kann ###
 			/*$text = "Ich setze diese Runde aus.";
 			Forum::post($this->game_id, 'p', $user->id, $text, $msg_users='');
 			*/
-			
+
 			//Spieler Table updaten
 			$sql = 'UPDATE peter_players set make = "'.$make.'" 
 					WHERE user_id = '.$user->id.' AND game_id = '.$this->game_id;
 			$db->query($sql,__FILE__,__LINE__,__METHOD__);
-			
+
 			$this->next_player($user->id, $players);
-			
+
 			// Wenn der User noch weitere offen Züge hat, direkt weiterleiten
 			// Prüfen, ob noch Züge offen sind
 			$sqli = 'SELECT game_id 
@@ -1201,13 +1216,13 @@ class peter {
 						AND status = "lauft"';
 			$resulti = $db->query($sql,__FILE__,__LINE__,__METHOD__);
 			$rsi = $db->fetch($resulti);
-			
+
 			// Wenn noch offene Züge, dann direkt ins nächste Spiel weiterleiten
 			//$locationHeader = 'Location: '.SITE_URL.'/peter.php?game_id='.$rs[game_id];
 			if ($db->num($result)) header('Location: '.getChangedURL('game_id='.$rs['game_id']));
 			exit();
 		}
-		
+
 		//Prüfen ob Spiel beendet werden soll
 		$sql = 'SELECT * 
 				FROM peter_cardsets pc 
@@ -1216,7 +1231,7 @@ class peter {
 					AND pc.user_id = '.$user->id.' 
 					AND pc.status = "nicht gelegt"';
 		$rr = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-		
+
 		//Wenn das Spiel beendet werden kann
 		if(!$db->num($rr)) {
 			
@@ -1228,9 +1243,10 @@ class peter {
 	}
 	
 	/**
-	 * @return unknown
-	 * @desc Gibt das Formular zum Spiel erstellen zurück
-	*/
+	 * Gibt das Formular zum Spiel erstellen zurück
+	 *
+	 * @return string HTML-Output
+	 */
 	function neu_form()
 	{
 		$html = '<h3>Neues Spiel</h3>
@@ -1247,10 +1263,11 @@ class peter {
 	}
 	
 	/**
+	 * Gibt das Cardset für einen User in einem Game als Array zurück
+	 *
 	 * @return Array
-	 * @param User_ID $user_id
-	 * @desc Gibt das Cardset für einen User in einem Game als Array zurück
-	*/
+	 * @param int User_ID $user_id
+	 */
 	function player_cardset($user_id)
 	{
 		global $db;
@@ -1296,9 +1313,10 @@ class peter {
 	}
 
 	/**
-	 * @return unknown
-	 * @desc Gibt die Highscore Seite zurück
-	*/
+	 * Gibt die Highscore Seite zurück
+	 *
+	 * @return string HTML-Output
+	 */
 	function peterscore()
 	{
 		global $db;
@@ -1366,9 +1384,10 @@ class peter {
 	
 	
 	/**
+	 * Gibt das Formular zum Wünschen einer Farbe zurück
+	 *
 	 * @return string
-	 * @desc Gibt das Formular zum Wünschen einer Farbe zurück
-	*/
+	 */
 	function wunscher() {
 		global $db;
 	
@@ -1394,12 +1413,13 @@ class peter {
 	}
 	
 	/**
-	* @return string
-	* @param Array $gd
-	* @param Card_ID $card_id
-	* @param (karte|aus) $make
-	* @desc Zeigt ein Spiel an
-	*/
+	 * Zeigt ein Spiel an
+	 *
+	 * @return string
+	 * @param Array $gd
+	 * @param Card_ID $card_id
+	 * @param (karte|aus) $make
+	 */
 	function game($gd, $card_id=null, $make=null)
 	{
 		global $db, $user, $smarty;
@@ -1454,7 +1474,7 @@ class peter {
 				/** Wenn der Spieler am Zug ist, ANZEIGE */
 				if ($gd['next_player'] == $user->id) $add .= '<h4 class="blink">'.t('game-your-turn').'</h4>';
 
-				// @TODO <inex> das könnte in $smarty->assign('sidebarHtml', $sidebarHtml) gehen!
+				// @TODO das könnte in $smarty->assign('sidebarHtml', $sidebarHtml) gehen! (IneX)
 				$html .= "
 				<br />
 				<hr size='1' width='100%'>"
@@ -1521,11 +1541,11 @@ class peter {
 	 *
 	 * @version 2.1
 	 * @since 1.0 Method added
-	 * @since 2.0 <inex> Code optimizations
-	 * @since 2.1 <inex> 18.04.2020 Migrate to mysqli_
+	 * @since 2.0 IneX` Code optimizations
+	 * @since 2.1 `18.04.2020` `IneX` Migrate to mysqli_
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
-	 * @return img_handle
+	 * @return resource img_handle
 	 */
 	function kartenberg()
 	{
@@ -1586,14 +1606,14 @@ class peter {
 	
 	/**
 	 * Bild der Karten
-	 * 
+	 *
 	 * Generiert die Kartenberge, legt ein Bild auf ein anderes
-	 * 
-	 * @return object
+	 *
+	 * @return resource
 	 * @param string $username
-	 * @param Card_ID $card_id
+	 * @param int $card_id Card_ID
 	 * @param object $old_img
-	 * @param (1|2) $mode
+	 * @param bool $mode (1|2)
 	 * @param int $depth
 	*/
 	function img_kartenberg($username,$card_id,$old_img,$mode=2,$depth=0) {

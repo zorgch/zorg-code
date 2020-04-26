@@ -1,5 +1,12 @@
 <?php
 /**
+ * Profile pages
+ *
+ * @package zorg\Usersystem
+ *
+ */
+
+/**
  * File includes
  * @include main.inc.php required
  * @include core.model.php required

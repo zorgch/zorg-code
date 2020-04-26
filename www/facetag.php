@@ -6,7 +6,7 @@
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 <inex> 04.01.2019
+ * @since 1.0 `IneX` 04.01.2019
  * @package zorg\Gallery
  */
 

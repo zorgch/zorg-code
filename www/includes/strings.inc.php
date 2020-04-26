@@ -110,7 +110,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
  *
  * @param $reference The placeholder reference to be replaced with a string
  * @param $context The context from where to pull and replace the given reference
- * @global $strings Array with all the strings
+ * @var $strings Array with all the strings
  */
 function findReferenceInArray($context, $reference)
 {

@@ -41,8 +41,8 @@ require_once INCLUDES_DIR.'activities.inc.php';
  * @since 1.0 class added
  * @since 2.0 additional methods added
  * @since 3.0 code optimizations and new methods
- * @since 4.0 10.12.2018 major refactorings & migrated methods from profil.php as part of the usersystem()-class
- * @since 5.0 26.12.2018 Bug #769: 'usertyp'-Spalte entspricht neu einer Usergruppe aus dem Table 'usergroups' (quasi als Foreign-Key)
+ * @since 4.0 `10.12.2018` major refactorings & migrated methods from profil.php as part of the usersystem()-class
+ * @since 5.0 `26.12.2018` Bug #769: 'usertyp'-Spalte entspricht neu einer Usergruppe aus dem Table 'usergroups' (quasi als Foreign-Key)
  */
 class usersystem
 {
@@ -101,7 +101,7 @@ class usersystem
 
 	/**
 	 * Default Userprofile Settings
-	 * @see usersystem::exec_changeprofile()
+	 * @used-by usersystem::exec_changeprofile()
 	 */
 	var $default_clan_tag = null; // none
 	var $default_activities_allow = '1'; // enabled
@@ -139,12 +139,15 @@ class usersystem
 	 * @author IneX
 	 * @version 4.1
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 20.11.2018 code & query optimizations, updated Cookie & Session info taken from config.inc.php
-	 * @since 3.0 <inex> 27.11.2018 refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
-	 * @since 4.0 <inex> 10.12.2018 adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
-	 * @since 4.1 <inex> 02.11.2019 fixed ENUM("0")-Values from User DB-Record wrongfully set=true instead of =false
+	 * @since 2.0 `20.11.2018` `IneX` code & query optimizations, updated Cookie & Session info taken from config.inc.php
+	 * @since 3.0 `27.11.2018` `IneX` refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
+	 * @since 4.0 `10.12.2018` `IneX` adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
+	 * @since 4.1 `02.11.2019` `IneX` fixed ENUM("0")-Values from User DB-Record wrongfully set=true instead of =false
 	 *
-	 * @see ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW
+	 * @uses ZORG_SESSION_ID
+	 * @uses ZORG_COOKIE_SESSION
+	 * @uses ZORG_COOKIE_USERID
+	 * @uses ZORG_COOKIE_USERPW
 	 * @see usersystem::login(), usersystem::invalidate_session(), timestamp()
 	 * @return object usersystem()-Class object
 	 */
@@ -289,17 +292,21 @@ class usersystem
 	 *
 	 * Erstellt eine Session (login)
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 4.1
 	 * @since 1.0 method added
-	 * @since 2.0 12.11.2018 code & query optimizations
-	 * @since 3.0 21.11.2018 Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
-	 * @since 4.0 10.12.2018 Improved Cookie-Settings (secure and stuff)
-	 * @since 4.1 21.12.2018 Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
+	 * @since 2.0 `12.11.2018` code & query optimizations
+	 * @since 3.0 `21.11.2018` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
+	 * @since 4.0 `10.12.2018` Improved Cookie-Settings (secure and stuff)
+	 * @since 4.1 `21.12.2018` Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
 	 *
-	 * @see ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW
+	 * @uses ZORG_SESSION_ID
+	 * @uses ZORG_COOKIE_SESSION
+	 * @uses ZORG_COOKIE_USERID
+	 * @uses ZORG_COOKIE_USERPW
 	 * @see crypt_pw(), timestamp(), usersystem::invalidate_session()
-	 * @see $login_error
+	 * @var $login_error
 	 * @param string $username Benutzername
 	 * @param string $password Passwort-Hash
 	 * @param boolean $use_cookie Use Cookie 'true' oder 'false' - default: false
@@ -465,14 +472,15 @@ class usersystem
 	 *
 	 * Logt einen User aus!
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 fixed "If you put a date too far in the past, IE will bark and igores it, i.e. the value will not be removed"
-	 * @since 3.0 21.11.2018 Fixed redirect bei Logout auf jeweils aktuelle Seite, nicht immer Home
+	 * @since 3.0 `21.11.2018` Fixed redirect bei Logout auf jeweils aktuelle Seite, nicht immer Home
 	 *
 	 * @link https://stackoverflow.com/questions/686155/remove-a-cookie
-	 * @see invalidate_session()
+	 * @uses self::invalidate_session()
 	 * @return void
 	 */
 	static function logout()
@@ -491,7 +499,7 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 28.11.2018 method added
+	 * @since 1.0 `28.11.2018` `IneX` method added
 	 *
 	 * @return void
 	 */
@@ -543,13 +551,15 @@ class usersystem
 	 * @version 4.1
 	 * @since 1.0 method added
 	 * @since 2.0 global strings added
-	 * @since 3.0 17.10.2018 Fixed Bug #763: Passwort vergessen funktioniert nicht
-	 * @since 4.0 21.10.2018 Code & DB-Query improvements
-	 * @since 4.1 04.01.2019 Fixed handling $db->update() result, changed Error messages, added debugging-output on DEV
+	 * @since 3.0 `17.10.2018` Fixed Bug #763: Passwort vergessen funktioniert nicht
+	 * @since 4.0 `21.10.2018` Code & DB-Query improvements
+	 * @since 4.1 `04.01.2019` Fixed handling $db->update() result, changed Error messages, added debugging-output on DEV
 	 *
-	 * @see usersystem::password_gen(), crypt_pw()
+	 * @uses usersystem::password_gen()
+	 * @uses crypt_pw()
+	 * @uses ZORG_EMAIL
 	 * @param string $email E-Mailadresse für deren User das PW geändert werden soll
-	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return string Error-Message
 	 */
 	function new_pass($email) {
@@ -614,9 +624,10 @@ class usersystem
 	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 replaced messages with Translation-String solution t()
-	 * @since 3.0 04.12.2018 removed IMAP-code, code & query optimizations
+	 * @since 3.0 `04.12.2018` removed IMAP-code, code & query optimizations
 	 *
-	 * @see crypt_pw(), t()
+	 * @uses crypt_pw()
+	 * @uses t()
 	 * @param string $username Benutzername
 	 * @param string $pw Passwort
 	 * @param string $pw2 Passwortwiederholung
@@ -696,13 +707,12 @@ class usersystem
 	 *
 	 * @version 2.1
 	 * @since 1.0 Method added
-	 * @since 2.0 <inex> Code optimizations
-	 * @since 2.1 <inex> 17.04.2020 SQL Slow-Query optimization
+	 * @since 2.0 `IneX` Code optimizations
+	 * @since 2.1 `17.04.2020` `IneX` SQL Slow-Query optimization
 	 *
 	 * @TODO HTML can be returned using new function usersystem::userpage_link()
 	 *
-	 * @see USER_TIMEOUT
-	 * @see /js/zorg.js
+	 * @uses USER_TIMEOUT
 	 * @param boolean $pic Userpic anzeigen, oder nur Usernamen - default: false
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return string HTML-Code
@@ -745,9 +755,9 @@ class usersystem
 	 *
 	 * @version 2.0
 	 * @since 1.0 Method added
-	 * @since 2.0 <inex> 07.12.2019 Fixed $regcode check and response for profil.php
+	 * @since 2.0 `07.12.2019` `IneX` Fixed $regcode check and response for profil.php
 	 *
-	 * @see self::$error_message
+	 * @var string $error_message String to store any Error message for later output
 	 * @param string $regcode User Registration-Code
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return bool True/False whether if user could be activated or not
@@ -838,7 +848,7 @@ class usersystem
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 14.11.2018 method renamed from "islogged_in" => "is_loggedin"
+	 * @since 2.0 `14.11.2018` method renamed from "islogged_in" => "is_loggedin"
 	 *
 	 * @return bool Returns true/false depening on if a successful execution was possible, or not 
 	 */
@@ -856,9 +866,9 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 14.11.2018 method added
+	 * @since 1.0 `14.11.2018` method added
 	 *
-	 * @see $_geaechtet
+	 * @var $_geaechtet
 	 * @param integer $ausgesperrt_bis_timestamp Unix-Timestamp for specific date to check lockout against 
 	 * @global array $_geaechtet Globales Array mit allen geächteten Usern
 	 * @return bool Returns true/false if user is currently locked out, or not 
@@ -895,7 +905,7 @@ class usersystem
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 04.01.2019 updated mechanism and form of generated passwords, not using $username string anymore
+	 * @since 2.0 `04.01.2019` updated mechanism and form of generated passwords, not using $username string anymore
 	 *
 	 * @param $length integer (Optional) specify length of random password to generate, Default: 12
 	 * @return string Passwort
@@ -923,12 +933,12 @@ class usersystem
 	 * @author IneX
 	 * @version 3.1
 	 * @since 1.0 Method added
-	 * @since 2.0 <inex> 11.07.2018 added check for locally cached Gravatar, replaced 'file_exists' with 'stream_resolve_include_path'
-	 * @since 3.0 <inex> 16.07.2018 Method now returns path to userpic (or queried Gravatar result) as string, instead of true.
-	 * @since 3.1 <inex> 18.04.2020 replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
+	 * @since 2.0 `11.07.2018` `IneX` added check for locally cached Gravatar, replaced 'file_exists' with 'stream_resolve_include_path'
+	 * @since 3.0 `16.07.2018` `IneX` Method now returns path to userpic (or queried Gravatar result) as string, instead of true.
+	 * @since 3.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
 	 *
-	 * @see USER_IMGPATH
-	 * @see USER_IMGEXTENSION
+	 * @uses USER_IMGPATH
+	 * @uses USER_IMGEXTENSION
 	 * @param $userid int User ID
 	 * @return string|bool Returns userimage path as string, or false if not found
 	 */
@@ -963,14 +973,14 @@ class usersystem
 	 *
 	 * @version 2.0
 	 * @since 1.0 Method added
-	 * @since 2.0 <inex> Check & load cached Gravatar, optimized if-else
+	 * @since 2.0 `IneX` Check & load cached Gravatar, optimized if-else
 	 *
-	 * @see USER_IMGPATH
-	 * @see USER_IMGPATH_PUBLIC
-	 * @see USER_IMGSIZE_SMALL
-	 * @see USER_IMGSIZE_LARGE
-	 * @see usersystem::checkimage()
-	 * @see usersystem::get_gravatar()
+	 * @uses USER_IMGPATH
+	 * @uses USER_IMGPATH_PUBLIC
+	 * @uses USER_IMGSIZE_SMALL
+	 * @uses USER_IMGSIZE_LARGE
+	 * @uses self::checkimage()
+	 * @uses self::get_gravatar()
 	 * @param int $userid User ID
 	 * @param boolean $large Large image true/false
 	 * @return string URL-Pfad zum Bild des Users
@@ -1003,7 +1013,7 @@ class usersystem
 	/**
 	 * Retrieve list of Users for Notification-Messages in Comments or Personal Messages
 	 *
-	 * @DEPRECATED
+	 * @deprecated
 	 *
 	 * @author IneX
 	 * @date 26.12.2017
@@ -1063,8 +1073,8 @@ class usersystem
 	 *
 	 * @TODO 20.07.2018 Find out & fix issue with Query failing on id=$id instead of id="$id"...
 	 *
-	 * @see usersystem::userprofile_link()
-	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
+	 * @uses self::userprofile_link()
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @param integer $id User ID
 	 * @param boolean $clantag Username mit Clantag true/false
 	 * @param boolean $pic DEPRECATED Anstatt Username das Userpic HTML-Code ausgeben true/false
@@ -1115,7 +1125,7 @@ class usersystem
 		/**
 		 * Return Userpic HTML
 		 *
-		 * @DEPRECATED
+		 * @deprecated
 		 */
 		/*
 		if($pic == TRUE)
@@ -1159,7 +1169,7 @@ class usersystem
 	/**
 	 * Userpic (klein) ausgeben
 	 *
-	 * @DEPRECATED
+	 * @deprecated
 	 *
 	 * @author IneX
 	 * @date 02.10.2009
@@ -1169,7 +1179,7 @@ class usersystem
 	 *
 	 * @TODO there is no $clantag passed to this function?!
 	 *
-	 * @see usersystem::userprofile_link()
+	 * @uses self::userprofile_link()
 	 * @param	integer	$id				User-ID
 	 * @param	boolean	$displayName	Zeigt Usernamen unter dem Bild an
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
@@ -1180,7 +1190,7 @@ class usersystem
 	 */
 	function userpic($id, $displayName=FALSE)
 	{
-		/** DEPRECATED
+		/** @deprecated
 		global $db, $user;
 		static $_users = array();
 
@@ -1223,11 +1233,11 @@ class usersystem
 	 * @source http://gravatar.com/site/implement/images/php/
 	 * @author IneX
 	 * @version 3.0
-	 * @since 1.0 <inex> 24.07.2014
-	 * @since 2.0 <inex> 11.01.2017 Fixed Gravatar-URL to https using SITE_PROTOCOL
-	 * @since 3.0 <inex> 16.07.2018 Removed possibility to return <img>-Tag
+	 * @since 1.0 `IneX` 24.07.2014
+	 * @since 2.0 `11.01.2017` `IneX` Fixed Gravatar-URL to https using SITE_PROTOCOL
+	 * @since 3.0 `16.07.2018` `IneX` Removed possibility to return `img`-Tag
 	 *
-	 * @see SITE_PROTOCOL
+	 * @uses SITE_PROTOCOL
 	 * @param string $email The email address
 	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
 	 * @param string $d Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
@@ -1257,7 +1267,7 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 12.07.2018 function added
+	 * @since 1.0 `12.07.2018` `IneX` function added
 	 *
 	 * @param integer|string $userScope Scope for whom to get the Gravatar image for: a single User-ID integer, or 'all' string for all Useraccounts.
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1306,13 +1316,18 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 2.0
-	 * @since 1.0 <inex> 11.07.2018 function added
-	 * @since 2.0 <inex> 13.08.2018 added md5 file hash check to compare files before downloading
+	 * @since 1.0 `11.07.2018` `IneX` function added
+	 * @since 2.0 `13.08.2018` `IneX` added md5 file hash check to compare files before downloading
 	 *
 	 * @TODO wenn die self::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
 	 *
-	 * @see SITE_PROTOCOL, USER_IMGPATH, USER_IMGSIZE_LARGE, USER_IMGSIZE_SMALL, USER_IMGEXTENSION
-	 * @see cURLfetchUrl(), fileHash()
+	 * @uses SITE_PROTOCOL
+	 * @uses USER_IMGPATH
+	 * @uses USER_IMGSIZE_LARGE
+	 * @uses USER_IMGSIZE_SMALL
+	 * @uses USER_IMGEXTENSION
+	 * @uses cURLfetchUrl()
+	 * @uses fileHash()
 	 * @param array $userid Single or List of User ID(s) as Array
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return bool Returns true/false depening on if a successful execution was possible, or not
@@ -1407,12 +1422,13 @@ class usersystem
 	}
 
 	/**
-	 * @DEPRECATED
 	 * ID zu Mail_Username
 	 *
 	 * Wandelt eine User ID in IMAP-Mail_Username um
 	 *
-	 * @param $id int User ID
+	 * @deprecated
+	 *
+	 * @param int $id User ID
 	 * @return string username
 	 */
 	function id2mailuser($id)
@@ -1431,13 +1447,13 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 4.1
-	 * @since 1.0 <inex> 17.03.2018 method added
+	 * @since 1.0 `17.03.2018` `IneX` method added
 	 * @since 2.0 added additional check for "email_notification=TRUE"
 	 * @since 3.0 updated method return values, added query try-catch
 	 * @since 4.0 removed check for "email_notification=TRUE" due to new Notifications() Class
-	 * @since 4.1 <inex> 05.12.2019 removed unneccessary try-catch
+	 * @since 4.1 `05.12.2019` `IneX` removed unneccessary try-catch
 	 *
-	 * @see check_email()
+	 * @uses check_email()
 	 * @param int $id User-ID
 	 * @return string|bool EMail-Adresse, oder false
 	 */
@@ -1462,22 +1478,22 @@ class usersystem
 	 *
 	 * Gibt eine User ID als link zur userpage aus
 	 *
-	 * @DEPRECATED
+	 * @deprecated 2.0 Ersetzt mit usersystem::userprofile_link()
 	 *
-	 * @author milamber
+	 * @author [z]milamber
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 initial version
 	 * @since 2.0 changed output to new function usersystem::userprofile_link()
 	 *
-	 * @see usersystem::userprofile_link()
+	 * @uses self::userprofile_link()
 	 * @param int $user_id User ID
 	 * @param bool $pic Userpic mitausgeben
 	 * @return string html
 	 */
 	function link_userpage($user_id, $pic=FALSE)
 	{
-		/** @DEPRECATED */
+		/** @deprecated */
 		/*if($user_id != '') {
 
 			$html =
@@ -1498,13 +1514,13 @@ class usersystem
 	/**
 	 * Link zu einem Userprofil
 	 *
-	 * @DEPRECATED
+	 * @deprecated Ersetzt mit usersystem::userprofile_link()
 	 * @TODO wird diese Methode usersystem::userpagelink() noch benötigt irgendwo? Sonst: raus!
 	 *
-	 * @see usersystem::userpage_link()
+	 * @uses self::userpage_link()
 	 */
 	function userpagelink($userid, $clantag, $username) {
-		/** DEPRECATED
+		/** @deprecated
 		$name = $clantag.$username;
 
 		// Dreadwolfs spezieller Nick
@@ -1528,11 +1544,11 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 05.07.2018 initial version (output from Smarty-Template)
+	 * @since 1.0 `05.07.2018` `IneX` initial version (output from Smarty-Template)
 	 *
-	 * @see usersystem::userImage()
-	 * @see usersystem::id2user()
-	 * @see userprofile_link.tpl
+	 * @uses usersystem::userImage()
+	 * @uses usersystem::id2user()
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/profile/userprofile_link.tpl Template for output used is userprofile_link.tpl
 	 * @param int $userid User ID
 	 * @param array $params Parameters as Array which define the output using true/false
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
@@ -1563,7 +1579,8 @@ class usersystem
 	 *
 	 * Gibt ein random Quote zurück.
 	 * Falls mit user_id wird es ein quote dieses users sein<br><br>
-	 * <b>Milamber: Warum ist dies nicht im quotes.inc.php? Und wir brauchen das nicht mal?!</b>
+	 *
+	 * @TODO @[z]milamber: Warum ist dies nicht im quotes.inc.php? Und wir brauchen das nicht mal?!</b>
 	 *
 	 * @return string quote
 	 * @param $user_id int User ID
@@ -1596,7 +1613,7 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 27.01.2016 method added
+	 * @since 1.0 `27.01.2016` `IneX` method added
 	 */
 	function get_and_create_user_files_dir($user_id)
 	{
@@ -1621,7 +1638,7 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 22.01.2017 method added
+	 * @since 1.0 `22.01.2017` `IneX` method added
 	 *
 	 * @param integer $user_id User-ID
 	 * @return integer The User's Telegram Chat-ID
@@ -1643,13 +1660,14 @@ class usersystem
 	 *
 	 * Execute a password change for a User
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 function added
-	 * @since 2.0 03.10.2018 function improved
-	 * @since 3.0 11.11.2018 function moved to usersystem()-Class
+	 * @since 2.0 `03.10.2018` function improved
+	 * @since 3.0 `11.11.2018` function moved to usersystem()-Class
 	 *
-	 * @see crypt_pw()
+	 * @uses crypt_pw()
 	 * @param integer $user_id User-ID
 	 * @param string $old_pass Previous User Password
 	 * @param string $new_pass New User Password 
@@ -1706,13 +1724,15 @@ class usersystem
 	 *
 	 * Execute a Profile info & settings update for a User
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 function added
-	 * @since 2.0 02.10.2018 function improved to handle $_POST data dynamically
-	 * @since 3.0 11.11.2018 function moved to usersystem()-Class
+	 * @since 2.0 `02.10.2018` function improved to handle $_POST data dynamically
+	 * @since 3.0 `11.11.2018` function moved to usersystem()-Class
 	 *
-	 * @see check_email(), $_geaechtet
+	 * @uses check_email()
+	 * @var $_geaechtet
 	 * @param integer $user_id User-ID
 	 * @param array $data_array Userprofile Infos in einem assoziativen Array, mit denen das Profil aktualisiert wird ($_POST aus dem Form)
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1817,14 +1837,15 @@ class usersystem
 	 *
 	 * @TODO move this function to the usersystem()-Class
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 4.0
 	 * @since 1.0 function added
 	 * @since 2.0 Userpic Archivierung eingebaut / IneX
-	 * @since 3.0 03.10.2018 function fixed and modernized
-	 * @since 4.0 11.11.2018 function moved to usersystem()-Class
+	 * @since 3.0 `03.10.2018` function fixed and modernized
+	 * @since 4.0 `11.11.2018` function moved to usersystem()-Class
 	 *
-	 * @see createPic()
+	 * @uses createPic()
 	 * @param integer $user_id User-ID
 	 * @param array|resource $new_pic_files_array $_FILES[] Array/-resource mit hochgeladenem Userpic & allen File-Infos
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1945,11 +1966,11 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 11.11.2018 method added, code adapted from /actions/profil.php
+	 * @since 1.0 `11.11.2018` method added, code adapted from /actions/profil.php
 	 *
-	 * @see $_geaechtet
-	 * @see usersystem::logout()
-	 * @see /actions/profil.php
+	 * @var $_geaechtet
+	 * @uses self::logout()
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/profil.php Logout-action is triggered through /actions/profil.php
 	 * @param integer $user_id User-ID
 	 * @param array $date_array Array mit Datum-Elementen bis wann User ausgesperrt werden soll ('year' => xxxx, 'month' => xxxx,...)
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden

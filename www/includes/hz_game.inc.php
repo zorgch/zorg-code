@@ -260,8 +260,8 @@ function start_game ($game) {
  *
  * @author [z]biko
  * @version 1.1
- * @since 1.0 <biko> function added
- * @since 1.1 <inex> 18.04.2020 Migrate to mysqli_
+ * @since 1.0 `[z]biko` function added
+ * @since 1.1 `18.04.2020` `IneX` Migrate to mysqli_
  *
  * @param integer $game ID des Hunting z Spiels
  * @param array $ticket Array mit den verschiedenen Arten von Stationen
@@ -429,7 +429,7 @@ function hz_turn_passing () {
  * @author IneX
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 15.11.2018 updated to use new $notifcation Class & some code and query optimizations
+ * @since 2.0 `15.11.2018` updated to use new $notifcation Class & some code and query optimizations
  *
  * @see timestamp()
  * @param integer $game ID des Hunting z Spiels
@@ -567,7 +567,7 @@ function turn_finalize ($game, $uid=null)
  * @author [z]biko
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 25.11.2018 code & query optimizations
+ * @since 2.0 `25.11.2018` code & query optimizations
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den Spielzug macht - Default: null
@@ -623,12 +623,13 @@ function turn_stay ($game, $uid=null)
  *
  * Erstellt und verschickt alle notwendigen Benachrichtigungen beim Beenden eines Hunting z Spiels
  *
- * @author [z]biko, IneX
+ * @author [z]biko
+ * @author IneX
  * @version 4.0
  * @since 1.0 function added
  * @since 2.0 updated mechnism and messages come from Strings-Array now
- * @since 3.0 15.11.2018 updated sendMessage() to new $notification-Class, plus other code & query optimizations
- * @since 4.0 20.11.2018 Fixed Bug #764: Hz Finish-Messages sind "verdreht"
+ * @since 3.0 `15.11.2018` updated sendMessage() to new $notification-Class, plus other code & query optimizations
+ * @since 4.0 `20.11.2018` Fixed Bug #764: Hz Finish-Messages sind "verdreht"
  *
  * @param integer $game ID des Hunting z Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden

@@ -3,7 +3,7 @@
  * MVC core controller
  *
  * @author IneX
- * @package zorg\MVC
+ * @package zorg\MVC\Controller
  */
 namespace MVC\Controller;
 
@@ -16,7 +16,8 @@ class Controller
 
 	/**
 	 * Dynamic loader to get the right .controller.php
-	 * @FIXME <inex> didn't get this working...
+	 *
+	 * @FIXME didn't get this working... (IneX)
 	 */
 	/*public function load()
 	{

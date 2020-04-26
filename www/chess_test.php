@@ -1,6 +1,7 @@
 <?php
 /**
  * Chess game tester
+ *
  * @package zorg\Games\Chess
  */
 /**

@@ -1,6 +1,7 @@
 <?php
 /**
  * zorg Site Helper Functions
+ *
  * @package zorg\Utils
  */
 /**
@@ -15,6 +16,7 @@ include_once INCLUDES_DIR.'activities.inc.php';
 
 /**
  * Define preferred encryption type for user password encryption
+ *
  * @const CRYPT_SALT Sets the Salt encryption type to be used
  * @see crypt_pw()
  * @see exec_newpassword()
@@ -27,11 +29,12 @@ if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
 
 /**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
- * @author Milamber
+ *
+ * @author [z]milamber
  * @author IneX
  * @version 2.0
- * @since 1.0 25.08.2003 function added
- * @since 2.0 09.08.2018 added timestamp validation, string for text, added time-check
+ * @since 1.0 `25.08.2003` function added
+ * @since 2.0 `09.08.2018` added timestamp validation, string for text, added time-check
  *
  * @param string $timestamp
  * @return string Formatted $timestamp or empty string ''
@@ -124,7 +127,7 @@ function timename($timestamp)
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 04.02.2018 function added
+ * @since 1.0 `04.02.2018` function added
  *
  * @see date_default_timezone_set(), config.inc.php, getGitCodeVersion()
  * @param $datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
@@ -143,7 +146,7 @@ function datetimeToTimestamp($datetime)
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
  * @version 1.0
- * @since 1.0 12.11.2018 function added
+ * @since 1.0 `12.11.2018` function added
  *
  * @see usersystem(), usersystem::login()
  * @param boolean $return_unix_timestamp Wenn 'true', dann wird ein Timestamp in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
@@ -168,9 +171,12 @@ function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
 }
 
 /**
- * @DEPRECATED
- * Replace unsafe characters in Username for generating E-Mailaddress with safe equivalents
+ * Replace unsafe characters in Username
+ *
+ * for generating E-Mailaddress with safe equivalents
  * e.g. ä, ö, ü => ae, oe, ue, etc
+ *
+ * @deprecated
  * @see usersystem::create_newuser()
  */
 function emailusername($username) {
@@ -196,12 +202,14 @@ function crypt_pw($password) {
 
 /**
  * E-Mailadresse prüfen
+ *
  * Überprüft eine E-Mail Adresse, ob Format stimmt und diese als gültig betrachtet wird
  *
- * @author [z]biko, IneX
+ * @author [z]biko
+ * @author IneX
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 02.10.2018 changed deprecated eregi() to filter_var(): https://stackoverflow.com/a/13719870/5750030
+ * @since 2.0 `02.10.2018` changed deprecated eregi() to filter_var(): https://stackoverflow.com/a/13719870/5750030
  *
  * @param string $email E-Mailadresse die zu validieren ist
  * @return bool True or false, depending if $email validated successful or not
@@ -212,9 +220,10 @@ function check_email($email) {
 
 /**
  * Gibt einen random Quote zurück
+ *
  * @author keep3r
  * @version 1.0
- * @since 1.0 22.03.2004 function added
+ * @since 1.0 `22.03.2004` function added
  * @TODO Move this Method to the Quotes-Class
  */
 function quote(){
@@ -238,9 +247,10 @@ function quote(){
 
 /**
  * Setzt einmal am Tag einen Quote in die DB daily_quote
+ *
  * @author keep3r
  * @version 1.0
- * @since 1.0 22.03.2004 function added
+ * @since 1.0 `22.03.2004` function added
  * @TODO Move this Method to the Quotes-Class
  */
 function set_daily_quote()
@@ -267,11 +277,12 @@ function set_daily_quote()
 /**
  * Get & return current Script's URL & Parameters
  *
- * @author [z]biko, IneX
+ * @author [z]biko
+ * @author IneX
  * @version 3.0
- * @version 1.0 function added
- * @version 2.0 17.08.2018 added optional $preserve_query_string parameter
- * @version 3.0 03.10.2018 made base64_encode URL-safe using base64url_encode(), added second $base64_encoding parameter
+ * @since 1.0 function added
+ * @since 2.0 `17.08.2018` added optional $preserve_query_string parameter
+ * @since 3.0 `03.10.2018` made base64_encode URL-safe using base64url_encode(), added second $base64_encoding parameter
  *
  * @see base64url_encode()
  * @param boolean $preserve_query_string Whether or not to keep & return the QUERY_STRING with the URL, or not - Default: true
@@ -400,6 +411,7 @@ function glue_url($parsed)
 
 /**
  * URL-safe Base64 Encoding
+ *
  * @link http://php.net/manual/de/function.base64-encode.php#121767
  *
  * @author IneX
@@ -416,6 +428,7 @@ function base64url_encode($data)
 
 /**
  * URL-safe Base64 Decoding
+ *
  * @link http://php.net/manual/de/function.base64-encode.php#121767
  *
  * @author IneX
@@ -432,10 +445,10 @@ function base64url_decode($data)
 
 /**
  * Array auf 2d überprüfen
- * 
+ *
  * \$arr muss 2d sein, \$sortcrit enthält in 2d-array die sortierkriterien.
  * \$sortcrit[0] ist das erste kriterium. \$sortcrit[x][0]=row, \$sortcrit[x][1]=Reihenfolge, \$sortcrit[x][2]=Sortiertypen
- * 
+ *
  * @return Array
  * @param Array $arr
  * @param Array $sortcrit
@@ -520,11 +533,12 @@ function maxwordlength($text, $max) {
 
 /**
  * Smarty Klammern überprüfen
+ *
  * Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
  *
  * @author [z]biko
  * @version 1.0
- * @since 1.0 <biko> Function added
+ * @since 1.0 `[z]biko` Function added
  *
  * @param string $text
  * @param string &$error
@@ -585,8 +599,8 @@ function print_array ($arr, $indent=0) {
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 <inex> function added
- * @since 2.0 <inex> added tolerance for full words (don't cut words in half)
+ * @since 1.0 `IneX` function added
+ * @since 2.0 `IneX` added tolerance for full words (don't cut words in half)
  *
  * @param boolean $tolerant_full_words If 'true', $text-String will be cut at closest space
  * @param boolean $first_line_only If 'true', $text-String will be processed only with the first line (anything before line breaks)
@@ -656,9 +670,9 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 <inex> 16.03.2008 initial release
- * @since 2.0 <inex> changed preg_replace("@</?[^>]*>*@") => strip_tags()
- * @since 3.0 <inex> 19.08.2019 added additional HTML-tags requiring a line-break
+ * @since 1.0 `16.03.2008` `IneX` initial release
+ * @since 2.0 `IneX` changed preg_replace("@</?[^>]*>*@") => strip_tags()
+ * @since 3.0 `19.08.2019` `IneX` added additional HTML-tags requiring a line-break
  *
  * @link http://php.net/manual/de/function.strip-tags.php
  * @link https://www.reddit.com/r/PHP/comments/nj5t0/what_everyone_should_know_about_strip_tags/
@@ -693,7 +707,7 @@ function remove_html($html, $allowable_tags=NULL)
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 27.12.2017 function added
+ * @since 1.0 `27.12.2017` function added
  *
  * @see comment_new.php, comment_edit.php
  * @see Comment:post()
@@ -711,8 +725,8 @@ function escape_text($string) {
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 <inex> 24.04.2018 function added
- * @since 2.0 <kassiopaia> 03.11.2019 replaced deprecated mysql_real_escape_string() with custom sanitizer, resolved FIXME to-do
+ * @since 1.0 `24.04.2018` `IneX` function added
+ * @since 2.0 `03.11.2019` `kassiopaia` replaced deprecated mysql_real_escape_string() with custom sanitizer, resolved FIXME to-do
  *
  * @param string	$string String Input which shall be sanitized
  * @return string	Returns sanitized $string as string
@@ -732,14 +746,14 @@ function sanitize_userinput($string)
 
 /**
  * Funktion liefert den Zeitunterschied zur GMT basis
-*
+ *
  * @author IneX
  * @version 1.0
- * @since 1.0 16.03.2008 function added
-*
+ * @since 1.0 `16.03.2008` function added
+ *
  * @return String
  * @param $date
-*/
+ */
 function gmt_diff($date) {
 	$diff = ($date - date('Z', $date)) / 3600;
 	
@@ -756,13 +770,13 @@ function gmt_diff($date) {
 /**
  * Funktion prüft, ob der Client ein Mobile-Client ist (iPhone, BB, etc.)
  *
- * @DEPRECATED
+ * @deprecated
  * @TODO Funktion entfernen, wird via JavaScript erledigt
  * @link https://deviceatlas.com/blog/mobile-browser-user-agent-strings
  * @author IneX
  * @version 2.0
- * @since 1.0 23.04.2009 function added
- * @since 2.0 19.07.2018 Array foreach-loop replaced with faster array_filter-search, updated identifiers
+ * @since 1.0 `23.04.2009` function added
+ * @since 2.0 `19.07.2018` Array foreach-loop replaced with faster array_filter-search, updated identifiers
  *
  * @see usersystem::usersystem()
  * @param string $userAgent
@@ -858,7 +872,7 @@ function findStringInArray($searchFor, $inArray, $arrayColumn=null, $caseSensiti
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 21.01.2017 function added
+ * @since 1.0 `21.01.2017` function added
  *
  * @link https://stackoverflow.com/a/39811033/5750030
  * @param string $url 	The URL to validate
@@ -880,9 +894,9 @@ function urlExists($url)
  *
  * @author IneX
  * @version 3.0
- * @since 1.0 04.02.2018 function added
- * @since 2.0 20.08.2018 fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
- * @since 3.0 17.12.2018 fixed git error from apache2 error.log: "fatal: No tags can describe '<sha1>'" https://stackoverflow.com/a/6445255/5750030
+ * @since 1.0 `04.02.2018` function added
+ * @since 2.0 `20.08.2018` fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
+ * @since 3.0 `17.12.2018` fixed git error from apache2 error.log: "fatal: No tags can describe '`sha1`'" https://stackoverflow.com/a/6445255/5750030
  *
  * @see SITE_ROOT
  * @see datetimeToTimestamp()
@@ -907,11 +921,12 @@ function getGitCodeVersion()
 
 /**
  * Wraps String with a specified HTML-Tag
+ *
  * e.g. 'text', 'b' => returns <b>text</b>
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 18.06.2018 initial release
+ * @since 1.0 `18.06.2018` initial release
  *
  * @param string $text String input to wrap into HTML-tag $htmlTag
  * @param string $htmlTag HTML-Tag to use for warpping $text inside. Use only "b", "pre", "code", etc.
@@ -931,11 +946,12 @@ function html_tag($text, $htmlTag)
 
 /**
  * HTTP file download using cURL
+ *
  * Starts a cURL instance to download a passed URL to the defined file path, if the URL status is 200 OK
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 17.07.2018 function added
+ * @since 1.0 `17.07.2018` function added
  *
  * @param string $url String input containing a URL
  * @param string $save_as_file String input containing a valid local file path to save the $url to
@@ -1008,11 +1024,12 @@ function cURLfetchUrl($url, $save_as_file)
 
 /**
  * GET request using cURL to retrieve JSON object
+ *
  * Starts a cURL instance to retrieve a JSON data object from the passed $url, and return it as a PHP array if the JSON response status is 200 OK
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 06.08.2018 function added
+ * @since 1.0 `06.08.2018` function added
  *
  * @param string $url String input containing a REST API URL
  * @return array|bool Returns a JSON object converted to a PHP array containing the JSON data, or false, depening on if a successful execution was possible
@@ -1068,8 +1085,8 @@ function cURLfetchJSON($url)
  *
  * @author IneX
  * @version 1.1
- * @since 1.0 <inex> 06.08.2018 function added
- * @since 1.1 <inex> 18.04.2020 replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
+ * @since 1.0 `06.08.2018` `IneX` function added
+ * @since 1.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
  *
  * @param string $filepath 	The filepath to validate
  * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
@@ -1082,13 +1099,14 @@ function fileExists($filepath)
 
 /**
  * Calculate a unique md5-Hash of a File or URL - or compare to another File/URL
+ *
  * Either the file only, or by adding it's last modification datetime (for comparing file changes)
  * Pass a second file, in order to do a comparison of the two
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 08.08.2018 added function
- * @since 2.0 13.08.2018 added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
+ * @since 1.0 `08.08.2018` added function
+ * @since 2.0 `13.08.2018` added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
  *
  * @param string $filepath 	The filepath to a file for creating the hash
  * @param boolean $use_last_modification_datetime	(Optional) Whether or not to md5-hash with $filepath AND filemtime(), default: false

@@ -7,7 +7,7 @@
  *
  * @author [z]biko
  * @date 5.6.2004
- * @package zorg\Smarty\Templates
+ * @package zorg\Smarty
  */
 
 /**
@@ -45,13 +45,13 @@ function tpl_comment_permission ($thread_id) {
  *
  * @author [z]biko
  * @version 2.1
- * @since 1.0 <biko> function added
- * @since 2.0 <inex> 20.06.2019 Failsafe hinzugefügt
- * @since 2.1 <kassiopaia> 04.11.2019 fixes undefined indexes errors
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `20.06.2019` `IneX` Failsafe hinzugefügt
+ * @since 2.1 `04.11.2019` `kassiopaia` fixes undefined indexes errors
  *
- * FIXME ACHTUNG: template read_rights sind != der USER_xxx Level! z.B. read_rights=3 bedeutet "Template Owner only"...
+ * @FIXME ACHTUNG: template read_rights sind != der USER_xxx Level! z.B. read_rights=3 bedeutet "Template Owner only"...
  *
- * @see hasTplAccess()
+ * @see self::hasTplAccess()
  * @param integer $group Gruppe Level-Nummer to check
  * @param integer $owner User-ID to check
  */
@@ -74,7 +74,7 @@ function tpl_permission ($group, $owner)
  *
  * @author [z]biko
  * @version 1.0
- * @since 1.0 <biko> function added
+ * @since 1.0 `[z]biko` function added
  */
 function hasTplAccess ($group, $owner, $userid, $usertyp)
 {
@@ -116,7 +116,7 @@ function hasTplAccess ($group, $owner, $userid, $usertyp)
  * basic vars are assigned in smartyresource_tpl_get_template() Smarty-code {_tpl_assigns}
  *
  * @version 1.0
- * @since 1.0 <biko> function added
+ * @since 1.0 `[z]biko` function added
  *
  * @global array $_tpl_stack Globales Array mit allen Template-Variablen
  */
@@ -151,12 +151,12 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
  * @author IneX
  * @version 3.2
  * @since 1.0 function added
- * @since 2.0 26.09.2018 [Bug #761] enhanced $output with nl2br()
- * @since 3.0 <inex> 20.06.2019 Updated to fetch and process new layout options such as "sidebar_tpl"
- * @since 3.1 <inex> 21.06.2019 Fixed FIXME "Funktion so überarbeiten, dass 'border == 1' schönen Output" und TODO "Views aus dem Code entfernen"
- * @since 3.2 <inex> 02.11.2019 Added output of {comments} if `allow_comments` on tpl=true.
+ * @since 2.0 `26.09.2018` [Bug #761] enhanced $output with nl2br()
+ * @since 3.0 `20.06.2019` `IneX` Updated to fetch and process new layout options such as "sidebar_tpl"
+ * @since 3.1 `21.06.2019` `IneX` Fixed FIXME "Funktion so überarbeiten, dass 'border == 1' schönen Output" und TODO "Views aus dem Code entfernen"
+ * @since 3.2 `02.11.2019` `IneX` Added output of {comments} if `allow_comments` on tpl=true.
  *
- * @TODO Add nl2br($output) to convert all newlines to <br>
+ * @TODO Add nl2br($output) to convert all newlines to `<br>` (IneX)
  *
  * @see _tpl_assigns()
  * @param string $tpl_name Smarty Template Name
@@ -206,7 +206,7 @@ function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
 						.'<table width="100%" class="border">'
 						.'<tr><td width="100%">'
 					.'{/if}'
-					.$output // TODO Add nl2br($output) to convert all newlines to <br>
+					.$output /** @TODO Add nl2br($output) to convert all newlines to `<br>` */
 					.($templateData['allow_comments'] ? '{comments}' : '' ) // Add Commenting-System
 					.'{if $tpl.border > 0 && $tpl.id != $tpl.root}' // Wenn Template in anderem Template included wurde...
 						.'</td></tr>'
@@ -239,7 +239,7 @@ function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
  * @author IneX
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 <inex> 19.06.2019 Updated to fetch Packages new via tpl_packages > packages relationship and Comments from Tpl-Setting
+ * @since 2.0 `19.06.2019` `IneX` Updated to fetch Packages new via tpl_packages > packages relationship and Comments from Tpl-Setting
  *
  * @see load_packages()
  * @param string $tpl_name Smarty Template Name
@@ -276,7 +276,7 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 	/** Assign tpl-infos to $_tpl_stack Array */
 	$d['title'] = stripslashes($d['title']);
 	$d['update'] = $d['last_update'];
-	$d['root'] = $_GET['tpl'];	// @DEPRECATED (?)
+	$d['root'] = $_GET['tpl'];	// @deprecated (?)
 	array_push($_tpl_stack, $d);
 
 	/** Load required packages for the current template */
@@ -304,15 +304,15 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj)
 
 /**
  * Load PHP-Package files required for a Smarty-Template
- * 
+ *
  * @author [z]biko
  * @author IneX
  * @version 2.1
  * @since 1.0 function added
- * @since 2.0 <inex> 19.06.2019 Updated to process Packages from tpl_packages > packages relationship instead of a Field-String
- * @since 2.1 <inex> 18.04.2020 replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
+ * @since 2.0 `19.06.2019` `IneX` Updated to process Packages from tpl_packages > packages relationship instead of a Field-String
+ * @since 2.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
  *
- * TODO sollte das besser als Smarty PREfilter gelöst werden? https://www.smarty.net/docsv2/en/advanced.features.prefilters.tpl
+ * @TODO sollte das besser als Smarty PREfilter gelöst werden? https://www.smarty.net/docsv2/en/advanced.features.prefilters.tpl (IneX)
  *
  * @see SMARTY_PACKAGES_DIR
  * @see index.php
@@ -370,7 +370,7 @@ function load_packages($tpl_id, &$smarty)
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 <inex> 02.07.2019 function added
+ * @since 1.0 `02.07.2019` `IneX` function added
  *
  * @see index.php
  * @param integer $tpl_id Template ID for which to render the linked Menus
@@ -439,7 +439,7 @@ function menu ($name, &$smarty)
  * based on a word => tpl-id lookup from the database
  *
  * @author [z]biko
- * @global Object $db
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean
  */
 function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty)
@@ -466,7 +466,7 @@ function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty)
  * based on a word => tpl-id lookup from the database
  *
  * @author [z]biko
- * @global Object $db
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean
  */
 function smartyresource_word_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
@@ -496,8 +496,10 @@ function smartyresource_word_get_trusted($tpl_name, &$smarty_obj)
 }
 
 /**
- * @see tpleditor.php
- * TODO <biko> deaktiviert bis ein besserer syntax checker gebaut ist
+ * Remove invalid HTML from Smarty template.
+ * @TODO deaktiviert bis ein besserer syntax checker gebaut ist (biko)
+ * @author [z]biko
+ * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/tpleditor.php TPLeditor Save Action
  */
 function smarty_remove_invalid_html ($tpl, &$smarty)
 {
@@ -507,8 +509,8 @@ function smarty_remove_invalid_html ($tpl, &$smarty)
 }
 
 /**
- * Build and return path to PHP-Files from the /www/packages/ dir
- * @DEPRECATED
+ * Build and return path to PHP-Files from the /www/packages/ dir.
+ * @deprecated Obsolet seit Packages neu in der DB via tpl_packages abgefragt und eingebunden werden
  */
 function package_path ($package)
 {
@@ -519,6 +521,7 @@ function package_path ($package)
  * Smarty Klassen-Objekt instanzieren
  *
  * Konfiguriert und lädt ein $smarty Objekt basierend auf /smartylib/Smarty.class.php
+ *
  * @link https://www.smarty.net/docs/en/api.register.resource.tpl
  *
  * @author [z]biko
@@ -526,10 +529,14 @@ function package_path ($package)
  * @date 03.01.2016
  * @version 3.0
  * @since 1.0 function added
- * @since 2.0 <inex> Moved Smarty directory paths to global configs
- * @since 3.0 <inex> 21.06.2019 Added registration of Smarty prefilter and postfilter functions
+ * @since 2.0 `IneX` Moved Smarty directory paths to global configs
+ * @since 3.0 `21.06.2019` `IneX` Added registration of Smarty prefilter and postfilter functions
  *
- * @see config.inc.php, SMARTY_TEMPLATES_HTML, SMARTY_COMPILE, SMARTY_CACHE, SMARTY_TRUSTED_DIRS, SMARTY_TEMPLATES_HTML
+ * @uses SMARTY_TEMPLATES_HTML
+ * @uses SMARTY_COMPILE
+ * @uses SMARTY_CACHE
+ * @uses SMARTY_TRUSTED_DIRS
+ * @uses SMARTY_TEMPLATES_HTML
  * @return Smarty Class-object
  */
 function startSmarty()
@@ -604,8 +611,7 @@ function startSmarty()
  * @author IneX
  * @date 03.01.2016
  * @version 1.0
- * @package zorg
- * @subpackage Smarty
+ * @package zorg\Smarty
  */
 class ZorgSmarty extends Smarty
 {
@@ -723,8 +729,7 @@ class ZorgSmarty extends Smarty
  * @author IneX
  * @date 03.01.2016
  * @version 1.0
- * @package zorg
- * @subpackage Smarty
+ * @package zorg\Smarty
  */
 class ZorgSmarty_Compiler extends Smarty
 {
@@ -762,5 +767,5 @@ if (!isset($smarty)) $smarty = startSmarty();
 
 // required smarty files for registering all smarty features etc.
 require_once INCLUDES_DIR.'smarty.fnc.php';
-//require_once __DIR__.'/smarty_menu.php'; // @DEPRECATED
+//require_once __DIR__.'/smarty_menu.php'; // @deprecated
 require_once INCLUDES_DIR.'comments.fnc.php';

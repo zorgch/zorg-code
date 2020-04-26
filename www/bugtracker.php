@@ -92,7 +92,7 @@ if(empty($bug_id) || $bug_id <= 0)
 		.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned'
 		.'</th>';
 
-	/* TODO [Bug #406] Filter by Category
+	/* @TODO [Bug #406] Filter by Category (IneX)
 	$htmlOutput .=(
 		'<br />'
 		.'<input name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned'

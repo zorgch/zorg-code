@@ -210,7 +210,7 @@ class Stockbroker {
 	* @author [z]biko
 	* @version 2.0
 	* @since 1.0 method added
-	* @since 2.0 25.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	* @since 2.0 `25.11.2018` updated to use new $notifcation Class & some code and query optimizations
 	*
 	* @param String $symbol
 	* @param float(6,3) kurs
@@ -235,7 +235,8 @@ class Stockbroker {
 
 			if ($warning)
 			{
-				/* @DEPRECATED
+				/**
+				 * @deprecated
 				Messagesystem::sendMessage(
 					59
 					, $rs['user_id']
@@ -263,10 +264,11 @@ class Stockbroker {
 	}	
 	
 	/**
-	* @return int
-	* @param String $symbol
-	* @desc Holt sich die neusten (nicht die heutigen) Kurse eines Wertpapiers.
-	*/
+	 * Holt sich die neusten (nicht die heutigen) Kurse eines Wertpapiers.
+	 *
+	 * @return int
+	 * @param string $symbol
+	 */
 	function getSymbol($symbol) {
 		global $db;
 		$sql = 

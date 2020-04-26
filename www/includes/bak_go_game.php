@@ -1,12 +1,13 @@
 <?php
 /**
  * GO Board Funktionen
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
  * @package zorg\Games\Go

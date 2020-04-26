@@ -1,7 +1,7 @@
 <?php
 /**
  * Forum
- * 
+ *
  * Das Forum Modul enthält 3 Klassen für alle Features:
  * - Forum
  * - Thread
@@ -57,13 +57,12 @@ $activities_f =
 
 /**
  * Comment Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen zum Commenting-System
  *
- * @author		[z]biko
- * @version		1.0
- * @package		zorg
- * @subpackage	Forum
+ * @author [z]biko
+ * @version 1.0
+ * @package zorg\Forum
  */
 class Comment
 {
@@ -73,10 +72,10 @@ class Comment
 	 * @author [z]biko
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 05.11.2018 method ehnaced with code & query optimizations
+	 * @since 2.0 `05.11.2018` method ehnaced with code & query optimizations
 	 *
-	 * @see comments.res.php
-	 * @see smartyresource_comments_get_template()
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/includes/comments.res.php Wird verwendet in comments.res.php
+	 * @uses smartyresource_comments_get_template()
 	 * @param integer $thread_id
 	 * @param integer $comment_id
 	 * @param string $board (Optional) Board-shortname, z.b. "f"=forum, als String - Default: "f"
@@ -251,7 +250,7 @@ class Comment
 	 * @author [z]biko
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 27.11.2018 Fixed passing any $height integer to this method caused an eternal loop
+	 * @since 2.0 `27.11.2018` Fixed passing any $height integer to this method caused an eternal loop
 	 *
 	 * @param int $comment_id
 	 * @param int $height (Optional)
@@ -274,7 +273,7 @@ class Comment
 	 * @author [z]biko
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 06.11.2018 added parameter validation
+	 * @since 2.0 `06.11.2018` added parameter validation
 	 *
 	 * @param int $id Comment-ID
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -301,10 +300,9 @@ class Comment
 	}
 
 	/**
-	 * @DEPRECATED ??? 26.10.2018
-	 * @see smartyresource_comments_get_childposts
-	 *
 	 * HTML der "Additional Posts" Teile
+	 *
+	 * @deprecated see smartyresource_comments_get_childposts()??? (26.10.2018)
 	 *
 	 * @author [z]biko
 	 * @version 1.0
@@ -391,12 +389,13 @@ class Comment
 	/**
 	 * Link to a Comment
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 26.10.2018 added $addUrlParameters to make Link work with routes (e.g. /thread/23/?parent_id=5 vs. /gallery.php?show=pic&picID=23)
+	 * @since 2.0 `26.10.2018` added $addUrlParameters to make Link work with routes (e.g. /thread/23/?parent_id=5 vs. /gallery.php?show=pic&picID=23)
 	 *
-	 * @see .htaccess
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/.htaccess Routes defined for Comment links defined in .htaccess
 	 * @param string $board Board-Identifier for Comment to Link
 	 * @param integer $parent_id Parent-ID for Comment to Link
 	 * @param integer $comment_id Comment-ID to Link
@@ -424,10 +423,11 @@ class Comment
 	/**
 	 * Link to a Thread
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 26.10.2018 added $output_html-Parameter & return only for Thread-URL
+	 * @since 2.0 `26.10.2018` added $output_html-Parameter & return only for Thread-URL
 	 *
 	 * @param string $output_html (Optional) Wenn TRUE dann wird HTML-Linktag ausgegeben, ansonsten wird nur die Link-URL returned
 	 * @return string Gibt die Thread-URL als HTML-Link (String) zurück wenn $output_html=true - oder nur die Thread-URL wenn $output_html=false
@@ -502,13 +502,13 @@ class Comment
 	}
 
 	/**
-	 * @return int
-	 * @param $id int
-	 * @param $hiers int
-	 * @desc Holt den Thread-Id eines Posts oder Threads.
+	 * Holt den Thread-Id eines Posts oder Threads.
 	 *
 	 * WICHTIG! UNBEDINGT SO LASSEN!
 	 *
+	 * @return int
+	 * @param int $id
+	 * @param int $hiers
 	 */
 	static function getThreadid($board, $id) {
 		global $db;
@@ -520,13 +520,15 @@ class Comment
 	/**
 	 * Den Titel eines Kommentars holen.
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 2.1
-	 * @since 1.0 <biko> method added
-	 * @since 2.0 <inex> 24.09.2018 method uses now text_width() util-function
-	 * @since 2.1 <inex> 15.01.2019 enhanced to also remove Smarty curly brackets { and }
+	 * @since 1.0 `[z]biko` method added
+	 * @since 2.0 `24.09.2018` `IneX` method uses now text_width() util-function
+	 * @since 2.1 `15.01.2019` `IneX` enhanced to also remove Smarty curly brackets { and }
 	 *
-	 * @see remove_html(), text_width()
+	 * @uses remove_html()
+	 * @uses text_width()
 	 * @param string $text
 	 * @param int $length offset
 	 * @param string $if_empty_use_this (Optional) Wenn Titel leer ist, dann ein besserer Fallback als nur '---' der verwendet werden soll
@@ -543,10 +545,12 @@ class Comment
 	 * Schnipsel/Auszug eines Kommentars holen.
 	 *
 	 * @version 1.1
-	 * @since 1.0 <inex> 19.08.2019 method added
-	 * @since 1.1 <inex> 15.01.2019 enhanced to also remove Smarty curly brackets { and }
+	 * @since 1.0 `19.08.2019` `IneX` method added
+	 * @since 1.1 `15.01.2019` `IneX` enhanced to also remove Smarty curly brackets { and }
 	 *
-	 * @see remove_html(), text_width(), t()
+	 * @uses remove_html()
+	 * @uses text_width()
+	 * @uses t()
 	 * @param string $text
 	 * @param int $length offset
 	 * @return string
@@ -569,12 +573,14 @@ class Comment
 	}
 
 	/**
+	 * Prüft ob der Comment ein Thread ist
+	 *
 	 * Prüft, ob der Comment im therads-table eingetragen ist (= thread start)
+	 *
 	 * @author IneX
 	 * @date 16.03.2008
-	 * @desc Prüft ob der Comment ein Thread ist
-	 * @param $board
-	 * @param $id int
+	 * @param string $board
+	 * @param int $id int
 	 * @return boolean
 	 */
 	static function isThread($board, $id) {
@@ -659,11 +665,11 @@ class Comment
 	 * Post Comment to Board
 	 *
 	 * @version 3.2
-	 * @since 1.0 <biko> method added
-	 * @since 2.0 <inex> added Activities
-	 * @since 3.0 <inex> various code optimizations, new notification class used
-	 * @since 3.1 <inex> minor code optimizations, changed Forum Activity-Notification only if new Forum-Thread
-	 * @since 3.2 <inex> 27.09.2019 changed INSERT to use $db->insert()
+	 * @since 1.0 `[z]biko` method added
+	 * @since 2.0 `IneX` added Activities
+	 * @since 3.0 `IneX` various code optimizations, new notification class used
+	 * @since 3.1 `IneX` minor code optimizations, changed Forum Activity-Notification only if new Forum-Thread
+	 * @since 3.2 `27.09.2019` `IneX` changed INSERT to use $db->insert()
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -817,10 +823,10 @@ class Comment
 	 *
 	 * @author IneX
 	 * @version 2.0
-	 * @since 1.0 26.11.2018 method moved to Comment-Class from /actions/comment_edit.php
-	 * @since 2.0 27.11.2018 updated to use new $notifcation Class & some code and query optimizations
+	 * @since 1.0 `26.11.2018` method moved to Comment-Class from /actions/comment_edit.php
+	 * @since 2.0 `27.11.2018` updated to use new $notifcation Class & some code and query optimizations
 	 *
-	 * @see /actions/comment_edit.php
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/comment_edit.php Used in Comment-Editing Action
 	 * @param integer $comment_id
 	 * @param array $comment_data_updated $_POST-Array containing updated data values for $comment_id
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -882,7 +888,7 @@ class Comment
 			{
 				$notification_status = $notification->send($msg_recipient_id, 'mentions', ['from_user_id'=>$user->id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text, 'to_users' => $_POST['msg_users']]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status to user_id %d: %s', __METHOD__, __LINE__, $msg_recipient_id, ($notification_status == 'true' ? 'true' : 'false')));
-				/** @DEPRECATED
+				/** @deprecated
 				Messagesystem::sendMessage(
 					$user->id
 					, $_POST['msg_users'][$i]
@@ -909,14 +915,14 @@ class Comment
 
 /**
  * Forum Class
- * 
+ *
  * In dieser Klasse befinden sich die Hauptfunktionen zum Forum-System
  * inkl. Boards und Board-Management
  *
- * @author		[z]milamber, IneX
- * @version		1.0
- * @package		zorg
- * @subpackage	Forum
+ * @author [z]milamber
+ * @author IneX
+ * @version 1.0
+ * @package zorg\Forum
  */
 class Forum {
 
@@ -1012,14 +1018,17 @@ class Forum {
 	/**
 	 * Print Forum Boards
 	 *
-	 * @author [z]biko, IneX
+	 * @author [z]biko
+	 * @author IneX
 	 * @version 2.5
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 30.09.2018 markup extracted into Smarty-Template 'forum_boards.tpl'
-	 * @since 2.5 <inex> 18.04.2020 added option to only show selected Boards (without active checkbox)
+	 * @since 2.0 `30.09.2018` `IneX` markup extracted into Smarty-Template 'forum_boards.tpl'
+	 * @since 2.5 `18.04.2020` `IneX` added option to only show selected Boards (without active checkbox)
 	 *
-	 * @see forum_boards.tpl, profil.php, Forum::getForumBoardsShown
-	 * @see /actions/forum_setboards.php Um ausgewählte Boards via /actions/forum_setboards.php zu aktualisieren
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/forum_setboards.php Um ausgewählte Boards via /actions/forum_setboards.php zu aktualisieren
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/forum/forum_boards.tpl forum_boards.tpl Cached output to Smarty-Template forum_boards.tpl
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/profil.php Display on Profile page in profil.php
+	 * @see Forum::getForumBoardsShown()
 	 * @param array $selected_boards_array Array with Forum-Board IDs to set 'checked' in HTML-Markup
 	 * @param string|bool $update_mode 'set_show_boards' = Board-Selektion anpassen; 'set_unread_boards' = Unread subscriptions ändern; Default: false
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1057,12 +1066,12 @@ class Forum {
 	/**
 	 * Print Forum Boards
 	 *
-	 * @DEPRECATED Merged with and replaced by Forum::getForumBoards()
+	 * @deprecated Merged with and replaced by Forum::getForumBoards()
 	 *
 	 * @author [z]biko
 	 * @version 1.0
 	 * @since 1.0 method added
-	 * @see Forum::getForumBoards()
+	 * @uses Forum::getForumBoards()
 	 */
 	static function getFormBoardsShown($show)
 	{
@@ -1082,8 +1091,8 @@ class Forum {
 	 * @author IneX
 	 * @date 16.03.2008
 	 * @version 2.0
-	 * @since 1.0 16.03.2008 method added
-	 * @since 2.0 30.09.2018 Code cleanup
+	 * @since 1.0 `16.03.2008` method added
+	 * @since 2.0 `30.09.2018` Code cleanup
 	 *
 	 * @param string $board Board ID to lookup full Title for
 	 * @return string Board-Title
@@ -1107,9 +1116,10 @@ class Forum {
 
 
 	/**
+	 * Form for editing posts
+	 *
 	 * @return String
-	 * @param $comment_id
-	 * @desc Form for editing posts
+	 * @param int $comment_id
 	 *
 	 * @TODO merge Forum::getFormEdit() into /templates/layout/partials/commentform.tpl
 	 */
@@ -1173,12 +1183,13 @@ class Forum {
 	
 	/**
 	 * Start Ausgabe Commentform Form HTML-Tag
+	 *
 	 * Neu als Smarty-Template "/templates/layout/partials/commentform.tpl" verfügbar!
 	 * Usage im Smarty Template: {include file='file:layout/partials/commentform.tpl'}
-	 * 
-	 * @DEPRECATED
+	 *
+	 * @deprecated
 	 * @author unknown
-	 * @see printCommentingSystem()
+	 * @used-by self::printCommentingSystem()
 	 */
 	static function getFormNewPart1of2() {
 		return '<form action="/actions/comment_new.php" method="post" name="commentform">';
@@ -1186,10 +1197,10 @@ class Forum {
 	
 	/**
 	 * Ausgabe Commentforms HTML
-	 * 
-	 * @DEPRECATED
+	 *
+	 * @deprecated
 	 * @author unknown
-	 * @see printCommentingSystem()
+	 * @used-by self::printCommentingSystem()
 	 */
 	/*
 	static function getFormNewPart2of2($board, $thread_id, $parent_id) {
@@ -1234,9 +1245,10 @@ class Forum {
 	 */
 
 	/**
-	 * @return String
-	 * @desc gibt das HTML des Readallforms zurück
+	 * gibt das HTML des Readallforms zurück
+	 *
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
+	 * @return String
  	 */
 	static function getFormReadall() {
 		return
@@ -1252,9 +1264,10 @@ class Forum {
 	}
 
 	/**
-	 * @return String
-	 * @desc gibt das HTML des Searchformszurück
+	 * gibt das HTML des Searchformszurück
+	 *
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
+	 * @return String
  	 */
 	static function getFormSearch($searchText = null)
 	{
@@ -1277,7 +1290,7 @@ class Forum {
 	 *
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 28.08.2019 Code and SQL-query optimized
+	 * @since 2.0 `28.08.2019` `IneX` Code and SQL-query optimized
 	 *
 	 * @param int $user_id User-ID for whom to get unread Comments
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1303,11 +1316,11 @@ class Forum {
 	/**
 	 * Link zum letzten unread Comment ausgeben
 	 *
-	 * @author biko
+	 * @author [z]biko
 	 * @version 1.0
 	 * @since 1.0 method added
 	 *
-	 * @see Comment::getNumunreadposts()
+	 * @used-by Comment::getNumunreadposts()
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string HTML-Link zum ältesten ungelesenen Comment
@@ -1397,7 +1410,7 @@ class Forum {
 	 *
 	 * @version 1.1
 	 * @since 1.0 Method added
-	 * @since 2.0 <inex> 07.03.2020 Code optimizations
+	 * @since 2.0 `07.03.2020` `IneX` Code optimizations
 	 *
 	 * @param string $keyword Search-Text for LIKE %...% search
 	 * @return void
@@ -1483,7 +1496,7 @@ class Forum {
 		  	.Comment::getTitle($rs['text'])
 		  	.'</a>'
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
-	      //.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username']) @DEPRECATED
+	      //.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username']) @deprecated
 	      .$user->userprofile_link($rs['user_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .datename($rs[date])
@@ -1507,7 +1520,7 @@ class Forum {
 	 *
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 09.09.2019 updated code & html output
+	 * @since 2.0 `09.09.2019` `IneX` updated code & html output
 	 *
 	 * @param int $user_id User-ID for whom to show latest Comments
 	 * @return string HTML-Code
@@ -1617,8 +1630,9 @@ class Forum {
 	}
 
 	/**
+	 * Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zurück
+	 *
 	 * @return String
-	 * @desc Gibt eine Tabelle mit den letzten ungelesenen Kommentaren zurück
 	 */
 	static function getLatestUnreadComments($title="", $board="") {
 		global $db, $user;
@@ -1677,10 +1691,11 @@ class Forum {
 	}
 
 	/**
-	 * @return String
-	 * @desc Gibt eine Tabelle mit Threads zurück, welche genau vor 3 Jahren erstellt wurden
+	 * Gibt eine Tabelle mit Threads zurück, welche genau vor 3 Jahren erstellt wurden
+	 *
 	 * @autor Grischa Ebinger
 	 * @date 2004-02-08
+	 * @return String
 	 */
 	static function get3YearOldThreads() {
 		global $db, $user;
@@ -1748,11 +1763,11 @@ class Forum {
 	 * @author IneX
 	 * @version 3.1
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 07.11.2018 code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
-	 * @since 3.0 <inex> 05.12.2018 fixed and restored Thread-Overview Pagination
-	 * @since 3.1 <inex> 25.07.2019 fixed Bug #774: In der Forumthreads-Übersicht wird ein falscher "Thread starter" angezeigt
+	 * @since 2.0 `07.11.2018` `IneX` code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
+	 * @since 3.0 `05.12.2018` `IneX` fixed and restored Thread-Overview Pagination
+	 * @since 3.1 `25.07.2019` `IneX` fixed Bug #774: In der Forumthreads-Übersicht wird ein falscher "Thread starter" angezeigt
 	 *
-	 * @see Forum::getNavigation()
+	 * @used-by Forum::getNavigation()
 	 * @param array|string $showboards Array mit den Boards für welche die Threads angezeigt werden sollen
 	 * @param integer $pagesize Die Anzahl Threads welche pro Page aufgelistet werden sollen
 	 * @param string $sortby Anweisung nach welcher Spalte (Thread DB-Column) die Threads sortiert werden - default: last_post_date
@@ -2008,20 +2023,22 @@ class Forum {
 	 * @author	[z]biko
 	 * @author	IneX
 	 * @version	3.1
-	 * @since	1.0 <biko> added method
-	 * @since	2.0 <inex> 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
-	 * @since	3.0 <inex> 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
-	 * @since	3.1 <inex> 22.01.2020 Code optimizations
+	 * @since	1.0 `[z]biko` added method
+	 * @since	2.0 `IneX` 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
+	 * @since	3.0 `IneX` 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
+	 * @since	3.1 `IneX` 22.01.2020 Code optimizations
 	 *
-	 * @see USER_USER, USER_NICHTEINGELOGGT
-	 * @see commentform.tpl
-	 * @see Thread::hasRights(), Thread::setLastSeen()
+	 * @uses USER_USER
+	 * @uses USER_NICHTEINGELOGGT
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/commentform.tpl Template used for output is commentform.tpl
+	 * @uses Thread::hasRights()
+	 * @uses Thread::setLastSeen()
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @param string $board
 	 * @param int $thread_id
-	 * @uses $_GET['parent_id'] directly
+	 * @var $_GET['parent_id'] directly
 	 * @return void
 	 */
 	static function printCommentingSystem($board, $thread_id)
@@ -2089,8 +2106,8 @@ class Forum {
 	 *
 	 * @author IneX
 	 * @version 2.0
-	 * @since 1.0 <inex> initial method added
-	 * @since 2.0 <inex> 20.07.2018 Refactored long-running queries, optimized queries and output (e.g. unreads, unnecessary LEFT JOINs, etc.)
+	 * @since 1.0 `IneX` initial method added
+	 * @since 2.0 `20.07.2018` `IneX` Refactored long-running queries, optimized queries and output (e.g. unreads, unnecessary LEFT JOINs, etc.)
 	 *
 	 * @TODO Param "user_id" can be removed with a refactoring! Doesn't have to be passed & thus Method can be simplified...
 	 *
@@ -2253,7 +2270,7 @@ class Forum {
 				$xmlitem_title = (isset($rs['isunread']) && $rs['isunread'] == 1 ? '*unread* ' : '') . ( Comment::isThread($rs['board'], $rs['id']) ? Comment::getTitle($rs['text'], 80) : 'Comment zu '.remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id']))) );
 				$xmlitem_link = str_replace('&', '&amp;amp;', SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id'])); // &amp;amp; for xml-compatibility
 				$xmlitem_pubDate = date('D, d M Y H:i:s', $rs['date']);//.' '.gmt_diff($rs[date]);
-				//$xmlitem_author = $rs['clan_tag'].$rs['username']; @DEPRECATED
+				//$xmlitem_author = $rs['clan_tag'].$rs['username']; @deprecated
 				$xmlitem_author = $user->id2user($rs['user_id'], true);
 				$xmlitem_category = '<![CDATA[';
 					$xmlitem_category .= remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id'])));
@@ -2295,10 +2312,10 @@ class Forum {
  * 
  * In dieser Klasse befinden sich alle Funktionen zum Thread-System
  *
- * @author		[z]milamber, IneX
- * @version		1.0
- * @package		zorg
- * @subpackage	Forum
+ * @author [z]milamber
+ * @author IneX
+ * @version 1.0
+ * @package zorg\Forum
  */
 class Thread {
 	static function setLastSeen ($board, $thread_id) {
@@ -2409,10 +2426,11 @@ class Thread {
 
 
 	/**
+	 * Holt den letzten Kommentar eines Threads
+	 *
 	 * @return Array
-	 * @param $board
-	 * @param $thread_id
-	 * @desc Holt den letzten Kommentar eines Threads
+	 * @param string $board
+	 * @param int $thread_id
 	 */
 	static function getLastComment($board, $thread_id) {
 	  global $db;
@@ -2428,9 +2446,10 @@ class Thread {
 	}
 
 	/**
+	 * Holt den letzten ungelesenen Kommentar
+	 *
 	 * @return Array
-	 * @param $thread_id int
-	 * @desc Holt den letzten ungelesenen Kommentar
+	 * @param int $thread_id int
  	 */
 	static function getLastUnreadComment($board, $thread_id, $user_id) {
 		global $db;
@@ -2453,10 +2472,11 @@ class Thread {
 	}
 
 	/**
+	 * returns the Thread-Title and its navigation-bar
+	 *
 	 * @return String
-	 * @param $parent_id int
-	 * @param $thread_id int
-	 * @desc returns the Thread-Title and its navigation-bar
+	 * @param int $parent_id int
+	 * @param int $thread_id int
 	 */
 	static function getNavigation($board, $id, $thread_id)
 	{
@@ -2499,7 +2519,7 @@ class Thread {
 	 *
 	 * @version 1.1
 	 * @since 1.0 method added
-	 * @since 1.1 <inex> 29.08.2019 try-catch didn't catch a failed mysql-query, changed it therefore
+	 * @since 1.1 `29.08.2019` `IneX` try-catch didn't catch a failed mysql-query, changed it therefore
 	 *
 	 * @param string $board
 	 * @param int $thread_id
@@ -2527,9 +2547,9 @@ class Thread {
 	}
 
 	/**
-	 * @FIXME tut nicht mehr
-	 *
 	 * Get count of total read comments
+	 *
+	 @FIXME tut nicht mehr
 	 *
 	static function getNumRead($board, $thread_id) {
 		global $db;
@@ -2581,7 +2601,7 @@ class Thread {
 	 *
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 06.11.2018 added parameter validation
+	 * @since 2.0 `06.11.2018` added parameter validation
 	 *
 	 * @param string $board
 	 * @param int $thread_id
@@ -2607,13 +2627,13 @@ class Thread {
 	}
 
 	/**
-	 * @DEPRECATED ??? 26.10.2018
-	 * @see smartyresource_comments_get_childposts
+	 * Post-Recursion Function.
+	 *
+	 * @deprecated see smartyresource_comments_get_childposts??? (26.10.2018)
 	 *
 	 * @return void
-	 * @param $parent_id int
-	 * @param $depth Array
-	 * @desc Post-Recursion Function.
+	 * @param int $parent_id
+	 * @param array $depth
 	 */
 	static function printChildPosts($board, $parent_id, $depth=array("space")) {
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Addle (Game)
- * 
+ *
  * Das Addle Spiel wurde am 16. Mai 2003 von [z]biko
  * geschrieben und anschliessend laufend verbessert.
  * Das Spiel nutz folgende Tabellen in der Datenbank:
@@ -12,7 +12,6 @@
  * @date 16.05.2003
  * @package zorg\Games\Addle
  */
-
 /**
  * File includes
  * @include main.inc.php required
@@ -30,16 +29,16 @@ $model = new MVC\Addle();
 
 /**
  * Addle KI Einsetzen
- * 
+ *
  * Aktiviert die KI fuer ein bestimmtes Spiel
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
  * @since 1.5 function optimized
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
- * @see BARBARA_HARRIS
+ * @uses BARBARA_HARRIS
  * @param integer $game_id ID des Addle Spiels
  */
 function use_ki($game_id) {
@@ -56,15 +55,15 @@ function use_ki($game_id) {
 
 /**
  * HTML-Auswahlmenü ausgeben
- * 
+ *
  * Gibt ein HTML-Auswahlmenü aus (<option></option>) - benutzt
  * für die Spielerauswahl um ein neues Spiel zu starten.
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
  * @since 1.5 function optimized
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  */
 function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $addhtml = "") {
 	if(is_array($valuearray)) {
@@ -94,17 +93,17 @@ function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $
 
 /**
  * Neues Addle Spiel
- * 
+ *
  * Erzeugt ein neues Addle Spiel
- * 
- * @author [z]bert, [z]keep3r
+ *
+ * @author [z]bert
+ * @author [z]keep3r
  * @version 3.0
  * @since 1.0 function added
  * @since 2.0 KI added
- * @since 3.0 07.11.2018 code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 3.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
  *
- * @see config.inc.php
- * @see MAX_ADDLE_GAMES
+ * @uses MAX_ADDLE_GAMES
  * @param integer $player ID des Gegners
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -214,13 +213,13 @@ function newgame($player) {
 
 /**
  * Alle offenen Addle Spiele
- * 
+ *
  * Listet alle offenen Addle Spiele auf
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -280,13 +279,13 @@ function games()
 
 /**
  * Addle Hauptseite
- * 
+ *
  * Erzeugt die Hauptseite zu Addle mit einer generellen Spielübersicht
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -331,14 +330,15 @@ function overview() {
 
 /**
  * Addle Spielzug ausführen
- * 
+ *
  * Verarbeitet einen Addle Spielzug
- * 
- * @author [z]bert, [z]keep3r
+ *
+ * @author [z]bert
+ * @author [z]keep3r
  * @version 3.0
  * @since 1.0 function added
  * @since 2.0 KI added
- * @since 3.0 07.11.2018 code and sql-query optimizations
+ * @since 3.0 `07.11.2018` code and sql-query optimizations
  *
  * @param integer $id ID des Addle Spiels
  * @param integer $choose ID des Feldes innerhalb des Addle Spiels $id
@@ -466,14 +466,15 @@ function doplay($id, $choose) {
 
 /**
  * Addle Spiel anzeigen
- * 
+ *
  * Zeigt ein spezifisches Addle Spiel an
- * 
- * @author [z]bert, [z]keep3r
+ *
+ * @author [z]bert
+ * @author [z]keep3r
  * @version 3.0
  * @since 1.0 function added
  * @since 2.0 KI added
- * @since 3.0 07.11.2018 code and sql-query optimizations
+ * @since 3.0 `07.11.2018` code and sql-query optimizations
  *
  * @param integer $id ID des Addle Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -638,9 +639,11 @@ function play($id=0)
 	<?php
 	//games(); DISABLED weils scheisse auf Mobile aussieht im Responsive, da nicht in Sidebar...
 
-	/* keep3r's KI-Testing...
-	* @see evil_max()
-	*/
+	/**
+	 * keep3r's KI-Testing...
+	 *
+	 * @uses evil_max()
+	 */
 	if (sanitize_userinput($_GET['debug']) === 'true' && $user->typ >= USER_MEMBER) {
 		$data = $d['data'];
 		$nextrow = $d['nextrow'];
@@ -658,13 +661,13 @@ function play($id=0)
 
 /**
  * Addle Highscore
- * 
+ *
  * Gibt die Highscore Liste von Addle aus
- * 
+ *
  * @author [z]bert
  * @version 1.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -758,13 +761,13 @@ function highscore() {
 
 /**
  * Addle Spiele-Archiv
- * 
+ *
  * Listet alte Addle Spiele auf
- * 
+ *
  * @author [z]bert
  * @version 1.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen

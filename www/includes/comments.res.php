@@ -88,10 +88,10 @@ function smartyresource_comments_get_thread ($id, $board) {
  * @author [z]biko
  * @version 2.1
  * @since 1.0 function added
- * @since 2.0 <inex> 26.10.2018 various optimizations, structured html (schema.org)
- * @since 2.1 <inex> 22.01.2020 Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
+ * @since 2.0 `26.10.2018` `IneX` various optimizations, structured html (schema.org)
+ * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
- * @global object $db Datenbankabfrage um unser Template zu laden, und '$tpl_source' zuzuweisen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden um unser Template zu laden, und '$tpl_source' zuzuweisen
  */
 function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty) {
 	global $db;
@@ -121,8 +121,8 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
  * @author [z]biko
  * @author IneX
  * @version 2.0
- * @since 1.0 <biko> function added
- * @since 2.0 <inex> 14.01.2019 added schema.org tags
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `14.01.2019` `IneX` added schema.org tags
  *
  * @param integer $id Comment-ID
  * @param integer $thread_id
@@ -179,16 +179,16 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  * @author [z]biko
  * @author IneX
  * @version 3.2
- * @since 1.0 <biko> function added
- * @since 2.0 <inex> 26.10.2018 function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
- * @since 3.0 <inex> 30.10.2018 added check of $user->is_loggedin() to Query for Member-specific joins
- * @since 3.1 <inex> 14.01.2019 fixed schema.org tags
- * @since 3.2 <inex> 22.01.2020 Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
+ * @since 3.0 `30.10.2018` `IneX` added check of $user->is_loggedin() to Query for Member-specific joins
+ * @since 3.1 `14.01.2019` `IneX` fixed schema.org tags
+ * @since 3.2 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
  * @TODO ganzes HTML in ein Smarty TPL auslagern
  * @TODO "$layouttype" is DEPRECATED!
  *
- * @see $layouttype
+ * @var $layouttype
  * @see smartyresource_comments_get_navigation(), smartyresource_comments_get_childposts()
  * @see Comment::getLinkThread(), Comment::formatPost(), Comment::getNumChildposts()
  * @param integer $id Comment-ID
@@ -340,13 +340,15 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * @author [z]biko
  * @version 2.1
  * @since 1.0 function added
- * @since 2.0 <inex> 26.10.2018 function code cleanup & optimized
- * @since 2.1 <inex> 22.01.2020 Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
+ * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized
+ * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
  * @TODO "$layouttype" is DEPRECATED!
  *
- * @see $layouttype, $color
- * @see Comment::getNumChildposts(), smarty_comment_colorfade()
+ * @var $layouttype
+ * @var $color
+ * @uses Comment::getNumChildposts()
+ * @uses smarty_comment_colorfade()
  * @param integer $parent_id
  * @param string $board
  * @global object $db Globales Class-Object mit allen MySQL-Methoden

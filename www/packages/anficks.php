@@ -1,9 +1,9 @@
 <?php
 /**
  * Anficker Package
- * 
+ *
  * Holt die ganzen Anficks und übergibt sie als Array an Smarty
- * 
+ *
  * @author ?
  * @version 1.0
  * @package zorg\Games\Anficker

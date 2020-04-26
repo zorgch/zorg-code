@@ -1,5 +1,11 @@
 <?php
 /**
+ * Get unread Comments asynchronously
+ *
+ * @package zorg\Forum
+ */
+
+/**
  * FILE INCLUDES
  */
 require_once dirname(__FILE__).'/../../includes/config.inc.php';

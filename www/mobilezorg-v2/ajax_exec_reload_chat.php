@@ -1,5 +1,11 @@
 <?php
 /**
+ * Mobilezorg V2 - Reload Chat Messages
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
+
+/**
  * FILE INCLUDES
  */
 require_once dirname(__FILE__).'/config.php';

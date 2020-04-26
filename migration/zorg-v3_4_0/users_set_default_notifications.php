@@ -2,6 +2,7 @@
 /**
  * Migration Script to initially set every user's
  * - notifications
+ *
  * because new field & data which every user needs to set:
  * - old value: EMPTY / NULL
  * - new value: {"bugtracker":{"message":"true","email":"true"},"games":{"email":"true"},"mentions":{"email":"true"},"messagesystem":{"email":"true"},"subscriptions":{"message":"true"}}
@@ -13,8 +14,8 @@
  * @version 1.0
  * @since 1.0 27.11.2018 Script added
  *
- * @see /includes/usersystem.inc.php, /templates/layout/pages/profile_page.tpl
- * @see Usersystem::$notifications
+ * @uses usersystem::$default_notifications
+ * @uses usersystem::$notifications
  */
 if ($_GET['migration'] === 'start')
 {

@@ -16,7 +16,7 @@ require_once dirname(__FILE__).'/main.inc.php';
  *
  * @author [z]biko
  * @version 1.0
- * @since 1.0 <biko> function added
+ * @since 1.0 `[z]biko` function added
  *
  * @param string $str
  * @return string
@@ -113,8 +113,8 @@ function html_syntax_check ($str) {
  *
  * @author [z]biko
  * @version 1.1
- * @since 1.0 <biko> function added
- * @since 1.1 <inex> SQL-query functions updated, fixed undefined constants
+ * @since 1.0 `[z]biko` function added
+ * @since 1.1 `IneX` SQL-query functions updated, fixed undefined constants
  *
  * @param int $id
  * @return void
@@ -133,8 +133,8 @@ function tpleditor_unlock ($id) {
  *
  * @author [z]biko
  * @version 1.1
- * @since 1.0 <biko> function added
- * @since 1.1 <inex> SQL-query functions updated, fixed undefined constants
+ * @since 1.0 `[z]biko` function added
+ * @since 1.1 `IneX` SQL-query functions updated, fixed undefined constants
  *
  * @param int $id
  * @param string $error

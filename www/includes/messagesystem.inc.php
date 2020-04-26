@@ -54,7 +54,8 @@ class Messagesystem {
 	 * @date 
 	 * @version 2.0
 	 *
-	 * @see BARBARA_HARRIS, Messagesystem::sendMessage()
+	 * @uses BARBARA_HARRIS
+	 * @uses Messagesystem::sendMessage()
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -202,7 +203,7 @@ class Messagesystem {
 	 *
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function deleteMessage($messageid, $deleter_userid)
 	{
@@ -229,7 +230,7 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $messageid ID der ausgewählten Nachricht(en)
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	function doMessagesUnread($messageid, $userid)
 	{
@@ -249,8 +250,8 @@ class Messagesystem {
 	 *
 	 * @author IneX
 	 * @date 24.06.2018
-	 * @version 1.0 initial method release
-	 * @since 1.0 
+	 * @version 1.0
+	 * @since 1.0 initial method release
 	 *
 	 * @param integer $messageid ID der ausgewählten Nachricht
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -287,7 +288,7 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $userid User-ID welcher alle Nachricht(en) als gelesen markieren möchte
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 */
 	static function doMarkAllAsRead($userid)
 	{
@@ -313,7 +314,7 @@ class Messagesystem {
 	 * @version 2.0
 	 * @since 1.0 initial method release
 	 * @since 2.0 frontend is now a template - as it should be
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @param integer $id ID der ausgewählten Nachricht
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string HTML des Message-Delete Form
@@ -346,7 +347,7 @@ class Messagesystem {
 	 * @param string $subject Titel der Nachricht
 	 * @param string $text Nachrichten-Text
 	 * @param integer $delete_message_id Löschstatus der Nachricht (Default: ungelöscht)
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string HTML des Send-Message Form
 	 */
@@ -371,7 +372,8 @@ class Messagesystem {
 	 *
 	 * Baut das HTML um die Nachrichten-Verwaltung anzuzeigen
 	 *
-	 * @author [z]milamber, IneX
+	 * @author [z]milamber
+	 * @author IneX
 	 * @date 24.06.2018
 	 * @version 2.0
 	 * @since 1.0 initial method release
@@ -382,8 +384,8 @@ class Messagesystem {
 	 * @param integer $page Aktuelle Seite mit Nachrichten (Default: 1)
 	 * @param integer $orderby Sortierung der Nachrichten (Default: date)
 	 * @param integer $sortby Sortierreihenfolge der Nachrichten (Default: DESC)
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string
 	 */
@@ -447,8 +449,8 @@ class Messagesystem {
 	 * @date 
 	 * @version 1.0
 	 *
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
 	static function getNumNewMessages()
@@ -478,7 +480,7 @@ class Messagesystem {
 	 *
 	 * @see Messagesystem::getInboxHTML()
 	 * @param integer $userid User-ID welcher alle Nachricht(en) als gelesen markieren möchte
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return array|boolean Returns an array with the number of messages for inbox & outbox - or false, if an error occurred
 	 */
 	static function getNumUserMessages($userid)
@@ -512,7 +514,8 @@ class Messagesystem {
 	 *
 	 * Zeigt eine Message an
 	 *
-	 * @author [z]milamber, IneX
+	 * @author [z]milamber
+	 * @author IneX
 	 * @date 24.06.2018
 	 * @version 2.0
 	 * @since 1.0 initial method release
@@ -522,7 +525,7 @@ class Messagesystem {
 	 * @see Messagesystem::doMarkMessageAsRead()
 	 * @param int $id ID der Nachricht
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
 	 */
 	static function getMessage($id)
@@ -593,8 +596,8 @@ class Messagesystem {
 	 * @version 1.0
 	 *
 	 * @param integer $id ID der aktuell angezeigten Nachricht
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
 	static function getNextMessageid($id)
@@ -626,15 +629,16 @@ class Messagesystem {
 	 *
 	 * Holt die ID der jeweils jüngeren Nachricht gegenüber der aktuell geöffneten
 	 *
-	 * @author [z]milamber, IneX
+	 * @author [z]milamber
+	 * @author IneX
 	 * @date 24.06.2018
 	 * @version 2.0
 	 * @since 1.0 initial method release
 	 * @since 2.0 prev was always getting newewst message - fixed it
 	 *
 	 * @param integer $id ID der aktuell angezeigten Nachricht
-	 * @global $db Globales Class-Object mit allen MySQL-Methoden
-	 * @global $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return integer
 	 */
 	static function getPrevMessageid($id)
@@ -668,9 +672,9 @@ class Messagesystem {
 	 * @since 1.0 method added
 	 * @since 2.0 verschickt eine Notification über die neue Nachricht per E-Mail
 	 * @since 3.0 verschickt eine Notification per Telegram Messenger
-	 * @since 3.1 17.03.2018 changed to new Telegram Send-Method
-	 * @since 3.2 15.10.2018 added array-implode for passed $to_users parameter
-	 * @since 4.0 21.10.2018 connected to new Notification() Class
+	 * @since 3.1 `17.03.2018` changed to new Telegram Send-Method
+	 * @since 3.2 `15.10.2018` added array-implode for passed $to_users parameter
+	 * @since 4.0 `21.10.2018` connected to new Notification() Class
 	 *
 	 * @see Notification::send()
 	 * @param integer	$from_user_id User-ID des Senders
@@ -679,8 +683,8 @@ class Messagesystem {
 	 * @param string	$text (Optional) Nachrichten-Text
 	 * @param string	$to_users (Optional) Liste aller Empfänger der Nachricht
 	 * @param string	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
-	 * @global object	$db Globales Class-Object mit allen MySQL-Methoden
-	 * @global object	$user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return boolean	Returns true or false, depening on the susccessful execution
 	 */
 	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')

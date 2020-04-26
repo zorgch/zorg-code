@@ -1,9 +1,9 @@
 <?php
 /**
  * Anficker
- * 
+ *
  * Gibt Spresim erst die Macht die er braucht, um so richtig anzuficken
- * 
+ *
  * @author ?
  * @package zorg\Games\Anficker
  */
@@ -28,7 +28,7 @@ define('ANFICKER_USER_ID', 9999);
  *
  * @author ?
  * @version 2.1
- * @since 2.1 <inex> 16.04.2020 fixed notice Non-static method Anficker::...() should not be called statically
+ * @since 2.1 `16.04.2020` `IneX` fixed notice Non-static method Anficker::...() should not be called statically
  *
  * @package zorg\Games\Anficker
  */
@@ -37,11 +37,12 @@ class Anficker
 	/**
 	 * Anfick des User hinzufügen
 	 *
-	 * @author ?, IneX
+	 * @author ?
+	 * @author IneX
 	 * @version 2.1
 	 * @since 1.0 function added
-	 * @since 2.0 <inex> code enhancements
-	 * @since 2.1 <inex> 16.04.2020 migrated mysql-functions to mysqli
+	 * @since 2.0 `IneX` code enhancements
+	 * @since 2.1 `16.04.2020` `IneX` migrated mysql-functions to mysqli
 	 *
 	 * @see Anficker::logAnfick(), Anficker::getId()
 	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
@@ -99,7 +100,8 @@ class Anficker
 	/**
 	 * Anfick im Anfick-Log ergänzen
 	 * 
-	 * @author ?, IneX
+	 * @author ?
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0
 	 * @see Anficker::addAnfick()
@@ -158,7 +160,8 @@ class Anficker
 	/**
 	 * Anfick-Log ausgeben
 	 * 
-	 * @author ?, IneX
+	 * @author ?
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0
 	 * @see Anficker::logAnfick(), Anficker::anfickenMit()
@@ -205,7 +208,7 @@ class Anficker
 	 * @author ?
 	 * @version 1.1
 	 * @since 1.0 function added
-	 * @since 1.1 <inex> 16.04.2020 changed function @param $user_id to be optional, fixed "Too few arguments to function Anficker::getNumAnficks(), 0 passed"
+	 * @since 1.1 `16.04.2020` `IneX` changed function @param $user_id to be optional, fixed "Too few arguments to function Anficker::getNumAnficks(), 0 passed"
 	 *
 	 * @param integer $user_id (Optional) ID des Users, welcher gerade mit Spresim batteld
 	 * @return array Gibt ein Array mit der Anzahl Anficks (für Funktion anfickenMit()), durchschnittlicher Noten und Anzahl Votes (für /packages/anficks.php) zurück
@@ -221,16 +224,17 @@ class Anficker
 
 	/**
 	 * Anfick ins Log schreiben und selbiges Ausgeben
-	 * 
-	 * @author ?, IneX
+	 *
+	 * @deprecated
+	 *
+	 * @author ?
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0
 	 * @see Anficker::anfickenMit()
 	 *
 	 * @param integer $user_id ID des Users, welcher gerade mit Spresim batteld
 	 * @return array Gibt ganzes Log der Anfickerei für Ausgabe zurück
-	 *
-	 * @DEPRECATED
 	 */
 	static function addRandomAnfick2Log($user_id) {
 		/*global $db;
@@ -263,8 +267,8 @@ class Anficker
 	 *
 	 * @author IneX
 	 * @version 1.1
-	 * @since 1.0 <inex> 08.06.2009 function added
-	 * @since 1.1 <inex> 16.04.2020 code optimizations, migrated mysql-functions to mysqli
+	 * @since 1.0 `08.06.2009` `IneX` function added
+	 * @since 1.1 `16.04.2020` `IneX` code optimizations, migrated mysql-functions to mysqli
 	 *
 	 * @see Anficker::getNumAnficks()
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -292,7 +296,8 @@ class Anficker
 	/**
 	 * Anfick-Spruch benoten
 	 * 
-	 * @author ?, IneX
+	 * @author ?
+	 * @author IneX
 	 * @version 1.1
 	 * @since 1.0
 	 *

@@ -35,9 +35,9 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 
 	if (!smarty_brackets_ok($frm['tpl'], $brack_err)) $error .= $brack_err;
 
-	// FIXME <biko> deaktiviert bis ein besserer syntax checker gebaut ist. 
+	/** @FIXME deaktiviert bis ein besserer syntax checker gebaut ist. (biko)
 	/* 
-	$syntaxerr = html_syntax_check($frm['tpl']);
+	$syntaxerr = smarty_remove_invalid_html($frm['tpl']);
 	if ($syntaxerr) $error .= "<br />HTML Syntax Error: $syntaxerr <br />";
 	*/
 
@@ -160,8 +160,8 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	 * @author [z]biko
 	 * @author IneX
 	 * @version 2.0
-	 * @since 1.0 <biko> procedure added intially
-	 * @since 2.0 <inex> 03.01.2019 Fixed Bug #768: must also recompile template based on /page/word (not only /tpl/id )
+	 * @since 1.0 `[z]biko` procedure added intially
+	 * @since 2.0 `03.01.2019` `IneX` Fixed Bug #768: must also recompile template based on /page/word (not only /tpl/id )
 	 */
 	if (!$error)
 	{
@@ -223,7 +223,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		$frm['tpl'] = stripslashes(stripslashes($frm['tpl']));
 		$frm['title'] = stripslashes(stripslashes($frm['title']));
 		$frm['packages'] = stripslashes(stripslashes($frm['packages']));
-		/** @FIXME <biko> aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. */
+		/** @FIXME aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. ([z]biko) */
 
 		/** Pass $error to error-log */
 		error_log($error);

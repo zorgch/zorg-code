@@ -1,4 +1,5 @@
-<?php /** @DEPRECATED
+<?php
+/** @deprecated
 require_once dirname(__FILE__) .'/includes/main.inc.php';
 
 //echo head(27);

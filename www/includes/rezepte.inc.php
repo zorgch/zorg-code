@@ -1,8 +1,10 @@
 <?php
 /**
  * zorg Rezepte Datenbank
+ *
  * @package zorg\Rezepte
  */
+
 /**
  * File includes
  * @include config.inc.php
@@ -15,6 +17,7 @@ require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * zorg Rezepte Datenbank Klasse
+ *
  * @package zorg\Rezepte
  */
 class Rezepte

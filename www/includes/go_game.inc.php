@@ -1,7 +1,7 @@
 <?php
 /**
  * GO Funktionen
- * 
+ *
  * ...
  * ...
  * @TODO Das alles müsste in eine PHP Klasse "class Go { ... }"
@@ -111,8 +111,8 @@ function go_open_games ()
  * @since 1.0
  * 
  * @param integer $gid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function go_close_game ($gid)
 {
@@ -136,8 +136,8 @@ function go_close_game ($gid)
  * @since 1.0
  * 
  * @param integer $gid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function go_decline_game ($gid) {
 	global $db, $user;
@@ -160,8 +160,8 @@ function go_decline_game ($gid) {
  * @since 1.0
  * 
  * @param integer $gid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function go_accept_game ($gid) {
 	global $db, $user;
@@ -185,8 +185,8 @@ function go_accept_game ($gid) {
  * 
  * @param integer $opponent ID des Gegners
  * @param integer $size Board-Grösse
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  */
 function go_new_game ($opponent, $size, $handicap) {
@@ -379,8 +379,8 @@ function get_komi($size){
  * @param integer $x ...
  * @param integer $y ...
  * @param integer $gameid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  */
 function go_move($which, $gameid)
@@ -510,8 +510,8 @@ function go_move($which, $gameid)
  * @since 1.0
  * 
  * @param integer $gameid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @see LINKRADIUS, FIELDSIZE, LINEWIDTH
  * @return string HTML-Code...
  */
@@ -726,8 +726,8 @@ function field_equals($x, $y, $game, $items){
  * @since 1.0
  * 
  * @param integer $gameid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  * @return string ...
  */
@@ -753,7 +753,7 @@ function readGame($gameid){
  *
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 26.11.2018 updated to use new $notifcation Class
+ * @since 2.0 `26.11.2018` updated to use new $notifcation Class
  *
  * @param integer $game
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -785,7 +785,7 @@ function writeGame($game)
 			$notification_text = t('message-your-turn', 'go', [ SITE_URL, $game['id'] ]);
 			$notification_status = $notification->send($game['nextturn'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'go'), 'text'=>$notification_text, 'message'=>$notification_text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" for user=%d to user=%d', __FUNCTION__, __LINE__, ($notification_status===true?'true':'false'), $game['nextturn'], $user->id));
-			/** @DEPRECATED
+			/** @deprecated
 			Messagesystem::sendMessage(
 				 $user->id
 				,$game['nextturn']
@@ -807,8 +807,8 @@ function writeGame($game)
  * @since 1.0
  * 
  * @param integer $size Groesse des Feldes in "Kreuzungen"
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  * @return image ...
  */
@@ -834,8 +834,8 @@ function writeGame($game)
  * 
  * @param image $im Das zu bemalende Bild
  * @param integer $size Groesse des Feldes in "Kreuzungen"
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  * @return ...
  */
@@ -908,8 +908,8 @@ function draw_stardots(&$im, $size)
   * @param integer $x X-Koordinate auf dem Spielfeld
   * @param integer $y Y-Koordinate auf dem Spielfeld
   * @param integer $which Spieler 1 oder 2?
-  * @global array $db Globales Class-Object mit allen MySQL-Methoden
-  * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+  * @global object $db Globales Class-Object mit allen MySQL-Methoden
+  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
   * @exception user_error
   * @return ...
  */

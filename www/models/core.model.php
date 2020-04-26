@@ -3,7 +3,7 @@
  * MVC core model
  *
  * @author IneX
- * @package zorg
+ * @package zorg\MVC\Model
  */
 namespace MVC;
 
@@ -41,7 +41,8 @@ class Model
 
 	/**
 	 * Dynamic loader to get the right .model.php
-	 * @FIXME <inex> didn't get this working...
+	 *
+	 * @FIXME didn't get this working... (IneX)
 	 */
 	/*public function load()
 	{
@@ -67,7 +68,7 @@ class Model
 	 * Assign Model to $smarty Object
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */

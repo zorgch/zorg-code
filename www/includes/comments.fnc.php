@@ -1,5 +1,9 @@
 <?php
 /**
+ * Comment Template-Resouce options
+ */
+
+/**
  * File includes
  * @include smarty.inc.php required
  * @include forum.inc.php required
@@ -24,7 +28,10 @@ $smarty->register_function("comment_mark_read", "smarty_comment_mark_read");
 
 /**
  * Thread-Comment Color-Fade an $smarty übergeben
- * @see Forum::colorfade(), $color
+ *
+ * @uses Forum::colorfade()
+ * @var $color
+ * @var $smarty
  */
 function smarty_comment_colorfade ($params) {
 	return Forum::colorfade($params['depth'], $params['color']);

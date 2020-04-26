@@ -1,7 +1,7 @@
 <?php
 /**
  * Gallery-Pic holen
- * 
+ *
  * This script reads a gallery-pic (they aren't in a public directory).
  * It uses the standard session of the User.
  *
@@ -11,7 +11,7 @@
  * @version 3.0
  * @since 1.0 file & functions added initially
  * @since 2.0 added check for valid GET-Parameters, refactored Caching & HTTP-Headers, added Movie-File output variations
- * @since 3.0 <inex> 14.11.2019 GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
+ * @since 3.0 `14.11.2019` `IneX` GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
  *
  * @param integer $_GET['id'] Passed integer > 0 of an existing Gallery Pic ID
  * @return resource Media resource with correct MIME-Type and HTTP Headers

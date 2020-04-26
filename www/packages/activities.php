@@ -1,7 +1,7 @@
 <?php
 /**
  * Activities Packages
- * 
+ *
  * Holt und übergibt Activities an Smarty
  *
  * @author		IneX
@@ -9,12 +9,10 @@
  * @version		1.0
  * @package		zorg\Activities
  *
- *
  * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
  * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
  * @global	array	$smarty	Globales Class-Object mit allen Smarty-Methoden
  */
-
 /**
  * File Includes
  * @include activities.inc.php

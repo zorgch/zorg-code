@@ -1,5 +1,11 @@
 <?php
 /**
+ * Mobilezorg V2 - Retrieve recent Chat Messages
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
+
+/**
  * FILE INCLUDES
  */
 require_once dirname(__FILE__).'/config.php';

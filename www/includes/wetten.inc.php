@@ -431,8 +431,8 @@ class wetten {
 	 * Formular um neue Wette einzutragen
 	 *
 	 * @version 1.1
-	 * @since 1.0 <cylander> method added
-	 * @since 1.1 <inex> 09.09.2019 changed echo to return() to assign output to Smarty
+	 * @since 1.0 `[z]cylander` method added
+	 * @since 1.1 `09.09.2019` `IneX` changed echo to return() to assign output to Smarty
 	 */
 	function newform()
 	{
@@ -471,8 +471,8 @@ class wetten {
 	 * Wette laden und anzeigen
 	 *
 	 * @version 1.1
-	 * @since 1.0 <cylander> method added
-	 * @since 1.1 <inex> 30.12.2019 minor optimizations in error output & HTML
+	 * @since 1.0 `[z]cylander` method added
+	 * @since 1.1 `30.12.2019` `IneX` minor optimizations in error output & HTML
 	 *
 	 * @param integer $id ID der anzuzeigenden Wette
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -648,7 +648,7 @@ class wetten {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 03.09.2019 method added
+	 * @since 1.0 `03.09.2019` `IneX` method added
 	 *
 	 * @param int $wette_id ID der Wette
 	 * @return string Titel der Wette gemäss $wette_id
@@ -669,7 +669,7 @@ class wetten {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 03.09.2019 method added
+	 * @since 1.0 `03.09.2019` `IneX` method added
 	 *
 	 * @param int $wette_id ID der Wette
 	 * @return int User-ID des Users der die Wette $wette_id gestartet hat
@@ -690,7 +690,7 @@ class wetten {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 03.09.2019 method added
+	 * @since 1.0 `03.09.2019` `IneX` method added
 	 *
 	 * @param int $wette_id ID der Wette
 	 * @return string Text der Wette gemäss $wette_id

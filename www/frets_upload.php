@@ -1,8 +1,10 @@
 <?php
 /**
  * Frets on zorg
+ *
  * @package zorg\Games\Frets on zorg
  */
+
 /**
  * File includes
  */

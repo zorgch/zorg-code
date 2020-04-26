@@ -1,15 +1,16 @@
 <?php
 /**
  * Hunting z force DWZ update
+ *
  * DWZ Punkte aller Spieler über alle Hz Games force-updaten
  *
  * @author [z]biko
  * @version 1.1
- * @since 1.0 <biko> File added
- * @since 1.1 <inex> 11.09.2019 code updates
+ * @since 1.0 `[z]biko` File added
+ * @since 1.1 `11.09.2019` `IneX` code updates
  *
  * @package zorg\Games\HuntingZ
- * @see _update_hz_dwz()
+ * @uses _update_hz_dwz()
  */
 /**
  * File includes

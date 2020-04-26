@@ -1,7 +1,8 @@
 <?php
 /**
  * smarty_menu_old
- * @DEPRECATED
+ *
+ * @deprecated
  * @package zorg\Smarty
  */
 require_once dirname(__FILE__).'/smarty.inc.php';
@@ -148,8 +149,11 @@ function smarty_mtab ($params, $content, &$smarty, &$repeat) {
 
 
 /**
+ * Smart Menu builden
+ *
+ * @deprecated
  * @author [z]biko
- * @global int $active_tab		aktiver Menu-Tab
+ * @var int $active_tab		aktiver Menu-Tab
  */
 function smarty_menu_old ($params, $content, &$smarty, &$repeat) {
 	global $active_tab, $menu_stack, $menu_tabs;

@@ -1,6 +1,7 @@
 <?php
 /**
  * Frets on Zorg
+ *
  * "Frets on Fire" Hi-scores für zorg.
  * coded by [z]keep3r
  *

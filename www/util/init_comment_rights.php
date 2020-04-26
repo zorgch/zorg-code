@@ -1,6 +1,7 @@
 <?php
 /**
- * Fix Comment Threads Rights
+ * Fix Comment Threads Rights.
+ *
  * @package zorg\Forum\Utils
  */
 require_once dirname(__FILE__).'/../includes/config.inc.php';

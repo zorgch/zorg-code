@@ -8,8 +8,8 @@
  * - events
  * - events_to_user
  *
- * @version		1.0
- * @package		zorg\Events
+ * @version 1.0
+ * @package zorg\Events
  */
 /**
  * File includes
@@ -30,9 +30,10 @@ include_once INCLUDES_DIR.'googleapis.inc.php';
  *
  * In dieser Klasse befinden sich alle Funktionen für die Events
  *
- * @author		[z]milamber, IneX
- * @version		1.0
- * @package		zorg\Events
+ * @author [z]milamber
+ * @author IneX
+ * @version 1.0
+ * @package	zorg\Events
  */
 class Events
 {	
@@ -113,7 +114,7 @@ class Events
 	 *
 	 * @version 1.1
 	 * @since 1.0 Method added
-	 * @since 1.1 <inex> 17.04.2020 SQL Slow-Query optimization
+	 * @since 1.1 `17.04.2020` `IneX` SQL Slow-Query optimization
 	 *
 	 * @see /includes/smarty.fnc.php
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -318,8 +319,8 @@ class UpcomingEvent
 	/**
 	 * Telegram Notification for an upcoming Event
 	 *
-	 * @see Telegram::send::event()
-	 * @see UpcomingEvent::getUpcomingEvent()
+	 * @uses Telegram::send::event()
+	 * @uses UpcomingEvent::getUpcomingEvent()
 	 * @param integer $starts_in_hours Integer value representing N hours to check for when any event might start. Default: 4 (hours)
 	 * @global object $telegram Globales Class-Object mit den Telegram-Methoden
 	 * @return boolean Returns true or false, depending on successful result

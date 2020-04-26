@@ -1,6 +1,7 @@
 <?php
 /**
  * MySQL-Authentifizierung laden
+ *
  * Wenn lokal entwickelt wird, muss manuell eine Kopie
  * der DB-Info-Datei mit folgendem Namen angelegt werden:
  *	  mysql_login.inc.local.php
@@ -33,7 +34,7 @@ class dbconn
 	 * dbconn constructor.
 	 *
 	 * @version 1.0
-	 * @since 1.0 <kassiopaia> 03.11.2019 method added
+	 * @since 1.0 `03.11.2019` `kassiopaia` method added
 	 *
 	 * @param $database
 	 * @throws Exception
@@ -57,7 +58,7 @@ class dbconn
 	 * MySQL DB Verbindungsaufbau
 	 *
 	 * @version 3.0
-	 * @since 3.0 <inex> 10.11.2017 method code optimized
+	 * @since 3.0 `10.11.2017` `IneX` method code optimized
 	 *
 	 * @TODO kassiopaia: mysql_select_charset() & $this->conn() müssen noch => php7.x ready gemacht werden?
 	 *
@@ -87,8 +88,8 @@ class dbconn
 	 *
 	 * @version 2.1
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 06.11.2018 added mysql_affected_rows()-result for UPDATE-queries
-	 * @since 2.1 <inex> 07.08.2019 changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
+	 * @since 2.0 `06.11.2018` `IneX` added mysql_affected_rows()-result for UPDATE-queries
+	 * @since 2.1 `07.08.2019` `IneX` changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
 	 *
 	 * @param $sql string SQL
 	 * @param $file string Filename
@@ -206,7 +207,7 @@ class dbconn
 	}
 
 	/**
-	 * gibt die letzte Autoincrement ID zurück
+	 * gibt die letzte Autoincrement ID zurück.
 	 * @return int
 	 */
 	function lastid() {
@@ -214,7 +215,7 @@ class dbconn
 	}
 
 	/**
-	 * Gibt die Anzahl betroffener Datensätze zurück
+	 * Gibt die Anzahl betroffener Datensätze zurück.
 	 * @return int numrows
 	 * @param $result object SQL-Resultat
 	 */
@@ -223,7 +224,7 @@ class dbconn
 	}
 
 	/**
-	 * Setzt den Zeiger auf einen Datensatz
+	 * Setzt den Zeiger auf einen Datensatz.
 	 * @return object
 	 * @param $result object SQL-Resultat
 	 * @param $rownum int Rownumber
@@ -233,7 +234,7 @@ class dbconn
 	}
 
 	/**
-	 * Gibt die Anzahl betroffener Felder zurück
+	 * Gibt die Anzahl betroffener Felder zurück.
 	 * @return int
 	 * @param $result object SQL-Resultat
 	 */
@@ -242,7 +243,7 @@ class dbconn
 	}
 
 	/**
-	 * Gibt s?mtliche Tabellennamen einer DB als Array zurück
+	 * Gibt sämtliche Tabellennamen einer DB als Array zurück.
 	 * @return array
 	 */
 	function tables() {
@@ -264,8 +265,8 @@ class dbconn
 	 * @author [z]biko
 	 * @version 2.5
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 26.05.2019 improved code, additional parameter and logging
-	 * @since 2.5 <inex> 27.09.2019 added fix for "NOW()" instead of NOW()
+	 * @since 2.0 `26.05.2019` `IneX` improved code, additional parameter and logging
+	 * @since 2.5 `27.09.2019` `IneX` added fix for "NOW()" instead of NOW()
 	 *
 	 * @param string $table Tabelle, in die eingefügt werden soll
 	 * @param array $values Array mit Table-Feldern (als Key) und den Werten
@@ -299,9 +300,9 @@ class dbconn
 	 * @author [z]biko
 	 * @version 3.0
 	 * @since 1.0 method added
-	 * @since 1.1 10.11.2017 added 3rd optional parameter $funktion for better logging
-	 * @since 2.0 20.08.2018 added return as mysql_affected_rows()
-	 * @since 3.0 05.11.2018 fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
+	 * @since 1.1 `10.11.2017` added 3rd optional parameter $funktion for better logging
+	 * @since 2.0 `20.08.2018` added return as mysql_affected_rows()
+	 * @since 3.0 `05.11.2018` fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
 	 *
 	 * @FIXME nicht PHP7.x-kompatibel
 	 * @FIXME array($id) soll nicht key,value-Pairs parsen, sondern direkt der Vergleich (z.B. "id>2"), aktuell kann nur auf 1 name & mehrere exakte values geprüft werden: "a=b OR a=c"

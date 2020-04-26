@@ -7,6 +7,7 @@
  */
 /**
  * File Includes
+ * @include zorg Master Include File
  */
 require_once dirname(__FILE__).'/includes/main.inc.php';
 
@@ -130,7 +131,9 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
 
 /**
  * Regular Page
- * @see SMARTY_DEFAULT_TPL, SMARTY_404PAGE_TPL
+ *
+ * @uses SMARTY_DEFAULT_TPL
+ * @uses SMARTY_404PAGE_TPL
  */
 } else {
 	/** Fallback for missing Template-ID */

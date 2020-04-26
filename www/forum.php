@@ -1,7 +1,7 @@
 <?php
 /**
  * Forum
- * 
+ *
  * Das Forum Modul enthält 3 Klassen für alle Features:
  * - Forum
  * - Thread
@@ -13,7 +13,6 @@
  *
  * @package zorg\Forum
  */
-
 /**
  * File includes
  * @include main.inc.php required

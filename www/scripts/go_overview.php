@@ -1,16 +1,16 @@
 <?php
 /**
  * GO Overview
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  */
 /**
  * File Includes

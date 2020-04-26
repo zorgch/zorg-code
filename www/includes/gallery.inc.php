@@ -1,7 +1,7 @@
 <?php
 /**
  * Gallery Funktionen
- * 
+ *
  * Beinhaltet alle Funktionen der Gallery.
  *
  * @author [z]biko
@@ -9,7 +9,7 @@
  * @version 3.0
  * @since 1.0 File & functions added
  * @since 2.0 Added code documentations, polished & optimized various functions
- * @since 3.0 09.08.2018 Refactored picPath() & createPic(), added APOD specific specials
+ * @since 3.0 `09.08.2018` `IneX` Refactored picPath() & createPic(), added APOD specific specials
  *
  * @TODO MyPic-Markierung von Bildern
  * @TODO Wasserzeichen(?)
@@ -41,8 +41,8 @@ define('ZENSUR', ( $user->typ >= USER_MEMBER ? '' : 'AND p.zensur="0"' ));
 
 /**
  * Globals
- * @global array $MAX_PIC_SIZE	The maximum width & height for pictures
- * @global array $THUMBPAGE		The image size for Thumbnail pictures
+ * @var array $MAX_PIC_SIZE	The maximum width & height for pictures
+ * @var array $THUMBPAGE		The image size for Thumbnail pictures
  */
 $MAX_PIC_SIZE = array('picWidth'=>800, 'picHeight'=>800, 'tnWidth'=>150, 'tnHeight'=>150);
 $THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
@@ -51,20 +51,20 @@ $THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
 // ********************************** LAYOUT FUNCTIONS ***************************************************************************
 /**
  * Gallery Hauptseite anzeigen
- * 
+ *
  * Zeigt die Gallery-Übersicht mit allen Alben
- * 
+ *
  * @author [z]biko
  * @version 1.0
  * @since 1.0 function added
  *
- * @see ZENSUR
+ * @uses ZENSUR
  * @param string $state Aktueller Status des Albums, z.B. wenn es gerade bearbeitet wird
  * @param string $error (Fehler-)Meldung, welche auf der Gallery-Seite angezeigt werden soll
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
- * @global string $MAX_PIC_SIZE String der Variable MAX_PIC_SIZE
- * @global string $THUMBPAGE String der Variable THUMBPAGE
+ * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
  * @return string HTML-Code der Gallery-Seite
  */
 function galleryOverview ($state="", $error="") {
@@ -169,7 +169,9 @@ function galleryOverview ($state="", $error="") {
  * @since 1.0 function added
  * @since 1.5 moved pagination to new Sidebar, output it via $smarty
  *
- * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
+ * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
+ * @uses ZENSUR
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
  */
@@ -260,13 +262,15 @@ function albumThumbs ($id, $page=0) {
  * @author IneX
  * @date 21.10.2013
  * @version 2.1
- * @since 1.0 <biko> 21.10.2013 function added
- * @since 2.0 <inex> APOD Special: statt Pic ein Video embedden
- * @since 2.1 <inex> 01.10.2019 responsive scaling <img> and <iframe> tags
+ * @since 1.0 `21.10.2013` `[z]biko` function added
+ * @since 2.0 `IneX` APOD Special: statt Pic ein Video embedden
+ * @since 2.1 `01.10.2019` `IneX` responsive scaling `img` and <iframe> tags
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
- * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
+ * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
+ * @uses ZENSUR
  */
 function pic ($id) {
 	global $user, $db, $THUMBPAGE;
@@ -939,8 +943,8 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
  * @author IneX
  * @date 19.08.2008
  * @version 1.1
- * @since 1.0 <keep3r> 19.08.2008 function added
- * @since 1.1 <inex> 20.08.2018 minor SQL-Query improvements
+ * @since 1.0 `19.08.2008` `keep3r` function added
+ * @since 1.1 `20.08.2018` `IneX` minor SQL-Query improvements
  *
  * @param integer $picID ID des betroffenen Bildes
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1009,8 +1013,8 @@ function getUsersOnPic($pic_id) {
  * @author IneX
  * @date 18.10.2013
  * @version 1.1
- * @since 1.0 <inex> 18.10.2013 function added
- * @since 1.1 <inex> 15.09.2019 HTML-output & general code optimized
+ * @since 1.0 `18.10.2013` `IneX` function added
+ * @since 1.1 `15.09.2019` `IneX` HTML-output & general code optimized
  *
  * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
  * @param integer $limit Maximale Anzahl von Bildern
@@ -1080,7 +1084,7 @@ function getUserPics($userid, $limit=1)
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 <inex> function added
+ * @since 1.0 `IneX` function added
  *
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $score Bewertung (1-5) welche der User dem Bild gegeben hat
@@ -1279,7 +1283,8 @@ function doRotatePic($picID, $direction) {
 // ************************************ FUNCTIONS *********************************************************************************
 
 /**
- * @author [z]deep, IneX
+ * @author [z]deep
+ * @author IneX
  * @version 2.0
  * @since 1.0 function added
  * @since 2.0 added support for PNG image file types
@@ -1294,7 +1299,7 @@ function isPic($file) {
 }
 
 /**
- * @DEPRECATED Use pathinfo($file, PATHINFO_EXTENSION);
+ * @deprecated Use pathinfo($file, PATHINFO_EXTENSION);
  */
 function extension($file) {
 	$found = 0;
@@ -1330,9 +1335,10 @@ function picPath($albID, $id, $extension) {
 
 /**
  * Get Pic-Thumbnail Path
+ *
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 15.09.2018 addedd switch-case for handling non-image entries from gallery_pics
+ * @since 2.0 `15.09.2018` addedd switch-case for handling non-image entries from gallery_pics
  */
 function tnPath($albID, $id, $extension) {
 	switch ($extension)
@@ -1355,7 +1361,7 @@ function imgsrcThum($id) {
 }
 
 /**
- * @DEPRECATED
+ * @deprecated replace all references to this function with new picHasTitle()
  * @see picHasTitle()
  * @todo replace all references to this function with new picHasTitle()
  */
@@ -1593,10 +1599,10 @@ function getRandomThumb() {
  * @author IneX
  * @version 3.0
  * @since 1.0
- * @since 2.0 19.03.2018 added Telegram Notification (photo message)
+ * @since 2.0 `19.03.2018` `IneX` added Telegram Notification (photo message)
  * @since 2.1 Telegram will send now high-res photo, instead of low-res thumbnail
  * @since 2.2 changed to new Telegram Send-Method
- * @since 3.0 <inex> 18.08.2018 function now only returns Daily Pic, generating a new Daily Pic is now done in setNewDailyPic()
+ * @since 3.0 `18.08.2018` `IneX` function now only returns Daily Pic, generating a new Daily Pic is now done in setNewDailyPic()
  *
  * @see formatGalleryThumb()
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1635,17 +1641,18 @@ function getDailyThumb()
  * @author IneX
  * @date 18.08.2018
  * @version 1.7
- * @since 1.0 18.08.2018 function added
- * @since 1.1 20.08.2018 minor code updates after extracting function from getDailyThumb()
- * @since 1.5 10.09.2018 excluded APOD Gallery-Pics from being assigned as Daily Pic
- * @since 1.6 04.12.2018 Bug #xxx: added Gallery-Name to Telegram-Notification for Daily Pic
- * @since 1.7 14.11.2019 Added "&token="-Param for Telegram-Bot API on $telegram->send->photo()
+ * @since 1.0 `18.08.2018` function added
+ * @since 1.1 `20.08.2018` minor code updates after extracting function from getDailyThumb()
+ * @since 1.5 `10.09.2018` excluded APOD Gallery-Pics from being assigned as Daily Pic
+ * @since 1.6 `04.12.2018` Bug #xxx: added Gallery-Name to Telegram-Notification for Daily Pic
+ * @since 1.7 `14.11.2019` Added "&token="-Param for Telegram-Bot API on $telegram->send->photo()
  *
- * @see SITE_URL
- * @see imgsrcPic(), picHasTitle()
- * @see Telegram::send::photo()
- * @global object $db		MySQL-Datenbank Objekt aus mysql.inc.php
- * @global object $telegram	Globales Class-Object mit den Telegram-Methoden
+ * @uses SITE_URL
+ * @uses imgsrcPic()
+ * @uses picHasTitle()
+ * @uses Telegram::send::photo()
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $telegram Globales Class-Object mit den Telegram-Methoden
  * @return boolean Returns true or false, depending if new Daily Pic was set or not
  */
 function setNewDailyPic()
@@ -1707,8 +1714,8 @@ function setNewDailyPic()
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 23.06.2007 function added as part of Bug #609
- * @since 2.0 02.01.2019 fixed Bug #770: "'Bestes Pic' soll nur Pics berücksichtigen mit >1 Votes"
+ * @since 1.0 `23.06.2007` function added as part of Bug #609
+ * @since 2.0 `02.01.2019` fixed Bug #770: "'Bestes Pic' soll nur Pics berücksichtigen mit >1 Votes"
  *
  * @see imgsrcThum(), imgName(), getNumVotes()
  * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
@@ -1852,12 +1859,14 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 /**
  * Format Gallery-Pic Thumbnail (HTML Output)
  * 
- * @author [z]biko, IneX
+ * @author [z]biko
+ * @author IneX
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 09.09.2018 Resolved Bug #759: added Pic-Title to HTML-Output & refactored function a bit
+ * @since 2.0 `09.09.2018` Resolved Bug #759: added Pic-Title to HTML-Output & refactored function a bit
  *
- * @see text_width(), remove_html()
+ * @uses text_width()
+ * @uses remove_html()
  * @see Thread::getNumPosts()
  * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
  * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
@@ -1983,7 +1992,7 @@ function doImageFlip($imgsrc, $imgout, $type)
  * @author IneX
  * @date 11.09.2018
  * @version 1.0
- * @since 1.0 11.09.2018 function added
+ * @since 1.0 `11.09.2018` function added
  *
  * @param integer $id ID des Pics für welches das Album geholt werden soll
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -2012,7 +2021,7 @@ function pic2album($id)
  * @author IneX
  * @date 14.09.2018
  * @version 1.0
- * @since 1.0 14.09.2018 function added
+ * @since 1.0 `14.09.2018` function added
  *
  * @TODO If required (later), use $format Parameter to dynamically grab URLs from API response, instead of hard-coded $thumbnailUrl Path
  *

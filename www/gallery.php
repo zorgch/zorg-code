@@ -1,7 +1,7 @@
 <?php
 /**
  * Picture Gallery
- * 
+ *
  * Die Bilder der Gallery liegen in ../data/gallery/ und in der Datenbank
  * Folgende Tables gehören zur Gallery:
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
@@ -11,10 +11,10 @@
  * @package zorg\Gallery
  * @date 01.01.2002
  * @version 2.0
- * @since 1.0 01.01.2002 file added
- * @since 1.5 04.11.2013 Gallery nur noch für eingeloggte User anzeigen
- * @since 1.6 <inex> 11.09.2018 APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
- * @since 2.0 <inex> 14.11.2019 GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
+ * @since 1.0 `01.01.2002` file added
+ * @since 1.5 `04.11.2013` Gallery nur noch für eingeloggte User anzeigen
+ * @since 1.6 `11.09.2018` `IneX` APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
+ * @since 2.0 `14.11.2019` `IneX` GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
  */
 
 /**

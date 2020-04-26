@@ -1,5 +1,11 @@
 <?php
 /**
+ * Mobilezorg V2 - Post Location Map to Chat
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
+
+/**
  * FILE INCLUDES
  */
 require_once dirname(__FILE__).'/config.php';

@@ -3,8 +3,8 @@
  * Chess game class
  * @package zorg\Games\Chess
  *
- * TODO: x open chess games (im header)
- * TODO: Game-Schluss-Meldungen (x hat gewonnen, x hat aufgegeben, remis, patt, matt)
+ * @TODO x open chess games im header anzeigen
+ * @TODO Game-Schluss-Meldungen wie "x hat gewonnen", "x hat aufgegeben", remis, patt, matt, usw.
  */
 
 /**

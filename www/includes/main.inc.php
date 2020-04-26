@@ -11,7 +11,8 @@ require_once dirname(__FILE__).'/config.inc.php';
 if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . '/?layout=rss');
 
 /**
- * @const @DEPRECATED BODYSETTINGS bodysettings wird verwendet, um den div nach den menüs wieder zu öffnen.
+ * @deprecated
+ * @const BODYSETTINGS (DEPRECATED) bodysettings wird verwendet, um den div nach den menüs wieder zu öffnen.
  */
 if (!defined('BODYSETTINGS')) define("BODYSETTINGS", 'align="center" valign="top" style="margin: 0px 40px;"');
 

@@ -1,5 +1,11 @@
 <?php
 /**
+ * Mobilezorg V2 Home
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
+
+/**
  * File includes
  */
 if (!require_once dirname(__FILE__).'/config.php') die('ERROR: Configurations could NOT be loaded!'); // Load the general configurations

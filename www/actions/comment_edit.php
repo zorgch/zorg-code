@@ -1,5 +1,11 @@
 <?php
 /**
+ * Edit Comment Post-Action
+ *
+ * @package zorg\Forum
+ */
+
+/**
  * File includes
  * @include main.inc.php DEPRECATED
  * @include forum.inc.php

@@ -1,8 +1,10 @@
 <?php
 /**
- * Forum Actions
+ * Forum Board Actions
+ *
  * @package zorg\Forum
  */
+
 /**
  * File includes
  */

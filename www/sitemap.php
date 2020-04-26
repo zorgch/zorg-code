@@ -8,7 +8,7 @@
  * @author IneX
  * @package zorg\Sitemap
  * @version 1.0
- * @since 1.0 <inex> 07.12.2019 File added
+ * @since 1.0 `07.12.2019` `IneX` File added
  *
  * @TODO add Smarty-Caching for better performance before re-calculating Sitemap.xml
  */

@@ -7,7 +7,9 @@ require_once dirname(__FILE__).'/../includes/config.inc.php';
 //date_default_timezone_set('Europe/Zurich');
 
 /**
- * Environment-specific configurations: can be set in the Apache config using
+ * Environment-specific configurations
+ *
+ * can be set in the Apache config using
  *    SetEnv environment 'development'
  *
  * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false

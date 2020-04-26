@@ -1,16 +1,17 @@
 <?php
 /**
  * GO Board
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
  * @package zorg\Games\Go
- * 
+ *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden

@@ -378,7 +378,7 @@
 			</div>
 		</div>
 	</div>
-	{* @DEPRECATED
+	{* @deprecated
 	<div class="row">
 		<div class="col-sm-3">
 			<h5>Menu Layout</h5>

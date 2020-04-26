@@ -26,7 +26,7 @@ class Books extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -37,7 +37,7 @@ class Books extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -51,7 +51,7 @@ class Books extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -65,7 +65,7 @@ class Books extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -79,7 +79,7 @@ class Books extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -93,7 +93,7 @@ class Books extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */

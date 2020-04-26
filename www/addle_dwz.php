@@ -5,11 +5,11 @@
  *
  * @author [z]biko
  * @version 1.0
- * @since 1.0 <biko> File added
- * @since 1.1 <inex> 11.09.2019 code updates
+ * @since 1.0 `[z]biko` File added
+ * @since 1.1 `11.09.2019` `IneX` code updates
  *
  * @package zorg\Games\Addle
- * @see _update_dwz()
+ * @uses _update_dwz()
  */
 /**
  * File Includes

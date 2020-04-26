@@ -1,6 +1,7 @@
 <?php
 /**
  * Pimp Names DB-Admin
+ *
  * coded by [z]keep3r
  *
  * @author [z]keep3r

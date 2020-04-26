@@ -19,7 +19,7 @@ if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> GO
 
 /**
  * Google Maps API Class
- * 
+ *
  * In dieser Klasse befinden sich Funktionen für die Kommunikation mit den Google Maps API
  * Folgende Maps API werden unterstützt:
  *     - /maps/api/geocode

@@ -56,7 +56,8 @@ if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'
 
 /**
  * Set a constant for the custom Error Log path
- * @see errlog.inc.php, zorgErrorHandler(), user_error(), trigger_error()
+ * @see zorgErrorHandler(), user_error(), trigger_error()
+ * @link https://github.com/zorgch/zorg-code/blob/master/www/includes/errlog.inc.php errlog.inc.php
  * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
  * @const ERRORLOG_DIR sets the directory for logging the custom user_errors
  * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to

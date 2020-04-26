@@ -10,7 +10,7 @@ $num_errors = $sql['num_errors'];
  *
  * @version 1.1
  * @since 1.0 function added
- * @since 1.1 <inex> 17.04.2020 SQL Slow-Query optimization
+ * @since 1.1 `17.04.2020` `IneX` SQL Slow-Query optimization
  */
 function get_sql_errors($num=23,$order=3,$oby=0) {
 	global $db, $num_errors;

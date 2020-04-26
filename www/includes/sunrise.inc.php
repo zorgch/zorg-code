@@ -11,22 +11,14 @@
  * and if you want to, let me know how you are using it.<br><br>
  * Made into a class by <bbolli@ewanet.ch>, 2003-12-14
  * 
- * @author Matt <mattf@mail.com>, Bolli <bbolli@ewanet.ch>
+ * @author Matt <mattf@mail.com>
+ * @author Bolli <bbolli@ewanet.ch>
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 08.05.2004
  * @link http://www.zend.com/codex.php?id=135&single=1
  * @package zorg\Layout
- *
- * @global array $user
- * @global integer $suncalc
- * @global integer $cur_time
- * @global string $sun
- * @global string $sunset
- * @global string $sunrise
- * @global string $country
- * @global string $country_code
- * @global integer $layouttype
  */
+
 /**
  * File Includes
  * @include config.inc.php -> notifications already included within config.inc.php
@@ -47,11 +39,21 @@ include_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Astro Sunrise Class
- * 
+ *
  * @author Bolli <bbolli@ewanet.ch>
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 14.12.2003
  * @package zorg\Layout
+ *
+ * @var array $user
+ * @var integer $suncalc
+ * @var integer $cur_time
+ * @var string $sun
+ * @var string $sunset
+ * @var string $sunrise
+ * @var string $country
+ * @var string $country_code
+ * @var integer $layouttype
  */
 class Astro_Sunrise
 {
@@ -60,6 +62,7 @@ class Astro_Sunrise
    * @var integer -90..+90; > 0 is north of the equator
    */
   var $lat = 47.0452;    // -90..+90; > 0 is north of the equator
+
   /**
    * coordinates to calculate sunrise/sunset for
    * @var integer -180..+180; > 0 is east of Greenwich
@@ -71,27 +74,31 @@ class Astro_Sunrise
    * @var integer 4 digits, please
    */
   var $year;        // 4 digits, please
+
   /**
    * date
    * @var integer
    */
   var $month;
+
   /**
    * date
    * @var integer day of the month
    */
   var $mday;        // day of the month
+
   /**
    * date
    * @var integer timezone offset in hours, > 0 is east of GMT, < 0 is west
    */
   var $tz;        // timezone offset in hours, > 0 is east of GMT, < 0 is west
+
   /**
    * date
    * @var integer day of the year
    */
   var $yday;        // day of the year
-  
+
   /**
    * Twilight values
    * @var array Array containing sunrise/sunset, civil twilight, nautical twilight, astronomical twilight
@@ -102,19 +109,21 @@ class Astro_Sunrise
     'nautical' => -.207912,    // nautical twilight
     'astronomical' => -.309017    // astronomical twilight
   );
-  
+ 
   /**
    * Twilight calculation
+   *
    * @var integer radius used for twilight calculation
    */
   var $R;        // radius used for twilight calculation
-  
+ 
   /**
    * time calculation
+   *
    * @var integer UNIX timestamp of last calculation
    */
   var $last_utc;    // UNIX timestamp of last calculation
-  
+ 
   /**
    * Astro Sunrise Twilight setzen
    */
@@ -124,9 +133,11 @@ class Astro_Sunrise
 
   /**
    * Set coordinates
+   *
    * @param integer $lat
    * @param integer $lon
-   * @see $lat, $lon
+   * @var int $lat Store current Latitude Value
+   * @var int $lon Store current Longitude Value
    */
   function setCoords($lat, $lon) {
     if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180)
@@ -137,7 +148,8 @@ class Astro_Sunrise
 
   /**
    * Get coordinates
-   * @see setCoords()
+   *
+   * @see self::setCoords()
    */
   function getCoords() {
     return sprintf('%1.4f %s %1.4f %s',
@@ -148,10 +160,13 @@ class Astro_Sunrise
 
   /**
    * Set date
+   *
    * @param integer $year
    * @param integer $month
    * @param integer $mday
-   * @see $year, $month, $mday
+   * @var int $year
+   * @var int $month
+   * @var int $mday
    */
   function setDate($year, $month, $mday) {
     if ($year < 100)
@@ -171,7 +186,8 @@ class Astro_Sunrise
 
   /**
    * Get date
-   * @see setDate()
+   *
+   * @see self::setDate()
    */
   function getDate() {
     return sprintf('%04d-%02d-%02d', $this->year, $this->month, $this->mday);
@@ -179,8 +195,9 @@ class Astro_Sunrise
 
   /**
    * Set timestamp
+   *
    * @param integer $time
-   * @see setDate()
+   * @see self::setDate()
    */
   function setTimestamp($time) {
     list($this->year, $this->month, $this->mday, $this->yday) =

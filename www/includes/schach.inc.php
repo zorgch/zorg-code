@@ -5,7 +5,7 @@
  * @version 1.0
  * @package zorg\Games\Schach
  *
- * FIXME In der DB gibt es kein Table "chess_board", nur "chess_board_old"? / IneX, 18.04.2020
+ * @fixme In der DB gibt es kein Table "chess_board", nur "chess_board_old"? / IneX, 18.04.2020
  */
 
 /**
@@ -13,7 +13,7 @@
  *
  * @version 1.1
  * @since 1.0 Function added
- * @since 1.1 <inex> 18.04.2020 Code optimizations and migrate to mysqli_
+ * @since 1.1 `18.04.2020` `IneX` Code optimizations and migrate to mysqli_
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -85,7 +85,7 @@ function xy2htmlXY($position)
  *
  * @version 1.1
  * @since 1.0 Function added
- * @since 1.1 <inex> 18.04.2020 Migrate to mysqli_
+ * @since 1.1 `18.04.2020` `IneX` Migrate to mysqli_
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global int $game_id Globaler Integer mit der aktuellen Schach Game-ID
@@ -122,31 +122,39 @@ function highlightLastMove()
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "game", nur "chess_game_OLD" / IneX, 18.04.2020
+ * Definiere Spieler der beginnt.
+ *
+ * @deprecated In der DB gibt es kein Table "game", nur "chess_game_OLD" (IneX, 18.04.2020)
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "game", nur "chess_game_OLD" / IneX, 18.04.2020
  */
 function setStartingplayer($game_id)
 {
-	// register user as opponent unless he's white or the opponent is already choosen
-	// FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED?
+	/**
+	 * register user as opponent unless he's white or the opponent is already choosen
+	 * @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED?
+	 */
 	$sql = "select (case when user1!=" . $_SESSION['user_id'] . " and user2 is null then 1 " . 
 	         "        else 0 end) as register from game where ID=$game_id";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
 	if($rs['register'])
 	{
-		// FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED?
+		/** @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED? */
 		$sql = "update game set user2=" . $_SESSION['user_id'] . " where ID=$game_id";
 		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	}
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" / IneX, 18.04.2020
+ * Spiel-Titel mit Spielernamen und Game-ID erzeugen.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" (IneX, 18.04.2020)
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" / IneX, 18.04.2020
  */
 function buildTitle($game_id)
 {
 	global $db;
-	// FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED? */
 	$sql = 
 		"select (case when user2 is null then 'noch kein Gegner'"
 		." when user1=$_SESSION[user_id] then concat('Spiel $game_id gegen <a href=\"mailto:', u2.email, '\">', u2.username, '</a>')"
@@ -185,12 +193,15 @@ function buildInit($currentPlayer, $myColor, $wBoard, $bBoard) {
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" / IneX, 18.04.2020
+ * Farbe des aktuellen Spielers (My) finden.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" (IneX, 18.04.2020)
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" / IneX, 18.04.2020
  */
 function getMyFigureColor($game_id)
 {	
 	global $db;
-	// FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED? */
 	$sql = "select (case when user1=" . $_SESSION['user_id'] . " then 'Weiss' else 'Schwarz' end) as color from chess_game where ID=$game_id";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
@@ -230,7 +241,7 @@ function turnBoard() {
  *
  * @version 1.1
  * @since 1.0 Function added
- * @since 1.1 <inex> 18.04.2020 Code optimizations
+ * @since 1.1 `18.04.2020` `IneX` Code optimizations
  *
  * @return void Funktion macht direkt Echo von generiertem Output
  */
@@ -291,7 +302,10 @@ function buildHistory($game_id)
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * Schachzug ausführen.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_old" (IneX, 18.04.2020)
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  */
 function doMove($xFrom, $yFrom, $xTo, $yTo, $game_id, $currentPlayer)
 {
@@ -312,7 +326,7 @@ function doMove($xFrom, $yFrom, $xTo, $yTo, $game_id, $currentPlayer)
 	if($figure == "Dame" && !isQueenMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id)) { return 8; }
 	if($figure == "Koenig" && !isKingMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id)) { return 9; }
 
-	if(isKingInChess()) { return 10; } // ist K?nig jetzt im Schach?
+	if(isKingInChess()) { return 10; } // ist König jetzt im Schach?
 
 	writeHistory($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id);
 	writeMoveToDB($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id);
@@ -320,7 +334,7 @@ function doMove($xFrom, $yFrom, $xTo, $yTo, $game_id, $currentPlayer)
 	// add info to database for rochade
 	if($figure == "Turm" || $figure == "Koenig")
 	{
-		// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+		/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 		$sql = "update chess_board set noMoves=noMoves+1 where x=$xTo and y=$yTo";
 		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	}
@@ -335,12 +349,15 @@ function moveWasMade($xFrom, $yFrom, $xTo, $yTo) {
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * Infos einer Figur aus der DB holen.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_old" (IneX, 18.04.2020)
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  */
 function getFigure($x, $y, $game_id)
 {
 	global $db;
-	// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 	$sql = "select figur from chess_board where x=$x and y=$y and ID=$game_id";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
@@ -407,7 +424,7 @@ function isKnightMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id)
 	$to = $xTo*10+$yTo;
 	$difference = abs($from-$to);
 
-	// Die vier M?glichkeiten die ein Pferd hat (bei dem Differenzbetrag). Es darf keine eigene Figur auf dem Zielfeld sein.
+	// Die vier Möglichkeiten die ein Pferd hat (bei dem Differenzbetrag). Es darf keine eigene Figur auf dem Zielfeld sein.
 	if(($difference == 8 || $difference == 12 || $difference == 19 || $difference == 21) && !isPlayerOnField($xTo, $yTo, $currentPlayer, 0, $game_id)) { return 1; }
 
 	return 0;
@@ -477,13 +494,16 @@ function isKingMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id)
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * Check ob ein Feld besetzt oder frei ist.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  */
 function isFieldTaken($x, $y, $game_id)
 {	
 	global $db;
 
-	// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 	$sql = "select count(ID) as count from chess_board where x=$x and y=$y and ID=$game_id";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
@@ -492,7 +512,10 @@ function isFieldTaken($x, $y, $game_id)
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * Check ob aktueller Spieler schon auf dem Feld ist.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_old"
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  */
 function isPlayerOnField($x, $y, $currentPlayer, $isOpponentAsked, $game_id)
 {
@@ -501,7 +524,7 @@ function isPlayerOnField($x, $y, $currentPlayer, $isOpponentAsked, $game_id)
 	$player = ($currentPlayer == "Weiss") ? "w" : "b";
 	if($isOpponentAsked) { $player = ($player == "w") ? "b" : "w"; }
 
-	// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 	$sql = "select count(ID) as count from chess_board where x=$x and y=$y and farbe='$player' and ID=$game_id";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
@@ -511,7 +534,7 @@ function isPlayerOnField($x, $y, $currentPlayer, $isOpponentAsked, $game_id)
 
 function isKingInChess()
 {
-	// todo :-)
+	// TODO :-)
 
 	return 0;
 }
@@ -519,11 +542,12 @@ function isKingInChess()
 /**
  * Check ob Turm auf Feld ist
  *
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  *
  * @version 1.1
  * @since 1.0 Function added
- * @since 1.1 <inex> 18.04.2020 Code optimizations and migrate to mysqli_
+ * @since 1.1 `18.04.2020` `IneX` Code optimizations and migrate to mysqli_
  *
  * @param int $x Zu prüfende X-Coordinate im Spielbrett
  * @param int $y Zu prüfende Y-Coordinate im Spielbrett
@@ -534,22 +558,23 @@ function isKingInChess()
 function isRookOnField($x, $y, $color)
 {
 	global $db;
-	// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 	$sql = 'SELECT x,y FROM chess_board WHERE x='.$x.' AND y='.$y.' AND farbe="'.$color.'" AND figur="Turm"';
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
-	// FIXME bool statt int
+	/** @FIXME bool statt int */
 	return $db->num($result);
 }
 
 /**
  * Check ob Turm auf Feld ist
  *
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  *
  * @version 1.1
  * @since 1.0 Function added
- * @since 1.1 <inex> 18.04.2020 Code optimizations and migrate to mysqli_
+ * @since 1.1 `18.04.2020` `IneX` Code optimizations and migrate to mysqli_
  *
  * @param int $x Zu prüfende X-Coordinate im Spielbrett
  * @param int $y Zu prüfende Y-Coordinate im Spielbrett
@@ -559,7 +584,7 @@ function isRookOnField($x, $y, $color)
 function hasBeenMoved($x, $y)
 {
 	global $db;
-	// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 	$sql = "SELECT noMoves FROM chess_board WHERE x=$x and y=$y";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
@@ -570,11 +595,12 @@ function hasBeenMoved($x, $y)
 /**
  * Spielzug in die Spielhistory schreiben
  *
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "history", nur "chess_history" & "chess_history_old" / IneX, 18.04.2020
+ * @deprecated In der DB gibt es kein Table "history", nur "chess_history" & "chess_history_old" / IneX, 18.04.2020
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "history", nur "chess_history" & "chess_history_old" / IneX, 18.04.2020
  *
  * @version 1.1
  * @since 1.0 Function added
- * @since 1.1 <inex> 18.04.2020 Code optimizations and migrate to mysqli_
+ * @since 1.1 `18.04.2020` `IneX` Code optimizations and migrate to mysqli_
  *
  * @param int $xFrom Bewegung von dieser X-Coordinate...
  * @param int $yFrom Bewegung von dieser Y-Coordinate...
@@ -592,40 +618,47 @@ function writeHistory($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 	if($figure == "Koenig" && abs($xTo-$xFrom) > 1) // rochade was made
 	{
 		$which = ($xTo-$xFrom == 2) ? "o-o" : "o-o-o";
-		// FIXME müsste statt "history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED?
+		/** @FIXME müsste statt "history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED? */
 		$sql = "INSERT INTO history (gameID, info) values ($game_id, '$which')";
 	} else
 	{
-		// Check ob Figur geschlagen und History schreiben
-		// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+		/**
+		 * Check ob Figur geschlagen und History schreiben
+		 * @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+		 */
 		$sql = "select figur from chess_board where x=$xTo and y=$yTo and ID=$game_id";
 		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
 		if($db->num($result) === 0) // Es befindet sich keine Figur auf dem Zielfeld
 		{
-			// FIXME müsste statt "chess_history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED?
+			/** @FIXME müsste statt "chess_history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED? */
 			$sql = "insert into chess_history (gameID, figure, xFrom, yFrom, xTo, yTo) " .
 			         "values ($game_id, '$figure', $xFrom, $yFrom, $xTo, $yTo)";
 		} else
 		{
 			$rs = $db->fetch($result);
-			// FIXME müsste statt "chess_history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED?
+			/** @FIXME müsste statt "chess_history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED? */
 			$sql = 
 				"insert into chess_history (gameID, figure, xFrom, yFrom, xTo, yTo, info) "
 				."values ($game_id, '$figure', $xFrom, $yFrom, $xTo, $yTo, '".$rs['figur']."')";	
-			// delete the eaten figure
-			// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+			/**
+			 * delete the eaten figure
+			 * @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+			 */
 			$delQuery = "delete from chess_board where x=$xTo and y=$yTo and ID=$game_id";
 			$db->query($delQuery, __FILE__, __LINE__, __FUNCTION__);
 		}
 	}
 
 	$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-	// FIXME Return bool statt nix
+	/** @FIXME Return bool statt nix */
 }
 
 /**
- * TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_OLD" / IneX, 18.04.2020
+ * Schachzug in die Datenbank speichern.
+ *
+ * @deprecated In der DB gibt es kein Table "chess_board", nur "chess_board_OLD" / IneX, 18.04.2020
+ * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_OLD" / IneX, 18.04.2020
  */
 function writeMoveToDB($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 {
@@ -636,18 +669,20 @@ function writeMoveToDB($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 	{
 		if($xTo-$xFrom == 2)
 		{
-			// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+			/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 			$sql = "update chess_board set x=6, y=$yTo where x=8 and y=$yTo and ID=$game_id";
 			$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 		} else
 		{
-			// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+			/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
 			$sql = "update chess_board set x=4, y=$yTo where x=1 and y=$yTo and ID=$game_id";
 			$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 		}
 	}
-	// End Rochade
-	// FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	/**
+	 * End Rochade
+	 * @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
+	 */
 	$sql = "update chess_board set x=$xTo, y=$yTo where x=$xFrom and y=$yFrom and ID=$game_id";
 	$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 }

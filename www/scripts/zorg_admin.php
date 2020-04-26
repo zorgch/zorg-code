@@ -80,9 +80,9 @@ $smarty->assign('admin_quota', $quota);
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 <inex> 17.03.2020 Function added
+ * @since 1.0 `17.03.2020` `IneX` Function added
  *
- * @see get_apod()
+ * @uses get_apod()
  * @include apod.inc.php
  * @param string $_GET['apod_fetch'] Boolean value must be 'true' in order to do something
  * @param string $_GET['apod_date'] A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)

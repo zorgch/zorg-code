@@ -4,7 +4,7 @@
  *
  * Shoot The Lamber ist ein Schiffchen-Versenken-Klon im Multiplayer-Modus
  *
- * @author Milamber
+ * @author [z]milamber
  * @version 1.0
  * @package zorg\Games\STL
  */

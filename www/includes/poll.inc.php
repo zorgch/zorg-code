@@ -19,16 +19,16 @@ class Polls
 	/**
 	 * Poll anzeigen
 	 *
-	 * @author ?, IneX
+	 * @author ?
+	 * @author IneX
 	 * @version 3.0
 	 * @since 1.0 function added
-	 * @since 1.5 04.02.2018 moved Strings used to Global Strings
-	 * @since 2.0 11.09.2018 fixed SQL-Query (Polls were broken for not-loggedin users)
-	 * @since 3.0 11.09.2018 fixed @TODO Extract HTML-View into Template-File and use $smarty->display()
-	 * @since 3.1 19.02.2019 code optimizations, moved function inside class
+	 * @since 1.5 `04.02.2018` moved Strings used to Global Strings
+	 * @since 2.0 `11.09.2018` fixed SQL-Query (Polls were broken for not-loggedin users)
+	 * @since 3.0 `11.09.2018` fixed @TODO Extract HTML-View into Template-File and use $smarty->display()
+	 * @since 3.1 `19.02.2019` code optimizations, moved function inside class
 	 *
-	 * @see templates/layout/partials/polls/poll.tpl
-	 * @see self::user_has_vote_permission()
+	 * @uses self::user_has_vote_permission()
 	 * @param $id Poll-ID to display
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen

@@ -4,7 +4,7 @@ namespace Listener;
 
 /**
  * Watcher for messages in a Textfile to be posted to the IRC Channels
- * 
+ *
  * @package IRCBot
  * @subpackage Listener
  * @author Oliver Raduner <zorg@raduner.ch>

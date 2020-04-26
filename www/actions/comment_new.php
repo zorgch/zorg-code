@@ -1,5 +1,11 @@
 <?php
 /**
+ * Post new Comment Action
+ *
+ * @package zorg\Forum
+ */
+
+/**
  * File Includes
  */
 //require_once __DIR__ .'/../includes/main.inc.php';

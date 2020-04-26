@@ -206,7 +206,7 @@ function var_request ()
 	 * gibt einen link aus
 	 *
 	 * @version 1.0
-	 * @since 1.0 <biko> function added
+	 * @since 1.0 `[z]biko` function added
 	 */
 	function smarty_html_link ($params, $content, &$smarty, &$repeat) {
 		if (!$content) $content = 'link';
@@ -216,8 +216,8 @@ function var_request ()
 	 * gibt einen button als link aus
 	 *
 	 * @version 1.1
-	 * @since 1.0 <biko> function added
-	 * @since 1.1 <inex> 29.09.2019 added optional $params[class] setting
+	 * @since 1.0 `[z]biko` function added
+	 * @since 1.1 `29.09.2019` `IneX` added optional $params[class] setting
 	 */
 	function smarty_html_button ($params, $content, &$smarty, &$repeat) {
 		return '<input type="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'" '.($params['class'] ? 'class="'.$params['class'].'"' : '').'>';
@@ -228,8 +228,8 @@ function var_request ()
 	 * if you set the parameter 'formid', a hidden input with this formid is added.
 	 *
 	 * @version 1.1
-	 * @since 1.0 <biko> function added
-	 * @since 1.1 <inex> 29.09.2019 added autocomplete=off as default
+	 * @since 1.0 `[z]biko` function added
+	 * @since 1.1 `29.09.2019` `IneX` added autocomplete=off as default
 	 */
 	function smarty_form ($params, $content, &$smarty, &$repeat)
 	{
@@ -412,7 +412,8 @@ function var_request ()
 
 	/**
 	 * Verein Mailer - Info Block
-	 * Usage: {mail_infoblock topic="headline"}content{/mail_infoblock}
+	 *
+	 * @example {mail_infoblock topic="headline"}content{/mail_infoblock}
 	 */
 	function smarty_mailinfoblock ($params, $content, &$smarty, &$repeat) {
 		//if (!$repeat) {  // closing tag
@@ -423,7 +424,8 @@ function var_request ()
 	
 	/**
 	 * Verein Mailer - Call-to-Action Button Block
-	 * Usage: {mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}
+	 *
+	 * @example {mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}
 	 */
 	function smarty_mailctabutton ($params, $content, &$smarty, &$repeat) {
 		if ($params['position'] == 'left') $ctaposition = 'float:left';
@@ -441,7 +443,8 @@ function var_request ()
 	
 	/**
 	 * Verein Mailer - Telegram Messenger Button Block
-	 * Usage: {telegram_button}button-text{/telegram_button}
+	 *
+	 * @example {telegram_button}button-text{/telegram_button}
 	 */
 	function smarty_mailtelegrambutton ($params, $content, &$smarty, &$repeat) {
 		$smarty->assign('telegrambtn', [
@@ -461,10 +464,10 @@ function var_request ()
 	 *
 	 * @author [z]biko
 	 * @version 2.0
-	 * @since 1.0 <biko> migrated from smarty_menu.php (smarty_menu_old)
-	 * @since 2.0 <inex> 02.07.2019 moved inline HTML to block_menubar.tpl, output changed to Array
+	 * @since 1.0 `[z]biko` migrated from smarty_menu.php (smarty_menu_old)
+	 * @since 2.0 `02.07.2019` `IneX` moved inline HTML to block_menubar.tpl, output changed to Array
 	 *
-	 * @see smarty_menuitem()
+	 * @uses smarty_menuitem()
 	 * @return object
 	 */
 	function smarty_menubar ($params, $content, &$smarty, &$repeat)
@@ -489,9 +492,10 @@ function var_request ()
 	 *
 	 * @author [z]biko
 	 * @version 1.0
-	 * @since 1.0 <biko> migrated from smarty_menu.php (smarty_menu_old)
+	 * @since 1.0 `[z]biko` migrated from smarty_menu.php (smarty_menu_old)
 	 *
-	 * @see USER_MEMBER, smarty_menubar()
+	 * @uses USER_MEMBER
+	 * @uses smarty_menubar()
 	 * @return string
 	 */
 	function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
@@ -675,8 +679,9 @@ function smarty_peter ($params, &$smarty) {
 
 /**
  * Polls
- * @since 2.0 <inex> 19.02.2020 Added param validation and Poll Class handling
- **/
+ *
+ * @since 2.0 `19.02.2020` `IneX` Added param validation and Poll Class handling
+ */
 	function smarty_poll ($params)
 	{
 		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']))
@@ -821,8 +826,8 @@ function smarty_peter ($params, &$smarty) {
 	 *
 	 * @author [z]cylander
 	 * @version 1.1
-	 * @since 1.0 <cylander> 20.08.2004 function added
-	 * @since 1.1 <inex> 15.01.2019 added HTML escapes to file output
+	 * @since 1.0 `20.08.2004` `[z]cylander` function added
+	 * @since 1.1 `15.01.2019` `IneX` added HTML escapes to file output
 	 */
 	function smarty_gettext ($params, &$smarty) {
 		global $db;
@@ -957,8 +962,8 @@ error_log('out: '.$out);
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 30.09.2018 method added
-	 * @see Forum::getForumBoards()
+	 * @since 1.0 `30.09.2018` method added
+	 * @uses Forum::getForumBoards()
 	 */
 	function smarty_get_forum_boards ($params) {
 		return Forum::getForumBoards($params['boards'], $params['updateable']);
@@ -1041,8 +1046,8 @@ error_log('out: '.$out);
 	 * Display a navigation menu using {menu name=menubar}
 	 *
 	 * @version 2.0
-	 * @since 1.0 <biko> function added
-	 * @since 2.0 <inex> 30.09.2019 adjusted with new responsive HTML Layout structure
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `30.09.2019` `IneX` adjusted with new responsive HTML Layout structure
 	 */
 	function smarty_menu ($params, &$smarty)
 	{
@@ -1080,8 +1085,8 @@ error_log('out: '.$out);
 	 *
 	 * @author [z]biko
 	 * @version 1.0
-	 * @since 1.0 <biko> function added
-	 * @since 2.0 <inex> 16.09.2019 function updated for zorg v4 to prevent updating new 'id' table row
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `16.09.2019` `IneX` function updated for zorg v4 to prevent updating new 'id' table row
 	 *
 	 * @param string $name Name of a Menubar (e.g. 'zorg'), containing a {menubar}{menuitem...}{/menubar}-structure
 	 */
@@ -1135,7 +1140,7 @@ error_log('out: '.$out);
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 30.09.2018 function added
+	 * @since 1.0 `30.09.2018` `IneX` function added
 	 */
 	function smarty_get_menus()
 	{
@@ -1176,9 +1181,9 @@ error_log('out: '.$out);
 		 *
 		 * @author IneX
 		 * @version 1.0
-		 * @since 1.0 <inex> 23.06.2007 function added as part of Bug #609
+		 * @since 1.0 `23.06.2007` `IneX` function added as part of Bug #609
 		 *
-		 * @see getTopPics()
+		 * @uses getTopPics()
 		 * @param array $params All passed Smarty-Function parameters, allowed: album, limit, options
 		 * @return string HTML displaying top rated n amount of Gallery-Pics
 		 */
@@ -1199,7 +1204,7 @@ error_log('out: '.$out);
 		 *
 		 * @author IneX
 		 * @version 1.0
-		 * @since 1.0 <inex> 18.10.2013 Function added
+		 * @since 1.0 `18.10.2013` `IneX` Function added
 		 */
 		function smarty_user_pics($params)
 		{
@@ -1453,7 +1458,7 @@ function smarty_menuname ($name, &$smarty) {
  * @package zorg\Smarty
  * @author IneX
  * @version 1.0
- * @since 1.0 <inex> 03.01.2016 Class added
+ * @since 1.0 `03.01.2016` `IneX` Class added
  */
 //class SmartyZorgFunctions
 //{
@@ -1468,7 +1473,7 @@ function smarty_menuname ($name, &$smarty) {
      *
      * @author IneX
      * @version 1.0
-     * @since 1.0 <inex> 03.01.2016 Method added
+     * @since 1.0 `03.01.2016` `IneX` Method added
      * @var array
      */
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
@@ -1646,7 +1651,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_arrays($php_vars_array)
@@ -1678,7 +1683,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_modifiers($php_modifiers_array)
@@ -1712,7 +1717,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_blocks($php_blocks_array)
@@ -1749,7 +1754,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @since 1.0 function added
 	 * @since 2.0 added support for registering array($class, $method)
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_functions($php_functions_array)

@@ -19,14 +19,18 @@ require_once dirname(__FILE__).'/../includes/main.inc.php';
 class Sitemap extends Model
 {
 	/**
+	 * Class Constructor
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 */
 	public function __construct() { }
 
 	/**
+	 * APOD Bilder Liste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -44,8 +48,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Books Liste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -63,8 +69,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Bugliste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -82,8 +90,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Eventliste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -107,16 +117,20 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Bildergalerien
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return void
 	 */
 	function load_galleries() { $this->galleries = null; }
 
 	/**
+	 * Liste von Pages
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -158,8 +172,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Rezepte Liste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -177,8 +193,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Tauschartikel Liste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -196,8 +214,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Templateliste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -215,8 +235,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Forum Threads Liste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -234,8 +256,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Userprofil Liste
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -253,8 +277,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Liste der Wetten
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */
@@ -272,8 +298,10 @@ class Sitemap extends Model
 	}
 
 	/**
+	 * Liste von User-Files
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 19.12.2019 method added
+	 * @since 1.0 `19.12.2019` `IneX` method added
 	 *
 	 * @return array
 	 */

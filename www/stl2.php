@@ -59,11 +59,10 @@
  *			shoot_date
  *				datum an dem der spieler das torpedo geschossen hat.
  *
- * @author Milamber
+ * @author [z]milamber
  * @version 2.0
  * @package zorg\Games\STL
  */
-
 /**
  * File includes
  */
@@ -73,13 +72,21 @@ require_once dirname(__FILE__).'/includes/main.inc.php';
 config:
 ==================================================================================== */
 
-class stl {
+/**
+ * Shoot The Lamber v2 (Game)
+ *
+ * @author [z]milamber
+ * @version 2.0
+ * @package zorg\Games\STL
+ */
+class stlv2 {
 	
 	/**
-	* @return stl
-	* @desc Klassenkonstruktor, generiert autom. die ganze ausgabe...(Game & Overview)
-	*/
-	function stl() {
+	 * Klassenkonstruktor, generiert autom. die ganze ausgabe...(Game & Overview)
+	 *
+	 * @return stl
+	 */
+	function __construct() {
 		global $db, $user;
 		//Feldchengrösse
 		$this->case = 20;
@@ -200,9 +207,10 @@ class stl {
 	
 
 	/**
-	* @return void
-	* @desc Liest die Teams zu einem Spiel und speichert die in klassen vars
-	*/
+	 * Liest die Teams zu einem Spiel und speichert die in klassen vars
+	 *
+	 * @return void
+	 */
 	function teams() {
 		global $db;
 	
@@ -240,9 +248,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Ermittelt ob ein Spieler bei einem Spiel bereits mitspielt (wenn nein, spielt er JETZT mit)
-	*/
+	 * Check und join user zu einem Game
+	 *
+	 * Ermittelt ob ein Spieler bei einem Spiel bereits mitspielt (wenn nein, spielt er JETZT mit)
+	 *
+	 * @return void
+	 */
 	function check4join() {
 		global $db, $user;
 		$sql = '
@@ -274,9 +285,10 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Prüft ob ein Spiel beendet werden kann und ermittelt das Gewinner Team
-	*/
+	 * Prüft ob ein Spiel beendet werden kann und ermittelt das Gewinner Team
+	 *
+	 * @return void
+	 */
 	function check4finish() {
 		global $db;
 	
@@ -338,9 +350,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Prüft ob ein Spiel gestartet werden kann, erstellt grid und weisst die Spieler zufällig einem Team und einem Feld zu
-	*/
+	 * Check ob Spiel gestartet werden kann
+	 *
+	 * Prüft ob ein Spiel gestartet werden kann, erstellt grid und weisst die Spieler zufällig einem Team und einem Feld zu
+	 *
+	 * @return void
+	 */
 	function check4start() {
 		global $db;
 		
@@ -449,9 +464,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Hauptfunktion, erstellt das gesamte Spielfeld und drum herum
-	*/
+	 * Game ausgeben
+	 *
+	 * Hauptfunktion, erstellt das gesamte Spielfeld und drum herum
+	 *
+	 * @return void
+	 */
 	function game() {
 		global $db, $user;	
 		$sql = "
@@ -847,9 +865,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Übersichts funktion, zeigt alle offenen und joinbaren spiele eines users
-	*/
+	 * Games Übersicht anzeigen
+	 *
+	 * zeigt alle offenen und joinbaren spiele eines users
+	 *
+	 * @return void
+	 */
 	function overview() {
 		global $db, $user;
 			//selektiert games bei denen ich mitmache
@@ -961,9 +982,10 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Prüft ob ein neues Spiel erstellt werden will
-	*/
+	 * Prüft ob ein neues Spiel erstellt werden will
+	 *
+	 * @return void
+	 */
 	function exec() {
 		global $db, $user;
 	
@@ -1023,9 +1045,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Führt die Torpedo schüsse aus, und prüft ob der User das auch darf
-	*/
+	 * Torpedo schiessen
+	 *
+	 * Führt die Torpedo schüsse aus, und prüft ob der User das auch darf
+	 *
+	 * @return void
+	 */
 	function shoot() {
 		global $db, $user;
 

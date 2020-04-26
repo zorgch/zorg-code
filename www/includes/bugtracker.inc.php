@@ -39,10 +39,10 @@ class Bugtracker
 	 * @author [z]milamber
 	 * @author IneX
 	 * @version 3.1
-	 * @since 1.0 <milamber> function added
-	 * @since 2.0 <inex> various code optimizations, I don't remember all of them
-	 * @since 3.0 <inex> 26.11.2018 updated to use new $notifcation Class & some code and query optimizations
-	 * @since 3.1 <inex> 04.12.2019 [GitHub-Issue #22] updated SQL-queries
+	 * @since 1.0 `[z]milamber` function added
+	 * @since 2.0 `IneX` various code optimizations, I don't remember all of them
+	 * @since 3.0 `26.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
+	 * @since 3.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -235,8 +235,8 @@ class Bugtracker
 	 * @author IneX
 	 * @version 2.1
 	 * @since 1.0 function added
-	 * @since 2.0 <inex> 10.11.2018 added Code Commit field
-	 * @since 2.1 <inex> 04.12.2019 [GitHub-Issue #22] updated SQL-queries & sanitized HTML-output from DB
+	 * @since 2.0 `10.11.2018` `IneX` added Code Commit field
+	 * @since 2.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries & sanitized HTML-output from DB
 	 *
 	 * @see Thread::getNumPosts
 	 * @return string HTML-Code for page output

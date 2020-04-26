@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Connection Class
- * 
+ *
  * @author IneX
  * @version 1.0
  * @package zorg\Mobilezorg
@@ -18,7 +18,7 @@ require_once (file_exists(SITE_ROOT.'/includes/mysql_login.inc.local.php') ? SIT
 // {
 // 	/**
 // 	* Database Connection
-// 	* 
+// 	*
 // 	* @author IneX
 // 	* @version 1.0
 // 	* @since 1.0

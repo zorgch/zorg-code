@@ -1,6 +1,6 @@
 <?php
 /**
- * Generic AJAX Handler to reload messages
+ * Generic AJAX Handler to reload messages.
  * currently not used in mobilez (see commented lines in templates/layout/mobilez/main.tpl
  */
 /**

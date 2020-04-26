@@ -1,6 +1,7 @@
 <?php
 /**
  * Books
+ *
  * coded by [z]keep3r
  *
  * @author [z]keep3r
@@ -36,9 +37,9 @@ $user_id = (!empty($_GET['user']) ? (int)$_GET['user'] : $user->id);
 /**************/
 /**
  * Kategorien-Bezeichnung holen
- * 
+ *
  * Gibt Kategorie aus books_title zurück
- * 
+ *
  * @return string title
  * @param $kat_id int
  */

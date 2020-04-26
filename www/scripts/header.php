@@ -1,10 +1,10 @@
 <?php
+/**
+ * @deprecated Remove this file & move all $smarty->assign to smarty.fnc.php - see e.g. smarty_peter()
+ * @TODO Remove this file & move all $smarty->assign to smarty.fnc.php - see e.g. smarty_peter()
+ */
 global $db, $user, $smarty;
 
-/**
- * @DEPRECATED
- * @FIXME Remove this file & move all $smarty->assign to smarty.fnc.php - see e.g. smarty_peter()
- */
 if (isset($user) && isset($user->id) && $user->id > 0)
 {
 	/** addle */
