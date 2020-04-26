@@ -65,6 +65,7 @@ body {
 	line-height: 1.4;
 	display: grid;
 	height: 100vh;
+	min-height: -webkit-fill-available; /** Fix mobile viewport bug in Webkit (iOS Safari) */
 	margin: 0;
 	padding: 0;
 }
