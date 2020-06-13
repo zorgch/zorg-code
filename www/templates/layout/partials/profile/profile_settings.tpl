@@ -403,7 +403,7 @@
 					<select name="mymenu" id="mymenu">
 						<option value="null" {if $user->mymenu === ''}selected{/if}>-- Menu auswählen --</option>
 						{foreach from=$smarty_menus item=menu name=smarty_menus_foreach}
-						<option value="{$menu.id}" {if $user->mymenu === $menu.id}selected{/if}>{$menu.name} [tpl #{$menu.id}]</option>
+						<option value="{$menu.tpl_id}" {if $user->mymenu === $menu.tpl_id}selected{/if}>{$menu.name} [tpl #{$menu.tpl_id}]</option>
 						{/foreach}
 					</select>
 				{else}

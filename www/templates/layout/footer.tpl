@@ -1,6 +1,5 @@
 		{include file='file:layout/sidebar.tpl'}
-		
-		<!--googleoff: all-->
+
 		<footer class="footer">
 			<hr class="shadow">
 			<section class="flex-one-column">
@@ -73,7 +72,7 @@
 					<li class="uppercase"><a href="/page/verein">zorg Verein</a></li>
 				</ul>
 			</section>
-		</footer>
+		</footer><!--googleoff: all-->
 	<script>const layout = '{$daytime}';</script>
 	{*if $tplroot.page_title == 'Home' && !$smarty.get.tpleditor}<!-- Redirect Mobile Devices, kudos to http://detectmobilebrowsers.com/ -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>

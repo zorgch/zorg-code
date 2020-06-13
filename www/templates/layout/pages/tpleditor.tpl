@@ -1,15 +1,17 @@
-{include_php file="file:tpleditor.php"}
-{include_php file="file:tploverview.php"}
-{include_php file="file:menu_overview.php"}
-{include_php file="file:packages_overview.php"}
+{if $smarty.get.tplupd neq '' && $smarty.get.tplupd neq 'new'}
+	{assign var=tpl_id value=$smarty.get.tplupd}
+	{assign var=tpl_locked value=$smarty.get.tplupd|locked}
+{else}
+	{assign var=tpl_id value='new'}
+{/if}
 
-{if $smarty.get.tpleditorupd && $smarty.get.tpl neq "new" && $tpleditor_frm.id neq "new"}
+{if $smarty.get.tpleditorupd && $smarty.get.tpl neq 'new' && $tpleditor_frm.id neq 'new'}
 	{if $tplupdnew == 1}
 		{include file=$smarty.get.tplupd}
 	{else}
 		{include file=$smarty.get.tpl}
 	{/if}
-{elseif $tpleditor_strongerror}
+{elseif $tpl_locked neq false || $tpleditor_strongerror}
 	{error msg=$tpleditor_strongerror}
 {else}
 	{if $tpleditor_error}{error msg=$tpleditor_error}{/if}
@@ -57,6 +59,8 @@
 		color: gray;
 	}
 {/literal}</style>
+{template_available_settings}
+{load_tpl_settings id=$tpl_id assignto=tpleditor_frm}
 {form action='tpleditor.php'}
 <input type="hidden" id="tplid" name="frm[id]" value="{$tpleditor_frm.id}"></strong></li>
 <section class="tpleditor-custom-layout">
@@ -261,7 +265,7 @@
 		<fieldset>
 			<label for="menus">Menus
 				<select id="menus" name="frm[menus][]" onChange="update(this)" data-sorted-values="" multiple style="width: 100%;">
-		  			{foreach from=$menus item=menu}
+		  			{foreach from=$smarty_menus item=menu}
 		  			<option {if in_array($menu.id, $tpleditor_frm.menus)}selected{/if} value="{$menu.id}">{$menu.name} (tpl#{$menu.tpl_id})</option>
 		  			{/foreach}
 				</select>
@@ -273,6 +277,7 @@
 			</label>
 		</fieldset>
 		<fieldset>
+			{tploverview sort='last_update'}
 			<label for="sidebar">Sidebar Template
 				<select id="sidebar" name="frm[sidebar_tpl]" size="1">
 					<option {if $smarty.get.tpl == "new" || $tpleditor_frm.sidebar_tpl <= 0}selected{/if} value="">-- no Sidebar --</option>

@@ -7,7 +7,7 @@
 			{menu name=$menu}
 		{/foreach}
 	{elseif $tpl_menus neq ''}
-		{foreach from=$tpl_menus item=menu name=navmenus}
+		{foreach from=$tpl_menus item=name name=navmenus}
 			{menu name=$name}
 		{/foreach}
 	{/if}
