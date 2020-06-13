@@ -2,7 +2,7 @@
 /**
  * zorg Admin Scripts
  *
- * @link /tpl/93
+ * @link https://zorg.ch/tpl/93
  */
 global $smarty, $db;
 
@@ -11,23 +11,6 @@ if ($_GET['force_compile']) {
 	$db->query('UPDATE templates SET force_compile="1"', __FILE__, __LINE__, 'SET force_compile');
 	$smarty->assign('admin_state', 'Force recompile executed');
 }
-
-
-/**
- * Zorg Code Doku neu generieren
- *
- * Ruft das Shell-Script auf, welches den Zorg Code neu parst<br><br>
- * <b>Update: Die Doku sollte NUR via SHELL generiert werden:</b>
- * cd /zooomclan/phpdocumentor
- * ./phpdocu -c zorgcode.ini
- *
- * @author IneX
- * @date 27.05.2009
- *
- * @deprecated
- */
-//if ($_GET[doku_generieren]) (shell_exec('/phpdocumentor/scripts/zorgcode_parse.sh')) ? $smarty->assign("admin_state", "Zorg Code Doku neu generiert") : $smarty->assign("admin_state", "FEHLER!");
-
 
 /** comment force compile infos */
 $handle = opendir(SMARTY_COMPILE);
@@ -76,6 +59,54 @@ $smarty->assign('admin_quota', $quota);
 
 
 /**
+ * Smarty Cache clear
+ *
+ * You can clear all the cache files with the clearAllCache() function, or individual cache files and groups with the clearCache() function
+ * - clear only cache for index.tpl: $smarty->clearCache('index.tpl')
+ * - clear all caches with "sports" as the first cache_id group: $smarty->clearCache(null,'sports')
+ * - clear the foo.tpl cache file with "sports|basketball" as the cache_id: $smarty->clearCache('foo.tpl','sports|basketball')
+ *
+ * @TODO Needs a Frontend in [/tpl/93](https://zorg.ch/tpl/93) (zorg Admin Page)! (IneX, 04.05.2020)
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 `04.05.2020` `IneX` Function added
+ *
+ * @uses Smarty::clearCache()
+ * @uses Smarty::clearAllCache()
+ * @param string $_GET['clear_cache'] Boolean value must be 'true' in order to do something
+ * @param string $_GET['(Cache Group)|all'] A string either with a valid Template name, Cache Group ID, or "all" to clear all caches
+ * @return void Smarty HTML-Output
+ */
+if ($_GET['clear_cache'] === 'true' && isset($_GET['for']))
+{
+	$smarty->setCaching(Smarty::CACHING_LIFETIME_CURRENT); // Disable Caching Lifetime temporarily
+
+	if ($_GET['for'] === 'all')
+	{
+		$smarty->clearAllCache();
+		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Success!', 'message' => 'All Smarty Caches cleared']);
+	}
+	elseif (isset($_GET['for']) && is_string($_GET['for']))
+	{
+		$smarty->clearCache((isset($_GET['tpl_name']) ? (string)$_GET['tpl_name'] : null), $_GET['for']);
+		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Success!', 'message' => 'Smarty Caches cleared for '.$_GET['for'].(isset($_GET['tpl_name']) ? ' of '.(string)$_GET['tpl_name'] : null)]);
+	}
+	elseif (isset($_GET['tpl_name']) && is_string($_GET['tpl_name']))
+	{
+		$smarty->clearCache((string)$_GET['tpl_name']);
+		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Success!', 'message' => 'Smarty Caches cleared for '.(string)$_GET['tpl_name']]);
+	}
+	else
+	{
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => 'No Caches cleared', 'message' => 'Missing one or more parameters in order to clear any Template Caches. Try again.']);
+	}
+
+	$smarty->display('file:layout/elements/block_error.tpl');
+}
+
+
+/**
  * APOD manuell fetchen
  *
  * @author IneX
@@ -102,3 +133,19 @@ if ($_GET['apod_fetch'] === 'true')
 	}
 	$smarty->display('file:layout/elements/block_error.tpl');
 }
+
+
+/**
+ * Zorg Code Doku neu generieren
+ *
+ * Ruft das Shell-Script auf, welches den Zorg Code neu parst<br><br>
+ * <b>Update: Die Doku sollte NUR via SHELL generiert werden:</b>
+ * cd /zooomclan/phpdocumentor
+ * ./phpdocu -c zorgcode.ini
+ *
+ * @author IneX
+ * @date 27.05.2009
+ *
+ * @deprecated
+ */
+//if ($_GET[doku_generieren]) (shell_exec('/phpdocumentor/scripts/zorgcode_parse.sh')) ? $smarty->assign("admin_state", "Zorg Code Doku neu generiert") : $smarty->assign("admin_state", "FEHLER!");
