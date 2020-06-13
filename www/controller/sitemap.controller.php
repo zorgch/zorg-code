@@ -136,8 +136,10 @@ class Sitemap extends Controller
 	 *
 	 * @link https://www.smarty.net/docsv2/en/caching.tpl Doc on Smarty Caching
 	 * @link https://www.smarty.net/docsv2/en/caching.multiple.caches.tpl Doc on Multiple Caches Per Page
-	 * @version 1.0
+	 * @version 2.0
 	 * @since 1.0 `15.12.2019` `IneX` method added
+	 * @since 2.0 `04.05.2020` `IneX` Smarty Caching optimized for compatibility with Smarty 3.1
+	 *
 	 * @FIXME Smarty Tpl-Cache is not working... Recheck after Smarty 3.x upgrade
 	 *
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/sitemap/url.tpl Template-File für cached Output
@@ -152,16 +154,15 @@ class Sitemap extends Controller
 		global $smarty;
 
 		/** Set the Smarty cache_lifetime for the template (in seconds) */
-		$smarty->caching = 2; // lifetime is per cache
-		$smarty->cache_lifetime = $cacheTime;
+		$smarty->setCaching(\Smarty::CACHING_LIFETIME_SAVED); // lifetime is per template
+		$smarty->setCacheLifetime($cacheTime);
 
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> sitemap/url.tpl[%s] from cache: %s', __FILE__, __LINE__, $dataId, ($smarty->is_cached('layout/partials/sitemap/url.tpl', $dataId) ? 'TRUE' : 'FALSE')));
-		if(!$smarty->is_cached('layout/partials/sitemap/url.tpl', $dataId))
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> sitemap/url.tpl[%s] from cache: %s', __FILE__, __LINE__, $dataId, ($smarty->isCached('file:layout/partials/sitemap/url.tpl', $dataId) ? 'TRUE' : 'FALSE')));
+		if(!$smarty->isCached('file:layout/partials/sitemap/url.tpl', $dataId))
 		{
 			/** No cached version available */
 			$smarty->assign('sitemapItems', $tplData); // Assign the $tplData
 		}
-		//$smarty->display('file:layout/partials/sitemap/url.tpl', $dataId);
 		return $smarty->fetch('file:layout/partials/sitemap/url.tpl', $dataId);
 	}
 
@@ -218,7 +219,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -239,7 +240,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -263,7 +264,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -293,7 +294,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 		return $tplOutput;
 	}
 
@@ -319,7 +320,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -340,7 +341,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -364,7 +365,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -388,7 +389,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -412,7 +413,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -436,7 +437,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -457,7 +458,7 @@ class Sitemap extends Controller
 			//$changefreq = ...
 			$urlElements[] = $this->sitemap_element($url);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
@@ -485,7 +486,7 @@ class Sitemap extends Controller
 			$changefreq = 'monthly';
 			$urlElements[] = $this->sitemap_element($url, $lastmod, $changefreq);
 		}
-		$tplOutput = $this->cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
+		$tplOutput = self::cache($urlElements, __FUNCTION__); // Pass through Smarty for Caching
 
 		return $tplOutput;
 	}
