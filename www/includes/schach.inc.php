@@ -209,15 +209,21 @@ function getMyFigureColor($game_id)
 	return $rs['color'];
 }
 
-function getCurrentPlayer($game_id) {
-	
+/**
+ * Anzahl Games des Spielers in einem bestimmten
+ *
+ * @FIXME You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1; SQL-Query: SELECT COUNT(id) AS noEntries FROM chess_game_old where id=
+ *
+ */
+function getCurrentPlayer($game_id)
+{	
 	global $db;
 
-	$sql = "select count(ID) as noEntries from chess_history where gameID=$game_id";
+	$sql = 'SELECT COUNT(id) AS num_entries FROM chess_game_old where id='.$game_id;
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
-	
-	return ($rs['noEntries'] % 2 == 0) ? "Weiss" : "Schwarz";
+
+	return ($rs['num_entries'] % 2 === 0) ? "Weiss" : "Schwarz";
 }
 
 function turnBoard() {
@@ -687,22 +693,35 @@ function writeMoveToDB($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 	$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 }
 
-function getOpenChessGames($userID) {
-/*
+/**
+ * Open Chess Games for a specific User
+ *
+ * @deprecated uses old Chess Game table `chess_game_old` - not compatible with new `chess_games`
+ *
+ * @version 1.1
+ * @since 1.0 function added
+ * @since 1.1 `01.05.2020` `Inex` SQL-Query optimization
+ *
+ * @param integer $userID User-ID to check open Games for
+ * @global object $db
+ * @return integer Num of open Games for the $userID
+ */
+function getOpenChessGames($userID)
+{
 	global $db;
-	
-	$openGames = 0;
-	if (isset($userID)) {
-		$sql = "select g.ID, (case when user1=$userID then 'Weiss' " .
-			 "                   when user2=$userID then 'Schwarz' end) as color ". 
-			 "from (chess_game g left outer join user u1 on user1=u1.ID) left outer join user u2 on user2=u2.ID " .
-		       " where user1=$userID or user2=$userID";
-		$result = $db->query($sql);
-		while ( $rs = $db->fetch($result) ){
-			if (getCurrentPlayer($rs[ID]) == $rs[color]) $openGames++;
-		}
-				
-		return $openGames;
-	}*/
 
+	$openGames = 0;
+	if (is_numeric($userID) && $userID > 0)
+	{
+		$sql = 'SELECT g.ID, (CASE WHEN user1='.$userID.' THEN "Weiss" WHEN USER2='.$userID.' THEN "Schwarz" END) AS color 
+				FROM (chess_game_old g LEFT OUTER JOIN user u1 ON user1=u1.id) LEFT OUTER JOIN user u2 ON user2=u2.id
+				WHERE user1='.$userID.' OR user2='.$userID;
+		$result = $db->query($sql);
+		$rs = $db->fetch($result);
+		while ($rs)
+		{
+			if (getCurrentPlayer($rs['id']) === $rs['color']) $openGames++;
+		}
+	}
+	return $openGames;
 }

@@ -189,8 +189,13 @@ function get_spaceweather()
 	}
 }
 
-
-function spaceweather_ticker() {
+/**
+ * Build and return Spaceweather as Array
+ *
+ * @return array
+ */
+function spaceweather_ticker()
+{
 	global $db;
 
 	$add['solarwind_speed'][0] = "Solarwind";
@@ -227,25 +232,19 @@ function spaceweather_ticker() {
 	$add['magstorm_high_severe_48hr'][0] = 0;
 	$add['PHA'][0] = "Potenziell gef&auml;hrliche Asteroiden";
 
-	try {
-		$sql = 'SELECT * FROM spaceweather';
-		$result = $db->query($sql,__LINE__,__FILE__,__FUNCTION__);
-		while($rs = $db->fetch($result)) {
-			if(empty($rs['wert']) || $rs['wert'] === '') {
-				$rs['wert'] = 'unbekannt';
-			}
-			if(isset($add[$rs['name']]) && !empty($add[$rs['name']][0]))
-			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $rs[name] exists: %s | value: %s', __FUNCTION__, __LINE__, $add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')));
-				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert'].(isset($add[$rs['name']][1]) ? " ".$add[$rs['name']][1] : '') ];
-			}
+	$sql = 'SELECT * FROM spaceweather';
+	$result = $db->query($sql,__LINE__,__FILE__,__FUNCTION__);
+	while($rs = $db->fetch($result)) {
+		if(empty($rs['wert']) || $rs['wert'] === '') {
+			$rs['wert'] = 'unbekannt';
 		}
+		if(isset($add[$rs['name']]) && !empty($add[$rs['name']][0]))
+		{
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $rs[name] exists: %s | value: %s', __FUNCTION__, __LINE__, $add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')));
+			$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert'].(isset($add[$rs['name']][1]) ? " ".$add[$rs['name']][1] : '') ];
+		}
+	}
 
-		shuffle($sw); // Randomize Speachweather infos
-		return $sw;
-	}
-	catch(Exception $e) {
-		user_error($e->getMessage(), E_USER_NOTICE);
-		return $e->getMessage();
-	}
+	shuffle($sw); // Randomize Speachweather infos
+	return $sw;
 }

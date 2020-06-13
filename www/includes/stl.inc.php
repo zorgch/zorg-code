@@ -1094,17 +1094,19 @@ class stl {
 
 	/**
 	 * Offene STL-Spiele
+	 *
 	 * Gibt die Anzahl offener Spiele als Link zum ersten Spiel zurueck
 	 *
 	 * @author [z]milamber
 	 * @author IneX
-	 * @version 2.0
-	 * @since 1.0 function added
-	 * @since 2.0 `18.08.2018` function refactored & reactivated
+	 * @version 2.1
+	 * @since 1.0 `[z]milamber` Method added
+	 * @since 2.0 `18.08.2018` `IneX` Method refactored & reactivated
+	 * @since 2.1 `02.05.2020` `IneX` Method return value changed to Array of Query-Result (not HTML-Link string)
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return string HTML-Link zum nächsten offenen STL-Spiel
+	 * @return array|null Details des nächsten offenen STL-Spiels
 	 */
 	public static function getOpenSTLGames()
 	{
@@ -1113,29 +1115,25 @@ class stl {
 		$count = 0;
 		if ($user->is_loggedin())
 		{
-			try {
-				$sql = 'SELECT
+			$sql = 'SELECT
 						 stlg.game_id
-						FROM
-							 stl_players AS stlp
-							,stl AS stlg
-						LEFT JOIN
-							stl_players stljp ON stljp.game_id=stlg.game_id
-							AND stljp.user_id='.$user->id.'
-						WHERE
-							stlg.status=0
-							AND stlp.game_id=stlg.game_id
-							AND stlg.creator_id<>'.$user->id.'
-							AND stljp.user_id IS NULL
-						GROUP BY stlg.game_id';
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				$count = ($result ? $db->num($result) : 0);
-				$next = $db->fetch($result);
-			} catch (Exception $e) {
-				error_log($e->getMessage());			
-				return false;
-			}
-			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' open STL game'.($count > 1 ? 's' : '').'</a>' : '' );
+					FROM
+						 stl_players AS stlp
+						,stl AS stlg
+					LEFT JOIN
+						stl_players stljp ON stljp.game_id=stlg.game_id
+						AND stljp.user_id='.$user->id.'
+					WHERE
+						stlg.status=0
+						AND stlp.game_id=stlg.game_id
+						AND stlg.creator_id<>'.$user->id.'
+						AND stljp.user_id IS NULL
+					GROUP BY stlg.game_id';
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$count = ($result ? $db->num($result) : 0);
+			$next = $db->fetch($result);
+
+			return ( $count > 0 ? [ 'num' => $count, 'id' => $next['game_id'] ] : null );
 		} else {
 			return null;
 		}
@@ -1144,17 +1142,19 @@ class stl {
 
 	/**
 	 * Offene STL-Spielzüge des Users
+	 *
 	 * Gibt die Anzahl offener Spielzüge - bei denen der User mitspielt - aus, als HTML-Link zum nächsten Spielzug
 	 *
 	 * @author [z]milamber
 	 * @author IneX
-	 * @version 2.0
-	 * @since 1.0 function added
-	 * @since 2.0 `18.08.2018` function refactored & reactivated
+	 * @version 2.1
+	 * @since 1.0 `[z]milamber` Method added
+	 * @since 2.0 `18.08.2018` `IneX` Method refactored & reactivated
+	 * @since 2.1 `02.05.2020` `IneX` Method return value changed to Array of Query-Result (not HTML-Link string)
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return string HTML-Link zum nächsten pendenten STL-Spielzug
+	 * @return array Details des nächsten pendenten STL-Spielzuges
 	 */
 	public static function getOpenSTLLink()
 	{
@@ -1163,27 +1163,23 @@ class stl {
 		$count = 0;
 		if ($user->is_loggedin())
 		{
-			try {
-				$sql = 'SELECT
-							 stl.game_id AS game_id
-							,HOUR( pl.last_shoot) AS last_shoot
-						FROM stl
-							LEFT JOIN stl_players pl ON pl.game_id = stl.game_id
-							LEFT JOIN stl_positions p ON stl.game_id = p.game_id
-						WHERE
-							pl.user_id='.$user->id.'
-							AND stl.status=1
-							AND p.ship_user_id='.$user->id.'
-							AND p.hit_user_id=0
-							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				$count = ($result ? $db->num($result) : 0);
-				$next = $db->fetch($result);
-			} catch (Exception $e) {
-				error_log($e->getMessage());			
-				return false;
-			}
-			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' STL-shot'.($count > 1 ? 's' : '').'</a>' : '' );
+			$sql = 'SELECT
+						 stl.game_id AS game_id
+						,HOUR( pl.last_shoot) AS last_shoot
+					FROM stl
+						LEFT JOIN stl_players pl ON pl.game_id = stl.game_id
+						LEFT JOIN stl_positions p ON stl.game_id = p.game_id
+					WHERE
+						pl.user_id='.$user->id.'
+						AND stl.status=1
+						AND p.ship_user_id='.$user->id.'
+						AND p.hit_user_id=0
+						AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$count = ($result ? $db->num($result) : 0);
+			$next = $db->fetch($result);
+
+			return ( $count > 0 ? [ 'num' => $count, 'id' => $next['game_id'] ] : null );
 		} else {
 			return null;
 		}
