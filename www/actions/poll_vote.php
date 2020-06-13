@@ -1,7 +1,7 @@
 <?php
 /**
  * Poll Voting and Unvoting
- * @packages zorg\Polls
+ * @package zorg\Polls
  */
 require_once dirname(__FILE__).'/../includes/poll.inc.php';
 

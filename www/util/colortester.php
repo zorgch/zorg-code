@@ -45,7 +45,7 @@ echo '</table>';
 echo '<br /><br />';
 echo '<b>Colors im smarty: </b><br />';
 
-$vars = $smarty->get_template_vars();
+$vars = $smarty->getTemplateVars();
 
 echo '<table><tr><td height=30 width=100 bgcolor="'.$vars['color']['newcomment'].'">'.$vars['color']['background'].'</td></tr></table>';
 

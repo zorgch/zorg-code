@@ -160,6 +160,7 @@ return
 			 'created' =>  'Neue Seite wurde erstellt. ID: %d'
 			,'updated' => 'Seite "%d" erfolgreich aktualisiert'
 			,'deleted' => 'Seite "%d" wurde <strong>gelöscht</strong>'
+			,'invalid-id' => 'Template "%d" not found'
 			,'invalid-permissions-read' => 'Ungültiges Lese-Recht.<br>'
 			,'invalid-permissions-write' => 'Ungültiges Schreib-Recht.<br>'
 			,'invalid-border' => 'Ungültiger Rahmen-Typ.'

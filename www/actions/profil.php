@@ -1,17 +1,15 @@
 <?php
 /**
  * User Profile actions
+ *
  * @package zorg\Usersystem
- */
-/**
- * File includes
  * @include mysql.inc.php required
  * @include usersystem.inc.php required
  */
 require_once dirname(__FILE__).'/../includes/mysql.inc.php';
 require_once dirname(__FILE__).'/../includes/usersystem.inc.php';
 
-if($_GET['do'] == 'aussperren')
+if(isset($_GET['do']) && $_GET['do'] === 'aussperren')
 {
 	/** User aussperren */
 	$ausgesperrt = $user->exec_aussperren($user->id, ['hour'=>$_POST['aussperrenHour'], 'day'=>$_POST['aussperrenDay'], 'month'=>$_POST['aussperrenMonth'], 'year'=>$_POST['aussperrenYear']]);
@@ -23,7 +21,7 @@ if($_GET['do'] == 'aussperren')
 
 		/** Instantiate a new, updated $user-Object (weil User ist jetzt nur noch Gast...) */
 		$user = new usersystem();
-		$smarty->assign('user', $user);
+		$smarty->assignByRef('user', $user);
 
 		header('Location: /user/'.$user->id2user($user->id));
 		exit;

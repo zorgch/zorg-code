@@ -64,7 +64,7 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 		$saveMyUserID = $user->id;
 		$_SESSION['user_id'] = $_GET['viewas'];
 		$user = new usersystem();
-		$smarty->assign('user', $user);
+		$smarty->assignByRef('user', $user);
 
 		/** Display "viewas"-Userprofile */
 		$smarty->assign('form_action', '?do=nothing');
@@ -73,7 +73,7 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 		/** Switch back to current User */
 		$_SESSION['user_id'] = $saveMyUserID;
 		$user = new usersystem();
-		$smarty->assign('user', $user);
+		$smarty->assignByRef('user', $user);
 
 	/**
 	 * Mein Profil
@@ -132,7 +132,7 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 
 		/** Instantiate a new, updated $user-Object (because new data...) */
 		$user = new usersystem();
-		$smarty->assign('user', $user);
+		$smarty->assignByRef('user', $user);
 
 		/** Display "Mein Profil ändern" */
 		$smarty->assign('form_action', '?do=view');
@@ -308,7 +308,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 
 			echo '<form action="?do=anmeldung#newuser" method="post" style="font-size: 0.65rem">';
 			echo '<h1 id="newuser">Neuen zorg User erstellen</h1>';
-			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
+			if ($smarty->getTemplateVars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 			/** username eingeben */
 			echo '<fieldset>';
@@ -370,7 +370,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			{
 				$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('newpass-confirmation', 'user'), 'message' => t('newpass-confirmation-text', 'user')]);
 			}
-			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
+			if ($smarty->getTemplateVars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 		}
 		echo '<form action="?do=anmeldung#pwreset" method="post" style="font-size: 0.65rem;margin-top: 60px;">

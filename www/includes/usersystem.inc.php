@@ -1543,8 +1543,9 @@ class usersystem
 	 *	- Verlinkung auf Userprofil: ja/nein?
 	 *
 	 * @author IneX
-	 * @version 1.0
+	 * @version 2.0
 	 * @since 1.0 `05.07.2018` `IneX` initial version (output from Smarty-Template)
+	 * @since 2.0 `03.05.2020` `IneX` introducing a [caching strategy](https://www.smarty.net/docs/en/api.is.cached.tpl) to profit from Smarty 3.1
 	 *
 	 * @uses usersystem::userImage()
 	 * @uses usersystem::id2user()
@@ -1564,14 +1565,25 @@ class usersystem
 		$show_clantag = (empty($params['clantag']) || $params['clantag'] === 'false' || $params['clantag'] === 0 ? FALSE : TRUE);
 		$show_link = (empty($params['link']) || $params['link'] === 'false' || $params['link'] === 0 ? FALSE : TRUE);
 
-		$smarty->assign('show_profilepic', ($show_pic ? 'true' : 'false'));
-		if ($show_pic) $smarty->assign('profilepic_imgsrc', $this->userImage($userid));
-		$smarty->assign('show_username', ($show_username ? 'true' : 'false'));
-		if ($show_username) $smarty->assign('username', $this->id2user($userid, $show_clantag, false));
-		if ($show_username) $smarty->assign('username_link', $this->id2user($userid, false, false));
-		$smarty->assign('show_profile_link', ($show_link ? 'true' : 'false'));
+		/** Create Cache-ID based on Cache-Groups for Smarty (based on Username) */
+		$smartyCacheId = 'profile|links|'.$userid.($show_username || $show_pic || $show_link ? '|'.($show_username ? '_name' : null).($show_pic ? '_pic' : null).($show_link ? '_link' : null) : null);
 
-		return $smarty->fetch('file:layout/partials/profile/userprofile_link.tpl');
+		/** User Profile Link Template - create or get from Cache */
+		if(!$smarty->isCached('file:layout/partials/profile/userprofile_link.tpl', $smartyCacheId))
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> [REFRESH] %s', __METHOD__, __LINE__, $smartyCacheId));
+			$smarty->assign('show_profilepic', ($show_pic ? 'true' : 'false'));
+			if ($show_pic) $smarty->assign('profilepic_imgsrc', $this->userImage($userid));
+			$smarty->assign('show_username', ($show_username ? 'true' : 'false'));
+			if ($show_username) $smarty->assign('username', $this->id2user($userid, true, false));
+			if ($show_link) $smarty->assign('username_link', $this->id2user($userid, false, false));
+			$smarty->assign('show_profile_link', ($show_link ? 'true' : 'false'));
+		} elseif (DEVELOPMENT === true) { error_log(sprintf('[DEBUG] <%s:%d> [CACHED] %s', __METHOD__, __LINE__, $smartyCacheId)); }
+
+		/** Configure individual Smarty Caching Strategy & Display Userprofile link template */
+		$smarty->setCaching(Smarty::CACHING_LIFETIME_SAVED); // retain current cache lifetime for each specific display call
+		$smarty->setCacheLifetime(86400); // set the cache_lifetime for index.tpl to 1 day (86400 seconds)
+		return $smarty->fetch('file:layout/partials/profile/userprofile_link.tpl', $smartyCacheId);
 	}
 
 	/**
@@ -1682,7 +1694,6 @@ class usersystem
 
 		$error[0] = FALSE;
 
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d>', __METHOD__, __LINE__));
 		if(!empty($old_pass) && !empty($new_pass) && !empty($new_pass2))
 		{
 			/** Hash $old_pass */

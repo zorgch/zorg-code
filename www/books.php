@@ -628,7 +628,7 @@ if(empty($action))
 /** Bücherliste von bestimmten User ausgeben */
 } elseif ($action === 'my') {
 	//$smarty->display('file:layout/head.tpl');
-	//if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
+	//if ($smarty->getTemplateVars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 	//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 
 	$htmlOutput .= '<h2>Boooks von '.$user->id2user($user_id).'</h2>';

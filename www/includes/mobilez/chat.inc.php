@@ -1,9 +1,9 @@
 <?php
 /**
- * Mobilezorg Chat
+ * Mobilezorg Chat - Migration Script
  *
  * Before using it, make sure the Setup has been done:
- * /scripts/mobilezorg_v2_setup.php
+ * /migration/mobilezorg-v2_0_0/mobilezorg_v2_setup.php
  *
  * @author IneX
  * @date 16.01.2016
@@ -22,7 +22,7 @@ if (!require_once INCLUDES_DIR.'googleapis.inc.php') die('ERROR: Google API coul
 /**
  * Mobilezorg Chat
  * Before using it, make sure the Setup has been done:
- * /scripts/mobilezorg_v2_setup.php
+ * /migration/mobilezorg-v2_0_0/mobilezorg_v2_setup.php
  *
  * @author IneX
  * @date 16.01.2016

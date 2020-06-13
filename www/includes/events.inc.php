@@ -116,7 +116,6 @@ class Events
 	 * @since 1.0 Method added
 	 * @since 1.1 `17.04.2020` `IneX` SQL Slow-Query optimization
 	 *
-	 * @see /includes/smarty.fnc.php
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return array List holding all upcoming events
