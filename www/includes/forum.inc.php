@@ -130,13 +130,8 @@ class Comment
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> compile_template() $resource: %s', __METHOD__, __LINE__, $resource));
 
 		/** Update record in database */
-		try {
-			$result = $db->update('comments', ['id', $comment_id], ['error' => null], __FILE__, __LINE__, __METHOD__);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(comments) $result: %d %s', __METHOD__, __LINE__, $result, ($result > 0 ? 'updates' : 'no change')));
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			return $e->getMessage();
-		}
+		$result = $db->update('comments', ['id', $comment_id], ['error' => null], __FILE__, __LINE__, __METHOD__);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(comments) $result: %d %s', __METHOD__, __LINE__, $result, ($result > 0 ? 'updates' : 'no change')));
 
 		if (($result || $result >= 0) && !empty($resource))
 		{
@@ -211,8 +206,9 @@ class Comment
 	 * Anzahl Kinder-Objekte zu beliebigem Post ermitteln
 	 *
 	 * @author [z]biko
-	 * @version 1.0
-	 * @since 1.0 method added
+	 * @version 1.1
+	 * @since 1.0 `[z]biko` method added
+	 * @since 1.1 `11.05.2020` `IneX` Adjusted SQL-Query to COUNT(id) from previous $db->num(SELECT)
 	 *
 	 * @FIXME switch Reihenfolge der params (so wie sonst auch überall): $board <--> $comment_id
 	 *
@@ -222,8 +218,9 @@ class Comment
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return int Num Child-Comments
 	 */
-	static function getNumChildposts($board, $comment_id) {
-		global $db, $user;
+	static function getNumChildposts($board, $comment_id)
+	{
+		global $db;
 		static $_cache = array();
 
 		/** Validate passed parameters */
@@ -234,13 +231,13 @@ class Comment
 			/** Parent zu $comment_id is NOT cached yet... */
 			if (!isset($_cache["$board $comment_id"]))
 			{
-			   $sql = 'SELECT * FROM comments where parent_id = '.$comment_id.' AND board="'.$board.'"';
-			   $_cache["$board $comment_id"] = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			   $sql = 'SELECT COUNT(id) as numchildposts FROM comments WHERE parent_id='.$comment_id.' AND board="'.$board.'"';
+			   $result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			   $_cache["$board $comment_id"] = $result['numchildposts'];
 			}
 			return $_cache["$board $comment_id"];
 		} else {
 			user_error(sprintf('<%s:%d> $comment_id is not numeric: %d', __FILE__, __LINE__, $comment_id), E_USER_WARNING);
-			//exit;
 		}
 	}
 
@@ -274,28 +271,25 @@ class Comment
 	 * @version 2.0
 	 * @since 1.0 method added
 	 * @since 2.0 `06.11.2018` added parameter validation
+	 * @since 3.0 `31.05.2020` `IneX` added 2nd $board-parameter to fetch correct comment in Forum::printCommentingSystem()
 	 *
 	 * @param int $id Comment-ID
+	 * @param string $board Comments Board. Default: 'f' (Forum) -> for Method backwards-compatibilty
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return arr|bool Containing the queried DB-Result record-set - or false on error
 	 */
-	static function getRecordset($id) {
+	static function getRecordset($id, $board='f')
+	{
 		global $db;
 
 		/** Validate passed parameters */
-		if (empty($id) || !is_numeric($id) || $id <= 0 || is_array($id)) {
+		if (empty($id) || !is_numeric($id) || $id <= 0)
+		{
 			error_log(sprintf('[WARN] <%s:%d> Passed Parameter $id is not numeric or otherwise invalid: %s', __METHOD__, __LINE__, $id));
 			return false;
-		}
-
-		try {
-			$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
-		  			FROM comments WHERE id = '.$id;
+		} else {
+			$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date FROM comments WHERE board="'.$board.'" AND id='.$id;
 			return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
 		}
 	}
 
@@ -473,7 +467,8 @@ class Comment
 
 	}
 
-	static function getChildPostsFormFields($id, $parent_id, $comment_id=0, $depth=0) {
+	static function getChildPostsFormFields($id, $parent_id, $comment_id=0, $depth=0)
+	{
 		global $db;
 
 		if($depth < 7) {
@@ -510,7 +505,8 @@ class Comment
 	 * @param int $id
 	 * @param int $hiers
 	 */
-	static function getThreadid($board, $id) {
+	static function getThreadid($board, $id)
+	{
 		global $db;
 		$sql = 'SELECT thread_id FROM comments WHERE board="'.$board.'" AND id='.$id;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
@@ -534,7 +530,8 @@ class Comment
 	 * @param string $if_empty_use_this (Optional) Wenn Titel leer ist, dann ein besserer Fallback als nur '---' der verwendet werden soll
 	 * @return string
 	 */
-	static function getTitle($text, $length=20, $if_empty_use_this=null) {
+	static function getTitle($text, $length=20, $if_empty_use_this=null)
+	{
 		$text = text_width(remove_html($text), $length, '', true, true);
 		$text = str_replace('{', '', str_replace('}', '', $text)); // Remove Smarty-brackets { and }
 		if (empty($text)) $text = (empty($if_empty_use_this) ? '---' : remove_html($if_empty_use_this));
@@ -555,7 +552,8 @@ class Comment
 	 * @param int $length offset
 	 * @return string
 	 */
-	static function getSummary($text, $length=20) {
+	static function getSummary($text, $length=20)
+	{
 		$text = text_width(remove_html($text), $length);
 		$text = str_replace('{', '', str_replace('}', '', $text)); // Remove Smarty-brackets { and }
 		return (empty($text) ? t('text-abbreviation') : $text);
@@ -564,7 +562,8 @@ class Comment
 	/**
 	 * Mark Comment as 'read'
 	 */
-	static function markasread($comment_id, $user_id) {
+	static function markasread($comment_id, $user_id)
+	{
 		global $db, $user;
 		if(defined('USER_USER') && $user->typ >= USER_USER) {
 			$sql = 'DELETE from comments_unread WHERE user_id = '.$user_id.' AND comment_id='.$comment_id;
@@ -581,18 +580,20 @@ class Comment
 	 * @date 16.03.2008
 	 * @param string $board
 	 * @param int $id int
-	 * @return boolean
+	 * @return resource|boolean Returns Comments_Threads DB-Resource, or false if Query did not match any records
 	 */
-	static function isThread($board, $id) {
+	static function isThread($board, $id)
+	{
 		global $db;
-		$sql = "SELECT thread_id FROM comments_threads WHERE board = '".$board."' AND comment_id = ".$id;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$sql = 'SELECT thread_id FROM comments_threads WHERE board="'.$board.'" AND comment_id='.$id;
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 		return $rs;
 	}
 
 	// Mark as unread for all users.
-	static function markasunread($comment_id) {
+	static function markasunread($comment_id)
+	{
 		global $db;
 
 		$sql =
@@ -608,7 +609,7 @@ class Comment
 			LIMIT 0, 1
 			"
 		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
 		if($rs['rights'] == '') $rs['rights'] = 0;
 
@@ -636,7 +637,7 @@ class Comment
 						)*/
 
 			;
-			$data = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			$data = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		} else {
 			$sql =
 				"
@@ -649,11 +650,12 @@ class Comment
 					AND thread_id = ".$rs['thread_id']."
 				"
 			;
-			$data = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			$data = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		}
 	}
 
-	static function highliteKeyword($keyword,$text) {
+	static function highliteKeyword($keyword,$text)
+	{
 	  global $tborderc;
 	  //$keyword = htmlentities($keyword);
 	  $searcher = "/$keyword/i";
@@ -825,6 +827,7 @@ class Comment
 	 * @version 2.0
 	 * @since 1.0 `26.11.2018` method moved to Comment-Class from /actions/comment_edit.php
 	 * @since 2.0 `27.11.2018` updated to use new $notifcation Class & some code and query optimizations
+	 * @since 2.1 `07.05.2020` `IneX` Minor Code optimizations and removal of deprecated parts
 	 *
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/comment_edit.php Used in Comment-Editing Action
 	 * @param integer $comment_id
@@ -837,37 +840,36 @@ class Comment
 	{
 		global $db, $user, $notification;
 
-		try {
 			$sql = 'UPDATE comments 
-					SET
+					 SET 
 						text="'.$_POST['text'].'"
 						, board="'.$_POST['board'].'"
 						, parent_id='.$_POST['parent_id'].'
 						, thread_id='.$_POST['thread_id'].'
 						, date_edited=NOW()
-					WHERE id = '.$comment_id.' AND board="'.$_POST['board'].'"';
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+					 WHERE id = '.$comment_id.' AND board="'.$_POST['board'].'"';
+			$updateResult = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			/** Smarty Comment Templates neu Kompilieren */
-			self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
-			self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // alter parent
-			self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // neuer Parent
-		} catch(Exception $e) {
-			http_response_code(500); // Set response code 500 (internal server error)
-			error_log($e->getMessage());
-			header('Location: '.base64_decode($_POST['url'])); // redirect user back where he came from
-			exit;
-		}
+			if ($db->num($updateResult) > 0)
+			{
+				// FIXME needs to recompile the thread as well - otherwise edited comment shown in old position (IneX, 07.05.2020)
+
+				/** Smarty Comment Templates neu Kompilieren */
+				self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
+				self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // alter parent
+				self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // neuer Parent
+			} else {
+				header('Location: '.base64_decode($_POST['url'])); // redirect user back where he came from
+				exit;
+			}
 
 		/** last post setzen */
-		try {
-			$sql = 'UPDATE comments_threads
-					 SET last_comment_id = (SELECT MAX(id) from comments WHERE thread_id = '.$_POST['thread_id'].' AND board = "'.$_POST['board'].'")
-					 WHERE thread_id = '.$_POST['thread_id'];
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		} catch (Exception $e) {
-			http_response_code(500); // Set response code 500 (internal server error)
-			error_log($e->getMessage());
+		$sql = 'UPDATE comments_threads 
+				 SET last_comment_id = (SELECT MAX(id) from comments WHERE thread_id = '.$_POST['thread_id'].' AND board = "'.$_POST['board'].'")
+				 WHERE thread_id = '.$_POST['thread_id'];
+		$updateLastPostResult = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		if ($db->num($updateLastPostResult) === 0 || $db->num($updateLastPostResult) === false)
+		{
 			header('Location: '.base64_decode($_POST['url'])); // redirect user back where he came from
 			exit;
 		}
@@ -883,30 +885,10 @@ class Comment
 		{
 			$subject = t('message-commentupdate-subject', 'commenting', $user->id2user($user->id,true));
 			$text = t('message-commentupdate', 'commenting', [ $user->id2user($user->id,true), addslashes(stripslashes($text)), self::getLink($_POST['board'], $_POST['parent_id'], $comment_id, $_POST['thread_id']) ]);
-			//for ($i=0; $i < count($_POST['msg_users']); $i++) {
 			foreach ($_POST['msg_users'] as $msg_recipient_id)
 			{
 				$notification_status = $notification->send($msg_recipient_id, 'mentions', ['from_user_id'=>$user->id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text, 'to_users' => $_POST['msg_users']]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status to user_id %d: %s', __METHOD__, __LINE__, $msg_recipient_id, ($notification_status == 'true' ? 'true' : 'false')));
-				/** @deprecated
-				Messagesystem::sendMessage(
-					$user->id
-					, $_POST['msg_users'][$i]
-					, addslashes(
-							stripslashes(
-							'[Forumpost] von '.$user->id2user($user->id)
-							)
-						)
-					, addslashes(
-							stripslashes(
-								$user->id2user($user->id).' hat geschrieben: <br /><i>'
-								.$commentText
-								.'</i><br /><br /><a href="'.Comment::getLink($_POST['board'], $_POST['parent_id'], $_POST['id'], $_POST['thread_id'])
-								.'">--> zum Post</a>'
-							)
-						)
-					, implode(',', $_POST['msg_users'])
-				);*/
 			}
 		}
 	}
@@ -1042,24 +1024,19 @@ class Forum {
 		/** Validate passed $selected_boards_array */
 		if (!empty($selected_boards_array) && !is_array($selected_boards_array)) return false;
 
-		try {
-			$sql = 'SELECT * FROM comments_boards ORDER BY title';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			if (!empty($result) && $result !== false)
-			{
-				while ($forumBoard = $db->fetch($result)) $boards[] = $forumBoard;
-				$smarty->assign('boards', $boards);
-				$smarty->assign('boards_checked', $selected_boards_array);
-				if ($update_mode === 'threads') $smarty->assign('do', 'set_show_boards'); // for on Forum Overview
-				elseif ($update_mode === 'unreads') $smarty->assign('do', 'set_unread_boards'); // for on User's Edit Profile
-				else $smarty->assign('do', 'disable'); // only show subscribed boards, no selection possible
-				return $smarty->fetch('file:layout/partials/forum/forum_boards.tpl');
-			} else {
-				return false;
-			}
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			return $e->getMessage();
+		$sql = 'SELECT * FROM comments_boards ORDER BY title';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		if (!empty($result) && $result !== false)
+		{
+			while ($forumBoard = $db->fetch($result)) $boards[] = $forumBoard;
+			$smarty->assign('boards', $boards);
+			$smarty->assign('boards_checked', $selected_boards_array);
+			if ($update_mode === 'threads') $smarty->assign('do', 'set_show_boards'); // for on Forum Overview
+			elseif ($update_mode === 'unreads') $smarty->assign('do', 'set_unread_boards'); // for on User's Edit Profile
+			else $smarty->assign('do', 'disable'); // only show subscribed boards, no selection possible
+			return $smarty->fetch('file:layout/partials/forum/forum_boards.tpl');
+		} else {
+			return false;
 		}
 	}
 
@@ -1411,7 +1388,9 @@ class Forum {
 	 * @version 1.1
 	 * @since 1.0 Method added
 	 * @since 2.0 `07.03.2020` `IneX` Code optimizations
+	 * @since 2.1 `31.05.2020` `IneX` Added setting $smarty vars comment_is_thread & comments_top_additional
 	 *
+	 * @uses Smarty_Resource_Comments::fetch()
 	 * @param string $keyword Search-Text for LIKE %...% search
 	 * @return void
 	 */
@@ -1419,20 +1398,22 @@ class Forum {
 	{
 		global $db, $smarty;
 
-		$sql = 'SELECT id, text, UNIX_TIMESTAMP(date) as date
-				FROM comments
-				WHERE text LIKE "%'.$keyword.'%"
-				ORDER by date DESC';
+		$sql = 'SELECT id, text, UNIX_TIMESTAMP(date) as date FROM comments 
+				WHERE text LIKE "%'.$keyword.'%" ORDER by date DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$num = $db->num($result);
 		if ($num > 0)
 		{
-			$smarty->assign('comments_no_childposts', 1);
+			$smarty->assign('comment_is_thread', false);
+			$smarty->assign('comments_top_additional', false);
+			$smarty->assign('comments_no_childposts', true);
 			while($rs = $db->fetch($result))
 			{
 		    	$smarty->display('comments:'.$rs['id']);
 			}
-		} else {
+		}
+		/** Keine Suchtreffer */
+		else {
 			echo t('error-search-noresult', 'commenting', [(string)$keyword]);
 		}
 	}
@@ -2017,27 +1998,29 @@ class Forum {
 	}
 
 	/**
-	 * Commenting-System ausgeben
+	 * Commenting-System ausgeben.
+	 *
 	 * Printet das "Pluggable" Commenting-System
 	 *
-	 * @author	[z]biko
-	 * @author	IneX
-	 * @version	3.1
-	 * @since	1.0 `[z]biko` added method
-	 * @since	2.0 `IneX` 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
-	 * @since	3.0 `IneX` 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
-	 * @since	3.1 `IneX` 22.01.2020 Code optimizations
-	 *
-	 * @uses USER_USER
-	 * @uses USER_NICHTEINGELOGGT
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/commentform.tpl Template used for output is commentform.tpl
+	 *
+	 * @author [z]biko
+	 * @author IneX
+	 * @version	4.0
+	 * @since 1.0 `[z]biko` added method
+	 * @since 2.0 `17.12.2017` `IneX` Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
+	 * @since 3.0 `25.07.2018` `IneX` Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
+	 * @since 3.1 `22.01.2020` `IneX` Code optimizations
+	 * @since 4.0 `13.05.2020` `IneX` Updated function to compensate duplicate code issue in `forum.php` and for compatibility with new Smarty 3.1
+	 *
 	 * @uses Thread::hasRights()
 	 * @uses Thread::setLastSeen()
+	 * @uses Smarty_Resource_Comments::fetch()
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
-	 * @param string $board
-	 * @param int $thread_id
+	 * @param string $board Kürzel des Boards für welchen die $thread_id gilt
+	 * @param int $thread_id ID des Comment-Threads (kann, im Forum, auch eine Comment-ID sein)
 	 * @var $_GET['parent_id'] directly
 	 * @return void
 	 */
@@ -2045,58 +2028,91 @@ class Forum {
 	{
 		global $db, $user, $smarty;
 
-		/** Get and set missing parent_id */
-		$comment_parent_id = ( isset( $_GET['parent_id'] ) && $_GET['parent_id'] != '' ) ? $_GET['parent_id'] : $thread_id;
+		/**
+		 * Eine parent_id mittels &parent_id=123 URL-Param übersteuert immer quasi die "Thread-ID",
+		 * weil man die Comments ab der Ebene des Partend-ID Comment sehen will.
+		 *
+		 * Daher: get and set parent_id (if available as &parent_id=123 URL-Param), othewise = $thread_id
+		 * - Forum Thread (erster Comment): parent_id = 1
+		 * - Forum Comment-Thread (Comment innerhalb eines Forum-Threads): parent_id = comment_id des vorherigen Comments
+		 * - Andere Pages (nicht Forum): parent_id = z.B. Tpl-ID, Bug-ID, Hunting z Game-ID, usw.
+		 */
+		$comment_parent_id = (isset($_GET['parent_id']) && is_numeric($_GET['parent_id']) ? ($_GET['parent_id'] > 1 ? (integer)$_GET['parent_id'] : (integer)$thread_id) : (integer)$thread_id);
 
-		if (Thread::hasRights($board, $thread_id, $user->id)) {
-			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
+		/** Make sure User has permissions to see whole Thread */
+		if (Thread::hasRights($board, $thread_id, $user->id))
+		{
+			/** damit man die älteren kompilierten comments löschen kann (Speicherplatz sparen) */
 			Thread::setLastSeen($board, $thread_id);
 
-			/** Subscribed_Comments Array Bauen (nur für eingeloggte User) */
-			if($user->typ >= USER_USER)
+			/** Specials für eingeloggte User */
+			if($user->is_loggedin())
 			{
-				$comments_subscribed = array();
-				$sql = 'SELECT comment_id
-						FROM comments_subscriptions
-						WHERE board="'.$board.'" AND user_id='.$user->id;
-				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
+				/** Subscribed_Comments Array bauen */
+				$subscrCommentsSql = 'SELECT comment_id FROM comments_subscriptions WHERE board="'.$board.'" AND user_id='.$user->id;
+				$subscrCommentsQuery = $db->query($subscrCommentsSql, __FILE__, __LINE__, __METHOD__);
+				while ($subscrComments = $db->fetch($subscrCommentsQuery)) $comments_subscribed[] = $subscrComments['comment_id'];
 				$smarty->assign('comments_subscribed', $comments_subscribed);
 
-				/** Unread Comment Array Bauen */
-				$comments_unread = array();
-				$sql = 'SELECT u.*
-						FROM comments_unread u, comments c
-						WHERE c.id=u.comment_id
-							AND c.thread_id='.$thread_id.'
-							AND c.board="'.$board.'"
-							AND u.user_id='.$user->id;
-				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
+				/** Unread Comments Array für die aktuell anzuzeigenden Comments bauen */
+				$unreadCommentsSql = 'SELECT u.comment_id FROM comments_unread u, comments c WHERE c.id=u.comment_id AND c.thread_id='.$thread_id.' AND c.board="'.$board.'" AND u.user_id='.$user->id;
+				$$unreadCommentsQuery = $db->query($unreadCommentsSql, __FILE__, __LINE__, __METHOD__);
+				while ($unreadComments = $db->fetch($unreadCommentsQuery)) $comments_unread[] = $unreadComments['comment_id'];
 				$smarty->assign('comments_unread', $comments_unread);
 			}
+var_dump($comment_parent_id);
+var_dump($board);
+			/**
+			 * Check and get Thread Resource (=false wenn kein Thread)
+			 * Wird gebraucht um comments_top_additional zu setzen, für Ouput von ^^^ Additional posts ^^^
+			 * - z.B. Bug-ID "689" = Comment ID "113342" (Thread-ID)
+			 */
+			$thread_data = Thread::getRecordset($comment_parent_id, $board);
+var_dump($thread_data);
 
-			/** Comments aus DB holen */
-			$sql = 'SELECT * FROM comments WHERE board="'.$board.'" AND id='.$comment_parent_id;
-			$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-
-			/** Comments an Smarty übergeben */
-			if ($comment_parent_id == $thread_id || $d['parent_id'] == $thread_id)
+			/** First Comment ist ein Thread */
+			if ($thread_data !== false)
 			{
-				$smarty->display(sprintf('comments:%s-%d', $board, $thread_id));
-			} else {
-				$smarty->assign('comments_top_additional', 1);
-				$smarty->display('comments:'.$d['parent_id']);
+				$comment_id = $thread_data['comment_id'];
+				$smarty->assign('comment_is_thread', true);
+				$smarty->assign('comments_top_additional', false);
+			}
+			/** First Comment ist ein x-beliebiger Comment innerhalb vom Thread */
+			else {
+				/** Comment Resource aus DB holen */
+				$comment_data = Comment::getRecordset($comment_parent_id, $board);
+var_dump($comment_data);
+				$comment_id = $comment_data['id'];
+				$smarty->assign('comment_is_thread', false);
+				$smarty->assign('comments_top_additional', true);
+			}
+			/** Weder Comment noch Thread gefunden... */
+			if (empty($comment_id) || $comment_id <= 0)
+			{
+	// TODO SChön machen...
+				echo 'ERROR - Comment not found';
+				return false;
 			}
 
-			/** Wenn User eingeloggt ist, commentform.tpl ausgeben */
-	    	if(defined('USER_USER') && $user->typ >= USER_USER)
-	    	{
-	    		$smarty->assign('board', $board);
-				$smarty->assign('thread_id', $thread_id);
-				$smarty->assign('parent_id', $comment_parent_id);
-				$smarty->display('file:layout/partials/commentform.tpl');
-	    	}
+			/**
+			 * Comment Resource von Smarty anfordern
+			 */
+			$smarty->assign('board', $board);
+			$smarty->assign('thread_id', $thread_id);
+			$smarty->assign('parent_id', $comment_parent_id);
+			$smarty->assign('comments_no_childposts', false); // = always include Childposts
+var_dump('comments:'.$board.'-'.$comment_id);
+			$smarty->display(sprintf('comments:%s-%d', $board, $comment_id));
+
+			/**
+			 * ...und wenn User eingeloggt ist, auch das commentform.tpl ausgeben
+			 */
+	    	if ($user->is_loggedin()) $smarty->display('file:layout/partials/commentform.tpl');
+	    }
+
+	    /** No permissions to view Thread */
+		else {
+			// stay silent / do not show Comenting System at all
 		}
 	}
 
@@ -2317,20 +2333,21 @@ class Forum {
  * @version 1.0
  * @package zorg\Forum
  */
-class Thread {
-	static function setLastSeen ($board, $thread_id) {
+class Thread
+{
+	static function setLastSeen ($board, $thread_id)
+	{
 		global $db;
-
-		$db->query("UPDATE comments_threads SET last_seen=now() WHERE board='$board' AND thread_id='$thread_id'", __FILE__, __LINE__, __METHOD__);
-
+		$db->query('UPDATE comments_threads SET last_seen=NOW() WHERE board="'.$board.'" AND thread_id='.$thread_id, __FILE__, __LINE__, __METHOD__);
 	}
 
-	static function setRights ($board, $thread_id, $rights) {
+	static function setRights ($board, $thread_id, $rights)
+	{
 		global $db;
 
-		$e = $db->query("SELECT * FROM comments_threads WHERE board='$board' AND thread_id='$thread_id'", __FILE__, __LINE__, __METHOD__);
+		$e = $db->query('SELECT * FROM comments_threads WHERE board="'.$board.'" AND thread_id='.$thread_id, __FILE__, __LINE__, __METHOD__);
 		$d = $db->fetch($e);
-		if (!$d && $rights) $db->query("INSERT INTO comments_threads (board, thread_id) VALUES ('$board', $thread_id)", __FILE__, __LINE__, __METHOD__);
+		if (!$d && $rights) $db->query('INSERT INTO comments_threads (board, thread_id) VALUES ("'.$board.'", '.$thread_id.')', __FILE__, __LINE__, __METHOD__);
 		elseif (!$d && !$rights) return;
 
 		if (!$rights) $rights = '0';
@@ -2338,34 +2355,47 @@ class Thread {
 		if (is_array($rights)) $set_right = '3';
 		else $set_right = $rights;
 
-		$db->query("DELETE FROM comments_threads_rights WHERE thread_id='$thread_id'", __FILE__, __LINE__, __METHOD__);
-		$db->query("UPDATE comments_threads SET rights='$set_right' WHERE board='$board' AND thread_id='$thread_id'", __FILE__, __LINE__, __METHOD__);
+		$db->query('DELETE FROM comments_threads_rights WHERE thread_id='.$thread_id, __FILE__, __LINE__, __METHOD__);
+		$db->query('UPDATE comments_threads SET rights='.$set_right.' WHERE board="'.$board.'" AND thread_id='.$thread_id, __FILE__, __LINE__, __METHOD__);
 		if (is_array($rights)) {
 			foreach ($rights as $it) {
-				$db->query("INSERT INTO comments_threads_rights (board, thread_id, user_id) VALUES ('$board', $thread_id, $it)", __FILE__, __LINE__, __METHOD__);
+				$db->query('INSERT INTO comments_threads_rights (board, thread_id, user_id) VALUES ("'.$board.'", '.$thread_id.', '.$it.')', __FILE__, __LINE__, __METHOD__);
 			}
 		}
 	}
 
-	static function hasRights ($board, $thread_id, $user_id) {
+	/**
+	 * Check ob bestimmte UserID einen geschützten Thread im Board sehen darf
+	 *
+	 * @author [z]milamber
+	 * @version 1.1
+	 * @since 1.0 `[z]milamber` method added
+	 * @since 1.1 `13.05.2020` `IneX` User-ID Validierung: darf bei Guests nicht NULL sein, sonst crasht der mysqli-Query
+	 *
+	 * @param string $board Comment Board Key, z.B "f"
+	 * @param int $thread_id Comment-Thread-ID
+	 * @param int $user_id UserID die gegen die Thread Permission geprüft werden soll
+	 * @global object $db
+	 * @return bool True = ja, der User darf den Thread sehen / false = nein, kein Access (da Thread geschützt)
+	 */
+	static function hasRights ($board, $thread_id, $user_id)
+	{
 		global $db;
 
-		$sql =
-			"
-			SELECT
-				user.usertype
-				, ct.rights AS thread_rights
-				, IF(ISNULL(ctr.user_id), 0, 1) AS special_rights
-			FROM comments_threads ct
-			LEFT JOIN comments_threads_rights ctr
-				ON (ct.thread_id = ctr.thread_id
-				AND ctr.user_id = '".$user_id."')
-			LEFT JOIN user ON(user.id = '".$user_id."')
-			WHERE ct.thread_id = ".$thread_id."
-			AND ct.board = '".$board."'
-			"
-		;
-		//echo $sql;
+		/* User-ID setzen - darf bei Guests nicht NULL sein, sonst crasht der mysqli-Query unten */
+		if (empty($user_id) || !is_numeric($user_id) || $user_id <= 0) $user_id = 0; // Achtung: darf nicht 'NULL' sein!
+
+		$sql = 'SELECT
+					user.usertype
+					, ct.rights AS thread_rights
+					, IF(ISNULL(ctr.user_id), 0, 1) AS special_rights
+				FROM comments_threads ct
+				LEFT JOIN comments_threads_rights ctr
+					ON (ct.thread_id = ctr.thread_id
+					AND ctr.user_id = '.$user_id.')
+				LEFT JOIN user ON(user.id = '.$user_id.')
+				WHERE ct.board = "'.$board.'"
+				AND ct.thread_id = '.$thread_id;
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
 		if(
@@ -2380,50 +2410,51 @@ class Thread {
 		}
 	}
 
-
-	static function adjustThreadRecord($board, $thread_id) {
+	static function adjustThreadRecord($board, $thread_id)
+	{
 		global $db;
 
-		if(Thread::hasRecords($board, $thread_id)) {
-  		$sql =
-  			"select * from comments"
-  			." where board = "
-  			."'".$board."' and thread_id = ".$thread_id
-  			." ORDER BY date asc"
-  			." LIMIT 0,1"
-  		;
-  		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-  		$rs = $db->fetch($result);
-  		$sql =
-  			"update comments_threads"
-  			." set comment_id = ".$rs['id']
-  			." where board = '".$rs['board']."' and thread_id = ".$rs['thread_id']
-  		;
-  		$db->query($sql, __FILE__, __LINE__, __METHOD__);
-  	} else {
-  		$sql =
-  			"delete from comments_threads"
-  			." where board = "."'".$board."'"
-  			." and thread_id = ".$thread_id
-  		;
-  		$db->query($sql, __FILE__, __LINE__, __METHOD__);
-  	}
+		if(Thread::hasRecords($board, $thread_id))
+		{
+	  		$sql =
+	  			"select * from comments"
+	  			." where board = "
+	  			."'".$board."' and thread_id = ".$thread_id
+	  			." ORDER BY date asc"
+	  			." LIMIT 0,1"
+	  		;
+	  		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+	  		$rs = $db->fetch($result);
+	  		$sql =
+	  			"update comments_threads"
+	  			." set comment_id = ".$rs['id']
+	  			." where board = '".$rs['board']."' and thread_id = ".$rs['thread_id']
+	  		;
+	  		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+	  	} else {
+	  		$sql =
+	  			"delete from comments_threads"
+	  			." where board = "."'".$board."'"
+	  			." and thread_id = ".$thread_id
+	  		;
+	  		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+	  	}
 	}
 
-	static function hasRecords($board, $thread_id) {
+	static function hasRecords($board, $thread_id)
+	{
 		global $db;
 		$sql =
-	  	"SELECT * from comments"
-	  	." WHERE thread_id = ".$thread_id
-	  	." AND board = '".$board."'"
-	  ;
-	  if($db->fetch($db->query($sql, __FILE__, __LINE__))) {
-	  	return true;
-	  } else {
-	  	return false;
-	  }
+			"SELECT * from comments"
+			." WHERE thread_id = ".$thread_id
+			." AND board = '".$board."'";
+		if($db->fetch($db->query($sql, __FILE__, __LINE__)))
+		{
+			return true;
+		} else {
+			return false;
+		}
 	}
-
 
 	/**
 	 * Holt den letzten Kommentar eines Threads
@@ -2432,15 +2463,14 @@ class Thread {
 	 * @param string $board
 	 * @param int $thread_id
 	 */
-	static function getLastComment($board, $thread_id) {
+	static function getLastComment($board, $thread_id)
+	{
 	  global $db;
-		$sql =
-			"SELECT user.*, comments.*, UNIX_TIMESTAMP(date) as date"
-	  	." FROM comments"
-	  	." left join user on comments.user_id = user.id"
-	  	." where thread_id = $thread_id AND board='".$board."'"
-	  	." order by date desc Limit 0,1"
-	  ;
+		$sql = 'SELECT user.*, comments.*, UNIX_TIMESTAMP(date) as date 
+			  	FROM comments 
+			  	LEFT JOIN user ON comments.user_id = user.id 
+			  	WHERE thread_id = '.$thread_id.' AND board="'.$board.'" 
+			  	ORDER BY date DESC Limit 0,1';
 	  $rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 	  return $rs;
 	}
@@ -2451,13 +2481,10 @@ class Thread {
 	 * @return Array
 	 * @param int $thread_id int
  	 */
-	static function getLastUnreadComment($board, $thread_id, $user_id) {
+	static function getLastUnreadComment($board, $thread_id, $user_id)
+	{
 		global $db;
-		$sql =
-			"
-			SELECT
-			comments.*
-			, UNIX_TIMESTAMP(comments.date) as date
+		$sql = "SELECT comments.*, UNIX_TIMESTAMP(comments.date) as date 
 			FROM comments
 			LEFT JOIN comments_unread
 				ON (comments.id = comments_unread.comment_id AND comments_unread.user_id = ".$user_id.")
@@ -2465,9 +2492,7 @@ class Thread {
 				comments_unread.comment_id is NOT NULL
 				AND comments.thread_id = ".$thread_id."
 				AND comments.board='".$board."'
-			ORDER by date ASC LIMIT 0,1
-			"
-		;
+			ORDER by date ASC LIMIT 0,1";
 	  return $db->fetch($db->query($sql, __FILE__, __LINE__));
 	}
 
@@ -2480,9 +2505,8 @@ class Thread {
 	 */
 	static function getNavigation($board, $id, $thread_id)
 	{
-		$html =
-			'<table class="border forum" style="table-layout:fixed;" width="100%">'
-			.'<tr><td>';
+		$html = '<table class="border forum" style="table-layout:fixed;" width="100%">
+					<tr><td>';
 
 		if($id > $thread_id)
 		{
@@ -2497,7 +2521,7 @@ class Thread {
 				}
 			}
 
-			$rs = Thread::getRecordset($board, $thread_id);
+			$rs = Thread::getRecordset($thread_id, $board);
 			$html .= Comment::getLinkThread($rs['board'], $rs['thread_id']);
 			$html .= '</td></tr></table>';
 
@@ -2573,7 +2597,8 @@ class Thread {
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return int|bool Containing the queried count()-Result as integer - or false on error
 	 */
-	static function getNumUnread ($board, $thread_id, $user_id=null) {
+	static function getNumUnread ($board, $thread_id, $user_id=null)
+	{
 		global $db, $user;
 
 		/** Validate passed parameters */
@@ -2582,48 +2607,39 @@ class Thread {
 		if (is_array($user_id) || !is_numeric($user_id) || $user_id <= 0) return false;
 		if (empty($user_id) || $user_id === null) $user_id = $user->id; // $user_id must always be $user->id (current user!)
 
-		try {
-			$sql = 'SELECT count(c.id) anz
-					FROM comments c, comments_unread u
-					WHERE c.board = "'.$board.'" AND c.thread_id='.$thread_id.' AND u.comment_id=c.id AND u.user_id='.$user_id
-					;
-			$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			return $d['anz'];
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT count(c.id) anz
+				FROM comments c, comments_unread u
+				WHERE c.board = "'.$board.'" AND c.thread_id='.$thread_id.' AND u.comment_id=c.id AND u.user_id='.$user_id
+				;
+		$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		return ($d['anz'] ? $d['anz'] : 0);
 	}
 
 	/**
 	 * Fetches a Thread and returns its Recordset
 	 *
-	 * @version 2.0
+	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 `06.11.2018` added parameter validation
+	 * @since 2.1 `14.05.2020` `IneX` fixed return array $db->fetch() which didn't include recordset (?!)
+	 * @since 3.0 `31.05.2020` `IneX` fixed to actually use `comments_threads`-table, otherwise duplicate to Comment:getRecordset()
 	 *
 	 * @param string $board
 	 * @param int $thread_id
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return arr|bool Containing the queried DB-Result record-set - or false on error
 	 */
-	static function getRecordset($board, $thread_id) {
+	static function getRecordset($thread_id, $board)
+	{
 		global $db;
 
 		/** Validate passed parameters */
-		if (empty($board) || is_numeric($board) || is_array($board)) return false;
-		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0 || is_array($thread_id)) return false;
+		if (empty($board) || !is_string($board)) return false;
+		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0) return false;
 
-		try {
-			$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
-					FROM comments where thread_id='.$thread_id.' and board="'.$board.'"';
-			return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT *, UNIX_TIMESTAMP(last_seen) AS date FROM comments_threads WHERE board="'.$board.'" AND thread_id='.$thread_id;
+		$rs = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		return ($rs !== false ? $db->fetch($rs) : false);
 	}
 
 	/**
@@ -2635,69 +2651,70 @@ class Thread {
 	 * @param int $parent_id
 	 * @param array $depth
 	 */
-	static function printChildPosts($board, $parent_id, $depth=array("space")) {
+	static function printChildPosts($board, $parent_id, $depth=array("space"))
+	{
+		global $db, $user;
 
-	  global $db, $user;
+		if(!is_numeric($parent_id))
+		{
+			echo t('invalid-parent_id', 'commenting');
+			exit;
+		}
 
-	  if(!is_numeric($parent_id)) {
-				echo t('invalid-parent_id', 'commenting');
-				exit;
-			}
+		$hierdepth = count($depth);
+		$sql =
+		  	"SELECT"
+		  	." comments.*"
+		  	.", user.clan_tag, user.username"
+		  	.", comments_unread.user_id as isunread"
+		  	.", UNIX_TIMESTAMP(comments.date) as date"
+		  	.", count(c2.id) as numchildposts"
+		  	." FROM comments"
+		    ." LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '".$_SESSION['user_id']."')"
+		    ." LEFT JOIN user ON comments.user_id = user.id"
+		    ." LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)"
+		  	." WHERE comments.parent_id = $parent_id AND comments.board = '".$board."'"
+		  	." GROUP BY comments.id"
+		  	." ORDER BY comments.id"
+		;
 
-	  $hierdepth = count($depth);
-	  $sql =
-	  	"SELECT"
-	  	." comments.*"
-	  	.", user.clan_tag, user.username"
-	  	.", comments_unread.user_id as isunread"
-	  	.", UNIX_TIMESTAMP(comments.date) as date"
-	  	.", count(c2.id) as numchildposts"
-	  	." FROM comments"
-	    ." LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '".$_SESSION['user_id']."')"
-	    ." LEFT JOIN user ON comments.user_id = user.id"
-	    ." LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)"
-	  	." WHERE comments.parent_id = $parent_id AND comments.board = '".$board."'"
-	  	." GROUP BY comments.id"
-	  	." ORDER BY comments.id"
-	  ;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$rcount = 0;
+		$additional = FALSE; // already posted "Additional Posts" ?
+		while($rs = $db->fetch($result))
+		{
+		    $depth2 = $depth;
+		    $rcount++;
 
-	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-	  $rcount = 0;
-	  $additional = FALSE; // already posted "Additional Posts" ?
-	  while($rs = $db->fetch($result)) {
-	    $depth2 = $depth;
-	    $rcount++;
+		    // put line-imagename into depth-array
+		    //if ($rs['numchildpostsparent'] > $rcount) { geht nicht
 
-	    // put line-imagename into depth-array
-	    //if ($rs['numchildpostsparent'] > $rcount) { geht nicht
-
-
-	    if (Comment::getNumChildposts($board, $parent_id) > $rcount) {
-	      array_push($depth2, "vertline");
-	    } else {
-	      array_push($depth2, "space");
-	    }
-
-	  	if(
-	  		defined('USER_USER') && $user->typ >= USER_USER
-	  		&& $hierdepth < $user->maxdepth
-	  		|| $rs['isunread'] != ''
-	  		|| $user->typ == USER_NICHTEINGELOGGT && $hierdepth < 10
-	  	) {
-	  		echo Comment::getHTML($rs, $depth2); // print formatted post => Methode gibts gar nicht (mehr)?!
-	  		if ($rs['numchildposts'] > 0) {
-		    	echo '<div id="layer'.$rs['id'].'">';
-		    	Thread::printChildPosts($board, $rs['id'], $depth2);
-		    	echo '</div>';
+		    if (Comment::getNumChildposts($board, $parent_id) > $rcount) {
+		      array_push($depth2, "vertline");
+		    } else {
+		      array_push($depth2, "space");
 		    }
-	  	} else {
-	  		if(!$additional) {
-	  			echo Comment::getHTMLadditional($rs, $depth2); // prints "additional posts"...
-	  			$additional = true;
-	  		}
-	  	}
-	  	flush(); // HTML bereits ausgeben
-	  }
+
+		  	if(
+		  		defined('USER_USER') && $user->typ >= USER_USER
+		  		&& $hierdepth < $user->maxdepth
+		  		|| $rs['isunread'] != ''
+		  		|| $user->typ == USER_NICHTEINGELOGGT && $hierdepth < 10
+		  	) {
+		  		echo Comment::getHTML($rs, $depth2); // print formatted post => Methode gibts gar nicht (mehr)?!
+		  		if ($rs['numchildposts'] > 0) {
+			    	echo '<div id="layer'.$rs['id'].'">';
+			    	Thread::printChildPosts($board, $rs['id'], $depth2);
+			    	echo '</div>';
+			    }
+		  	} else {
+		  		if(!$additional) {
+		  			echo Comment::getHTMLadditional($rs, $depth2); // prints "additional posts"...
+		  			$additional = true;
+		  		}
+		  	}
+		  	flush(); // HTML bereits ausgeben
+		}
 	}
 
 }

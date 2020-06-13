@@ -48,19 +48,18 @@ if (empty($doAction))
 	/**
 	 * Forumübersicht ausgeben
 	 */
-	if ($showCommentId <= 1)
+	if ($showCommentId <= 1 || empty($showCommentId))
 	{
 		$parent_id = 1;
-
-		$model->showOverview($smarty);
-		$smarty->display('file:layout/head.tpl');
 
 		/** Forum / Commenting Error anzeigen */
 		if (!empty($errorMessage))
 		{
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $errorMessage]);
-			$smarty->display('file:layout/elements/block_error.tpl');
 		}
+
+		$model->showOverview($smarty);
+		$smarty->display('file:layout/head.tpl');
 
 		if(!$user->is_loggedin())
 		{
@@ -80,76 +79,53 @@ if (empty($doAction))
 	 */
 	} else {
 		$outputContent = '';
-		$rsparent = Comment::getRecordset($showCommentId);
-		$parent_id = $rsparent['parent_id'];
-		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$showCommentId, __FILE__, __LINE__, 'SELECT * FROM comments'));
+		$thread = Comment::getRecordset($showCommentId);
+		$parent_id = $thread['parent_id'];
 
 		/** Forum / Commenting Error anzeigen */
 		if (!empty($errorMessage))
 		{
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $errorMessage]);
-			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
 		}
 
 		/** Thread not found */
-		if (!$thread)
+		if (!$thread || $thread['board'] !== 'f')
 		{
-			$no_form = true;
+			http_response_code(404); // Set response code 404 (not found)
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-thread_id', 'commenting')]);
 			$model->threadNotFound($smarty);
-			http_response_code(404); // Set response code 404 (not found)
+			$smarty->display('file:layout/head.tpl');
 		} else {
-			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
-			Thread::setLastSeen($thread['board'], $thread['thread_id']);
-
 			$model->showThread($smarty, $thread['thread_id'], $thread['text']);
 
-			/** Bei eingeloggten Usern... */
-			if ($user->is_loggedin())
-			{
-				/** Subscribed_Comments Array bauen */
-				$comments_subscribed = array();
-				$sql = 'SELECT comment_id
-						FROM comments_subscriptions
-						WHERE board="'.$thread['board'].'" AND user_id='.$user->id;
-				$e = $db->query($sql, __FILE__, __LINE__, 'SELECT comment_id');
-				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
-				$smarty->assign('comments_subscribed', $comments_subscribed);
-	
-				// Unread Posts bauen
-				$comments_unread = array();
-				$e = $db->query('SELECT u.comment_id 
-								 FROM comments c, comments_unread u
-								 WHERE c.id=u.comment_id AND c.thread_id='.$thread['thread_id'].' AND u.user_id ='.$user->id,
-								__FILE__, __LINE__, 'SELECT u.comment_id'
-							);
-				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
-				$smarty->assign('comments_unread', $comments_unread);
-			}
-
+			/* DISABLED weil duplicate mit Forum::printCommentingSystem() // IneX, 13.05.2020)
 			if ($parent_id == 1)
 			{
+				$outputContent .= '<h1>'.remove_html(Comment::getLinkThread($thread['board'], $showCommentId)).'</h1>';
 				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comment_resource));
-				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
+				$outputContent .= $smarty->fetch('thread:'.$comments_resource);
 			} else {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));
 				$smarty->assign('comments_top_additional', 1);
 				$outputContent .= $smarty->fetch('comments:'.$showCommentId);
 			}
 
-			/** Commentform zum posten printen */
+			// Commentform zum posten printen
 			if ($user->is_loggedin() && !$no_form)
 			{
 				$smarty->assign('board', 'f');
 				$smarty->assign('thread_id', Comment::getThreadid('f', $showCommentId));
 				$smarty->assign('parent_id', $showCommentId);
 				$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
-			}
-		}
+			}*/
+			$smarty->display('file:layout/head.tpl');
 
-		$smarty->display('file:layout/head.tpl');
-		echo $outputContent;
+			/** Thread (erster Comment) muss angezeigt werden */
+			if ((integer)$parent_id === 1) echo '<h1>'.Comment::getTitle(substr($thread['text'],0,125), 75).'</h1>';
+
+			Forum::printCommentingSystem('f', $showCommentId);
+		}
 	}
 }
 
