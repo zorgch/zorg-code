@@ -142,13 +142,16 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
 	/** Load Template data */
 	// FIXME change this to use Smarty:: Function!
 	$where = ( isset($_GET['word']) && $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
+	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s requested: %s', __FUNCTION__, __LINE__, (isset($_GET['word']) ? 'word' : 'tpl'), $where));
 
-	$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
-					UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-					write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
+	$queryForTemplate = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
+									UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
+									write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$where
+									, __FILE__, __LINE__, '$_TPLROOT');
+	$tplFound = $db->num($queryForTemplate);
 
 	/** No Template found (404) */
-	if (empty($db->num($e)) || $db->num($e) === false)
+	if (empty($tplFound) || $tplFound === false)
 	{
 		if (isset($_GET['tpl'])) $_TPLROOT['id'] = (string)$_GET['tpl'];
 		if (isset($_GET['word'])) $_TPLROOT['word'] = (string)$_GET['word'];
@@ -165,13 +168,14 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
 
 	/** Template found */
 	else {
-		$_TPLROOT = $db->fetch($e);
+		$_TPLROOT = $db->fetch($queryForTemplate);
 
-		/** Load required packages for the current template */
-		load_packages($_TPLROOT['id'], $smarty);
+		/** DISABLED because it's in Smarty_Resource_Tpl::fetch() already (IneX, 13.05.2020)
+		 * Load required packages for the current template */
+		//load_packages($_TPLROOT['id']);//, $smarty);
 
 		/** Load Template menus */
-		$tpl_menus = load_navigation($_TPLROOT['id'], $smarty);
+		$tpl_menus = load_navigation($_TPLROOT['id']);//, $smarty);
 		if (is_array($tpl_menus)) $_TPLROOT['menus'] = $tpl_menus;
 
 		/** Assign Tpl Id, Template Titles and Template link */

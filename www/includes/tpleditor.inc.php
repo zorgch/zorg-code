@@ -144,7 +144,7 @@ function tpleditor_access_lock ($id, &$error)
 {
 	global $db, $user;
 
-	if (!is_string($id) && $id > 0)
+	if (is_numeric($id) && $id > 0)
 	{
 		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$_GET['tplupd'], __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
@@ -163,4 +163,24 @@ function tpleditor_access_lock ($id, &$error)
 	} else {
 		return true;
 	}
+}
+
+/**
+ * Remove invalid HTML from Smarty template.
+ *
+ * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/tpleditor.php TPLeditor Save Action
+ *
+ * @TODO deaktiviert bis ein besserer syntax checker gebaut ist ([z]biko)
+ * @TODO Wenn benötigt, dann als [Smarty Filter](https://www.smarty.net/docs/en/api.register.filter.tpl) umsetzen? (IneX)
+ *
+ * @author [z]biko
+ * @version 2.0
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `13.05.2020` `IneX` Moved function from previous `smarty.inc.php` to `tpleditor.inc.php` because it's only used for Tpleditor Action
+ */
+function smarty_remove_invalid_html($tpl)
+{
+	$tpl = preg_replace("(</*html[^>]*>)", "", $tpl);
+	$tpl = preg_replace("(</*body[^>]*>)", "", $tpl);
+	return $tpl;
 }

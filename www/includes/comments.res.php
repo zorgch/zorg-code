@@ -63,9 +63,11 @@ function smartyresource_comments_get_trusted($tpl_name, &$smarty_obj) {
  * @version 1.0
  * @since 1.0 function added
  */
-function smartyresource_comments_get_thread ($id, $board) {
+function smartyresource_comments_get_thread ($id, $board)
+{
 	//if(!is_numeric($id)) echo '$id is not numeric!'; 
-	if ($board == 'f') {
+	if ($board == 'f')
+	{
 		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> smartyresource_comments_get_thread(): %s', __METHOD__, __LINE__, $board));
 		return smartyresource_comments_get_commenttree($id, true);
 	} else {
@@ -91,6 +93,7 @@ function smartyresource_comments_get_thread ($id, $board) {
  * @since 2.0 `26.10.2018` `IneX` various optimizations, structured html (schema.org)
  * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
+ * @used-by Comment::compile_template()
  * @global object $db Globales Class-Object mit allen MySQL-Methoden um unser Template zu laden, und '$tpl_source' zuzuweisen
  */
 function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty) {
@@ -123,54 +126,38 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
  * @version 2.0
  * @since 1.0 `[z]biko` function added
  * @since 2.0 `14.01.2019` `IneX` added schema.org tags
+ * @since 3.0 `07.05.2020` `IneX` HTML output wurde in Smarty TPL `/commenting/comment_breadcrumb.tpl` ausgelagert
  *
  * @param integer $id Comment-ID
  * @param integer $thread_id
  * @param string $board
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @return string
+ * @return string Result of $smarty->fetch() (parsed output of Template with contents)
  */
-function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
+function smartyresource_comments_get_navigation($id, $thread_id, $board)
+{
 	global $db, $smarty;
-	
-	$html = '<table class="border" width="100%" itemscope itemtype="http://schema.org/BreadcrumbList">
-				<tr><td class="small">';
 
-	$count = 1;
 	$parent_id = $id;
-	while ($parent_id > $thread_id) {
-		$up_e = $db->query('SELECT * FROM comments WHERE id='.$parent_id, __FILE__, __LINE__, __FUNCTION__);
-		$up = $db->fetch($up_e);
-
-		$html .= '<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">';
-			$html .= '<a itemprop="item" href="{get_changed_url change="parent_id='.$up['id'].'"}">';
-				$html .= '<span itemprop="name">'.$count.' up</span>';
-				$html .= '<span itemprop="position" content="'.$count.'"></span>';
-			$html .= '</a> | ';
-		$html .= '</span>';
-
+	
+	/** Iterate up to build a Level-Up Array with all previous Comment-IDs */
+	while ($parent_id > $thread_id)
+	{
+		// TODO Klarer Kandidat für SQL Stored Procedure FOR-LOOP! (IneX, 07.05.2020)
+		$up_query = $db->query('SELECT id, parent_id FROM comments WHERE id='.$parent_id, __FILE__, __LINE__, __FUNCTION__);
+		$up = $db->fetch($up_query);
+		$levelUps[] = [ 'comment_id' => $up['id'] ];
 		$parent_id = $up['parent_id'];
-		$count++;
 	}
 
-	$html .= Comment::getLinkThread($board, $thread_id);
+	/** Assign Vars to $smarty for template contents output */
+	$smarty->assign('comment_id', $id);
+	$smarty->assign('thread_id', $thread_id);
+	$smarty->assign('board', $board);
+	$smarty->assign('parent_levelups', $levelUps);
 
-	$html .= '</td></tr></table>';
-
-	$html .= 
-		'<table bgcolor="{$color.background}" class="border forum" style="table-layout:fixed;" width="100%">'
-			.'<tr>'
-				.'<td align="left" bgcolor="{$color.background}" valign="top"><nobr>'
-					.'<a href="{get_changed_url change="parent_id='.$id.'"}">'
-					.'<font size="4">^^^ Additional posts ^^^</font></a>'
-				.'</td>'
-			.'</tr>'
-		.'</table>'
-	;
-
-	return $html;
-	return $smarty->fetch('file:layout/partials/forum/comments_navigation');
+	return $smarty->fetch('file:modules/commenting/comment_breadcrumb.tpl');
 }
 
 /**
@@ -178,14 +165,14 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  *
  * @author [z]biko
  * @author IneX
- * @version 3.2
+ * @version 4.0
  * @since 1.0 `[z]biko` function added
  * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
  * @since 3.0 `30.10.2018` `IneX` added check of $user->is_loggedin() to Query for Member-specific joins
  * @since 3.1 `14.01.2019` `IneX` fixed schema.org tags
  * @since 3.2 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
+ * @since 4.0 `07.05.2020` `IneX` HTML output wurde in Smarty TPL `/commenting/comment_breadcrumb.tpl` ausgelagert
  *
- * @TODO ganzes HTML in ein Smarty TPL auslagern
  * @TODO "$layouttype" is DEPRECATED!
  *
  * @var $layouttype
@@ -197,9 +184,10 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  * @global string $layouttype [DEPRECATED] Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
- * @return string
+ * @return string Result of $smarty->fetch() (parsed output of Template with contents)
  */
-function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
+function smartyresource_comments_get_commenttree ($id, $is_thread=false)
+{
 	global $db, $user, $smarty, $layouttype;
 
 	$sql = 'SELECT
@@ -310,7 +298,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			if (!$rs['error']) {
 				$html .= Comment::formatPost($rs['text']);
 			} else {
-				$html .= '<b><font color="red">{literal}'.$rs['error'].'{/literal}</font></b>';
+				$html .= '<b><font color="red">{literal}'.$rs['error'].'{/literal}</font></b>'; // TODO use block_error.tpl
 			}
 			$replyCount = Comment::getNumChildposts($rs['board'], $rs['id']);
 			if ($replyCount > 0) $html .= '<span itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
@@ -323,7 +311,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 		if(!is_numeric($rs['id']))
 		{
-			echo sprintf('[ERROR] <%s:%d> $rs[id] is not numeric: "%d"', __FILE__, __LINE__, $rs['id']);
+			echo sprintf('[ERROR] <%s:%d> $rs[id] is not numeric: "%d"', __FILE__, __LINE__, $rs['id']); // TODO use block_error.tpl
 			exit;
 			//$html .= '$rs[id] is not numeric! '.__FILE__.' Line: '.__LINE__;
 		}
@@ -357,7 +345,8 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * @global string $layouttype [DEPRECATED] Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
  * @return string
  */
-function smartyresource_comments_get_childposts ($parent_id, $board) {
+function smartyresource_comments_get_childposts ($parent_id, $board)
+{
 	global $db, $user, $smarty, $layouttype;
 
 	/** Validate passed parameters */
@@ -401,7 +390,6 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 
 			// restlicher output
 			$html .=
-				 '<td class="threading {$it}"></td>' // Manually added 1 space to fix alignment of "Additional posts"
 				.'<td class="threading space">'
 					.'<a class="threading switch expand" href="{get_changed_url change="parent_id='.$parent_id.'"}"></a>'
 				.'</td>'

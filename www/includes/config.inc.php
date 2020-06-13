@@ -110,7 +110,7 @@ if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zor
  * @const FILES_DIR Files directory (local server path)
  * @const GALLERY_DIR Gallery directory (local server path)
  * @const ACTIONS_DIR Actions directory for Frontend-Resources 
- * @const SCRIPTS_DIR Scripts directory for Frontend-Resources 
+ * @const SCRIPTS_DIR `DEPRECATED` Scripts directory for Frontend-Resources 
  * @const UTIL_DIR Utilities directory for Frontend-Resources 
  * @const JS_DIR JavaScripts directory for Frontend-Resources 
  * @const CSS_DIR CSS directory for Frontend-Resources 
@@ -124,7 +124,6 @@ if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/')
 if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/');
 if (!defined('GALLERY_DIR')) define('GALLERY_DIR', SITE_ROOT . '/../data/gallery/');
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/');
-if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
 if (!defined('JS_DIR')) define('JS_DIR', '/js/');
 if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
@@ -176,14 +175,21 @@ if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', 10);
 
 /**
  * Define Smarty constants
+ *
+ * @TODO add @const docu here...
+ * @const SMARTY_DEFAULT_TPL Default (fallback) Smarty-Template tpl:- or file:-ID/Name
+ * @const SMARTY_404PAGE_TPL 404 "Page not found" Smarty-Template reference
  */
 if (!defined('SMARTY_DIR')) define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
-if (!defined('SMARTY_TRUSTED_DIRS')) define('SMARTY_TRUSTED_DIRS', SITE_ROOT.'/scripts/'); // TODO PHP7.x: make this an array
-if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
+if (!defined('SMARTY_TEMPLATES_DIR')) define('SMARTY_TEMPLATES_DIR',  [ SITE_ROOT.'/templates/', SITE_ROOT.'/views/']);
+/** @TODO if (!defined('SMARTY_CONFIG_DIR')) define('SMARTY_CONFIG_DIR',  SMARTY_TEMPLATES_DIR.'/configs/'); */
 if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
 if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
-if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/packages/');
+if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/views/packages/');
 if (!defined('SMARTY_PACKAGES_EXTENSION')) define('SMARTY_PACKAGES_EXTENSION', '.php');
+if (!defined('SMARTY_TRUSTED_DIRS')) define('SMARTY_TRUSTED_DIRS', [ SMARTY_TEMPLATES_DIR, SMARTY_PACKAGES_DIR ]);
+if (!defined('SMARTY_DEFAULT_TPL')) define('SMARTY_DEFAULT_TPL', 23);
+if (!defined('SMARTY_404PAGE_TPL')) define('SMARTY_404PAGE_TPL', 'file:layout/pages/404_page.tpl');
 
 /**
  * Load Error Handling
