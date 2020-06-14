@@ -104,4 +104,21 @@ class Books extends Model
 
 		$this->assign_model_to_smarty($smarty);
 	}
+
+	/**
+	 * Book not found / invalid Book ID
+	 *
+	 * @version 1.0
+	 * @since 1.0 `14.06.2020` `IneX` method added
+	 *
+	 * @param object $smarty Smarty Class-Object
+	 */
+	public function notfoundBook(&$smarty, $book_id)
+	{
+		$this->page_title = 'Dieses Book steht nicht im Regal';
+		$this->meta_description = null;
+		$this->page_link = null;
+
+		$this->assign_model_to_smarty($smarty);
+	}
 }

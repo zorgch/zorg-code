@@ -22,8 +22,8 @@ $model = new MVC\Books();
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['book_id'])) $book_id = (int)$_GET['book_id'];
-if (!empty($_GET['do'])) $action = (string)$_GET['do'];
+if (isset($_GET['book_id']) && !empty($_GET['book_id'])) $book_id = (int)$_GET['book_id'];
+if (isset($_GET['do']) && !empty($_GET['do'])) $action = (string)$_GET['do'];
 $user_id = (!empty($_GET['user']) ? (int)$_GET['user'] : $user->id);
 
 //echo head(35, "books");
@@ -72,7 +72,7 @@ if($_POST['do'] === 'edit_now' && $user->id > 0)
 		$sql = 'SELECT * FROM books_title WHERE id = '.$_POST['titel_id'];
 		$result = $db->query($sql, __FILE__, __LINE__);
 		$rs = $db->fetch($result, __FILE__, __LINE__);
-	
+
 		if ($rs["parent_id"] != 0) {
 				$titel_id = $rs["parent_id"];
 				$parent_id = $rs["id"];
@@ -80,7 +80,7 @@ if($_POST['do'] === 'edit_now' && $user->id > 0)
 				$titel_id = $rs["id"];
 				$parent_id = "";
 		}
-	
+
 		$sql = 'UPDATE books set title = "'.$_POST['title'].'",
 				autor = "'.$_POST['autor'].'",
 				verlag = "'.$_POST['verlag'].'",
@@ -126,9 +126,9 @@ if($_POST['do'] === 'edit_now' && $user->id > 0)
 			seiten,
 			text,
 			ersteller
-	
+
 			)VALUES(
-	
+
 			"'.$_POST['title'].'",
 			"'.$_POST['autor'].'",
 			"'.$_POST['verlag'].'",
@@ -180,14 +180,14 @@ if($_POST['do'] === 'edit_now' && $user->id > 0)
 	/** Testen ob bereits besitzer */
 	$sql = 'SELECT user_id FROM books_holder where book_id = '.$book_id.' AND user_id = '.$user->id;
 	if ($db->num($db->query($sql,__FILE__, __LINE__)) == 0)
-	{ 
+	{
 		/** Neuen Benutzer hinzufuegen */
 		$sql = 'INSERT INTO books_holder (book_id, user_id) VALUES ('.$book_id.','.$user->id.')';
 		$db->query($sql,__FILE__, __LINE__);
 	}
-	
+
 	$action = 'show';
-	
+
 /** Besitzer in DB loeschen */
 } elseif ($action === 'delete_owner' && $user->id > 0) {
 
@@ -302,102 +302,115 @@ if(empty($action))
 			.'<input type="submit" class="button" name="send" value="speichern">'
 			.'</form>';
 	}
-	
+
 	/** HTML Output */
 	$model->showOverview($smarty);
 	$smarty->assign('sidebarHtml', $sidebarHtml);
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
 
+}
+
 /** Buch ansehen */
-} elseif ($action === 'show') {
-	$sql = 'SELECT * from books WHERE id = '.$book_id;
-	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-
-	$sql = 'SELECT * from books_title WHERE id = '.$rs['titel_id'];
-	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__));
-
-	$htmlOutput .= '<h1>'.htmlentities($rs['title']).'</h1>';
-	$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="border" align="center" style="max-width: 100%;">'
-		.'<tr><td align="left" style="font-weight: 600;">'
-		.'Autor:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['autor'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Verlag:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['verlag'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'ISBN:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['isbn'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Thema:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs2['typ'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Druckjahr:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.$rs['jahrgang']
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Preis:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['preis']).' CHF'
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Seiten:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['seiten'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Besitzer:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		;
-
-	/** besitzer auflisten */
-	$sql = 'SELECT * from books_holder WHERE book_id = '.$rs['id'];
-	$result3 = $db->query($sql, __FILE__, __LINE__);
-	$alleBesitzer = '';
-	while ($rs3 = $db->fetch($result3))
+elseif ($action === 'show')
+{
+	if (isset($book_id) && $book_id > 0)
 	{
-		$alleBesitzer .= sprintf('<a href="?do=my&user=%d">%s</a>, ', $rs3['user_id'], $user->id2user($rs3['user_id'], 0));
-	}
-	$htmlOutput .= substr($alleBesitzer, 0, -2); // Entfernt das allerletzte Komma
+		$sql = 'SELECT * from books WHERE id = '.$book_id;
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
-	$htmlOutput .= '</td></tr></table>';
+		$sql = 'SELECT * from books_title WHERE id = '.$rs['titel_id'];
+		$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__));
 
-	$htmlOutput .= nl2br(htmlentities($rs['text']));
+		$htmlOutput .= '<h1>'.htmlentities($rs['title']).'</h1>';
+		$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="border" align="center" style="max-width: 100%;">'
+			.'<tr><td align="left" style="font-weight: 600;">'
+			.'Autor:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['autor'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Verlag:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['verlag'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'ISBN:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['isbn'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Thema:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs2['typ'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Druckjahr:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.$rs['jahrgang']
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Preis:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['preis']).' CHF'
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Seiten:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['seiten'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Besitzer:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			;
 
-	/** Ists ein angemeldeter User? */
-	if ($user->is_loggedin())
-	{
-		$sidebarHtml = '<h3>Boook Actions</h3>';
-
-		/** Wer das Buch besitzt kanns loeschen, wer nicht kanns hinzufuegen */
-		$sql = 'SELECT user_id FROM books_holder WHERE book_id = '.$rs['id'].' AND user_id = '.$user->id;
-		if ($db->num($db->query($sql, __FILE__, __LINE__)) == 1)
+		/** besitzer auflisten */
+		$sql = 'SELECT * from books_holder WHERE book_id = '.$rs['id'];
+		$result3 = $db->query($sql, __FILE__, __LINE__);
+		$alleBesitzer = '';
+		while ($rs3 = $db->fetch($result3))
 		{
-			$sidebarHtml .= '<a href="?do=edit&book_id='.$rs['id'].'">[edit]</a><br>'
-							.'<a href="?do=delete_owner&book_id='.$rs['id'].'">[delete book from my list]</a><br>';
+			$alleBesitzer .= sprintf('<a href="?do=my&user=%d">%s</a>, ', $rs3['user_id'], $user->id2user($rs3['user_id'], 0));
+		}
+		$htmlOutput .= substr($alleBesitzer, 0, -2); // Entfernt das allerletzte Komma
+
+		$htmlOutput .= '</td></tr></table>';
+
+		$htmlOutput .= nl2br(htmlentities($rs['text']));
+
+		/** Ists ein angemeldeter User? */
+		if ($user->is_loggedin())
+		{
+			$sidebarHtml = '<h3>Boook Actions</h3>';
+
+			/** Wer das Buch besitzt kanns loeschen, wer nicht kanns hinzufuegen */
+			$sql = 'SELECT user_id FROM books_holder WHERE book_id = '.$rs['id'].' AND user_id = '.$user->id;
+			if ($db->num($db->query($sql, __FILE__, __LINE__)) == 1)
+			{
+				$sidebarHtml .= '<a href="?do=edit&book_id='.$rs['id'].'">[edit]</a><br>'
+								.'<a href="?do=delete_owner&book_id='.$rs['id'].'">[delete book from my list]</a><br>';
+			} else {
+				$sidebarHtml .= '<a href="?do=add_owner&book_id='.$rs['id'].'">[add book to my list]</a><br>';
+			}
+
+			/** nur ersteller kann loeschen, falls keine anderen besitzer vorhanden */
+			if ($user->id == $rs['ersteller'])
+			{
+				$sidebarHtml .= '<a href="?do=delete&book_id='.$rs['id'].'">[delete]</a>';
+			}
 		} else {
-			$sidebarHtml .= '<a href="?do=add_owner&book_id='.$rs['id'].'">[add book to my list]</a><br>';
+			$sidebarHtml = '&nbsp;';
 		}
 
-		/** nur ersteller kann loeschen, falls keine anderen besitzer vorhanden */
-		if ($user->id == $rs['ersteller'])
-		{
-			$sidebarHtml .= '<a href="?do=delete&book_id='.$rs['id'].'">[delete]</a>';
-		}
+		$model->showBook($smarty, $book_id, $rs['title']);
+		$smarty->assign('sidebarHtml', $sidebarHtml);
 	} else {
-		$sidebarHtml = '&nbsp;';
+		$model->notfoundBook($smarty, (integer)$book_id);
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Ungültige Book ID', 'message' => sprintf('Kein Book mit ID #%s im Büchergestell gefunden', (string)$book_id)]);
+		http_response_code(404); // Set response code 404 (not found).
 	}
-	
+
 	/** HTML Output */
-	$model->showBook($smarty, $book_id, $rs['title']);
-	$smarty->assign('sidebarHtml', $sidebarHtml);
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
+}
 
 /** Buch bearbeiten */
-} elseif ($action === 'edit' && $user->id > 0) {
+elseif ($action === 'edit' && $user->is_loggedin())
+{
 	$model->showEdit($smarty, $book_id);
 	$smarty->display('file:layout/head.tpl');
 
@@ -505,8 +518,11 @@ if(empty($action))
 			."</form>";
 	}
 
+}
+
 /** Buch hinzufuegen */
-} elseif ($action === 'add' && $user->id > 0) {
+elseif ($action === 'add' && $user->is_loggedin())
+{
 	$model->showAddnew($smarty);
 	$smarty->display('file:layout/head.tpl');
 
@@ -682,7 +698,7 @@ if(empty($action))
 		}
 		$htmlOutput .= '</ul>';
 	}
-	
+
 	/** HTML Output */
 	$model->showUserbooks($smarty, $user, $user_id);
 	$smarty->assign('sidebarHtml', $user->userprofile_link($user_id, ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true]));
