@@ -331,7 +331,7 @@ function norm($a, $b) {        // normalize $a to be in [0, $b)
  * Position vom user bestimmen
  * @FIXME move this somewhere else...
  */
-$user_ip = sprintf('%u', ip2long($_SERVER['REMOTE_ADDR']));
+$user_ip = sprintf('%u', ip2long(getRealIPaddress()));
 //$user_ip = sprintf("%u", ip2long($user->last_ip)); --> tut noed! schickt alle in die USA :-(
 $sql = 'SELECT 
 			ci.country_code as code, 

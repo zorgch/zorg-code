@@ -166,7 +166,7 @@ function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
 	elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) $timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
 	else $timestamp = date('Y-m-d G:i:s');
 
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
+	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
 	return $timestamp;
 }
 
@@ -1168,4 +1168,22 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 
 	/** Check if $filepath was hashed - and return it. In case $file_to_compare_hash was also hashed, return false (otherwise a matching Hash would have been true already) */
 	return (!empty($file_hash) && $file_hash != null && empty($file_to_compare_hash) ? $file_hash : false);
+}
+
+/**
+ * Get the real (external) IP address
+ *
+ * @link https://stackoverflow.com/a/23111577/5750030
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 `29.09.2019` `IneX` function added
+ *
+ * @return string|null Returns the real IP address, or null
+ */ 
+function getRealIPaddress()
+{
+	if ($_SERVER['REMOTE_ADDR'] === '::1' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1') $public_ip = trim(shell_exec('dig +short myip.opendns.com @resolver1.opendns.com'));
+	else $public_ip = $_SERVER['REMOTE_ADDR'];
+	return (isset($public_ip) && !empty($public_ip) ? $public_ip : null);
 }
