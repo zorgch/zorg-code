@@ -441,7 +441,7 @@ class usersystem
 								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 							], __FILE__, __LINE__, __METHOD__);
 
-							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).'?'.$_SERVER['QUERY_STRING']);
+							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
 							//header('Location: '.changeURL( (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']), session_name().'='.session_id() ));
 							header('Location: '.$loginRedirectUrl);
