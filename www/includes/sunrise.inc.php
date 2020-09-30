@@ -351,6 +351,7 @@ $lon = $rs['lon'];
 $country = (!empty($rs['country']) ? strtolower($rs['country']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
 $country_code = (!empty($rs['image_code']) ? strtoupper($rs['image_code']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
 $country_code = (fileExists(IMAGES_DIR.'country/flags/'.$country_code.'.png') ? $country_code : 'che'); // Wenn Flag-Iconfile nicht vorhanden ist, Fallback zu CHE
+$country_code = strtoupper($country_code); // always use uppercase, because filenamess are in uppercase
 
 $suncalc = new Astro_Sunrise();
 $suncalc->setCoords($lat, $lon);
