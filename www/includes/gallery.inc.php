@@ -71,18 +71,15 @@ function galleryOverview ($state="", $error="") {
 	global $db, $user, $MAX_PIC_SIZE, $THUMBPAGE;
 	
 	$out = '';
-	$sql =
-		"
-		SELECT
-			a.*
-			, COUNT(p.id) anz
-			, UNIX_TIMESTAMP(created) AS created_at
-		FROM gallery_albums a, gallery_pics p
-		WHERE p.album = a.id ".ZENSUR."
-		GROUP BY p.album
-		ORDER BY name ASC, created_at DESC
-		"
-	;
+	$sql = 'SELECT 
+				 a.id
+				, a.name
+				, COUNT(p.id) anz
+				, UNIX_TIMESTAMP(created) AS created_at
+			 FROM gallery_albums a, gallery_pics p
+			 WHERE p.album = a.id '.ZENSUR.'
+			 GROUP BY p.album
+			 ORDER BY name ASC, created_at DESC';
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$seen = Array();
 	$i = 0;
@@ -291,11 +288,12 @@ function pic ($id) {
 	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 	$next = mysqli_fetch_array($e);
 	
-	$e = $db->query("SELECT a.*, count(p.id) anz, e.name eventname
-				FROM gallery_pics p, gallery_albums a
-							LEFT JOIN events e ON e.gallery_id = a.id
-				WHERE p.id<='$id' AND p.album=$cur[album] AND a.id=$cur[album] ".ZENSUR."
-				GROUP BY album", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT album, a.id, count(p.id) anz, e.gallery_id, e.name eventname
+					 FROM gallery_pics p, gallery_albums a
+						LEFT JOIN events e
+						 ON e.gallery_id = a.id
+					 WHERE p.id<='.$id.' AND p.album='.$cur['album'].' AND a.id='.$cur['album'].' '.ZENSUR.'
+					 GROUP BY album, eventname', __FILE__, __LINE__, __FUNCTION__);
 	$d = mysqli_fetch_array($e);
 	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE['height']));
 	echo '<br /><table width="80%" align="center"><tr>
@@ -1804,19 +1802,15 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 	 * Show Top Pics over all Gallery Albums
 	 */
 	else {
-		try {
-			$sql = 'SELECT *, AVG(score) as avgScore, COUNT(pic_id) as numVotes, (SELECT zensur FROM gallery_pics WHERE id = pic_id) zensiert
-					FROM gallery_pics_votes
-					WHERE score > 0
-					GROUP BY pic_id
-					HAVING (zensiert IS NULL OR zensiert = 0) AND numVotes >= 3
-					ORDER BY avgScore DESC, numVotes DESC, pic_id ASC
-					LIMIT '.$limit;
-			$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		} catch (Exception $e) {
-			user_error($e->getMessage(), E_USER_NOTICE);
-			return false;
-		}
+		$sql = 'SELECT pic_id, AVG(score) as avgScore, COUNT(pic_id) as numVotes,
+					(SELECT zensur FROM gallery_pics WHERE id = pic_id) zensiert
+				 FROM gallery_pics_votes
+				 WHERE score > 0
+				 GROUP BY pic_id
+				 HAVING (zensiert IS NULL OR zensiert = 0) AND numVotes >= 3
+				 ORDER BY avgScore DESC, numVotes DESC, pic_id ASC
+				 LIMIT '.$limit;
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
 		while($rs = $db->fetch($result)) {
 			$file = imgsrcThum($rs['pic_id']);
