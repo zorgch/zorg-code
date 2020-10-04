@@ -338,7 +338,7 @@ class Bugtracker
 				.'<tr>'
 					.'<td align="left">Code Commit:</td>'
 					.'<td align="left">'
-						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY.htmlentities($rs['code_commit'], ENT_QUOTES).'" target="_blank">'.htmlentities($rs['code_commit'], ENT_QUOTES).'</a>' : ''))
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY_URL.htmlentities($rs['code_commit'], ENT_QUOTES).'" target="_blank">'.htmlentities($rs['code_commit'], ENT_QUOTES).'</a>' : ''))
 					.'</td>'
 				.'</tr>'
 				.(!empty($rs['assignedto_id']) ? '</tbody>' : '')

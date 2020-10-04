@@ -84,7 +84,8 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
  * @const FACEBOOK_APPID A Facebook App-ID which can be linked, see developers.facebook.com/apps/
  * @const FACEBOOK_PAGENAME Facebook page name (as in the group url) of the Zorg Facebook group
  * @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
- * @const GIT_REPOSITORY zorg Code Git-Repository base URL
+ * @const GIT_REPOSITORY_ROOT zorg Code Git-Repository on the server (for code version info). For dev adjust in development.config.php
+ * @const GIT_REPOSITORY_URL zorg Code Git-Repository public URL
  */
 if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME);
 if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN']);
@@ -97,7 +98,9 @@ if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH');
 if (!defined('FACEBOOK_APPID')) define('FACEBOOK_APPID', '110932998937967');
 if (!defined('FACEBOOK_PAGENAME')) define('FACEBOOK_PAGENAME', 'zorgch');
 if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joinchat/AbPXbRIhBf3PSG0ujGzY4g');
-if (!defined('GIT_REPOSITORY')) define('GIT_REPOSITORY', 'https://github.com/zorgch/zorg-code/commit/');
+if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH');
+if (!defined('GIT_REPOSITORY_ROOT')) define('GIT_REPOSITORY_ROOT', SITE_ROOT.'/../zorg-code/');
+if (!defined('GIT_REPOSITORY_URL')) define('GIT_REPOSITORY_URL', 'https://github.com/zorgch/zorg-code/commit/');
 
 /**
  * Define paths to directories where HTML web resources will be referenced from

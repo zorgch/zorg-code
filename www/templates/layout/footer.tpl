@@ -7,7 +7,7 @@
 				<i class="emoji {$daytime}"></i><span id="swisstime"></span>
 			</section>
 			{if $code_info.version != ''}<section class="flex-one-column small">
-				<a href="{$smarty.const.GIT_REPOSITORY}{$code_info.last_commit}" target="_blank">{$code_info.version}#{$code_info.last_commit}</a>&nbsp;(changed {$code_info.last_update|datename})
+				<a href="{$smarty.const.GIT_REPOSITORY_URL}{$code_info.last_commit}" target="_blank">{$code_info.version}#{$code_info.last_commit}</a>&nbsp;(changed {$code_info.last_update|datename})
 			</section>{/if}
 			{if $tplroot.id != ''}<section class="flex-two-column">
 				<div class="icon">
@@ -63,7 +63,7 @@
 				<ul>
 					<li><a href="https://www.facebook.com/{$smarty.const.FACEBOOK_PAGENAME}"><i class="emoji facebook"></i> <span class="hide-mobile">fb/{$smarty.const.FACEBOOK_PAGENAME}</span></a></li>
 					<li><a href="https://www.twitter.com/{$smarty.const.TWITTER_NAME}"><i class="emoji twitter"></i> <span class="hide-mobile">@{$smarty.const.TWITTER_NAME}</span></a></li>
-					<li><a href="{$smarty.const.GIT_REPOSITORY}"><i class="emoji github"></i> <span class="hide-mobile">zorg-code</span></a></li>
+					<li><a href="{$smarty.const.GIT_REPOSITORY_URL}"><i class="emoji github"></i> <span class="hide-mobile">zorg-code</span></a></li>
 				</ul>
 			</section>
 			<section class="flex-one-column">
