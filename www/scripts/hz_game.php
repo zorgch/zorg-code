@@ -59,26 +59,26 @@ if (isset($_GET['ticket']))
 /** view */
 $e = $db->query(
 	"SELECT hzg.*, m.name mapname,
-	z.user z, me.money mymoney,
-	mys.bus mystation_bus,
-	mys.ubahn mystation_ubahn,
-	me.station mystation,
-	sum(a.score) - hzg.z_score player_score,
-	ceil((sum(a.score)-2*hzg.z_score)/2) missing_score,
-	if(me.type='z', 'z', if(me.type IS NULL, 'guest', 'player')) mytype,
-	if(me.user IS NULL || hzg.state!='running', '0', '1') i_play,
-	if(hzg.nextturn='z' && me.type='z' || hzg.nextturn='players' && me.type!='z' && me.turndone='0', '0', '1') myturndone,
-	if(hzg.nextturn='z' && me.type='z' || hzg.nextturn='players' && me.type!='z' && me.turndone='0',
-		".TURN_COUNT."-hzg.turncount, ".TURN_COUNT."-hzg.turncount-1) turns_to_money,
-	catcher.user catcher
+		z.user z, max(me.money) mymoney,
+		max(mys.bus) mystation_bus,
+		max(mys.ubahn) mystation_ubahn,
+		max(me.station) mystation,
+		sum(a.score) - hzg.z_score player_score,
+		ceil((sum(a.score)-2*hzg.z_score)/2) missing_score,
+		if(me.type='z', 'z', if(me.type IS NULL, 'guest', 'player')) mytype,
+		if(me.user IS NULL || hzg.state!='running', '0', '1') i_play,
+		if(hzg.nextturn='z' && me.type='z' || hzg.nextturn='players' && me.type!='z' && me.turndone='0', '0', '1') myturndone,
+		if(hzg.nextturn='z' && me.type='z' || hzg.nextturn='players' && me.type!='z' && me.turndone='0',
+			".TURN_COUNT."-hzg.turncount, ".TURN_COUNT."-hzg.turncount-1) turns_to_money,
+		max(catcher.user) catcher
 	FROM user u, hz_maps m, hz_games hzg
-	LEFT JOIN hz_players me ON (me.user=".$user->id." AND me.game=hzg.id)
-	LEFT JOIN hz_stations mys ON (mys.id=me.station AND mys.map=hzg.map)
-	LEFT JOIN hz_aims a ON a.map=hzg.map
-	JOIN hz_players z ON z.game=hzg.id AND z.type='z'
-	LEFT JOIN hz_players catcher ON (catcher.game=hzg.id AND catcher.type!='z' AND catcher.station=z.station) 
+		LEFT JOIN hz_players me ON (me.user=".$user->id." AND me.game=hzg.id)
+		LEFT JOIN hz_stations mys ON (mys.id=me.station AND mys.map=hzg.map)
+		LEFT JOIN hz_aims a ON a.map=hzg.map
+		JOIN hz_players z ON z.game=hzg.id AND z.type='z'
+		LEFT JOIN hz_players catcher ON (catcher.game=hzg.id AND catcher.type!='z' AND catcher.station=z.station) 
 	WHERE hzg.id=".$gameid." AND u.id=z.user AND m.id=hzg.map
-	GROUP BY a.map",
+	GROUP BY a.map, z.user, me.type, me.turndone",
 	__FILE__, __LINE__, 'Hz View Game Query');
     $game = $db->fetch($e);
 

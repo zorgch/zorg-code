@@ -26,7 +26,7 @@ if ($user->is_loggedin())
 		  ON (hzg.id=me.game && me.user='".$user->id."')
 		WHERE hzg.state='running'
 		ORDER BY hzg.turndate DESC",
-		__FILE__, __LINE__, 'running hz games'); // @FIXME Catch $user->id error when not logged in!
+		__FILE__, __LINE__, 'running hz games');
 	
 	    $running_games = array();
 	while ($d = $db->fetch($e)) {
@@ -52,7 +52,7 @@ if ($user->is_loggedin())
 										WHERE hzg.state!="finished"
 										  AND me.type="z"
 										  AND me.user='.$user->id,
-										__FILE__, __LINE__, 'new_game_possible')); // @FIXME Catch $user->id error when not logged in!
+										__FILE__, __LINE__, 'new_game_possible'));
 	$smarty->assign("new_game_possible", $own_games['anz']<=MAX_HZ_GAMES ? 1 : 0);
 	
 	$e = $db->query("SELECT * FROM hz_maps 
@@ -71,7 +71,7 @@ if ($user->is_loggedin())
 	
 	/** open hz games */
 	$e = $db->query('SELECT hzg.*, z.user mrz, m.name mapname, m.players total,
-					  (m.players-count(numpl.user)+1) missing,
+					  (IFNULL(m.players,0)-count(numpl.user)+1) missing,
 					  IF(p.user IS NULL, "0", "1") joined
 					FROM hz_games hzg
 					LEFT JOIN hz_players p
@@ -85,8 +85,8 @@ if ($user->is_loggedin())
 					LEFT JOIN hz_players numpl
 					  ON numpl.game = hzg.id
 					WHERE hzg.state="open"
-					GROUP BY hzg.id',
-					__FILE__, __LINE__, 'open hz games'); // @FIXME Catch $user->id error when not logged in!
+					GROUP BY hzg.id, z.user',
+					__FILE__, __LINE__, 'open hz games');
 	$open_games = array();
 	while ($d = $db->fetch($e)) {
 		$d['maplink'] = 'map='.$d['map'];
