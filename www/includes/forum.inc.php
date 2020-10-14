@@ -1816,23 +1816,21 @@ class Forum {
 
 		/** Query for Thread list */
 		$sql = 'SELECT
-					c.board,
-					c.id,
-					c.parent_id,
+					c.board board,
+					max(c.id) id,
+					max(c.parent_id) parent_id,
 					c.text last_post_text,
-					c.user_id as last_comment_poster,
+					max(c.user_id) last_comment_poster,
 					UNIX_TIMESTAMP(c.date) last_post_date,
-					t.thread_id,
-					t.user_id as thread_starter,
+					max(t.thread_id) thread_id,
+					max(t.user_id) thread_starter,
 					UNIX_TIMESTAMP(t.date) thread_date,
-					'.($user->is_loggedin() ? 'IF(ISNULL(tfav.thread_id ), 0, 1) isfavorite,
-					IF(ISNULL(tignore.thread_id ), 0, 1) ignoreit,' : '').'
+					'.($user->is_loggedin() ? 'IF(ISNULL(max(tfav.thread_id) ), 0, 1) isfavorite,
+					IF(ISNULL(max(tignore.thread_id)), 0, 1) ignoreit,' : '').'
 					count(DISTINCT cnum.id) numposts,
 					(SELECT count(DISTINCT thread_id) FROM comments WHERE board IN ('.$showboards_commaseparated.')) numthreads
-				
 				FROM
 					comments_threads ct
-				
 				LEFT JOIN comments c ON (c.id = (SELECT MAX(id) FROM comments WHERE thread_id = ct.thread_id AND board = ct.board) )
 				LEFT JOIN comments t ON (t.id = ct.comment_id)
 				LEFT JOIN comments cnum ON (ct.board = cnum.board AND ct.thread_id = cnum.thread_id)
@@ -1847,12 +1845,9 @@ class Forum {
 					 c.board IN ('.$showboards_commaseparated.')
 					 AND ('.$user->typ.' >= ct.rights OR ct.rights='.USER_SPECIAL . ($user->is_loggedin() ? ' AND ctr.user_id IS NOT NULL' : '').')
 					 AND ct.comment_id IS NOT NULL
-				
 				GROUP BY
-					ct.thread_id
-				
+					c.board, ct.thread_id, t.date, c.date, c.text
 				ORDER BY '.$sortby.' '.$order.'
-
 				LIMIT '.$limit
 		;
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
