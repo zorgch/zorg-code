@@ -8,6 +8,12 @@
 namespace MVC;
 
 /**
+ * File includes
+ * @include main.inc.php Required
+ */
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+
+/**
  * Class representing the MVC Model
  */
 class Peter extends Model
@@ -57,13 +63,8 @@ class Peter extends Model
 	{
 		global $db;
 
-		$sql = 'SELECT 
-					*
-				FROM peter_games pg
-				LEFT JOIN user u
-				ON pg.next_player = u.id
-				WHERE pg.game_id = '.$game_id;
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		$sql = 'SELECT * FROM peter_games WHERE game_id='.$game_id;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		return $db->fetch($result);
 	}
 

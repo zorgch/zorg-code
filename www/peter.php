@@ -21,22 +21,22 @@ require_once MODELS_DIR.'core.model.php';
 $model = new MVC\Peter();
 
 /** Validate passed GET-Parameters */
-$peterGame = (int)$_GET['game_id'];
-$peterShow = (string)$_GET['img'];
-$peterCard = (int)$_GET['card_id'];
-$peterZug = (string)$_GET['make'];
-$view = (string)$_GET['view'];
-
-/**
- * Initialise Peter Class-Object
- */
-$peter = new peter($peterGame);
+$peterGameId = (isset($_GET['game_id']) ? (int)$_GET['game_id'] : null);
+$peterShow = (isset($_GET['img']) ? (string)$_GET['img'] : null);
+$peterCard = (isset($_GET['card_id']) ? (int)$_GET['card_id'] : null);
+$peterZug = (isset($_GET['make']) ? (string)$_GET['make'] : null);
+$view = (isset($_GET['view']) ? (string)$_GET['view'] : null);
 
 if ($user->is_loggedin())
 {
+	/**
+	 * Initialise Peter Class-Object
+	 */
+	$peter = new peter($peterGameId);
+
 	if ($peterShow == 'karten')
 	{
-		if ($peterGame)
+		if ($peterGameId)
 		{
 			/*
 			header("Content-Type: Image/PNG");
@@ -51,19 +51,14 @@ if ($user->is_loggedin())
 		}
 	}
 	else {
-		//echo head(117, 'Peter');
-		//$smarty->assign('tplroot', array('page_title' => 'Peter'));
-		//echo menu("zorg");
-		//echo menu("games");
-		//echo menu("peter");
-		$model->showGame($smarty, $peterGame);
+		$model->showGame($smarty, $peterGameId);
 
 		$peter->exec_peter();
 		$htmlOutput = null;
 		$sidebarHtml = null;
 
 		/** Peter Game anzeigen */
-		if ($peterGame)
+		if ($peterGameId > 0)
 		{
 			/** Infos über das game holen */
 			/*
@@ -72,24 +67,24 @@ if ($user->is_loggedin())
 				FROM peter_games pg
 				LEFT JOIN user u
 				ON pg.next_player = u.id
-				WHERE pg.game_id = '.$peterGame;
+				WHERE pg.game_id = '.$peterGameId;
 			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 			$rsg = $db->fetch($result);
 			*/
-			$rsg = $model->getGamedata($peterGame);
+			$rsg = $model->getGamedata($peterGameId);
 
 			/** Wenn dem Spiel noch beigetreten werden kann */
 			if ($rsg['status'] === 'offen')
 			{
-				if ((int)$rsg['players'] > 0 && !empty($rsg['players'])) $peter->peter_join($rsg['players']);
+				$peter->peter_join((isset($rsg['players']) ? (int)$rsg['players'] : null));
 
 			/** Wenn das Spiel bereits läuft */
 			} elseif ($rsg['status'] === 'lauft' || $rsg['status'] === 'geschlossen') {
 				$htmlOutput .= $peter->game($rsg, $peterCard, $peterZug);
-			
+
 			/** Spieldaten fehlerhaft / nicht gefunden */
 			} else {
-				$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('error-game-invalid')]);
+				$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('error-game-invalid', 'global', [$peterGameId])]);
 			}
 		}
 
