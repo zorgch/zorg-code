@@ -95,8 +95,6 @@ if(empty($action) || $action === 'my' )
 
 	$model->showOverview($smarty, $user, $userid, $site);
 	$smarty->display('file:layout/head.tpl');
-	if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
-	//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 
 	echo '<h1>Quotes</h1>';
 
