@@ -238,12 +238,14 @@ class Line
 		// divide the area for the values
 		$xUnit = ($this->width - 120) / sizeof($this->dataValues);
 		$xUnit2 = ($this->width - 120) / sizeof($this->dataXLabels2);
-		
+
 		// finally draw the graphs
 		$x2 = Array();
-		$y2 = Array();		
+		$y2 = Array();
+		$n = 0;
 		for($i = 0; $i < sizeof($this->dataValues); $i++)
-		{ $n++;
+		{
+			$n++;
 			$labelWidth = ImageFontWidth(1) * strlen($this->dataXLabels[$i]);
 			$labelHeight = ImageFontHeight(1);
 
@@ -276,19 +278,19 @@ class Line
 			}
 		}
 
-		if($type == "jpg")
+		if($type == 'jpg')
 		{
-			Header("Content-type: image/jpeg");
+			Header('Content-type: image/jpeg');
 			ImageJpeg($this->image);
 		}
-		if($type == "png")
+		if($type == 'png')
 		{
-			Header("Content-type: image/png");
+			Header('Content-type: image/png');
 			ImagePng($this->image);
 		}
-		if($type == "gif")
+		if($type == 'gif')
 		{
-			Header("Content-type: image/gif");
+			Header('Content-type: image/gif');
 			ImageGif($this->image);
 		}
 

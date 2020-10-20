@@ -2345,29 +2345,25 @@ class Thread {
 	static function hasRights ($board, $thread_id, $user_id) {
 		global $db;
 
-		$sql =
-			"
-			SELECT
-				user.usertype
-				, ct.rights AS thread_rights
-				, IF(ISNULL(ctr.user_id), 0, 1) AS special_rights
-			FROM comments_threads ct
-			LEFT JOIN comments_threads_rights ctr
-				ON (ct.thread_id = ctr.thread_id
-				AND ctr.user_id = '".$user_id."')
-			LEFT JOIN user ON(user.id = '".$user_id."')
-			WHERE ct.thread_id = ".$thread_id."
-			AND ct.board = '".$board."'
-			"
-		;
-		//echo $sql;
+		$sql = 'SELECT
+					user.usertype
+					, ct.rights AS thread_rights
+					, IF(ISNULL(ctr.user_id), 0, 1) AS special_rights
+				FROM comments_threads ct
+				LEFT JOIN comments_threads_rights ctr
+					ON (ct.thread_id = ctr.thread_id
+					AND ctr.user_id = '.$user_id.')
+				LEFT JOIN user ON(user.id = '.$user_id.')
+				WHERE ct.thread_id = '.$thread_id.'
+				AND ct.board = "'.$board.'"';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
 		if(
-			$rs['usertype'] == NULL && $rs['thread_rights'] == 0
-			|| $rs == NULL
+			empty($rs['usertype']) && $rs['thread_rights'] === 0
+			|| empty($rs)
 			|| $rs['usertype'] >= $rs['thread_rights']
-			|| $rs['thread_rights'] == USER_SPECIAL && $rs['special_rights'] == 1
+			|| $rs['thread_rights'] == USER_SPECIAL
+			&& $rs['special_rights'] == 1
 		) {
 			return true;
 		}else{
