@@ -111,7 +111,7 @@ body {
 	body {
 		margin: 0 15vw 0 15vw;
 		grid-template-columns: 2fr 1fr;
-		grid-template-rows: minmax(min-content, 190px) minmax(min-content, 120px) minmax(min-content, max-content) 1fr;
+		grid-template-rows: minmax(min-content, 1vh) minmax(min-content, 1vh) minmax(min-content, 2fr) 1fr;
 		grid-template-areas:
 			"header header"
 			"nav nav"
