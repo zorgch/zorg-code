@@ -105,7 +105,7 @@ function galleryOverview ($state="", $error="") {
 		}
 	
 		$out .= '</b>';
-		$out .= '<br />';
+		$out .= '<br>';
 		//$out .= '<tr><td align="center" valign="middle" width="'.($MAX_PIC_SIZE[tnWidth]+2*$THUMBPAGE[padding]).'">';
 		$out .= getAlbumLinkRandomThumb($d['id']);
 		//('.$d['anz'].' Pics)
@@ -124,12 +124,12 @@ function galleryOverview ($state="", $error="") {
 		if ($state) echo '<b><font color="green">'.$state.'</font></b> <br/><br/>';
 		if ($error) echo '<b><font color="red">'.$error.'</font></b><br/><br/>';
 		$out .= '
-	   	<br />
+	   	<br>
 	   	<div align="center" width="100%">
 	   	<form action="gallery.php?show=editAlbum&albID=0" method="post">
 			<input type="submit" class="button" value="   neues Album erstellen   ">
 	   	</form>
-	   	<br />
+	   	<br>
 		';
 	}
 	
@@ -211,7 +211,7 @@ function albumThumbs ($id, $page=0) {
 	
 			if ($rows==0) $htmlOutput .= '<tr>';
 			$htmlOutput .= '<td class="border" cellpadding="'.$THUMBPAGE['padding'].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
-							.'<a href="?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br />':'').'<img border="0" src="'.imgsrcThum($d['id']).'" style="width: 100%;max-width: 100%;">';
+							.'<a href="?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br>':'').'<img border="0" src="'.imgsrcThum($d['id']).'" style="width: 100%;max-width: 100%;">';
 	
 			if ($comments) {
 				$htmlOutput .= "<br>$comments Comments ";
@@ -296,13 +296,13 @@ function pic ($id) {
 					 GROUP BY album, eventname', __FILE__, __LINE__, __FUNCTION__);
 	$d = mysqli_fetch_array($e);
 	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE['height']));
-	echo '<br /><table width="80%" align="center"><tr>
+	echo '<br><table width="80%" align="center"><tr>
 	<td align="center" class="bottom_border"><h3>'
 	.($d['eventname'] ? $d['eventname'] : $d['name'])
-	.'</h3></div></td></tr></table><br /><br />';
+	.'</h3></div></td></tr></table><br><br>';
 
 	if ($cur['zensur'] && $user->typ != USER_MEMBER) {
-		echo '<b><font color="red">Access denied for this picture</font></b><br /><br />';
+		echo '<b><font color="red">Access denied for this picture</font></b><br><br>';
 		return;
 	}
 
@@ -464,7 +464,7 @@ function pic ($id) {
 	echo '</td></tr></table></div>';
 
 	if ($user->typ == USER_MEMBER) { // member
-		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br />';
+		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br>';
 		if ($cur['zensur']) {
 			echo '<font color="red">Bild ist zensiert</font>';
 			$val = "Zensur aufheben";
@@ -472,10 +472,10 @@ function pic ($id) {
 			echo '<font color="green">Bild ist nicht zensiert</font>';
 			$val = "zensieren";
 		}
-		echo '</td><td valign="top"><br /><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
+		echo '</td><td valign="top"><br><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
 		.'<input type="submit" class="button" value="'.$val.'"></form></td>';
 	
-		echo '<td valign="top" style="text-align:right" width="250"><br />'
+		echo '<td valign="top" style="text-align:right" width="250"><br>'
 		.'<form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
 		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
 		.'</form></td></tr></table>';
@@ -556,10 +556,10 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		$uploadState = $state;
 	}
 	
-	if ($editState) echo "<font color='green'><b>$editState</b></font><br /><br />";
-	if ($editError) echo "<font color='red'><b>$editError</b></font><br /><br />";
+	if ($editState) echo "<font color='green'><b>$editState</b></font><br><br>"; // FIXME Undefined variable: editState
+	if ($editError) echo "<font color='red'><b>$editError</b></font><br><br>"; // FIXME Undefined variable: editError
 	
-	echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookleftarrow; go to Album</a><br /><br />';
+	echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookleftarrow; go to Album</a><br><br>';
 	?>
 	<table class="border" cellspacing="3">
 	<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=editAlbum" method="post">
@@ -569,47 +569,47 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		</tr>
 		<tr>
 		<td align="left">Name: </td>
-		<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?php echo $frm['name']?>"></td>
+		<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?php echo $frm['name']?>"></td><?php /* FIXME Trying to access array offset on value of type null*/ ?>
 		</tr>
 		<tr>
 		<td colspan='2' align="center">
-			<br />
+			<br>
 			<input class="button" type="submit" value="   OK   ">
-			<br /><br />
+			<br><br>
 		</td>
 		</tr>
 	</form>
 	</table>
-	<br />
+	<br>
 
 
 	<?php
 	if ($id)
 	{ ?>
 		<table class="border"><tr><td>
-		<form <?php echo 'action="'.$SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
-		Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br /><br />
+		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
+		Album l&ouml;schen: <br>(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br><br>
 			<input class="text" name="del" value="" size="4"> &nbsp;
 			<input type="submit" class="button" value="   l&ouml;schen   ">
 		</form>
 		</td></tr></table>
-		<br />
+		<br>
 		<?php
 
 		echo '<h2>Picture Upload</h2>';
 
-		if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br /><br />";
-		if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br /><br />";
+		if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br><br>";
+		if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br><br>";
 		?>
 
 		<table class="border"><tr><td>
 		<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=mkUploadDir" method="post">
-		Upload-Ordner erstellen (in /data/gallery/upload/):<br /><br />
-		<input type="text" class="text" name="frm[folder]" value="<?php echo $frm['folder']?>"> &nbsp; &nbsp;
+		Upload-Ordner erstellen (in /data/gallery/upload/):<br><br>
+		<input type="text" class="text" name="frm[folder]" value="<?php echo $frm['folder']?>"> &nbsp; &nbsp;<?php /* FIXME Trying to access array offset on value of type null */ ?>
 		<input type="submit" class="button" value="   erstellen   ">
 		</form>
 		</td></tr></table>
-		<br />
+		<br>
 
 		<?php
 		$d = opendir(UPDIR);
@@ -651,7 +651,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	
 		<table class="border"><tr><td>
 		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
-		Upload-Ordner l&ouml;schen:<br /><br />
+		Upload-Ordner l&ouml;schen:<br><br>
 		<select size="1" class="text" name="frm[folder]">
 			<?php
 			for ($i=0; $i<sizeof($fileoptions); $i++) {
@@ -665,19 +665,19 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		<tr><td style="text-align:right">
 		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 		</td></tr></table>
-		<br />
+		<br>
 	
 		<table class="border"><tr><td align="left" width="450">
 		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
 		Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
 		Rechte 0664 gibst.
-		(<?php echo '<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br /><br />
-		W&auml;hle den Ordner hier aus, um die Pics zu indizieren: <br /><br />
+		(<?php echo '<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br><br>
+		W&auml;hle den Ordner hier aus, um die Pics zu indizieren: <br><br>
 		<input type="checkbox" checked name="frm[delPics]" value="1">
-		Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br />
+		Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br>
 		<input type="checkbox" name="frm[delFiles]" value="1">
 		nicht indizierte Files aus Upload-Ordner l&ouml;schen
-		<br /><br />
+		<br><br>
 		<select size="1" class="text" name="frm[folder]">
 			<?php
 			for ($i=0; $i<sizeof($fileoptions); $i++) {
@@ -685,13 +685,13 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 			}
 			?>
 		</select> &nbsp; &nbsp;
-		<input class="button" type="submit" value="   upload   "><br />
+		<input class="button" type="submit" value="   upload   "><br>
 		</form>
 		</td></tr>
 		<tr><td style="text-align:right">
 		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
 		</td></tr></table>
-		<br />
+		<br>
 		<?php
 	}
 }
@@ -744,9 +744,9 @@ function doUpload($id, $frm)
 		if ($file=="." || $file=="..") continue;
 	
 		if (!isPic(UPDIR.$frm[folder].$file)) {
-		$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br />";
+		$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br>";
 		if ($frm[delFiles]) {
-			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
+			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
 		}
 		continue;
 		}
@@ -760,10 +760,10 @@ function doUpload($id, $frm)
 		$db->query("DELETE FROM gallery_pics WHERE id=$picid");
 		$notDone .= "- $file ";
 		if ($frm[delFiles]) {
-			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
+			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
 		}
 	
-		$notDone .= "(".$t[error].")<br />";
+		$notDone .= "(".$t[error].")<br>";
 		continue;
 		}else{
 		$picSize = "width=".$t[width]." height=".$t[height];
@@ -774,9 +774,9 @@ function doUpload($id, $frm)
 		if ($t == -1) {
 		$db->query("DELETE FROM gallery_pics WHERE id=$picid");
 		unlink(picPath($id, $picid, extension($file)));
-		$notDone .= "- $file (keine Rechte) <br />";
+		$notDone .= "- $file (keine Rechte) <br>";
 		if ($frm[delFiles]) {
-			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
+			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
 		}
 		continue;
 		}else{
@@ -788,27 +788,27 @@ function doUpload($id, $frm)
 	
 		// del uploaded pic, if requested
 		if ($frm[delPics]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
+		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
 		}
 	
-		$done .= "- $file <br />";
+		$done .= "- $file <br>";
 	}
 	closedir($directory);
 	
 	// delete directory if empty
 	if (countFiles(UPDIR.$frm[folder]) == 0) {
 		if (!@rmdir(UPDIR.$frm[folder]))
-		$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gel&ouml;scht werden <br />";
+		$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gel&ouml;scht werden <br>";
 	}
 	
-	if ($notDone) $notDone = "Folgende Files konnten nicht indiziert werden:<br />".$notDone;
+	if ($notDone) $notDone = "Folgende Files konnten nicht indiziert werden:<br>".$notDone;
 	if ($done) {
-		$done = "Folgende Files wurden indiziert:<br />".$done;
+		$done = "Folgende Files wurden indiziert:<br>".$done;
 	}else{
-		$notDone = "Es konnten keine Files indiziert werden! <br /><br />".$notDone;
+		$notDone = "Es konnten keine Files indiziert werden! <br><br>".$notDone;
 	}
 	
-return array('error'=>$notDone."<br />".$error, 'state'=>$done);
+return array('error'=>$notDone."<br>".$error, 'state'=>$done);
 }
 
 
@@ -893,7 +893,7 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 			
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
-		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 	} else {
 		user_error("Das dörfsch DU nöd - isch nur für igloggti User!", E_USER_ERROR);
 	}
@@ -1111,7 +1111,7 @@ function doBenoten($pic_id, $score) {
 	// Activity Eintrag auslösen (ausser bei der Bärbel)
 	$sternli = '';
 	for ($s=0;$s<$score;$s++){$sternli .= '*';} // Sternli mache
-	if ($user_id != BARBARA_HARRIS) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br /><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+	if ($user_id != BARBARA_HARRIS) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 }
 
 
@@ -1778,7 +1778,7 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 			
 			$html_out .= '<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">';
 
-			if ($rs['name']) $html_out .= $rs['name'].'<br />';
+			if ($rs['name']) $html_out .= $rs['name'].'<br>';
 			
 			$html_out .=
 					'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"></a>'
@@ -1829,7 +1829,7 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 			$html_out .= '<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">';
 
 			$pic_name = imgName($rs['pic_id']);
-			if ($pic_name) $html_out .= $pic_name.'<br />';
+			if ($pic_name) $html_out .= $pic_name.'<br>';
 
 			$html_out .=
 					'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"></a>'
@@ -1837,7 +1837,7 @@ function getTopPics($album_id=null, $limit=5, $ranking_list=false)
 			;
 
 			$votes = $anz_votes.' '.(($anz_votes > 1) || ($anz_votes == 0) ? 'Votes' : $anz_votes.'Vote');
-			$html_out .= '<small>('.$votes.')</small>'.'<br />';
+			$html_out .= '<small>('.$votes.')</small>'.'<br>';
 
 			if ($ranking_list === true) $html_out .= '</td></tr>';
 

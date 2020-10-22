@@ -142,7 +142,7 @@ else {
 		case 'editAlbum':
 			$model->showAlbumedit($smarty, $album_id);
 			$smarty->display('file:layout/head.tpl');
-			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']);
+			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']); // FIXME Undefined index: error
 			break;
 		case 'albumThumbs':
 			$model->showAlbum($smarty, $album_id);
