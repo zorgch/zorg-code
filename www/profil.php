@@ -306,14 +306,18 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 				}
 			}
 
+			/**
+			 * Anmeldeform anzeigen
+			 * (default, oder bi Errors)
+			 */
 			echo '<form action="?do=anmeldung#newuser" method="post" style="font-size: 0.65rem">';
 			echo '<h1 id="newuser">Neuen zorg User erstellen</h1>';
 			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
-			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
+			//if ($smarty->getTemplateVars('error') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 			/** username eingeben */
 			echo '<fieldset>';
 			echo '<label>Gew&uuml;nschter Benutzername
-					<br><input type="text" class="text" name="new_username" value="'.$_POST['new_username'].'">
+					<br><input type="text" class="text" name="new_username" value="'.(isset($error) && !empty($error) ? $_POST['new_username'] : '').'">
 					</label>
 					<br><span class="tiny info">Clan Tag kannst du sp&auml;ter separat angeben</span>
 				</fieldset>';
@@ -329,7 +333,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			/** email adresse eingeben */
 			echo '<fieldset>';
 			echo '<label>E-Mail Adresse
-					<br><input type="text" name="new_email" class="text" value="'.$_POST['new_email'].'">
+					<br><input type="text" name="new_email" class="text" value="'.(isset($error) && !empty($error) ? $_POST['new_email'] : '').'">
 					</label>
 					<br><span class="tiny info">Du bekommst einen Aktivierungscode per E-Mail zugeschickt
 				</fieldset>';
