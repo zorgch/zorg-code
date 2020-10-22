@@ -444,28 +444,24 @@ function turn_finalize ($game, $uid=null)
 
 	if (!$uid) $uid = $user->id;
 
-	try {
-		$db->query('UPDATE hz_players
-					SET turndone="1"
-					WHERE game='.$game.'
-					  AND user='.$uid.'
-					  AND type!="z"',
-					  __FILE__, __LINE__, 'turn_finalize()');
+	$db->query('UPDATE hz_players
+				SET turndone="1"
+				WHERE game='.$game.'
+				  AND user='.$uid.'
+				  AND type!="z"',
+				  __FILE__, __LINE__, 'turn_finalize()');
 
-		$e = $db->query('SELECT g. * , sum( a.score )  - g.z_score player_score, m.players totalplayers,
-						IF ( pl.user IS NOT NULL  || z_score >= sum( a.score ) - g.z_score,  "true",  "false" ) finished
-						FROM hz_maps m, hz_games g
-						LEFT  JOIN hz_aims a ON a.map = g.map
-						LEFT  JOIN hz_players z ON z.game = g.id AND z.type="z"
-						LEFT  JOIN hz_players pl ON pl.game = g.id AND pl.station = z.station AND pl.type!= "z"
-						WHERE g.id ='.$game.' AND m.id = g.map
-						GROUP  BY a.map',
-						__FILE__, __LINE__, __FUNCTION__);
-		$d = $db->fetch($e);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SELECT FROM hz_maps: %s', __FUNCTION__, __LINE__, print_r($d,true)));
-	} catch (Exception $e) {
-		error_log($e->getMessage());
-	}
+	$e = $db->query('SELECT g.*, SUM(a.score)-g.z_score player_score, m.players totalplayers,
+					 IF (pl.user IS NOT NULL || z_score >= (SUM(a.score)-g.z_score), "true", "false") finished
+					 FROM hz_maps m, hz_games g
+					 LEFT JOIN hz_aims a ON a.map = g.map
+					 LEFT JOIN hz_players z ON z.game = g.id AND z.type="z"
+					 LEFT JOIN hz_players pl ON pl.game = g.id AND pl.station = z.station AND pl.type!= "z"
+					 WHERE g.id ='.$game.' AND m.id = g.map
+					 GROUP BY a.map, pl.user',
+					__FILE__, __LINE__, __FUNCTION__);
+	$d = $db->fetch($e);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SELECT FROM hz_maps: %s', __FUNCTION__, __LINE__, print_r($d,true)));
 
 	if ($d) {
 		/** Count turns by Inspectors */
@@ -786,8 +782,8 @@ function turn_move ($game, $ticket, $station) {
 			AND (r.start=$station && r.end=p.station || r.end=$station && r.start=p.station)
 		GROUP BY t.game",*/
 		"SELECT g.id, p.type playertype, g.round tracks, a.score,
-		  IF (a.station IS NOT NULL && at.nr IS NULL , '1', '0')aim_catch,
-		  IF (sen.station IS NOT NULL || a.station IS NOT NULL && at.nr IS NULL , '1', '0')seen
+		  IF (a.station IS NOT NULL && MAX(at.nr) IS NULL , '1', '0') aim_catch,
+		  IF (sen.station IS NOT NULL || a.station IS NOT NULL && MAX(at.nr) IS NULL , '1', '0') seen
 		  FROM hz_games g
 		  LEFT JOIN hz_tracks t ON t.game = g.id
 			AND t.player = 'z'
@@ -811,10 +807,8 @@ function turn_move ($game, $ticket, $station) {
 			AND p.money -".turn_cost($ticket)." >=0
 			AND other.user IS NULL
 			AND (r.start=$station && r.end=p.station || r.end=$station && r.start=p.station)
-		  GROUP BY t.game",
-			
-		__FILE__, __LINE__, __FUNCTION__
-	);
+		  GROUP BY t.game, p.type",
+		__FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	if ($d) {
 		$db->query("UPDATE hz_players
