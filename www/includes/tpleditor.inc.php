@@ -146,7 +146,7 @@ function tpleditor_access_lock ($id, &$error)
 
 	if (!is_string($id) && $id > 0)
 	{
-		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$_GET['tplupd'], __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 	
 		if ($d && !tpl_permission($d['write_rights'], $d['owner'])) {

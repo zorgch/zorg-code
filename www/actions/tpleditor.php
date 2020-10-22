@@ -14,12 +14,18 @@ require_once dirname(__FILE__).'/../includes/tpleditor.inc.php';
 $error = null;
 $state = null;
 $access_error = null;
-$frm = $_POST['frm'];
+if (isset($_POST['frm']) && is_array($_POST['frm'])) $frm = (array)$_POST['frm'];
+if (isset($_GET['tpleditor']) && (is_bool($_GET['tpleditor']) || is_numeric($_GET['tpleditor']))) $enable_tpleditor = (bool)$_GET['tpleditor'];
+unset($_GET['tpleditor']);
+if (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) && $_GET['tplupd'] > 0) $updated_tplid = (int)$_GET['tplupd'];
+unset($_GET['tplupd']);
+if (isset($_GET['location']) && is_string($_GET['location'])) $return_url = base64_decode((string)$_GET['location']);
+unset($_GET['location']);
 
 /**
  * Save Template
  */
-if (tpleditor_access_lock($_GET['tplupd'], $access_error))
+if (tpleditor_access_lock($updated_tplid, $access_error))
 {
 	/** check fields and put error msg. */
 	if ($frm['read_rights']<0 || $frm['read_rights']>3) $error .= t('invalid-permissions-read', 'tpl');
@@ -56,7 +62,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		 */
 		if ($frm['id'] === 'new')
 		{
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Template Content: %s', __FILE__, __LINE__, print_r($frm, true)));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> New Template Content: %s', __FILE__, __LINE__, print_r($frm, true)));
 			$frm['id'] = $db->insert('templates', [
 											 'title' => $frm['title']
 											,'page_title' => $frm['page_title']
@@ -72,7 +78,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 											,'created' => 'NOW()'
 											,'last_update' => 'NOW()'
 										  ], __FILE__, __LINE__, 'Add new Template');
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Template ID: %s', __FILE__, __LINE__, $frm['id']));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> New Template ID: %s', __FILE__, __LINE__, $frm['id']));
 
 			/** Only on success... */
 			if ($frm['id'] > 0 && $frm['id'] != false)
@@ -80,13 +86,13 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 				Thread::setRights('t', $frm['id'], $frm['read_rights']);
 				$db->query('INSERT INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'], __FILE__, __LINE__, 'Copy Template to templates_backup');
 
-				$_GET['tplupd'] = $frm['id'];
-				$_GET['location'] = base64_encode('/?tpl='.$frm['id']);
+				$updated_tplid = $frm['id'];
+				$return_url = base64_encode('/?tpl='.$updated_tplid);
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
 
 				/** Activity Eintrag auslösen */
-				Activities::addActivity($user->id, 0, t('activity-newpage', 'tpl', [ $frm['id'], $frm['title'] ]), 't');
+				Activities::addActivity($user->id, 0, t('activity-newpage', 'tpl', [ $updated_tplid, $frm['title'] ]), 't');
 			}
 			/** Template has not been added */
 			else {
@@ -116,10 +122,10 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 							,'last_update' => 'NOW()'
 						];
 			if ($frm['word']) $templateUpdateParams = array_merge($templateUpdateParams, ['word' => $frm['word']]);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Update Template SQL-Params: %s', __FILE__, __LINE__, print_r($templateUpdateParams,true)));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Update Template SQL-Params: %s', __FILE__, __LINE__, print_r($templateUpdateParams,true)));
 			$result = $db->update('templates', ['id', $frm['id']], $templateUpdateParams, __FILE__, __LINE__, 'Update Template');
 			Thread::setRights('t', $frm['id'], $frm['read_rights']);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d updated', __FILE__, __LINE__, $frm['id']));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d updated', __FILE__, __LINE__, $frm['id']));
 		}
 
 		if (!$error && $frm['id'] > 0)
@@ -135,7 +141,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 					if (!empty($menu_id)) $tplmenusInsertData[] = sprintf('(%d, %d)', $frm['id'], $menu_id);
 				}
 				$db->query('INSERT INTO tpl_menus (tpl_id, menu_id) VALUES '.implode(',',$tplmenusInsertData), __FILE__, __LINE__, 'Link Template to selected Menus'); // add new
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Menus: %s', __FILE__, __LINE__, $frm['id'], print_r($tplmenusInsertData, true)));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Menus: %s', __FILE__, __LINE__, $frm['id'], print_r($tplmenusInsertData, true)));
 			}
 
 			/** Packages: remove all links between Template & Packages, relink selected Packages */
@@ -149,7 +155,7 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 					if (!empty($package_id)) $tplpackagesInsertData[] = sprintf('(%d, %d)', $frm['id'], $package_id);
 				}
 				$db->query('INSERT INTO tpl_packages (tpl_id, package_id) VALUES '.implode(',',$tplpackagesInsertData), __FILE__, __LINE__, 'Link Template to selected Packages'); // add new
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Packages: %s', __FILE__, __LINE__, $frm['id'], print_r($tplpackagesInsertData, true)));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Packages: %s', __FILE__, __LINE__, $frm['id'], print_r($tplpackagesInsertData, true)));
 			}
 		}
 	}
@@ -166,30 +172,30 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 	if (!$error)
 	{
 		/** Compile Templated - TPL-ID based */
-		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile() $frm: %s', __FILE__, __LINE__, print_r($frm,true)));
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'tpl:'.$frm['id']));
+		//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile() $frm: %s', __FILE__, __LINE__, print_r($frm,true)));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'tpl:'.$frm['id']));
 		if (!$smarty->compile('tpl:'.$frm['id'], $compile_err))
 		{
 			for ($i=0; $i<sizeof($compile_err); $i++) {
 				$error .= "<br />".$compile_err[$i]."<br />";
 			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): ERROR (%s)', __FILE__, __LINE__, $error));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): ERROR (%s)', __FILE__, __LINE__, $error));
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): SUCCESS', __FILE__, __LINE__));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): SUCCESS', __FILE__, __LINE__));
 		}
 
 		/** Compile Templated - TPL-Word based (if applicable) */
 		if (!empty($frm['word']))
 		{
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'word:'.$frm['word']));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'word:'.$frm['word']));
 			if (!$smarty->compile('word:'.$frm['word'], $compile_err))
 			{
 				for ($i=0; $i<sizeof($compile_err); $i++) {
 					$error .= "<br />".$compile_err[$i]."<br />";
 				}
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): ERROR (%s)', __FILE__, __LINE__, $error));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): ERROR (%s)', __FILE__, __LINE__, $error));
 			} else {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): SUCCESS', __FILE__, __LINE__));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): SUCCESS', __FILE__, __LINE__));
 			}
 		}
 
@@ -205,21 +211,24 @@ if (tpleditor_access_lock($_GET['tplupd'], $access_error))
 		}
 	}
 
-	/** Unlock Template for editing - only if no $error occurred */
+	/** If everything worked well - ie. no Errors... */
 	if (!$error)
 	{
-		tpleditor_unlock($_GET['tplupd']);
-		if (!$_GET['location']) $_GET['location'] = base64_encode('/?tpl='.$_GET['tplupd']);
+		/** Unlock Template for editing - only if no $error occurred */
+		tpleditor_unlock($updated_tplid);
+		if (!isset($return_url) || empty($return_url)) $return_url = base64_encode('/?tpl='.$updated_tplid);
 
-		unset($_GET['tplupd']);
-		unset($_GET['tpleditor']);
+		$updated_tplid = null;
+		$enable_tpleditor = null;
 
-		// @TODO: http://zorg.local/actions/tpleditor.php?tpl=17&tpleditor=1&tplupd=new => weisse seite
-		header('Location: '.base64_decode($_GET['location']));
-		die();
+		// FIXME http://zorg.local/actions/tpleditor.php?tpl=17&tpleditor=1&tplupd=new => weisse Seite
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> header(Location): %s => %s', __FILE__, __LINE__, $return_url, base64_decode($return_url)));
+		header('Location: '.base64_decode($return_url));
+		//die();
+	}
 
-	/** Go back to TPL-Editor & display Errors */	
-	} else {
+	/** Otherweise go back to TPL-Editor & display Errors */
+	else {
 		$frm['tpl'] = stripslashes(stripslashes($frm['tpl']));
 		$frm['title'] = stripslashes(stripslashes($frm['title']));
 		$frm['packages'] = stripslashes(stripslashes($frm['packages']));
