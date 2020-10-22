@@ -986,16 +986,32 @@ error_log('out: '.$out);
 	         return "";
 	      }
     }
- 	function smarty_edit_link_url ($params, &$smarty) {
+	/**
+	 * @uses edit_link_url()
+	 */
+ 	function smarty_edit_link_url($params, &$smarty)
+	 {
 		if (!$params['tpl']) {
 			$vars = $smarty->get_template_vars();
 			$params['tpl'] = $vars['tpl']['id'];
 		}
 		return edit_link_url($params['tpl']);
 	}
-		function edit_link_url ($tpl) {
-			return "/?tpleditor=1&tplupd=$tpl&location=".base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
-		}
+	/**
+	 * Stich together Template Edit-URL
+	 *
+	 * @version 1.1
+	 * @since 1.0 Method added
+	 * @since 1.1 `22.10.2020` `IneX` added URL encoding of base64-part (because valid b64 chars like = can interfer with URL)
+	 *
+	 * @uses base64url_encode()
+	 * @param int $tpl Template-ID for which to create Edit-URL
+	 * @return string
+	 */
+	function edit_link_url($tpl)
+	{
+		return '/?tpleditor=1&tplupd='.$tpl.'&location='.base64url_encode($_SERVER['PHP_SELF'].'?'.url_params());
+	}
 
 	/**
 	 * Letze Smarty Updates

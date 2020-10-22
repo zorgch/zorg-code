@@ -19,7 +19,7 @@ if (isset($_GET['tpleditor']) && (is_bool($_GET['tpleditor']) || is_numeric($_GE
 unset($_GET['tpleditor']);
 if (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) && $_GET['tplupd'] > 0) $updated_tplid = (int)$_GET['tplupd'];
 unset($_GET['tplupd']);
-if (isset($_GET['location']) && is_string($_GET['location'])) $return_url = base64_decode((string)$_GET['location']);
+if (isset($_GET['location']) && is_string($_GET['location'])) $return_url = base64url_decode((string)$_GET['location']);
 unset($_GET['location']);
 
 /**
@@ -87,7 +87,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 				$db->query('INSERT INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'], __FILE__, __LINE__, 'Copy Template to templates_backup');
 
 				$updated_tplid = $frm['id'];
-				$return_url = base64_encode('/?tpl='.$updated_tplid);
+				$return_url = '/?tpl='.$updated_tplid;
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
 
@@ -216,15 +216,15 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 	{
 		/** Unlock Template for editing - only if no $error occurred */
 		tpleditor_unlock($updated_tplid);
-		if (!isset($return_url) || empty($return_url)) $return_url = base64_encode('/?tpl='.$updated_tplid);
+		if (!isset($return_url) || empty($return_url)) $return_url = '/?tpl='.$updated_tplid;
 
 		$updated_tplid = null;
 		$enable_tpleditor = null;
 
 		// FIXME http://zorg.local/actions/tpleditor.php?tpl=17&tpleditor=1&tplupd=new => weisse Seite
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> header(Location): %s => %s', __FILE__, __LINE__, $return_url, base64_decode($return_url)));
-		header('Location: '.base64_decode($return_url));
-		//die();
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> header(Location): %s', __FILE__, __LINE__, $return_url));
+		header('Location: '.$return_url);
+		exit();
 	}
 
 	/** Otherweise go back to TPL-Editor & display Errors */
