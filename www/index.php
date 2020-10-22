@@ -141,7 +141,7 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
 
 	/** Load Template data */
 	// FIXME change this to use Smarty:: Function!
-	$where = ( isset($_GET['word']) && $_GET['word'] ? 'word="'.$_GET['word'].'"' : 'id='.$_GET['tpl'] );
+	$where = (isset($_GET['word']) && is_string($_GET['word']) ? 'word="'.(string)$_GET['word'].'"' : 'id='.(int)$_GET['tpl'] );
 
 	$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
 					UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
