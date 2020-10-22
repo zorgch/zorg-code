@@ -76,7 +76,7 @@ if($postAction === 'edit_now' && true === $user->is_loggedin())
 			$parent_id = $rs['id'];
 		} else {
 			$titel_id = $rs['id'];
-			$parent_id = '';
+			$parent_id = 0;
 		}
 
 		$sql = 'UPDATE books set title = "'.addslashes(strip_tags((string)$_POST['title'])).'",
@@ -110,16 +110,17 @@ elseif ($postAction === 'add_now' && $user->is_loggedin())
 		$parent_id = $rs['id'];
 	} else {
 		$titel_id = $rs['id'];
-		$parent_id = '';
+		$parent_id = 0;
 	}
 
 	/** Book adden */
+	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Insert Book $_POST: %s', __FILE__, __LINE__, print_r($_POST, true)));
 	$bookTitle = (isset($_POST['title']) & is_string($_POST['title']) ? addslashes(strip_tags((string)$_POST['title'])) : '');
 	$bookAutor = (isset($_POST['autor']) & is_string($_POST['autor']) ? addslashes(strip_tags((string)$_POST['autor'])) : '');
 	$bookVerlag = (isset($_POST['autor']) & is_string($_POST['autor']) ? addslashes(strip_tags((string)$_POST['autor'])) : '');
 	$bookIsbn = (isset($_POST['isbn']) & is_string($_POST['isbn']) ? addslashes(strip_tags((string)$_POST['isbn'])) : '');
 	$bookJahr = (isset($_POST['jahrgang']) & is_numeric($_POST['jahrgang']) ? (int)$_POST['jahrgang'] : '');
-	$bookPreis = (isset($_POST['preis']) & is_numeric($_POST['preis']) ? (float)$_POST['preis'] : '');
+	$bookPreis = (isset($_POST['preis']) & is_numeric($_POST['preis']) ? (float)$_POST['preis'] : 0);
 	$bookSeiten = (isset($_POST['seiten']) & is_numeric($_POST['seiten']) ? (int)$_POST['seiten'] : '');
 	$bookText = (isset($_POST['text']) & is_string($_POST['text']) ? addslashes(strip_tags((string)$_POST['text'])) : '');
 	$sql = 'INSERT INTO books (
@@ -135,21 +136,21 @@ elseif ($postAction === 'add_now' && $user->is_loggedin())
 				text,
 				ersteller
 			) VALUES (
-				"'.$bookTitle.'",
-				"'.$bookAutor.'",
-				"'.$bookVerlag.'",
-				"'.$bookIsbn.'",
-				'.$titel_id.',
-				'.$parent_id.',
-				'.$bookJahr.',
-				'.$bookPreis.',
-				'.$bookSeiten.',
-				"'.$bookText.'",
-				'.$user->id.'
+				 "'.$bookTitle.'"
+				,"'.$bookAutor.'"
+				,"'.$bookVerlag.'"
+				,"'.$bookIsbn.'"
+				,'.$titel_id.'
+				,'.$parent_id.'
+				,'.$bookJahr.'
+				,'.$bookPreis.'
+				,'.$bookSeiten.'
+				,"'.$bookText.'"
+				,'.$user->id.'
 			)';
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Insert Book SQL: %s', __FILE__, __LINE__, $sql));
 	$IdNewBook = $db->query($sql, __FILE__, __LINE__, 'add_now');
-	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Insert Book SQL: %s', __FILE__, __LINE__, $sql));
-	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> New Book ID: %s', __FILE__, __LINE__, $IdNewBook));
+
 	if ($IdNewBook !== false && !is_bool($IdNewBook) && $IdNewBook > 0)
 	{
 		$sql = 'INSERT INTO books_holder(book_id, user_id)
