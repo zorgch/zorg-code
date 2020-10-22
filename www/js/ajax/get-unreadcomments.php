@@ -20,7 +20,7 @@ $numUnreadComments = Forum::getNumunreadposts($user->id);
 	if (!empty($numUnreadComments) && $numUnreadComments != false && $numUnreadComments > 0)
 	{
 		http_response_code(200); // Set response code 200 (OK)
-		header('Content-type:document;charset=utf-8');
+		header('Content-type: text/html;charset=utf-8');
 		echo ($numUnreadComments > 1 ? $numUnreadComments.' Comments' : $numUnreadComments.' Comment');
 	} else {
 		http_response_code(204); // Set response code 204 (OK but no Content)

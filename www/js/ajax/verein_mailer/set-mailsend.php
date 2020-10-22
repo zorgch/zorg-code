@@ -199,7 +199,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 	if (isset($response) && is_array($response))
 	{
 		http_response_code(200); // Set response code 200 (OK)
-		header('Content-type: application/json');
+		header('Content-type: application/json; charset=utf-8');
 		echo json_encode($response);
 	} else {
 		http_response_code(500); // Set response code 500 (internal server error)
