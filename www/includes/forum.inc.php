@@ -704,8 +704,8 @@ class Comment
 			$text = escape_text($text);
 
 			/** Comment in die DB abspeichern */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $sql));
-			$comment_id = $db->insert('comments', ['user_id'=>$user_id, 'parent_id'=>$parent_id, 'thread_id'=>$thread_id, 'text'=>$text, 'date'=>'NOW()', 'board'=>$board, 'error'=>$comment_error]);
+			$comment_error = (isset($comment_error) ? $comment_error : '');
+			$comment_id = $db->insert('comments', ['user_id'=>$user_id, 'parent_id'=>$parent_id, 'thread_id'=>$thread_id, 'text'=>$text, 'date'=>'NOW()', 'board'=>$board, 'error'=>$comment_error], __FILE__, __LINE__, __METHOD__);
 			if(empty($comment_id) || !is_numeric($comment_id) || $comment_id <= 0) user_error(t('invalid-comment_id', 'commenting'), E_USER_ERROR);
 
 			/**
