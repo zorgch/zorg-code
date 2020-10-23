@@ -21,7 +21,8 @@
 * @const TELEGRAM_BOT Name of the Telegram Bot to use (Attention: use same name for the bot's config file!)
 * @include TELEGRAM_BOT.php Include Telegram Bot Configs
 */
-if (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot');
+if (!defined('TELEGRAM_BOT') && file_exists(APIKEYS_DIR.'/telegram_bot/zthearchitect_bot.php') ) define('TELEGRAM_BOT', 'zthearchitect_bot');
+elseif (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot');
 if ( file_exists(APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php') ) require_once APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php' ;
 
 /**
