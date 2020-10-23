@@ -50,7 +50,7 @@ if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNA
 
 /**
  * Set a constant for the Site's Web Root
- * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/"
+ * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/". IMPORTANT: relative to the config.inc.php File!
  */
 if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'/..');
 
@@ -118,7 +118,7 @@ if (!defined('GIT_REPOSITORY_URL')) define('GIT_REPOSITORY_URL', 'https://github
  * @const JS_DIR JavaScripts directory for Frontend-Resources 
  * @const CSS_DIR CSS directory for Frontend-Resources 
  */
-if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', rtrim(SITE_ROOT, '.'));//SITE_ROOT . '/includes/');
+if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
 if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys'); // No trailing slash /
 if (!defined('MODELS_DIR')) define('MODELS_DIR', SITE_ROOT . '/models/');
 if (!defined('CONTROLLERS_DIR')) define('CONTROLLERS_DIR', SITE_ROOT . '/controller/');
