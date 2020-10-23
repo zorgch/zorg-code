@@ -82,37 +82,33 @@ function start_new_game ($map) {
 	global $db, $user;
 
 	/** Validate function parameters */
-	if (!$userf>id) user_error(t('error-newgame-not-logged-in'), E_USER_ERROR);
+	if (!$user->is_loggedin()) user_error(t('error-newgame-not-logged-in'), E_USER_ERROR);
 
-	try {
-		/** get number of games the users has opened (i.e. is mister z) */
-		$own_games = $db->fetch($db->query(
-			"SELECT count(p.user) AS anz
-			FROM hz_players AS p JOIN hz_games AS g ON p.game=g.id
-			WHERE g.state!='finished' AND p.type='z' AND p.user='$user->id'",
-			__FILE__, __LINE__
-		));
+	/** get number of games the users has opened (i.e. is mister z) */
+	$own_games = $db->fetch($db->query( // FIXME gibt immer 0 zurück?!
+		'SELECT count(p.user) AS anz
+		FROM hz_players AS p JOIN hz_games AS g ON p.game=g.id
+		WHERE g.state!="finished" AND p.type="z" AND p.user='.$user->id,
+		__FILE__, __LINE__
+	));
 
-		/** too many games open already */
-		if ($own_games['anz'] > MAX_HZ_GAMES) {
-			user_error(t('error-game-max-limit-reached'), E_USER_ERROR);
+	/** too many games open already */
+	if (isset($own_games['anz']) && $own_games['anz'] >= MAX_HZ_GAMES) {
+		user_error(t('error-game-max-limit-reached'), E_USER_ERROR);
+	}
+	/** user can still open new games */
+	else {
+		$e = $db->query('SELECT * FROM hz_maps WHERE id='.$map.' AND state="active"', __FILE__, __LINE__, __FUNCTION__);
+		$d = $db->fetch($e);
+		if ($d) {
+			$game = $db->query('INSERT INTO hz_games (date, map, round) VALUES (NOW(), '.$d['id'].', 1)', __FILE__, __LINE__, __FUNCTION__);
+			$db->query('INSERT INTO hz_players (game, user, station) VALUES ('.$game.', '.$user->id.', '.get_start_station($game).')', __FILE__, __LINE__, __FUNCTION__);
 
-		/** user can still open new games */
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, t('activity-newgame', 'hz', [ $d['name'], SITE_URL, $game ]), 'hz');
 		} else {
-			$e = $db->query('SELECT * FROM hz_maps WHERE id='.$map.' AND state="active"', __FILE__, __LINE__, __FUNCTION__);
-			$d = $db->fetch($e);
-			if ($d) {
-				$game = $db->query('INSERT INTO hz_games (date, map, round) VALUES (NOW(), '.$d['id'].', 1)', __FILE__, __LINE__, __FUNCTION__);
-				$db->query('INSERT INTO hz_players (game, user, station) VALUES ('.$game.', '.$user->id.', '.get_start_station($game).')', __FILE__, __LINE__, __FUNCTION__);
-
-				/** Activity Eintrag auslösen */
-				Activities::addActivity($user->id, 0, t('activity-newgame', 'hz', [ $d['name'], SITE_URL, $game ]), 'hz');
-			} else {
-				user_error(t('unknown-map', 'hz', $map), E_USER_ERROR);
-			}
+			user_error(t('unknown-map', 'hz', $map), E_USER_ERROR);
 		}
-	} catch (Exception $e) {
-		user_error($e->getMessage(), E_USER_ERROR);
 	}
 }
 
