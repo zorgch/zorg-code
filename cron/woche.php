@@ -24,7 +24,7 @@ if (isset($wwwroot) && file_exists($wwwroot.'/includes/config.inc.php'))
 	error_log(sprintf('[%s] [NOTICE] <%s> www-Root given: %s', date('d.m.Y H:i:s',time()), __FILE__, $wwwroot));
 
 	error_log(sprintf('[%s] [NOTICE] <%s> Try including files...', date('d.m.Y H:i:s',time()), __FILE__));
-	define('SITE_ROOT', $wwwroot.'/'); // Define own SITE_ROOT before loading general zConfigs
+	define('SITE_ROOT', $wwwroot); // Define own SITE_ROOT before loading general zConfigs
 	require_once( SITE_ROOT.'/includes/config.inc.php');
 	include_once( INCLUDES_DIR.'mysql.inc.php');
 	//include_once( INCLUDES_DIR.'forum.inc.php');
