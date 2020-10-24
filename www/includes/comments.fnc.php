@@ -1,13 +1,18 @@
 <?php
 /**
+ * Comment Template-Resouce options
+ */
+
+/**
  * File includes
  * @include smarty.inc.php required
  * @include forum.inc.php required
  * @include usersystem.inc.php required
  */
-require_once( __DIR__ .'/smarty.inc.php');
-require_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
  * Register Smarty-Template functions & variables
@@ -23,7 +28,10 @@ $smarty->register_function("comment_mark_read", "smarty_comment_mark_read");
 
 /**
  * Thread-Comment Color-Fade an $smarty übergeben
- * @see Forum::colorfade(), $color
+ *
+ * @uses Forum::colorfade()
+ * @var $color
+ * @var $smarty
  */
 function smarty_comment_colorfade ($params) {
 	return Forum::colorfade($params['depth'], $params['color']);

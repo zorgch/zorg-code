@@ -1,6 +1,7 @@
 <?php
 /**
  * Frets on Zorg
+ *
  * "Frets on Fire" Hi-scores für zorg.
  * coded by [z]keep3r
  *
@@ -11,8 +12,8 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model

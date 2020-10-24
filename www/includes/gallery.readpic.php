@@ -1,7 +1,7 @@
 <?php
 /**
  * Gallery-Pic holen
- * 
+ *
  * This script reads a gallery-pic (they aren't in a public directory).
  * It uses the standard session of the User.
  *
@@ -11,7 +11,7 @@
  * @version 3.0
  * @since 1.0 file & functions added initially
  * @since 2.0 added check for valid GET-Parameters, refactored Caching & HTTP-Headers, added Movie-File output variations
- * @since 3.0 <inex> 14.11.2019 GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
+ * @since 3.0 `14.11.2019` `IneX` GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
  *
  * @param integer $_GET['id'] Passed integer > 0 of an existing Gallery Pic ID
  * @return resource Media resource with correct MIME-Type and HTTP Headers
@@ -24,10 +24,10 @@
  * @include usersystem.inc.php Usersystem Functions and User definitions
  * @include util.inc.php Various Helper Functions
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+include_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 /** Check if passed $_GET['id'] is valid / integer & not empty */
 if (empty($_GET['id']) || !is_numeric($_GET['id']) || $_GET['id'] <= 0) {
@@ -48,7 +48,7 @@ $media_data = $db->fetch($query);
  * - Ausnahme #2: Telegram-Bot (Daily Pic)
  * @link https://github.com/zorgch/zorg-verein-docs/blob/master/GV/GV%202018/2018-12-23%20zorg%20GV%202018%20Protokoll.md
  */
-if (isset($_GET['token']) && md5(TELEGRAM_API_URI) === $_GET['token']) $auth_granted = true; // Validate Telegram-Bot Auth-Token
+$auth_granted = (isset($_GET['token']) && md5(TELEGRAM_API_URI) === $_GET['token'] ? true : null); // Validate Telegram-Bot Auth-Token
 if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Auth-Token: %s', __FILE__, __LINE__, ($auth_granted ? $_GET['token'] : 'false')));
 if ((int)$media_data['album'] === APOD_GALLERY_ID || $user->is_loggedin() && (!empty($user->vereinsmitglied) && $user->vereinsmitglied !== '0') || $auth_granted === true)
 {

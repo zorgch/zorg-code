@@ -1,8 +1,14 @@
-<?
+<?php
+/**
+ * Mobilezorg V2 - Create new User
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
+
 /**
  * FILE INCLUDES
  */
-require_once 'config.php';
+require_once dirname(__FILE__).'/config.php';
 
 $new_user = htmlentities($_POST['new_username']);
 $new_pass = htmlentities($_POST['new_password']);
@@ -14,7 +20,7 @@ if(isset($new_user) && isset($new_pass) && isset($new_pass2) && isset($new_email
 	// Check if the 2 Passwords match
 	if($new_pass == $new_pass2)
 	{
-		require_once PHP_INCLUDES_DIR.'usersystem.inc.php';
+		require_once INCLUDES_DIR.'usersystem.inc.php';
 		$result = $user->create_newuser($new_user, $new_pass, $new_pass2, $new_email);
 		error_log("[INFO] User '$new_user': $result"); // Output an Info to PHP-Errorlog
 		echo $result;

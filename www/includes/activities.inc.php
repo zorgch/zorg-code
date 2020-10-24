@@ -17,10 +17,9 @@
  *
  * @TODO make Activities a Global Class-Object!
  * @TODO Acitivities-String nicht mehr parsed in die DB-speichern, sondern nur die String-Referenz
- * @TODO Change saved Acitivies-Strings in DB to be sprintf() compatible, e.g.: "sprintf('%s<br/><br/><a href="%s%s">%s</a>", 'hat ein neues Hunting z Spiel auf der Karte cruiser city 2 er&ouml;ffnet.', 'https://zorg.local', '/smarty.php?tpl=103&amp;game=728')" - but save only placeholder-reference to strings.array.php & activity_area = strings.array.php[type]. Add fallback for existing Activities-Strings - or do a DB-Cleanup of the old hardcoded Strings.
+ * @TODO Change saved Acitivies-Strings in DB to be sprintf() compatible, e.g.: "`sprintf('%s<br/><br/><a href="%s%s">%s</a>`", 'hat ein neues Hunting z Spiel auf der Karte cruiser city 2 er&ouml;ffnet.', 'https://zorg.local', '/smarty.php?tpl=103&amp;game=728')" - but save only placeholder-reference to strings.array.php & activity_area = strings.array.php[type]. Add fallback for existing Activities-Strings - or do a DB-Cleanup of the old hardcoded Strings.
  *
- * @package		zorg
- * @subpackage	Activities
+ * @package zorg\Activities
  */
 /**
  * File includes
@@ -30,25 +29,23 @@
  * @include util.inc.php required
  * @include strings.inc.php required
  */
-require_once( __DIR__ . '/config.inc.php');
-require_once( __DIR__ . '/mysql.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
-require_once( __DIR__ . '/util.inc.php');
-require_once( __DIR__ . '/strings.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Activities Class
  *
  * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
  *
- * @author		IneX
- * @date		13.09.2009
- * @version		3.0
- * @since		1.0 13.09.2009 initial release
- * @since		2.0 18.08.2012 added RSS-Feed for Activities
- * @since		3.0 16.05.2018 added Twitter-Notifications for new Activities
- * @package		zorg
- * @subpackage	Activities
+ * @author IneX
+ * @date 13.09.2009
+ * @version 3.0
+ * @since 1.0 `13.09.2009` initial release
+ * @since 2.0 `18.08.2012` added RSS-Feed for Activities
+ * @since 3.0 `16.05.2018` added Twitter-Notifications for new Activities
+ * @package zorg\Activities
  */
 class Activities
 {
@@ -58,9 +55,9 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	2.1
-	 * @since	1.0 13.09.2009 initial release
-	 * @since	2.0 04.09.2018 Added exception handling & boolean return, added support for Activity-Placeholders from strings.array.php
-	 * @since	2.1 05.12.2018 fixed wrong usage of t() causing a lot of log errors and broken activity-stream
+	 * @since	1.0 `13.09.2009` initial release
+	 * @since	2.0 `04.09.2018` Added exception handling & boolean return, added support for Activity-Placeholders from strings.array.php
+	 * @since	2.1 `05.12.2018` fixed wrong usage of t() causing a lot of log errors and broken activity-stream
 	 *
 	 * @TODO Activity-Area wurde entfernt... ev. doch nötig?
 	 *
@@ -119,13 +116,14 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	4.0
-	 * @since	1.0 13.09.2009 initial release
-	 * @since	2.0 16.05.2018 added Telegram Notification for new Activities
-	 * @since	2.1 16.05.2018 Changed to new Telegram Notification-Method
-	 * @since	3.0 02.09.2018 Added exception handling & boolean return, changed Activities to support Placeholders from strings.array.php
-	 * @since	4.0 30.10.2018 Enabled self::checkAllowActivities() for User-ID, if "activities_allowed" is set to "ON"
+	 * @since	1.0 `13.09.2009` initial release
+	 * @since	2.0 `16.05.2018` added Telegram Notification for new Activities
+	 * @since	2.1 `16.05.2018` Changed to new Telegram Notification-Method
+	 * @since	3.0 `02.09.2018` Added exception handling & boolean return, changed Activities to support Placeholders from strings.array.php
+	 * @since	4.0 `30.10.2018` Enabled self::checkAllowActivities() for User-ID, if "activities_allowed" is set to "ON"
 	 *
-	 * @see Activities::checkAllowActivities(), Telegram::send::message()
+	 * @uses Activities::checkAllowActivities()
+	 * @uses Telegram::send::message()
 	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat
 	 * @param	integer	$forUser		Benutzer ID dem die Nachricht zugeordner werden soll (Owner)
 	 * @param	string	$activity		Activity-Nachricht, welche ausgelöst wurde
@@ -175,8 +173,8 @@ class Activities
 	 * @author	IneX
 	 * @date	16.05.2018
 	 * @version	2.0
-	 * @since	1.0 16.05.2018 initial release
-	 * @since	2.0 04.09.2018 enhanced method to work with updating new values
+	 * @since	1.0 `16.05.2018` initial release
+	 * @since	2.0 `04.09.2018` enhanced method to work with updating new values
 	 *
 	 * @param	integer	$activity_id	ID der Activity, welche aktualisiert werden soll
 	 * @param	array	$newValues	Array containing new Values to be written to the defined Activity
@@ -219,11 +217,11 @@ class Activities
 	 * @author	IneX
 	 * @date	24.07.2018
 	 * @version	2.0
-	 * @since	1.0 13.09.2009 initial release
-	 * @since	2.0 24.07.2018 minor update to work with AJAX-Request
+	 * @since	1.0 `13.09.2009` initial release
+	 * @since	2.0 `24.07.2018` minor update to work with AJAX-Request
 	 *
-	 * @see delete-activity.php
 	 * @see Activities::getActivityOwner()
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/js/ajax/activities/delete-activity.php AJAX-Action in delete-activity
 	 * @param	integer	$activity_id	ID der Activity, welche entfernt werden soll
 	 * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
 	 * @global	object	$db 		Globales Class-Object mit allen MySQL-Methoden
@@ -435,8 +433,8 @@ class Activities
 	 * @author	IneX
 	 * @date	13.09.2009
 	 * @version	2.0
-	 * @since	1.0 13.09.2009 initial release
-	 * @since	2.0 30.10.2018 method updated
+	 * @since	1.0 `13.09.2009` initial release
+	 * @since	2.0 `30.10.2018` method updated
 	 *
 	 * @param	integer	$user_id	Benutzer ID für welchen die Einstellung überprüft werden muss
 	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
@@ -469,7 +467,7 @@ class Activities
 	 * @author	IneX
 	 * @date	18.08.2012
 	 * @version	1.0
-	 * @since	1.0 18.08.2012 initial release
+	 * @since	1.0 `18.08.2012` initial release
 	 *
 	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
 	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
@@ -566,7 +564,7 @@ class Activities
 	 * @author	IneX
 	 * @date	18.09.2018
 	 * @version	1.0
-	 * @since	1.0 13.09.2009 method added
+	 * @since	1.0 `13.09.2009` method added
 	 *
 	 * @see checkAllowActivities()
 	 * @param	integer	$fromUser		Benutzer ID der die Activity ausgelöst hat

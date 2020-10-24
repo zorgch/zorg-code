@@ -182,6 +182,7 @@ function db_update_table_templates_remove_packages($dryrun=true)
  * @version 1.0
  * @since 1.0 <inex> 16.06.2019 Function added
  *
+ * @uses db_query_templates_menus()
  * @param boolean $dryrun Disable to actually make the changes. Default: TRUE
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean Result of executing the function
@@ -199,7 +200,6 @@ function db_update_table_templates_remove_menus($dryrun=true)
 
 	/**
 	 * Fetch Array with Template-Menus Mapping from Helper function
-	 * @see templates_convert_menus.php
 	 */
 	$extractedTplMenusMapping = db_query_templates_menus();
 	$menusNum = count($extractedTplMenusMapping);

@@ -1,9 +1,15 @@
 <?php
 /**
+ * Get unread Comments asynchronously
+ *
+ * @package zorg\Forum
+ */
+
+/**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../includes/config.inc.php');
-require_once( __DIR__ .'/../../includes/forum.inc.php');
+require_once dirname(__FILE__).'/../../includes/config.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
 
 /**
  * Get online user HTML
@@ -14,7 +20,7 @@ $numUnreadComments = Forum::getNumunreadposts($user->id);
 	if (!empty($numUnreadComments) && $numUnreadComments != false && $numUnreadComments > 0)
 	{
 		http_response_code(200); // Set response code 200 (OK)
-		header('Content-type:document;charset=utf-8');
+		header('Content-type: text/html;charset=utf-8');
 		echo ($numUnreadComments > 1 ? $numUnreadComments.' Comments' : $numUnreadComments.' Comment');
 	} else {
 		http_response_code(204); // Set response code 204 (OK but no Content)

@@ -1,21 +1,25 @@
 <?php
 /**
  * MySQL-Authentifizierung laden
+ *
  * Wenn lokal entwickelt wird, muss manuell eine Kopie
  * der DB-Info-Datei mit folgendem Namen angelegt werden:
  *	  mysql_login.inc.local.php
  *
+ * @package zorg\Database
+ */
+/**
+ * File includes
  * @include mysql_login.inc.local.php Include MySQL Database login information file
  * @include config.inc.php
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( (file_exists( __DIR__ .'/mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') );
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.( file_exists( INCLUDES_DIR.'mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') ;
 
 /**
  * MySQL Database Connection Class
  *
- * @package zorg
- * @subpackage MySQL
+ * @package zorg\Database\MySQL
  */
 class dbconn
 {
@@ -27,13 +31,38 @@ class dbconn
 	var $query_track = array();
 
 	/**
-	 * Verbindungsaufbau
+	 * dbconn constructor.
 	 *
-	 * @author IneX
-	 * @date 10.11.2017
+	 * @version 1.0
+	 * @since 1.0 `03.11.2019` `kassiopaia` method added
+	 *
+	 * @param $database
+	 * @throws Exception
+	 */
+	public function __construct($database) {
+		try {
+			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // PHP7.x ready
+			if(!$this->conn)
+				header('Location: '.SITE_URL.'/error_static.html');
+			//die("MySQL: can't connect to server");
+			if(!@mysqli_select_db($this->conn, $database)) // PHP7.x ready
+				die($this->msg());
+			mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
+		}
+		catch (Exception $e) {
+			throw $e;
+		}
+	}
+
+	/**
+	 * MySQL DB Verbindungsaufbau
+	 *
 	 * @version 3.0
+	 * @since 3.0 `10.11.2017` `IneX` method code optimized
 	 *
-	 * @param MYSQL_DBNAME string
+	 * @TODO kassiopaia: mysql_select_charset() & $this->conn() müssen noch => php7.x ready gemacht werden?
+	 *
+	 * @param string MYSQL_DBNAME
 	 */
 	function dbconn($database) {
 		//$this->dbname = $dbname;
@@ -59,8 +88,8 @@ class dbconn
 	 *
 	 * @version 2.1
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 06.11.2018 added mysql_affected_rows()-result for UPDATE-queries
-	 * @since 2.1 <inex> 07.08.2019 changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
+	 * @since 2.0 `06.11.2018` `IneX` added mysql_affected_rows()-result for UPDATE-queries
+	 * @since 2.1 `07.08.2019` `IneX` changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
 	 *
 	 * @param $sql string SQL
 	 * @param $file string Filename
@@ -72,7 +101,7 @@ class dbconn
 
 		$this->noquerys++;
 
-		if ($user && $user->sql_tracker) {
+		if ($user && isset($user->sql_tracker)) {
 			$this->noquerytracks++;
 			$qfile = $file;
 			$qline = $line;
@@ -80,18 +109,19 @@ class dbconn
 			if (is_object($qfile)) $qfile = '?';  // weil irgend jemand auf die idee kam, ein object zu übergeben (tststs)
 			if (!$qline) $qline = '?';
 			if (!isset($this->query_track[$qfile])) $this->query_track[$qfile] = array();
-			$this->query_track[$qfile]['line '.$qline]++;
+			if(isset($this->query_track[$qfile]['line '.$qline])) {
+				$this->query_track[$qfile]['line '.$qline]++;
+			}
 		}
 
 		try {
-			$result = mysql_query($sql, $this->conn); // DEPRECATED - PHP5 only
-			//$result = mysqli_query($this->conn, $sql); // PHP7.x ready
+			$result = mysqli_query($this->conn, $sql); // DEPRECATED - PHP5 only
 			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
 			if ($sql_query_type == 'insert') {
-				$sql_insert_id = mysql_insert_id($this->conn);
+				$sql_insert_id = mysqli_insert_id($this->conn);
 				return (is_numeric($sql_insert_id) && $sql_insert_id !== 0 ? $sql_insert_id : ($sql_insert_id !== false ? true : false));
 			} elseif ($sql_query_type == 'update') {
-				$sql_affected_rows = mysql_affected_rows();
+				$sql_affected_rows = mysqli_affected_rows($this->conn);
 				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
 			} elseif ($result === false && $this->display_error == 1) {
 				/** Display MySQL-Error with context */
@@ -114,10 +144,8 @@ class dbconn
 	 */
 	function msg($sql='',$file='',$line='',$funktion='')
 	{
-		$num = mysql_errno($this->conn); // DEPRECATED - PHP5 only
-		$msg = mysql_error($this->conn); // DEPRECATED - PHP5 only
-		//$num = mysqli_errno($this->conn); // PHP7.x ready
-		//$msg = mysqli_errno($this->conn); // PHP7.x ready
+		$num = mysqli_errno($this->conn); // PHP7.x ready
+		$msg = mysqli_error($this->conn); // PHP7.x ready
 		$ausg = "<table cellpadding='5' align='center' cellspacing='0' bgcolor='#FFFFFF' width='800' style='font-family: verdana; font-size:12px; color:black;'>
 		<tr><td align='center' width='800' colspan='2'
 		style='border-bottom-style:solid; border-bottom-color:#000000; border-bottom-width:1px;'>
@@ -162,78 +190,71 @@ class dbconn
 				$_SERVER['HTTP_REFERER'],
 				$funktion
 			);
-		@mysql_query($sql,$this->conn); // DEPRECATED - PHP5 only
-		//@mysqli_query($sql,$this->conn); // PHP7.x ready
+		@mysqli_query($sql,$this->conn); // PHP7.x ready
 	}
 
 	/**
 	 * Fetcht ein SQL-Resultat in ein Array
 	 *
-	 * @TODO im GANZEN Zorg-Code search & replace "mysql_fetch_array" ersetzen durch "$db->fetch(...)"
+	 * @TODO add 2nd param for MYSQLI_ASSOC feature? See e.g. /js/ajax/get-userpic.php
 	 *
 	 * @return array
 	 * @param $result object SQL-Resultat
 	 */
 	function fetch($result) {
 		global $sql; // notwendig??
-		return @mysql_fetch_array($result); // DEPRECATED - PHP5 only
-		//return @mysqli_fetch_array($result); // PHP7.x ready
+		return @mysqli_fetch_array($result); // PHP7.x ready
 	}
 
 	/**
-	 * gibt die letzte Autoincrement ID zurück
+	 * gibt die letzte Autoincrement ID zurück.
 	 * @return int
 	 */
 	function lastid() {
-		return @mysql_insert_id($this->conn); // DEPRECATED - PHP5 only
-		//return @mysqli_insert_id($this->conn); // PHP7.x ready
+		return @mysqli_insert_id($this->conn); // PHP7.x ready
 	}
 
 	/**
-	 * Gibt die Anzahl betroffener Datensätze zurück
+	 * Gibt die Anzahl betroffener Datensätze zurück.
 	 * @return int numrows
 	 * @param $result object SQL-Resultat
 	 */
 	function num($result,$errorchk=TRUE) {
-		return @mysql_num_rows($result); // DEPRECATED - PHP5 only
-		//return @mysqli_num_rows($result); // PHP7.x ready
+		return @mysqli_num_rows($result); // PHP7.x ready
 	}
 
 	/**
-	 * Setzt den Zeiger auf einen Datensatz
+	 * Setzt den Zeiger auf einen Datensatz.
 	 * @return object
 	 * @param $result object SQL-Resultat
 	 * @param $rownum int Rownumber
 	 */
 	function seek($result,$rownum) {
-		return @mysql_data_seek($result,$rownum); // DEPRECATED - PHP5 only
-		//return @mysqli_data_seek($result, $rownum); // PHP7.x ready
+		return @mysqli_data_seek($result, $rownum); // PHP7.x ready
 	}
 
 	/**
-	 * Gibt die Anzahl betroffener Felder zurück
+	 * Gibt die Anzahl betroffener Felder zurück.
 	 * @return int
 	 * @param $result object SQL-Resultat
 	 */
 	function numfields($result) {
-		return @mysql_num_fields($result); // DEPRECATED - PHP5 only
-		//return @mysqli_field_count($this->conn); // PHP7.x ready
+		return @mysqli_field_count($this->conn); // PHP7.x ready
 	}
 
 	/**
-	 * Gibt s?mtliche Tabellennamen einer DB als Array zurück
+	 * Gibt sämtliche Tabellennamen einer DB als Array zurück.
 	 * @return array
 	 */
 	function tables() {
-		$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
-		//$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
+		//$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
+		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
-			$tab[$i] = @mysql_tablename($tables,$i); // DEPRECATED - PHP5 only
-			//@mysqli_data_seek($tables,$i); // PHP7.x ready
-			//$f = mysql_fetch_array($tables); // PHP7.x ready
-			//$tab[$i] = $f[0]; // PHP7.x ready
+			@mysqli_data_seek($tables,$i); // PHP7.x ready
+			$f = mysql_fetch_array($tables); // PHP7.x ready
+			$tab[$i] = $f[0]; // PHP7.x ready
 		}
 		return $tab;
 	}
@@ -244,8 +265,8 @@ class dbconn
 	 * @author [z]biko
 	 * @version 2.5
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 26.05.2019 improved code, additional parameter and logging
-	 * @since 2.5 <inex> 27.09.2019 added fix for "NOW()" instead of NOW()
+	 * @since 2.0 `26.05.2019` `IneX` improved code, additional parameter and logging
+	 * @since 2.5 `27.09.2019` `IneX` added fix for "NOW()" instead of NOW()
 	 *
 	 * @param string $table Tabelle, in die eingefügt werden soll
 	 * @param array $values Array mit Table-Feldern (als Key) und den Werten
@@ -279,9 +300,9 @@ class dbconn
 	 * @author [z]biko
 	 * @version 3.0
 	 * @since 1.0 method added
-	 * @since 1.1 10.11.2017 added 3rd optional parameter $funktion for better logging
-	 * @since 2.0 20.08.2018 added return as mysql_affected_rows()
-	 * @since 3.0 05.11.2018 fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
+	 * @since 1.1 `10.11.2017` added 3rd optional parameter $funktion for better logging
+	 * @since 2.0 `20.08.2018` added return as mysql_affected_rows()
+	 * @since 3.0 `05.11.2018` fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
 	 *
 	 * @FIXME nicht PHP7.x-kompatibel
 	 * @FIXME array($id) soll nicht key,value-Pairs parsen, sondern direkt der Vergleich (z.B. "id>2"), aktuell kann nur auf 1 name & mehrere exakte values geprüft werden: "a=b OR a=c"

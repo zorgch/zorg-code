@@ -1,13 +1,20 @@
-<?
-// TODO: x open chess games (im header)
-// TODO: Game-Schluss-Meldungen (x hat gewonnen, x hat aufgegeben, remis, patt, matt)
+<?php
+/**
+ * Chess game class
+ * @package zorg\Games\Chess
+ *
+ * @TODO x open chess games im header anzeigen
+ * @TODO Game-Schluss-Meldungen wie "x hat gewonnen", "x hat aufgegeben", remis, patt, matt, usw.
+ */
 
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/usersystem.inc.php';
 
-define("CHESS_DWZ_BASE_POINTS", 1600);
-define("CHESS_DWZ_MAX_POINTS_TRANSFERABLE", 32);
-	
-
+/** Constants */
+define('CHESS_DWZ_BASE_POINTS', 1600);
+define('CHESS_DWZ_MAX_POINTS_TRANSFERABLE', 32);
 
 class Chess {
 	function new_game ($white, $black=0) {
@@ -46,12 +53,12 @@ class Chess {
 		// move
 		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr DESC LIMIT 0, 1", __FILE__, __LINE__);
 		$d = $db->fetch($e);
-		$board = Chess::get_board($game);
+		$board = $this->get_board($game);
 		
 		if ($g['state'] == 'running' && $g[$player=='w'?'white':'black']==$g['next_turn'] 
-			&& Chess::is_move_valid($board, $player, $move, $d[$player=='w' ? 'black' : 'white'])
+			&& $this->is_move_valid($board, $player, $move, $d[$player=='w' ? 'black' : 'white'])
 		) {
-			$board = Chess::move($board, $player, $move);
+			$board = $this->move($board, $player, $move);
 			$move = $board['move'];
 			
 			// update db
@@ -70,10 +77,10 @@ class Chess {
 			if ($move[strlen($move)-1] == '#') {
 				$winner = $player=='w' ? $g['white'] : $g['black'];
 				$db->query("UPDATE chess_games SET state='matt', winner=$winner WHERE id=$game", __FILE__, __LINE__);
-				Chess::update_dwz($game);
+				$this->update_dwz($game);
 			}elseif ($move[strlen($move)-1] == '=') {
 				$db->query("UPDATE chess_games SET state='patt' WHERE id=$game", __FILE__, __LINE__);
-				Chess::update_dwz($game);
+				$this->update_dwz($game);
 			}
 			
 			return true;
@@ -99,7 +106,7 @@ class Chess {
 		}else{
 			$db->query("UPDATE chess_history SET white='".($d['white'].'=')."' WHERE game=$game AND nr=$d[nr]", __FILE__, __LINE__);
 		}
-		Chess::update_dwz($game);
+		$this->update_dwz($game);
 	}
 	
 	function aufgabe ($game) {
@@ -155,11 +162,11 @@ class Chess {
 		
 		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr ASC", __FILE__, __LINE__);
 		while ($d = $db->fetch($e)) {
-			$board = Chess::move($board, 'w', $d['white'], 1);
-			$figure = substr(Chess::figure($board, substr($d['white'], 3, 2)), 1, 1);
+			$board = $this->move($board, 'w', $d['white'], 1);
+			$figure = substr($this->figure($board, substr($d['white'], 3, 2)), 1, 1);
 			if ($d['white'][0] != 'o' && $figure!='P') $d['white'] = $figure.$d['white'];
-			$board = Chess::move($board, 'b', $d['black'], 1);
-			$figure = substr(Chess::figure($board, substr($d['black'], 3, 2)), 1, 1);
+			$board = $this->move($board, 'b', $d['black'], 1);
+			$figure = substr($this->figure($board, substr($d['black'], 3, 2)), 1, 1);
 			if ($d['black'][0] != 'o' && $figure!='P') $d['black'] = $figure.$d['black'];
 			
 			$d['nr']++;
@@ -193,7 +200,7 @@ class Chess {
 				if (!$no_move_apply) $move .= '=Q';
 			}else{
 				// take figure
-				$dst_figure = Chess::figure($board, substr($move, 3, 2));
+				$dst_figure = $this->figure($board, substr($move, 3, 2));
 				if ($dst_figure) {
 					array_push($board['taken'][$dst_figure[0]], $dst_figure);
 					if (!$no_move_apply) $move = substr($move,0,2).'x'.substr($move,3,2);
@@ -214,11 +221,11 @@ class Chess {
 		// apply check or checkmate to move-string
 		if (!$no_move_apply) {
 			$other = $player=='w' ? 'b' : 'w';
-			if (Chess::is_check($board, $other, Chess::position_of($board, $other.'K'))) {
+			if ($this->is_check($board, $other, $this->position_of($board, $other.'K'))) {
 				$move .= '+';
-			}elseif (Chess::is_checkmate($board, $other, Chess::position_of($board, $other.'K'))) {
+			}elseif ($this->is_checkmate($board, $other, $this->position_of($board, $other.'K'))) {
 				$move .= '#';
-			}elseif (Chess::is_patt($board, $other)) {
+			}elseif ($this->is_patt($board, $other)) {
 				$move .= '=';
 			}
 		}
@@ -232,14 +239,14 @@ class Chess {
 		// rochaden
 		if ($player == 'w') $roch_p = 1; else $roch_p = 8;
 		if ($move == 'o-o') {
-			if (in_array('g'.$roch_p, Chess::possible_moves($board, $player, 'e'.$roch_p)))
+			if (in_array('g'.$roch_p, $this->possible_moves($board, $player, 'e'.$roch_p)))
 				return true;
 		}elseif ($move == 'o-o-o') {
-			if (in_array('c'.$roch_p, Chess::possible_moves($board, $player, 'e'.$roch_p))
+			if (in_array('c'.$roch_p, $this->possible_moves($board, $player, 'e'.$roch_p))
 			) return true;
 		}else{
 			// other moves
-			if (in_array(substr($move, 3, 2), Chess::possible_moves($board, $player, substr($move, 0, 2), $prev_move)))
+			if (in_array(substr($move, 3, 2), $this->possible_moves($board, $player, substr($move, 0, 2), $prev_move)))
 				return true;
 		}
 		return false;
@@ -264,181 +271,181 @@ class Chess {
 				$other_player = $player=='w' ? 'b' : 'w';
 				if ($player == 'w') {
 					// standard
-					$p = Chess::inc_y($pos);
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
+					$p = $this->inc_y($pos);
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
 					// 2 steps in first move
-					$p = Chess::inc_y($pos, 2);
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
+					$p = $this->inc_y($pos, 2);
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
 					// schlagen rechts + en passant
-					$p = Chess::inc_y(Chess::inc_x($pos));
-					$pass_mv = Chess::inc_y($p).'-'.Chess::dec_y($p);
-					if ($p && (Chess::player($board, $p)==$other_player || !Chess::player($board, $p) && $prev_move==$pass_mv)) 
+					$p = $this->inc_y($this->inc_x($pos));
+					$pass_mv = $this->inc_y($p).'-'.$this->dec_y($p);
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
 						array_push($ret, $p);
 					// schlagen links + en passant
-					$p = Chess::inc_y(Chess::dec_x($pos));
-					$pass_mv = Chess::inc_y($p).'-'.Chess::dec_y($p);
-					if ($p && (Chess::player($board, $p)==$other_player || !Chess::player($board, $p) && $prev_move==$pass_mv)) 
+					$p = $this->inc_y($this->dec_x($pos));
+					$pass_mv = $this->inc_y($p).'-'.$this->dec_y($p);
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
 						array_push($ret, $p);
 				}else{
 					// standard
-					$p = Chess::dec_y($pos);
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
+					$p = $this->dec_y($pos);
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
 					// 2 steps in first move
-					$p = Chess::dec_y($pos, 2);
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
+					$p = $this->dec_y($pos, 2);
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
 					// schlagen rechts + en passant
-					$p = Chess::dec_y(Chess::inc_x($pos));
-					$pass_mv = Chess::dec_y($p).'-'.Chess::inc_y($p);
-					if ($p && (Chess::player($board, $p)==$other_player || !Chess::player($board, $p) && $prev_move==$pass_mv)) 
+					$p = $this->dec_y($this->inc_x($pos));
+					$pass_mv = $this->dec_y($p).'-'.$this->inc_y($p);
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
 						array_push($ret, $p);
 					// schlagen links + en passant
-					$p = Chess::dec_y(Chess::dec_x($pos));
-					$pass_mv = Chess::dec_y($p).'-'.Chess::inc_y($p);
-					if ($p && (Chess::player($board, $p)==$other_player || !Chess::player($board, $p) && $prev_move==$pass_mv)) 
+					$p = $this->dec_y($this->dec_x($pos));
+					$pass_mv = $this->dec_y($p).'-'.$this->inc_y($p);
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
 						array_push($ret, $p);
 				}
 			}
 			if ($figure == 'R' || $figure == 'Q') {
 				// rook
 				$p = $pos;
-				while ($p = Chess::inc_y($p)) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->inc_y($p)) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 				$p = $pos;
-				while ($p = Chess::dec_y($p)) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->dec_y($p)) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 				$p = $pos;
-				while ($p = Chess::inc_x($p)) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->inc_x($p)) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 				$p = $pos;
-				while ($p = Chess::dec_x($p)) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->dec_x($p)) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 			}
 			if ($figure == 'B' || $figure == 'Q') {
 				// bishop and queen
 				$p = $pos;
-				while ($p = Chess::inc_x(Chess::inc_y($p))) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->inc_x($this->inc_y($p))) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 				$p = $pos;
-				while ($p = Chess::inc_x(Chess::dec_y($p))) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->inc_x($this->dec_y($p))) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 				$p = $pos;
-				while ($p = Chess::dec_x(Chess::inc_y($p))) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->dec_x($this->inc_y($p))) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 				$p = $pos;
-				while ($p = Chess::dec_x(Chess::dec_y($p))) {
-					if ($p && !Chess::figure($board, $p)) array_push($ret, $p);
-					elseif ($p && Chess::player($board, $p)!=$player) {array_push($ret, $p); break;}
+				while ($p = $this->dec_x($this->dec_y($p))) {
+					if ($p && !$this->figure($board, $p)) array_push($ret, $p);
+					elseif ($p && $this->player($board, $p)!=$player) {array_push($ret, $p); break;}
 					else break;
 				}
 			}
 			if ($figure == 'N') {
 				// knight
-				$p = Chess::inc_y(Chess::dec_x($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->inc_y($this->dec_x($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
-				$p = Chess::dec_x(Chess::inc_y($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->dec_x($this->inc_y($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
-				$p = Chess::inc_x(Chess::inc_y($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player))
+				$p = $this->inc_x($this->inc_y($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
-				$p = Chess::inc_y(Chess::inc_x($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->inc_y($this->inc_x($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
-				$p = Chess::dec_y(Chess::inc_x($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->dec_y($this->inc_x($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
-				$p = Chess::inc_x(Chess::dec_y($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->inc_x($this->dec_y($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
-				$p = Chess::dec_x(Chess::dec_y($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->dec_x($this->dec_y($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
-				$p = Chess::dec_y(Chess::dec_x($pos, 2));
-				if ($p && (!Chess::figure($board, $p) || Chess::player($board, $p)!=$player)) 
+				$p = $this->dec_y($this->dec_x($pos, 2));
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
 					array_push($ret, $p);
 			}
 
 			if ($figure == 'K') {
 				// standard moves
-				$p = Chess::inc_y($pos);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->inc_y($pos);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::inc_x($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->inc_x($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::dec_y($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->dec_y($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::dec_y($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->dec_y($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::dec_x($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->dec_x($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::dec_x($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->dec_x($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::inc_y($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p)))
+				$p = $this->inc_y($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-				$p = Chess::inc_y($p);
-				$tboard = Chess::move($board, $player, "$pos-$p", 1);
-				if ($p && Chess::player($board, $p)!=$player && ($no_check_check || !Chess::is_check($tboard, $player, $p))) 
+				$p = $this->inc_y($p);
+				$tboard = $this->move($board, $player, "$pos-$p", 1);
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p))) 
 					array_push($ret, $p);
 					
 				// kleine rochade
-				$p = Chess::inc_x($pos, 2);
-				$tboard = Chess::move($board, $player, 'o-o', 1);
+				$p = $this->inc_x($pos, 2);
+				$tboard = $this->move($board, $player, 'o-o', 1);
 				if ($board['roch'][$player.'L'] 
-					&& !Chess::figure($board, $p) && !Chess::figure($board, Chess::inc_x($pos)) 
-					&& ($no_check_check || !Chess::is_check($tboard, $player, $p))
+					&& !$this->figure($board, $p) && !$this->figure($board, $this->inc_x($pos)) 
+					&& ($no_check_check || !$this->is_check($tboard, $player, $p))
 				) array_push($ret, $p);
 				
 				// grosse rochade
-				$p = Chess::dec_x($pos, 2);
-				$tboard = Chess::move($board, $player, 'o-o-o', 1);
+				$p = $this->dec_x($pos, 2);
+				$tboard = $this->move($board, $player, 'o-o-o', 1);
 				if ($board['roch'][$player.'G'] 
-					&& !Chess::figure($board, $p) && !Chess::figure($board, Chess::dec_x($pos)) && !Chess::figure($board, Chess::dec_x($pos, 2)) 
-					&& ($no_check_check || !Chess::is_check($tboard, $player, $p))
+					&& !$this->figure($board, $p) && !$this->figure($board, $this->dec_x($pos)) && !$this->figure($board, $this->dec_x($pos, 2)) 
+					&& ($no_check_check || !$this->is_check($tboard, $player, $p))
 				) array_push($ret, $p);
 			}
 			
 			
 			// remove moves where player is checked after move
-			$playerking = Chess::position_of($board, $player.'K');
+			$playerking = $this->position_of($board, $player.'K');
 			$rem_one = false;
 			for ($i=0; $i<sizeof($ret); $i++) {
-				$tboard = Chess::move($board, $player, $pos.'-'.$ret[$i], 1);
-				if ($no_check_check || Chess::is_check($tboard, $player, $playerking)) {
+				$tboard = $this->move($board, $player, $pos.'-'.$ret[$i], 1);
+				if ($no_check_check || $this->is_check($tboard, $player, $playerking)) {
 					$ret[$i] = '';
 					$rem_one = true;
 				}
@@ -460,8 +467,8 @@ class Chess {
 		$other = $player=='w' ? 'b' : 'w';
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=1; $j<=8; $j++) {
-				if (Chess::player($board, chr($i).$j) == $other
-					&& in_array($pos, Chess::possible_moves($board, $other, chr($i).$j, '', 1))
+				if ($this->player($board, chr($i).$j) == $other
+					&& in_array($pos, $this->possible_moves($board, $other, chr($i).$j, '', 1))
 				) return true;
 			}
 		}
@@ -472,25 +479,25 @@ class Chess {
 		
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=0; $j<=8; $j++) {
-				if (Chess::player($board, chr($i).$j) == $player) {
-					$poss_moves = Chess::possible_moves($board, $player, chr($i).$j);
+				if ($this->player($board, chr($i).$j) == $player) {
+					$poss_moves = $this->possible_moves($board, $player, chr($i).$j);
 					foreach ($poss_moves as $it) {
-						$tboard = Chess::move($board, $player, chr($i).$j.'-'.$it, 1);
-						if (!Chess::is_check($tboard, $player, $board[chr($i)][$j]==$player.'K' ? $it : $pos))
+						$tboard = $this->move($board, $player, chr($i).$j.'-'.$it, 1);
+						if (!$this->is_check($tboard, $player, $board[chr($i)][$j]==$player.'K' ? $it : $pos))
 							return false;
 					}
 				}
 			}
 		}
-		if (!Chess::is_check($board, $player, Chess::position_of($board, $player.'K'))) return false;
+		if (!$this->is_check($board, $player, $this->position_of($board, $player.'K'))) return false;
 		return true;
 	}
 	
 	function is_patt ($board, $player) {
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=1; $j<=8; $j++) {
-				if (Chess::player($board, chr($i).$j) == $player) {
-					if (sizeof(Chess::possible_moves($board, $player, chr($i).$j))>0) return false;
+				if ($this->player($board, chr($i).$j) == $player) {
+					if (sizeof($this->possible_moves($board, $player, chr($i).$j))>0) return false;
 				}
 			}
 		}
@@ -521,7 +528,7 @@ class Chess {
 		$ret = array();
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=1; $j<=8; $j++) {
-				if (Chess::player($board, chr($i).$j) == $player) array_push($ret, chr($i).$j);
+				if ($this->player($board, chr($i).$j) == $player) array_push($ret, chr($i).$j);
 			}
 		}
 		return $ret;
@@ -533,7 +540,7 @@ class Chess {
 		
 		$row = ord(substr($pos, 0, 1)) + 1;
 		if ($row > ord('h')) return false;
-		else return Chess::inc_x(chr($row).substr($pos, 1, 1), $anz-1);
+		else return $this->inc_x(chr($row).substr($pos, 1, 1), $anz-1);
 	}
 	
 	function dec_x ($pos, $anz=1) {
@@ -542,7 +549,7 @@ class Chess {
 		
 		$row = ord(substr($pos, 0, 1)) - 1;
 		if ($row < ord('a')) return false;
-		else return Chess::dec_x(chr($row).substr($pos, 1, 1), $anz-1);
+		else return $this->dec_x(chr($row).substr($pos, 1, 1), $anz-1);
 	}
 	
 	function inc_y ($pos, $anz=1) {
@@ -551,7 +558,7 @@ class Chess {
 		
 		$row = substr($pos, 1, 1) + 1;
 		if ($row > 8) return false;
-		else return Chess::inc_y(substr($pos, 0, 1).$row, $anz-1);
+		else return $this->inc_y(substr($pos, 0, 1).$row, $anz-1);
 	}
 	
 	function dec_y ($pos, $anz=1) {
@@ -560,7 +567,7 @@ class Chess {
 		
 		$row = substr($pos, 1, 1) - 1;
 		if ($row < 1) return false;
-		else return Chess::dec_y(substr($pos, 0, 1).$row, $anz-1);
+		else return $this->dec_y(substr($pos, 0, 1).$row, $anz-1);
 	}
 	
 	function is_valid_position ($pos) {
@@ -692,5 +699,3 @@ class Chess {
 		return $ret;				
 	}
 }
-
-?>

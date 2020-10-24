@@ -9,35 +9,32 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/includes/apod.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once INCLUDES_DIR.'apod.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
  */
 $model = new MVC\Spaceweather();
 
-try {
-	/** Get Spaceweather */
-	$sql = 'SELECT * FROM spaceweather';
-	$result = $db->query($sql,__LINE__,__FILE__);
 
-	while($rs = $db->fetch($result)) {
-		$sw[$rs['name']] = ( $rs['wert'] != '' ? $rs['wert'] == '' : 'unbekannt' );
-	}
-	
-	/** Get Asteroids */
-	$sql = 'SELECT *, UNIX_TIMESTAMP(datum) as datum FROM spaceweather_pha WHERE MONTH(datum) = MONTH(now()) AND YEAR(datum) = YEAR(now())';
-	$result = $db->query($sql,__LINE__,__FILE__);
-	while($rs = $db->fetch($result)) {
-		$ao[$rs['asteroid']] = [ 'date' => ( $rs['datum'] != '' ? date("M d.",$rs['datum']) : 'n/a' )
-								,'distance' => ( $rs['distance'] != '' ? $rs['distance'] : 'n/a' )
-								,'mag' => ( $rs['mag'] != '' ? round($rs['mag']) : 'n/a' )
-							   ];
-	}	
-} catch (Exception $e) {
-	user_error($e->getMessage(), E_USER_ERROR);
+/** Get Spaceweather */
+$sql = 'SELECT * FROM spaceweather';
+$result = $db->query($sql,__LINE__,__FILE__);
+
+while($rs = $db->fetch($result)) {
+	$sw[$rs['name']] = ( $rs['wert'] != '' ? $rs['wert'] == '' : 'unbekannt' );
+}
+
+/** Get Asteroids */
+$sql = 'SELECT *, UNIX_TIMESTAMP(datum) as datum FROM spaceweather_pha WHERE MONTH(datum) = MONTH(now()) AND YEAR(datum) = YEAR(now())';
+$result = $db->query($sql,__LINE__,__FILE__);
+while($rs = $db->fetch($result)) {
+	$ao[$rs['asteroid']] = [ 'date' => ( $rs['datum'] != '' ? date("M d.",$rs['datum']) : 'n/a' )
+							,'distance' => ( $rs['distance'] != '' ? $rs['distance'] : 'n/a' )
+							,'mag' => ( $rs['mag'] != '' ? round($rs['mag']) : 'n/a' )
+						   ];
 }
 
 /** Assign Smarty Variables */

@@ -12,8 +12,8 @@ if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'temp
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../includes/config.inc.php');
-require_once( __DIR__ .'/../../includes/mysql.inc.php');
+require_once dirname(__FILE__).'/../../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Get records from database
@@ -22,7 +22,7 @@ header('Content-type:application/json;charset=utf-8');
 try {
 	$sql = 'SELECT id, title, read_rights FROM templates WHERE title LIKE "'.$_GET['mention'].'%" AND read_rights <= 1 ORDER BY CHAR_LENGTH(title) ASC, title ASC LIMIT 0,6';
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result))
+	while ($rs = $db->fetch($result))
 	{
 	   $templates[] = [
 	   	'tplId' => $rs['id'],

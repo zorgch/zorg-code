@@ -1,7 +1,7 @@
 <?php
 /**
  * Forum
- * 
+ *
  * Das Forum Modul enthält 3 Klassen für alle Features:
  * - Forum
  * - Thread
@@ -13,14 +13,13 @@
  *
  * @package zorg\Forum
  */
-
 /**
  * File includes
  * @include main.inc.php required
  * @include core.model.php required
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -28,36 +27,47 @@ require_once( __DIR__ .'/models/core.model.php');
 $model = new MVC\Forum();
 
 /**
+ * Validate passed Parameters
+ */
+$doAction = (isset($_GET['layout']) && !empty($_GET['layout']) && is_string($_GET['layout']) ? sanitize_userinput($_GET['layout']) : null);
+$searchKeyword = (isset($_GET['keyword']) && !empty($_GET['keyword']) && is_string($_GET['keyword']) ? sanitize_userinput($_GET['keyword']) : null);
+$commentId = (isset($_GET['id']) && !empty($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0 ? sanitize_userinput($_GET['id']) : null);
+$threadId = (isset($_GET['thread_id']) && !empty($_GET['thread_id']) && is_numeric($_GET['thread_id']) && $_GET['thread_id'] > 0 ? sanitize_userinput($_GET['thread_id']) : null);
+$commentParentId = (isset($_GET['parent_id']) && !empty($_GET['parent_id']) && is_numeric($_GET['parent_id']) && $_GET['parent_id'] > 0 ? sanitize_userinput($_GET['parent_id']) : null);
+$sortBy = (isset($_GET['sortby']) && !empty($_GET['sortby']) && is_string($_GET['sortby']) ? sanitize_userinput($_GET['sortby']) : null);
+$errorMessage = (isset($_GET['error']) && !empty($_GET['error']) ? sanitize_userinput($_GET['error']) : null);
+
+/**
  * Forum-Übersicht/-Threads ausgeben
  */
-if (!isset($_GET['layout']) || empty($_GET['layout']))
+if (empty($doAction))
 {
-	$id = ($_GET['parent_id'] > 1) ? $_GET['parent_id'] : $_GET['thread_id'];
+	/** Auf gültige Comment-ID prüfen */
+	$showCommentId = ($commentParentId > 1) ? $commentParentId : ($threadId > 0 ? $threadId : null);
 
 	/**
 	 * Forumübersicht ausgeben
 	 */
-	if ($id <= 1)
+	if ($showCommentId <= 1)
 	{
 		$parent_id = 1;
-		//$smarty->assign('tplroot', array('page_title' => 'forum', 'page_link' => $_SERVER['PHP_SELF']));
-		//echo menu('zorg');
+
 		$model->showOverview($smarty);
 		$smarty->display('file:layout/head.tpl');
 
 		/** Forum / Commenting Error anzeigen */
-		if (isset($_GET['error']) && !empty($_GET['error']))
+		if (!empty($errorMessage))
 		{
-			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $_GET['error']]);
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $errorMessage]);
 			$smarty->display('file:layout/elements/block_error.tpl');
 		}
 
 		if(!$user->is_loggedin())
 		{
-			echo Forum::getHTML(['e','f','o','t'], 23, $_GET['sortby']); // Boards: e=Events, f=Forum, o=Tauschbörse, t=Templates
+			echo Forum::getHTML(['e','f','o','t'], 23, $sortBy); // Boards: e=Events, f=Forum, o=Tauschbörse, t=Templates
 		} else {
 			$userForumBoards = (!empty($user->forum_boards) ? $user->forum_boards : (!empty($user->forum_boards_unread) ? $user->forum_boards_unread : $user->default_forum_boards));
-			echo Forum::getHTML($userForumBoards, 23, $_GET['sortby']);
+			echo Forum::getHTML($userForumBoards, 23, $sortBy);
 			$smarty->assign('board', 'f');
 			$smarty->assign('thread_id', 1);
 			$smarty->assign('parent_id', 0);
@@ -70,23 +80,14 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 	 */
 	} else {
 		$outputContent = '';
-		$rsparent = Comment::getRecordset($id);
+		$rsparent = Comment::getRecordset($showCommentId);
 		$parent_id = $rsparent['parent_id'];
-		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$id, __FILE__, __LINE__, 'SELECT * FROM comments'));
-
-		/**
-		 * Google typically displays the first 50–60 characters of a title tag.
-		 * If you keep your titles under 60 characters, our research suggests that you can expect about 90% of your titles to display properly.
-		 * @link https://moz.com/learn/seo/title-tag
-		 */
-		//$page_title = text_width(remove_html($thread['text']), 50, '', true, true);
-		//$smarty->assign('tplroot', array('page_title' => (!empty($page_title) ? $page_title : 'thread #'.$thread['thread_id']), 'page_link' => '/thread/'.$thread['thread_id']));
-		//echo menu('zorg');
+		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$showCommentId, __FILE__, __LINE__, 'SELECT * FROM comments'));
 
 		/** Forum / Commenting Error anzeigen */
-		if (isset($_GET['error']) && !empty($_GET['error']))
+		if (!empty($errorMessage))
 		{
-			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $_GET['error']]);
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $errorMessage]);
 			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
 		}
 
@@ -95,7 +96,6 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 		{
 			$no_form = true;
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-thread_id', 'commenting')]);
-			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
 			$model->threadNotFound($smarty);
 			http_response_code(404); // Set response code 404 (not found)
 		} else {
@@ -129,21 +129,21 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 
 			if ($parent_id == 1)
 			{
-				$comments_resource = ($id === $thread['thread_id'] ? $thread['board'].'-'.$id : $id);
+				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comment_resource));
 				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
 			} else {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $id));
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));
 				$smarty->assign('comments_top_additional', 1);
-				$outputContent .= $smarty->fetch('comments:'.$id);
+				$outputContent .= $smarty->fetch('comments:'.$showCommentId);
 			}
 
 			/** Commentform zum posten printen */
 			if ($user->is_loggedin() && !$no_form)
 			{
 				$smarty->assign('board', 'f');
-				$smarty->assign('thread_id', Comment::getThreadid('f', $id));
-				$smarty->assign('parent_id', $id);
+				$smarty->assign('thread_id', Comment::getThreadid('f', $showCommentId));
+				$smarty->assign('parent_id', $showCommentId);
 				$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
 			}
 		}
@@ -156,31 +156,45 @@ if (!isset($_GET['layout']) || empty($_GET['layout']))
 /**
  * Forumsuche
  */
-elseif ($_GET['layout'] == 'search')
+elseif ($doAction === 'search')
 {
-	//$smarty->assign('tplroot', array('page_title' => 'commentsearch', 'page_link' => $_SERVER['PHP_SELF'].'?layout=search'));
 	$model->showSearch($smarty);
-	$smarty->display('file:layout/head.tpl');
-	//echo menu('zorg');
-	echo Forum::getFormSearch();
-	echo Forum::printSearchedComments($_GET['keyword']);
+
+	/** Only for logged in Users */
+	if ($user->is_loggedin())
+	{
+		$smarty->display('file:layout/head.tpl');
+		echo Forum::getFormSearch($searchKeyword);
+		if (!empty($searchKeyword))
+		{
+			echo Forum::printSearchedComments($searchKeyword);
+		} else {
+			echo t('error-search-noresult', 'commenting', ['[leer]']);
+		}
+	}
+
+	/** Prevent Forum Search for anonymous visitors (wegen ganzen SQL-Inject Attacken) */
+	else {
+		http_response_code(403); // Set response code 403 (Forbidden)
+		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => t('invalid-permissions-search', 'commenting')]);
+		$smarty->display('file:layout/head.tpl');
+	}
 }
 
 /**
  * Comment Editseite
  */
-elseif($_GET['layout'] == 'edit' && $user->id > 0)
+elseif($doAction === 'edit' && $user->is_loggedin())
 {
-	//$smarty->assign('tplroot', array('page_title' => 'commentedit'));
 	$model->editComment($smarty);
 	$smarty->display('file:layout/head.tpl');
-	//echo menu('zorg');
-	$rs = Comment::getRecordset($_GET['id']);
+	$rs = Comment::getRecordset($commentId);
 
 	/** Check if $user->id is Comment-Owner */
 	if($user->id == $rs['user_id']) {
-		echo Forum::getFormEdit($_GET['id']);
+		echo Forum::getFormEdit($commentId);
 	} else {
+		http_response_code(403); // Set response code 403 (Forbidden)
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-comment-edit-permissions', 'commenting')]);
 		$smarty->display('file:layout/elements/block_error.tpl');
 	}

@@ -22,5 +22,5 @@ $botconfigs = [
 				,'files_dirroot'	=> [ __DIR__ . '/data/files/telegram/telegramexample_bot' ] // (array) List of configurable paths.
 			];
 
-if (!defined('TELEGRAM_API_URI')) define('TELEGRAM_API_URI', 'https://api.telegram.org/bot' . $botconfigs['api_key'], true);
+if (!defined('TELEGRAM_API_URI')) define('TELEGRAM_API_URI', 'https://api.telegram.org/bot' . $botconfigs['api_key']);
 if (!defined('TELEGRAM_GROUPCHAT_ID')) define('TELEGRAM_GROUPCHAT_ID', ''); // Telegram-Group Chat-ID to post generic messages to

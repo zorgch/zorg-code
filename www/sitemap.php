@@ -8,7 +8,7 @@
  * @author IneX
  * @package zorg\Sitemap
  * @version 1.0
- * @since 1.0 <inex> 07.12.2019 File added
+ * @since 1.0 `07.12.2019` `IneX` File added
  *
  * @TODO add Smarty-Caching for better performance before re-calculating Sitemap.xml
  */
@@ -17,7 +17,7 @@
  * File includes
  * @include core.controller.php Required
  */
-require_once( __DIR__ .'/controller/core.controller.php');
+require_once dirname(__FILE__).'/controller/core.controller.php';
 
 /** [DEBUG] Start execution time measurement (total) */
 if (DEVELOPMENT === true) $timerStart = microtime(true);

@@ -57,7 +57,8 @@
 			shoot_date
 				datum an dem der spieler das torpedo geschossen hat.
  *
- * @author Milamber
+ * @author [z]milamber
+ * @package zorg\Games\STL
  */
 /**
  * File includes
@@ -66,16 +67,16 @@
  * @include usersystem.inc.php
  * @include util.inc.php
  */
-require_once( __DIR__ . '/config.inc.php');
-require_once( __DIR__ . '/mysql.inc.php');
-require_once( __DIR__ . '/usersystem.inc.php');
-include_once( __DIR__ . '/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 
 /**
  * Shoot The Lamber Klasse
- * 
- * @author Milamber
+ *
+ * @author [z]milamber
  * @version 1.0
  * @package zorg\Games\STL
  */
@@ -85,13 +86,13 @@ class stl {
 	 * Shoot The Lamber Spielfeld
 	 * Klassenkonstruktor, generiert autom. die ganze ausgabe...(Game & Overview)
 	 *
-	 * @author Milamber
+	 * @author [z]milamber
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return stl
 	 */
-	function stl() {
+	function __construct() {
 		global $db, $user;
 		//Feldchengrösse
 		$this->case = 20;
@@ -797,10 +798,11 @@ class stl {
 	* Spieleübersicht anzeigen
 	* Übersichts funktion, zeigt alle offenen und joinbaren spiele eines users
 	*
-	* @author Milamber, IneX
+	* @author [z]milamber
+	* @author IneX
 	* @version 2.0
 	* @since 1.0 function added
-	* @since 2.0 18.08.2018 overview() wird nur ausgegeben, wenn usersystem::islogged_in() = true
+	* @since 2.0 `18.08.2018` overview() wird nur ausgegeben, wenn usersystem::islogged_in() = true
 	*
 	* @global object $db Globales Class-Object mit allen MySQL-Methoden
 	* @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -1094,10 +1096,11 @@ class stl {
 	 * Offene STL-Spiele
 	 * Gibt die Anzahl offener Spiele als Link zum ersten Spiel zurueck
 	 *
-	 * @author milamber, IneX
+	 * @author [z]milamber
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 function added
-	 * @since 2.0 18.08.2018 function refactored & reactivated
+	 * @since 2.0 `18.08.2018` function refactored & reactivated
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -1143,10 +1146,11 @@ class stl {
 	 * Offene STL-Spielzüge des Users
 	 * Gibt die Anzahl offener Spielzüge - bei denen der User mitspielt - aus, als HTML-Link zum nächsten Spielzug
 	 *
-	 * @author milamber, IneX
+	 * @author [z]milamber
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 function added
-	 * @since 2.0 18.08.2018 function refactored & reactivated
+	 * @since 2.0 `18.08.2018` function refactored & reactivated
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen

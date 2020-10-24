@@ -1,21 +1,21 @@
 <?php
 /**
  * GO Overview
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  */
 /**
  * File Includes
  */
-require_once( __DIR__ .'/../includes/config.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
 
 /**
  * Globals

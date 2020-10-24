@@ -24,9 +24,9 @@
  * @package zorg\Vendor
  * @author [z]cylander
  * @version 2.0
- * @since 1.0 <cylander> File added
- * @since 1.5 <cylander> zorg customizing
- * @since 2.0 <inex> Fixed __construct, added Jahreszahlen
+ * @since 1.0 `[z]cylander` File added
+ * @since 1.5 `[z]cylander` zorg customizing
+ * @since 2.0 `IneX` Fixed __construct, added Jahreszahlen
  */
 class Line
 {
@@ -47,8 +47,8 @@ class Line
 
 	/**
 	 * @version 2.0
-	 * @since 1.0 <ashish> Original Method
-	 * @since 2.0 <inex> 09.12.2019 Fixed Class constructor from "function Line()" => __construct(), added option to pass imgage width & height
+	 * @since 1.0 `ashish` Original Method
+	 * @since 2.0 `09.12.2019` `IneX` Fixed Class constructor from "function Line()" => __construct(), added option to pass imgage width & height
 	 */
 	function __construct($imgWidth=600, $imgHeight=300)
 	{
@@ -123,7 +123,7 @@ class Line
 
 	function SetTitle($title)
 	{
-		// @FIXME <inex> 09.12.2019: Needs a different Font to support UTF8 - aktuell Umlaute "garbled"
+		// @FIXME 09.12.2019: Needs a different Font to support UTF8 - aktuell Umlaute "garbled" (IneX)
 		$this->title = $title;
 	}
 
@@ -162,10 +162,10 @@ class Line
 	 * Spit out the graph
 	 *
 	 * @version 3.0
-	 * @since 1.0 <ashish> Original Method
-	 * @since 2.0 <cylander> zorg customizing, disabled some defaults
-	 * @since 2.5 <cylander> added option for 2nd x-axis label bar (Jahreszahlen)
-	 * @since 3.0 <inex> 09.12.2019 Enabled 2nd x-axis label by [z]cylander, some Styling improvement
+	 * @since 1.0 `ashish` Original Method
+	 * @since 2.0 `[z]cylander` zorg customizing, disabled some defaults
+	 * @since 2.5 `[z]cylander` added option for 2nd x-axis label bar (Jahreszahlen)
+	 * @since 3.0 `09.12.2019` `IneX` Enabled 2nd x-axis label by [z]cylander, some Styling improvement
 	 */
 	function spit($type)
 	{
@@ -238,12 +238,14 @@ class Line
 		// divide the area for the values
 		$xUnit = ($this->width - 120) / sizeof($this->dataValues);
 		$xUnit2 = ($this->width - 120) / sizeof($this->dataXLabels2);
-		
+
 		// finally draw the graphs
 		$x2 = Array();
-		$y2 = Array();		
+		$y2 = Array();
+		$n = 0;
 		for($i = 0; $i < sizeof($this->dataValues); $i++)
-		{ $n++;
+		{
+			$n++;
 			$labelWidth = ImageFontWidth(1) * strlen($this->dataXLabels[$i]);
 			$labelHeight = ImageFontHeight(1);
 
@@ -252,7 +254,7 @@ class Line
 				$this->height - 35 + ($i % 2) * $labelHeight, 
 				$this->dataXLabels[$i], $this->titleCol); // 2nd param = font-size. Higher = larger (only if dataXLabels2 = empty)
 			
-			/** <cylander> Dieser String sollte nun die Jahreszahlen ausgeben...?! */
+			/** @TODO Dieser String sollte nun die Jahreszahlen ausgeben...?! ([z]cylander) */
 			ImageString($this->image, 2, 
 				40 + $xUnit2 * ($i + 1) - $labelWidth / 2, 
 				$this->height - 22 + ($i % 2) * $labelHeight, 
@@ -276,19 +278,19 @@ class Line
 			}
 		}
 
-		if($type == "jpg")
+		if($type == 'jpg')
 		{
-			Header("Content-type: image/jpeg");
+			Header('Content-type: image/jpeg');
 			ImageJpeg($this->image);
 		}
-		if($type == "png")
+		if($type == 'png')
 		{
-			Header("Content-type: image/png");
+			Header('Content-type: image/png');
 			ImagePng($this->image);
 		}
-		if($type == "gif")
+		if($type == 'gif')
 		{
-			Header("Content-type: image/gif");
+			Header('Content-type: image/gif');
 			ImageGif($this->image);
 		}
 

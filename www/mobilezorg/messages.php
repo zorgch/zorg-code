@@ -82,7 +82,7 @@ else
 	  ";
 }
 $result = $db->query($sql, __FILE__, __LINE__);
-while ($rs = mysql_fetch_array($result)) {
+while ($rs = $db->fetch($result)) {
 	$inboxmessages[] = $rs;
 }
 

@@ -1,9 +1,13 @@
 <?php
 /**
+ * The Colors of zorg
+ * @package zorg\Layout
+ */
+/**
  * File Includes
  * @include	Sunrise Class
  */
-require_once( __DIR__ .'/sunrise.inc.php');
+require_once dirname(__FILE__).'/sunrise.inc.php';
 
 /**
  * Define colors for day layout

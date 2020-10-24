@@ -1,11 +1,22 @@
 <?php
 /**
  * zorg Site Helper Functions
- * @package zorg
- * @subpackage Utils
+ *
+ * @package zorg\Utils
  */
 /**
+ * File includes
+ * @include config.inc.php
+ * @include mysql.inc.php 		
+ * @include activities.inc.php 	
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'mysql.inc.php';
+include_once INCLUDES_DIR.'activities.inc.php';
+
+/**
  * Define preferred encryption type for user password encryption
+ *
  * @const CRYPT_SALT Sets the Salt encryption type to be used
  * @see crypt_pw()
  * @see exec_newpassword()
@@ -17,22 +28,13 @@
 if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
 
 /**
- * File includes
- * @include mysql.inc.php 		
- * @include activities.inc.php 	
- * @include strings.inc.php 	Strings die im Zorg Code benutzt werden
- */
-include_once( __DIR__ .'/mysql.inc.php');
-include_once( __DIR__ .'/activities.inc.php');
-include_once( __DIR__ .'/strings.inc.php');
-
-/**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
- * @author Milamber
+ *
+ * @author [z]milamber
  * @author IneX
  * @version 2.0
- * @since 1.0 25.08.2003 function added
- * @since 2.0 09.08.2018 added timestamp validation, string for text, added time-check
+ * @since 1.0 `25.08.2003` function added
+ * @since 2.0 `09.08.2018` added timestamp validation, string for text, added time-check
  *
  * @param string $timestamp
  * @return string Formatted $timestamp or empty string ''
@@ -89,38 +91,31 @@ function timename($timestamp)
 
 		} elseif ($timeDiff < $timeLengths['m']) { /** Sekunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', $timeDiff) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', array($timeDiff));
 
 		} elseif ($timeDiff < $timeLengths['h']) { /** Minuten */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', floor($timeDiff/$timeLengths['m'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', array(floor($timeDiff/$timeLengths['m'])));
 
 		} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', floor($timeDiff/$timeLengths['h'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', array(floor($timeDiff/$timeLengths['h'])));
 
 		} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'en' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', floor($timeDiff/$timeLengths['d'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', array(floor($timeDiff/$timeLengths['d'])));
 
 		} elseif ($timeDiff < $timeLengths['mt']) { /** Wochen */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['m']) > 1 ? 'n' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', floor($timeDiff/$timeLengths['w'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', array(floor($timeDiff/$timeLengths['w'])));
 
 		} elseif ($timeDiff < $timeLengths['y']) { /** Monate */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['mt']) > 1 ? 'en' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', floor($timeDiff/$timeLengths['mt'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', array(floor($timeDiff/$timeLengths['mt'])));
 
 		} elseif ($timeDiff >= $timeLengths['y']) { /** Jahre oder mehr */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
-			//$timeSuffix = (floor($timeDiff/$timeLengths['y']) > 1 ? 'en' : '' );
-			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', floor($timeDiff/$timeLengths['y'])) . $timeSuffix;
+			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', array(floor($timeDiff/$timeLengths['y'])));
 		}
 	} catch (Exception $e) {
 		error_log($e->getMessage());
@@ -132,7 +127,7 @@ function timename($timestamp)
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 04.02.2018 function added
+ * @since 1.0 `04.02.2018` function added
  *
  * @see date_default_timezone_set(), config.inc.php, getGitCodeVersion()
  * @param $datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
@@ -151,7 +146,7 @@ function datetimeToTimestamp($datetime)
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
  * @version 1.0
- * @since 1.0 12.11.2018 function added
+ * @since 1.0 `12.11.2018` function added
  *
  * @see usersystem(), usersystem::login()
  * @param boolean $return_unix_timestamp Wenn 'true', dann wird ein Timestamp in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
@@ -171,14 +166,17 @@ function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
 	elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) $timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
 	else $timestamp = date('Y-m-d G:i:s');
 
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
+	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
 	return $timestamp;
 }
 
 /**
- * @DEPRECATED
- * Replace unsafe characters in Username for generating E-Mailaddress with safe equivalents
+ * Replace unsafe characters in Username
+ *
+ * for generating E-Mailaddress with safe equivalents
  * e.g. ä, ö, ü => ae, oe, ue, etc
+ *
+ * @deprecated
  * @see usersystem::create_newuser()
  */
 function emailusername($username) {
@@ -204,26 +202,28 @@ function crypt_pw($password) {
 
 /**
  * E-Mailadresse prüfen
+ *
  * Überprüft eine E-Mail Adresse, ob Format stimmt und diese als gültig betrachtet wird
  *
- * @author [z]biko, IneX
+ * @author [z]biko
+ * @author IneX
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 02.10.2018 changed deprecated eregi() to filter_var(): https://stackoverflow.com/a/13719870/5750030
+ * @since 2.0 `02.10.2018` changed deprecated eregi() to filter_var(): https://stackoverflow.com/a/13719870/5750030
  *
  * @param string $email E-Mailadresse die zu validieren ist
  * @return bool True or false, depending if $email validated successful or not
  */
 function check_email($email) {
-	if(filter_var($email, FILTER_VALIDATE_EMAIL)) return TRUE;
-	else return FALSE;
+	return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 /**
  * Gibt einen random Quote zurück
+ *
  * @author keep3r
  * @version 1.0
- * @since 1.0 22.03.2004 function added
+ * @since 1.0 `22.03.2004` function added
  * @TODO Move this Method to the Quotes-Class
  */
 function quote(){
@@ -247,13 +247,15 @@ function quote(){
 
 /**
  * Setzt einmal am Tag einen Quote in die DB daily_quote
+ *
  * @author keep3r
  * @version 1.0
- * @since 1.0 22.03.2004 function added
+ * @since 1.0 `22.03.2004` function added
  * @TODO Move this Method to the Quotes-Class
  */
 function set_daily_quote()
 {
+	global $db;
 	$date = date('Y-m-d');
 	$sql = 'SELECT * FROM daily_quote WHERE date = "'.$date.'"';
 	$result = $db->query($sql);
@@ -275,11 +277,12 @@ function set_daily_quote()
 /**
  * Get & return current Script's URL & Parameters
  *
- * @author [z]biko, IneX
+ * @author [z]biko
+ * @author IneX
  * @version 3.0
- * @version 1.0 function added
- * @version 2.0 17.08.2018 added optional $preserve_query_string parameter
- * @version 3.0 03.10.2018 made base64_encode URL-safe using base64url_encode(), added second $base64_encoding parameter
+ * @since 1.0 function added
+ * @since 2.0 `17.08.2018` added optional $preserve_query_string parameter
+ * @since 3.0 `03.10.2018` made base64_encode URL-safe using base64url_encode(), added second $base64_encoding parameter
  *
  * @see base64url_encode()
  * @param boolean $preserve_query_string Whether or not to keep & return the QUERY_STRING with the URL, or not - Default: true
@@ -345,7 +348,7 @@ function changeQueryString($querystring, $changes)
 {
 	/** der 2. Wert überschreibt den 1. */
 	parse_str($querystring.'&'.$changes, $querystringarray);
-
+	$str = '';
 	foreach ($querystringarray as $key => $value) {
 		if(is_array($value)) {
 			foreach ($value as $key2 => $value2) {
@@ -408,6 +411,7 @@ function glue_url($parsed)
 
 /**
  * URL-safe Base64 Encoding
+ *
  * @link http://php.net/manual/de/function.base64-encode.php#121767
  *
  * @author IneX
@@ -424,6 +428,7 @@ function base64url_encode($data)
 
 /**
  * URL-safe Base64 Decoding
+ *
  * @link http://php.net/manual/de/function.base64-encode.php#121767
  *
  * @author IneX
@@ -440,10 +445,10 @@ function base64url_decode($data)
 
 /**
  * Array auf 2d überprüfen
- * 
+ *
  * \$arr muss 2d sein, \$sortcrit enthält in 2d-array die sortierkriterien.
  * \$sortcrit[0] ist das erste kriterium. \$sortcrit[x][0]=row, \$sortcrit[x][1]=Reihenfolge, \$sortcrit[x][2]=Sortiertypen
- * 
+ *
  * @return Array
  * @param Array $arr
  * @param Array $sortcrit
@@ -528,11 +533,12 @@ function maxwordlength($text, $max) {
 
 /**
  * Smarty Klammern überprüfen
+ *
  * Prüft den \$text auf Fehler in der Klammernsetzung von smarty-tags
  *
  * @author [z]biko
  * @version 1.0
- * @since 1.0 <biko> Function added
+ * @since 1.0 `[z]biko` Function added
  *
  * @param string $text
  * @param string &$error
@@ -593,8 +599,8 @@ function print_array ($arr, $indent=0) {
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 <inex> function added
- * @since 2.0 <inex> added tolerance for full words (don't cut words in half)
+ * @since 1.0 `IneX` function added
+ * @since 2.0 `IneX` added tolerance for full words (don't cut words in half)
  *
  * @param boolean $tolerant_full_words If 'true', $text-String will be cut at closest space
  * @param boolean $first_line_only If 'true', $text-String will be processed only with the first line (anything before line breaks)
@@ -626,6 +632,7 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
 
 	/** Shrink $text to $width */
 	$textLength = strlen($textStripped);
+	$textStrippedEndsWithPunctuation = false;
 	if ($textLength <= $width) { // $text is within $width
 		/** Replace last punctuation char with $delimiter or as defined in $punctuationChars */
 		foreach ($punctuationChars as $punctuationChar => $replacePunctuationCharWith) {
@@ -663,9 +670,9 @@ function text_width ($text, $width, $delimiter=null, $tolerant_full_words=false,
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 <inex> 16.03.2008 initial release
- * @since 2.0 <inex> changed preg_replace("@</?[^>]*>*@") => strip_tags()
- * @since 3.0 <inex> 19.08.2019 added additional HTML-tags requiring a line-break
+ * @since 1.0 `16.03.2008` `IneX` initial release
+ * @since 2.0 `IneX` changed preg_replace("@</?[^>]*>*@") => strip_tags()
+ * @since 3.0 `19.08.2019` `IneX` added additional HTML-tags requiring a line-break
  *
  * @link http://php.net/manual/de/function.strip-tags.php
  * @link https://www.reddit.com/r/PHP/comments/nj5t0/what_everyone_should_know_about_strip_tags/
@@ -700,7 +707,7 @@ function remove_html($html, $allowable_tags=NULL)
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 27.12.2017 function added
+ * @since 1.0 `27.12.2017` function added
  *
  * @see comment_new.php, comment_edit.php
  * @see Comment:post()
@@ -716,33 +723,37 @@ function escape_text($string) {
 /**
  * Entferne in einem vom User eingegebenen String alle nicht sicheren Zeichen
  *
- * @FIXME should not use remove_html() !? remove this part
- *
  * @author IneX
- * @version 1.0
- * @since 1.0 24.04.2018 function added
- * @see bugtracker.inc.php
- * @see exec_changeprofile()
+ * @version 2.0
+ * @since 1.0 `24.04.2018` `IneX` function added
+ * @since 2.0 `03.11.2019` `kassiopaia` replaced deprecated mysql_real_escape_string() with custom sanitizer, resolved FIXME to-do
  *
  * @param string	$string String Input which shall be sanitized
- * @param string	$allowable_tags Whitelist of HTML-Tags which should NOT be removed
  * @return string	Returns sanitized $string as string
  */
-function sanitize_userinput($string, $allowable_tags=NULL) {
-	return mysql_real_escape_string(remove_html($string, $allowable_tags));
+function sanitize_userinput($string)
+{
+	$search = array(
+		'@<script[^>]*?>.*?</script>@si',   // Strip out javascript
+		'@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
+		'@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
+		'@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments
+	);
+
+	return preg_replace($search, '', $string);
 }
 
 
 /**
  * Funktion liefert den Zeitunterschied zur GMT basis
-*
+ *
  * @author IneX
  * @version 1.0
- * @since 1.0 16.03.2008 function added
-*
+ * @since 1.0 `16.03.2008` function added
+ *
  * @return String
  * @param $date
-*/
+ */
 function gmt_diff($date) {
 	$diff = ($date - date('Z', $date)) / 3600;
 	
@@ -756,17 +767,16 @@ function gmt_diff($date) {
 }
 
 
-
 /**
  * Funktion prüft, ob der Client ein Mobile-Client ist (iPhone, BB, etc.)
  *
- * @DEPRECATED
+ * @deprecated
  * @TODO Funktion entfernen, wird via JavaScript erledigt
  * @link https://deviceatlas.com/blog/mobile-browser-user-agent-strings
  * @author IneX
  * @version 2.0
- * @since 1.0 23.04.2009 function added
- * @since 2.0 19.07.2018 Array foreach-loop replaced with faster array_filter-search, updated identifiers
+ * @since 1.0 `23.04.2009` function added
+ * @since 2.0 `19.07.2018` Array foreach-loop replaced with faster array_filter-search, updated identifiers
  *
  * @see usersystem::usersystem()
  * @param string $userAgent
@@ -862,7 +872,7 @@ function findStringInArray($searchFor, $inArray, $arrayColumn=null, $caseSensiti
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 21.01.2017 function added
+ * @since 1.0 `21.01.2017` function added
  *
  * @link https://stackoverflow.com/a/39811033/5750030
  * @param string $url 	The URL to validate
@@ -883,39 +893,35 @@ function urlExists($url)
  * @link https://stackoverflow.com/a/33986403/5750030
  *
  * @author IneX
- * @version 3.0
- * @since 1.0 04.02.2018 function added
- * @since 2.0 20.08.2018 fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
- * @since 3.0 17.12.2018 fixed git error from apache2 error.log: "fatal: No tags can describe '<sha1>'" https://stackoverflow.com/a/6445255/5750030
+ * @version 3.1
+ * @since `1.0` `04.02.2018` function added
+ * @since `2.0` `20.08.2018` fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
+ * @since `3.0` `17.12.2018` fixed git error from apache2 error.log: "fatal: No tags can describe '`sha1`'" https://stackoverflow.com/a/6445255/5750030
+ * @since `3.1` `02.10.2020` fixed for new FUCKUP server and site structure (decoupled .git and web root)
  *
- * @see SITE_ROOT
+ * @see GIT_REPOSITORY_ROOT
  * @see datetimeToTimestamp()
  * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
  */
 function getGitCodeVersion()
 {
-	try {
-		static $codeVersion = array();
-		$codeVersion['version'] = trim(exec('git -C '.SITE_ROOT.' describe --tags `git -C '.SITE_ROOT.' rev-list --tags --max-count=1`'));
-		$codeVersion['last_commit'] = trim(exec('git -C '.SITE_ROOT.' log -n1 --pretty="%h" HEAD'));
-		$lastCommitDatetime = trim(exec('git -C '.SITE_ROOT.' log -n1 --pretty=%ci HEAD'));
-		$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
+	static $codeVersion = array();
+	$codeVersion['version'] = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' describe --tags `git -C '.GIT_REPOSITORY_ROOT.' rev-list --tags --max-count=1`'));
+	$codeVersion['last_commit'] = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty="%h" HEAD'));
+	$lastCommitDatetime = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty=%ci HEAD'));
+	$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
 
-		return $codeVersion;
-
-	} catch (Exception $e) {
-		error_log($e->getMessage());
-		return false;
-	}
+	return $codeVersion;
 }
 
 /**
  * Wraps String with a specified HTML-Tag
+ *
  * e.g. 'text', 'b' => returns <b>text</b>
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 18.06.2018 initial release
+ * @since 1.0 `18.06.2018` initial release
  *
  * @param string $text String input to wrap into HTML-tag $htmlTag
  * @param string $htmlTag HTML-Tag to use for warpping $text inside. Use only "b", "pre", "code", etc.
@@ -935,11 +941,12 @@ function html_tag($text, $htmlTag)
 
 /**
  * HTTP file download using cURL
+ *
  * Starts a cURL instance to download a passed URL to the defined file path, if the URL status is 200 OK
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 17.07.2018 function added
+ * @since 1.0 `17.07.2018` function added
  *
  * @param string $url String input containing a URL
  * @param string $save_as_file String input containing a valid local file path to save the $url to
@@ -1012,11 +1019,12 @@ function cURLfetchUrl($url, $save_as_file)
 
 /**
  * GET request using cURL to retrieve JSON object
+ *
  * Starts a cURL instance to retrieve a JSON data object from the passed $url, and return it as a PHP array if the JSON response status is 200 OK
  *
  * @author IneX
  * @version 1.0
- * @since 1.0 06.08.2018 function added
+ * @since 1.0 `06.08.2018` function added
  *
  * @param string $url String input containing a REST API URL
  * @return array|bool Returns a JSON object converted to a PHP array containing the JSON data, or false, depening on if a successful execution was possible
@@ -1068,28 +1076,32 @@ function cURLfetchJSON($url)
 /**
  * Test if a File exists on the Server
  *
+ * @TODO add check for string ending in '/' then validate if dir exists
+ *
  * @author IneX
- * @version 1.0
- * @since 1.0 06.08.2018 function added
+ * @version 1.1
+ * @since 1.0 `06.08.2018` `IneX` function added
+ * @since 1.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
  *
  * @param string $filepath 	The filepath to validate
  * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
  */ 
 function fileExists($filepath)
 {
-	return (stream_resolve_include_path($filepath) !== false ? $filepath : false);
+	return (is_file($filepath) !== false ? $filepath : false);
 }
 
 
 /**
  * Calculate a unique md5-Hash of a File or URL - or compare to another File/URL
+ *
  * Either the file only, or by adding it's last modification datetime (for comparing file changes)
  * Pass a second file, in order to do a comparison of the two
  *
  * @author IneX
  * @version 2.0
- * @since 1.0 08.08.2018 added function
- * @since 2.0 13.08.2018 added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
+ * @since 1.0 `08.08.2018` added function
+ * @since 2.0 `13.08.2018` added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
  *
  * @param string $filepath 	The filepath to a file for creating the hash
  * @param boolean $use_last_modification_datetime	(Optional) Whether or not to md5-hash with $filepath AND filemtime(), default: false
@@ -1151,4 +1163,22 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 
 	/** Check if $filepath was hashed - and return it. In case $file_to_compare_hash was also hashed, return false (otherwise a matching Hash would have been true already) */
 	return (!empty($file_hash) && $file_hash != null && empty($file_to_compare_hash) ? $file_hash : false);
+}
+
+/**
+ * Get the real (external) IP address
+ *
+ * @link https://stackoverflow.com/a/23111577/5750030
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 `29.09.2019` `IneX` function added
+ *
+ * @return string|null Returns the real IP address, or null
+ */ 
+function getRealIPaddress()
+{
+	if ($_SERVER['REMOTE_ADDR'] === '::1' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1') $public_ip = trim(shell_exec('dig +short myip.opendns.com @resolver1.opendns.com'));
+	else $public_ip = $_SERVER['REMOTE_ADDR'];
+	return (isset($public_ip) && !empty($public_ip) ? $public_ip : null);
 }

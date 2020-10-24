@@ -5,18 +5,18 @@
  *
  * @author [z]biko
  * @version 1.0
- * @since 1.0 <biko> File added
- * @since 1.1 <inex> 11.09.2019 code updates
+ * @since 1.0 `[z]biko` File added
+ * @since 1.1 `11.09.2019` `IneX` code updates
  *
  * @package zorg\Games\Addle
- * @see _update_dwz()
+ * @uses _update_dwz()
  */
 /**
  * File Includes
  */
-require_once( __DIR__ .'/includes/config.inc.php');
-require_once( __DIR__ .'/includes/usersystem.inc.php');
-require_once( __DIR__ .'/includes/addle.inc.php');
+require_once dirname(__FILE__).'/includes/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'addle.inc.php';
 
 /** Nur wenn User [z]biko oder User mit Super-Admin Rechten */
 if ($user->id == 7 || $user->typ >= USER_SPECIAL)
@@ -35,5 +35,6 @@ if ($user->id == 7 || $user->typ >= USER_SPECIAL)
 
 /** Permission denied */
 else {
-	echo "access denied";
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	echo "Access denied";
 }

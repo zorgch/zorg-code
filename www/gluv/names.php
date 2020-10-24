@@ -25,30 +25,30 @@
 function name($name, $background, $foreground, $blink)
 {
   global $fastID, $slowID;
-?><span style="position: relative"><span style="position: absolute; top: 1px; left: 2px;"><font color=<?= printf($background); ?><?php
+?><span style="position: relative"><span style="position: absolute; top: 1px; left: 2px;"><font color=<?php echo printf($background); ?><?php
 if($blink==1)
   printf(" id=\"fadeFast".$fastID++."\"");
 else if($blink==2)
   printf(" id=\"fadeSlow".$slowID++."\"");
-?>><tt><?= printf($name); ?></tt></font></span><span style="position: relative;"><font color=<?= printf($foreground); ?><?php
+?>><tt><?php echo printf($name); ?></tt></font></span><span style="position: relative;"><font color=<?php echo printf($foreground); ?><?php
 if($blink==1)
   printf(" id=\"fadeFast".$fastID++."\"");
 else if($blink==2)
   printf(" id=\"fadeSlow".$slowID++."\"");
-?>><tt><?= printf($name); ?></tt></font></span></span><?php
+?>><tt><?php echo printf($name); ?></tt></font></span></span><?php
 
 /* I had to take out the whitespaces in the above code for it to look
      correct in browsers...here is what it would look like:
 
 <span style="position: relative">
   <span style="position: absolute; top: 1px; left: 2px;">
-    <font color=<?= printf($background); ?>>
-      <tt><?= printf($name); ?></tt>
+    <font color=<?php echo printf($background); ?>>
+      <tt><?php echo printf($name); ?></tt>
     </font>
   </span>
   <span style="position: relative;">
-    <font color=<?= printf($foreground); ?>>
-      <tt><?= printf($name); ?></tt>
+    <font color=<?php echo printf($foreground); ?>>
+      <tt><?php echo printf($name); ?></tt>
     </font>
   </span>
 </span>

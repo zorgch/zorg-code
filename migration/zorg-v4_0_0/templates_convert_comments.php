@@ -17,7 +17,8 @@
  * @version 1.0
  * @since 1.0 <inex> 11.06.2019 Function added
  *
- * @see db_add_table_tplmenus(), db_query_templates_menus()
+ * @see db_add_table_tplmenus()
+ * @see db_query_templates_menus()
  * @param boolean $dryrun Disable to actually make the changes. Default: TRUE
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean Result of executing the function

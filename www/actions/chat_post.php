@@ -1,7 +1,7 @@
 <?php
 if (!empty($_POST['url']))
 {
-	require_once( __DIR__ .'/../includes/main.inc.php');
+	require_once dirname(__FILE__).'/../includes/main.inc.php';
 	
 	$from_mobile = ($_POST['from_mobile'] != '' || $_POST['from_mobile'] > 0) ? 1 : 0 ;
 	$chat_text = sanitize_userinput($_POST['text']);

@@ -1,5 +1,5 @@
 <?php
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+	require_once $_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php';
 	
 if($_POST['taktik']) {
 	$html = strip_tags($_POST['taktik'],"<tr> <td> <table> <th>");

@@ -314,7 +314,7 @@ unreadMessages($user->id);
 	
 	<!-- Forum -->
 	<ul id="forum" title="Forum">
-		<li><a class="linklabel" href="forum_unread.php?numUnreads=<?=$unreadComments?>">Ungelesen</a>
+		<li><a class="linklabel" href="forum_unread.php?numUnreads=<?php echo $unreadComments?>">Ungelesen</a>
 			<?php echo ($unreadComments > 0) ? '<span class="newItemIndicator">'.$unreadComments.'</span>' : ''; ?></li>
 		<li><a class="linklabel" href="forum_newest.php">Neuste Threads</a></li>
 		<li><a class="linklabel" href="#">Alle Threads</a>

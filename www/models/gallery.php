@@ -29,7 +29,7 @@ class Gallery extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param integer $album_id Eine gültige Album-ID
 	 * @param integer $pic_id Einge gültige Pic-ID
@@ -43,7 +43,7 @@ class Gallery extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -54,7 +54,7 @@ class Gallery extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -68,7 +68,7 @@ class Gallery extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -90,7 +90,7 @@ class Gallery extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 29.08.2019 method added
+	 * @since 1.0 `29.08.2019` `IneX` method added
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
@@ -104,9 +104,9 @@ class Gallery extends Model
 
 	/**
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 *
-	 * @global object $smarty Smarty Class-Object
+	 * @var object $smarty Smarty Class-Object
 	 */
 	public function showFacetagging($page_index=null)
 	{

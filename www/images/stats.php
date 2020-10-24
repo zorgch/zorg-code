@@ -1,13 +1,14 @@
 <?php
 /**
- * Forum Comments Stats Generator
+ * Forum Comments Stats Generator.
+ *
  * Zeigt Forum Post Stats in Form eines Diagramm Posts/Monat mittels Line Graph generator
  *
  * @author [z]cylander
  * @version 2.0
- * @since 1.0 <cylander> 16.12.2004 File added
- * @since 1.5 <cylander> test zweite x-Achse mit Jahreszahlen
- * @since 2.0 <inex> 07.12.2019 [Bug #602] "0 posts/mon gehen unter" fixed, Code & styling optimizations
+ * @since 1.0 `16.12.2004` `[z]cylander` File added
+ * @since 1.5 `[z]cylander` test zweite x-Achse mit Jahreszahlen
+ * @since 2.0 `07.12.2019` `IneX` [Bug #602] "0 posts/mon gehen unter" fixed, Code & styling optimizations
  *
  * @package zorg\Forum
  * @see graph.inc.php
@@ -22,10 +23,10 @@ $h = (is_numeric($_GET['h']) && (int)$_GET['h'] > 100 ? (int)$_GET['h'] : 300); 
 
 /**
  * File includes
- * @include main.inc.php
+ * @include config.inc.php
  */
-require_once( __DIR__ .'/../includes/config.inc.php');
-require_once( __DIR__ .'/../includes/graph.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'graph.inc.php';
 
 /**
  * Define some vars

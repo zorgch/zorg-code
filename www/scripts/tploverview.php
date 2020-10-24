@@ -27,7 +27,7 @@ $sort_order = $sort.' '.$order;
 $e = $db->query('SELECT id, title, word, owner, LENGTH(tpl) size, UNIX_TIMESTAMP(last_update) updated, update_user, read_rights, write_rights FROM templates WHERE del="0" '.$sort_order, __FILE__, __LINE__);
 $list = array();
 $totalsize = 0;
-while ($d = mysql_fetch_array($e)) {
+while ($d = mysqli_fetch_array($e)) {
   $totalsize += $d['size'];
   array_push($list, $d);
 }

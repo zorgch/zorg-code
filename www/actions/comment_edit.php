@@ -1,11 +1,17 @@
 <?php
 /**
+ * Edit Comment Post-Action
+ *
+ * @package zorg\Forum
+ */
+
+/**
  * File includes
  * @include main.inc.php DEPRECATED
  * @include forum.inc.php
  */
-//require_once( __DIR__ .'/../includes/main.inc.php');
-require_once( __DIR__ .'/../includes/forum.inc.php');
+//require_once dirname(__FILE__) .'/../includes/main.inc.php';
+require_once dirname(__FILE__).'/../includes/forum.inc.php';
 
 /** Board checken und validieren */
 if($_POST['board'] == '' || empty($_POST['board']) || strlen($_POST['board']) != 1) {

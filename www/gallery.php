@@ -1,7 +1,7 @@
 <?php
 /**
  * Picture Gallery
- * 
+ *
  * Die Bilder der Gallery liegen in ../data/gallery/ und in der Datenbank
  * Folgende Tables gehören zur Gallery:
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
@@ -11,10 +11,10 @@
  * @package zorg\Gallery
  * @date 01.01.2002
  * @version 2.0
- * @since 1.0 01.01.2002 file added
- * @since 1.5 04.11.2013 Gallery nur noch für eingeloggte User anzeigen
- * @since 1.6 <inex> 11.09.2018 APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
- * @since 2.0 <inex> 14.11.2019 GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
+ * @since 1.0 `01.01.2002` file added
+ * @since 1.5 `04.11.2013` Gallery nur noch für eingeloggte User anzeigen
+ * @since 1.6 `11.09.2018` `IneX` APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
+ * @since 2.0 `14.11.2019` `IneX` GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
  */
 
 /**
@@ -22,8 +22,8 @@
  * @include main.inc.php
  * @include core.model.php
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -31,8 +31,8 @@ require_once( __DIR__ .'/models/core.model.php');
 $model = new MVC\Gallery();
 
 /** Pic-ID zu Album-ID auflösen */
-$getAlbId = (int)$_GET['albID'];
-$getPicId = (int)$_GET['picID'];
+$getAlbId = isset( $_GET['albID'] ) ? (int) $_GET['albID'] : null;
+$getPicId = isset( $_GET['picID'] ) ? (int) $_GET['picID'] : null;
 $album_id = $model->setAlbumId($getAlbId, $getPicId);
 
 /**
@@ -43,6 +43,7 @@ if (!$user->is_loggedin() && (int)$album_id !== APOD_GALLERY_ID)
 {
 	$model->showOverview($smarty);
 	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
+	http_response_code(403); // Set response code 403 (forbidden).
 	$smarty->display('file:layout/head.tpl');
 }
 
@@ -59,6 +60,7 @@ elseif ((int)$album_id !== APOD_GALLERY_ID && (empty($user->vereinsmitglied) || 
 
 /** Gallery / Pics anzeigen */
 else {
+
 	if (!empty($_GET['do']))
 	{
 		$doAction = (string)$_GET['do'];
@@ -82,7 +84,7 @@ else {
 		} else {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
 		}
-	
+
 		/** Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen */
 		if ($user->typ >= USER_MEMBER)
 		{
@@ -131,14 +133,16 @@ else {
 	
 		unset($_GET['do']);
 		$doAction = null;
+	} else {
+		$res = array( 'state' => '', 'error' => '' );
 	}
-
-	switch ($_GET['show'])
+	$show = isset( $_GET['show'] ) ? $_GET['show'] : null;
+	switch ($show)
 	{
 		case 'editAlbum':
 			$model->showAlbumedit($smarty, $album_id);
 			$smarty->display('file:layout/head.tpl');
-			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']);
+			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']); // FIXME Undefined index: error
 			break;
 		case 'albumThumbs':
 			$model->showAlbum($smarty, $album_id);

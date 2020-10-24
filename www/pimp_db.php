@@ -1,6 +1,7 @@
 <?php
 /**
  * Pimp Names DB-Admin
+ *
  * coded by [z]keep3r
  *
  * @author [z]keep3r
@@ -10,8 +11,8 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -89,6 +90,7 @@ if ($user->is_loggedin())
 {
 	//$smarty->assign('tplroot', array('page_title' => 'pimp db'));
 	$smarty->display('file:layout/head.tpl');
+	/* DEPRECATED
 	for ($i=0;$i<500;$i++){
 	    $exp = "/(.*)\sQ?.\s(.*)/";
 	    preg_match($exp, get_pimp(), $pimp);
@@ -96,7 +98,7 @@ if ($user->is_loggedin())
 	    echo $pimp[0].'<br>';
 	
 	    insert_pimp($pimp[1],$pimp[2],$db);
-	}
+	}*/
 } else {
 	http_response_code(403); // Set response code 403 (access denied) and exit.
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Access denied']);

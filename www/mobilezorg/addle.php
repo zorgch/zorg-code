@@ -42,7 +42,7 @@ $sql =
 	"
 ;
 $result = $db->query($sql, __FILE__, __LINE__);
-while ($rs = mysql_fetch_array($result)) {
+while ($rs = $db->fetch($result)) {
 	$addleGames[] = $rs;
 }
 	
@@ -60,7 +60,7 @@ $sql =
 	"
 ;
 $result = $db->query($sql, __FILE__, __LINE__);
-$addleMyStats = $rs = mysql_fetch_array($result);
+$addleMyStats = $rs = $db->fetch($result);
 
 
 // Query for Addle Top 10 Scores
@@ -79,7 +79,7 @@ $sql =
 	"
 ;
 $result = $db->query($sql, __FILE__, __LINE__);
-while ($rs = mysql_fetch_array($result)) {
+while ($rs = $db->fetch($result)) {
 	$addleTop10[] = $rs;
 }
 

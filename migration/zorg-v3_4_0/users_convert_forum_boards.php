@@ -3,6 +3,7 @@
  * Migration Script to change every user's
  * - forum_boards
  * - forum_boards_unread
+ *
  * from PHP-Array to JSON format. Here's an example:
  * - old value: f,i,e,t,o,r,
  * - new value: ["f","i","e","t","o","r"]
@@ -16,8 +17,8 @@
  * @version 1.0
  * @since 1.0 27.11.2018 Script added
  *
- * @see /includes/usersystem.inc.php, /templates/layout/pages/profile_page.tpl
- * @see Usersystem::$default_notifications, Usersystem::$default_forum_boards_unread
+ * @uses usersystem::$default_notifications
+ * @uses usersystem::$default_forum_boards_unread
  */
 if ($_GET['migration'] === 'start')
 {

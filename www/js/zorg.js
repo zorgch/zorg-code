@@ -43,7 +43,7 @@ function selectAllMessages() {
 // @author IneX
 // @version 2.0
 // @since 1.0 function added
-// @since 2.0 <inex> 27.08.2019 refactored function to work with AJAX updateUnreadComments()
+// @since 2.0 `27.08.2019` `IneX` refactored function to work with AJAX updateUnreadComments()
 function unreads_2_title(numUnreads)
 {
 	if (typeof origTitle !== 'undefined' && origTitle != null)
@@ -73,8 +73,8 @@ function confirmPopup(question)
 // Schwiizer Ziit vom Bsuecher usrechne
 // @author IneX
 // @version 1.5
-// @since 1.0 <inex> 21.10.2013 funktion hinzuegfüegt
-// @since 1.5 <inex> 28.08.2019 Mitternachts-Fix ('24' statt 'undefined') und Suffix für i dä Nacht ergänzt
+// @since 1.0 `21.10.2013` `IneX` funktion hinzuegfüegt
+// @since 1.5 `28.08.2019` `IneX` Mitternachts-Fix ('24' statt 'undefined') und Suffix für i dä Nacht ergänzt
 function swisstimeJS()
 {
 	var jetzt = new Date();
@@ -275,7 +275,7 @@ let wahaniverpasst = setTimeout(function commentshole() {
 // Update CSS grid-template-areas of body{} if Sidebar is in HTML DOM
 // @version 4.0
 // @since 1.0 function added
-// @since 4.0 <inex> 09.09.2019 updated init() triggers
+// @since 4.0 `09.09.2019` `IneX` updated init() triggers
 function init()
 {
 	let werischonline = setTimeout(function nomelprobiere() {
