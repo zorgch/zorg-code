@@ -1,10 +1,10 @@
 <?php
 /**
  * GO Funktionen
- * 
+ *
  * ...
  * ...
- * @TODO Das alles müsste in eine PHP Klasse "class Go { ... }"
+ * @TODO Das alles mÃ¼sste in eine PHP Klasse "class Go { ... }"
  *
  * @author [z]bert
  * @author [z]domi
@@ -13,30 +13,30 @@
 
 /**
  * File includes
- * @include mysql.inc.php
  * @include config.inc.php
+ * @include mysql.inc.php
  */
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/config.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
- * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.
+ * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerÃ¼ckt wird, um den userpics platz zu machen.
  * @const LINKRADIUS 		Etwas kleiner, damit es einen Zwischenraum gibt
- * @const FIELDSIZE			Weitere globale Variablen fürs GO
- * @const LINEWIDTH			Weitere globale Variablen fürs GO
- * @const STARDOTWIDTH		Weitere globale Variablen fürs GO
- * @const STONEBIGWIDTH		Weitere globale Variablen fürs GO
- * @const LASTSTONEWIDTH	Weitere globale Variablen fürs GO
- * @const GOIMGPATH			Weitere globale Variablen fürs GO
- * @const LINE				Weitere globale Variablen fürs GO
- * @const STARDOT			Weitere globale Variablen fürs GO
- * @const BLACKSTONE		Weitere globale Variablen fürs GO
- * @const WHITESTONE		Weitere globale Variablen fürs GO
- * @const BLACKSTONESEMI	Weitere globale Variablen fürs GO
- * @const WHITESTONESEMI	Weitere globale Variablen fürs GO
- * @const BLACKSTONEBIG		Weitere globale Variablen fürs GO
- * @const WHITESTONEBIG		Weitere globale Variablen fürs GO
- * @const LASTSTONE			Weitere globale Variablen fürs GO
+ * @const FIELDSIZE			Weitere globale Variablen fÃ¼rs GO
+ * @const LINEWIDTH			Weitere globale Variablen fÃ¼rs GO
+ * @const STARDOTWIDTH		Weitere globale Variablen fÃ¼rs GO
+ * @const STONEBIGWIDTH		Weitere globale Variablen fÃ¼rs GO
+ * @const LASTSTONEWIDTH	Weitere globale Variablen fÃ¼rs GO
+ * @const GOIMGPATH			Weitere globale Variablen fÃ¼rs GO
+ * @const LINE				Weitere globale Variablen fÃ¼rs GO
+ * @const STARDOT			Weitere globale Variablen fÃ¼rs GO
+ * @const BLACKSTONE		Weitere globale Variablen fÃ¼rs GO
+ * @const WHITESTONE		Weitere globale Variablen fÃ¼rs GO
+ * @const BLACKSTONESEMI	Weitere globale Variablen fÃ¼rs GO
+ * @const WHITESTONESEMI	Weitere globale Variablen fÃ¼rs GO
+ * @const BLACKSTONEBIG		Weitere globale Variablen fÃ¼rs GO
+ * @const WHITESTONEBIG		Weitere globale Variablen fÃ¼rs GO
+ * @const LASTSTONE			Weitere globale Variablen fÃ¼rs GO
  */
 define('OFFSET_PIC', 250);
 define('LINKRADIUS', 15);
@@ -111,8 +111,8 @@ function go_open_games ()
  * @since 1.0
  * 
  * @param integer $gid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function go_close_game ($gid)
 {
@@ -136,8 +136,8 @@ function go_close_game ($gid)
  * @since 1.0
  * 
  * @param integer $gid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function go_decline_game ($gid) {
 	global $db, $user;
@@ -160,8 +160,8 @@ function go_decline_game ($gid) {
  * @since 1.0
  * 
  * @param integer $gid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function go_accept_game ($gid) {
 	global $db, $user;
@@ -184,9 +184,9 @@ function go_accept_game ($gid) {
  * @since 1.0
  * 
  * @param integer $opponent ID des Gegners
- * @param integer $size Board-Grösse
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @param integer $size Board-GrÃ¶sse
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  */
 function go_new_game ($opponent, $size, $handicap) {
@@ -206,7 +206,7 @@ function go_new_game ($opponent, $size, $handicap) {
 					 VALUES ('".$user->id."', '".$opponent."', '".$size."', '".$board."', '".$opponent."', 'open', 1-$handicap, '".$handicap."')",
 					 __FILE__, __LINE__);
 
-			// Activity Eintrag auslösen
+			// Activity Eintrag auslÃ¶sen
 			Activities::addActivity($user->id, 0, t('activity-newgame', 'go', [ usersystem::id2user($opponent, TRUE), SITE_URL, $game ]), 'go');
 	    }
 	    else user_error( t('error-game-player-unknown'), E_USER_ERROR);
@@ -242,7 +242,7 @@ function go_luck($gameid)
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
 		
-		// Activity Eintrag auslösen
+		// Activity Eintrag auslÃ¶sen
 		Activities::addActivity($user->id, $game['pl2'], "hat ".$user->id2user($game['pl2'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');
 		
     } else {
@@ -252,7 +252,7 @@ function go_luck($gameid)
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
 		
-		// Activity Eintrag auslösen
+		// Activity Eintrag auslÃ¶sen
 		Activities::addActivity($user->id, $game['pl1'], "hat ".$user->id2user($game['pl1'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');	
     }
 }
@@ -286,7 +286,7 @@ function go_thank($gameid)
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
 		
-		// Activity Eintrag auslösen
+		// Activity Eintrag auslÃ¶sen
 		Activities::addActivity($user->id, $game['pl2'], "hat sich bei ".$user->id2user($game['pl2'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
 		
     }
@@ -297,7 +297,7 @@ function go_thank($gameid)
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
 		
-		// Activity Eintrag auslösen
+		// Activity Eintrag auslÃ¶sen
 		Activities::addActivity($user->id, $game['pl1'], "hat sich bei ".$user->id2user($game['pl1'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
 		
     }
@@ -379,8 +379,8 @@ function get_komi($size){
  * @param integer $x ...
  * @param integer $y ...
  * @param integer $gameid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  */
 function go_move($which, $gameid)
@@ -502,7 +502,6 @@ function go_move($which, $gameid)
 }
 
 /**
- * ??
  *
  * @author [z]bert
  * @author [z]domi
@@ -511,8 +510,8 @@ function go_move($which, $gameid)
  * @since 1.0
  * 
  * @param integer $gameid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @see LINKRADIUS, FIELDSIZE, LINEWIDTH
  * @return string HTML-Code...
  */
@@ -581,7 +580,7 @@ function nextstone_map($gameid)
 	}
 	else if ($game['board'][$which] == 3 || $game['board'][$which] == 4){
 	    $area = get_area($which, $game);
-	    if (count($area) == 1) $msg = 'Du doch nöd. Chum zrugg!';
+	    if (count($area) == 1) $msg = 'Du doch nÃ¶d. Chum zrugg!';
 	    else $msg = 'Diese '.count($area).' Steine doch nicht als tot betrachten.';
 	}
 	else continue;
@@ -683,10 +682,11 @@ function get_area_rec($which, $game, $mycolors, $stonesdone)
     for ($i = 0; $i < count($neighbours); $i++){
 	
 	$updatestones = get_area_rec($neighbours[$i], $game, $mycolors, $stonesdone);
+	if(is_array($updatestones)) {
 	for ($k = 0; $k < count($updatestones); $k++)
 	  if (!in_array($updatestones[$k], $stonesdone)) $stonesdone[] = $updatestones[$k];
     }
-    
+    }
     return $stonesdone;
 }
 
@@ -718,7 +718,6 @@ function field_equals($x, $y, $game, $items){
 
 
 /**
- * ??
  *
  * @author [z]bert
  * @author [z]domi
@@ -727,8 +726,8 @@ function field_equals($x, $y, $game, $items){
  * @since 1.0
  * 
  * @param integer $gameid ID des GO-Spiels
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  * @return string ...
  */
@@ -754,7 +753,7 @@ function readGame($gameid){
  *
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 26.11.2018 updated to use new $notifcation Class
+ * @since 2.0 `26.11.2018` updated to use new $notifcation Class
  *
  * @param integer $game
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -786,7 +785,7 @@ function writeGame($game)
 			$notification_text = t('message-your-turn', 'go', [ SITE_URL, $game['id'] ]);
 			$notification_status = $notification->send($game['nextturn'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'go'), 'text'=>$notification_text, 'message'=>$notification_text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" for user=%d to user=%d', __FUNCTION__, __LINE__, ($notification_status===true?'true':'false'), $game['nextturn'], $user->id));
-			/** @DEPRECATED
+			/** @deprecated
 			Messagesystem::sendMessage(
 				 $user->id
 				,$game['nextturn']
@@ -808,8 +807,8 @@ function writeGame($game)
  * @since 1.0
  * 
  * @param integer $size Groesse des Feldes in "Kreuzungen"
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  * @return image ...
  */
@@ -826,7 +825,6 @@ function writeGame($game)
  }
 
 /**
- * ??
  *
  * @author [z]bert
  * @author [z]domi
@@ -836,8 +834,8 @@ function writeGame($game)
  * 
  * @param image $im Das zu bemalende Bild
  * @param integer $size Groesse des Feldes in "Kreuzungen"
- * @global array $db Globales Class-Object mit allen MySQL-Methoden
- * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @exception user_error
  * @return ...
  */
@@ -900,11 +898,9 @@ function draw_stardots(&$im, $size)
 }
 
  /**
-  * ??
   *
   * @author [z]bert
- * @author [z]domi
-  * @date nn.nn.nnnn
+  * @author [z]domi
   * @version 1.0
   * @since 1.0
   * 
@@ -912,8 +908,8 @@ function draw_stardots(&$im, $size)
   * @param integer $x X-Koordinate auf dem Spielfeld
   * @param integer $y Y-Koordinate auf dem Spielfeld
   * @param integer $which Spieler 1 oder 2?
-  * @global array $db Globales Class-Object mit allen MySQL-Methoden
-  * @global array $user Globales Class-Object mit den User-Methoden & Variablen
+  * @global object $db Globales Class-Object mit allen MySQL-Methoden
+  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
   * @exception user_error
   * @return ...
  */
@@ -977,7 +973,7 @@ function draw_go_players(&$im, $game)
     imagecopy($im, BLACKSTONESEMI, $center1 - imagesx(BLACKSTONE)/2, $center1 + $radius + $spacing, 0, 0, imagesx(BLACKSTONE), imagesy(BLACKSTONE));
     imagecopy($im, WHITESTONESEMI, $center2 - imagesx(WHITESTONE)/2, $center1 + $radius + $spacing, 0, 0, imagesx(WHITESTONE), imagesy(WHITESTONE));
 
-    $y_klaut = $center1 + $radius + $spacing + imagesy(BLACKSTONE)/2 - 8; // -8 isch öpe di halb schriftgrössi
+    $y_klaut = $center1 + $radius + $spacing + imagesy(BLACKSTONE)/2 - 8; // -8 isch Ã¶pe di halb schriftgrÃ¶ssi
     imagestring($im, 5, 2*$spacing, $y_klaut, 'Klaut:', $black);
     imagestring($im, 5, $center1 + imagesx(BLACKSTONE)/2 + $spacing, $y_klaut, 'x '.$game['pl2lost'], $black);
     imagestring($im, 5, $center2 + imagesx(WHITESTONE)/2 + $spacing, $y_klaut, 'x '.$game['pl1lost'], $black);

@@ -13,9 +13,9 @@ $index = ((isset($_GET['index']) && $_GET['index'] >= 0 && is_numeric($_GET['ind
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../includes/config.inc.php');
-require_once( __DIR__ .'/../../includes/mysql.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php"); // zu lange Ladezeiten
+require_once dirname(__FILE__).'/../../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+//require_once INCLUDES_DIR.'gallery.inc.php'; // zu lange Ladezeiten
 
 /**
  * Get records from database
@@ -24,7 +24,7 @@ header('Content-type:application/json;charset=utf-8');
 try {
 	$sql = 'SELECT * FROM gallery_pics_faceplusplus WHERE user_id_tagged IS NULL AND width >= "250" AND height >= "250" AND pic_id NOT IN (SELECT pic_id FROM gallery_pics_faceplusplus GROUP BY pic_id HAVING COUNT(pic_id) > 1) ' . ( is_numeric($index) ? 'LIMIT '.$index.',1' : 'ORDER BY RAND() LIMIT 0,1');
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result, MYSQL_ASSOC))
+	while ($rs = $db->mysqli_fetch_array($result, MYSQLI_ASSOC))
 	{
 	    $pics[] = [
 		    'pic_id' => $rs['pic_id'],

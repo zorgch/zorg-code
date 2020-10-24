@@ -1,5 +1,5 @@
 <?php
-require_once('/var/www/includes/mysql_login.inc.php');
+require_once '/var/www/includes/mysql_login.inc.php';
 
 return array(
     'server'   => 'localhost',

@@ -8,25 +8,23 @@
 /**
  * File includes
  */
-include_once( __DIR__ .'/addle.inc.php');
-include_once( __DIR__ .'/apod.inc.php');
-include_once( __DIR__ .'/bugtracker.inc.php');
-require_once( __DIR__ .'/events.inc.php');
-include_once( __DIR__ .'/forum.inc.php');
-include_once( __DIR__ .'/gallery.inc.php');
-include_once( __DIR__ .'/hz_game.inc.php');
-include_once( __DIR__ .'/go_game.inc.php');
-include_once( __DIR__ .'/quotes.inc.php');
-include_once( __DIR__ .'/smarty.inc.php');
-include_once( __DIR__ .'/stockbroker.inc.php');
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/util.inc.php');
-include_once( __DIR__ .'/poll.inc.php');
-include_once( __DIR__ .'/stl.inc.php');
-include_once( __DIR__ .'/error.inc.php');
-include_once( __DIR__ .'/peter.inc.php');
-include_once( __DIR__ .'/rezepte.inc.php');
-//include_once( __DIR__ .'/chat.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'addle.inc.php';
+include_once INCLUDES_DIR.'apod.inc.php';
+include_once INCLUDES_DIR.'bugtracker.inc.php';
+include_once INCLUDES_DIR.'events.inc.php';
+include_once INCLUDES_DIR.'forum.inc.php';
+include_once INCLUDES_DIR.'gallery.inc.php';
+include_once INCLUDES_DIR.'hz_game.inc.php';
+include_once INCLUDES_DIR.'go_game.inc.php';
+include_once INCLUDES_DIR.'quotes.inc.php';
+include_once INCLUDES_DIR.'stockbroker.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
+include_once INCLUDES_DIR.'poll.inc.php';
+include_once INCLUDES_DIR.'stl.inc.php';
+include_once INCLUDES_DIR.'error.inc.php';
+include_once INCLUDES_DIR.'peter.inc.php';
+include_once INCLUDES_DIR.'rezepte.inc.php';
 
 
 /**
@@ -53,9 +51,9 @@ function var_request ()
    return array("page" => $_SERVER['PHP_SELF'],
                "params" => $_SERVER['QUERY_STRING'],
                "url" => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'],
-               "tpl" => $_GET['tpl'],
-               "_tpl" => 'tpl:'.$_GET['tpl'],
-               "_word" => 'word:'.$_GET['word']);
+               "tpl" => isset($_GET['tpl'])?$_GET['tpl']:'',
+               "_tpl" => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:''),
+               "_word" => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:''));
 }
 
 
@@ -208,7 +206,7 @@ function var_request ()
 	 * gibt einen link aus
 	 *
 	 * @version 1.0
-	 * @since 1.0 <biko> function added
+	 * @since 1.0 `[z]biko` function added
 	 */
 	function smarty_html_link ($params, $content, &$smarty, &$repeat) {
 		if (!$content) $content = 'link';
@@ -218,8 +216,8 @@ function var_request ()
 	 * gibt einen button als link aus
 	 *
 	 * @version 1.1
-	 * @since 1.0 <biko> function added
-	 * @since 1.1 <inex> 29.09.2019 added optional $params[class] setting
+	 * @since 1.0 `[z]biko` function added
+	 * @since 1.1 `29.09.2019` `IneX` added optional $params[class] setting
 	 */
 	function smarty_html_button ($params, $content, &$smarty, &$repeat) {
 		return '<input type="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'" '.($params['class'] ? 'class="'.$params['class'].'"' : '').'>';
@@ -230,8 +228,8 @@ function var_request ()
 	 * if you set the parameter 'formid', a hidden input with this formid is added.
 	 *
 	 * @version 1.1
-	 * @since 1.0 <biko> function added
-	 * @since 1.1 <inex> 29.09.2019 added autocomplete=off as default
+	 * @since 1.0 `[z]biko` function added
+	 * @since 1.1 `29.09.2019` `IneX` added autocomplete=off as default
 	 */
 	function smarty_form ($params, $content, &$smarty, &$repeat)
 	{
@@ -414,7 +412,8 @@ function var_request ()
 
 	/**
 	 * Verein Mailer - Info Block
-	 * Usage: {mail_infoblock topic="headline"}content{/mail_infoblock}
+	 *
+	 * @example {mail_infoblock topic="headline"}content{/mail_infoblock}
 	 */
 	function smarty_mailinfoblock ($params, $content, &$smarty, &$repeat) {
 		//if (!$repeat) {  // closing tag
@@ -425,7 +424,8 @@ function var_request ()
 	
 	/**
 	 * Verein Mailer - Call-to-Action Button Block
-	 * Usage: {mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}
+	 *
+	 * @example {mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}
 	 */
 	function smarty_mailctabutton ($params, $content, &$smarty, &$repeat) {
 		if ($params['position'] == 'left') $ctaposition = 'float:left';
@@ -443,7 +443,8 @@ function var_request ()
 	
 	/**
 	 * Verein Mailer - Telegram Messenger Button Block
-	 * Usage: {telegram_button}button-text{/telegram_button}
+	 *
+	 * @example {telegram_button}button-text{/telegram_button}
 	 */
 	function smarty_mailtelegrambutton ($params, $content, &$smarty, &$repeat) {
 		$smarty->assign('telegrambtn', [
@@ -463,10 +464,10 @@ function var_request ()
 	 *
 	 * @author [z]biko
 	 * @version 2.0
-	 * @since 1.0 <biko> migrated from smarty_menu.php (smarty_menu_old)
-	 * @since 2.0 <inex> 02.07.2019 moved inline HTML to block_menubar.tpl, output changed to Array
+	 * @since 1.0 `[z]biko` migrated from smarty_menu.php (smarty_menu_old)
+	 * @since 2.0 `02.07.2019` `IneX` moved inline HTML to block_menubar.tpl, output changed to Array
 	 *
-	 * @see smarty_menuitem()
+	 * @uses smarty_menuitem()
 	 * @return object
 	 */
 	function smarty_menubar ($params, $content, &$smarty, &$repeat)
@@ -491,9 +492,10 @@ function var_request ()
 	 *
 	 * @author [z]biko
 	 * @version 1.0
-	 * @since 1.0 <biko> migrated from smarty_menu.php (smarty_menu_old)
+	 * @since 1.0 `[z]biko` migrated from smarty_menu.php (smarty_menu_old)
 	 *
-	 * @see USER_MEMBER, smarty_menubar()
+	 * @uses USER_MEMBER
+	 * @uses smarty_menubar()
 	 * @return string
 	 */
 	function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
@@ -632,7 +634,7 @@ function var_request ()
 				ORDER by activity DESC';
 		$e = $db->query($sql, __FILE__, __LINE__);
 	
-		while ($d = mysql_fetch_row($e)) {
+		while ($d = mysqli_fetch_row($e)) {
 			array_push($online_users, $d[0]);
 		}
 		return $online_users;
@@ -675,9 +677,20 @@ function smarty_peter ($params, &$smarty) {
 		return Quotes::getDailyQuote();
 	}
 
-/** Polls */
-	function smarty_poll ($params) {
-		return getPoll($params['id']);
+/**
+ * Polls
+ *
+ * @since 2.0 `19.02.2020` `IneX` Added param validation and Poll Class handling
+ */
+	function smarty_poll ($params)
+	{
+		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']))
+		{
+			return smarty_error(['msg' => t('invalid-poll_id', 'poll', [$params['id']])]);
+		} else {
+			$poll = new Polls();
+			return $poll->show($params['id']);
+		}
 	}
 
 /** APOD */
@@ -779,14 +792,15 @@ function smarty_peter ($params, &$smarty) {
  * HTML
  */
     function smarty_space ($params) { // inserts &nbsp;
-        return str_repeat('&nbsp;', $params[i]);
+        return str_repeat('&nbsp;', $params['i']);
     }
 
 /**
  * String, Integer, Date and Array Functions
  */
 	function smarty_sizeof ($params) {
-		return sizeof($params['array']);
+		/** Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable */
+		return (is_array($params['array']) ? sizeof($params['array']) : 0);
 	}
 	function smarty_rand ($params, &$smarty) {
 		mt_srand();
@@ -803,49 +817,65 @@ function smarty_peter ($params, &$smarty) {
 /**
  * Files
  */
-	function smarty_gettext ($params, &$smarty) { // Read contents from a textfile on the Server
+	/**
+	 * Read and print contents from a given textfile or from user files /files/[user-id]/
+	 *
+	 * Usage: {gettext id=[FILE-ID] linelength=[MAX-LINES]}
+	 *    or: {gettext file=[PATH/WITHIN/FILES/FILE-NAME] linelength=[MAX-LINES]}
+	 * @link http://zorg.local/thread/44614 Do ä Biispiel im Forum
+	 *
+	 * @author [z]cylander
+	 * @version 1.1
+	 * @since 1.0 `20.08.2004` `[z]cylander` function added
+	 * @since 1.1 `15.01.2019` `IneX` added HTML escapes to file output
+	 */
+	function smarty_gettext ($params, &$smarty) {
 		global $db;
 
 		if ($params['file']) {
 			$file = $params['file'];
-			if (substr($file, -4) != '.txt') return "<font color='red'><b>[gettext: Can only read from txt-File]</b></font><br />";
-			if (substr($file, 0, 1) == '/') $file = $_SERVER['DOCUMENT_ROOT'].$file;
-			if (!file_exists($file)) return "<font color='red'><b>[gettext: File '$file' not found]</b></font><br />";
+			if (substr($file, -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
+			if (substr($file, 0, 1) == '/') $file = FILES_DIR.$file;
+			if (!file_exists($file)) return '<font color="red"><b>[gettext: File "'.$file.'" not found]</b></font><br />';
 		}elseif ($params['id']) {
-			$e = $db->query("SELECT * FROM files WHERE id='$params[id]'", __FILE__, __LINE__);
+			$e = $db->query('SELECT * FROM files WHERE id='.$params['id'], __FILE__, __LINE__, __FUNCTION__);
 			$d = $db->fetch($e);
 			if ($d) {
-				if (substr($d['name'], -4) != '.txt') return "<font color='red'><b>[gettext: Can only read from txt-File]</b></font><br />";
-				$file = $_SERVER['DOCUMENT_ROOT']."/../data/files/$d[user]/$d[name]";
+				if (substr($d['name'], -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
+				$file = sprintf('%s%d/%s', FILES_DIR, $d['user'], $d['name']);
 			}else{
-				return "<font color='red'><b>[gettext: File mit id '$params[id]' in Filemanager nicht gefunden]</b></font><br />";
+				return '<font color="red"><b>[gettext: File mit id "'.$params['id'].'" in Filemanager nicht gefunden]</b></font><br />';
 			}
 		}else{
-			return "<font color='red'><b>[gettext: Gib mittels dem Parameter 'file' oder 'id' eine Datei an]</b></font><br />";
+			return '<font color="red"><b>[gettext: Gib mittels dem Parameter "file" oder "id" eine Datei an]</b></font><br />';
 		}
+		error_log('file path: '.$file);
+		$out = '<div align="left"><pre>';
 
-		$out = "";
-		$out .= "<div align='left'><xmp>";
-
-
-		if ($params['linelength']) {
+		/** Output only n lines (as passed) */
+		if (isset($params['linelength']))
+		{
 			$len = $params['linelength'];
+			error_log('linelength: '.$len);
 			if (!is_numeric($len) || $len < 1) {
-				return "<font color='red'><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />";
+				return '<font color="red"><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />';
 			}
 			$fcontent = file($file);
 			foreach ($fcontent as $it) {
 				while (strlen($it) > $len) {
-					$out .= substr($it, 0, $len) . "\n   ";
-					$it = substr($it, $len);
+					$out .= htmlspecialchars(substr($it, 0, $len)) . "\n   ";
+					$it = htmlspecialchars(substr($it, $len));
 				}
-				$out .= $it;
+				$out .= htmlspecialchars($it);
 			}
-		}else{
-			$out .= file_get_contents($file);
 		}
 
-		$out .= "</xmp></div>";
+		/** Output whole textfile at once */
+		else{
+			$out .= htmlspecialchars(file_get_contents($file));
+		}
+error_log('out: '.$out);
+		$out .= '</pre></div>';
 
 		return $out;
 	}
@@ -928,12 +958,12 @@ function smarty_peter ($params, &$smarty) {
 	 * Smarty Function "forum_boards"
 	 *
 	 * Returns all Forum boards
-	 * Usage: {forum_boards boards=$user->forum_boards_unread updatable=true/false}
+	 * Usage: {forum_boards boards=$user->forum_boards_unread updateable=true/false}
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 30.09.2018 method added
-	 * @see Forum::getForumBoards()
+	 * @since 1.0 `30.09.2018` method added
+	 * @uses Forum::getForumBoards()
 	 */
 	function smarty_get_forum_boards ($params) {
 		return Forum::getForumBoards($params['boards'], $params['updateable']);
@@ -956,16 +986,32 @@ function smarty_peter ($params, &$smarty) {
 	         return "";
 	      }
     }
- 	function smarty_edit_link_url ($params, &$smarty) {
+	/**
+	 * @uses edit_link_url()
+	 */
+ 	function smarty_edit_link_url($params, &$smarty)
+	 {
 		if (!$params['tpl']) {
 			$vars = $smarty->get_template_vars();
 			$params['tpl'] = $vars['tpl']['id'];
 		}
 		return edit_link_url($params['tpl']);
 	}
-		function edit_link_url ($tpl) {
-			return "/?tpleditor=1&tplupd=$tpl&location=".base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
-		}
+	/**
+	 * Stich together Template Edit-URL
+	 *
+	 * @version 1.1
+	 * @since 1.0 Method added
+	 * @since 1.1 `22.10.2020` `IneX` added URL encoding of base64-part (because valid b64 chars like = can interfer with URL)
+	 *
+	 * @uses base64url_encode()
+	 * @param int $tpl Template-ID for which to create Edit-URL
+	 * @return string
+	 */
+	function edit_link_url($tpl)
+	{
+		return '/?tpleditor=1&tplupd='.$tpl.'&location='.base64url_encode($_SERVER['PHP_SELF'].'?'.url_params());
+	}
 
 	/**
 	 * Letze Smarty Updates
@@ -1016,8 +1062,8 @@ function smarty_peter ($params, &$smarty) {
 	 * Display a navigation menu using {menu name=menubar}
 	 *
 	 * @version 2.0
-	 * @since 1.0 <biko> function added
-	 * @since 2.0 <inex> 30.09.2019 adjusted with new responsive HTML Layout structure
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `30.09.2019` `IneX` adjusted with new responsive HTML Layout structure
 	 */
 	function smarty_menu ($params, &$smarty)
 	{
@@ -1055,8 +1101,8 @@ function smarty_peter ($params, &$smarty) {
 	 *
 	 * @author [z]biko
 	 * @version 1.0
-	 * @since 1.0 <biko> function added
-	 * @since 2.0 <inex> 16.09.2019 function updated for zorg v4 to prevent updating new 'id' table row
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `16.09.2019` `IneX` function updated for zorg v4 to prevent updating new 'id' table row
 	 *
 	 * @param string $name Name of a Menubar (e.g. 'zorg'), containing a {menubar}{menuitem...}{/menubar}-structure
 	 */
@@ -1110,7 +1156,7 @@ function smarty_peter ($params, &$smarty) {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 30.09.2018 function added
+	 * @since 1.0 `30.09.2018` `IneX` function added
 	 */
 	function smarty_get_menus()
 	{
@@ -1151,9 +1197,9 @@ function smarty_peter ($params, &$smarty) {
 		 *
 		 * @author IneX
 		 * @version 1.0
-		 * @since 1.0 <inex> 23.06.2007 function added as part of Bug #609
+		 * @since 1.0 `23.06.2007` `IneX` function added as part of Bug #609
 		 *
-		 * @see getTopPics()
+		 * @uses getTopPics()
 		 * @param array $params All passed Smarty-Function parameters, allowed: album, limit, options
 		 * @return string HTML displaying top rated n amount of Gallery-Pics
 		 */
@@ -1174,7 +1220,7 @@ function smarty_peter ($params, &$smarty) {
 		 *
 		 * @author IneX
 		 * @version 1.0
-		 * @since 1.0 <inex> 18.10.2013 Function added
+		 * @since 1.0 `18.10.2013` `IneX` Function added
 		 */
 		function smarty_user_pics($params)
 		{
@@ -1221,7 +1267,7 @@ function smarty_peter ($params, &$smarty) {
 		//echo $sql;
 		$result = $db->query($sql, __FILE__, __LINE__);
 
-		while ($rs = mysql_fetch_array($result)) {
+		while ($rs = $db->fetch($result)) {
 		  $chatmessages[] = $rs;
 		}
 		$smarty->assign("chatmessages", $chatmessages);
@@ -1428,7 +1474,7 @@ function smarty_menuname ($name, &$smarty) {
  * @package zorg\Smarty
  * @author IneX
  * @version 1.0
- * @since 1.0 <inex> 03.01.2016 Class added
+ * @since 1.0 `03.01.2016` `IneX` Class added
  */
 //class SmartyZorgFunctions
 //{
@@ -1443,7 +1489,7 @@ function smarty_menuname ($name, &$smarty) {
      *
      * @author IneX
      * @version 1.0
-     * @since 1.0 <inex> 03.01.2016 Method added
+     * @since 1.0 `03.01.2016` `IneX` Method added
      * @var array
      */
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
@@ -1464,12 +1510,12 @@ function smarty_menuname ($name, &$smarty) {
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)
 								,'user' => array($user, 'Usersystem', 'Array mit allen User-Informationen des aktuellen Besuchers', false) // TODO change to $smarty->register_object()
 								,'usertyp' => array(array('alle'=>USER_ALLE, 'user'=>USER_USER, 'member'=>USER_MEMBER, 'special'=>USER_SPECIAL), 'Usersystem', 'Array mit allen vorhandenen Usertypen: alle, user, member und special', false)
-								,'user_mobile' => array($user->from_mobile, 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
-								,'user_ip' => array($user->last_ip, 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)
+								,'user_mobile' => array((isset($user->from_mobile)?$user->from_mobile:''), 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
+								,'user_ip' => array((isset($user->last_ip)?$user->last_ip:''), 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)
 								,'comments_default_maxdepth' => array(DEFAULT_MAXDEPTH, 'Layout', 'Standart angezeigte Tiefe an Kommentaren z.B. im Forum', false)
 								,'online_users' => array(var_online_users(), 'Usersystem', 'Array mit allen zur Zeit eingeloggten Usern', false)
 								,'num_new_events' => array(Events::getNumNewEvents(), 'Events', 'Zeigt Anzahl neu erstellter Events an', true)
-								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
+								,'login_error' => array((isset($login_error)?$login_error:null), 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
 								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
 								,'smarty_menus' => array(smarty_get_menus(), 'Smarty', 'Array mit allen verfügbaren Smarty-Menutemplates', true)
   						 );
@@ -1621,7 +1667,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_arrays($php_vars_array)
@@ -1636,8 +1682,8 @@ function smarty_menuname ($name, &$smarty) {
 			if (!$smarty_var_data[3]) $smarty->assign($smarty_var_key, $smarty_var_data[0]);
 			$smarty_vars_documentation['{$'.$smarty_var_key.'}'] = array('category' => $smarty_var_data[1], 'description' => $smarty_var_data[2], 'members_only' => $smarty_var_data[3]);
 		}
-		
-		natcasesort($smarty_vars_documentation);
+
+		//natcasesort($smarty_vars_documentation);
 		$smarty->assign('smartyvars_doc', $smarty_vars_documentation); // {smartyvars_doc} Lists all available custom Smarty Vars
 	}
 
@@ -1653,7 +1699,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_modifiers($php_modifiers_array)
@@ -1661,7 +1707,7 @@ function smarty_menuname ($name, &$smarty) {
 		// Globals
 		global $smarty, $user;
 		$documentation = array();
-		natcasesort($php_modifiers_array); // Sort the Array from A-Z
+		//natcasesort($php_modifiers_array); // Sort the Array from A-Z
 		
 		foreach ($php_modifiers_array as $function_name => $data)
 		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
@@ -1687,7 +1733,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @version 1.0
 	 * @since 1.0 function added
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_blocks($php_blocks_array)
@@ -1704,7 +1750,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
-		natcasesort($documentation); // Sort the Array from A-Z
+		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyblocks_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 
@@ -1724,7 +1770,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * @since 1.0 function added
 	 * @since 2.0 added support for registering array($class, $method)
 	 *
-	 * @global object $smarty Smarty Class
+	 * @var object $smarty Smarty Class
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_functions($php_functions_array)
@@ -1742,7 +1788,7 @@ function smarty_menuname ($name, &$smarty) {
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[2], 'description' => $data[3], 'members_only' => $data[4], 'compiler_function' => $data[5]);
 		}
 		
-		natcasesort($documentation); // Sort the Array from A-Z
+		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyfunctions_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 

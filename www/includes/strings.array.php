@@ -128,10 +128,12 @@ return
 			,'invalid-thread_id' => 'Thread ID fehlt oder ist ungültig.'
 			,'invalid-comment_id' => 'Comment ID ist ungültig.'
 			,'invalid-permissions' => 'Permission denied for posting on thread %s / %d.'
+			,'invalid-permissions-search' => 'Um das Forum zu durchsuchen musst du eingeloggt sein.'
 			,'invalid-comment-no-parentid' => 'Du darfst per Edit keine neuen Threads erstellen'
 			,'invalid-comment-edit-permissions' => 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!'
 			,'invalid-comment-empty' => 'Leere Posts sind nicht erlaubt!'
 			,'error-missing-board' => 'Board nicht angegeben!'
+			,'error-search-noresult' => 'Für die Suche nach "%s" gibt es leider keine passenden Einträge'
 			,'activity-newthread' =>  'hat einen neuen Thread <a href="%s%s">"%s..."</a> gestartet'
 			,'activity-newcomment' =>  'hat <a href="%1$s%2$s">einen %3$s Comment</a> geschrieben:<br>
 										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'
@@ -255,7 +257,7 @@ return
 		]
 	,'poll' =>
 		[
-			 'invalid-poll_id' => 'Invalid Poll id "%d"'
+			 'invalid-poll_id' => 'Invalid Poll id "%s"'
 		]
 	,'util' =>
 		[

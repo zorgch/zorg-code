@@ -1,7 +1,14 @@
-<?PHP
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/colors.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
+<?php
+/**
+ * zorg Color Gradients
+ * @package zorg\Utils
+ */
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/../includes/colors.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
 
 echo '<html><body text="#FFFFFF">';
 
@@ -43,4 +50,3 @@ $vars = $smarty->get_template_vars();
 echo '<table><tr><td height=30 width=100 bgcolor="'.$vars['color']['newcomment'].'">'.$vars['color']['background'].'</td></tr></table>';
 
 echo '</body></html>';
-?>

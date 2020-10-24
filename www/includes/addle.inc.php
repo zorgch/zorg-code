@@ -6,16 +6,15 @@
  *
  * @author [z]biko
  * @version 1.0
- * @package zorg
- * @subpackage Addle
+ * @package zorg\Games\Addle
  */
 /**
  * File includes
  * @include config.inc.php required
  * @include mysql.inc.php required
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Anzahl offene Addle Spiele ermitteln
@@ -25,7 +24,7 @@ require_once( __DIR__ .'/mysql.inc.php');
  * @author [z]biko
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 2.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
  *
  * @param integer $user_id ID des Users
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -57,7 +56,7 @@ function getOpenAddleGames($user_id)
  * @author [z]biko
  * @version 1.0
  * @since 1.0 function added
- * @since 2.0 15.11.2018 updated to use new $notifcation Class & some code and query optimizations
+ * @since 2.0 `15.11.2018` updated to use new $notifcation Class & some code and query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $notification Globales Class-Object mit allen Notification-Methoden
@@ -106,9 +105,9 @@ function addle_remove_old_games() {
 
 /**
  * Addle DWZ Highscore anzeigen
- * 
+ *
  * Zeigt die Highscore Liste der Addle DWZ an
- * 
+ *
  * @author [z]biko
  * @version 1.0
  *
@@ -131,7 +130,7 @@ function highscore_dwz($anzahl)
 	  . '   LIMIT 0, '.$anzahl;
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
-	$html = '<h2>Addle Highscore</h2>
+	$html = '<h1>Addle Highscores</h1>
 			<table>
 				<tr>
 					<th colspan=2>&nbsp;</th>
@@ -143,7 +142,7 @@ function highscore_dwz($anzahl)
 				</tr></thead>
 				<tbody>';
 
-	while ($d = mysql_fetch_array($e))
+	while ($d = $db->fetch($e))
 	{
 		if ($d['tendenz'] > 0)
 		{
@@ -176,16 +175,16 @@ function highscore_dwz($anzahl)
 
 /**
  * Addle DWZ Punkte aktualisieren
- * 
+ *
  * Aktualisiert die DWZ Punkte eines Benutzers
- * 
+ *
  * @author [z]biko
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 2.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
  *
- * @see config.inc.php
- * @see ADDLE_BASE_POINTS, ADDLE_MAX_POINTS_TRANSFERABLE
+ * @uses ADDLE_BASE_POINTS
+ * @uses ADDLE_MAX_POINTS_TRANSFERABLE
  * @param integer $user_id ID des Users
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
@@ -269,12 +268,13 @@ $max_depth = 5;
 
 /**
  * KI - höchste Punktzahl wählen
- * 
+ *
  * Ermittelt, welches Feld die KI nehmen soll,
  * um möglichst viele Punkte zu machen aber dem
  * Gegner nur kleine Punkte zur Wahl zu lassen
- * 
- * @author [z]stamp & [z]cylander
+ *
+ * @author [z]stamp
+ * @author [z]cylander
  * @version 1.0
  *
  * @param integer $game_data_array
@@ -283,7 +283,7 @@ $max_depth = 5;
  * @param integer $score_chind
  * @param integer $depth
  * @param integer $mode
- * @return integer ??
+ * @return integer
  */
 function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mode) {
 	$max_depth = 5;
@@ -366,7 +366,8 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
  * Ermittelt, welches das kleinste Feld für die KI ist,
  * um dem Gegner möglichst wenig Punkte zur Wahl zu lassen
  * 
- * @author [z]stamp & [z]cylander
+ * @author [z]stamp
+ * @author [z]cylander
  * @version 1.0
  *
  * @param integer $game_data_array

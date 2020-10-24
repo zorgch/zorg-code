@@ -1,8 +1,13 @@
 <?php
+/**
+ * zorg Admin Scripts
+ *
+ * @link /tpl/93
+ */
 global $smarty, $db;
 
 /** template force compile action */
-if ($_GET[force_compile]) {
+if ($_GET['force_compile']) {
 	$db->query('UPDATE templates SET force_compile="1"', __FILE__, __LINE__, 'SET force_compile');
 	$smarty->assign('admin_state', 'Force recompile executed');
 }
@@ -25,14 +30,13 @@ if ($_GET[force_compile]) {
 
 
 /** comment force compile infos */
-//$path = $_SERVER['DOCUMENT_ROOT']."/../data/smartylib/templates_c/";
 $handle = opendir(SMARTY_COMPILE);
-
 $comments = 0;
 $comments_size = 0;
 $tpls = 0;
 $tpls_size = 0;
-while (false !== ($file = readdir ($handle))) {
+while (false !== ($file = readdir ($handle)))
+{
 	if (strstr($file, 'comments')) {
 		$comments++;
 		$comments_size += filesize(SMARTY_COMPILE.$file);
@@ -69,3 +73,32 @@ while ($d = $db->fetch($e)) {
 	array_push($quota, $d);
 }
 $smarty->assign('admin_quota', $quota);
+
+
+/**
+ * APOD manuell fetchen
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 `17.03.2020` `IneX` Function added
+ *
+ * @uses get_apod()
+ * @include apod.inc.php
+ * @param string $_GET['apod_fetch'] Boolean value must be 'true' in order to do something
+ * @param string $_GET['apod_date'] A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)
+ * @return void Smarty HTML-Output
+ */
+if ($_GET['apod_fetch'] === 'true')
+{
+	require_once dirname(__FILE__).'/../includes/apod.inc.php';
+	$fetch_date = (isset($_GET['apod_date']) && false !== strtotime($_GET['apod_date']) ? date('Y-m-d',strtotime($_GET['apod_date'])) : null);
+	$fetch_result = get_apod($fetch_date);
+	if ($fetch_result === true)
+	{
+		$newest_apod_id = get_apod_id(); // DB Query-Result Array Resource
+		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Success!', 'message' => 'APOD '.(!empty($fetch_date) ? 'für Datum '.$fetch_date.' ' : '').'fetched! Check it out: <a href="/gallery.php?show=pic&picID='.$newest_apod_id['id'].'">APOD #'.$newest_apod_id['id'].'</a>']);
+	} else {
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => 'APOD not fetched :(', 'message' => 'Check the error log for details, why the APOD could not be fetched.']);
+	}
+	$smarty->display('file:layout/elements/block_error.tpl');
+}

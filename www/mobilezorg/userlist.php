@@ -52,7 +52,7 @@ if ($_GET['user_id'] == '') {
 			ORDER BY
 				currentlogin DESC, username ASC
 			", __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($sql)) {
+	while ($rs = $db->fetch($sql)) {
 		array_push($userlist, $rs);
 	}
 	
@@ -149,7 +149,7 @@ if ($_GET['user_id'] == '') {
 			WHERE
 				id = ".$user_id."
 			", __FILE__, __LINE__);
-	$user = mysql_fetch_array($sql);
+	$user = $db->fetch($sql);
 	
 
 

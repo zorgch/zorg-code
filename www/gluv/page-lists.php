@@ -51,13 +51,13 @@ function printLists($reds, $blues, $specs, $rules)
             <td style="border-width: 0" VALIGN=top>
               <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
                 <tr>
-                  <td CLASS="redHeading" WIDTH=<?= $widthname ?>%>
+                  <td CLASS="redHeading" WIDTH=<?php echo $widthname ?>%>
                     Player Name
                   </td>
-                  <td CLASS="redHeading" WIDTH=<?= $widthscore ?>%>
+                  <td CLASS="redHeading" WIDTH=<?php echo $widthscore ?>%>
                     Score
                   </td>
-                  <td CLASS="redHeading" WIDTH=<?= $widthping ?>%>
+                  <td CLASS="redHeading" WIDTH=<?php echo $widthping ?>%>
                     Ping
                   </td>
                 </tr>
@@ -84,15 +84,15 @@ function printLists($reds, $blues, $specs, $rules)
       $row="row2";
     }
 ?>
-                <tr CLASS="<?= $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?= $row ?>';">
-                  <td CLASS="<?= $name ?>" style="text-align: left" WIDTH=<?= $widthname ?>% VALIGN=bottom>
-                    <?= funname($reds[$i]->name, $osp); ?>
+                <tr CLASS="<?php echo $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?php echo $row ?>';">
+                  <td CLASS="<?php echo $name ?>" style="text-align: left" WIDTH=<?php echo $widthname ?>% VALIGN=bottom>
+                    <?php echo funname($reds[$i]->name, $osp); ?>
                   </td>
-                  <td CLASS="<?= $name ?>" style="text-align: center" WIDTH=<?= $widthscore ?>% VALIGN=bottom>
-                    <?= funscore($reds[$i]->score); ?>
+                  <td CLASS="<?php echo $name ?>" style="text-align: center" WIDTH=<?php echo $widthscore ?>% VALIGN=bottom>
+                    <?php echo funscore($reds[$i]->score); ?>
                   </td>
-                  <td CLASS="<?= $name ?>" style="text-align: center" WIDTH=<?= $widthping ?>% VALIGN=bottom>
-                    <?= funping($reds[$i]->ping); ?>
+                  <td CLASS="<?php echo $name ?>" style="text-align: center" WIDTH=<?php echo $widthping ?>% VALIGN=bottom>
+                    <?php echo funping($reds[$i]->ping); ?>
                   </td>
                 </tr>
 <?php
@@ -114,13 +114,13 @@ function printLists($reds, $blues, $specs, $rules)
             <td style="border-width: 0" VALIGN=top>
               <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
                 <tr>
-                  <td CLASS="blueHeading" WIDTH=<?= $widthname ?>%>
+                  <td CLASS="blueHeading" WIDTH=<?php echo $widthname ?>%>
                     Player Name
                   </td>
-                  <td CLASS="blueHeading" WIDTH=<?= $widthscore ?>%>
+                  <td CLASS="blueHeading" WIDTH=<?php echo $widthscore ?>%>
                     Score
                   </td>
-                  <td CLASS="blueHeading" WIDTH=<?= $widthping ?>%>
+                  <td CLASS="blueHeading" WIDTH=<?php echo $widthping ?>%>
                     Ping
                   </td>
                 </tr>
@@ -147,15 +147,15 @@ function printLists($reds, $blues, $specs, $rules)
       $row="row2";
     }
 ?>
-                <tr CLASS="<?= $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?= $row ?>';" >
-                  <td CLASS="<?= $name ?>" style="text-align: left" WIDTH=<?= $widthname ?>% VALIGN=bottom>
-                    <?= funname($blues[$i]->name, $osp); ?>
+                <tr CLASS="<?php echo $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?php echo $row ?>';" >
+                  <td CLASS="<?php echo $name ?>" style="text-align: left" WIDTH=<?php echo $widthname ?>% VALIGN=bottom>
+                    <?php echo funname($blues[$i]->name, $osp); ?>
                   </td>
-                  <td CLASS="<?= $name ?>" style="text-align: center" WIDTH=<?= $widthscore ?>% VALIGN=bottom>
-                    <?= funscore($blues[$i]->score); ?>
+                  <td CLASS="<?php echo $name ?>" style="text-align: center" WIDTH=<?php echo $widthscore ?>% VALIGN=bottom>
+                    <?php echo funscore($blues[$i]->score); ?>
                   </td>
-                  <td CLASS="<?= $name ?>" style="text-align: center" WIDTH=<?= $widthping ?>% VALIGN=bottom>
-                    <?= funping($blues[$i]->ping); ?>
+                  <td CLASS="<?php echo $name ?>" style="text-align: center" WIDTH=<?php echo $widthping ?>% VALIGN=bottom>
+                    <?php echo funping($blues[$i]->ping); ?>
                   </td>
                 </tr>
 <?php
@@ -175,13 +175,13 @@ function printLists($reds, $blues, $specs, $rules)
             <td style="border-width: 0" VALIGN=top>
               <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
                 <tr>
-                  <td CLASS="cellHeading" WIDTH=<?= $widthname ?>%>
+                  <td CLASS="cellHeading" WIDTH=<?php echo $widthname ?>%>
                     Player Name
                   </td>
-                  <td CLASS="cellHeading" WIDTH=<?= $widthscore ?>%>
+                  <td CLASS="cellHeading" WIDTH=<?php echo $widthscore ?>%>
                     Score
                   </td>
-                  <td CLASS="cellHeading" WIDTH=<?= $widthping ?>%>
+                  <td CLASS="cellHeading" WIDTH=<?php echo $widthping ?>%>
                     Ping
                   </td>
                 </tr>
@@ -207,15 +207,15 @@ function printLists($reds, $blues, $specs, $rules)
       $row="row2";
     }
 ?>
-                <tr CLASS="<?= $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?= $row ?>';">
-                  <td CLASS="<?= $name ?>" style="text-align: left" WIDTH=<?= $widthname ?>% VALIGN=bottom>
-                    <?= funname($specs[$i]->name, $osp); ?>
+                <tr CLASS="<?php echo $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?php echo $row ?>';">
+                  <td CLASS="<?php echo $name ?>" style="text-align: left" WIDTH=<?php echo $widthname ?>% VALIGN=bottom>
+                    <?php echo funname($specs[$i]->name, $osp); ?>
                   </td>
-                  <td CLASS="<?= $name ?>" style="text-align: center" WIDTH=<?= $widthscore ?>% VALIGN=bottom>
-                    <?= funscore($specs[$i]->score); ?>
+                  <td CLASS="<?php echo $name ?>" style="text-align: center" WIDTH=<?php echo $widthscore ?>% VALIGN=bottom>
+                    <?php echo funscore($specs[$i]->score); ?>
                   </td>
-                  <td CLASS="<?= $name ?>" style="text-align: center" WIDTH=<?= $widthping ?>% VALIGN=bottom>
-                    <?= funping($specs[$i]->ping); ?>
+                  <td CLASS="<?php echo $name ?>" style="text-align: center" WIDTH=<?php echo $widthping ?>% VALIGN=bottom>
+                    <?php echo funping($specs[$i]->ping); ?>
                   </td>
                 </tr>
 <?php
@@ -232,10 +232,10 @@ function printLists($reds, $blues, $specs, $rules)
             <td style="border-width: 0" VALIGN=top>
               <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
                 <tr>
-                  <td CLASS="cellHeading" WIDTH=<?= $widthrule ?>%>
+                  <td CLASS="cellHeading" WIDTH=<?php echo $widthrule ?>%>
                     Rule
                   </td>
-                  <td CLASS="cellHeading" WIDTH=<?= $widthvalue ?>%>
+                  <td CLASS="cellHeading" WIDTH=<?php echo $widthvalue ?>%>
                     <table BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
                       <tr>
                         <td style="text-align: center" class="transparent">
@@ -296,11 +296,11 @@ function printLists($reds, $blues, $specs, $rules)
       $row="row2";
     }
 ?>
-                <tr CLASS="<?= $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?= $row ?>';">
-                  <td CLASS="<?= $cell ?>" style="text-align: left" WIDTH=$<?= widthrule ?>%>
-                    <?= $rules[$i]->rule ?>
+                <tr CLASS="<?php echo $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?php echo $row ?>';">
+                  <td CLASS="<?php echo $cell ?>" style="text-align: left" WIDTH=$<?php echo widthrule ?>%>
+                    <?php echo $rules[$i]->rule ?>
                   </td>
-                  <td CLASS="<?= $cell ?>" style="text-align: left" WIDTH=<?= $widthvalue ?>%>
+                  <td CLASS="<?php echo $cell ?>" style="text-align: left" WIDTH=<?php echo $widthvalue ?>%>
 <?php
     if($urlCheck) {printf("<a href=\"$urlCheck\">");}
     printf($rules[$i]->value);

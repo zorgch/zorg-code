@@ -10,9 +10,9 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-include_once( __DIR__ .'/includes/bugtracker.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+include_once INCLUDES_DIR.'bugtracker.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -22,8 +22,9 @@ $model = new MVC\Bugtracker();
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['bug_id'])) $bug_id = (int)$_GET['bug_id'];
-if (!empty($_GET['show'])) $show = (array)$_GET['show'];
+$bug_id = (isset($_GET['bug_id']) ? (int)$_GET['bug_id'] : null);
+$show = (isset($_GET['show']) && !empty($_GET['show']) ? (array)$_GET['show'] : []);
+$order = isset($_GET['order'])?$_GET['order']:'';
 
 /** Aktionen ausführen */
 Bugtracker::execActions();
@@ -33,8 +34,6 @@ Bugtracker::execActions();
  */
 if(empty($bug_id) || $bug_id <= 0)
 {
-	if (!empty($show)) $show = array();
-	parse_str($_SERVER['QUERY_STRING']);
 	if(count($show) == 0)
 	{
 		if($user->is_loggedin())
@@ -93,7 +92,7 @@ if(empty($bug_id) || $bug_id <= 0)
 		.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned'
 		.'</th>';
 
-	/* TODO [Bug #406] Filter by Category
+	/* @TODO [Bug #406] Filter by Category (IneX)
 	$htmlOutput .=(
 		'<br />'
 		.'<input name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned'
@@ -117,7 +116,7 @@ if(empty($bug_id) || $bug_id <= 0)
 		.'<thead>'
 		.'</table>'
 		.'</form>'
-		.Bugtracker::getBugList($show, $_GET['order'])
+		.Bugtracker::getBugList($show, $order)
 	;
 
 	if($user->typ >= USER_USER)
@@ -138,7 +137,7 @@ if(empty($bug_id) || $bug_id <= 0)
 	$bug_data = Bugtracker::getBugRS($bug_id);
 
 	$htmlOutput = null;
-	if($_GET['action'] == 'editlayout')
+	if(isset($_GET['action']) && $_GET['action'] == 'editlayout')
 	{
 		$model->showEdit($smarty, $bug_id);
 		$htmlOutput .= '<h1>Bug bearbeiten</h1>';
@@ -154,7 +153,7 @@ if(empty($bug_id) || $bug_id <= 0)
 	/** Layout */
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
-	if ($_GET['action'] !== 'editlayout') Forum::printCommentingSystem('b', $_GET['bug_id']);
+	if (!isset($_GET['action']) || $_GET['action'] !== 'editlayout') Forum::printCommentingSystem('b', $_GET['bug_id']);
 }
 
 $smarty->display('file:layout/footer.tpl');

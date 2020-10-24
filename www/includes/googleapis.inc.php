@@ -1,24 +1,25 @@
 <?php
 /**
  * Google API Integrations
- * 
+ *
  * Anbindung verschiedener Google APIs
  *
  * @author		IneX
- * @package		zorg
- * @subpackage	Vendor
+ * @package		zorg\Vendor\Google
  */
 /**
-* Grab the Google API Key
-* @include googleapis_key.inc.php Include an Array containing a valid Google API Key
-* @const GOOGLE_API_KEY A constant holding the Google API Key required for requests to Google's APIs
-*/
-if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once( (file_exists( __DIR__ .'/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') ), true);
+ * File includes
+ * @include config.inc.php
+ * @include googleapis_key.inc.php Grab the Google API Key: include an Array containing a valid Google API Key
+ * @const GOOGLE_API_KEY A constant holding the Google API Key required for requests to Google's APIs
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', include_once APIKEYS_DIR.'/google/'.(file_exists(APIKEYS_DIR.'/google/googleapis_key.inc.local.php') ? 'googleapis_key.inc.local.php' : 'googleapis_key.inc.php') );
 if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> GOOGLE_API_KEY: found', __FILE__, __LINE__));
 
 /**
  * Google Maps API Class
- * 
+ *
  * In dieser Klasse befinden sich Funktionen für die Kommunikation mit den Google Maps API
  * Folgende Maps API werden unterstützt:
  *     - /maps/api/geocode
@@ -26,11 +27,11 @@ if (DEVELOPMENT && !empty(GOOGLE_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> GO
  * @author		IneX
  * @date		12.06.2018
  */
-Class GoogleMapsApi
+class GoogleMapsApi
 {
 	/**
 	 * Google Maps Geocoding API
-	 * 
+	 *
 	 * Geocoding is the process of converting addresses (like "1600 Amphitheatre Parkway, Mountain View, CA")
 	 * into geographic coordinates (like latitude 37.423021 and longitude -122.083739), which you can 
 	 * use to place markers on a map, or position the map. (Latitude/Longitude Lookup)

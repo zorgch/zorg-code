@@ -1,14 +1,14 @@
 <?php
 /**
  * Telegram Integration
- * 
+ *
  * Mittels der Telegram Integration können Nachrichten bzw.
  * Daten (Bilder, Video, Files, Locations, etc.) mittels
  * einem Telegram-Bot entweder an einzelne Telegram-User
  * oder an Telegram-Gruppenchats übermittelt werden. Dies
  * erfolgt durch die Übergabe der jeweiligen Chat-ID oder
  * des Namens (z.B. @telegramuser).
- *
+ * 
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		messages_telegram_queue
  *
@@ -21,12 +21,13 @@
 * @const TELEGRAM_BOT Name of the Telegram Bot to use (Attention: use same name for the bot's config file!)
 * @include TELEGRAM_BOT.php Include Telegram Bot Configs
 */
-if (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot', true);
-if ( file_exists(__DIR__.'/../../'.TELEGRAM_BOT.'.php') ) require_once( __DIR__ . '/../../' . TELEGRAM_BOT.'.php' );
+if (!defined('TELEGRAM_BOT') && file_exists(APIKEYS_DIR.'/telegram_bot/zthearchitect_bot.php') ) define('TELEGRAM_BOT', 'zthearchitect_bot');
+elseif (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot');
+if ( file_exists(APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php') ) require_once APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php' ;
 
 /**
  * Telegram Messaging Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen zum Senden von Telegram-Messages über einen Telegram-Bot
  *
  * @author		IneX
@@ -63,10 +64,10 @@ class Telegram
 	 * @TODO implement this with TelegramBot\TelegramBotManager\BotManager?
 	 *
 	 * @link https://core.telegram.org/bots/api
-	 * @see $botconfigs
-	 * @see usersystem::userHasTelegram()
-	 * @see Telegram::formatText()
-	 * @see Telegram::validateData()
+	 * @var $botconfigs Array mit aktuellen Telegram-Bot Settings
+	 * @uses usersystem::userHasTelegram()
+	 * @uses Telegram::formatText()
+	 * @uses Telegram::validateData()
 	 * @param	integer|string	$userScope		Scope to whom to send the message to: User = User-ID integer, Group = 'group' string.
 	 * @param	string			$messageType	Type of Message to be sent (e.g. 'sendMessage', 'sendPhoto', 'sendLocation',...)
 	 * @param	array			$content		Array mit Content welcher an die Telegram Chats geschickt wird
@@ -135,7 +136,7 @@ class Telegram
 						$httpResponseBody = file_get_contents($telegramAPIcall, false, $httpContext);
 
 						/**
-						 * @var array $http_response_header The HTTP-request resul headers are available in $http_response_header that PHP creates in global scope
+						 * @global array $http_response_header The HTTP-request resul headers are available in $http_response_header that PHP creates in global scope
 						 */
 						if (is_array($http_response_header))
 						{
@@ -158,7 +159,7 @@ class Telegram
 				}
 			}
 		} else {
-			error_log( t('invalid-message', 'messagesystem') );
+			error_log( t('invalid-telegram-chatid', 'messagesystem') );
 			return false;
 		}
 	}
@@ -166,13 +167,15 @@ class Telegram
 
 	/**
 	 * (NOT IMPLEMENTED YET!) Format Link to Mention Telegram User inline
-	 * Gibt einen Link aus, welcher Telegram benutzt um einen spezifischen Telegram Benutzer zu @mention
-	 *	Example: <a href="tg://user?id=123456789">inline mention of a user</a>
+	 *
+	 * Gibt einen Link aus, welcher Telegram benutzt um einen spezifischen Telegram Benutzer zu @mention.
+	 * Example: <a href="tg://user?id=123456789">inline mention of a user</a>
 	 *
 	 * @author	IneX
 	 * @date	25.05.2018
-	 * @version	1.0
-	 * @since	1.0
+	 * @version	1.1
+	 * @since	1.0 `IneX` 25.05.2018 Method added
+	 * @since	1.1 `IneX` 18.04.2020 Code optimization and migration to mysqli_
 	 *
 	 * @TODO Database column "telegram_user_id" must be added first, for this to work
 	 * @TODO probably it's more common that a userNAME is passed? => needs usersystem::user2id()
@@ -188,38 +191,33 @@ class Telegram
 	{
 		global $db, $user;
 
-		try {
-			if (isset($userid) && $userid > 0 && is_numeric($userid))
+		if (isset($userid) && $userid > 0 && is_numeric($userid))
+		{
+			$sql = 'SELECT
+						telegram_user_id tui
+					FROM
+						user
+					WHERE
+						telegram_user_id IS NOT NULL
+						AND id = '.$userid.'
+					LIMIT 1';
+			$telegramUserIds = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$telegramUserId = $telegramUserIds['tui'];
+			if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> found Telegram User ID $telegramUserId");
+
+			if (!empty($telegramUserId))
 			{
-				$sql = "SELECT
-							telegram_user_id tui
-						FROM
-							user
-						WHERE
-							telegram_user_id IS NOT NULL
-							AND id = $userid
-						LIMIT 0,1";
-				$telegramUserIds = mysql_fetch_assoc($db->query($sql, __FILE__, __LINE__, __METHOD__));
-				$telegramUserId = $telegramUserIds['tui'];
-				if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> found Telegram User ID $telegramUserId");
-
-				if (!empty($telegramUserId))
-				{
-					$username = $user->id2user($telegramUserId);
-					$link = sprintf('<a href="tg://user?id=%d">%s</a>', $telegramUserId, $username);
-					if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> returns HTML-link: $link");
-					return $telegramUserIds['tui'];
-				} else {
-					return false;
-				}
-
+				$username = $user->id2user($telegramUserId);
+				$link = sprintf('<a href="tg://user?id=%d">%s</a>', $telegramUserId, $username);
+				if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> returns HTML-link: $link");
+				return $telegramUserIds['tui'];
 			} else {
-				error_log( t('invalid-userid', 'messagesystem') );
 				return false;
 			}
 
-		} catch (Exception $e) {
-			error_log($e->getMessage());
+		} else {
+			error_log( t('invalid-userid', 'messagesystem') );
+			return false;
 		}
 	}
 
@@ -231,7 +229,7 @@ class Telegram
 	 * @date	25.05.2018
 	 * @version	3.0
 	 * @since	1.0 initial function
-	 * @since	2.0 line breaks are possible using encoded "\n" - won't strip those anymore. Added missing allowed <strong> & <em>.
+	 * @since	2.0 line breaks are possible using encoded "\n" - won't strip those anymore. Added missing allowed `strong` & <em>.
 	 * @since	3.0 22.10.2018 changed strip_html() to remove_html(), changed order of cleanup, removed valid HTML-Tags due to issue with nested tags
 	 *
 	 * @link https://core.telegram.org/bots/api#html-style
@@ -474,35 +472,57 @@ class Telegram
  */
 class send extends Telegram
 {
-	/** sendMessage */
+	/**
+	 * sendMessage
+	 *
+	 * Send as regular Chat-Message
+	 */
 	public function message($scope, $text, $parameters=[]) {
 		$this->send( $scope, 'sendMessage', array_merge(['text' => $text], $parameters) );
 	}
 
-	/** sendPhoto */
+	/**
+	 * sendPhoto
+	 *
+	 * Send as Photo
+	 */
 	public function photo($scope, $photo, $caption=NULL, $parameters=[]) {
 		$this->send( $scope, 'sendPhoto', array_merge(['photo' => $photo], ['caption' => $caption], $parameters) );
 	}
 
 	/**
 	 * sendMediaGroup
+	 *
+	 * Send a compilation of multiple Media files (e.g. Photo Gallery)
 	 * @link https://core.telegram.org/bots/api/#inputmedia
 	 */
 	public function gallery($scope, array $inputMedia, $parameters=[]) {
 		$this->send( $scope, 'sendMediaGroup', array_merge($inputMedia, $parameters) );
 	}
 
-	/** sendDocument */
+	/**
+	 * sendDocument
+	 *
+	 * Send as File
+	 */
 	public function document($scope, $document, $caption=NULL, $parameters=[]) {
 		$this->send( $scope, 'sendDocument', array_merge(['document' => $document], ['caption' => $caption], $parameters) );
 	}
 
-	/** sendLocation */
+	/**
+	 * sendLocation
+	 *
+	 * Send a Location Ping for a temporary amount of time
+	 */
 	public function location($scope, float $latitude, float $longitude, $live_period=NULL, $parameters=[]) {
 		$this->send( $scope, 'sendLocation', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['live_period' => $live_period], $parameters) );
 	}
 
-	/** sendVenue */
+	/**
+	 * sendVenue
+	 *
+	 * Send a static Location info for a certain Place
+	 */
 	public function event($scope, float $latitude, float $longitude, $title, $address, $foursquare_id=NULL, $parameters=[]) {
 		$this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['title' => $title], ['address' => $address], ['foursquare_id' => $foursquare_id], $parameters) );
 	}

@@ -17,8 +17,8 @@ if(!isset($_POST['tpl_id']) || empty($_POST['tpl_id']) || !is_numeric($_POST['tp
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../../includes/config.inc.php');
-require_once( __DIR__ .'/../../../includes/mysql.inc.php');
+require_once dirname(__FILE__).'/../../../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Get records from database
@@ -28,7 +28,7 @@ try {
 	//error_log('[DEBUG] Loading Template: ' . $_POST['tpl_id']);
 	$sql = 'SELECT template_id, sender_id, subject_text, preview_text, message_text FROM verein_correspondence WHERE template_id = ' . $_POST['tpl_id'] . ' LIMIT 1';
 	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = mysql_fetch_array($result))
+	while ($rs = $db->fetch($result))
 	{
 		//error_log(sprintf("[DEBUG] Values:\n sender_id: %d, subject: %s, preview: %s, message: %s", $rs['sender_id'], $rs['subject_text'], $rs['preview_text'], $rs['message_text']));
 		$templateValues = [

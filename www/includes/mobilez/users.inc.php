@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * User Management
  * Various functions to handle user management
@@ -7,8 +7,7 @@
  * @author IneX
  * @date 16.01.2016
  * @version 1.0
- * @package Mobilezorg
- * @subpackage Usersystem
+ * @package zorg\Mobilezorg
  */
 class UserManagement
 {

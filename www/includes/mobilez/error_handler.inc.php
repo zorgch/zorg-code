@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * DEFINE GLOBALS
  */
@@ -30,7 +30,7 @@ class Error_Handler
 	 * @param integer Optional: {$line} is the line in file where the error occured
 	 * @param string Optional: {$function} is the function in which the error occured
 	 * @param string Optional: {$class} is the class to which the errorous function belongs to
-	 * @global $errors Global Array to collect {$errors}
+	 * @global array $errors Global Array to collect {$errors}
 	 * @return array
  	 */
 	static function addError($text, $file = false, $line = false, $function = false, $class = false)

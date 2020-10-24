@@ -1,34 +1,36 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
+/**
+ * Tauschbörse Actions
+ *
+ * @package zorg\Tauschbörse
+ */
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'gallery.inc.php';
 
-define("TAUSCHARTIKEL_IMGPATH", $_SERVER['DOCUMENT_ROOT']."../data/tauschboerse/");
+define('TAUSCHARTIKEL_IMGPATH', SITE_ROOT.'/../data/tauschboerse/');
 
-if($_POST['do'] == 'new') {
-  $sql =
-  	"
-  	INSERT INTO
-  	tauschboerse
-  		(art, user_id, datum, bezeichnung, wertvorstellung, zustand, lieferbedingung, kommentar)
-  	VALUES
-  		(
-	  		'".$_POST['art']."'
-  			, ".$user->id."
-	  		, now()
-	  		, '".$_POST['bezeichnung']."'
-	  		, '".$_POST['wertvorstellung']."'
-  			, '".$_POST['zustand']."'
-  			, '".$_POST['lieferbedingung']."'
-  			, '".$_POST['kommentar']."'
-  		)
-  	"
-  ;
-  $db->query($sql, __FILE__, __LINE__);
-
-
-
+if($_POST['do'] == 'new')
+{
+	$sql ="INSERT INTO
+			tauschboerse
+				(art, user_id, datum, bezeichnung, wertvorstellung, zustand, lieferbedingung, kommentar)
+			VALUES
+				(
+		  		'".$_POST['art']."'
+					, ".$user->id."
+		  		, now()
+		  		, '".$_POST['bezeichnung']."'
+		  		, '".$_POST['wertvorstellung']."'
+					, '".$_POST['zustand']."'
+					, '".$_POST['lieferbedingung']."'
+					, '".$_POST['kommentar']."'
+				)
+			";
+	$artikelId = $db->query($sql, __FILE__, __LINE__);
 
 	if ($_FILES['image']['name']) { // Falls ein Bild gewählt wurde.
 
@@ -42,19 +44,19 @@ if($_POST['do'] == 'new') {
 		   exit;
 		}
 
-		$tmpfile = TAUSCHARTIKEL_IMGPATH.mysql_insert_id().".jpg";
+		$tmpfile = TAUSCHARTIKEL_IMGPATH.$artikelId.".jpg";
 		if (!move_uploaded_file($_FILES['image']['tmp_name'], $tmpfile)) {
 		  echo "Bild konnte nicht bearbeitet werden.".__FILE__.__LINE__;
 		  exit;
 		}
 
-		$e = createPic($tmpfile, TAUSCHARTIKEL_IMGPATH.mysql_insert_id()."_tn.jpg", 100, 100, array(0,0,0));
+		$e = createPic($tmpfile, TAUSCHARTIKEL_IMGPATH.$artikelId."_tn.jpg", 100, 100, array(0,0,0));
 		if ($e['error']) {
 		  echo $e['error'].__FILE__.__LINE__;
 		  exit;
 		}
 
-		$e = createPic($tmpfile, TAUSCHARTIKEL_IMGPATH.mysql_insert_id().".jpg", 500, 500);
+		$e = createPic($tmpfile, TAUSCHARTIKEL_IMGPATH.$artikelId.".jpg", 500, 500);
 		if ($e['error']) {
 		  echo $e['error'].__FILE__.__LINE__;
 		  exit;
@@ -84,4 +86,3 @@ if($_GET['do'] == 'old') {
   header('Location: /?tpl=190');
   exit;
 }
-?>

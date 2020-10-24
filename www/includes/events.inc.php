@@ -1,41 +1,42 @@
 <?php
 /**
  * Events Funktionen
- * 
- * Beinhaltet die Events-Klasse und deren Methoden, welche für die Events benötigt werden
  *
+ * Beinhaltet die Events-Klasse und deren Methoden, welche für die Events benötigt werden
+ * 
  * Diese Klassen benutzen folgende Tabellen aus der DB:
  * - events
  * - events_to_user
  *
- * @version		1.0
- * @package		zorg
- * @subpackage	Events
+ * @version 1.0
+ * @package zorg\Events
  */
 /**
  * File includes
+ * @include config.inc.php
  * @include DEPRECATED smarty.inc.php Includes the Smarty Class and Methods
  * @include usersystem.inc.php Includes the Usersystem Class and Methods
  * @include util.inc.php Includes the Helper Utilities Class and Methods
  * @include googleapis.inc.php Include the Google API Class and Methods
  */
-//require_once( __DIR__ .'/smarty.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
-require_once( __DIR__ .'/util.inc.php');
-include_once( __DIR__ .'/googleapis.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+//require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+include_once INCLUDES_DIR.'googleapis.inc.php';
 
 /**
  * Events Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen für die Events
  *
- * @author		[z]milamber, IneX
- * @version		1.0
- * @package		zorg
- * @subpackage	Events
+ * @author [z]milamber
+ * @author IneX
+ * @version 1.0
+ * @package	zorg\Events
  */
-class Events {
-	
+class Events
+{	
 	static function getEvent($event_id) {
 		global $db;
 		
@@ -106,41 +107,52 @@ class Events {
 		
 		return $events;
 	}
-	
-	static function getNext() {
+
+	/**
+	 * Bevorstehende Events suchen
+	 * Findet alle Events der nächsten 7 Tagen und gibt diese als PHP-Array zurück
+	 *
+	 * @version 1.1
+	 * @since 1.0 Method added
+	 * @since 1.1 `17.04.2020` `IneX` SQL Slow-Query optimization
+	 *
+	 * @see /includes/smarty.fnc.php
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return array List holding all upcoming events
+	 */
+	static function getNext()
+	{
 		global $db, $user;
-		
+
 		$events = array();
-		
-		$sql = 
-			"
-			SELECT 
-			  e.*
-			  , COUNT(cu.comment_id) AS numunread
-			FROM `events` e
-			LEFT JOIN comments c ON (c.board = 'e' AND c.thread_id = e.id)
-			LEFT JOIN comments_unread cu ON (cu.user_id = '".$user->id."' AND cu.comment_id = c.id)
-			WHERE 
-					UNIX_TIMESTAMP(e.enddate) > ".time()."
-				AND
-					UNIX_TIMESTAMP(e.startdate) < (".time()."+60*60*24*7)
-			GROUP by e.id
-			ORDER BY startdate ASC
-			"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
+		$user_id = isset($user->id) ? $user->id : 0;
+		$sql = 'SELECT 
+				  e.id,
+				  e.name,
+				  e.startdate,
+				  e.enddate,
+				  COUNT(cu.comment_id) AS numunread
+				FROM events e
+					LEFT JOIN comments c ON (c.board = "e" AND c.thread_id = e.id)
+					LEFT JOIN comments_unread cu ON (cu.user_id = '.$user_id.' AND cu.comment_id = c.id)
+				WHERE 
+					e.enddate > NOW() AND e.startdate BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)
+				GROUP by e.id
+				ORDER BY e.startdate ASC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+
 		while($rs = $db->fetch($result)) {
 			$events[] = $rs;
 		}
 		
 		return $events;
 	}
-	
+
 	static function getNumNewEvents() {
 		global $db, $user;
 		
-		if($user->lastlogin > 0) {
+		if(isset($user->lastlogin) && $user->lastlogin > 0) {
 			$sql =	
 				"
 				SELECT
@@ -307,8 +319,8 @@ class UpcomingEvent
 	/**
 	 * Telegram Notification for an upcoming Event
 	 *
-	 * @see Telegram::send::event()
-	 * @see UpcomingEvent::getUpcomingEvent()
+	 * @uses Telegram::send::event()
+	 * @uses UpcomingEvent::getUpcomingEvent()
 	 * @param integer $starts_in_hours Integer value representing N hours to check for when any event might start. Default: 4 (hours)
 	 * @global object $telegram Globales Class-Object mit den Telegram-Methoden
 	 * @return boolean Returns true or false, depending on successful result

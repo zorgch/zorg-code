@@ -1,20 +1,33 @@
 <?php
 /**
- * FILE INCLUDES
+ * Mobilezorg Chat
+ *
+ * Before using it, make sure the Setup has been done:
+ * /scripts/mobilezorg_v2_setup.php
+ *
+ * @author IneX
+ * @date 16.01.2016
+ * @version 1.0
+ * @package zorg\Chat\Mobilezorg
  */
-if (!require_once PHP_INCLUDES_DIR.'/usersystem.inc.php') die('ERROR: Usersystem could NOT be loaded!');
-if (!require_once PHP_INCLUDES_DIR.'/googleapis.inc.php') die('ERROR: Google API could NOT be loaded!');
+
+/**
+ * File includes
+ * @include usersystem.inc.php
+ * @include googleapis.inc.php
+ */
+if (!require_once INCLUDES_DIR.'usersystem.inc.php') die('ERROR: Usersystem could NOT be loaded!');
+if (!require_once INCLUDES_DIR.'googleapis.inc.php') die('ERROR: Google API could NOT be loaded!');
 
 /**
  * Mobilezorg Chat
  * Before using it, make sure the Setup has been done:
  * /scripts/mobilezorg_v2_setup.php
- * 
+ *
  * @author IneX
  * @date 16.01.2016
  * @version 1.0
- * @package Mobilezorg
- * @subpackage Chat
+ * @package zorg\Chat\Mobilezorg
  */
 class mobilezChat
 {
@@ -28,8 +41,8 @@ class mobilezChat
 	 * 
 	 * @param string {$order} is the column to sort the results
 	 * @param integer {$limit} defines the maximum number of results
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
-	 * @global $smarty Smarty Class-object, the template engine
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $smarty Smarty Class-object, the template engine
  	 */
 	function getChatMessages($order = 'date', $limit = 25)
 	{
@@ -65,7 +78,7 @@ class mobilezChat
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$message} is the message the user posted
 	 * @param integer {$from_mobile} defines if the user posted from a mobile device
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
  	 */
 	function postChatMessage($user_id, $message, $from_mobile = 0)
 	{
@@ -108,7 +121,7 @@ class mobilezChat
 	 * @param integer {$start_id} from what record to start from
 	 * @param integer {$limit} defines the maximum number of results
 	 * @param string {$order} is the column to sort the results
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
  	 */
 	function getAdditionalChatMessages($start_date, $limit = 25, $order = 'date')
 	{
@@ -151,7 +164,7 @@ class mobilezChat
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 27.08.2019 Added Telegram Notification
+	 * @since 2.0 `27.08.2019` `IneX` Added Telegram Notification
 	 * 
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$image_path} contains the path to the uploaded image
@@ -160,7 +173,7 @@ class mobilezChat
 	 * @param string {$image_name} contains the name of the uploaded image, if available
 	 * @param string {$image_extension} contains the file exteions of the uploaded image, if available
 	 * @param integer {$from_mobile} defines if the user posted from a mobile device
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
 	 */
 	function saveImage($user_id, $image_path, $image_size, $image_type, $image_name = '', $image_extension = '', $from_mobile = 0)
 	{
@@ -168,7 +181,7 @@ class mobilezChat
 		
 		if (empty($image_extension)) $image_extension = IMAGE_FORMAT;
 		$target_dir = usersystem::get_and_create_user_files_dir($user_id);
-		$target_dir = USER_FILES_DIR.$user_id.'/';
+		$target_dir = FILES_DIR.$user_id.'/';
 		$filename  = (!empty($image_name) ? str_replace('.','',str_replace(',','_',str_replace(' ','_',$image_name))) : 'file');
 		$filename .= '_'.time().IMG_FULL_SUFFIX.'.'.$image_extension;
 		$full_file_savepath = $target_dir.$filename;
@@ -205,8 +218,8 @@ class mobilezChat
 							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> After mobilezChat::postChatMessage()', __METHOD__, __LINE__));
 
 							/** Telegram Messenger Notification */
-							if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot', true);
-							require_once PHP_INCLUDES_DIR.'/telegrambot.inc.php';
+							if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
+							require_once INCLUDES_DIR.'telegrambot.inc.php';
 							if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Included telegrambot.inc.php', __METHOD__, __LINE__));
 							$telegramPhotoCaption = sprintf('[z]Chat Bildupload von <b>%s</b>', $user->id2user($user_id, true));
 							$telegramMessageKeyboard = [ 'inline_keyboard' => [[
@@ -244,7 +257,7 @@ class mobilezChat
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
-	 * @since 2.0 <inex> 27.08.2019 included and added GOOGLE_API_KEY, maps.googleapis.com url and parameter adjustments
+	 * @since 2.0 `27.08.2019` `IneX` included and added GOOGLE_API_KEY, maps.googleapis.com url and parameter adjustments
 	 *
 	 * @see googleapis.inc.php, GOOGLE_API_KEY
 	 * @param integer {$user_id} ID of the user who posted the message
@@ -286,14 +299,14 @@ class mobilezChat
 		 * 
 		 * @param integer {$user_id} ID of the user who posted the message
 		 * @param string {$image_url} contains the full URL to the Google Maps staticimage
-		 * @global $pdo_db PDO-Database Object, active SQL-Connection
+		 * @global object $pdo_db PDO-Database Object, active SQL-Connection
 		 */
 		private function saveGoogleMapsImage($user_id, $image_url)
 		{
 			global $pdo_db;
 			
 			$target_dir = usersystem::get_and_create_user_files_dir($user_id);
-			$target_dir = USER_FILES_DIR.$user_id.'/';
+			$target_dir = FILES_DIR.$user_id.'/';
 			$filename = 'staticmap_'.time().'.'.IMAGE_FORMAT;
 			$full_file_savepath = $target_dir.$filename;
 			
@@ -364,11 +377,11 @@ class mobilezChat
 		 * 
 		 * @param integer {$from_user_id} ID of the user who ficks an
 		 * @param integer {$to_user_id} ID of the user who gets angefickt
-		 * @global $pdo_db PDO-Database Object, active SQL-Connection
+		 * @global object $pdo_db PDO-Database Object, active SQL-Connection
 		 */
 		private function postAnfickMessage($from_user_id, $to_user)
 		{
-			global $pdo_db, $user;
+			global $pdo_db, $user, $telegram;
 			
 			try {
 				$adj_query = $pdo_db->query('SELECT wort, typ FROM aficks WHERE typ = 1 ORDER BY RAND() LIMIT 1');
@@ -382,10 +395,17 @@ class mobilezChat
 				} else {
 					// If query returned a positive result set
 					//$anfickender = $user->id2user($from_user_id, false);
-					$anfickender = BARBARA; // [z]Barbara Harris *har har*
+					$anfickender = BARBARA_HARRIS; // [z]Barbara Harris *har har*
 					$angefickter = $to_user;//$user->id2user($to_user_id, false);
-					$anfick =  '@'.$angefickter.' du '.$adjektiv.$nomen;//.' (sait zumindest dä '.$anfickender.')';
+					$anfick =  (substr($angefickter, 0, 1) !== '@' ? '@' : '').$angefickter.' du '.$adjektiv.$nomen;//.' (sait zumindest dä '.$anfickender.')';
 					mobilezChat::postChatMessage($anfickender, $anfick);
+
+					/** Telegram Messenger Notification */
+					if (DEVELOPMENT === true) define('TELEGRAM_BOT', 'zthearchitect_bot');
+					require_once INCLUDES_DIR.'telegrambot.inc.php';
+					$telegramMessage = sprintf('<i>%s</i>', $anfick); /** @TODO inline Mention @Telegram-User: `<a href="tg://user?id=[TG-USER-ID]">@username</a>` */
+					$telegramMessageKeyboard = json_encode([ 'inline_keyboard' => [[['text'=>'Reply in [z]Chat','url'=>SITE_URL.'/mobilezorg-v2/'], ['text'=>'Spresim batteln','url'=>SITE_URL.'/page/anficker']]] ]);
+					$telegram->send->message('group', $telegramMessage, ['reply_markup' => $telegramMessageKeyboard]);
 				}
 			} catch(PDOException $err) {
 				Error_Handler::addError('Error: '.$err->getMessage(), __FILE__, __LINE__, __FUNCTION__, __CLASS__);
@@ -403,7 +423,7 @@ class mobilezChat
 	 * @since 1.0
 	 * 
 	 * @param string {$message} is the Chat Message text
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
  	 */
 	private function parseChatMessage($message)
 	{
@@ -466,7 +486,7 @@ class mobilezChat
 	 * 
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$image_url} contains the full URL to the image
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
 	 * @return string
 	 */
 	private function saveImageThumbnail($user_id, $image_url, $image_name = '')
@@ -556,7 +576,7 @@ class mobilezChat
 	 * @param string {$title} is the title of the Bug Report
 	 * @param string {$description} is the description of the Bug Report
 	 * @param integer {$from_mobile} defines if the user posted from a mobile device
-	 * @global $pdo_db PDO-Database Object, active SQL-Connection
+	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
  	 */
 	function saveBug($user_id, $title, $description, $from_mobile = 0)
 	{
@@ -582,7 +602,7 @@ class mobilezChat
 				if (is_numeric($lastInsertId))
 				{
 					$chatMessage = sprintf('%1$s hat einen Bug gemeldet: <a href="/bugtracker.php?bug_id=%2$u" target="_blank">%3$s</a>', usersystem::id2user($user_id, false), $lastInsertId, $title);
-					mobilezChat::postChatMessage(BARBARA, $chatMessage);
+					mobilezChat::postChatMessage(BARBARA_HARRIS, $chatMessage);
 				}
 			}
 		} catch(PDOException $err) {
@@ -601,7 +621,7 @@ class mobilezChat
 	 * @since 1.0
 	 * 
 	 * @param string {$email} E-Mail address of the user to reset the Password
-	 * @global $pdo_db Usersystem Object, contains all User methods
+	 * @global object $pdo_db Usersystem Object, contains all User methods
  	 */
 	function execPwReset($email)
 	{
@@ -626,24 +646,21 @@ class mobilezChat
 	private function tagExtract($str, $outputType = null) 
 	{ 
 	  	/**
-		 * @var hashtagsArray[] 
 		 * An array of string objects for storing hashtags inside it. 
+		 * @var array $hashtagsArray
 		 */
 		$hashtagsArray = array(); 
 		
 		/**
-		 *
-		 * @var strArray[] 
-		 * An array of string objects that will save the words of the string argument.  
-		 *
+		 * An array of string objects that will save the words of the string argument.
+		 * @var array $strArray
 		 */
 		$strArray = explode(" ",$str);
 		
 		/**
-		 *
-		 * @var string $pattern
-		 * regular expression pattern for notes  
+		 * Regular expression pattern for notes.
 		 * don't scare! it works! even with unicode characters!
+		 * @var string $pattern
 		 */
 		$pattern = '%(\A#(\w|(\p{L}\p{M}?)|-)+\b)|((?<=\s)#(\w|(\p{L}\p{M}?)|-)+\b)|((?<=\[)#.+?(?=\]))%u'; 
 		
@@ -654,10 +671,8 @@ class mobilezChat
 		 	preg_match_all($pattern, ($b), $matches);
 		 	
 		 	/**
-			 *
-			 * @var hashtag[] 
 			 * An array of string objects that will save the hashtags.
-			 *
+			 * @var array hashtag
 			 */
 			$hashtag	= implode(', ', $matches[0]);	  
 			
@@ -671,10 +686,9 @@ class mobilezChat
 		foreach ($hashtagsArray as $c)
 		{
 			/**
-			  *
-			  * @var string $hashtagTitle
-			  * container for the exported hashtags without # sign (to insert to db or etc) 
-			  */
+			 * container for the exported hashtags without # sign (to insert to db or etc) 
+			 * @var string $hashtagTitle
+			 */
 			$hashtagTitle = ltrim($c,"#");
 			
 			//create links for hashtags
@@ -692,5 +706,5 @@ class mobilezChat
 	}
 }
 
-// Instantiate new mobilezChat Class-object
+/** Instantiate new mobilezChat Class-object */
 $mobilezChat = new mobilezChat();

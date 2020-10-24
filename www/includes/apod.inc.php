@@ -1,13 +1,12 @@
 <?php
 /**
  * APOD
- * 
+ *
  * Holt und speichert die Astronomy Pictures of the Day (APOD)
  *
  * @author [z]biko
  * @date 01.01.2004
- * @package zorg
- * @subpackage APOD
+ * @package zorg\APOD
  */
 /**
  * File includes
@@ -17,19 +16,19 @@
  * @include	gallery.inc.php Gallery and Pic functions
  * @include util.inc.php 	Various Helper Functions
  */
-require_once( __DIR__ .'/config.inc.php');
-require_once( __DIR__ .'/mysql.inc.php');
-require_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/gallery.inc.php');
-require_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'gallery.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Astronomy Picture of the Day (APOD)
- * 
+ *
  * Holt und speichert das neus Astronomy Pic of the Day (APOD).
  * APOD Bild wird via Funktion createPic() nach /data/gallery/41/ kopiert!
  * (kann also aus dem APOD Temp img-Ordner gelöscht werden danach)
- *
+ * 
  * API Description: concept_tags are now disabled in this service. Also, an optional return parameter copyright is returned if the image is not public domain.
  * 	QUERY PARAMETERS:
  * 	Parameter	| Type			| Default	| Description
@@ -40,13 +39,20 @@ require_once( __DIR__ .'/util.inc.php');
  * @author [z]biko
  * @author IneX
  * @version 4.0
- * @since 1.0 01.01.2004 function added
- * @since 2.0 06.08.2018 function refactored to use NASA APOD API
- * @since 3.0 09.08.2018 enhanced function so an APOD date can be passed
- * @since 4.0 14.09.2018 added processing of videos & website links passed from the APOD API
+ * @since 1.0 `01.01.2004` function added
+ * @since 2.0 `06.08.2018` function refactored to use NASA APOD API
+ * @since 3.0 `09.08.2018` enhanced function so an APOD date can be passed
+ * @since 4.0 `14.09.2018` added processing of videos & website links passed from the APOD API
  *
- * @see APOD_API, APOD_TEMP_IMGPATH, APOD_GALLERY_ID, $MAX_PIC_SIZE
- * @see cURLfetchJSON(), createPic(), getYoutubeVideoThumbnail(), getVimeoVideoThumbnail(), Comment::post()
+ * @uses APOD_API
+ * @uses APOD_TEMP_IMGPATH
+ * @uses APOD_GALLERY_ID
+ * @var $MAX_PIC_SIZE
+ * @uses cURLfetchJSON()
+ * @uses createPic()
+ * @uses getYoutubeVideoThumbnail()
+ * @uses getVimeoVideoThumbnail()
+ * @uses Comment::post()
  * @param string $apod_date (Optional) A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)
  * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
  * @global	array	$MAX_PIC_SIZE	Globales Array im Scope von gallery.inc.php mit den Image-Width & -Height Grössen für Pics und Thumbnails
@@ -303,17 +309,13 @@ function get_apod($apod_date_input=NULL)
  * Aktuelleste APOD Bild-ID
  * Holt das aktuellste APOD Bild aus der Datenbank
  *
- * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return array DB-Query Result als Resource (Array)
  */
 function get_apod_id()
 {
 	global $db;
 
-	try {
-		$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
-		return $db->fetch($db->query($sql));
-	} catch (Exception $e) {
-		error_log($e->getMessage());
-		return false;
-	}
+	$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
+	return $db->fetch($db->query($sql));
 }

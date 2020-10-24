@@ -240,7 +240,7 @@ Class mAddle
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
-		while ($rs = mysql_fetch_array($result))
+		while ($rs = $db->fetch($result))
 		{
 			$addleGames[] = $rs;
 		}
@@ -279,7 +279,7 @@ Class mAddle
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
-		return $addleMyStats = $rs = mysql_fetch_array($result);
+		return $addleMyStats = $rs = $db->fetch($result);
 	}
 	
 	
@@ -315,7 +315,7 @@ Class mAddle
 		;
 		$result = $db->query($sql, __FILE__, __LINE__);
 		
-		while ($rs = mysql_fetch_array($result))
+		while ($rs = $db->fetch($result))
 		{
 			$addleTop10[] = $rs;
 		}

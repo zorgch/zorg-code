@@ -5,20 +5,20 @@ $errlog_settings = array(
 		'fatal' => true,
 		'error' => true,
 		'warning' => true,
-		'unknown' => false),  // schaltet das wenn möglich nicht ein - z.b. auf der startseite gibt das alle 6500 (!) errors aus
+		'unknown' => false),  // schaltet das wenn mï¿½glich nicht ein - z.b. auf der startseite gibt das alle 6500 (!) errors aus
 	'errlog' => array(
 		'fatal' => true,
 		'error' => true,
 		'warning' => true,
-		'unknown' => false)  // schaltet das wenn möglich nicht ein - z.b. auf der startseite speichert das alle 6500 (!) errors im file (das gibt ca. 1MB)
+		'unknown' => false)  // schaltet das wenn mï¿½glich nicht ein - z.b. auf der startseite speichert das alle 6500 (!) errors im file (das gibt ca. 1MB)
 );
 
 define("FATAL", E_USER_ERROR);
 define("ERROR", E_USER_WARNING);
 define("WARNING", E_USER_NOTICE);
 
-error_reporting(FATAL | ERROR | WARNING);
-set_error_handler('zorgErrorHandler');
+//error_reporting(FATAL | ERROR | WARNING);
+//set_error_handler('zorgErrorHandler');
 
 function zorgErrorHandler ($errno, $errstr, $errfile, $errline)
 {

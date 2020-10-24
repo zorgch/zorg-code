@@ -1,16 +1,17 @@
 <?php
 /**
  * GO Board
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
  * @package zorg\Games\Go
- * 
+ *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
@@ -20,8 +21,8 @@
  * File Includes
  * @include go_game.inc.php
  */
-require_once( __DIR__ . '/../includes/config.inc.php');
-require_once( __DIR__ . '/../includes/go_game.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'go_game.inc.php';
 
 $gameid = $_GET['game'];
 if (!is_numeric($gameid)) user_error(t('error-game-invalid', 'global', $gameid));

@@ -25,15 +25,15 @@
  * @include config.inc.php Include required global site configurations
  * @include mysql.inc.php MySQL-DB Connection and Functions
  */
-require_once( __DIR__ .'/includes/config.inc.php');
-require_once( __DIR__ .'/includes/mysql.inc.php');
+require_once dirname(__FILE__).'/includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /** Look for & validate user-id and file-name in URL-Params */
 if ($_GET['user'] && $_GET['file'])
 {
 	if (is_numeric($_GET['user']))
 	{
-		$e = $db->query('SELECT * FROM files WHERE user=' . $_GET['user'] . ' AND name="' . addslashes($_GET['file']) .'"', __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM files WHERE user=' . $_GET['user'] . ' AND name="' . addslashes($_GET['file']) .'"', __FILE__, __LINE__, 'SELECT files by user');
 		$d = $db->fetch($e);
 	}
 
@@ -41,7 +41,7 @@ if ($_GET['user'] && $_GET['file'])
 } else {
 	if (is_numeric($_GET['id']))
 	{
-		$e = $db->query('SELECT * FROM files WHERE id=' . $_GET['id'], __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM files WHERE id=' . $_GET['id'], __FILE__, __LINE__, 'SELECT files by id');
 		$d = $db->fetch($e);
 	}
 }

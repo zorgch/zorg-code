@@ -1,5 +1,9 @@
 <?php
 /**
+ * Comments Template-Resources Handling
+ * @package zorg\Forum
+ */
+/**
  * File includes
  * @include smarty.inc.php required
  * @include forum.inc.php required
@@ -7,11 +11,10 @@
  * @include sunrise.inc.php required
  * @include colors.inc.php required
  */
-require_once( __DIR__ .'/smarty.inc.php');
-require_once( __DIR__ .'/forum.inc.php');
-require_once( __DIR__ .'/usersystem.inc.php');
-require_once( __DIR__ .'/sunrise.inc.php');
-require_once( __DIR__ .'/colors.inc.php');
+require_once dirname(__FILE__).'/smarty.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'sunrise.inc.php';
 
 /**
  * tpl resource - get timestamp
@@ -83,10 +86,12 @@ function smartyresource_comments_get_thread ($id, $board) {
  * boards können mit dem einzelnen character (aus table) angegeben werden.
  *
  * @author [z]biko
- * @version 2.0
+ * @version 2.1
  * @since 1.0 function added
- * @since 2.0 26.10.2018 various optimizations, structured html (schema.org)
- * @global object $db Datenbankabfrage um unser Template zu laden, und '$tpl_source' zuzuweisen
+ * @since 2.0 `26.10.2018` `IneX` various optimizations, structured html (schema.org)
+ * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
+ *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden um unser Template zu laden, und '$tpl_source' zuzuweisen
  */
 function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty) {
 	global $db;
@@ -95,7 +100,8 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
 
 	$name = explode('-', $tpl_name);
 	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> smartyresource_comments_get_template($name): %s', __METHOD__, __LINE__, $tpl_name));
-	if (sizeof($name) == 1) {
+	if (is_array($name) && sizeof($name) == 1)
+	{
 		/** forum - commenttree holen */
 		$tpl_source = smartyresource_comments_get_commenttree($name[0]);
 		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> smartyresource_comments_get_commenttree(): %s', __METHOD__, __LINE__, $name[0]));
@@ -115,8 +121,8 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
  * @author [z]biko
  * @author IneX
  * @version 2.0
- * @since 1.0 <biko> function added
- * @since 2.0 <inex> 14.01.2019 added schema.org tags
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `14.01.2019` `IneX` added schema.org tags
  *
  * @param integer $id Comment-ID
  * @param integer $thread_id
@@ -172,15 +178,17 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  *
  * @author [z]biko
  * @author IneX
- * @version 3.1
- * @since 1.0 <biko> function added
- * @since 2.0 <inex> 26.10.2018 function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
- * @since 3.0 <inex> 30.10.2018 added check of $user->is_loggedin() to Query for Member-specific joins
- * @since 3.1 <inex> 14.01.2019 fixed schema.org tags
+ * @version 3.2
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
+ * @since 3.0 `30.10.2018` `IneX` added check of $user->is_loggedin() to Query for Member-specific joins
+ * @since 3.1 `14.01.2019` `IneX` fixed schema.org tags
+ * @since 3.2 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
  * @TODO ganzes HTML in ein Smarty TPL auslagern
+ * @TODO "$layouttype" is DEPRECATED!
  *
- * @see $layouttype
+ * @var $layouttype
  * @see smartyresource_comments_get_navigation(), smartyresource_comments_get_childposts()
  * @see Comment::getLinkThread(), Comment::formatPost(), Comment::getNumChildposts()
  * @param integer $id Comment-ID
@@ -188,7 +196,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @global string $layouttype Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
+ * @global string $layouttype [DEPRECATED] Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
  * @return string
  */
 function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
@@ -218,7 +226,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 			$html .= 
 				'{foreach from=$hdepth item=it key=k}'.
-					'{if $k == (sizeof($hdepth) - 1)}';
+					'{if is_array($hdepth) && $k == (sizeof($hdepth) - 1)}';
 						if($rs['numchildposts'] > 0) {
 					  		$html .=
 					  			'<td class="threading {$it}">'
@@ -330,18 +338,24 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * tpl resource - comments get child-posts
  *
  * @author [z]biko
- * @version 2.0
+ * @version 2.1
  * @since 1.0 function added
- * @since 2.0 26.10.2018 function code cleanup & optimized
+ * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized
+ * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
- * @see $layouttype, $color
- * @see Comment::getNumChildposts(), smarty_comment_colorfade()
+ * @TODO "$layouttype" is DEPRECATED!
+ *
+ * @var $layouttype
+ * @var $color
+ * @uses Comment::getNumChildposts()
+ * @uses smarty_comment_colorfade()
  * @param integer $parent_id
  * @param string $board
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @global string $layouttype Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
+ * @global string $layouttype [DEPRECATED] Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
+ * @return string
  */
 function smartyresource_comments_get_childposts ($parent_id, $board) {
 	global $db, $user, $smarty, $layouttype;

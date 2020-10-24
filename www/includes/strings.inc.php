@@ -2,7 +2,7 @@
 /**
  * @include config.inc.php Include required global site configurations
  */
-require_once( __DIR__ . '/config.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
 
 /**
  * @const NO_STRING_FOUND String for empty / not found references to be replaced
@@ -13,7 +13,7 @@ if (!defined('NO_STRING_FOUND')) define('NO_STRING_FOUND', 'Reference not found 
  * Import an Array with strings and make it globally available
  * @include strings.array.php 	Strings die im Zorg Code benutzt werden
  */
-$GLOBALS['strings'] = include_once( __DIR__ .'/strings.array.php');
+$GLOBALS['strings'] = include_once INCLUDES_DIR.'strings.array.php';
 
 /**
  * Get text string
@@ -35,10 +35,10 @@ $GLOBALS['strings'] = include_once( __DIR__ .'/strings.array.php');
  * @package zorg
  * @subpackage Strings
  *
- * @param $reference The placeholder reference to be replaced with a string
- * @param $context The context from where to pull and replace the given reference
- * @param $values Optional: any values which shall be replaced within the string
- * @param $tploutput Optional: reference to template instead of a simple string, e.g. 'db:123', 'file:template.tpl'
+ * @param $reference string The placeholder reference to be replaced with a string
+ * @param $context string The context from where to pull and replace the given reference
+ * @param $values array Optional: any values which shall be replaced within the string
+ * @param $tploutput string Optional: reference to template instead of a simple string, e.g. 'db:123', 'file:template.tpl'
  * @return string|null The string which replaced the passed and matched placeholder
  */
 function t($reference, $context='global', $values=NULL, $tploutput=NULL)
@@ -48,19 +48,19 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	/**
 	 * Validate the passed $values
 	 */
+	$values_count = 0;
 	if (isset($values) && is_array($values)) //&& count($values) > 0)
 	{
 		/** Check if any of the $values is empty */
 		foreach ($values as $key=>$value) {
 			if (empty($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s for string "%s" was passed but is empty!', $key+1, $reference));
 		}
+		$values_count = count($values);
 	} elseif (isset($values) && $values == '') {
 		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
 	}
 	
-	/** Count the number of $values passed */
-	$values_count = count($values);
-	
+
 	/**
 	 * Resolve the placeholder reference
 	 */
@@ -75,7 +75,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 			 * Replace & return - or return only - a matched string
 			 * vsprintf = sprintf with an array for params
 			 */
-			$string = ( !empty($values) && count($values) > 0 ? vsprintf($found_string, $values) : $found_string );
+			$string = ( !empty($values) && $values_count > 0 ? vsprintf($found_string, $values) : $found_string );
 		} catch (Exception $e) {
 			error_log($e->getMessage());
 		}
@@ -110,7 +110,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
  *
  * @param $reference The placeholder reference to be replaced with a string
  * @param $context The context from where to pull and replace the given reference
- * @global $strings Array with all the strings
+ * @var $strings Array with all the strings
  */
 function findReferenceInArray($context, $reference)
 {

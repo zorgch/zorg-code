@@ -1,17 +1,27 @@
 <?php
 /**
+ * Profile pages
+ *
+ * @package zorg\Usersystem
+ *
+ */
+
+/**
  * File includes
  * @include main.inc.php required
  * @include core.model.php required
  */
-require_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['regcode'])) $userRegcode = sanitize_userinput($_GET['regcode']);
+$doAction    = null;
+$user_id     = null;
+$userRegcode = null;
 if (!empty($_GET['do']) && !is_numeric($_GET['do'])) $doAction = sanitize_userinput($_GET['do']);
+if (!empty($_GET['regcode'])) $userRegcode = sanitize_userinput($_GET['regcode']);
 if (!empty($_GET['user_id']) && is_numeric($_GET['user_id'])) $user_id = sanitize_userinput($_GET['user_id']);
 
 //=============================================================================
@@ -29,7 +39,7 @@ Messagesystem::execActions();
 /**
  * Userlist anzeigen
  */
-if ( (!$doAction && !$user_id && !$userRegcode) )
+if ( !$doAction && !$user_id && !$userRegcode )
 {
 	$smarty->display('file:layout/head.tpl');
 	$smarty->display('tpl:219');
@@ -72,7 +82,7 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 		$model->showProfileupdate($smarty);
 
 		/** Update Userprofile infos & settings */
-		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
 		{
 			/** Validate $_POST-request */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
@@ -82,12 +92,12 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 			}
 		}
 		/** Upload and change new Userpic */
-		if($user->id && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
 		{
 			$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
 		}
 		/** Change User Password */
-		if($user->id && $_POST['do'] === 'change_password')
+		if($user->id && isset($_POST['do']) && $_POST['do'] === 'change_password')
 		{
 			$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
 		}
@@ -160,7 +170,7 @@ if (!empty($user_id))
 	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'" style="width: 100%;max-width: 100%;">';
 
 	/** User Addle */
-	if ($user->id > 0 && $user_id != $user->id && $rs['addle'])
+	if (isset($user->id) && $user->id > 0 && $user_id != $user->id && $rs['addle'])
 	{
 		$sidebarHtml .= '<h3>Addle</h3>
 		<form action="/addle.php?show=overview&do=new" method="post">
@@ -185,7 +195,11 @@ if (!empty($user_id))
 				}
 			/** User will Inbox sehen */
 			} else {
-				$htmlOutput .= Messagesystem::getInboxHTML($_GET['box'], $pagesize=11, $_GET['page'], $_GET['sort'], $_GET['order']);
+				$box   = isset( $_GET['box'] ) ? $_GET['box'] : null;
+				$page  = isset( $_GET['page'] ) ? $_GET['page'] : null;
+				$sort  = isset( $_GET['sort'] ) ? $_GET['sort'] : null;
+				$order = isset( $_GET['order'] ) ? $_GET['order'] : null;
+				$htmlOutput .= Messagesystem::getInboxHTML($box, 11,$page, $sort, $order);
 			}
 
 		/** Der User ist jemand anderes */
@@ -226,7 +240,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 	/**
 	 * Registrationsformular anzeigen
 	 */
-	if(empty($userRegcode) && !$_SESSION['user_id'])
+	if(empty($userRegcode) && !isset($_SESSION['user_id']))
 	{
 		$model->showLogin($smarty);
 		$smarty->display('file:layout/head.tpl');
@@ -237,10 +251,10 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 		 * @include googlerecaptchaapi_key.inc.php Include an Array containing valid Google reCaptcha API Keys
 		 * @link https://www.google.com/recaptcha/
 		 */
-		if (fileExists(__DIR__ .'/includes/g-recaptcha-src/autoload.php'))
+		if (fileExists(INCLUDES_DIR.'g-recaptcha-src/autoload.php'))
 		{
-			require_once( __DIR__ .'/includes/g-recaptcha-src/autoload.php');
-			$reCaptchaApiKeysFile = require_once(__DIR__ .'/includes/googlerecaptchaapi_key.inc.php');
+			require_once INCLUDES_DIR.'g-recaptcha-src/autoload.php';
+			$reCaptchaApiKeysFile = require_once APIKEYS_DIR.'/google/googlerecaptchaapi_key.inc.php';
 			$reCaptchaApiKeys = (DEVELOPMENT ? $reCaptchaApiKeysFile['DEVELOPMENT'] : $reCaptchaApiKeysFile['PRODUCTION']);
 			$reCaptchaLang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
 			try {
@@ -292,14 +306,18 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 				}
 			}
 
+			/**
+			 * Anmeldeform anzeigen
+			 * (default, oder bi Errors)
+			 */
 			echo '<form action="?do=anmeldung#newuser" method="post" style="font-size: 0.65rem">';
-			echo '<h2 id="newuser">Neuen Useraccount erstellen</h2>';
+			echo '<h1 id="newuser">Neuen zorg User erstellen</h1>';
 			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
-			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
+			//if ($smarty->getTemplateVars('error') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 			/** username eingeben */
 			echo '<fieldset>';
 			echo '<label>Gew&uuml;nschter Benutzername
-					<br><input type="text" class="text" name="new_username" value="'.$_POST['new_username'].'">
+					<br><input type="text" class="text" name="new_username" value="'.(isset($error) && !empty($error) ? $_POST['new_username'] : '').'">
 					</label>
 					<br><span class="tiny info">Clan Tag kannst du sp&auml;ter separat angeben</span>
 				</fieldset>';
@@ -315,7 +333,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			/** email adresse eingeben */
 			echo '<fieldset>';
 			echo '<label>E-Mail Adresse
-					<br><input type="text" name="new_email" class="text" value="'.$_POST['new_email'].'">
+					<br><input type="text" name="new_email" class="text" value="'.(isset($error) && !empty($error) ? $_POST['new_email'] : '').'">
 					</label>
 					<br><span class="tiny info">Du bekommst einen Aktivierungscode per E-Mail zugeschickt
 				</fieldset>';
@@ -359,7 +377,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 			//if ($smarty->getTemplateVars('foo') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 		}
-		echo '<form action="?do=anmeldung#pwreset" method="post" style="font-size: 0.65rem;margin-top: 30px;">
+		echo '<form action="?do=anmeldung#pwreset" method="post" style="font-size: 0.65rem;margin-top: 60px;">
 			<h2 id="pwreset">Passwort vergessen?</h2>
 			<b class="small">Achtung!<br>Hiermit wird dir ein neues Passwort gesetzt und zugesendet, dieses kannst du sp&auml;ter wieder &auml;ndern!</b>
 			<fieldset>

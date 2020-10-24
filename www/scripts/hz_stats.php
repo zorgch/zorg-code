@@ -1,4 +1,8 @@
 <?php
+/**
+ * Hunting z Games Stats
+ * @package zorg\Games\Hz
+ */
 global $db, $user, $smarty;
 
 $usr_e = $db->query(
@@ -16,12 +20,12 @@ while ($usr = $db->fetch($usr_e)) {
 	$e = $db->query(
 		"SELECT if(g.z_score > sum(a.score)-g.z_score && p.type='z' || g.z_score < sum(a.score)-g.z_score && p.type!='z', '1', '0') win
 		FROM hz_players p, hz_games g, hz_aims a
-		WHERE g.id=p.game AND a.map=g.map AND g.state='finished' AND p.user=$usr[user] 
+		WHERE g.id=p.game AND a.map=g.map AND g.state='finished' AND p.user=".$usr['user']." 
 		GROUP BY g.id
 		HAVING win='1'",
 		__FILE__, __LINE__
 	);
-	$usr['win'] = mysql_num_rows($e);
+	$usr['win'] = $db->num($e);
 	$usr['loose'] = $usr['games'] - $usr['win'];
 	
 	
@@ -29,12 +33,12 @@ while ($usr = $db->fetch($usr_e)) {
 		$e = $db->query(
 			"SELECT if(g.z_score > sum(a.score)-g.z_score && p.type='z', '1', '0') win
 			FROM hz_players p, hz_games g, hz_aims a
-			WHERE g.id=p.game AND a.map=g.map AND g.state='finished' AND p.user=$usr[user] 
+			WHERE g.id=p.game AND a.map=g.map AND g.state='finished' AND p.user=".$usr['user']." 
 			GROUP BY g.id
 			HAVING win='1'",
 			__FILE__, __LINE__
 		);
-		$usr['zwin'] = mysql_num_rows($e);
+		$usr['zwin'] = $db->num($e);
 		$usr['zloose'] = $usr['zgames'] - $usr['zwin'];
 	}else{
 		$usr['zwin'] = 0;
@@ -47,19 +51,18 @@ while ($usr = $db->fetch($usr_e)) {
 		$e = $db->query(
 			"SELECT if(g.z_score < sum(a.score)-g.z_score && p.type!='z', '1', '0') win
 			FROM hz_players p, hz_games g, hz_aims a
-			WHERE g.id=p.game AND a.map=g.map AND g.state='finished' AND p.user=$usr[user] 
+			WHERE g.id=p.game AND a.map=g.map AND g.state='finished' AND p.user=".$usr['user']." 
 			GROUP BY g.id
 			HAVING win='1'",
 			__FILE__, __LINE__
 		);
-		$usr['iwin'] = mysql_num_rows($e);
+		$usr['iwin'] = $db->num($e);
 		$usr['iloose'] = $usr['igames'] - $usr['iwin'];
 	}else{
 		$usr['iwin'] = 0;
 		$usr['iloose'] = 0;
 	}
-	
-	
+
 	$stats[] = $usr;
 }
 
@@ -68,6 +71,5 @@ for ($i=0; $i<sizeof($stats); $i++) {
 		if (is_numeric($val) && $val == 0) $stats[$i][$key] = "-";
 	}
 }
-
 
 $smarty->assign("stats", $stats);

@@ -1,8 +1,7 @@
 <?php
-
 /**
  * Quotes Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
  *
  * @author		[z]milamber
@@ -13,10 +12,10 @@
  * @package		zorg
  * @subpackage	Quotes
  */
-Class Quotes {
-
-	static function execActions() {
-
+class Quotes
+{
+	static function execActions()
+	{
 		global $db, $user;
 
 		if($_POST['action'] == 'benoten' && $_POST['score'] != '')

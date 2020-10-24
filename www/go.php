@@ -1,7 +1,7 @@
 <?PHP
 /**
  * GO (Game)
- * 
+ *
  * Hier kommt die Beschreibung zu dieser
  * Datei hinein. Auch über mehrere Dateien
  * wenn man will.
@@ -18,8 +18,8 @@
  * @include main.inc.php
  * @include core.model.php
  */
-include_once( __DIR__ .'/includes/main.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+include_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -28,32 +28,33 @@ $model = new MVC\Go();
 
 /**
  * GO Klasse
- * 
+ *
  * Dies ist die Klasse zum GO Spiel.
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
  * @package zorg
  * @subpackage GO
  */
-class Go {
-	
+class Go
+{
 	/**
 	 * Feldgrösse Standartwert
 	 * @var integer Variable für die Feldgrösse, Default = 40
 	 */
 	var $feld_groesse = 40;
-	
-	
+
 	/**
 	 * GO Spielfeld (Goban?) der Grösse \$size anzeigen
 	 *
-	 * @author [z]bert, [z]domi
+	 * @author [z]bert
+	 * @author [z]domi
 	 * @date nn.nn.nnnn
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer $size Grösse des GO-Spielfeldes
 	 */
 	function go($size) {
@@ -71,16 +72,16 @@ class Go {
 		$this->partei[0] = imagecolorallocate($this->img,23,23,23);
 		$this->partei[1] = imagecolorallocate($this->img,200,200,200);
 	}	
-	
-	
+
 	/**
 	 * ...
 	 *
-	 * @author [z]bert, [z]domi
+	 * @author [z]bert
+	 * @author [z]domi
 	 * @date nn.nn.nnnn
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer $x ...
 	 * @param integer $y ...
 	 * @param integer $partei ...
@@ -88,12 +89,13 @@ class Go {
 	function stone($x,$y,$partei) {
 		imagefilledellipse($this->img,$x,$y,23,23,$this->partei[$partei]);
 	}
-	
-	
+
+
 	/**
 	 * ...
 	 *
-	 * @author [z]bert, [z]domi
+	 * @author [z]bert
+	 * @author [z]domi
 	 * @date nn.nn.nnnn
 	 * @version 1.0
 	 * @since 1.0
@@ -101,7 +103,7 @@ class Go {
 	function display() {
 		imagepng($this->img);	
 	}
-	
+
 }
 
 

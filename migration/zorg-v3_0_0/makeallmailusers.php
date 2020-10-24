@@ -1,4 +1,5 @@
-<?php /** @DEPRECATED
+<?php
+/** @deprecated
 include_once(__DIR__ .'/../../www/includes/mysql.inc.php');
 include_once(__DIR__ .'/../../www/includes/util.inc.php');
 

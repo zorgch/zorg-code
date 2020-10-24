@@ -4,7 +4,7 @@
  *
  * @package zorg\Layout
  * @version 1.0
- * @since 1.0 <inex> 10.09.2019 file copied from /css/day.css & /css/night.css, uses ?sidebar=true trigger for page layout
+ * @since 1.0 `10.09.2019` `IneX` file copied from /css/day.css & /css/night.css, uses ?sidebar=true trigger for page layout
  */
 header('Content-Type: text/css');
 $sidebarOn = (isset($_GET['sidebar']) && $_GET['sidebar'] == 'true' ? true : false);
@@ -65,6 +65,7 @@ body {
 	line-height: 1.4;
 	display: grid;
 	height: 100vh;
+	min-height: -webkit-fill-available; /** Fix mobile viewport bug in Webkit (iOS Safari) */
 	margin: 0;
 	padding: 0;
 }
@@ -110,7 +111,7 @@ body {
 	body {
 		margin: 0 15vw 0 15vw;
 		grid-template-columns: 2fr 1fr;
-		grid-template-rows: minmax(min-content, 190px) minmax(min-content, 120px) minmax(min-content, max-content) 1fr;
+		grid-template-rows: minmax(min-content, 1vh) minmax(min-content, 1vh) minmax(min-content, 2fr) 1fr;
 		grid-template-areas:
 			"header header"
 			"nav nav"
@@ -305,7 +306,7 @@ i.emoji {
 /** Emoji */
 i.user::before { content: "\01F464"; }
 i.password::before { content: "\01F510"; }
-i.event::before { content: "\01F5D3"; }
+i.event::before { content: "\01F4C5"; }
 /** SVG */
 i.day::before {
 	content: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 125" x="0px" y="0px" style="fill: <?php echo ($layout === 'night' ? 'rgba(240,196,32,0.6)' : 'rgba(227,103,0,0.65)'); ?>;"><path d="M64.17,63a16,16,0,0,0-28-6.25A12.5,12.5,0,0,0,18,65.17a11.49,11.49,0,0,0,1.23,22.91H60.93a1.34,1.34,0,0,0,.35,0A12.83,12.83,0,0,0,64.17,63Zm-3.31,22.1-.21,0h-41l-.23,0-.23,0a8.49,8.49,0,0,1-.06-17,1.54,1.54,0,0,0,1.63-1.36,9.49,9.49,0,0,1,15-6.82,1.49,1.49,0,0,0,1.14.26,1.52,1.52,0,0,0,1-.65,13,13,0,0,1,23.58,4.88,1.5,1.5,0,0,0,1.15,1.2,9.84,9.84,0,0,1-1.7,19.43Z"/><path d="M85.06,48.59A12.93,12.93,0,0,0,62.61,43.5a10.16,10.16,0,0,0-12,2,1.5,1.5,0,0,0,2.18,2.07,7.16,7.16,0,0,1,9.37-.9,1.51,1.51,0,0,0,2.12-.39,9.93,9.93,0,0,1,18.06,3.73,1.5,1.5,0,0,0,1.15,1.2A7.46,7.46,0,0,1,82.17,66L82,66H77.84a1.5,1.5,0,0,0,0,3h4.4a1.65,1.65,0,0,0,.32,0,10.46,10.46,0,0,0,2.5-20.38Z"/><path d="M29.58,51.44a1.48,1.48,0,0,0,1.25.68,1.53,1.53,0,0,0,.82-.24,1.51,1.51,0,0,0,.44-2.08,12.54,12.54,0,0,1,8.59-19.24A12.56,12.56,0,0,1,54,37.81a1.5,1.5,0,1,0,2.73-1.23A15.54,15.54,0,1,0,29.58,51.44Z"/><path d="M17.19,26.19l7.55,5.54a1.54,1.54,0,0,0,.88.29,1.5,1.5,0,0,0,.89-2.71L19,23.77a1.5,1.5,0,0,0-1.77,2.42Z"/><path d="M12.26,46.45h.1l9.34-.62a1.5,1.5,0,1,0-.2-3l-9.34.61a1.5,1.5,0,0,0,.1,3Z"/><path d="M61.85,36a1.49,1.49,0,0,0,.61-.13L71,32.07a1.5,1.5,0,1,0-1.21-2.74L61.25,33.1a1.5,1.5,0,0,0,.6,2.87Z"/><path d="M51.23,25.42a1.47,1.47,0,0,0,.67.16,1.5,1.5,0,0,0,1.34-.84l4.14-8.39A1.5,1.5,0,0,0,54.69,15l-4.14,8.4A1.49,1.49,0,0,0,51.23,25.42Z"/><path d="M36.13,22.87A1.5,1.5,0,0,0,37.59,24,1.49,1.49,0,0,0,38,24a1.5,1.5,0,0,0,1.1-1.81l-2.23-9.09a1.5,1.5,0,0,0-2.92.71Z"/></svg>'); /*url(/images/icons/day.svg)*/ }
@@ -418,7 +419,7 @@ header > .announcements {
 	vertical-align: middle;
 }
 header > .announcements span.event::before {
-	content: "\01F5D3";
+	content: "\01F4C5";
 	font-size: 0.8em;
 }
 header > .announcements .event > a > .name { }
@@ -858,6 +859,11 @@ input, textarea, select, button {
 	input, textarea, select, button {
 		font-size: 1em;
 	}
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-font-input, #666);
+  opacity: 0.3;
 }
 
 input[type=text], input[type=password], input[type=search], input[type=number], textarea, input.text {

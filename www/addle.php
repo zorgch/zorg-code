@@ -1,7 +1,7 @@
 <?php
 /**
  * Addle (Game)
- * 
+ *
  * Das Addle Spiel wurde am 16. Mai 2003 von [z]biko
  * geschrieben und anschliessend laufend verbessert.
  * Das Spiel nutz folgende Tabellen in der Datenbank:
@@ -12,16 +12,15 @@
  * @date 16.05.2003
  * @package zorg\Games\Addle
  */
-
 /**
  * File includes
  * @include main.inc.php required
  * @include addle.inc.php required
  * @include core.model.php required
  */
-require_once( __DIR__ . '/includes/main.inc.php');
-require_once( __DIR__ . '/includes/addle.inc.php');
-require_once( __DIR__ . '/models/core.model.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once INCLUDES_DIR.'addle.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -30,16 +29,16 @@ $model = new MVC\Addle();
 
 /**
  * Addle KI Einsetzen
- * 
+ *
  * Aktiviert die KI fuer ein bestimmtes Spiel
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
  * @since 1.5 function optimized
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
- * @see BARBARA_HARRIS
+ * @uses BARBARA_HARRIS
  * @param integer $game_id ID des Addle Spiels
  */
 function use_ki($game_id) {
@@ -56,15 +55,15 @@ function use_ki($game_id) {
 
 /**
  * HTML-Auswahlmenü ausgeben
- * 
+ *
  * Gibt ein HTML-Auswahlmenü aus (<option></option>) - benutzt
  * für die Spielerauswahl um ein neues Spiel zu starten.
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
  * @since 1.5 function optimized
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  */
 function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $addhtml = "") {
 	if(is_array($valuearray)) {
@@ -94,17 +93,17 @@ function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $
 
 /**
  * Neues Addle Spiel
- * 
+ *
  * Erzeugt ein neues Addle Spiel
- * 
- * @author [z]bert, [z]keep3r
+ *
+ * @author [z]bert
+ * @author [z]keep3r
  * @version 3.0
  * @since 1.0 function added
  * @since 2.0 KI added
- * @since 3.0 07.11.2018 code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 3.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
  *
- * @see config.inc.php
- * @see MAX_ADDLE_GAMES
+ * @uses MAX_ADDLE_GAMES
  * @param integer $player ID des Gegners
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -189,7 +188,7 @@ function newgame($player) {
 		Addle KI - start
 	========================================*/
 	if($player == 59) {
-		//include_once($_SERVER['DOCUMENT_ROOT']."/addle_ki.php");
+		//include_once $_SERVER['DOCUMENT_ROOT']."/addle_ki.php";
 	}
 	/*========================================
 		Addle KI - end
@@ -214,13 +213,13 @@ function newgame($player) {
 
 /**
  * Alle offenen Addle Spiele
- * 
+ *
  * Listet alle offenen Addle Spiele auf
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -229,7 +228,7 @@ function games()
 {
 	global $db, $user;
 
-	echo '<h3>Laufende Spiele</h3>';
+	echo '<h2>Laufende Spiele</h2>';
 
 	if ($user->is_loggedin())
 	{
@@ -242,7 +241,7 @@ function games()
 	if (!empty($num) && $num !== false && $num > 0)
 	{
 		$i = 1;
-		while ($d = mysql_fetch_array($e)) {
+		while ($d = $db->fetch($e)) {
 			/** Eingeloggte User */
 			if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
 
@@ -261,9 +260,9 @@ function games()
 		$num = $db->num($e);
 		if (!empty($num) || $num > 0)
 		{
-			echo '<h3>Warten auf deinen Gegner</h3>';
+			echo '<h2>Warten auf deinen Gegner</h2>';
 			$i = 1;
-			while ($d = mysql_fetch_array($e)) {
+			while ($d = $db->fetch($e)) {
 				if ($d['player1'] != $user->id) {
 						$otherpl = $d['player1'];
 				} else {
@@ -280,13 +279,13 @@ function games()
 
 /**
  * Addle Hauptseite
- * 
+ *
  * Erzeugt die Hauptseite zu Addle mit einer generellen Spielübersicht
- * 
+ *
  * @author [z]bert
  * @version 2.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -298,7 +297,7 @@ function overview() {
 	/** New Addle Game-Formular anzeigen */
 	if ($user->is_loggedin())
 	{ ?>
-		<h3>Neues Spiel</h3>
+		<h2>Neues Spiel</h2>
 		<form action="?show=overview&do=new" method="post">
 			<fieldset>
 				<label>Gegen&nbsp;
@@ -324,21 +323,22 @@ function overview() {
 	/** Laufende Addle Games auflisten */
 	games();
 	
-	echo '<h3>Anleitung</h3>';
+	echo '<h2>Anleitung</h2>';
 	echo t('howto', 'addle');
 }
 
 
 /**
  * Addle Spielzug ausführen
- * 
+ *
  * Verarbeitet einen Addle Spielzug
- * 
- * @author [z]bert, [z]keep3r
+ *
+ * @author [z]bert
+ * @author [z]keep3r
  * @version 3.0
  * @since 1.0 function added
  * @since 2.0 KI added
- * @since 3.0 07.11.2018 code and sql-query optimizations
+ * @since 3.0 `07.11.2018` code and sql-query optimizations
  *
  * @param integer $id ID des Addle Spiels
  * @param integer $choose ID des Feldes innerhalb des Addle Spiels $id
@@ -359,7 +359,7 @@ function doplay($id, $choose) {
 	{
 		try {
 			$e = $db->query('SELECT * FROM addle WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
-			$d = mysql_fetch_array($e);
+			$d = $db->fetch($e);
 		} catch(Exception $e) {
 			error_log($e->getMessage());
 			user_error(t('error-game-invalid'), E_USER_ERROR);
@@ -466,14 +466,15 @@ function doplay($id, $choose) {
 
 /**
  * Addle Spiel anzeigen
- * 
+ *
  * Zeigt ein spezifisches Addle Spiel an
- * 
- * @author [z]bert, [z]keep3r
+ *
+ * @author [z]bert
+ * @author [z]keep3r
  * @version 3.0
  * @since 1.0 function added
  * @since 2.0 KI added
- * @since 3.0 07.11.2018 code and sql-query optimizations
+ * @since 3.0 `07.11.2018` code and sql-query optimizations
  *
  * @param integer $id ID des Addle Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -500,7 +501,7 @@ function play($id=0)
 		user_error(t('error-game-invalid', 'global', $id), E_USER_ERROR);
 		exit;
 	}
-	$d = mysql_fetch_array($e);
+	$d = $db->fetch($e);
 
 	$sidebarHtml = '<center>
 	<table cellspacing="0" cellpadding="5">
@@ -586,7 +587,7 @@ function play($id=0)
 		<tr>
 			<td style="text-align: center;">
 
-				<table cellspacing="0" cellpadding="2" style="border-collapse:collapse;" bgcolor='<?=TABLEBORDERCOLOR?>'>	<?php
+				<table cellspacing="0" cellpadding="2" style="border-collapse:collapse;" bgcolor='<?php echo TABLEBORDERCOLOR?>'>	<?php
 					for ($y=0; $y<8; $y++) {
 						?><tr><?php
 						for ($x=0; $x<8; $x++) {
@@ -595,7 +596,7 @@ function play($id=0)
 							} else {
 								$bgcolor = TABLEBACKGROUNDCOLOR;
 							} ?>
-							<td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='<?=$bgcolor?>'>
+							<td class="addletd" width='40' height='40' align='center' valign='center' bgcolor='<?php echo $bgcolor?>'>
 								<?php $act = substr($d['data'], ($y*8+$x), 1);
 								if ($act == '.') {
 									if ($d['last_pick_data']) {
@@ -638,9 +639,11 @@ function play($id=0)
 	<?php
 	//games(); DISABLED weils scheisse auf Mobile aussieht im Responsive, da nicht in Sidebar...
 
-	/* keep3r's KI-Testing...
-	* @see evil_max()
-	*/
+	/**
+	 * keep3r's KI-Testing...
+	 *
+	 * @uses evil_max()
+	 */
 	if (sanitize_userinput($_GET['debug']) === 'true' && $user->typ >= USER_MEMBER) {
 		$data = $d['data'];
 		$nextrow = $d['nextrow'];
@@ -658,13 +661,13 @@ function play($id=0)
 
 /**
  * Addle Highscore
- * 
+ *
  * Gibt die Highscore Liste von Addle aus
- * 
+ *
  * @author [z]bert
  * @version 1.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -678,7 +681,7 @@ function highscore() {
 	$loose = array();
 	$unent = array();
 	$usr = array();
-	while ($d = mysql_fetch_array($e)) {
+	while ($d = $db->fetch($e)) {
 		$usr[$d['player1']] = $d['player1'];
 		$usr[$d['player2']] = $d['player2'];
 		if ($d['score1'] > $d['score2']) {
@@ -742,12 +745,12 @@ function highscore() {
 					$bgcolor = "";
 				}?>
 				<tr>
-					<td <?=$bgcolor?> align="right"><?=$i+1?>. &nbsp;</td>
-					<td <?=$bgcolor?> align="left"><?=$user->id2user($usr[$i])?> &nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$score[$i]?> &nbsp; &nbsp; &nbsp; &nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$win[$i]?> &nbsp;&nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$unent[$i]?> &nbsp;&nbsp;</td>
-					<td <?=$bgcolor?> align="right"><?=$loose[$i]?> &nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $i+1?>. &nbsp;</td>
+					<td <?php echo $bgcolor?> align="left"><?php echo $user->id2user($usr[$i])?> &nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $score[$i]?> &nbsp; &nbsp; &nbsp; &nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $win[$i]?> &nbsp;&nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $unent[$i]?> &nbsp;&nbsp;</td>
+					<td <?php echo $bgcolor?> align="right"><?php echo $loose[$i]?> &nbsp;</td>
 				</tr> <?php
 		}	?>
 		</tbody>
@@ -758,13 +761,13 @@ function highscore() {
 
 /**
  * Addle Spiele-Archiv
- * 
+ *
  * Listet alte Addle Spiele auf
- * 
+ *
  * @author [z]bert
  * @version 1.0
  * @since 1.0 function added
- * @since 2.0 07.11.2018 code and sql-query optimizations
+ * @since 2.0 `07.11.2018` code and sql-query optimizations
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -784,13 +787,13 @@ function archiv() {
 	$d = $db->fetch($e);
 	?>
 	<div align="center">
-	<h3>Spieler Stats für <?=$user->id2user($uid)?></h3>
-	<h4>DWZ Punkte:&nbsp;<b><?=$d['score']?></b> (Rank #<?=$d['rank']?>)</h4>
+	<h1>Addle Stats von <?php echo $user->userprofile_link($uid, ['username' => true, 'clantag' => true, 'link' => true]) ?></h1>
+	<h3>DWZ Punkte:&nbsp;<b><?php echo $d['score']?></b> (Rank #<?php echo $d['rank']?>)</h3>
 	<table>
 		<tr class='title'>
 				<td>Gegner &nbsp; &nbsp;</td>
 				<td>letzter Zug &nbsp; &nbsp; </td>
-				<td><?=$user->id2user($uid)?> &nbsp; &nbsp;</td>
+				<td><?php echo $user->id2user($uid)?> &nbsp; &nbsp;</td>
 				<td>Gegner P. &nbsp; &nbsp;</td>
 				<td>Ausgang</td>
 				<td>&nbsp;</td>
@@ -798,7 +801,7 @@ function archiv() {
 		
 		$e = $db->query('SELECT * FROM addle WHERE (player1='.$uid.' OR player2='.$uid.') ORDER BY date DESC', __FILE__, __LINE__, __FUNCTION__);
 		$i = 0;
-		while ($d = mysql_fetch_array($e))
+		while ($d = $db->fetch($e))
 		{
 			if ($d['player1'] == $uid) {
 				$ich = 1;
@@ -809,10 +812,10 @@ function archiv() {
 			}
 			?>
 			<tr>
-				<td align="left"><a href="?show=archiv&uid=<?=$d['player'.$gegner];?>"><?=$user->id2user($d['player'.$gegner])?></a> &nbsp; &nbsp;</td>
-				<td align="left"><?=datename($d['date'])?> &nbsp; &nbsp;</td>
-				<td align='right'><?=$d['score'.$ich]?> &nbsp; &nbsp;</td>
-				<td align='right'><?=$d['score'.$gegner]?> &nbsp; &nbsp;</td>
+				<td align="left"><a href="?show=archiv&uid=<?php echo $d['player'.$gegner];?>"><?php echo $user->id2user($d['player'.$gegner])?></a> &nbsp; &nbsp;</td>
+				<td align="left"><?php echo datename($d['date'])?> &nbsp; &nbsp;</td>
+				<td align='right'><?php echo $d['score'.$ich]?> &nbsp; &nbsp;</td>
+				<td align='right'><?php echo $d['score'.$gegner]?> &nbsp; &nbsp;</td>
 				<td><?php
 					if (!$d['finish']) {
 						echo '-';
@@ -824,7 +827,7 @@ function archiv() {
 						echo 'unentschieden';
 					}	?>
 				</td>
-				<td align="left"> &nbsp; <a href="?show=play&id=<?=$d['id']?>">ansehen</a></td>
+				<td align="left"> &nbsp; <a href="?show=play&id=<?php echo $d['id']?>">ansehen</a></td>
 			</tr><?php
 			$i++;
 		} ?>
@@ -853,11 +856,6 @@ if ($user->is_loggedin())
 	}
 
 	/** Addle Views */
-	//$smarty->assign('tplroot', array('page_title' => 'Addle'));
-	//echo menu('zorg');
-	//echo menu('games');
-	//echo menu('addle');
-
 	switch ($show_page)
 	{
 		case 'play':
@@ -895,12 +893,12 @@ if ($user->is_loggedin())
 			//$smarty->assign('tplroot', array('page_title' => 'Addle'));
 			$model->showOverview($smarty);
 			$smarty->display('file:layout/head.tpl');
-			echo '<h2>Addle</h2>';
+			echo '<h1>Addle</h1>';
 			overview();
 			/*if ($user->is_loggedin())
 			{
 				$e = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=1) OR (player2='.$user->id.' AND nextturn=2)) AND finish=0', __FILE__, __LINE__, 'SELECT * FROM addle');
-				$d = mysql_fetch_array($e);
+				$d = $db->fetch($e);
 				play($d['id']);
 			}*/
 	}

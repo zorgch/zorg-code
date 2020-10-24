@@ -8,8 +8,8 @@
 /**
  * File includes
  */
-require_once( __DIR__ .'/includes/messagesystem.inc.php');
-require_once( __DIR__ .'/models/core.model.php');
+require_once dirname(__FILE__).'/includes/messagesystem.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
 /**
  * Initialise MVC Model
@@ -31,7 +31,7 @@ $model->showOverview($smarty);
 
 if ($user->is_loggedin())
 {
-	$model->showInvalidmessage($smarty);
+	$model->showInvalidmessage($smarty, $messageId);
 	if(empty($messageId) || $messageId == '0' || $messageId <= 0)
 	{
 		http_response_code(404); // Set response code 404 (not found) and exit.

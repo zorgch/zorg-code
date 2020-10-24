@@ -11,9 +11,8 @@ if(!isset($_GET['action']) || empty($_GET['action']) || ( $_GET['action'] != 'sa
 /**
  * FILE INCLUDES
  */
-require_once( __DIR__ .'/../../../includes/config.inc.php');
-require_once( __DIR__ .'/../../../includes/mysql.inc.php');
-require_once( __DIR__ .'/../../../includes/main.inc.php');
+require_once dirname(__FILE__).'/../../../includes/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';;
 
 /**
  * Compile template & save or update it into the database
@@ -25,16 +24,17 @@ $leMailTemplate = 'email/verein/verein_htmlmail.tpl';
 //$leTemplateInclude = "{include file='file:$leMailTemplate'}";
 $compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);
 
-if ( $_GET['action'] == 'update' && !empty($_POST['template_id']) && is_numeric($_POST['template_id']) )
+if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric($_POST['template_id']) )
 {
 	/**
 	 * Update existing Template
 	 */
+	$update_template_id = (int)$_POST['template_id'];
 	try {
-		error_log('[INFO] Updating existing Mail Template ' . $_POST['template_id']);
+		error_log('[INFO] Updating existing Mail Template ' . $update_template_id);
 		$updateTplQuery = 'INSERT INTO templates (id, tpl, title, page_title, last_update, update_user)
 							VALUES (
-								 '.$_POST['template_id'].'
+								 '.$update_template_id.'
 								,"'.escape_text($compiledMailTpl).'"
 								,"'.escape_text($_POST['text_mail_subject']).'"
 								,"'.escape_text($_POST['text_mail_subject']).'"
@@ -48,6 +48,7 @@ if ( $_GET['action'] == 'update' && !empty($_POST['template_id']) && is_numeric(
 								,page_title = VALUES(page_title)
 								,last_update = VALUES(last_update)
 								,update_user = VALUES(update_user)';
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Update Mail-Template Query: %s', __FILE__, __LINE__, $updateTplQuery));
 		$tplid = $db->query($updateTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
 	} catch(Exception $e) {
 		http_response_code(500); // Set response code 500 (internal server error)
@@ -80,7 +81,7 @@ if ( $_GET['action'] == 'update' && !empty($_POST['template_id']) && is_numeric(
 		echo $e->getMessage();
 	}
 
-} elseif ( $_GET['action'] == 'save' ) {
+} elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) ) {
 	/**
 	 * Save new Template
 	 *

@@ -7,7 +7,7 @@
  * File includes
  * @include main.inc.php
  */
-require_once( __DIR__ . '/includes/main.inc.php');
+require_once dirname(__FILE__).'/includes/main.inc.php';
 
 /**
  * Show a mail message's webview
@@ -24,7 +24,7 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 				FROM verein_correspondence
 				WHERE MD5(CONCAT(template_id, recipient_id)) = "' . $_GET['hash'] . '"
 				ORDER BY id DESC';
-		$matchedResult = mysql_fetch_assoc($db->query($checkHashQuery, __FILE__, __LINE__, 'verein_mailer.php'));
+		$matchedResult = $db->fetch($db->query($checkHashQuery, __FILE__, __LINE__, 'verein_mailer.php'));
 
 		/** if Hash returned a result... */
 		if ($matchedResult && $_GET['hash'] == $matchedResult['hash'])
@@ -44,7 +44,7 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 											 	recipient_confirmationdate = NOW()
 											 WHERE
 											 	id = ' . $matchedResult['id'];
-					$updateReadState = mysql_fetch_assoc($db->query($updateReadStateQuery, __FILE__, __LINE__, 'verein_mailer.php'));
+					$updateReadState = $db->fetch($db->query($updateReadStateQuery, __FILE__, __LINE__, 'verein_mailer.php'));
 				}
 				
 				/**

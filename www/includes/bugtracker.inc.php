@@ -10,9 +10,9 @@
 /**
  * File Includes
  */
-require_once( __DIR__ .'/config.inc.php');
-include_once( __DIR__ .'/usersystem.inc.php');
-include_once( __DIR__ .'/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Bugtracker Klasse
@@ -39,22 +39,22 @@ class Bugtracker
 	 * @author [z]milamber
 	 * @author IneX
 	 * @version 3.1
-	 * @since 1.0 <milamber> function added
-	 * @since 2.0 <inex> various code optimizations, I don't remember all of them
-	 * @since 3.0 <inex> 26.11.2018 updated to use new $notifcation Class & some code and query optimizations
-	 * @since 3.1 <inex> 04.12.2019 [GitHub-Issue #22] updated SQL-queries
+	 * @since 1.0 `[z]milamber` function added
+	 * @since 2.0 `IneX` various code optimizations, I don't remember all of them
+	 * @since 3.0 `26.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
+	 * @since 3.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
 	 * @return void Header Location redirect
 	 */
-	function execActions()
+	static function execActions()
 	{
 		global $db, $user, $notification;
 
 		/** Add new Bug */
-		if($_GET['action'] === 'new')
+		if(isset($_GET['action']) && $_GET['action'] === 'new')
 		{
 			/** Validate & escape fields */
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
@@ -92,7 +92,7 @@ class Bugtracker
 		}
 
 		/** Assign Bug */
-		elseif ($_GET['action'] === 'assign')
+		elseif ( isset($_GET['action']) && $_GET['action'] === 'assign')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			
@@ -105,7 +105,7 @@ class Bugtracker
 		}
 
 		/** Bug klauen */
-		elseif ($_GET['action'] === 'klauen')
+		elseif (isset($_GET['action']) &&  $_GET['action'] === 'klauen')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			
@@ -118,7 +118,7 @@ class Bugtracker
 		}
 
 		/** Bug erneut öffnen */
-		elseif ($_GET['action'] === 'reopen')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'reopen')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NULL', 'denied_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
@@ -137,7 +137,7 @@ class Bugtracker
 		}
 
 		/** Bug wieder freigeben (unassign) */
-		elseif ($_GET['action'] === 'resign')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'resign')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => 'NULL', 'assigned_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
@@ -147,7 +147,7 @@ class Bugtracker
 		}
 
 		/** Bug als gelöst markieren */
-		elseif ($_GET['action'] === 'resolve')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'resolve')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
@@ -169,7 +169,7 @@ class Bugtracker
 		}
 
 		/** Bug bearbeiten */
-		elseif ($_GET['action'] == 'edit')
+		elseif (isset($_GET['action']) && $_GET['action'] == 'edit')
 		{
 			/** Validate & escape fields */
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
@@ -193,7 +193,7 @@ class Bugtracker
 		}
 
 		/** Bug ablehnen */
-		elseif ($_GET['action'] == 'deny')
+		elseif (isset($_GET['action']) && $_GET['action'] == 'deny')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
@@ -215,7 +215,7 @@ class Bugtracker
 		}
 
 		/** Add new Category */
-		elseif ($_GET['action'] == 'newcategory')
+		elseif (isset($_GET['action']) && $_GET['action'] == 'newcategory')
 		{
 			$title_sanitized = sanitize_userinput($_GET['title']);
 			$categoryTitle = ( isset($title_sanitized) && !empty($title_sanitized) ? $title_sanitized : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
@@ -235,13 +235,13 @@ class Bugtracker
 	 * @author IneX
 	 * @version 2.1
 	 * @since 1.0 function added
-	 * @since 2.0 <inex> 10.11.2018 added Code Commit field
-	 * @since 2.1 <inex> 04.12.2019 [GitHub-Issue #22] updated SQL-queries & sanitized HTML-output from DB
+	 * @since 2.0 `10.11.2018` `IneX` added Code Commit field
+	 * @since 2.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries & sanitized HTML-output from DB
 	 *
 	 * @see Thread::getNumPosts
 	 * @return string HTML-Code for page output
 	 */
-	function getBugHTML($bug_id, $edit=FALSE)
+	static function getBugHTML($bug_id, $edit=FALSE)
 	{
 		global $db, $user;
 
@@ -338,7 +338,7 @@ class Bugtracker
 				.'<tr>'
 					.'<td align="left">Code Commit:</td>'
 					.'<td align="left">'
-						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY.htmlentities($rs['code_commit'], ENT_QUOTES).'" target="_blank">'.htmlentities($rs['code_commit'], ENT_QUOTES).'</a>' : ''))
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY_URL.htmlentities($rs['code_commit'], ENT_QUOTES).'" target="_blank">'.htmlentities($rs['code_commit'], ENT_QUOTES).'</a>' : ''))
 					.'</td>'
 				.'</tr>'
 				.(!empty($rs['assignedto_id']) ? '</tbody>' : '')
@@ -369,7 +369,7 @@ class Bugtracker
 	 * @param int $bug_id Bug-ID to fetch as record from DB
 	 * @return array
 	 */
-	function getBugRS($bug_id)
+	static function getBugRS($bug_id)
 	{
 		global $db;
 
@@ -387,7 +387,7 @@ class Bugtracker
 	* @param Array $show
 	* @param String $order
 	*/
-	function getBugList($show, $order)
+	static function getBugList($show, $order)
 	{
 		global $db, $user;
 
@@ -476,8 +476,8 @@ class Bugtracker
 					.'<td align="left">'.($rs['priority'] === '1' ? '&#128314;' : ($rs['priority'] === '2' ? '&#128312;' : ($rs['priority'] === '3' ? '&#128313;' : ($rs['priority'] === '4' ? '&#9660;' : '?')))).'</td>'
 					.'<td align="left">'.$rs['category_title'].'</td>'
 					.'<td align="left"><a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a></td>'
-					.'<td align="left" class="hide-mobile">'.$user->userpagelink($rs['reporter_id']).'</td>'
-					.'<td align="left" class="hide-mobile">'.$user->userpagelink($rs['assignedto_id']).'</td>';
+					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['reporter_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>'
+					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['assignedto_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>';
 			if (!empty($rs['resolved_date'])) { // wenn der Bug resolved wurde...
 				$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span> <span class="hide-mobile">'.datename($rs['resolved_date']).'</span></td>';
 			} elseif (!empty($rs['denied_date'])) { // wenn der Bug denied wurde...
@@ -496,7 +496,7 @@ class Bugtracker
 	* Formular für neuen Bug generieren
 	* @return string HTML-Code für das Formular "Neuen Bug eintragen"
 	*/
-	function getFormNewBugHTML()
+	static function getFormNewBugHTML()
 	{
 		global $user;
 
@@ -504,17 +504,17 @@ class Bugtracker
 		if ($user->typ >= USER_USER)
 		{
 			$html = t('newbug-headline', 'bugtracker')
-					.'<form action="'.getURL(false,false).'" method="get" style="display: flex;white-space: nowrap;align-items: flex-start;align-content: flex-start;">'
+					.'<form action="'.getURL(false,false).'" method="get">'
 						.'<input type="hidden" name="action" value="new">'
 						.'<input type="hidden" name="url" value="'.getURL(true,true).'">'
-						.'<fieldset style="flex: 1;">'
+						.'<fieldset>'
 							.'<label style="display: flex;flex-direction: column;">Titel<br>'.Bugtracker::getFormFieldTitle().'</label>'
 							.'<label style="display: flex;flex-direction: column;">Bereich<br>'.Bugtracker::getFormFieldCategory().'</label>'
 							.'<label style="display: flex;flex-direction: column;">Priorit&auml;t<br>'.Bugtracker::getFormFieldPriority(3).'</label>'
 							.'<label style="display: flex;flex-direction: column;">Beschreibung<br>'.Bugtracker::getFormFieldDescription().'</label>'
 						.'</fieldset>
-						<fieldset style="flex: 1;">'
-							.'<label style="display: flex;flex-direction: column;">User informieren<br>'.$user->getFormFieldUserlist('msg_users[]', 20).'</label>'
+						<fieldset>'
+							.'<label style="display: flex;flex-direction: column;">User informieren<br>'.$user->getFormFieldUserlist('msg_users[]', 10).'</label>'
 							.'<input type="submit" value="Eintragen" class="secondary">'
 						.'</fieldset>'
 					.'</form>';
@@ -559,7 +559,7 @@ class Bugtracker
 	 * @param array $rs Fetched Bug DB-record
 	 * @return string
 	 */
-	function getFormActionsHTML($rs)
+	static function getFormActionsHTML($rs)
 	{
 		global $user;
 
@@ -661,7 +661,7 @@ class Bugtracker
 
 		$html .= '<select name="'.$name.'" size="1">';
 		$html .= '<option value="0"> -- kein Bug --</option>';
-		while ($rs = mysql_fetch_array($result)) {
+		while ($rs = $db->fetch($result)) {
 		   $html .= '<option value="'.$rs['id'].'">#'.$rs['id'].' '.htmlentities($rs['title'], ENT_QUOTES).'</option>';
 		}
 		$html .= '</select>';
@@ -669,7 +669,7 @@ class Bugtracker
 		return $html;
 	}
 
-	function getFormFieldCategory($category_id='')
+	static function getFormFieldCategory($category_id='')
 	{
 		global $db;
 
@@ -711,11 +711,11 @@ class Bugtracker
 		return $html;
 	}
 
-	function getFormFieldDescription($description='') {
+	static function getFormFieldDescription($description='') {
 		return '<textarea name="description" placeholder="Klare Beschreibung, Herleitung und URL bei Problemen..." style="width: 90%;min-height: 200px;">'.htmlentities($description, ENT_QUOTES).'</textarea>';
 	}
 
-	function getFormFieldPriority($priority=4) {
+	static function getFormFieldPriority($priority=4) {
 		return '<select name="priority" size="1">'
 					.'<option value="1" '.($priority == 1 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(1).'</option>'
 					.'<option value="2" '.($priority == 2 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(2).'</option>'
@@ -724,11 +724,11 @@ class Bugtracker
 				.'</select>';
 	}
 
-	function getFormFieldTitle($title='') {
+	static function getFormFieldTitle($title='') {
 		return '<input type="text" name="title" value="'.htmlentities($title, ENT_QUOTES).'" placeholder="Feature/Problem Titel" style="width: 90%;">';
 	}
 
-	function getPriorityDescription($priority_id) {
+	static function getPriorityDescription($priority_id) {
 		switch($priority_id) {
 			case 1: $descr = '&#128314; Sehr Hoch'; break;
 			case 2: $descr = '&#128312; Hoch'; break;

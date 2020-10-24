@@ -1,6 +1,9 @@
-<?
+<?php
+/**
+ * zorg Tauschbörse
+ * @package zorg\Tauschbörse
+ */
 global $db, $user, $smarty;
-
 
 // Angebote
 $result = $db->query(
@@ -38,7 +41,3 @@ while ($rs = $db->fetch($result)) {
 	$nachfragen[$rs['id']] = $rs;
 }
 $smarty->assign("nachfragen", $nachfragen);
-	
-
-
-?>

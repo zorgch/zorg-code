@@ -11,7 +11,7 @@ namespace MVC\Controller;
  * File includes
  * @include core.model.php Required
  */
-require_once(__DIR__ .'/../models/core.model.php');
+require_once dirname(__FILE__).'/../models/core.model.php';
 use MVC; // Fix namespace reference compatibility for MVC Model
 
 /**
@@ -51,8 +51,10 @@ class Sitemap extends Controller
 	private $filesList;
 
 	/**
+	 * Class Constructor
+	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 */
 	public function __construct($cacheTime = 14400)
 	{
@@ -82,7 +84,7 @@ class Sitemap extends Controller
 	 * Build a single URL element array
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @param string $url URL of the page. Must begin with the protocol (http/https) and end with a trailing slash if required. Must be less than 2,048 characters.
 	 * @param string $lastmod (Optional) Use: YYYY-MM-DD - The date of last modification. Should be in W3C Datetime format (allows to omit time portion)
@@ -102,7 +104,7 @@ class Sitemap extends Controller
 	 * @link https://www.php.net/rawurlencode Encode URL according to RFC 3986
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @param string $urlPath URL to encode
 	 * @return string
@@ -119,7 +121,7 @@ class Sitemap extends Controller
 	 * @link https://www.php.net/manual/en/function.htmlspecialchars.php ENT_XML1 - Handle code as XML 1.
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @param string $rawString Raw String to encode
 	 * @return string
@@ -135,10 +137,10 @@ class Sitemap extends Controller
 	 * @link https://www.smarty.net/docsv2/en/caching.tpl Doc on Smarty Caching
 	 * @link https://www.smarty.net/docsv2/en/caching.multiple.caches.tpl Doc on Multiple Caches Per Page
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
-	 * FIXME Smarty Tpl-Cache is not working... Recheck after Smarty 3.x upgrade
+	 * @since 1.0 `15.12.2019` `IneX` method added
+	 * @FIXME Smarty Tpl-Cache is not working... Recheck after Smarty 3.x upgrade
 	 *
-	 * @see /templates/layout/partials/sitemap/url.tpl
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/sitemap/url.tpl Template-File für cached Output
 	 * @param array $tplData Data Items for Smarty Template
 	 * @param string $dataId ID-String to assign to individual Smarty Template Cache
 	 * @param integer $cacheTime (Optional) Set specific Cache lifetime for the rendered Smarty Template-Part. Default: 1 day = 86400
@@ -167,9 +169,9 @@ class Sitemap extends Controller
 	 * Merge and display Sitemap content
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
-	 * @see /templates/layout/pages/sitemap.tpl
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/pages/sitemap.tpl Template Structure used for Sitemap XML
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return string Complete Sitemap XML-Content
 	 */
@@ -205,7 +207,7 @@ class Sitemap extends Controller
 	 * @link /gallery.php?show=pic&picID=[ID]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 */
 	private function process_apods($dataArray)
 	{
@@ -226,7 +228,7 @@ class Sitemap extends Controller
 	 * @link /books.php?do=show&book_id=[ID]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 */
 	private function process_books($dataArray)
 	{
@@ -247,7 +249,7 @@ class Sitemap extends Controller
 	 * @link /bug/736
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 07.12.2019 method added
+	 * @since 1.0 `07.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array
@@ -271,7 +273,7 @@ class Sitemap extends Controller
 	 * @link /event/2001/09/05/236
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array
@@ -301,7 +303,7 @@ class Sitemap extends Controller
 	 * @link /[filename].php
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array
@@ -327,7 +329,7 @@ class Sitemap extends Controller
 	 * @link /page/Rezepte?rezept_id=[ID]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 */
 	private function process_recipies($dataArray)
 	{
@@ -345,11 +347,13 @@ class Sitemap extends Controller
 
 	/**
 	 * Tauschartikel
-	 * FIXME link /page/tauschboerse?artikel_id=[ID] <== Redirect auf Artikel tut nicht
-	 * @link /tpl/191?artikel_id=[ID]
+	 *
+	 * @FIXME link /page/tauschboerse?artikel_id=[ID] <== Redirect auf Artikel tut nicht
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
+	 *
+	 * @return string Relative path like: /tpl/191?artikel_id=[ID]
 	 */
 	private function process_tauschartikel($dataArray)
 	{
@@ -370,7 +374,7 @@ class Sitemap extends Controller
 	 * @link /tpl/[ID]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array
@@ -394,7 +398,7 @@ class Sitemap extends Controller
 	 * @link /thread/[Thread-ID]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array
@@ -418,7 +422,7 @@ class Sitemap extends Controller
 	 * @link /user/[Username]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array
@@ -442,7 +446,7 @@ class Sitemap extends Controller
 	 * @link /wetten.php?id=[ID]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 15.12.2019 method added
+	 * @since 1.0 `15.12.2019` `IneX` method added
 	 */
 	private function process_wetten($dataArray)
 	{
@@ -463,7 +467,7 @@ class Sitemap extends Controller
 	 * @link /files/[USER-ID]/[FILENAME]
 	 *
 	 * @version 1.0
-	 * @since 1.0 <inex> 19.12.2019 method added
+	 * @since 1.0 `19.12.2019` `IneX` method added
 	 *
 	 * @param array $data
 	 * @return array

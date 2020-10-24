@@ -431,8 +431,8 @@ class wetten {
 	 * Formular um neue Wette einzutragen
 	 *
 	 * @version 1.1
-	 * @since 1.0 <cylander> method added
-	 * @since 1.1 <inex> 09.09.2019 changed echo to return() to assign output to Smarty
+	 * @since 1.0 `[z]cylander` method added
+	 * @since 1.1 `09.09.2019` `IneX` changed echo to return() to assign output to Smarty
 	 */
 	function newform()
 	{
@@ -467,14 +467,27 @@ class wetten {
 		</form>';
 	}
 
+	/**
+	 * Wette laden und anzeigen
+	 *
+	 * @version 1.1
+	 * @since 1.0 `[z]cylander` method added
+	 * @since 1.1 `30.12.2019` `IneX` minor optimizations in error output & HTML
+	 *
+	 * @param integer $id ID der anzuzeigenden Wette
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
+	 * @return void Printed HTML-Output
+	 */
 	function get_wette ($id)
 	{
-		global $db, $user;
-		
+		global $db, $user, $smarty;
+
 		$wetter = array();
 		$gegner = array();
 		$html = "";
-		
+
 		$sql = '
 		SELECT *
 			,UNIX_TIMESTAMP(datum) as datum
@@ -485,12 +498,14 @@ class wetten {
 		WHERE id = '.$id;
 		if(!$rs = $db->fetch($db->query($sql,__FILE__,__LINE__)))
 		{
-			die("<h2><font color='red'>Diese Wette gibts nicht!</font></h2>
-				<a href='wetten.php'>&lt;&lt; Zur&uuml;ck</a>");
+			/** Wette nicht gefunden */
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Diese Wette gibts nicht!', 'message' => '<a class="tiny" href="wetten.php">&lt;&lt; Zur&uuml;ck</a>']);
+			http_response_code(404); // Set response code 404 (not found) and exit.
+			$smarty->display('file:layout/elements/block_error.tpl');
+			exit;
 		}
-		else
-		{
-			
+		else {
+			/** Wette gefunden - Details & Daten abfragen */
 			$sqli = '
 			SELECT *
 			FROM wetten_teilnehmer
@@ -508,7 +523,7 @@ class wetten {
 					if($rsi['user_id'] == $user->id) $gjoin = 1;
 				}
 			}
-	
+
 			if($user->id != $rs['user_id'] && $user->typ != USER_NICHTEINGELOGGT)
 			{
 				if(!$gjoin && !$wjoin) {
@@ -527,12 +542,12 @@ class wetten {
 				$gg = "";
 				$ww = "";
 			}
-	
+
 			$html .= "
 			<br />
 			<table width='600' cellpadding='10' cellspacing='0'>
 			<tr><td colspan='2'>
-			<h2>Wette #".$rs['id']." &laquo;".stripslashes($rs['titel'])."&raquo;</h2>
+			<h1>Wette #".$rs['id']." &laquo;".stripslashes($rs['titel'])."&raquo;</h1>
 			</td></tr><tr><td valign=\"top\">
 			<b>Wettstarter</b>
 			</td><td>
@@ -541,18 +556,18 @@ class wetten {
 			<b>Wetter</b>
 			</td><td>
 			";
-			
+
 			// Alle Wetter ausgeben
 			$anzwetter = count($wetter);
 			$html .= ($wetter = implode(", ", $wetter));
-			
+
 			$html .= ($anzwetter > 0 && $ww <> "") ? " | " : "";
 			$html .= $ww."
 			</td></tr><tr><td valign=\"top\">
 			<b>Gegner</b>
 			</td><td>
 			";
-			
+
 			// Alle Wett-Gegner ausgeben
 			$anzgegner = count($gegner);
 			$html .= ($gegner = implode(", ", $gegner));
@@ -575,8 +590,7 @@ class wetten {
 			</td></tr><tr><td valign=\"top\">
 			<b>Status</b>
 			</td><td>";
-	
-			
+
 			switch ($rs['status'])
 			{
 				case 'offen':
@@ -618,15 +632,14 @@ class wetten {
 				default:
 					$html .= '<span class="blink">'.$rs['status'].'</span>';
 			}
-	
+
 			$html .= '
 			</td></tr>
 			</table>';
 
 			$html .= '<a href="'.getURL(false, false).'">&lt;&lt; zur&uuml;ck</a>';
-			
+
 			echo $html;
-			
 		}
 	}
 	
@@ -635,7 +648,7 @@ class wetten {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 03.09.2019 method added
+	 * @since 1.0 `03.09.2019` `IneX` method added
 	 *
 	 * @param int $wette_id ID der Wette
 	 * @return string Titel der Wette gemäss $wette_id
@@ -656,7 +669,7 @@ class wetten {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 03.09.2019 method added
+	 * @since 1.0 `03.09.2019` `IneX` method added
 	 *
 	 * @param int $wette_id ID der Wette
 	 * @return int User-ID des Users der die Wette $wette_id gestartet hat
@@ -677,7 +690,7 @@ class wetten {
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 <inex> 03.09.2019 method added
+	 * @since 1.0 `03.09.2019` `IneX` method added
 	 *
 	 * @param int $wette_id ID der Wette
 	 * @return string Text der Wette gemäss $wette_id
