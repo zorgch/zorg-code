@@ -115,6 +115,7 @@ class Events
 	 * @version 1.1
 	 * @since 1.0 Method added
 	 * @since 1.1 `17.04.2020` `IneX` SQL Slow-Query optimization
+	 * @since 1.2 `24.10.2020` `IneX` Enhanced SQL-Query to not miss ongoing nor upcoming events
 	 *
 	 * @see /includes/smarty.fnc.php
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -137,7 +138,8 @@ class Events
 					LEFT JOIN comments c ON (c.board = "e" AND c.thread_id = e.id)
 					LEFT JOIN comments_unread cu ON (cu.user_id = '.$user_id.' AND cu.comment_id = c.id)
 				WHERE 
-					e.enddate > NOW() AND e.startdate BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)
+					e.enddate >= NOW() AND (e.startdate BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW())
+					OR e.startdate BETWEEN NOW() AND (NOW() + INTERVAL 5 DAY)
 				GROUP by e.id
 				ORDER BY e.startdate ASC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
