@@ -2043,12 +2043,12 @@ class Forum {
 		/** Get and set missing parent_id */
 		$comment_parent_id = ( isset( $_GET['parent_id'] ) && $_GET['parent_id'] != '' ) ? $_GET['parent_id'] : $thread_id;
 
-		if (Thread::hasRights($board, $thread_id, $user->id)) {
+		if (true === Thread::hasRights($board, $thread_id, $user->id)) {
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
 			Thread::setLastSeen($board, $thread_id);
 
 			/** Subscribed_Comments Array Bauen (nur für eingeloggte User) */
-			if($user->typ >= USER_USER)
+			if($user->is_loggedin() === true)
 			{
 				$comments_subscribed = array();
 				$sql = 'SELECT comment_id
@@ -2085,7 +2085,7 @@ class Forum {
 			}
 
 			/** Wenn User eingeloggt ist, commentform.tpl ausgeben */
-	    	if(defined('USER_USER') && $user->typ >= USER_USER)
+	    	if($user->is_loggedin() === true)
 	    	{
 	    		$smarty->assign('board', $board);
 				$smarty->assign('thread_id', $thread_id);
@@ -2342,8 +2342,22 @@ class Thread {
 		}
 	}
 
-	static function hasRights ($board, $thread_id, $user_id) {
+	/**
+	 * Check a User permission to read a Comment Thread
+	 *
+	 * @version 1.1
+	 * @since 1.1 `27.10.2020` `IneX` Fix MySQL Error 1064 because empty $user_id for guests/not logged in users
+	 *
+	 * @param string $board
+	 * @param int $thread_id
+	 * @param int $user_id Default: 0
+	 * @return bool
+	 */
+	static function hasRights ($board, $thread_id, $user_id=0)
+	{
 		global $db;
+
+		$check_user_id = (isset($user_id) && !empty($user_id) && (int)$user_id > 0 ? (int)$user_id : 0);
 
 		$sql = 'SELECT
 					user.usertype
@@ -2352,18 +2366,17 @@ class Thread {
 				FROM comments_threads ct
 				LEFT JOIN comments_threads_rights ctr
 					ON (ct.thread_id = ctr.thread_id
-					AND ctr.user_id = '.$user_id.')
-				LEFT JOIN user ON(user.id = '.$user_id.')
+					AND ctr.user_id = '.$check_user_id.')
+				LEFT JOIN user ON(user.id = '.$check_user_id.')
 				WHERE ct.thread_id = '.$thread_id.'
 				AND ct.board = "'.$board.'"';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
 		if(
-			empty($rs['usertype']) && $rs['thread_rights'] === 0
-			|| empty($rs)
+			empty($rs)
+			|| (empty($rs['usertype']) && $rs['thread_rights'] === 0)
 			|| $rs['usertype'] >= $rs['thread_rights']
-			|| $rs['thread_rights'] == USER_SPECIAL
-			&& $rs['special_rights'] == 1
+			|| ($rs['thread_rights'] === USER_SPECIAL && $rs['special_rights'] === 1)
 		) {
 			return true;
 		}else{
