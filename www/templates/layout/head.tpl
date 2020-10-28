@@ -67,7 +67,7 @@
 				{if $user->typ > 0 && $num_new_events > 0}{capture append=myUpdates}<li id="events">{link tpl=158 param="event_id=`$event_newest.id`"}{$num_new_events|quantity:"new Event":"new Events"}{/link}</li>{/capture}{/if}
 				{if $open_addle>0}{capture append=myUpdates}<li id="addles"><a href="/addle.php">{$open_addle|quantity:"Addlezug":"Addlezüge"}</a></li>{/capture}{/if}
 				{get_peter_zuege}{if $peter_zuege[0] > 0}{capture append=myUpdates}<li id="peter"><a href="/peter.php?game_id={$peter_zuege[1]}">{$peter_zuege[0]} Peter</a></li>{/capture}{/if}
-				{if $hz_running_games>0}{capture append=myUpdates}<li id="hzzuege">{link tpl=103}{$hz_running_games|quantity:"Hz Zug":"Hz Züge"}{/link}</li>{/capture}{/if}
+				{if $hz_running_games>0}{capture append=myUpdates}<li id="hzzuege">{link tpl=100}{$hz_running_games|quantity:"Hz Zug":"Hz Züge"}{/link}</li>{/capture}{/if}
 				{if $hz_open_games>0}{capture append=myUpdates}<li id="hzgames">{link tpl=100}{$hz_open_games|quantity:"offenes Hunting z Spiel":"offene Hunting z Spiele"}{/link}</li>{/capture}{/if}
 				{if $go_running_games>0}{capture append=myUpdates}<li id="gozuege">{link tpl=699}{$go_running_games|quantity:"GO Zug":"GO Züge"}{/link}</li>{/capture}{/if}
 				{if $go_open_games>0}{capture append=myUpdates}{link tpl=698}<li id="gogames">{$go_open_games|quantity:"GO-Herausforderung":"GO-Herausforderungen"}{/link}</li>{/capture}{/if}

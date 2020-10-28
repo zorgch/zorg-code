@@ -2346,7 +2346,7 @@ class Thread {
 	 * Check a User permission to read a Comment Thread
 	 *
 	 * @version 1.1
-	 * @since 1.1 `27.10.2020` `IneX` Fix MySQL Error 1064 because empty $user_id for guests/not logged in users
+	 * @since 1.1 `27.10.2020` `IneX` Fix MySQL Error 1064 because empty $user_id for guests/not logged in users, adds type casting
 	 *
 	 * @param string $board
 	 * @param int $thread_id
@@ -2372,11 +2372,17 @@ class Thread {
 				AND ct.board = "'.$board.'"';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
+		/*if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Thread::hasRights() empty($rs) => %s', __METHOD__, __LINE__, (empty($rs)?'true':'false')));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Thread::hasRights() empty($rs[usertype]) => %s', __METHOD__, __LINE__, (empty($rs['usertype'])?'true':'false')));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Thread::hasRights() $rs[thread_rights] === 0 => %s', __METHOD__, __LINE__, ((int)$rs['thread_rights']===0?'true':'false')));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Thread::hasRights() $rs[usertype] >= $rs[thread_rights] => %s', __METHOD__, __LINE__, ($rs['usertype'] >= $rs['thread_rights']?'true':'false')));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Thread::hasRights() $rs[thread_rights] === USER_SPECIAL => %s', __METHOD__, __LINE__, ($rs['thread_rights']===USER_SPECIAL?'true':'false')));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Thread::hasRights() $rs[special_rights] === 1 => %s', __METHOD__, __LINE__, ($rs['special_rights']===1?'true':'false')));*/
 		if(
 			empty($rs)
-			|| (empty($rs['usertype']) && $rs['thread_rights'] === 0)
-			|| $rs['usertype'] >= $rs['thread_rights']
-			|| ($rs['thread_rights'] === USER_SPECIAL && $rs['special_rights'] === 1)
+			|| (empty($rs['usertype']) && (int)$rs['thread_rights'] === 0)
+			|| (int)$rs['usertype'] >= (int)$rs['thread_rights']
+			|| ((int)$rs['thread_rights'] === (int)USER_SPECIAL && (int)$rs['special_rights'] === 1)
 		) {
 			return true;
 		}else{
