@@ -91,7 +91,7 @@ def getStock():
     message=message.replace("$","\$")
     message=urllib.parse.quote_plus(message)
     #DEBUG: print(message)
-    send='https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + bot_chatID + '&parse_mode=MarkdownV2&text=' + message
+    send='https://api.telegram.org/bot' + bot_token + '/sendMessage?parse_mode=MarkdownV2&disable_notification=true&chat_id=' + bot_chatID + '&text=' + message
     #DEBUG: print(send)
     response=requests.get(send)
     #DEBUG: print(response)
