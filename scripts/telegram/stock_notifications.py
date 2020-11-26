@@ -12,10 +12,10 @@
 #
 # == Usage ==
 # one time:
-# % python3 ./stock_notifications.py "BTC-USD
+# % python3 ./stock_notifications.py "BTC-USD"
 #
-# running as a service:
-# % nohup python3 ./stock_notifications.py "TSLA" $
+# running as a service (every 11 hours):
+# % nohup python3 ./stock_notifications.py "TSLA" 39600 $
 #
 # ~~~~~
 # Original source: https://codeburst.io/indian-stock-market-price-notifier-bot-telegram-92e376b0c33a
@@ -35,6 +35,23 @@ import yfinance as yf
 import urllib.parse
 import botconfigs as bot
 
+# Check for stock symbol parameter
+if len(sys.argv) <= 1:
+    print("Missing a valid symbol as parameter. Use something like 'TSLA' or 'BTC-USD'...")
+    quit()
+else:
+    symbol=sys.argv[1]
+
+# Check for timer seconds parameter
+if len(sys.argv) <= 2:
+    # Default: 1 minute = 60 seconds
+    repeat=60
+elif int(sys.argv[2]) >= 1:
+    repeat=int(sys.argv[2])
+else:
+    print("Invalid second parameter: must be a number representing seconds to re-run script.")
+    quit()
+
 def getStock():
     if len(bot.token) > 40 and len(bot.chat) > 5:
         bot_token=bot.token
@@ -42,12 +59,6 @@ def getStock():
     else:
         print("Missing botconfigs!")
         quit()
-
-    if len(sys.argv) <= 1:
-        print("Missing a valid symbol as parameter. Use something like 'TSLA' or 'BTC-USD'...")
-        quit()
-    else:
-        symbol=sys.argv[1]
 
     currency=''
     price=0
@@ -95,8 +106,8 @@ def getStock():
     #DEBUG: print(send)
     response=requests.get(send)
     #DEBUG: print(response)
+
 import threading
 while True:
     getStock()
-    # Sleep 12 hours = 43200 seconds
-    time.sleep(43200)
+    time.sleep(repeat)
