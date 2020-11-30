@@ -11,16 +11,16 @@
 	<meta name="robots" content="none, noarchive, nosnippet, noodp, notranslate, noimageindex" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	{include file="file:layout/partials/head/favicons.tpl"}
-	<link rel="stylesheet" href="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.css">
+	<link rel="stylesheet" href="{$smarty.const.CSS_DIR}shoelace/shoelace.min.css">
 	{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
 	{if !$dev}<script src="https://kit.fontawesome.com/e9effb9c00.js" crossorigin="anonymous"></script>{else}<link href="{$smarty.const.CSS_DIR}fontawesome.min.css" rel="stylesheet">{/if}
 	{*<link href="/js/emoji-picker/css/emoji.css" rel="stylesheet">*}
-	<script src="{if !$dev}https://code.jquery.com/{else}{$smarty.const.JS_DIR}{/if}jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-	<script src="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.js"></script>
-	<script {if !$dev}src="https://cdnjs.cloudflare.com/ajax/libs/nanobar/0.4.2/nanobar.js" crossorigin="anonymous">{else}<!-- nanobar.min.js not found -->{/if}</script>
+	<script src="{$smarty.const.JS_DIR}jquery-3.5.1.min.js"></script>
+	<script src="{$smarty.const.CSS_DIR}shoelace/shoelace.min.js"></script>
+	<script src="{$smarty.const.JS_DIR}nanobar.min.js"></script>
 	<!-- Quill - Rich Text Editor: https://quilljs.com/ -->
-	<link rel="stylesheet" href="/js/quill-richtexteditor/quill.snow.css" />
-	<script src="/js/quill-richtexteditor/quill.min.js"></script>
+	<link rel="stylesheet" href="{$smarty.const.JS_DIR}quill-richtexteditor/quill.snow.css" />
+	<script src="{$smarty.const.JS_DIR}quill-richtexteditor/quill.min.js"></script>
 	<style>{literal}
 	.intrinsic-container{-webkit-overflow-scrolling:touch;overflow-y:scroll;overflow:scroll;position:relative;height:0;background:url(/images/mobilez/ajax-loader-black.gif) center center no-repeat}.intrinsic-container-16x9{padding-bottom:56.25%}.intrinsic-container-4x3{padding-bottom:75%}.intrinsic-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:1px solid #ddd;border-radius:.25rem}.emoji-picker-icon{pointer-events:all!important}.emoji-menu{height:250px}.nanobar .bar{background-color:#0074d9}#mail_message{height:auto;min-height:100%}#mail_message .ql-editor{font-size:14px;overflow-y:visible}#commenting{height:100%;min-height:100%;overflow-y:auto}.ql-snow.ql-toolbar button{color:#000;line-height:0!important}.ql-tooltip.ql-editing{z-index:1}.ql-tooltip.ql-editing input{line-height:0!important}
 	.ql-editor { background: #000 !important; color: #fff !important; font-family: Verdana, Sans-Serif !important; }

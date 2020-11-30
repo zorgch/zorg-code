@@ -11,11 +11,10 @@
 	<meta name="description" content="Dein zorg Profil und deine Einstellungen bearbeiten.">
 	<meta name="robots" content="none, noarchive, nosnippet, noodp, notranslate, noimageindex">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	{*<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}{$daytime}.css">*}
 	{if $user->id > 0}
-	<link rel="stylesheet" href="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.css">
-	<script src="{if !$dev}https://code.jquery.com/{else}{$smarty.const.JS_DIR}{/if}jquery-3.4.1.slim.min.js" integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
-	<script src="{if !$dev}https://cdn.shoelace.style/1.0.0-beta24/{else}{$smarty.const.CSS_DIR}shoelace/{/if}shoelace.js"></script>
+	<link rel="stylesheet" href="{$smarty.const.CSS_DIR}shoelace/shoelace.min.css">
+	<script src="{$smarty.const.JS_DIR}jquery-3.5.1.min.js"></script>
+	<script src="{$smarty.const.CSS_DIR}shoelace/shoelace.min.js"></script>
 	{/if}
 </head>
 
