@@ -4,6 +4,7 @@
 {assign_array var=president value="array('userid'=>117,'value'=>'president','label'=>'Präsidentensache')"}
 {assign_array var=actuary value="array('userid'=>11,'value'=>'actuary','label'=>'Aktuarssache')"}
 {assign_array var=treasurer value="array('userid'=>52,'value'=>'treasurer','label'=>'Kassiersache')"}
+{assign_array var=eventmanager value="array('userid'=>713,'value'=>'eventmanager','label'=>'Eventsache')"}
 <head>
 	<meta charset="utf-8">
 	<title>zorg Verein - Mailer</title>
@@ -36,7 +37,7 @@
 	{/if}
 </head>
 
-<body>{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid)}
+<body>{if $user->id > 0 && ($user->id == $president.userid || $user->id == $actuary.userid || $user->id == $treasurer.userid || $user->id == $eventmanager.userid)}
 	<header class="text-center">
 		<h1>zorg Verein - Mailer</h1>
 		<p class="text-secondary text-small">
@@ -69,6 +70,7 @@
 					<label><input type="radio" name="topic" id="radio_president" value="{$president.value}" {if $user->id == $president.userid}checked{/if}> {$president.label}</label> <br class="hide-md-up">
 					<label><input type="radio" name="topic" id="radio_actuary" value="{$actuary.value}" {if $user->id == $actuary.userid}checked{/if}> {$actuary.label}</label> <br class="hide-md-up">
 					<label><input type="radio" name="topic" id="radio_treasurer" value="{$treasurer.value}" {if $user->id == $treasurer.userid}checked{/if}> {$treasurer.label}</label>
+					<label><input type="radio" name="topic" id="radio_eventmanager" value="{$eventmanager.value}" {if $user->id == $eventmanager.userid}checked{/if}> {$eventmanager.label}</label>
 				</div>
 			</div>
 		</div>
@@ -250,6 +252,7 @@
 	const president_userid = {/literal}{$president.userid}{literal};
 	const actuary_userid = {/literal}{$actuary.userid}{literal};
 	const treasurer_userid = {/literal}{$treasurer.userid}{literal};
+	const eventmanager_userid = {/literal}{$eventmanager.userid}{literal};
 	var update_mode = false;
 
 	// Quill - Rich Text Editor
@@ -352,6 +355,7 @@
 					if (Number(data.owner) == president_userid) $('#radio_president').prop('checked', true);
 					if (Number(data.owner) == actuary_userid) $('#radio_actuary').prop('checked', true);
 					if (Number(data.owner) == treasurer_userid) $('#radio_treasurer').prop('checked', true);
+					if (Number(data.owner) == eventmanager_userid) $('#radio_eventmanager').prop('checked', true);
 					text_mail_subject.val(data.subject);
 					text_mail_description.val(data.preview);
 					quill.root.innerHTML = data.message;
