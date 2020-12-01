@@ -19,23 +19,24 @@ require_once INCLUDES_DIR.'mysql.inc.php';
  */
 header('Content-type:application/json;charset=utf-8');
 $_POST = json_decode(file_get_contents('php://input'), true);
-try {
-	//error_log('[DEBUG] ' . $_POST['member_type']);
-	$sql = 'SELECT id, username, vereinsmitglied FROM user WHERE vereinsmitglied IS NOT NULL AND vereinsmitglied = "'.$_POST['member_type'].'" ORDER BY username ASC';
-	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientlist)');
+$sql = 'SELECT id, username, vereinsmitglied FROM user WHERE vereinsmitglied IS NOT NULL AND vereinsmitglied = "'.$_POST['member_type'].'" ORDER BY username ASC';
+$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientlist)');
+if (empty($result) || false === $result)
+{
+	http_response_code(500); // Set response code 500 (internal server error)
+	die('Error... No recipients found!');
+} else {
 	while ($rs = $db->fetch($result))
 	{
-		//error_log('[DEBUG] ' . $rs['id'] . ', ' . $rs['username'] . ', ' . $rs['vereinsmitglied']);
-		$memberlist[] = [
-			'userid' => $rs['id'],
-			'username' => $rs['username'],
-			'membertype' => $rs['vereinsmitglied']
-		];
+		if ((int)$rs['id'] !== VORSTAND_USER) // Vorstand-User ausschliessen (dem darf man nix mailen)
+		{
+			$memberlist[] = [
+				'userid' => $rs['id'],
+				'username' => $rs['username'],
+				'membertype' => $rs['vereinsmitglied']
+			];
+		}
 	}
 	http_response_code(200); // Set response code 200 (OK)
 	echo json_encode($memberlist);
-}
-catch(Exception $e) {
-	http_response_code(500); // Set response code 500 (internal server error)
-	echo json_encode($e->getMessage());
 }

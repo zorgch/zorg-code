@@ -117,13 +117,14 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				/** @TODO Make a Q Encoding: convert every non ASCII character to an equivalent char understandable by MIME or quoted printable http://php.net/manual/de/function.mb-encode-mimeheader.php#90242 */
 
 				/**
-				 * From:-Address Format "From: Präsident|Aktuar|Kassier <ZORG_EMAIL>\r\n"
+				 * From:-Address Format "From: Präsident|Aktuar|Kassier|Event Manager <ZORG_EMAIL>\r\n"
 				 * @link https://stackoverflow.com/a/10381429/5750030
 				 * @link https://www.php.net/manual/en/function.mail.php#124291 for PHP mail() TO: encoding
 				 */
 				if ($_POST['topic'] === 'president') $senderEmail = '=?UTF-8?B?'.base64_encode('Präsident').'?= <'.ZORG_EMAIL.'>';
 				elseif ($_POST['topic'] === 'actuary') $senderEmail = '=?UTF-8?B?'.base64_encode('Aktuar').'?= <'.ZORG_EMAIL.'>';
 				elseif ($_POST['topic'] === 'treasurer') $senderEmail = '=?UTF-8?B?'.base64_encode('Kassier').'?= <'.ZORG_EMAIL.'>';
+				elseif ($_POST['topic'] === 'eventmanager') $senderEmail = '=?UTF-8?B?'.base64_encode('Event Manager').'?= <'.ZORG_EMAIL.'>';
 				else $senderEmail = ZORG_EMAIL;
 
 				/**
