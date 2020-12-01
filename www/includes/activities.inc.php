@@ -64,7 +64,7 @@ class Activities
 	 * @param	integer	$owner			User ID von welchem die Activities ausgegeben werden sollen (Default = alle)
 	 * @param	integer	$start			Von welchem Datensatz aus die Activites ausgegeben werden sollen
 	 * @param	integer	$limit			Anzahl Activities, welche ausgegeben werden sollen
-	 * @param	date	$date			Datum von welchem die Activities angezeigt werden sollen
+	 * @param	string	$date			Datum von welchem die Activities angezeigt werden sollen
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
 	 * @return	array|boolean			Returns all fetched $activities - or false, if execution failed
 	 */
@@ -72,38 +72,33 @@ class Activities
 	{
 		global $db;
 
-		try {
-			$sql = 'SELECT
-						*,
-						TIME_TO_SEC(TIMEDIFF(NOW(),date)) AS date_secs,
-						UNIX_TIMESTAMP(date) AS datum
-					FROM
-						activities
-					ORDER BY
-						datum DESC';
-			//if ($activity_area <> '') $sql_WHERE = "activity_area = '".$activity_area."'";
-			if ($date <> '') {
-				$sql_WHERE = ($sql_WHERE <> '' ? ' AND datum = "'.$date.'"' : 'datum = "'.$date.'"');
-			}
-			$sql .= $sql_WHERE . ' LIMIT '.$start.','.$limit;
+		$sql = 'SELECT
+					*,
+					TIME_TO_SEC(TIMEDIFF(NOW(),date)) AS date_secs,
+					UNIX_TIMESTAMP(date) AS datum
+				FROM
+					activities
+				ORDER BY
+					datum DESC';
+		//if ($activity_area <> '') $sql_WHERE = "activity_area = '".$activity_area."'";
+		if ($date <> '') {
+			$sql_WHERE = ($sql_WHERE <> '' ? ' AND datum = "'.$date.'"' : 'datum = "'.$date.'"');
+		} else { $sql_WHERE = null; }
+		$sql .= $sql_WHERE . ' LIMIT '.$start.','.$limit;
 
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			while($rs = $db->fetch($result))
+		while($rs = $db->fetch($result))
+		{
+			/** New way to do it - coming soon... */
+			if (!empty($rs['values']) || $rs['values'] !== false) $rs['values'] = json_decode($rs['values']);
 			{
-				/** New way to do it - coming soon... */
-				if (!empty($rs['values']) || $rs['values'] !== false) $rs['values'] = json_decode($rs['values']);
-				{
-					/** sprintf() each Activity */
-					$rs['activity'] = sprintf($rs['activity'], $rs['values']);
-				}
-
-				/** Puash activity to $activities Array */
-				$activities[] = $rs;
+				/** sprintf() each Activity */
+				$rs['activity'] = sprintf($rs['activity'], $rs['values']);
 			}
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-			return false;
+
+			/** Push activity to $activities Array */
+			$activities[] = $rs;
 		}
 
 		return $activities;
@@ -462,40 +457,38 @@ class Activities
 
 	/**
 	 * Activities als RSS ausgeben
-	 * (kann mit RSS Readern abonniert werden)
 	 *
-	 * @author	IneX
-	 * @date	18.08.2012
-	 * @version	1.0
-	 * @since	1.0 `18.08.2012` initial release
+	 * Kann mit RSS Readern abonniert werden
 	 *
-	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge
+	 * @author IneX
+	 * @version	1.1
+	 * @since 1.0 `18.08.2012` `IneX` initial release
+	 * @since 1.1 `01.12.2020` `IneX` fixed PHP 7 Uncaught Error: [] operator not supported for strings
+	 *
+	 * @param	integer	$num	Anzahl maximal auszugebender Activities-Einträge. Default: 5
 	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
 	 * @return	string			Gibt das XML des zusammengebauten RSS-Feeds aus
 	 */
-	static public function getActivitiesRSS ($num)
+	static public function getActivitiesRSS ($num=5)
 	{
 		global $db, $user;
-		
-		$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
-		
+
+		$xmlfeed = array();	// Ausgabestring für XML Feed als Array initialisieren
+
 		/**
 		 * Ausgabe evaluieren und Daten holen
-		 * @author IneX
 		 */
 		$activityFeed = Activities::getActivities(0, 0, $num, 0);
-		 
-		 /**
-		* Feed bauen
-		* @author IneX
-		*/
-		if (count($activityFeed) > 0) {
 
-			// Datensätze ausgeben	
+		 /**
+		 * Feed bauen
+		 */
+		if (count($activityFeed) > 0)
+		{
+			/** Datensätze ausgeben	*/
 			foreach($activityFeed as $activity)
 			{
-
-				// Assign Values
+				/** Assign Values */
 				$activityFromUser = $user->id2user($activity['from_user_id']);
 				$xmlitem_title = 'Neue Activity von '.$activityFromUser;
 				$xmlitem_link = str_replace('&', '&amp;amp;', SITE_URL); // &amp;amp; for xml-compatibility
@@ -510,7 +503,7 @@ class Activities
 					$xmlitem_description .= ']]>';
 				$xmlitem_content = remove_html($activityFromUser.' '.$activity['activity']);
 
-				// XML Feed items schreiben
+				/** XML Feed items schreiben */
 				$xmlfeed[] = [
 						'xmlitem_title' => $xmlitem_title,
 						'xmlitem_link' => $xmlitem_link,
@@ -521,14 +514,12 @@ class Activities
 						'xmlitem_description' => $xmlitem_description,
 						'xmlitem_content' => $xmlitem_content
 					];
-
 			} // end foreach $activityFeed
 
-			// Return XML
+			/** Return XML */
 			return $xmlfeed;
 
 		} // end if count()	
-
 	}
 
 

@@ -2096,13 +2096,15 @@ class Forum {
 	}
 
 	/**
-	 * RSS functionality for Zorg Boards
+	 * RSS functionality for zorg Boards
+	 *
 	 * Gibt einen XML RSS-Feed zurück
 	 *
 	 * @author IneX
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 `IneX` initial method added
 	 * @since 2.0 `20.07.2018` `IneX` Refactored long-running queries, optimized queries and output (e.g. unreads, unnecessary LEFT JOINs, etc.)
+	 * @since 2.1 `01.12.2020` `IneX` fixed PHP 7 Uncaught Error: [] operator not supported for strings
 	 *
 	 * @TODO Param "user_id" can be removed with a refactoring! Doesn't have to be passed & thus Method can be simplified...
 	 *
@@ -2126,17 +2128,17 @@ class Forum {
 		/**
 		 * Ausgabe evaluieren und entsprechendes SQL holen
 		 */
-		$xmlfeed = '';	// Ausgabestring für XML Feed initialisieren
+		$xmlfeed = array();	// Ausgabestring für XML Feed als Array initialisieren
 
 		/** nicht eingeloggter User... */
-		if (is_null($user_id)) {
-
+		if (is_null($user_id))
+		{
 			/** Feed für forum board */
-			if ($board == 'f') {
-
+			if ($board === 'f')
+			{
 				/** keine thread_id übergeben */
-				if (is_null($thread_id)) {
-
+				if (is_null($thread_id))
+				{
 					$sql =
 						'SELECT
 						    comments.*
@@ -2149,10 +2151,9 @@ class Forum {
 						 ORDER BY date desc
 						 LIMIT 0,'.$num
 					;
-
+				}
 				/** thread_id vorhanden */
-				} else {
-
+				else {
 					$sql =
 						'SELECT
 						   comments.*
@@ -2162,7 +2163,6 @@ class Forum {
 						 ORDER BY date DESC
 						 LIMIT 0,'.$num
 					;
-
 				}
 
 			/**
@@ -2171,8 +2171,8 @@ class Forum {
 			 * @TODO 20.07.2018 Query vereinfacht um SQL query-time von >1.5s auf <200ms zu reduzieren (!) - dafür werden Berechtigungen nicht geprüft. Wird aber eh nicht genutzt, von da her...
 			 * @TODO 20.07.2018 Wieso ein LEFT JOIN auf comments_unread wenn der Query für "nicht eingeloggte" User ist? Rausgenommen...
 			 */			
-			} else {
-
+			}
+			else {
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
 				// @FIXME erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
@@ -2188,18 +2188,16 @@ class Forum {
 					( !empty($wboard) ? 'WHERE '.$wboard : '')./*' AND (user.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL)*/
 					'ORDER BY date desc LIMIT 0,'.$num
 				;
-
 			}
-
+		}
 		/** User ist eingeloggt */
-		} else {
-
+		else {
 			/** Feed für forum board */
-			if ($board == 'f') {
-
+			if ($board === 'f')
+			{
 				/** keine thread_id übergeben */
-				if (is_null($thread_id)) {
-
+				if (is_null($thread_id))
+				{
 					$sql =
 						'SELECT
 						  comments.*
@@ -2211,10 +2209,9 @@ class Forum {
 						 ORDER BY date desc
 						 LIMIT 0,'.$num
 					;
-
+				}
 				/** thread_id vorhanden */
-				} else {
-
+				else {
 					$sql =
 						'SELECT
 						   comments.*
@@ -2224,12 +2221,10 @@ class Forum {
 						 ORDER BY date DESC
 						 LIMIT 0,'.$num
 					;
-
 				}
-
+			}
 			/** Feed für ein anderes board */
-			} else {
-
+			else {
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
 				// @FIXME erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql =
@@ -2246,22 +2241,17 @@ class Forum {
 					' ORDER BY date desc LIMIT 0,'.$num
 				;
 			}
-
 		} // end if is_null($user_id)
-
 
 		/**
 		 * Feed bauen - Query mit $sql
-		 * @author IneX
 		 */
 		if ($result = $db->query($sql, __FILE__, __LINE__, __METHOD__))
 		{
-
-			// Datensätze auslesen
+			/** Datensätze auslesen */
 			while($rs = $db->fetch($result))
 			{
-
-				// Assign Values
+				/** Assign Values */
 				$xmlitem_title = (isset($rs['isunread']) && $rs['isunread'] == 1 ? '*unread* ' : '') . ( Comment::isThread($rs['board'], $rs['id']) ? Comment::getTitle($rs['text'], 80) : 'Comment zu '.remove_html(Comment::getLinkThread($rs['board'], Comment::getThreadid($rs['board'], $rs['id']))) );
 				$xmlitem_link = str_replace('&', '&amp;amp;', SITE_URL . Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id'])); // &amp;amp; for xml-compatibility
 				$xmlitem_pubDate = date('D, d M Y H:i:s', $rs['date']);//.' '.gmt_diff($rs[date]);
@@ -2278,7 +2268,7 @@ class Forum {
 					$xmlitem_description .= ']]>';
 				$xmlitem_content = remove_html($rs['text']);
 
-				// XML Feed items schreiben
+				/** XML Feed items schreiben */
 				$xmlfeed[] = [
 						'xmlitem_title' => $xmlitem_title,
 						'xmlitem_link' => $xmlitem_link,
@@ -2289,9 +2279,7 @@ class Forum {
 						'xmlitem_description' => $xmlitem_description,
 						'xmlitem_content' => $xmlitem_content
 					];
-
 			} // end while $rs
-
 		} // end if $result
 
 		/** Return XML */
