@@ -8,6 +8,12 @@
  * @include main.inc.php
  */
 require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\VereinMailer();
 
 /**
  * Show a mail message's webview
@@ -80,10 +86,11 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 			/** Template and/or User IDs do NOT match... */
 			} else {
 				http_response_code(403); // Set response code 403 (forbidden)
-				$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
+				$smarty->assign('tplroot', array('page_title' => 'zorg Verein Mailer'));
+				$model->showOverview($smarty);
 				$smarty->display('file:layout/head.tpl');
-				echo menu("zorg");
-				echo menu("verein-menu");
+				//echo menu("zorg");
+				//echo menu("verein-menu");
 				user_error('Nice try - aber Du dörfsch die Message nöd aluege. Yarak!', E_USER_NOTICE);
 				$smarty->display('file:layout/footer.tpl');
 			}
@@ -92,9 +99,10 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 		} else {
 			http_response_code(403); // Set response code 403 (forbidden)
 			$smarty->assign('tplroot', array('page_title' => 'Zorg Verein Mailer'));
+			$model->showOverview($smarty);
 			$smarty->display('file:layout/head.tpl');
-			echo menu("zorg");
-			echo menu("verein-menu");
+			//echo menu("zorg");
+			//echo menu("verein-menu");
 			user_error('Nope - do stimmt was nöd. Tschau.', E_USER_NOTICE);
 			$smarty->display('file:layout/footer.tpl');
 		}
