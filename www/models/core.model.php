@@ -134,5 +134,5 @@ require_once dirname(__FILE__).'/seti.php';
 require_once dirname(__FILE__).'/sitemap.model.php';
 require_once dirname(__FILE__).'/spaceweather.php';
 require_once dirname(__FILE__).'/stl.php';
-//require_once dirname(__FILE__).'/verein_mailer.php';
+require_once dirname(__FILE__).'/verein_mailer.php';
 require_once dirname(__FILE__).'/wetten.php';

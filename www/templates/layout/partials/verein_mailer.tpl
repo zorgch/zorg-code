@@ -318,6 +318,7 @@
 	 * Load existing Templates
 	 */
 	function getTemplates(container) {
+		var selected_tpl_id = hidden_template_id.val();
 		$.ajax({
 			url: "/js/ajax/verein_mailer/get-mailtemplateslist.php?action=list",
 			type: 'GET',
@@ -327,7 +328,8 @@
 						var option_id = container + '_' + data[i].tplid;
 						var option_label = '#' + data[i].tplid + ' &laquo;' + data[i].subject + '&raquo; von ' + data[i].updated;
 						var option_value = data[i].tplid;
-						list_html += '<option id="' + option_id + '" label="' + option_label + '" value="' + option_value + '">' + option_label + '</option>';
+						var option_selected = (data[i].tplid == selected_tpl_id ? 'selected' : '');
+						list_html += '<option id="' + option_id + '" label="' + option_label + '" value="' + option_value + '" '+option_selected+'>' + option_label + '</option>';
 					}
 					$('#' + container).html(list_html);
 				},
@@ -629,11 +631,11 @@
 		 */
 		save_button.click(function(){
 			$(this).prop('disabled', true);
-			if (update_mode === true && hidden_template_id.val() > 0) {
-				console.info('Updating Mail Template...');
+			if (update_mode === true && hidden_template_id.val() > 1) {
+				console.info('Updating Mail Template ('+hidden_template_id.val()+')...');
 				var action = 'update';
 			} else {
-				console.info('Saving Mail Template...');
+				console.info('Saving Mail Template ('+hidden_template_id.val()+')...');
 				var action = 'save';
 			}
 			$.ajax({
@@ -645,7 +647,7 @@
 						updateMailPreview(data);
 					},
 				error: function(data) {
-						console.error('Error while template ' + action);
+						console.error('Error while '+action+' Template ('+hidden_template_id.val()+')');
 					}
 			});
 			getTemplates('dropdown_template_select');

@@ -1,4 +1,6 @@
 <?php
+header('Content-Type: text/html; charset=utf-8'); // Force PHP to send any HTTP output as UTF-8
+
 /**
  * AJAX Request validation
  */
@@ -83,17 +85,13 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				error_log('[INFO] Sending E-Mail to user ' . $recipient_id);
 
 				/** Query Message Parameters */
-				try {
-					$readParametersQuery = 	'SELECT
-												subject_text, message_text
-											 FROM verein_correspondence
-											 WHERE id = ' . $messageId;
-					$mailMessage = $db->fetch($db->query($readParametersQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
-				} catch(Exception $e) {
-					error_log($e->getMessage());
-					http_response_code(500); // Set response code 500 (internal server error)
-					echo $e->getMessage();
-				}
+				$readParametersQuery = 	'SELECT
+											subject_text, message_text
+										 FROM verein_correspondence
+										 WHERE id = ' . $messageId;
+				$mailMessage = $db->fetch($db->query($readParametersQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
+				if (empty($mailMessage) || false === $mailMessage) http_response_code(500); // Set response code 500 (internal server error)
+
 				$formatNewline  = "\r\n"; // Line breaks
 				/**
 				 * Define different Mail Boundaries
@@ -121,10 +119,11 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				/**
 				 * From:-Address Format "From: Präsident|Aktuar|Kassier <ZORG_EMAIL>\r\n"
 				 * @link https://stackoverflow.com/a/10381429/5750030
+				 * @link https://www.php.net/manual/en/function.mail.php#124291 for PHP mail() TO: encoding
 				 */
-				if ($_POST['topic'] === 'president') $senderEmail = 'Präsident <'.ZORG_EMAIL.'>';
-				elseif ($_POST['topic'] === 'actuary') $senderEmail = 'Aktuar <'.ZORG_EMAIL.'>';
-				elseif ($_POST['topic'] === 'treasurer') $senderEmail = 'Kassier <'.ZORG_EMAIL.'>';
+				if ($_POST['topic'] === 'president') $senderEmail = '=?UTF-8?B?'.base64_encode('Präsident').'?= <'.ZORG_EMAIL.'>';
+				elseif ($_POST['topic'] === 'actuary') $senderEmail = '=?UTF-8?B?'.base64_encode('Aktuar').'?= <'.ZORG_EMAIL.'>';
+				elseif ($_POST['topic'] === 'treasurer') $senderEmail = '=?UTF-8?B?'.base64_encode('Kassier').'?= <'.ZORG_EMAIL.'>';
 				else $senderEmail = ZORG_EMAIL;
 
 				/**
@@ -134,14 +133,16 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				 * - "multipart/alternative" ensures, that only 1 body-part of the e-mail is being displayed
 				 * @link https://www.drweb.de/aufbau-von-mime-mails-2/
 				 */
-				$mailTo = sprintf('%s <%s>', $user->id2user($recipient_id), $recipientEmail);
+				$mailTo = sprintf('=?UTF-8?B?%s?= <%s>', base64_encode($user->id2user($recipient_id)), $recipientEmail);
 				//$mailHeaders  = 'Subject: '.$mailMessage['subject_text'].$formatNewline;
 				$mailHeaders  = 'From: '.$senderEmail.$formatNewline;
 				$mailHeaders .= 'Reply-to: '.ZORG_VEREIN_EMAIL.$formatNewline;
 				//$mailHeaders  = 'To: '.$mailTo.$formatNewline;
 				$mailHeaders .= 'MIME-version: 1.0'.$formatNewline;
 				$mailHeaders .= 'X-Mailer: PHP/'.phpversion().$formatNewline;
+				$mailHeaders .= 'List-Unsubscribe: <mailto: '.ZORG_VEREIN_EMAIL.'?subject=unsubscribe>'.$formatNewline;
 				$mailHeaders .= 'Content-type: multipart/alternative; boundary="'.$mailBoundaryHeader.'"; charset=utf-8';
+				$mailSubject = '=?UTF-8?Q?'.quoted_printable_encode($mailMessage['subject_text']).'?=';
 
 					/** Plain-Text E-Mail Part (= lower Prio)
 					 * chunk_split() alternative supporting unicode strings
@@ -162,7 +163,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 
 					/** HTML-E-Mail (base64 encoded) Part (= higher Prio, because last) */
 					$message_text .= $mailBoundary.$formatNewline;
-					$message_text .= 'Content-type: text/html'.$formatNewline;
+					$message_text .= 'Content-type: text/html; charset=utf-8'.$formatNewline;
 					$message_text .= 'Content-transfer-encoding: base64'.$formatNewline;
 					$message_text .= $formatNewline;
 					$message_text .= $message_text_b64.$formatNewline;
@@ -171,7 +172,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				/** Send E-Mail */
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __FILE__, __LINE__, $formatNewline.$mailMessage['subject_text'].$formatNewline.$mailHeaders.$formatNewline.$message_text));
 				error_log('[INFO] Sending E-Mail from ' . $senderEmail);
-				if ( mail($mailTo, $mailMessage['subject_text'], $message_text, $mailHeaders) )
+				if ( mail($mailTo, $mailSubject, $message_text, $mailHeaders) )
 				{
 					/** mail(): Success! */
 					error_log('[INFO] OK - Successfully sent E-Mail «'.$mailMessage['subject_text'].'» to ' . $mailTo . ' (user id '.$recipient_id.')');
