@@ -69,7 +69,7 @@
 				<div class="input-field">
 					<label><input type="radio" name="topic" id="radio_president" value="{$president.value}" {if $user->id == $president.userid}checked{/if}> {$president.label}</label> <br class="hide-md-up">
 					<label><input type="radio" name="topic" id="radio_actuary" value="{$actuary.value}" {if $user->id == $actuary.userid}checked{/if}> {$actuary.label}</label> <br class="hide-md-up">
-					<label><input type="radio" name="topic" id="radio_treasurer" value="{$treasurer.value}" {if $user->id == $treasurer.userid}checked{/if}> {$treasurer.label}</label>
+					<label><input type="radio" name="topic" id="radio_treasurer" value="{$treasurer.value}" {if $user->id == $treasurer.userid}checked{/if}> {$treasurer.label}</label> <br class="hide-md-up">
 					<label><input type="radio" name="topic" id="radio_eventmanager" value="{$eventmanager.value}" {if $user->id == $eventmanager.userid}checked{/if}> {$eventmanager.label}</label>
 				</div>
 			</div>
