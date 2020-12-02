@@ -56,16 +56,25 @@ else:
 
 # Global vars
 currency=''
-prev_price=0
-prev_diff=0
+price_initial=0
 price=0
+
+import yfinance as yf
+# Get currency for symbol
+if currency == '':
+    import json
+    ticker_meta=yf.Ticker(symbol)
+    ticker_dict=ticker_meta.info
+    ticker_json=json.dumps(ticker_dict)
+    ticker_json=json.loads(ticker_json)
+    if ticker_json["currency"] != '':
+        currency=ticker_json["currency"]
 
 def getStock():
     global symbol
     global price_threshold
     global currency
-    global prev_price
-    global prev_diff
+    global price_initial
     global price
     
     import botconfigs as bot
@@ -76,41 +85,32 @@ def getStock():
         print("Missing botconfigs!")
         quit()
     
-    import yfinance as yf
-    # Get currency (only once)
-    if currency == '':
-        import json
-        ticker_meta=yf.Ticker(symbol)
-        ticker_dict=ticker_meta.info
-        ticker_json=json.dumps(ticker_dict)
-        ticker_json=json.loads(ticker_json)
-        if ticker_json["currency"] != '':
-            currency=ticker_json["currency"]
-    
     ticker=yf.download(symbol, period="1d")
     #import datetime
     #ticker=pdr.get_data_yahoo(symbol, start=datetime.datetime(2020, 11, 25), end=datetime.datetime(2020, 12, 31))
-    #DEBUG: print(ticker)
-    if prev_price == 0:
-        prev_price=(ticker["Open"][0]).round(2)
-    else:
-        prev_price=price
     price=(ticker["Close"][0]).round(2)
-    if price == prev_price:
+    if price_initial == 0:
+        price_initial=(ticker["Open"][0]).round(2)
+    # Debug output:
+    #print('==========')
+    #print(symbol+' ('+currency+')')
+    #print('Price initial: '+str(price_initial))
+    #print('Price current: '+str(price))
+    if price == price_initial:
         price_diff = 0
         price_change_str = ''
         price_diff_str = ''
-    elif price > prev_price:
-        price_diff = (price-prev_price).round(2)
+    elif price > price_initial:
+        price_diff = (price-price_initial).round(2)
         price_change_str = "surged"
         price_diff_str = "("+price_change_str+" +"+str("{0:,.2f}".format(price_diff)).replace(',', '\'')+")"
     else:
-        price_diff = (prev_price-price).round(2)
+        price_diff = (price_initial-price).round(2)
         price_change_str = "dropped"
         price_diff_str = "("+price_change_str+" -"+str("{0:,.2f}".format(price_diff)).replace(',', '\'')+")"
-    
+    #print('Diff: '+str(price_diff)+price_diff_str)
     # Price diff above given threshold AND change of stock price
-    if abs(price_diff) >= price_threshold and abs(price_diff) > abs(prev_diff):
+    if abs(price_diff) >= price_threshold:
         import requests
         import urllib.parse
         message=symbol+" @ *"+currency+" "+str("{0:,.2f}".format(price)).replace(',', '\'')+"* "+price_diff_str
@@ -123,14 +123,13 @@ def getStock():
         message=message.replace("^","\^")
         message=message.replace("$","\$")
         message=urllib.parse.quote_plus(message)
-        #DEBUG: print(message)
+        
         send='https://api.telegram.org/bot' + bot_token + '/sendMessage?parse_mode=MarkdownV2&disable_notification=true&chat_id=' + bot_chatID + '&text=' + message
         #DEBUG: print(send)
         response=requests.get(send)
-        #DEBUG: print(response)
-    
-    # Store price_diff for next iteration
-    prev_diff = price_diff
+        #print(response)
+        # Set new price_initial to check against future changes
+        price_initial = price;
 
 import threading
 import time
