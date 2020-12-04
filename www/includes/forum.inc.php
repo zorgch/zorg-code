@@ -2019,11 +2019,12 @@ class Forum {
 	 *
 	 * @author	[z]biko
 	 * @author	IneX
-	 * @version	3.1
+	 * @version	3.2
 	 * @since	1.0 `[z]biko` added method
 	 * @since	2.0 `IneX` 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
 	 * @since	3.0 `IneX` 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
 	 * @since	3.1 `IneX` 22.01.2020 Code optimizations
+	 * @since	3.2 `22.01.2020` `IneX` Fixed PHP Notice undefined property: usersystem::$id
 	 *
 	 * @uses USER_USER
 	 * @uses USER_NICHTEINGELOGGT
@@ -2045,7 +2046,8 @@ class Forum {
 		/** Get and set missing parent_id */
 		$comment_parent_id = ( isset( $_GET['parent_id'] ) && $_GET['parent_id'] != '' ) ? $_GET['parent_id'] : $thread_id;
 
-		if (true === Thread::hasRights($board, $thread_id, $user->id)) {
+		if (true === Thread::hasRights($board, $thread_id, ($user->is_loggedin() ? $user->id : 0)))
+		{
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
 			Thread::setLastSeen($board, $thread_id);
 
