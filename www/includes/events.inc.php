@@ -237,18 +237,22 @@ class Events
 	/**
 	 * Returns the Title of an Event based on a given ID
 	 * @author IneX
-	 * @date 18.08.2012
+	 * @version 1.1
+	 * @since 1.0 `18.08.2012` `IneX` method added
+	 * @since 1.1 `04.12.2020` `IneX` Fixed PHP Notice trying to access array offset of type null
 	 *
-	 * @param $event_id int
-	 * @return String mit Eventname
+	 * @param int $event_id
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return string Eventname
 	 */
-	static function getEventName($event_id) {
+	static function getEventName($event_id)
+	{
 		global $db;
 
 		$sql = 'SELECT id, name FROM events WHERE id = '.$event_id; 
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-		return remove_html($rs['name']);
+		return (!empty($rs) && false !== $rs ? remove_html($rs['name']) : '');
 	}
 
 

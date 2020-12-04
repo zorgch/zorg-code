@@ -27,7 +27,7 @@ if (isset($_GET['book_id']) && is_numeric($_GET['book_id'])) $book_id = (int)$_G
 if (isset($_GET['do']) && is_string($_GET['do'])) $action = (string)$_GET['do'];
 $user_id = (isset($_GET['user']) && is_numeric($_GET['user']) ? (int)$_GET['user'] : $user->id);
 /** POST */
-if (isset($_POST['do']) && is_string($_POST['do'])) $postAction = (string)$_POST['do'];
+$postAction = (isset($_POST['do']) && is_string($_POST['do']) ? (string)$_POST['do'] : null);
 
 /**************/
 /* Funktionen */
