@@ -18,7 +18,7 @@ class wetten {
 	function exec()
 	{
 		global $db, $user;
-		if(count($_POST))
+		if(isset($_POST) && count($_POST) > 0)
 		{
 			if($_POST['wette'] && $_POST['einsatz'] && is_numeric($_POST['dauer']) && $_POST['titel'])
 			{
@@ -101,7 +101,7 @@ class wetten {
 			}
 		}
 
-		if($_GET['do'] && $_GET['id']) {
+		if(isset($_GET['do']) && $_GET['id']) {
 			/** Wette als Wetter joinen */
 			if($_GET['do'] == "wjoin") {
 				$sql = "
@@ -300,9 +300,9 @@ class wetten {
 			while ($rsi = $db->fetch($resulti)) {
 				$username = $user->id2user($rsi['user_id'], true);
 				if($rsi['seite'] === 'wetter') {
-					array_push((array)$wetter, $username);
+					array_push($wetter, $username);
 				} else {
-					array_push((array)$gegner, $username);
+					array_push($gegner, $username);
 				}
 			}
 
@@ -463,7 +463,9 @@ class wetten {
 
 		$wetter = array();
 		$gegner = array();
-		$html = "";
+		$wjoin = false;
+		$gjoin = false;
+		$html = '';
 
 		$sql = '
 		SELECT *
@@ -483,36 +485,34 @@ class wetten {
 		}
 		else {
 			/** Wette gefunden - Details & Daten abfragen */
-			$sqli = '
-			SELECT *
-			FROM wetten_teilnehmer
-			WHERE wetten_id = '.$rs['id'];
+			$sqli = 'SELECT *
+					FROM wetten_teilnehmer
+					WHERE wetten_id = '.$rs['id'];
 			$resulti = $db->query($sqli,__FILE__,__LINE__);
 			
-			while ($rsi = $db->fetch($resulti)) {
+			while ($rsi = $db->fetch($resulti))
+			{
 				if($rsi['seite'] == "wetter") {
 					array_push($wetter, $user->link_userpage($rsi['user_id']));
-					//$wetter .= " ".$rsi['clan_tag'].$rsi['username'];
-					if($rsi['user_id'] == $user->id) $wjoin = 1;
+					if($rsi['user_id'] == $user->id) $wjoin = true;
 				} else {
 					array_push($gegner, $user->link_userpage($rsi['user_id']));
-					//$gegner .= " ".$rsi['clan_tag'].$rsi['username'];
-					if($rsi['user_id'] == $user->id) $gjoin = 1;
+					if($rsi['user_id'] == $user->id) $gjoin = true;
 				}
 			}
 
 			if($user->id != $rs['user_id'] && $user->typ != USER_NICHTEINGELOGGT)
 			{
 				if(!$gjoin && !$wjoin) {
-					$gg = "<a href='?id=$id&do=gjoin'>join</a>";
-					$ww = "<a href='?id=$id&do=wjoin'>join</a>";
+					$gg = '<a href="?id='.$id.'&do=gjoin">join</a>';
+					$ww = '<a href="?id='.$id.'&do=wjoin">join</a>';
 				} else {
 					if($gjoin) {
-						$gg = "<a href='?id=$id&do=unjoin'>unjoin</a>";
-						$ww = "";
+						$gg = '<a href="?id='.$id.'&do=unjoin">unjoin</a>';
+						$ww = '';
 					} else {
-						$gg = "";
-						$ww = "<a href='?id=$id&do=unjoin'>unjoin</a>";
+						$gg = '';
+						$ww = '<a href="?id='.$id.'&do=unjoin">unjoin</a>';
 					}
 				}
 			} else {
