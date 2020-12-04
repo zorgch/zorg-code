@@ -5,6 +5,10 @@
  * @author freiländer
  * @package zorg\Wetten
  */
+/**
+ * File includes
+ */
+
 
 /**
  * Wettbüro Klasse
@@ -264,85 +268,58 @@ class wetten {
 	
 
 	function listlaufende() {
-		global $db;
-		
+		global $db, $user;
+
 		$wetter = array();
 		$gegner = array();
-		
-		$sql = "
-		SELECT
-			w.*,
-			u.clan_tag,
-			u.username,
-			UNIX_TIMESTAMP(w.datum) as datum
-		FROM wetten w
-		LEFT JOIN user u
-			ON u.id = w.user_id
-		WHERE w.status = 'laeuft'
-		ORDER by w.datum DESC";
-		$result = $db->query($sql,__FILE__,__LINE__);
-		echo "
-		<h2>Laufende Wetten</h2>
-		<table width='700' cellpadding='4' cellspacing='1' bgcolor='".BORDERCOLOR."'>
-		<tr align='left'  bgcolor='".BORDERCOLOR."'><td>
-		<b>Wettstarter</b>
-		</td><td>
-		<b>Titel</b>
-		</td><td>
-		<b>Einsatz</b>
-		</td><td>
-		<b>Wetter</b>
-		</td><td>
-		<b>Gegner</b>
-		</td><td>
-		<b>Datum</b>
-		</td></tr>";
 
-		while($rs = $db->fetch($result)) {
-			$sqli = "
-			SELECT
-				u.clan_tag,
-				u.username,
-				wt.seite
-			FROM wetten_teilnehmer wt
-			LEFT JOIN user u
-				ON u.id = wt.user_id
-			WHERE wt.wetten_id = $rs[id]";
-			$resulti = $db->query($sqli,__FILE__,__LINE__);
+		$sql = 'SELECT
+					w.*,
+					UNIX_TIMESTAMP(w.datum) as datum
+				FROM wetten w
+				WHERE w.status = "laeuft"
+				ORDER by w.datum DESC';
+		$result = $db->query($sql, __FILE__ ,__LINE__, __METHOD__);
+		echo '<h2>Laufende Wetten</h2>
+		<table width="700" cellpadding="4" cellspacing="1" bgcolor="'.BORDERCOLOR.'">
+		<tr align="left"  bgcolor="'.BORDERCOLOR.'">
+			<td><b>Wettstarter</b></td>
+			<td><b>Titel</b></td>
+			<td><b>Einsatz</b></td>
+			<td><b>Wetter</b></td>
+			<td><b>Gegner</b></td>
+			<td><b>Datum</b></td>
+		</tr>';
+
+		while($rs = $db->fetch($result))
+		{
+			$sqli = 'SELECT wt.user_id, wt.seite 
+					 FROM wetten_teilnehmer wt 
+					 WHERE wt.wetten_id = '.$rs['id'];
+			$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
 			while ($rsi = $db->fetch($resulti)) {
-				if($rsi['seite'] == "wetter") {
-					array_push($wetter, $rsi['clan_tag'].$rsi['username']);
-					//$wetter .= " ".$rsi['clan_tag'].$rsi['username'];
+				$username = $user->id2user($rsi['user_id'], true);
+				if($rsi['seite'] === 'wetter') {
+					array_push((array)$wetter, $username);
 				} else {
-					array_push($gegner, $rsi['clan_tag'].$rsi['username']);
-					//$gegner .= " ".$rsi['clan_tag'].$rsi['username'];
+					array_push((array)$gegner, $username);
 				}
 			}
 
-			echo "
-			<tr bgcolor='".TABLEBACKGROUNDCOLOR."'><td>
-			".$rs['clan_tag'].$rs['username']."
-			</td><td>
-			<a href='?id=".$rs['id']."'>".stripslashes($rs['titel'])."</a>
-			</td><td>
-			".stripslashes($rs['einsatz'])."
-			</td><td>";
-			
-			echo ($wetter = implode(", ", $wetter));
-			
-			echo "
-			</td><td>";
-			
-			echo ($gegner = implode(", ", $gegner));
-			
-			echo "
-			</td><td>
-			".datename($rs['datum'])."
-			</td></tr>";
+			echo '<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">
+			<td>'.$username.'</td>
+			<td><a href="?id='.$rs['id'].'">'.stripslashes($rs['titel']).'</a>
+			</td>
+			<td>'.stripslashes($rs['einsatz']).'</td>
+			<td>';
+			echo (count($wetter) > 0 ? implode(', ', (array)$wetter) : 'keine');
+			echo '</td><td>';
+			echo (count($gegner) > 0 ? implode(", ", (array)$gegner) : 'keine');
+			echo '</td>
+			<td>'.datename($rs['datum']).'</td>
+			</tr>';
 		}
-
-		echo "
-		</table>";
+		echo '</table>';
 	}
 	
 	
