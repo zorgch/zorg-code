@@ -263,6 +263,7 @@ function albumThumbs ($id, $page=0) {
  * @since 2.0 `IneX` APOD Special: statt Pic ein Video embedden
  * @since 2.1 `01.10.2019` `IneX` responsive scaling `img` and <iframe> tags
  * @since 2.2 `04.12.2020` `IneX` fixed fallback to show Album Name on Pic
+ * @since 2.3 `04.12.2020` `IneX` switched file_exists() to is_file() and fixed PHP notice for undefined exif data
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
@@ -270,7 +271,8 @@ function albumThumbs ($id, $page=0) {
  * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
  * @uses ZENSUR
  */
-function pic ($id) {
+function pic ($id)
+{
 	global $user, $db, $THUMBPAGE;
 
 	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
@@ -324,23 +326,27 @@ function pic ($id) {
 		}
 	}
 
-	//$exif_data = exif_read_data(picPath($cur[album], $id, '.jpg'), 1, true); PHP wurde anscheinend ohne EXIF-Support kompiliert
-	//echo "<p>Bild erstellt am ".date('d. F Y H:i', filemtime(picPath($cur[album], $id, '.jpg')))."</p>";
 	$pic_filepath = picPath($cur['album'], $id, '.jpg');
-	if(file_exists($pic_filepath)) {
-		$exif_data = exif_read_data($pic_filepath, 1, true);
-		if ($exif_data['FILE.FileDateTime'] != false) {
-			echo '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
 
-		} else {
-			/** Fallback: Datum aus dem filemtime() des Pics */
-			echo '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
-
+	if (is_file($pic_filepath) !== false)
+	{
+		/** APOD Special: use pic_added from database, instead of filemtime */
+		if ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
+			$pic_date = '<p>Bild von '.datename($cur['timestamp']).'</p>';
 		}
-
-	/** APOD Special: use pic_added from database, instead of filemtime */
-	} elseif ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
-		echo '<p>Bild von '.datename($cur['timestamp']).'</p>';
+		/** Regular zorg Pics */
+		else {
+			/** Check for EXIF data */
+			$exif_data = exif_read_data($pic_filepath, 1, true);
+			if ($exif_data !== false && isset($exif_data['FILE.FileDateTime'])) {
+				$pic_date = '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
+			}
+			/** Fallback: Datum aus dem filemtime() des Files */
+			else {
+				$pic_date = '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
+			}
+		}
+		echo $pic_date;
 	}
 
 	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.

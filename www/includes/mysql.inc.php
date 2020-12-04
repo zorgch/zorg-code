@@ -165,6 +165,10 @@ class dbconn
 	/**
 	 * Speichert SQL-Errors in der DB
 	 *
+	 * @version 1.1
+	 * @since 1.0 method added
+	 * @since 1.1 `04.12.2020` `IneX` Fixed PHP Notice undefined index
+	 *
 	 * @return void
 	 * @param $msg string SQL-Error
 	 * @param $sql string SQL-Query
@@ -174,22 +178,21 @@ class dbconn
 	function saveerror($msg, $sql, $file='', $line=0, $funktion='') {
 		$msg = addslashes($msg);
 		$sql = addslashes($sql);
-		$sql = sprintf(
-				'INSERT
-					 into sql_error
-					 (user_id, ip, page, query, msg, date, file, line, referer, status, function)
-				VALUES
-					 (%d, "%s", "%s","%s", "%s", NOW(), "%s", %d, "%s", 1, "%s")',
-				$_SESSION['user_id'],
-				$_SERVER['REMOTE_ADDR'],
-				$_SERVER['REQUEST_URI'],
-				$sql,
-				$msg,
-				$file,
-				$line,
-				$_SERVER['HTTP_REFERER'],
-				$funktion
-			);
+		$sql = sprintf('INSERT
+							 into sql_error
+							 (user_id, ip, page, query, msg, date, file, line, referer, status, function)
+						VALUES
+							 (%d, "%s", "%s","%s", "%s", NOW(), "%s", %d, "%s", 1, "%s")',
+						(isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0),
+						(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : ''),
+						(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : ''),
+						$sql,
+						$msg,
+						$file,
+						$line,
+						(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '' ),
+						$funktion
+					);
 		@mysqli_query($sql,$this->conn); // PHP7.x ready
 	}
 

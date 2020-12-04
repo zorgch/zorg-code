@@ -31,7 +31,7 @@ wetten::exec();
 if (empty($wette) || $wette <= 0)
 {
 	$model->showOverview($smarty);
-	if ($getEintrag)
+	if (isset($getEintrag) && $getEintrag == true)
 	{
 		//echo "<br /><b>Eintrag erfolgreich</b><br />";
 		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Wette erfolgreich erfasst']);
