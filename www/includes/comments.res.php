@@ -338,10 +338,11 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * tpl resource - comments get child-posts
  *
  * @author [z]biko
- * @version 2.1
+ * @version 2.2
  * @since 1.0 function added
  * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized
  * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
+ * @since 2.2 `04.12.2020` `IneX` Fix error in compiled template "Warning: count(): Parameter must be an array or an object that implements Countable"
  *
  * @TODO "$layouttype" is DEPRECATED!
  *
@@ -370,7 +371,8 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 		exit;
 	}
 
-	$html = '{if ($user->id != 0 && sizeof($hdepth) <= $user->maxdepth) || ($user->id == 0 && sizeof($hdepth) < $comments_default_maxdepth) || '.Comment::getNumChildposts($board, $parent_id).' == 0}';
+	$html = '{if not $hdepth}{assign_array var=counthdepth value=0}{else}{assign var=counthdepth value=$hdepth|@count}{/if}'; // TODO Smarty 3.x can assign default value (and drop @): $var|default:array()|count
+	$html .= '{if ($user->id != 0 && $counthdepth <= $user->maxdepth) || ($user->id == 0 && $counthdepth < $comments_default_maxdepth) || '.Comment::getNumChildposts($board, $parent_id).' == 0}';
 
 		$html .= '<div id="layer'.$parent_id.'">';
 

@@ -358,7 +358,7 @@ function load_packages($tpl_id, &$smarty)
 	/** 0 Packages found (but this is no error) */
 	elseif ($numPackagesFound === 0)
 	{
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template %s (#%d) has no packages associated', __FUNCTION__, __LINE__, $package['name'], $tpl_id));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no packages associated', __FUNCTION__, __LINE__, $tpl_id));
 		return true;
 	}
 }
