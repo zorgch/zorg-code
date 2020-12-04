@@ -1884,8 +1884,8 @@ class Forum {
 			/** @FIXME move iterative table background colors from PHP => CSS! */
 			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 			if ($user->is_loggedin() && (int)$rs['thread_starter'] === $user->id) $color = OWNCOMMENTCOLOR;
-			if ($user->is_loggedin() && isset($rs['isfavorite'])) $color = FAVCOMMENTCOLOR;
-			if ($user->is_loggedin() && isset($rs['ignoreit'])) $color = IGNORECOMMENTCOLOR;
+			if ($user->is_loggedin() && $rs['isfavorite']) $color = FAVCOMMENTCOLOR;
+			if ($user->is_loggedin() && $rs['ignoreit']) $color = IGNORECOMMENTCOLOR;
 			if ($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
 
 			$html .= '<tr itemscope="" itemtype="http://schema.org/Article">'
