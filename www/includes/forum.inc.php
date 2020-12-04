@@ -1875,24 +1875,24 @@ class Forum {
 
 			/** Check for unread comments in Thread */
 			$thread_has_unread_comments = false;
-			if(defined('USER_USER') && $user->typ >= USER_USER && $rs['thread_id'] != '') {
+			if ($user->is_loggedin() && !empty($rs['thread_id']))
+			{
 				$lastp = Thread::getLastUnreadComment($rs['board'], $rs['thread_id'], $user->id);
 				$thread_has_unread_comments = ($lastp ? true : false);
 			}
 
 			/** @FIXME move iterative table background colors from PHP => CSS! */
 			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			if($rs['thread_starter'] == $user->id) $color = OWNCOMMENTCOLOR;
-			if($rs['isfavorite']) $color = FAVCOMMENTCOLOR;
-			if($rs['ignoreit']) $color = IGNORECOMMENTCOLOR;
-			if($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
+			if ($user->is_loggedin() && (int)$rs['thread_starter'] === $user->id) $color = OWNCOMMENTCOLOR;
+			if ($user->is_loggedin() && isset($rs['isfavorite'])) $color = FAVCOMMENTCOLOR;
+			if ($user->is_loggedin() && isset($rs['ignoreit'])) $color = IGNORECOMMENTCOLOR;
+			if ($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
 
 			$html .= '<tr itemscope="" itemtype="http://schema.org/Article">'
 					  /*.'<td>'.$rs['sticky'].'</td>'*/
 					  .'<td align="left" bgcolor="'.$color.'"><span style="float: left" itemprop="headline">'
 					  .Comment::getLinkThread($rs['board'], $rs['thread_id'])
-					  .'</span>'
-					;
+					  .'</span>';
 
 		/** DISABLED
     	if($rs['sticky'] == 1) {
@@ -1908,9 +1908,9 @@ class Forum {
     	}*/
 
 		/** alles was jetzt kommt, steht im feld rechtsbündig */
-		$html .=	'<!--googleoff: all--><span class="threadoptions" style="float: right;font-size: 0.8em;">';
+		$html .= '<!--googleoff: all--><span class="threadoptions" style="float: right;font-size: 0.8em;">';
 
-    	if($user->id > 0)
+    	if($user->is_loggedin())
     	{
 			/** links ganz rechts ausrichten */
 			//$html .=	'<span style="float: right">';
