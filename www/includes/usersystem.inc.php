@@ -506,7 +506,7 @@ class usersystem
 	static function invalidate_session()
 	{
 		/** Session destroy */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, $_SESSION['user_id']));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : -1)));
 		if(!empty(session_id()))
 		session_destroy();
 

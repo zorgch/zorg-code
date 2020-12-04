@@ -78,24 +78,26 @@ if (isset($_GET['layout']) && $_GET['layout'] != 'rss' && ((!isset($_GET['tpl'])
  * RSS Feeds
  * @see Forum::printRSS()
  */
-if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
+if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 {
 	$smarty->assign('feeddesc', SITE_HOSTNAME . ' RSS Feed');
 	$smarty->assign('feedlang', 'de-DE');
 	$smarty->assign('feeddate', date('D, d M Y H:i:s').' GMT');
 
-	switch ($_GET['type']) {
+	switch ($_GET['type'])
+	{
 		/** Forum RSS */
 		case 'forum':
 			/** ...ein board wurde übergeben */
-			if ($_GET['board'] != '') {
-
+			if (isset($_GET['board']))
+			{
 				/** eine thread_id wurde übergeben */
-				if ($_GET['thread_id'] != '') {
+				if (isset($_GET['thread_id']) && is_numeric($_GET['thread_id']))
+				{
 					/** RSS Feed für einen einzelnen Thread */
 					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($_GET['board'], $_GET['thread_id']) . PAGETITLE_SUFFIX) );
 					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board'] . '&amp;amp;thread_id=' . $_GET['thread_id']);
-					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], $_SESSION['user_id'], $_GET['thread_id']));
+					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null), $_GET['thread_id']));
 
 				/** keine thread_id vorhanden */
 				} else {
@@ -105,7 +107,7 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
 					 */
 					$smarty->assign('feedtitle', remove_html(Forum::getBoardTitle($_GET['board']) . PAGETITLE_SUFFIX) );
 					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board']);
-					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], $_SESSION['user_id']));
+					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
 				}
 
 			/** kein board vorhanden */
@@ -113,7 +115,7 @@ if (isset($_GET['layout']) && $_GET['layout'] == 'rss' && $_GET['type'] != '')
 				/** genereller Forum RSS Feed */
 				$smarty->assign('feedtitle', 'Forum RSS' . PAGETITLE_SUFFIX);
 				$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum' . $_GET['board']);
-				$smarty->assign('feeditems', Forum::printRSS(null, $_SESSION['user_id']));
+				$smarty->assign('feeditems', Forum::printRSS(null, (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
 			}
 			break;
 
