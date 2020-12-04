@@ -262,6 +262,7 @@ function albumThumbs ($id, $page=0) {
  * @since 1.0 `21.10.2013` `[z]biko` function added
  * @since 2.0 `IneX` APOD Special: statt Pic ein Video embedden
  * @since 2.1 `01.10.2019` `IneX` responsive scaling `img` and <iframe> tags
+ * @since 2.2 `04.12.2020` `IneX` fixed fallback to show Album Name on Pic
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
@@ -288,7 +289,7 @@ function pic ($id) {
 	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 	$next = mysqli_fetch_array($e);
 	
-	$e = $db->query('SELECT album, a.id, count(p.id) anz, e.gallery_id, e.name eventname
+	$e = $db->query('SELECT album, a.id, count(p.id) anz, a.name, e.gallery_id, e.name eventname
 					 FROM gallery_pics p, gallery_albums a
 						LEFT JOIN events e
 						 ON e.gallery_id = a.id
