@@ -38,10 +38,10 @@ class Quotes
 	{
 		global $user;
 
-		$html .= '<div class="quote">'
+		$html = '<div class="quote">'
 					.'<blockquote><i>'.nl2br(htmlentities($rs["text"])).'</i>'
-					.' - '.$user->id2user($rs["user_id"], 0)
-					.($user->id === $rs['user_id'] ? ' <a href="'.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site).'">[delete]</a>' : '')
+					.' - '.$user->id2user($rs['user_id'], 0)
+					.($user->is_loggedin() ? ($user->id === (int)$rs['user_id'] ? ' <a href="'.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site).'">[delete]</a>' : '') : '')
 					.'</blockquote>';
 
 		if ($user->is_loggedin())
