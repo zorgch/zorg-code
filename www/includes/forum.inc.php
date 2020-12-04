@@ -1514,13 +1514,15 @@ class Forum {
 
 	/**
 	 * Latest Comments for a specific User
-	 * Gibt eine Tabelle mit Links zu den letzten  eines Users
+	 * Gibt eine Tabelle mit Links zu den letzten Comments eines Users
 	 *
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
+	 * @TODO "LIMIT" dynamisch machen: via Method Parameter mit default value=7
 	 *
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 method added
 	 * @since 2.0 `09.09.2019` `IneX` updated code & html output
+	 * @since 2.1 `04.12.2020` `IneX` Fixed PHP Notice: Undefined property: usersystem::$id
 	 *
 	 * @param int $user_id User-ID for whom to show latest Comments
 	 * @return string HTML-Code
@@ -1529,31 +1531,31 @@ class Forum {
 	{
 		global $db, $user;
 
-		if(defined('USER_USER') && $user->typ >= USER_USER) {
-			$sql =
-			"SELECT comments.*, UNIX_TIMESTAMP(date) as date"
-			." FROM comments"
-			." LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board"
-			." LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='$user_id'"
-			." LEFT JOIN user u ON u.id='$user_id'"
-			." WHERE comments.user_id = ".$user_id
-				." AND (u.usertype >= ct.rights OR ct.rights=".USER_SPECIAL." AND ctr.user_id IS NOT NULL)"
-			." ORDER BY date desc"
-			." LIMIT 0,7"
-			;
-		} else {
-			$sql =
-			"SELECT comments.*, comments_unread.user_id as isunread, UNIX_TIMESTAMP(date) as date"
-			." FROM comments"
-			." LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '$user->id')"
-			." LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board"
-			." LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='$user->id'"
-			." LEFT JOIN user u ON u.id='$user->id'"
-			." WHERE comments.user_id = ".$user_id
-				." AND (u.usertype >= ct.rights OR ct.rights=".USER_SPECIAL." AND ctr.user_id IS NOT NULL)"
-			." ORDER BY date desc"
-			." LIMIT 0,7"
-			;
+		/** For guests (no unread check) */
+		if (!$user->is_loggedin())
+		{
+			$sql = 'SELECT comments.*, UNIX_TIMESTAMP(date) as date 
+					FROM comments 
+						LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board 
+						LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='.$user_id.' 
+						LEFT JOIN user u ON u.id='.$user_id.' 
+					WHERE comments.user_id = '.$user_id.' 
+						AND (u.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL) 
+					ORDER BY date DESC 
+					LIMIT 0,7';
+		}
+		/** For logged in users (check if user comment is unread) */
+		else {
+			$sql = 'SELECT comments.*, comments_unread.user_id as isunread, UNIX_TIMESTAMP(date) as date 
+					FROM comments 
+						LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '.$user->id.') 
+						LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board 
+						LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='.$user->id.' 
+						LEFT JOIN user u ON u.id='.$user->id.' 
+					WHERE comments.user_id = '.$user_id.' 
+						 AND (u.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL)
+					ORDER BY date DESC 
+					LIMIT 0,7';
 		}
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -1572,9 +1574,9 @@ class Forum {
 			$html .=
 				'<tr class="small"><td align="left" bgcolor="'.$color.'" width="40%">'
 				.'&laquo;<a href="'.Comment::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']).'" name="'.$rs['id'].'">'
-			  	.Comment::getTitle($rs['text'])
-			  	.'</a>&raquo;<br>'
-			  	.'<span class="tiny">in '.Comment::getLinkThread($rs['board'], $rs['thread_id']).'</span>'
+				.Comment::getTitle($rs['text'])
+				.'</a>&raquo;<br>'
+				.'<span class="tiny">in '.Comment::getLinkThread($rs['board'], $rs['thread_id']).'</span>'
 				.'</td><td align="center" bgcolor="'.$color.'" class="small" width="20%">'
 				.timename($rs['date'])
 				.'</tr>';
@@ -1873,24 +1875,24 @@ class Forum {
 
 			/** Check for unread comments in Thread */
 			$thread_has_unread_comments = false;
-			if(defined('USER_USER') && $user->typ >= USER_USER && $rs['thread_id'] != '') {
+			if ($user->is_loggedin() && !empty($rs['thread_id']))
+			{
 				$lastp = Thread::getLastUnreadComment($rs['board'], $rs['thread_id'], $user->id);
 				$thread_has_unread_comments = ($lastp ? true : false);
 			}
 
 			/** @FIXME move iterative table background colors from PHP => CSS! */
 			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			if($rs['thread_starter'] == $user->id) $color = OWNCOMMENTCOLOR;
-			if($rs['isfavorite']) $color = FAVCOMMENTCOLOR;
-			if($rs['ignoreit']) $color = IGNORECOMMENTCOLOR;
-			if($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
+			if ($user->is_loggedin() && (int)$rs['thread_starter'] === $user->id) $color = OWNCOMMENTCOLOR;
+			if ($user->is_loggedin() && isset($rs['isfavorite'])) $color = FAVCOMMENTCOLOR;
+			if ($user->is_loggedin() && isset($rs['ignoreit'])) $color = IGNORECOMMENTCOLOR;
+			if ($thread_has_unread_comments === true) $color = NEWCOMMENTCOLOR;
 
 			$html .= '<tr itemscope="" itemtype="http://schema.org/Article">'
 					  /*.'<td>'.$rs['sticky'].'</td>'*/
 					  .'<td align="left" bgcolor="'.$color.'"><span style="float: left" itemprop="headline">'
 					  .Comment::getLinkThread($rs['board'], $rs['thread_id'])
-					  .'</span>'
-					;
+					  .'</span>';
 
 		/** DISABLED
     	if($rs['sticky'] == 1) {
@@ -1906,9 +1908,9 @@ class Forum {
     	}*/
 
 		/** alles was jetzt kommt, steht im feld rechtsbündig */
-		$html .=	'<!--googleoff: all--><span class="threadoptions" style="float: right;font-size: 0.8em;">';
+		$html .= '<!--googleoff: all--><span class="threadoptions" style="float: right;font-size: 0.8em;">';
 
-    	if($user->id > 0)
+    	if($user->is_loggedin())
     	{
 			/** links ganz rechts ausrichten */
 			//$html .=	'<span style="float: right">';
