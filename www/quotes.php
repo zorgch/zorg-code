@@ -105,7 +105,7 @@ if(empty($action) || $action === 'my' )
 	}
 
 	/** Ausgabe der Navigationspfeile */
-	echo '<table width="'.$mainwidth.'"><tr><td align="center" class="title">';
+	echo '<div>';
 	if ($site == 0)
 	{
 		$site += 10;
@@ -114,20 +114,17 @@ if(empty($action) || $action === 'my' )
 		} else {
 			$last = $total - ($total % 10);
 		}
-		echo '<a href="?site='.$site.'">&gt;</a></td>'
-			 .'<td align="center" class="title">'
-			 .'<a href="?site='.$last.'">&gt;&gt;</a>';
+		echo '<a href="?site='.$site.'">Next page &gt;</a>'
+			 .'<span style="padding-left: 25px;"><a href="?site='.$last.'">Last page &gt;&gt;</a></span>';
 
 	} elseif ($site >= 10 && $site+$cnt < $total ) {
 
 		$site -= 10;
-		echo '<a href="/">&lt;&lt;&lt;</a></td>'
-			 .'<td align="center" class="title">'
-			 .'<a href="?site='.$site.'">&lt;</a></td>'
-			 .'<td align="center" class="title">';
+		echo '<a href="?site=0">&lt;&lt; First</a>'
+			 .'<span style="padding-left: 25px;"><a href="?site='.$site.'">&lt; Prev</a></span>';
 
 		$site_next = $site + $cnt + 10;
-		echo " $site - $site_next </td>";
+		echo ' '.$site.' - '.$site_next.' ';
 
 		$site += 20;
 		if($total % 10 == 0){
@@ -136,20 +133,17 @@ if(empty($action) || $action === 'my' )
 			$last = $total - ($total % 10);
 		}
 
-		echo '<td align="center" class="title">'
-			 .'<a href="?site='.$site.'">&gt;</a></td>'
-			 .'<td align="center" class="title">'
-			 .'<a href="?site='.$last.'">&gt;&gt;</a>';
+		echo '<a href="?site='.$site.'">Next &gt;</a>'
+			 .'<span style="padding-left: 25px;"><a href="?site='.$last.'">Last &gt;&gt;</a></span>';
 
 	} elseif ($site+$cnt >= $total) {
 		$site -= 10;
 
-		echo '<a href="?site='.$site.'">&lt;</a></td>'
-			 .'<td align="center" class="title">'
-			 .'<a href="/">&lt;&lt;</a>';
+		echo '<a href="?site=0">&lt;&lt; First</a>'
+			 .'<span style="padding-left: 25px;"><a href="?site='.$site.'">&lt; Prev</a></span>';
 	}
 
-	echo '</td></tr></table>';
+	echo '</div>';
 }
 
 // Quote hinzufügen
