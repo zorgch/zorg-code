@@ -730,18 +730,19 @@ class usersystem
 		$html = '';
 		while($rs = $db->fetch($result))
 		{
+			$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
 			if ($pic == FALSE)
 			{
 				//$html .= usersystem::link_userpage($rs[id], FALSE).', ';
-				$html .= '<a href="/profil.php?user_id='.$rs['id'].'">'.$rs['clan_tag'].$rs['username'].'</a>';
+				$html .= '<a href="/profil.php?user_id='.$rs['id'].'">'.$full_username.'</a>';
 				if(($i+1) < $db->num($result)) $html .= ', ';
 			} else {
 				$html .= '<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
-						 .'<img border="0" src="'.USER_IMGPATH_PUBLIC.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
+						 .'<img border="0" src="'.USER_IMGPATH_PUBLIC.$rs['id'].'.jpg" title="'.$full_username.'">'
 						 .'</a></td></tr>'
 						 .'<tr>'
 						 .'<td align="center">'
-						 .'<a href="/profil.php?user_id='.$rs['id'].'">'.$rs['clan_tag'].$rs['username'].'</a>'
+						 .'<a href="/profil.php?user_id='.$rs['id'].'">'.$full_username.'</a>'
 						 .'</td></tr></table><br />';
 			}
 			$i++;
@@ -1047,8 +1048,9 @@ class usersystem
 		$htmlSelectElements = [];
 		while ($rs = $db->fetch($result))
 		{
+			$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
 			$selectCurrent = (in_array($rs['id'], $users_selected) ? 'selected' : false);
-			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $rs['clan_tag'].$rs['username']);
+			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $full_username);
 			if ($selectCurrent !== false) array_unshift($htmlSelectElements, $elementHtml);
 			else array_push($htmlSelectElements, $elementHtml);
 		}
@@ -1084,41 +1086,47 @@ class usersystem
 	{
 		global $db, $_users;
 
+		/** Validate passed parameters */
+		$userid = (empty($id) || !is_numeric($id) ? false : (int)$id);
+		$use_clantag = (bool)$clantag;
+		$show_pic = (bool)$pic;
+
 		/** If given User-ID is not valid (not numeric), show a User Error */
-		if (!empty($id) && !is_numeric($id)) {
+		if (false === $userid) {
 			user_error(t('invalid-id', 'user'), E_USER_WARNING);
 			return false;
 		}
-		$clantag = (empty($clantag) || $clantag === 'false' || $clantag === 0 ? FALSE : TRUE);
 
-		if (!isset($_users[$id]) || !isset($_users[$id]['clan_tag']))
+		if (!isset($_users[$userid]) || ($use_clantag === true && !isset($_users[$userid]['clan_tag'])))
 		{
-			if ($clantag === TRUE)
+			if ($use_clantag === true && !isset($_users[$userid]['clan_tag']))
 			{
-				$sql = 'SELECT clan_tag, username FROM user WHERE id="'.$id.'" LIMIT 0,1'; // ATTENTION: Query fails when $id is not quoted with "$id"!
+				$sql = 'SELECT username, clan_tag FROM user WHERE id='.$userid.' LIMIT 0,1';
 			} else {
-				$sql = 'SELECT username FROM user WHERE id="'.$id.'" LIMIT 0,1';
+				$sql = 'SELECT username FROM user WHERE id='.$userid.' LIMIT 0,1';
 			}
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			if (!empty($rs) || $rs !== false || !empty($rs['username']))
 			{
-				/** User $id exists - returned a result */
-				$_users[$id] = $rs;
+				/** User $id exists - add record to global $_users-Array */
+				$_users[$userid] = $rs;
 			} else {
 				/** User $id does NOT exist */
+				user_error(t('invalid-id', 'user'), E_USER_WARNING);
 				return false;
 			}
 		}
 
 		/** Set string with Username */
-		$username = $_users[$id]['username'];
+		$username = (isset($_users[$userid]['username']) && !empty($_users[$userid]['username']) ? $_users[$userid]['username'] : 'yarak');
 
 		/** If applicable, prefix Username with the Clantag */
-		if ($clantag == TRUE)
+		if ($use_clantag === true)
 		{
 			/** ...but only if the user really HAS a Clantag! */
-			if (!empty($_users[$id]['clan_tag'])) {
-				$username = $_users[$id]['clan_tag'].$username;
+			if (isset($_users[$userid]['clan_tag']) && !empty($_users[$userid]['clan_tag']))
+			{
+				$username = $_users[$userid]['clan_tag'].$username;
 			}
 		}
 
@@ -2017,7 +2025,7 @@ class usersystem
 	}
 }
 
-/** Static $_users Array to load & keep feteched Userdata while processing */
+/** Static $_users Array to load & keep fetched Userdata while processing */
 static $_users = array();
 
 /** Ausgesperrte User werden geächtet! */
