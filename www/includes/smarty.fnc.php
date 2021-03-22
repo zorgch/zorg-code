@@ -1,27 +1,30 @@
-<?
+<?php
 /**
- * File Includes
+ * zorg Custom Smarty Functions, Variables, Modifiers & Blocks
+ *
+ * @package zorg\Smarty\Templates
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/apod.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/bugtracker.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/events.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/quotes.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/stockbroker.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/poll.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/stl.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/error.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/peter.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/rezepte.inc.php');
-//include_once($_SERVER['DOCUMENT_ROOT'].'/includes/chat.inc.php');
+
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'addle.inc.php';
+include_once INCLUDES_DIR.'apod.inc.php';
+include_once INCLUDES_DIR.'bugtracker.inc.php';
+include_once INCLUDES_DIR.'events.inc.php';
+include_once INCLUDES_DIR.'forum.inc.php';
+include_once INCLUDES_DIR.'gallery.inc.php';
+include_once INCLUDES_DIR.'hz_game.inc.php';
+include_once INCLUDES_DIR.'go_game.inc.php';
+include_once INCLUDES_DIR.'quotes.inc.php';
+include_once INCLUDES_DIR.'stockbroker.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
+include_once INCLUDES_DIR.'poll.inc.php';
+include_once INCLUDES_DIR.'stl.inc.php';
+include_once INCLUDES_DIR.'error.inc.php';
+include_once INCLUDES_DIR.'peter.inc.php';
+include_once INCLUDES_DIR.'rezepte.inc.php';
 
 
 /**
@@ -43,32 +46,14 @@ $color = array(
 	'menu2'				=> MENUCOLOR2
 );
 
-function var_online_users ()
-{
-	global $db;
-
-	$online_users = array();
-	$sql = "
-		SELECT id FROM user
-		WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - ".USER_TIMEOUT.")
-		ORDER by activity DESC
-	";
-	$e = $db->query($sql, __FILE__, __LINE__);
-
-	while ($d = mysql_fetch_row($e)) {
-		array_push($online_users, $d[0]);
-	}
-	return $online_users;
-}
-
 function var_request ()
 {
    return array("page" => $_SERVER['PHP_SELF'],
                "params" => $_SERVER['QUERY_STRING'],
                "url" => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'],
-               "tpl" => $_GET['tpl'],
-               "_tpl" => 'tpl:'.$_GET['tpl'],
-               "_word" => 'word:'.$_GET['word']);
+               "tpl" => isset($_GET['tpl'])?$_GET['tpl']:'',
+               "_tpl" => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:''),
+               "_word" => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:''));
 }
 
 
@@ -153,54 +138,51 @@ function var_request ()
 	   switch ($groupid) {
 	      case 0: return "Alle"; break;
 	      case 1: return "Normale User"; break;
-	      case 2: return "Member &amp; Schöne"; break;
+	      case 2: return "Member &amp; Sch&ouml;ne"; break;
 	      case 3: return "Nur Besitzer"; break;
 	      default: return "unknown_usergroup";
 	   }
 	}
 	function smarty_name ($userid) {
-      	global $user;
-      	return $user->id2user($userid, false, false);
+    	global $user;
+    	return $user->id2user($userid, false);
     }
     function smarty_username ($userid) { // converts id to username
-      	global $user;
-      	return $user->link_userpage($userid, false);
+    	global $user;
+    	//Original: return $user->link_userpage($userid);
+    	return $user->userprofile_link($userid, ['username' => TRUE, 'pic' => FALSE, 'link' => TRUE]);
     }
-    function smarty_userpic ($userid) {
-      	global $user;
-      	return $user->link_userpage($userid, true);
+    function smarty_userpic ($userid, $displayName=TRUE) {
+    	global $user;
+    	//Original: return $user->link_userpage($userid, $displayName);
+    	//return $user->userpic($userid, $displayName);
+    	return $user->userprofile_link($userid, ['username' => $displayName, 'clantag' => TRUE, 'pic' => TRUE, 'link' => TRUE]);
+    }
+    /**
+	 * Smarty Funktion checkimage
+	 * Gibt an, ob Userpic als Gravatar existiert oder nur als zorg Userpic
+	 * @return array Array mit Userpic-Typ (gravatar / zorg) und dazugehÃ¶rigem Userpic-Pfad
+	 */
+    function smarty_check_userimage ($userid) {
+	    global $user;
+	    if (!empty($userid) && is_numeric($userid)) $userimagePath = $user->checkimage($userid);
+	    if ($userimagePath !== false) return ['type' => (strpos($userimagePath, 'gravatar') !== false ? 'gravatar' : 'zorg'), 'path' => $userimagePath];
+	    else return 'false';
     }
     function smarty_userpage ($userid, $pic=0) {
-      	global $user;
-      	return $user->link_userpage($userid, $pic);
+    	global $user;
+    	//Original: return $user->link_userpage($userid, $pic);
+    	return $user->userprofile_link($userid, ['username' => TRUE, 'pic' => $pic, 'link' => TRUE]);
     }
-	function smarty_userpic2 ($userid, $displayName=FALSE)
-	{
-		global $user;
-		return $user->userpic($userid, $displayName);
-	}
-
+    function smarty_logerror($params, &$smarty) {
+	    error_log(sprintf('[SMARTY] <%s:%d> %s', $params['tpl'], $params['line'], $params['string']));
+    }
 
 /**
  * Blocks for Smarty
  *
  * PHP Function Output to be reused in Smarty Templates
  */
-	/**
-	 * Seitenausgabe ZORG
-	 */
-	function smarty_zorg ($params, $content, &$smarty, &$repeat) {
-		$out = "";
-
-		$out .= head(117, $params['page_title'], true);
-
-	   	$out .= $content;
-
-	  	$out .= foot(0);
-
-	   	return $out;
-	}
-
 	/**
 	 * String, Integer, Date und Array HTML-Ausgabe
 	 */
@@ -220,43 +202,55 @@ function var_request ()
 	/**
 	 * HTML Elemente
 	 */
-    function smarty_html_link ($params, $content, &$smarty, &$repeat) { // gibt einen link aus
-      	if (!$content) $content = "link";
-	  	return '<a href="'.smarty_link($params).'">'.$content.'</a>';
-    }
-    function smarty_html_button ($params, $content, &$smarty, &$repeat) { // gibt einen button als link aus
-      	return '<input type="button" class="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'">';
-    }
-    function smarty_form ($params, $content, &$smarty, &$repeat) {
-    	// returns an opening-tag for a html-form. action is always 'smarty.php'
-    	// if you set the parameter 'formid', a hidden input with this formid is added.
-      if (!$_GET[tpl]) $_GET[tpl] = '0';
+	/**
+	 * gibt einen link aus
+	 *
+	 * @version 1.0
+	 * @since 1.0 `[z]biko` function added
+	 */
+	function smarty_html_link ($params, $content, &$smarty, &$repeat) {
+		if (!$content) $content = 'link';
+		return '<a href="'.smarty_link($params).'">'.$content.'</a>';
+	}
+	/**
+	 * gibt einen button als link aus
+	 *
+	 * @version 1.1
+	 * @since 1.0 `[z]biko` function added
+	 * @since 1.1 `29.09.2019` `IneX` added optional $params[class] setting
+	 */
+	function smarty_html_button ($params, $content, &$smarty, &$repeat) {
+		return '<input type="button" value="'.$content.'" onClick="self.location.href=\''.smarty_link($params).'\'" '.($params['class'] ? 'class="'.$params['class'].'"' : '').'>';
+	}
+	/**
+	 * HTML <form>-tag
+	 * returns an opening-tag for a html-form. action is always 'smarty.php'
+	 * if you set the parameter 'formid', a hidden input with this formid is added.
+	 *
+	 * @version 1.1
+	 * @since 1.0 `[z]biko` function added
+	 * @since 1.1 `29.09.2019` `IneX` added autocomplete=off as default
+	 */
+	function smarty_form ($params, $content, &$smarty, &$repeat)
+	{
+		$ret = null;
 
-      if ($params['url']) {
-      	$url = $params['url'];
-      }elseif ($params['action']) {
-      	$url = "/actions/$params[action]?".url_params();
-      }else{
-      	$url = "/smarty.php?".url_params();
-      	if ($params[param]) {
-         	$url .= '&'.$params[param];
-      	}
-      }
+		if (!$_GET['tpl']) $_GET['tpl'] = '0';
 
-      $ret = '<form method="post" action="'.$url.'" ';
+		if ($params['url']) $url = $params['url'];
+		elseif ($params['action']) $url = '/actions/'.$params['action'].'?'.url_params();
+		else $url = "/?".url_params();
 
-      if ($params[upload]) {
-         $ret .= 'enctype="multipart/form-data"';
-      }
-      $ret .= '>';
-      if ($params[formid]) {
-         $ret .= '<input name="formid" type="hidden" value="'.$params[formid].'">';
-      }
+		if ($params['param']) $url .= '&'.$params['param'];
 
-      $ret .= $content;
-      $ret .= "</form>";
+		$ret .= '<form method="post" action="'.$url.'" autocomplete="off" ';
+		if ($params['upload']) $ret .= 'enctype="multipart/form-data"';
+		$ret .= '>';
+		if ($params['formid']) $ret .= '<input name="formid" type="hidden" value="'.$params['formid'].'">';
+		$ret .= $content;
+		$ret .= '</form>';
 
-      return $ret;
+		return $ret;
     }
 
 	function smarty_table ($params, $content, &$smarty, &$repeat) {
@@ -417,40 +411,99 @@ function var_request ()
 	}
 
 	/**
-	 * Menu
+	 * Verein Mailer - Info Block
+	 *
+	 * @example {mail_infoblock topic="headline"}content{/mail_infoblock}
 	 */
-	function smarty_menubar ($params, $content, &$smarty, &$repeat) {
-		global $user;
+	function smarty_mailinfoblock ($params, $content, &$smarty, &$repeat) {
+		//if (!$repeat) {  // closing tag
+		$smarty->assign('infoblock', ['topic' => $params['topic'], 'text' => $content ]);
+		return $smarty->fetch('file:email/verein/elements/block_info.tpl');
+		//}
+	}
+	
+	/**
+	 * Verein Mailer - Call-to-Action Button Block
+	 *
+	 * @example {mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}
+	 */
+	function smarty_mailctabutton ($params, $content, &$smarty, &$repeat) {
+		if ($params['position'] == 'left') $ctaposition = 'float:left';
+		if ($params['position'] == 'right') $ctaposition = 'float:right;';
+		if ($params['position'] == 'center') $ctaposition = 'margin:0 auto';
+		$smarty->assign('cta', [
+								 'style' => $params['style']
+								,'position' => $ctaposition
+								,'action' => $params['action']
+								,'href' => $params['href']
+								,'text' => $content
+								]);
+		return $smarty->fetch('file:email/verein/elements/block_ctabutton.tpl');
+	}
+	
+	/**
+	 * Verein Mailer - Telegram Messenger Button Block
+	 *
+	 * @example {telegram_button}button-text{/telegram_button}
+	 */
+	function smarty_mailtelegrambutton ($params, $content, &$smarty, &$repeat) {
+		$smarty->assign('telegrambtn', [
+								 'text' => (!empty($content) ? $content : 'Telegram Chat beitreten' )
+								,'href' => TELEGRAM_CHATLINK
+								]);
+		return $smarty->fetch('file:email/verein/elements/block_telegrambutton.tpl');
+	}
 
+	/**
+	 * Smarty Menubar
+	 *
+	 * Usage: 	{menubar}
+	 *				{menuitem tpl=x group="x"}text{/menuitem}
+	 *				{menuitem...}
+	 *			{/menubar}
+	 *
+	 * @author [z]biko
+	 * @version 2.0
+	 * @since 1.0 `[z]biko` migrated from smarty_menu.php (smarty_menu_old)
+	 * @since 2.0 `02.07.2019` `IneX` moved inline HTML to block_menubar.tpl, output changed to Array
+	 *
+	 * @uses smarty_menuitem()
+	 * @return object
+	 */
+	function smarty_menubar ($params, $content, &$smarty, &$repeat)
+	{
+		global $user;
 		$vars = $smarty->get_template_vars();
 
-		if (!$repeat) {  // closing tag
-			$out = '';
-			$out .=
-				'</div>'.
-				'<div class="menu" align="center" width="100%" ';
-
-					if (tpl_permission($vars['tpl']['write_rights'], $vars['tpl']['owner'])) {
-						$out .=
-							'onDblClick="document.location.href=\''.edit_link_url($vars['tpl']['id']).'\';"';
-					}
-
-			$out .=
-				'>'.
-					'<a class="left">&nbsp;</a>'.
-					preg_replace('/<\/a> *<a/', '</a><a', trim($content)).
-					'<a class="right">&nbsp;</a>'.
-				'</div>'.
-				'<div '.BODYSETTINGS.'>'
-			;
-
-			return $out;
+		/** One iteration only */
+		if (!$repeat)
+		{
+			$smarty->assign('menubar_content', [
+								 'edit_link' => (tpl_permission($vars['tpl']['write_rights'], $vars['tpl']['owner']) ? edit_link_url($vars['tpl']['id']) : null )
+								,'items' => preg_replace('/<\/a> *<a/', '</a><a', trim($content))
+							]);
+			return $smarty->fetch('file:layout/elements/block_menubar.tpl');
 		}
 	}
-		function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
+	/**
+	 * Smarty Menubar Menu-Item Link
+	 *
+	 * Usage: {menuitem tpl=TplID-Link|url=URL-Link group="all|guest|user|member"}menuitem text{/menuitem}
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 `[z]biko` migrated from smarty_menu.php (smarty_menu_old)
+	 *
+	 * @uses USER_MEMBER
+	 * @uses smarty_menubar()
+	 * @return string
+	 */
+	function smarty_menuitem ($params, $content, &$smarty, &$repeat) {
 		global $user;
 
-		if (!$repeat) {  // closing tag
+		/** One iteration only */
+		if (!$repeat)
+		{
 			if (!isset($params['group'])) $params['group'] = "all";
 			if(
 				$params['group'] == "all"
@@ -458,7 +511,6 @@ function var_request ()
 				|| $params['group'] == "user" && $user->id
 				|| $params['group'] == "member" && $user->typ==USER_MEMBER
 			) {
-
 				if (!$content) $content = "???";
 				return '<a href="'.smarty_link($params).'">'.trim($content).'</a>';
 			}
@@ -473,7 +525,7 @@ function var_request ()
 
 		$vars = $smarty->get_template_vars();
 
-		return '<a href="/smarty.php?tpleditor=1&tplupd=new&location='.base64_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
+		return '<a href="/?tpleditor=1&tplupd=new&location='.base64_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
 	}
 	function smarty_edit_link ($params, $content, &$smarty, &$repeat) {
 
@@ -490,24 +542,24 @@ function var_request ()
 			return edit_link($content, $tpl, $rights, $owner);
 		}
 	}
-		function edit_link ($text='', $tpl=0, $rights=0, $owner=0) {
-			global $db;
+	function edit_link ($text='', $tpl=0, $rights=0, $owner=0) {
+		global $db;
 
-			if (!$text) $text = '[edit]';
-			if (!$tpl) $tpl = $_GET['tpl'];
+		if (!$text) $text = '[edit]';
+		if (!$tpl) $tpl = $_GET['tpl'];
 
-			if ($tpl && (!$rights || !$owner)) {
-				$d = $db->fetch($db->query("SELECT * FROM templates WHERE id='$tpl'", __FILE__, __LINE__));
-				$rights = $d['write_rights'];
-				$owner = $d['owner'];
-			}
-
-		   if ($tpl && tpl_permission($rights, $owner)) {
-				return "<a href='".edit_link_url($tpl)."'>$text</a>";
-		   }else{
-		   	return "";
-		   }
+		if ($tpl && (!$rights || !$owner)) {
+			$d = $db->fetch($db->query("SELECT * FROM templates WHERE id='$tpl'", __FILE__, __LINE__));
+			$rights = $d['write_rights'];
+			$owner = $d['owner'];
 		}
+
+		if ($tpl && tpl_permission($rights, $owner)) {
+			return '<a href="'.edit_link_url($tpl).'">'.$text.'</a>';
+		}else{
+			return "";
+		}
+	}
 
 
 /**
@@ -515,9 +567,7 @@ function var_request ()
  *
  * PHP Functions to be used in Smarty Templates
  */
-	/**
-	 * Stockbroker
-	 */
+/** Stockbroker */
 	function stockbroker_assign_stocklist($params, &$smarty) {
 		$smarty->assign("stocklist", Stockbroker::getStocklist($params['anzahl'], $params['page']));
 		//{assign_stocklist anzahl=100 page=$smarty.get.page}
@@ -540,9 +590,7 @@ function var_request ()
 		return Stockbroker::getKurs($params['symbol']);
 	}
 
-	/**
-	 * Tauschbörse
-	 */
+/** TauschbÃ¶rse */
 	function smarty_num_new_tauschangebote ($params, &$smarty) {
 		if (isset($user->lastlogin)) {
 			$result = $db->query(
@@ -575,33 +623,53 @@ function var_request ()
 		$smarty->assign("artikel", $rs);
 	}
 
-	/**
-	 * Usersystem
-	 */
+/** Usersystem */
+	function var_online_users ()
+	{
+		global $db;
+	
+		$online_users = array();
+		$sql = 'SELECT id FROM user
+				WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - '.USER_TIMEOUT.')
+				ORDER by activity DESC';
+		$e = $db->query($sql, __FILE__, __LINE__);
+	
+		while ($d = mysqli_fetch_row($e)) {
+			array_push($online_users, $d[0]);
+		}
+		return $online_users;
+	}
 	function smarty_FormFieldUserlist($params) {
 		return usersystem::getFormFieldUserlist($params['name'], $params['size']);
 	}
 	function smarty_onlineusers($params) {
-		if (!isset($params[images])) $params[images] = false;
-		return usersystem::online_users($params[images]);
+		if (!isset($params['images'])) $params['images'] = false;
+		return usersystem::online_users($params['images']);
 	}
 
-	/**
-	 * Addle
-	 */
+/** Addle */
     function smarty_addle_highscore ($params) {
 	    // wrapper function for addle highscore
-        if (!isset($params[anzahl])) $params[anzahl] = 5;
-        return highscore_dwz($params[anzahl]);
+        if (!isset($params['anzahl'])) $params['anzahl'] = 5;
+        return highscore_dwz($params['anzahl']);
     }
 	/*function smarty_addle_highscore ($params) {
       if (!isset($params[anzahl])) $params[anzahl] = 5;
       return highscore_dwz($params[anzahl]);
     }*/
 
-    /**
-	 * Quotes
-	 */
+/** Peter */
+function smarty_peter ($params, &$smarty) {
+		$smarty->assign('peter_zuege', peter::peter_zuege());
+	}
+
+/** Shoot the Lamber */
+	function smarty_stl_games ($params, &$smarty) {
+		$smarty->assign('stl_shots', stl::getOpenSTLLink());
+		$smarty->assign('stl_open_games', stl::getOpenSTLGames());
+	}
+
+/** Quotes */
     function smarty_getrandomquote ($params) {
 	   return Quotes::getRandomQuote();
 	}
@@ -609,24 +677,29 @@ function var_request ()
 		return Quotes::getDailyQuote();
 	}
 
-    /**
-	 * Polls
-	 */
-	function smarty_poll ($params) {
-		return getPoll($params['id']);
+/**
+ * Polls
+ *
+ * @since 2.0 `19.02.2020` `IneX` Added param validation and Poll Class handling
+ */
+	function smarty_poll ($params)
+	{
+		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']))
+		{
+			return smarty_error(['msg' => t('invalid-poll_id', 'poll', [$params['id']])]);
+		} else {
+			$poll = new Polls();
+			return $poll->show($params['id']);
+		}
 	}
 
-	/**
-	 * APOD
-	 */
+/** APOD */
 	function smarty_apod ($params, &$smarty) {
 		$rs = get_apod_id();
 		return formatGalleryThumb($rs);
 	}
 
-	/**
-	 * Events
-	 */
+/** Events */
 	function smarty_assign_yearevents($params, &$smarty) {
 		$smarty->assign("yearevents", Events::getEvents($params['year']));
 	}
@@ -645,9 +718,7 @@ function var_request ()
 		return Events::hasJoined($user->id, $params['event_id']);
 	}
 
-	/**
-	 * Rezepte
-	 */
+/** Rezepte */
 	function smarty_assign_rezepte ($params, &$smarty) {
 		$smarty->assign("rezepte", Rezepte::getRezepte($params['category']));
 	}
@@ -655,47 +726,49 @@ function var_request ()
 		$smarty->assign("rezept", Rezepte::getRezept($params['id']));
 	}
 	function smarty_assign_rezept_voted ($params, &$smarty) {
-		// nur für eingeloggte
+		// nur fÃ¼r eingeloggte
 		$smarty->assign("rezept_voted", Rezepte::hasVoted($params['user_id'], $params['rezept_id']));
 	}
 	function smarty_assign_rezept_score ($params, &$smarty) {
 		$smarty->assign("rezept_score", Rezepte::getScore($params['rezept_id']));
 	}
 
-	/**
-	 * SQL Errors
-	 */
+/** SQL Errors */
     function smarty_sql_errors($params) {
-   		return  get_sql_errors($params['num'],$params['order'],$params['oby']);
+ 		return  get_sql_errors($params['num'],$params['order'],$params['oby']);
 	}
 
+/**
+ * URL Handling
+ */
 	/**
-	 * URL Handling
+	 * URL to a template called by smarty.php
+	 *
+	 * if parameter button is set, the link is shown as a button.
 	 */
-	function smarty_link ($params) {
-		// url to a template called by smarty.php;
-	    // if parameter button is set, the link is shown as a button.
-	   	global $smarty;
-	   	$vars = $smarty->get_template_vars();
+	function smarty_link ($params)
+	{
+	 	global $smarty;
+	 	$vars = $smarty->get_template_vars();
 
-	   	if (isset($params['url'])) {
-	   		$ret = $params['url'];
-	   	}elseif (isset($params['word'])) {
-	   		$ret = "/smarty.php?word=".$params['word'];
-	   	}elseif (isset($params['tpl'])) {
-	      	$ret = "/smarty.php?tpl=".$params['tpl'];
-	   	}elseif (isset($params['comment'])) {
-	   		$ret = Comment::getLinkComment($params['comment']);
-	   	}elseif (isset($params['user'])) {
-	   		if (is_numeric($params['user'])) $ret = "/profil.php?user_id=$params[user]";
-	   		else $ret = '/profil.php?user_id='.usersystem::user2id($params['user']);
-	   	}elseif (isset($params['action'])) {
-	   		$ret .= "/actions/$params[action]?".url_params();
-	   	}else{
-	   		$ret = "/smarty.php?tpl=".$vars[tpl][root];
-	   	}
+	 	if (isset($params['url'])) {
+	 		$ret = $params['url'];
+	 	}elseif (isset($params['word'])) {
+	 		$ret = '/page/'.$params['word'];
+	 	}elseif (isset($params['tpl'])) {
+	    	$ret = "/tpl/".$params['tpl'];
+	 	}elseif (isset($params['comment'])) {
+	 		$ret = Comment::getLinkComment($params['comment']);
+	 	}elseif (isset($params['user'])) {
+	 		if (is_numeric($params['user'])) $ret = '/user/'.$params['user'];
+	 		else $ret = '/user/'.usersystem::user2id($params['user']);
+	 	}elseif (isset($params['action'])) {
+	 		$ret .= '/actions/'.$params['action'].'?'.url_params();
+	 	}else{
+	 		$ret = '/?tpl='.$vars['tpl']['root'];
+	 	}
 
-        if (isset($params['param'])) $ret .= "&".$params[param];
+        if (isset($params['param'])) $ret .= str_replace('?&', '?', (strpos($ret, '?') !== false ? '&' : '?').$params['param']);
 
         if (isset($params['hash'])) $ret .= '#'.$params['hash'];
         return $ret;
@@ -703,19 +776,31 @@ function var_request ()
     function smarty_get_changed_url ($params) {
 		return getChangedURL ($params['change']);
 	}
-
 	/**
-	 * HTML
+	 * Smarty Funktion urlExists()
+	 * Utilities Funktion urlExists() um eine URL/Pfad zu validieren.
+	 * Usage: {url_exists url="[url]" assign="[smarty-variable]"}
 	 */
+	function smarty_url_exists ($params, &$smarty)
+	{
+		$checkUrl = (urlExists($params['url']) === true ? 'true' : 'false');
+		if (isset($params['assign'])) $smarty->assign($params['assign'], $checkUrl);
+		else return $checkUrl;
+	}
+
+/**
+ * HTML
+ */
     function smarty_space ($params) { // inserts &nbsp;
-        return str_repeat("&nbsp;", $params[i]);
+        return str_repeat('&nbsp;', $params['i']);
     }
 
-    /**
-	 * String, Integer, Date and Array Functions
-	 */
+/**
+ * String, Integer, Date and Array Functions
+ */
 	function smarty_sizeof ($params) {
-		return sizeof($params['array']);
+		/** Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable */
+		return (is_array($params['array']) ? sizeof($params['array']) : 0);
 	}
 	function smarty_rand ($params, &$smarty) {
 		mt_srand();
@@ -729,246 +814,375 @@ function var_request ()
 		else return $z;
 	}
 
-    /**
-	 * Files
+/**
+ * Files
+ */
+	/**
+	 * Read and print contents from a given textfile or from user files /files/[user-id]/
+	 *
+	 * Usage: {gettext id=[FILE-ID] linelength=[MAX-LINES]}
+	 *    or: {gettext file=[PATH/WITHIN/FILES/FILE-NAME] linelength=[MAX-LINES]}
+	 * @link http://zorg.local/thread/44614 Do Ã¤ Biispiel im Forum
+	 *
+	 * @author [z]cylander
+	 * @version 1.1
+	 * @since 1.0 `20.08.2004` `[z]cylander` function added
+	 * @since 1.1 `15.01.2019` `IneX` added HTML escapes to file output
 	 */
-	function smarty_gettext ($params, &$smarty) { // Read contents from a textfile on the Server
+	function smarty_gettext ($params, &$smarty) {
 		global $db;
 
 		if ($params['file']) {
 			$file = $params['file'];
-			if (substr($file, -4) != '.txt') return "<font color='red'><b>[gettext: Can only read from txt-File]</b></font><br />";
-			if (substr($file, 0, 1) == '/') $file = $_SERVER['DOCUMENT_ROOT'].$file;
-			if (!file_exists($file)) return "<font color='red'><b>[gettext: File '$file' not found]</b></font><br />";
+			if (substr($file, -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
+			if (substr($file, 0, 1) == '/') $file = FILES_DIR.$file;
+			if (!file_exists($file)) return '<font color="red"><b>[gettext: File "'.$file.'" not found]</b></font><br />';
 		}elseif ($params['id']) {
-			$e = $db->query("SELECT * FROM files WHERE id='$params[id]'", __FILE__, __LINE__);
+			$e = $db->query('SELECT * FROM files WHERE id='.$params['id'], __FILE__, __LINE__, __FUNCTION__);
 			$d = $db->fetch($e);
 			if ($d) {
-				if (substr($d['name'], -4) != '.txt') return "<font color='red'><b>[gettext: Can only read from txt-File]</b></font><br />";
-				$file = $_SERVER['DOCUMENT_ROOT']."/../data/files/$d[user]/$d[name]";
+				if (substr($d['name'], -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
+				$file = sprintf('%s%d/%s', FILES_DIR, $d['user'], $d['name']);
 			}else{
-				return "<font color='red'><b>[gettext: File mit id '$params[id]' in Filemanager nicht gefunden]</b></font><br />";
+				return '<font color="red"><b>[gettext: File mit id "'.$params['id'].'" in Filemanager nicht gefunden]</b></font><br />';
 			}
 		}else{
-			return "<font color='red'><b>[gettext: Gib mittels dem Parameter 'file' oder 'id' eine Datei an]</b></font><br />";
+			return '<font color="red"><b>[gettext: Gib mittels dem Parameter "file" oder "id" eine Datei an]</b></font><br />';
 		}
+		error_log('file path: '.$file);
+		$out = '<div align="left"><pre>';
 
-		$out = "";
-		$out .= "<div align='left'><xmp>";
-
-
-		if ($params['linelength']) {
+		/** Output only n lines (as passed) */
+		if (isset($params['linelength']))
+		{
 			$len = $params['linelength'];
+			error_log('linelength: '.$len);
 			if (!is_numeric($len) || $len < 1) {
-				return "<font color='red'><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />";
+				return '<font color="red"><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />';
 			}
 			$fcontent = file($file);
 			foreach ($fcontent as $it) {
 				while (strlen($it) > $len) {
-					$out .= substr($it, 0, $len) . "\n   ";
-					$it = substr($it, $len);
+					$out .= htmlspecialchars(substr($it, 0, $len)) . "\n   ";
+					$it = htmlspecialchars(substr($it, $len));
 				}
-				$out .= $it;
+				$out .= htmlspecialchars($it);
 			}
-		}else{
-			$out .= file_get_contents($file);
 		}
 
-		$out .= "</xmp></div>";
+		/** Output whole textfile at once */
+		else{
+			$out .= htmlspecialchars(file_get_contents($file));
+		}
+error_log('out: '.$out);
+		$out .= '</pre></div>';
 
 		return $out;
 	}
 
-	/**
-	 * Commenting System und Forum Threads
-	 */
-	function smarty_commentingsystem($params) {
+/**
+ * Commenting System und Forum Threads
+ */
+	function smarty_commentingsystem($params)
+	{
 		Forum::printCommentingSystem($params['board'], $params['thread_id']);
 	}
-    function smarty_comments ($params) {
-      	global $smarty, $user;
+	function smarty_comments ($params)
+	{
+		global $smarty, $user;
 
-      	$tplvars = $smarty->get_template_vars();
-      	if (!$params['board'] || !$params['thread_id']) {
-   			$params['board'] = 't';
-   			$params['thread_id'] = $tplvars['tpl']['id'];
-   		}
+		$tplvars = $smarty->get_template_vars();
+		if (!$params['board'] || !$params['thread_id'])
+		{
+ 			$params['board'] = 't';
+ 			$params['thread_id'] = $tplvars['tpl']['id'];
+ 		}
 
-		if (Thread::hasRights($params['board'], $params['thread_id'], $user->id)) {
-		      if ($user->show_comments) {
-		         if ($tplvars[tpl][id] == $_GET[tpl]) {
-		            echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%" class="small border" align="right">'.
-		                 '<a href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=0">'.
-		                 'Kommentare ausblenden</a>'.
-		                 '</td></tr><tr><td>';
-		            Forum::printCommentingSystem($params['board'], $params['thread_id']);
-		            echo '</td></tr></table>';
-
-		            return "";
-		         }else{
-		            return '<p><font color="green"><i><b>Kommentare</b> werden in Includes ausgeblendent. '
-		                  .'Klick <a href="smarty.php?tpl='.$tplvars['tpl']['id'].'">hier</a>,'
-		                  .'um sie zu sehen</i></font></p>';
-		         }
-
-		      }else{
-		         return '<table cellspacing="0" width="100%"><tr><td width="100%" class="small" align="right">'.
-		                '<font color="green"><b>Kommentare</b> sind zur Zeit ausgeblendet. '.
-		                '<a href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=1">'.
-		                'Kommentare einblenden</a></font></td></tr></table>';
-		      }
+		if (Thread::hasRights($params['board'], $params['thread_id'], $user->id))
+		{
+			/** Check if Template is not included in another Template */
+			if ($tplvars['tpl']['id'] == $_GET['tpl'])
+			{
+				/** Check User preferences to show/hide Comments */
+				if ($user->is_loggedin() && $user->show_comments)
+				{
+					echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%" class="tiny border">'.
+					 '<a class="threading switch collapse" href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=0">'.
+					 '<span style="padding-left:20px">Kommentare ausblenden</span></a>'.
+					 '</td></tr><tr><td>';
+					Forum::printCommentingSystem($params['board'], $params['thread_id']);
+					echo '</td></tr></table>';
+	
+					return '';
+				}
+				/** User preferences = hide Comments */
+				elseif ($user->is_loggedin()) {
+					return '<table width="100%" cellspacing="0" cellpadding="0"><tr><td width="100%" class="tiny border">'.
+							'<a class="threading switch expand" href="/actions/show_tpl_comments.php?'.url_params().'&usershowcomments=1">'.
+							'<span style="padding-left: 20px;font-weight: 400;color: green;">Kommentare einblenden</span></a>'.
+							'</td></tr><tr><td>';
+				}
+				/** For Guests, just show Comments (if permissions allow it) */
+				else {
+					echo '<h3>Comments</h3>';
+					echo '<table width="100%" cellspacing=0 cellpadding=0><tr><td width="100%">';
+					Forum::printCommentingSystem($params['board'], $params['thread_id']);
+					echo '</td></tr></table>';
+				}
+			}
+			/** On included Templates, hide Comments */
+			else {
+				return '<p><span style="padding-left: 20px;font-style: italic;font-weight: 400;color: green;">Kommentare werden beim include ausgeblendent. '
+						.'<a href="?tpl='.$tplvars['tpl']['id'].'">Klick hier um sie zu sehen</a></span></p>';
+			}
 		}
-    }
-    function smarty_latest_threads ($params) {
-	   return Forum::getLatestThreads();
+		/** Access denied: don't show Comments */
+		else {
+			return '';
+		}
+	}
+	function smarty_latest_threads ($params) {
+	return Forum::getLatestThreads();
 	}
 	function smarty_latest_comments ($params) {
-	   return Forum::getLatestComments($params['anzahl'], $params['title'], $params['board']);
+	return Forum::getLatestComments($params['anzahl'], $params['title'], $params['board']);
 	}
 	function smarty_3yearold_threads ($params) {
-	   return Forum::get3YearOldThreads();
+	return Forum::get3YearOldThreads();
 	}
 	function smarty_unread_comments ($params) {
-	   return Forum::getLatestUnreadComments($params[title], $params[board]);
+	return Forum::getLatestUnreadComments($params['title'], $params['board']);
 	}
 
 	/**
-	 * IMAP
+	 * Smarty Function "forum_boards"
+	 *
+	 * Returns all Forum boards
+	 * Usage: {forum_boards boards=$user->forum_boards_unread updateable=true/false}
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 `30.09.2018` method added
+	 * @uses Forum::getForumBoards()
 	 */
-	function smarty_getNumNewImap ($params) {
-		global $user;
-
-		return ImapStatic::getNumnewmessages($user);
+	function smarty_get_forum_boards ($params) {
+		return Forum::getForumBoards($params['boards'], $params['updateable']);
 	}
 
 	/**
 	 * Smarty Information
 	 */
     function smarty_error ($params) {
-	      if ($params[msg]) {
-	         return '<p><font color="red"><b>'.$params[msg].'</b></font></p>';
+	      if ($params['msg']) {
+	         return '<p><font color="red"><b>'.$params['msg'].'</b></font></p>';
 	      }else{
 	         return "";
 	      }
     }
     function smarty_state ($params) {
-	      if ($params[msg]) {
-	         return '<p><font color="green"><b>'.$params[msg].'</b></font></p>';
+	      if ($params['msg']) {
+	         return '<p><font color="green"><b>'.$params['msg'].'</b></font></p>';
 	      }else{
 	         return "";
 	      }
     }
-   	function smarty_edit_link_url ($params, &$smarty) {
+	/**
+	 * @uses edit_link_url()
+	 */
+ 	function smarty_edit_link_url($params, &$smarty)
+	 {
 		if (!$params['tpl']) {
 			$vars = $smarty->get_template_vars();
 			$params['tpl'] = $vars['tpl']['id'];
 		}
 		return edit_link_url($params['tpl']);
 	}
-		function edit_link_url ($tpl) {
-			return "/smarty.php?tpleditor=1&tplupd=$tpl&location=".base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
-		}
-		/**
-		 * Letze Smarty Updates
-		 *
-		 * Gibt eine Tabelle mit Links zu den letzten upgedateten Smartys
-		 *
-		 * @return String
-		 */
-		function getLatestUpdates($params = array()) {
-			global $db, $user;
-
-			if (!$params['anzahl']) $params['anzahl'] = 5;
-
-			$sql =
-				"SELECT *, UNIX_TIMESTAMP(last_update) as date"
-				." FROM templates"
-				." ORDER BY last_update desc"
-				." LIMIT 0, $params[anzahl]"
-			;
-			$result = $db->query($sql, __FILE__, __LINE__);
-
-			$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
-			while($rs = $db->fetch($result)) {
-		    $i++;
-
-				$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-
-		    $html .=
-		      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
-		      .'<a href="/smarty.php?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
-		      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
-		      .$user->link_userpage($rs['update_user'])
-		      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
-		      .datename($rs[date])
-		      .'</nobr></td></tr>'
-		    ;
-
-		  }
-		  $html .= '</table>';
-
-		  return $html;
-		}
+	/**
+	 * Stich together Template Edit-URL
+	 *
+	 * @version 1.1
+	 * @since 1.0 Method added
+	 * @since 1.1 `22.10.2020` `IneX` added URL encoding of base64-part (because valid b64 chars like = can interfer with URL)
+	 *
+	 * @uses base64url_encode()
+	 * @param int $tpl Template-ID for which to create Edit-URL
+	 * @return string
+	 */
+	function edit_link_url($tpl)
+	{
+		return '/?tpleditor=1&tplupd='.$tpl.'&location='.base64url_encode($_SERVER['PHP_SELF'].'?'.url_params());
+	}
 
 	/**
-	 * Menu
+	 * Letze Smarty Updates
+	 *
+	 * Gibt eine Tabelle mit Links zu den letzten upgedateten Smartys
+	 *
+	 * @return String
 	 */
-	function smarty_menu ($params, &$smarty) {
+	function getLatestUpdates($params = array()) {
+		global $db, $user;
+
+		if (!$params['anzahl']) $params['anzahl'] = 5;
+
+		$sql =
+			"SELECT *, UNIX_TIMESTAMP(last_update) as date"
+			." FROM templates"
+			." ORDER BY last_update desc"
+			." LIMIT 0, $params[anzahl]"
+		;
+		$result = $db->query($sql, __FILE__, __LINE__);
+
+		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Ã„nderungen</b></td></tr>';
+		while($rs = $db->fetch($result)) {
+	    $i++;
+
+			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+
+	    $html .=
+	      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
+	      .'<a href="/?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
+	      .$user->link_userpage($rs['update_user'])
+	      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
+	      .datename($rs[date])
+	      .'</nobr></td></tr>'
+	    ;
+
+	  }
+	  $html .= '</table>';
+
+	  return $html;
+	}
+
+/**
+ * Menu
+ */
+ 	/**
+	 * Display a navigation menu using {menu name=menubar}
+	 *
+	 * @version 2.0
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `30.09.2019` `IneX` adjusted with new responsive HTML Layout structure
+	 */
+	function smarty_menu ($params, &$smarty)
+	{
 		global $db, $user;
 
 		$vars = $smarty->get_template_vars();
 
-		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id']) {
+		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id'])
+		{
 			if ($params['tpl']) {
-				$e = $db->query("SELECT * FROM templates WHERE id='$params[tpl]'", __FILE__, __LINE__);
+				$e = $db->query('SELECT * FROM templates WHERE id="'.$params['tpl'].'"', __FILE__, __LINE__, __METHOD__);
 				$d = $db->fetch($e);
-				if (tpl_permission($d['read_rights'], $d['owner'])) {
-					return $smarty->fetch("tpl:$params[tpl]");
-				}else{
-					return '';
+				if (tpl_permission($d['read_rights'], $d['owner']))
+				{
+					return $smarty->fetch('tpl:'.$params['tpl']);
 				}
-			}else{
-				$e = $db->query(
-					"SELECT m.* FROM menus m, templates t
-					WHERE name='$params[name]' AND t.id = m.tpl_id", __FILE__, __LINE__);
+			} else {
+				$e = $db->query('SELECT m.* FROM menus m, templates t
+								 WHERE name="'.$params['name'].'" AND t.id = m.tpl_id', __FILE__, __LINE__, __METHOD__);
 				$d = $db->fetch($e);
-				if ($d && tpl_permission($d['read_rights'], $d['owner'])) {
+				if ($d && tpl_permission($d['read_rights'], $d['owner']))
+				{
 					return $smarty->fetch("tpl:$d[tpl_id]");
-				}elseif ($d) {
-					return '';
-				}else{
-					return "<font color='red'><b>[Menu '$params[name]' not found]</b></font><br />";
+				//}elseif ($d) {
+					//return '</nav>';
+				} else {
+					return '<font color="red"><b>[Menu "'.$params['name'].'" not found]</b></font><br />';
 				}
 			}
 		}
 	}
-		function smarty_menuname_exec ($name) {
-			global $db, $smarty;
-
-			$vars = $smarty->get_template_vars();
-			$tpl = $vars['tpl']['id'];
-
-			$name = htmlentities($name, ENT_QUOTES);
-			$name = explode(" ", $name);
-
-			for ($i=0; $i<sizeof($name); $i++) {
-				if ($it) {
-					$menu = $db->fetch($db->query("SELECT * FROM menus WHERE name='$name[$i]'", __FILE__, __LINE__));
-					if ($menu && $menu['tpl_id'] != $tpl) return "Menuname '$name[$i]' existiert schon und wurde nicht registriert.<br />";
-					unset($name[$i]);
-				}
-			}
-
-			$db->query("DELETE FROM menus WHERE tpl_id='$tpl'", __FILE__, __LINE__);
-			foreach ($name as $it) {
-				$db->query("INSERT INTO menus (tpl_id, name) VALUES ($tpl, '$it')", __FILE__, __LINE__);
-			}
-			return "";
-		}
 
 	/**
-	 * Gallery
+	 * Add or remove a Menu-Entry from the database table `menus`
+	 *
+	 * @author [z]biko
+	 * @version 1.0
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `16.09.2019` `IneX` function updated for zorg v4 to prevent updating new 'id' table row
+	 *
+	 * @param string $name Name of a Menubar (e.g. 'zorg'), containing a {menubar}{menuitem...}{/menubar}-structure
 	 */
+	function smarty_menuname_exec ($name)
+	{
+		global $db, $smarty;
+
+		$vars = $smarty->get_template_vars();
+		$tpl_id = $vars['tpl']['id'];
+
+		$namePlain = htmlentities($name, ENT_QUOTES); // remove any html from the menuname
+		$nameArray = explode(' ', $namePlain); // convert menuname into Array
+
+		/*for ($i=0; $i<sizeof($name); $i++) {
+			if ($it) {
+				$menu = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$name[$i].'"', __FILE__, __LINE__, __METHOD__));
+				if ($menu && $menu['tpl_id'] != $tpl) return 'Menuname "'.$name[$i].'" existiert schon und wurde nicht registriert.<br />';
+				unset($name[$i]);
+			}
+		}*/
+		foreach ($nameArray as $it)
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> smarty_menuname_exec: "%s" on tpl_id %d', __FUNCTION__, __LINE__, $it, $tpl_id));
+			if (!empty($it)) {
+				/** Check if menu with same name already exists... */
+				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$it.'"', __FILE__, __LINE__, __FUNCTION__));
+				//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists Query: %s', __FUNCTION__, __LINE__, print_r($menuExists,true)));
+				if ($menuExists !== false && $menuExists['tpl_id'] === $tpl_id)
+				{
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: TRUE (tpl_id: %d)', __FUNCTION__, __LINE__, $tpl_id));
+					//return sprintf('Menuname "%s" existiert schon mit der id#%d und wurde deshalb nicht gespeichert!<br>Bitte anderen Namen verwenden.', $it, $tpl_id);
+				}
+
+				/** Menu mit $name gibt es noch nicht, deshlab erstellen wir es neu */
+				else {
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: FALSE (adding new)', __FUNCTION__, __LINE__));
+					$db->query('INSERT INTO menus (tpl_id, name) VALUES ('.$tpl_id.', "'.$it.'")', __FILE__, __LINE__, __FUNCTION__);
+					//$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => sprintf('Neues Menu "%s" erfolgreich gespeichert', $it), 'message' => 'Du kannst es jetzt im Template-Editor einer Page auswÃ¤hlen.']);
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Smarty Array "$smarty_menus"
+	 *
+	 * Returns all Smarty Menus (Smarty-Menutemplates) as an Array
+	 * Usage: {$smarty_menus}
+	 *
+	 * @author IneX
+	 * @version 1.0
+	 * @since 1.0 `30.09.2018` `IneX` function added
+	 */
+	function smarty_get_menus()
+	{
+		global $db;
+
+		try {
+			$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			if (!empty($result) && $result !== false)
+			{
+				while ($menuTemplate = $db->fetch($result)) $menus[] = $menuTemplate;
+				return $menus;
+				//$smarty->assign('smarty_menus', $menus);
+			} else {
+				return false;
+			}
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
+	}
+
+
+/**
+ * Gallery
+ */
 	function smarty_assign_users_on_pic ($params, &$smarty) {
 		$smarty->assign("users_on_pic", Gallery::getUsersOnPic($params['picID']));
 	}
@@ -981,20 +1195,22 @@ function var_request ()
 		 * Returns a specific amount of best rated images from a given gallery
 		 * Usage: {top_pics album=41 limit=1}
 		 *
-		 * @author IneX <IneX@gmx.net>
+		 * @author IneX
+		 * @version 1.0
+		 * @since 1.0 `23.06.2007` `IneX` function added as part of Bug #609
+		 *
+		 * @uses getTopPics()
+		 * @param array $params All passed Smarty-Function parameters, allowed: album, limit, options
+		 * @return string HTML displaying top rated n amount of Gallery-Pics
 		 */
 		function smarty_top_pics ($params)
 		{
-		   	$album_id = ($params['album'] == '' ? 0 : $params['album']);
+			/** Validate and assign passed $params */
+		 	$album_id = (empty($params['album']) ? null : $params['album']);
+		 	$limit = (empty($params['limit']) ? 5 : $params['limit']);
+		 	$options = (empty($params['options']) ? false : true);
 
-		   	$limit = ($params['limit'] == '' ? 5 : $params['limit']);
-
-		   	$options = ($params['options'] == '' ? '' : $params['options']);
-
-	   		//Nur zum kontrollieren...
-	   		//print('Album-ID: '.$album_id.'<br />Limit: '.$limit.'<br />');
-
-	   		return getTopPics($album_id, $limit, $options);
+	 		return getTopPics($album_id, $limit, $options);
 		}
 		/**
 		 * Smarty Function "user_pics"
@@ -1002,24 +1218,26 @@ function var_request ()
 		 * Returns a specific amount of Gallery Pictures on which a given User has been tagged
 		 * Usage: {user_pics user=41 limit=1}
 		 *
-		 * @author IneX <IneX@gmx.net>
-		 * @date 18.10.2013
+		 * @author IneX
+		 * @version 1.0
+		 * @since 1.0 `18.10.2013` `IneX` Function added
 		 */
 		function smarty_user_pics($params)
 		{
 			$userid = ($params['user'] == '' ? 0 : $params['user']);
-		   	$limit = ($params['limit'] == '' ? 0 : $params['limit']);
-		   	//$options = ($params['options'] == '' ? '' : $params['options']);
+		 	$limit = ($params['limit'] == '' ? 0 : $params['limit']);
+		 	//$options = ($params['options'] == '' ? '' : $params['options']);
 
-	   		//return getUserPics($userid, $limit, $options);
-	   		return getUserPics($userid, $limit);
+	 		//return getUserPics($userid, $limit, $options);
+	 		return getUserPics($userid, $limit);
 		}
 
-	/**
-	 * Chat
-	 */
+
+/**
+ * Chat
+ */
 	/*function smarty_chat() { Inaktiv?! IneX, 2.5.09
-    	return Chat::getInterfaceHTML();
+  	return Chat::getInterfaceHTML();
 	}*/
 	function smarty_assign_chatmessages($params, &$smarty) {
 		global $db;
@@ -1049,7 +1267,7 @@ function var_request ()
 		//echo $sql;
 		$result = $db->query($sql, __FILE__, __LINE__);
 
-		while ($rs = mysql_fetch_array($result)) {
+		while ($rs = $db->fetch($result)) {
 		  $chatmessages[] = $rs;
 		}
 		$smarty->assign("chatmessages", $chatmessages);
@@ -1059,7 +1277,7 @@ function var_request ()
 /**
  * Compiler Functions
  *
- * ACHTUNG: compiler-funktionen müssen php-code zurückgeben!
+ * ACHTUNG: compiler-funktionen mÃ¼ssen php-code zurÃ¼ckgeben!
  */
 function smarty_menuname ($name, &$smarty) {
 	return "echo smarty_menuname_exec ('$name');";
@@ -1075,7 +1293,7 @@ function smarty_menuname ($name, &$smarty) {
 	 * assign_adv
 	 * -------------------------------------------------------------
 	 * Type:     function
-	 * Name:     assign_adv --> geändert zu "assign_array" damit es verständlicher ist, 6.8.07/IneX
+	 * Name:     assign_adv --> geÃ¤ndert zu "assign_array" damit es verstÃ¤ndlicher ist, 6.8.07/IneX
 	 * File:     function.assign_adv.php
 	 * Version:  0.11
 	 * Purpose:  assigns smarty variables including arrays and range arrays
@@ -1154,17 +1372,17 @@ function smarty_menuname ($name, &$smarty) {
 		extract($params);
 
 		if (empty($var)) {
-			$smarty->trigger_error("assign_array: missing 'var' parameter");
+			trigger_error("assign_array: missing 'var' parameter");
 			return;
 		}
 
 		if (!in_array('value', array_keys($params))) {
-			$smarty->trigger_error("assign_array: missing 'value' parameter");
+			trigger_error("assign_array: missing 'value' parameter");
 			return;
 		}
 
 		if (!in_array('array', array_keys($params)) XOR !in_array('range', array_keys($params))) {
-			$smarty->trigger_error("assign_array: missing 'value=array()' or 'value=range()'");
+			trigger_error("assign_array: missing 'value=array()' or 'value=range()'");
 			return;
 		}
 
@@ -1176,6 +1394,68 @@ function smarty_menuname ($name, &$smarty) {
 		}
 
 		$smarty->assign($var, $value);
+	}
+	
+	/**
+	 * Smarty |rendertime modifier function
+	 *
+	 * Type:	Modifier
+	 * Name:	timer --> geÃ¤ndert zu "rendertime" damit es verstÃ¤ndlicher ist, 07.01.2017/IneX
+	 * Date:	Sat Nov 01, 2003
+	 * Author:	boots
+	 *
+	 * Assuming you do little or nothing after display()
+	 * and that you do minimal work before starting the timer,
+	 * this technique should be close to actual processing time
+	 * close enough that it is splitting hairs, IMHO
+	 * Usage:
+	 * - in index.php
+	 *    util::timer('begin', 'Page'); // starts a timer block with the message 'Page' 
+	 *    // other code
+	 *    echo 'history: '.util::timer('list'); // returns a history of timed block results 
+	 * - in template.tpl
+	 *    {"begin"|timer:"template block"}
+	 *    template stuff...
+	 *    {"end"|timer:true}
+	 *    {"stop"|timer:true|nl2br}
+	 * Call : $smarty->register_modifier('rendertime', 'rendertime');
+	 *
+	 * @link https://www.smarty.net/forums/viewtopic.php?p=5750&sid=ede53d9870b3a4cd1fd6a4cfd8cfae1b#5750 Smarty '|timer' modifier function
+	 */
+	function smarty_modifier_rendertime($mode='begin')
+	{
+		global $_timer_blocks, $_timer_history;
+		switch ($mode) {
+		case 'begin':
+			$_timer_blocks[] =array(microtime(true));
+			break;
+	
+		case 'end':
+			$last = array_pop($_timer_blocks);
+			$_start = $last[0];
+			list($a_micro, $a_int) = explode(' ', $_start);
+			list($b_micro, $b_int) = explode(' ', microtime(true));
+			$elapsed = ($b_int - $a_int) + ($b_micro - $a_micro);
+			$_timer_history[] = [ $elapsed ];
+			return $elapsed;
+			break;
+	
+		case 'list':
+			$o = '';
+			foreach ($_timer_history as $mark) {
+				$o .= $mark[2] . " \n";
+			}
+			return $o;
+			break;
+	
+		case 'stop':
+			$result = '';
+			while(!empty($_timer_blocks)) {
+				$result .= smarty_modifier_rendertime('end');
+			}
+			return $result;
+			break;
+		}
 	}
 
 
@@ -1191,11 +1471,10 @@ function smarty_menuname ($name, &$smarty) {
  * @ToDo This stuff here doesn't work in a Class Context yet...
  * @ToDo Probably needs to use $this-> context for everything - Functions, Constants, etc.?
  *
+ * @package zorg\Smarty
  * @author IneX
- * @date 03.01.2016
  * @version 1.0
- * @package Zorg
- * @subpackage Smarty
+ * @since 1.0 `03.01.2016` `IneX` Class added
  */
 //class SmartyZorgFunctions
 //{
@@ -1209,62 +1488,63 @@ function smarty_menuname ($name, &$smarty) {
      * *if Smarty TPL Function Name is empty/false, the PHP Function Name will be used!
      *
      * @author IneX
-     * @date 03.01.2016
      * @version 1.0
+     * @since 1.0 `03.01.2016` `IneX` Method added
      * @var array
      */
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
 								 'color' => array($color, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
 								,'event_newest' => array(Events::getEventNewest(), 'Events', 'Zeigt neusten Event an', false)
-								,'nextevents' => array(Events::getNext(), 'Events', 'Zeigt nächsten kommenden Event an', false)
+								,'nextevents' => array(Events::getNext(), 'Events', 'Zeigt nÃ¤chsten kommenden Event an', false)
 								,'eventyears' => array(Events::getYears(), 'Events', 'Zeigt alle Jahre an, in denen Events erfasst sind', false)
 								,'rezept_newest' => array(Rezepte::getRezeptNewest(), 'Rezepte', 'Zeigt neustes Rezept an', false)
 								,'categories' => array(Rezepte::getCategories(), 'Rezepte', 'Zeigt Liste von Rezept-Kategorien an', false)
 								,'num_errors' => array($num_errors, 'System', 'Zeigt Anzahl geloggter SQL-Errors an', false)
 								,'sun' => array($sun, 'Layout', 'Zeigt an ob Sonne "up" oder "down" ist', false)
-								,'sunset' => array($sunset, 'Layout', 'Zeit des nächsten SonnenUNTERgangs', false)
-								,'sunrise' => array($sunrise, 'Layout', 'Zeit des nächsten SonnenAUFgangs', false)
+								,'sunset' => array($sunset, 'Layout', 'Zeit des nÃ¤chsten SonnenUNTERgangs', false)
+								,'sunrise' => array($sunrise, 'Layout', 'Zeit des nÃ¤chsten SonnenAUFgangs', false)
 								,'country' => array($country, 'Layout', 'ISO-Code des ermittelten Landes des aktuellen Besuchers', false)
-								,'country_image' => array(IMAGES_DIR."country/flags/$country_code.png", 'Layout', 'Bildpfad zur Länderflagge des ermittelten Landes', false)
+								,'country_image' => array(IMAGES_DIR."country/flags/$country_code.png", 'Layout', 'Bildpfad zur LÃ¤nderflagge des ermittelten Landes', false)
 								,'request' => array(var_request(), 'URL Handling', 'associative array:  page = requested page / params = url parameter / url = page+params', false)
 								,'url' => array(getURL(), 'URL Handling', 'Gesamte aktuell aufgerufene URL (inkl. Query-Parameter)', false)
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)
-								,'user' => array($user, 'Usersystem', 'Array mit allen User-Informationen des aktuellen Besuchers', false)
+								,'user' => array($user, 'Usersystem', 'Array mit allen User-Informationen des aktuellen Besuchers', false) // TODO change to $smarty->register_object()
 								,'usertyp' => array(array('alle'=>USER_ALLE, 'user'=>USER_USER, 'member'=>USER_MEMBER, 'special'=>USER_SPECIAL), 'Usersystem', 'Array mit allen vorhandenen Usertypen: alle, user, member und special', false)
-								,'user_mobile' => array($user->from_mobile, 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
-								,'user_ip' => array($user->last_ip, 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)
+								,'user_mobile' => array((isset($user->from_mobile)?$user->from_mobile:''), 'Usersystem', 'Zeigt an ob aktueller Besucher mittels Mobiledevice die Seite aufgerufen hat', false)
+								,'user_ip' => array((isset($user->last_ip)?$user->last_ip:''), 'Usersystem', 'IP-Adresse des aktuellen Besuchers', false)
 								,'comments_default_maxdepth' => array(DEFAULT_MAXDEPTH, 'Layout', 'Standart angezeigte Tiefe an Kommentaren z.B. im Forum', false)
 								,'online_users' => array(var_online_users(), 'Usersystem', 'Array mit allen zur Zeit eingeloggten Usern', false)
 								,'num_new_events' => array(Events::getNumNewEvents(), 'Events', 'Zeigt Anzahl neu erstellter Events an', true)
-								,'login_error' => array($login_error, 'Usersystem', 'Ist leer oder enthält Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
-								
-								
-    						 );
+								,'login_error' => array((isset($login_error)?$login_error:null), 'Usersystem', 'Ist leer oder enthÃ¤lt Fehlermeldung eines versuchten aber fehlgeschlagenen Logins eines Benutzers', false)
+								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
+								,'smarty_menus' => array(smarty_get_menus(), 'Smarty', 'Array mit allen verfÃ¼gbaren Smarty-Menutemplates', true)
+  						 );
 	
 	/**
 	 * PHP Functions as Modifiers for Smarty Functions
      *
 	 * @var array
 	 */
-    $zorg_php_modifiers = array( //Format: [Modifier] => array ([PHP-Funktion] | [Kategorie] | [Beschreibung] | [Members only true/false])
-								 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
-								,'stripslashes' => array('stripslashes', 'Variablen', 'Modifier für die Funktion stripslashes() wie in PHP', false)
-								,'strstr' => array('strstr', 'Variablen', 'Modifier für die Funktion strstr() wie in PHP', false)
-								,'stristr' => array('stristr', 'Variablen', 'Modifier für die Funktion stristr() wie in PHP (Gross-/Kleinschreibung ignorieren)', false)
+    $zorg_php_modifiers = array( //Format: [PHP-Funktion] => array ([Smarty-Modifier] | [Kategorie] | [Beschreibung] | [Members only true/false])
+								 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anstÃ¤ndiges datum/zeit Format', false)
+								,'stripslashes' => array('stripslashes', 'Variablen', 'Modifier fÃ¼r die Funktion stripslashes() wie in PHP', false)
+								,'strstr' => array('strstr', 'Variablen', 'Modifier fÃ¼r die Funktion strstr() wie in PHP', false)
+								,'stristr' => array('stristr', 'Variablen', 'Modifier fÃ¼r die Funktion stristr() wie in PHP (Gross-/Kleinschreibung ignorieren)', false)
 								,'smarty_sizebytes' => array('sizebytes', 'Variablen', 'stellt z.B: ein "kB" dahinter und konvertiert die zahl.', false)
-								,'smarty_quantity' => array('quantity', 'Variablen', '{$anz|quantity:Zug:Züge}', false)
-								,'smarty_number_quotes' => array('number_quotes', 'Variablen', 'Registriert für Smarty den Modifier number_quotes() aus PHP', false)
-								,'htmlentities' => array('htmlentities', 'Variablen', 'Registriert für Smarty den Modifier htmlentities() aus PHP', false)
-								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert für Smarty den Modifier base64_encode() aus PHP', false)
-								,'smarty_concat' => array('concat', 'Variablen', 'Registriert für Smarty den Modifier concat() aus PHP', false)
-								,'smarty_ltrim' => array('ltrim', 'Variablen', 'Registriert für Smarty den Modifiert ltrim() aus PHP', false)
-								,'smarty_maxwordlength' => array('maxwordlength', 'Variablen', 'Registriert für Smarty den Modifier maxwordlength() aus PHP', false)
+								,'smarty_quantity' => array('quantity', 'Variablen', '{$anz|quantity:Zug:ZÃ¼ge}', false)
+								,'smarty_number_quotes' => array('number_quotes', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier number_quotes() aus PHP', false)
+								,'htmlentities' => array('htmlentities', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier htmlentities() aus PHP', false)
+								,'base64_decode' => array('base64decode', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier base64_decode() aus PHP', false)
+								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier base64_encode() aus PHP', false)
+								,'smarty_concat' => array('concat', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier concat() aus PHP', false)
+								,'smarty_ltrim' => array('ltrim', 'Variablen', 'Registriert fÃ¼r Smarty den Modifiert ltrim() aus PHP', false)
+								,'smarty_maxwordlength' => array('maxwordlength', 'Variablen', 'Registriert fÃ¼r Smarty den Modifier maxwordlength() aus PHP, 1.param = word length', false)
 								,'smarty_name' => array('name', 'Usersystem', 'usersystem', false)
 								,'smarty_username' => array('username', 'Usersystem', '{$userid|username} konvertiert userid zu username', false)
-								,'smarty_userpic' => array('userpic', 'Usersystem', '{$userid|userpic}', false)
-								,'smarty_userpic2' => array('userpic2', 'Usersystem', '{$userid|userpic2:0}', false)
-								,'smarty_usergroup' => array('usergroup', 'Usersystem', '{$id|usergroup} für tpl schreib / lese rechte', false)
+								,'smarty_userpic' => array('userpic', 'Usersystem', '{$userid|userpic:0} zeigt Userpic fÃ¼r eine User-ID, 1.param = Username anzeigen ja/nein', false)
+								,'smarty_usergroup' => array('usergroup', 'Usersystem', '{$id|usergroup} fÃ¼r tpl schreib / lese rechte', false)
 								,'smarty_userpage' => array('userpage', 'Usersystem', '{$userid|userpage:0} , 1.param = username (0) or userpic (1)', false)
+								,'smarty_check_userimage' => array('check_userimage', 'Usersystem', '{$userid|@check_userimage} - ersetzt $userid mit Array["typ","pfad"],', false)
 								,'smarty_userismobile' => array('ismobile', 'Usersystem', '{$userid|ismobile} ermittelt ob letzter Login eines Users per Mobile war', false)
 								,'smarty_strip_anchor' => array('strip_anchor', 'URL Handling', 'link', false)
 								,'smarty_change_url' => array('change_url', 'URL Handling', 'newquerystring', false)
@@ -1272,8 +1552,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_implode' => array('implode', 'Variablen', 'String glue', false)
 								,'smarty_floor' => array('floor', 'Mathematische Funktionen', 'util', false)
 								,'print_array' => array('print_array', 'Variablen', '{print_array arr=$hans} gibt die Elemente eines Smarty {$array} aus', false)
-								
-
+								,'rendertime' => array('smarty_modifier_rendertime', 'System', 'Smarty Template Rendering-Time', false, true)
 								);
 
 	/**
@@ -1296,81 +1575,87 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_substr' => array('substr', 'Variablen', '{substr from=2 to=-1}text{/substr}  // gleich wie php-fnc substr(text, from, to)', false)
 								,'smarty_trim' => array('trim', 'Variablen', 'text modification', false)
 								,'smarty_member' => array('member', 'Layout', '{member}..{/member}   {member noborder=1}..{/member}', false)
+								,'smarty_mailinfoblock' => array('mail_infoblock', 'Verein Mailer - Info Block', '{mail_infoblock topic="headline"}...{/mail_infoblock}', false)
+								,'smarty_mailctabutton' => array('mail_button', 'Verein Mailer - Call-to-Action-Button', '{mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}', false)
+								,'smarty_mailtelegrambutton' => array('telegram_button', 'Verein Mailer - Telegram Messenger Button', '{telegram_button}button-text{/telegram}', false)
 								
 								
 								);
 
 	/**
 	 * PHP Functions as Template Functions for Smarty
-     *
+     * Format:
+     *    unique_name = array( {array([PHP-Klasse], }[PHP-Funktion]{)}, [Tpl-Funktion], [Kategorie], [Beschreibung], [Members only true/false], [Compiler Function true/false])
 	 * @var array
 	 */
-    $zorg_php_functions = array( //Format: [Tpl-Funktion] => array ([PHP-Funktion], [Kategorie], [Beschreibung], [Members only true/false], [Compiler Function true/false])
-    							 'smarty_menuname' => array('menuname', 'Layout', 'Compiler Funktion: echo() des Menu Mamens (retourniert PHP)', false, true) // Compiler Funktion
-								,'smarty_addle_highscore' => array('addle_highscore', 'Addle', 'Addle', false, false)
-								,'smarty_apod' => array('apod', 'APOD', 'Astronomy Picture of the Day (APOD)', false, false)
-								,'smarty_assign_chatmessages' => array('assign_chatmessages', 'Chat', 'Chat', false, false)
-								,'smarty_assign_yearevents' => array('assign_yearevents', 'Events', 'events', false, false)
-								,'smarty_assign_event' => array('assign_event', 'Events', 'events', false, false)
-								,'smarty_assign_visitors' => array('assign_visitors', 'Events', 'events', false, false)
-								,'smarty_assign_rezepte' => array('assign_rezepte', 'Rezepte', 'rezepte', false, false)
-								,'smarty_assign_rezept' => array('assign_rezept', 'Rezepte', 'rezepte', false, false)
-								,'smarty_assign_rezept_score' => array('assign_rezept_score', 'Rezepte', 'rezepte', false, false)
-								,'smarty_link' => array('url', 'URL Handling', '&lt;a href={link id=x word="x" param="urlparams"}&gt;  default tpl ist das akutelle', false, false)
-								,'smarty_space' => array('spc', 'HTML', '{space i=5}', false, false)
-								,'smarty_error' => array('error', 'System', '{error msg="Fehler!"}', false, false)
-								,'smarty_state' => array('state', 'System', '{state msg="Update erfolgreich"}', false, false)
-								,'smarty_gettext' => array('gettext', 'File Manager', 'files / filemanager', false, false)
-								,'smarty_comments' => array('comments', 'Commenting', '{comments}  f?gt comments zu diesem tpl an.', false, false)
-								,'smarty_latest_comments' => array('latest_comments', 'Commenting', '{latest_comments anzahl=10 board=t title="Tabellen-Titel"}  // letzte comments aus board (optional)', false, false)
-								,'smarty_latest_threads' => array('latest_threads', 'Forum', '{latest_threads}', false, false)
-								,'smarty_unread_comments' => array('unread_comments', 'Forum', '{unread_comments board=t title="Tabellen-Titel"}', false, false)
-								,'smarty_3yearold_threads' => array('3yearold_threads', 'Forum', '{3yearold_threads}', false, false)
-								,'smarty_commentingsystem' => array('commentingsystem', 'Commenting', 'forum, comments', false, false)
-								,'getRandomThumb' => array('random_pic', 'Gallery', '{random_pic}  displays a random thumb out of the gallery', false, false)
-								,'getDailyThumb' => array('daily_pic', 'Gallery', '{daily_pic}   displays the pic of the day', false, false)
-								,'smarty_get_randomalbumpic' => array('random_albumpic', 'Gallery', 'gallery', false, false)
-								,'smarty_top_pics' => array('top_pics', 'Gallery', 'gallery', false, false)
-								,'smarty_user_pics' => array('user_pics', 'Gallery', 'gallery', false, false)
-								,'smarty_assign_users_on_pic' => array('assign_users_on_pic', 'Gallery', 'gallery', false, false)
-								,'smarty_getNumNewImap' => array('new_imap', 'IMAP', 'imap', false, false)
-								,'smarty_menu' => array('menu', 'Layout', 'menu', false, false)
-								,'smarty_getrandomquote' => array('random_quote', 'Quotes', '{random_quote} display a random quote', false, false)
-								,'smarty_getdailyquote' => array('daily_quote', 'Quotes', '{daily_quote} display a daily quote', false, false)
-								,'smarty_poll' => array('poll', 'Polls', '{poll id=23}', false, false)
-								,'getOpenSTLLink' => array('open_stl_link', 'STL', 'Shoot the lamber', false, false)
-								,'getLatestUpdates' => array('latest_updates', 'Smarty Templates', '{latest_updates}  table mit den letzten smarty-updates', false, false)
-								,'smarty_edit_link_url' => array('edit_url', 'Smarty Templates', '{edit_url tpl=x}  tpl ist optional. default: aktuelles tpl.', false, false)
-								,'spaceweather_ticker' => array('spaceweather', 'Space', 'spaceweather', false, false)
-								,'peter_zuege' => array('peter', 'Peter', 'peter', false, false)
-								,'smarty_sql_errors' => array('sql_errors', 'System', 'sql errors', false, false)
-								,'stockbroker_assign_stocklist' => array('assign_stocklist', 'Stockbroker', 'Stockbroker', false, false)
-								,'stockbroker_assign_stock' => array('assign_stock', 'Stockbroker', 'Stockbroker', false, false)
-								,'stockbroker_assign_searchedstocks' => array('assign_searchedstocks', 'Stockbroker', 'Stockbroker', false, false)
-								,'stockbroker_update_kurs' => array('update_kurs', 'Stockbroker', 'Stockbroker', false, false)
-								,'stockbroker_getkursbought' => array('getkursbought', 'Stockbroker', 'Stockbroker', false, false)
-								,'stockbroker_getkurs' => array('getkurs', 'Kategorie', 'Stockbroker', false, false)
-								,'smarty_num_new_tauschangebote' => array('num_new_tauschangebote', 'Tauschbörse', 'Tauschbörse', false, false)
-								,'smarty_assign_artikel' => array('assign_artikel', 'Tauschbörse', 'Tauschbörse', false, false)
-								,'url_params' => array('url_params', 'URL Handling', 'system', false, false)
-								,'smarty_sizeof' => array('sizeof', 'Smarty Templates', 'system', false, false)
-								,'smarty_get_changed_url' => array('get_changed_url', 'URL Handling', 'system', false, false)
-								,'smarty_htmlentities' => array('htmlentities', 'Variablen', 'Registriert für Smarty die Funktion htmlentities() aus PHP', false, false)
-								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert für Smarty die Funktion base64_encode() aus PHP', false, false)
-								,'smarty_onlineusers' => array('onlineusers', 'Usersystem', 'usersystem', false, false)
-								,'loginform' => array('loginform', 'Usersystem', 'usersystem', false, false)
-								,'smarty_FormFieldUserlist' => array('formfielduserlist', 'Usersystem', 'usersystem', false, false)
-								,'smarty_datename' => array('datename', 'Datum und Zeit', 'stellt ein Datum leserlich dar', false, false)
-								,'smarty_rand' => array('rand', 'Variablen', '{rand min=2 max=10 assign=var}', false, false)
-								,'smarty_function_assign_array' => array('assign_array', 'Variablen', 'erlaubt es, mit Smarty Arrays zu erzeugen', false, false)
-								,'smarty_assign_event_hasjoined' => array('assign_event_hasjoined', 'Events', 'events', true, false)
-								,'smarty_event_hasjoined' => array('event_hasjoined', 'Events', 'events', true, false)
-								,'smarty_assign_rezept_voted' => array('assign_rezept_voted', 'Rezepte', 'rezepte', true)
-								
-								
+    $zorg_php_functions = array(
+  								 'menuname' => [ 'smarty_menuname', 'menuname', 'Layout', 'Compiler Funktion: echo() eines Menus basierend auf dessen Menuname (retourniert PHP)', false, true ] // Compiler Funktion
+								,'addle_highscore' => [ 'smarty_addle_highscore', 'addle_highscore', 'Addle', 'Addle', false, false ]
+								,'apod' => [ 'smarty_apod', 'apod', 'APOD', 'Astronomy Picture of the Day (APOD)', false, false ]
+								,'assign_chatmessages' => [ 'smarty_assign_chatmessages', 'assign_chatmessages', 'Chat', 'Chat', false, false ]
+								,'assign_yearevents' => [ 'smarty_assign_yearevents', 'assign_yearevents', 'Events', 'events', false, false ]
+								,'assign_event' => [ 'smarty_assign_event', 'assign_event', 'Events', 'events', false, false ]
+								,'assign_visitors' => [ 'smarty_assign_visitors', 'assign_visitors', 'Events', 'events', false, false ]
+								,'assign_rezepte' => [ 'smarty_assign_rezepte', 'assign_rezepte', 'Rezepte', 'rezepte', false, false ]
+								,'assign_rezept' => [ 'smarty_assign_rezept', 'assign_rezept', 'Rezepte', 'rezepte', false, false ]
+								,'assign_rezept_score' => [ 'smarty_assign_rezept_score', 'assign_rezept_score', 'Rezepte', 'rezepte', false, false ]
+								,'url' => [ 'smarty_link', 'url', 'URL Handling', '&lt;a href={link id=x word="x" param="urlparams"}&gt;  default tpl ist das akutelle', false, false ]
+								,'space' => [ 'smarty_space', 'spc', 'HTML', '{space i=5}', false, false ]
+								,'error' => [ 'smarty_error', 'error', 'System', '{error msg="Fehler!"}', false, false ]
+								,'state' => [ 'smarty_state', 'state', 'System', '{state msg="Update erfolgreich"}', false, false ]
+								,'gettext' => [ 'smarty_gettext', 'gettext', 'File Manager', 'files / filemanager', false, false ]
+								,'comments' => [ 'smarty_comments', 'comments', 'Commenting', '{comments}  fÃ¼gt comments zu diesem tpl an.', false, false ]
+								,'latest_comments' => [ 'smarty_latest_comments', 'latest_comments', 'Commenting', '{latest_comments anzahl=10 board=t title="Tabellen-Titel"}  // letzte comments aus board (optional)', false, false ]
+								,'latest_threads' => [ 'smarty_latest_threads', 'latest_threads', 'Forum', '{latest_threads}', false, false ]
+								,'unread_comments' => [ 'smarty_unread_comments', 'unread_comments', 'Forum', '{unread_comments board=t title="Tabellen-Titel"}', false, false ]
+								,'getForumBoards' => [ 'smarty_get_forum_boards', 'forum_boards', 'Forum', '{forum_boards boards=$user->forum_boards_unread updatable=true/false}', false, false ]
+								,'3yearold_threads' => [ 'smarty_3yearold_threads', '3yearold_threads', 'Forum', '{3yearold_threads}', false, false ]
+								,'commentingsystem' => [ 'smarty_commentingsystem', 'commentingsystem', 'Commenting', 'forum, comments', false, false ]
+								,'random_pic' => [ 'getRandomThumb', 'random_pic', 'Gallery', '{random_pic}  displays a random thumb out of the gallery', false, false ]
+								,'daily_pic' => [ 'getDailyThumb', 'daily_pic', 'Gallery', '{daily_pic}   displays the pic of the day', false, false ]
+								,'random_albumpic' => [ 'smarty_get_randomalbumpic', 'random_albumpic', 'Gallery', 'gallery', false, false ]
+								,'top_pics' => [ 'smarty_top_pics', 'top_pics', 'Gallery', 'gallery', false, false ]
+								,'user_pics' => [ 'smarty_user_pics', 'user_pics', 'Gallery', 'gallery', false, false ]
+								,'assign_users_on_pic' => [ 'smarty_assign_users_on_pic', 'assign_users_on_pic', 'Gallery', 'gallery', false, false ]
+								,'menu' => [ 'smarty_menu', 'menu', 'Layout', 'menu', false, false ]
+								,'random_quote' => [ 'smarty_getrandomquote', 'random_quote', 'Quotes', '{random_quote} display a random quote', false, false ]
+								,'daily_quote' => [ 'smarty_getdailyquote', 'daily_quote', 'Quotes', '{daily_quote} display a daily quote', false, false ]
+								,'poll' => [ 'smarty_poll', 'poll', 'Polls', '{poll id=23}', false, false ]
+								,'shoot the lamber' => [ 'smarty_stl_games', 'get_stl_games', 'STL', '{get_stl_games} Shoot the lamber: lÃ¤dt Link zu offene SpielzÃ¼gen & Link zu offenen STL-Spielen fÃ¼r den User', false, false ]
+								//,'stl_shots' => [ 'smarty_stl_shots', 'assign_stl_shots', 'STL', '{stl_shots} Shoot the lamber: offene SpielzÃ¼ge fÃ¼r den User', false, false ]
+								//,'stl_open_games' => [ 'smarty_stl_open_games', 'assign_stl_open_games', 'STL', '{stl_open_games} Shoot the lamber: offene Games zum joinen fÃ¼r den User', false, false ]
+								,'latest_updates' => [ 'getLatestUpdates', 'latest_updates', 'Smarty Templates', '{latest_updates}  table mit den letzten smarty-updates', false, false ]
+								,'edit_url' => [ 'smarty_edit_link_url', 'edit_url', 'Smarty Templates', '{edit_url tpl=x}  tpl ist optional. default: aktuelles tpl.', false, false ]
+								,'spaceweather' => [ 'spaceweather_ticker', 'spaceweather', 'Space', 'spaceweather', false, false ]
+								,'peter_zuege' => [ 'smarty_peter', 'get_peter_zuege', 'Peter', '{get_peter_zuege} LÃ¤dt ein Array das die Anzahl offener Peter ZÃ¼ge eines Users, und die game_id eines Peter Spiels mit offenem Zug, enthÃ¤lt ', false, false ]
+								,'sql_errors' => [ 'smarty_sql_errors', 'sql_errors', 'System', 'sql errors', false, false ]
+								,'assign_stocklist' => [ 'stockbroker_assign_stocklist', 'assign_stocklist', 'Stockbroker', 'Stockbroker', false, false ]
+								,'stockbroker_assign_stock' => [ 'stockbroker_assign_stock', 'assign_stock', 'Stockbroker', 'Stockbroker', false, false ]
+								,'assign_searchedstocks' => [ 'stockbroker_assign_searchedstocks', 'assign_searchedstocks', 'Stockbroker', 'Stockbroker', false, false ]
+								,'stockbroker_update_kurs' => [ 'stockbroker_update_kurs', 'update_kurs', 'Stockbroker', 'Stockbroker', false, false ]
+								,'getkursbought' => [ 'stockbroker_getkursbought', 'getkursbought', 'Stockbroker', 'Stockbroker', false, false ]
+								,'getkurs' => [ 'stockbroker_getkurs', 'getkurs', 'Kategorie', 'Stockbroker', false, false ]
+								,'num_new_tauschangebote' => [ 'smarty_num_new_tauschangebote', 'num_new_tauschangebote', 'TauschbÃ¶rse', 'TauschbÃ¶rse', false, false ]
+								,'assign_artikel' => [ 'smarty_assign_artikel', 'assign_artikel', 'TauschbÃ¶rse', 'TauschbÃ¶rse', false, false ]
+								,'url_params' => [ 'url_params', 'url_params', 'URL Handling', 'system', false, false ]
+								,'sizeof' => [ 'smarty_sizeof', 'sizeof', 'Smarty Templates', 'system', false, false ]
+								,'get_changed_url' => [ 'smarty_get_changed_url', 'get_changed_url', 'URL Handling', 'system', false, false ]
+								,'htmlentities' => [ 'smarty_htmlentities', 'htmlentities', 'Variablen', 'Registriert fÃ¼r Smarty die Funktion htmlentities() aus PHP', false, false ]
+								,'base64encode' => [ 'base64_encode', 'base64encode', 'Variablen', 'Registriert fÃ¼r Smarty die Funktion base64_encode() aus PHP', false, false ]
+								,'onlineusers' => [ 'smarty_onlineusers', 'onlineusers', 'Usersystem', 'usersystem', false, false ]
+								,'loginform' => [ 'loginform', 'loginform', 'Usersystem', 'usersystem', false, false ]
+								,'formfielduserlist' => [ 'smarty_FormFieldUserlist', 'formfielduserlist', 'Usersystem', 'usersystem', false, false ]
+								,'datename' => [ 'smarty_datename', 'datename', 'Datum und Zeit', 'stellt ein Datum leserlich dar', false, false ]
+								,'rand' => [ 'smarty_rand', 'rand', 'Variablen', '{rand min=2 max=10 assign=var}', false, false ]
+								,'assign_array' => [ 'smarty_function_assign_array', 'assign_array', 'Variablen', 'erlaubt es, mit Smarty Arrays zu erzeugen', false, false ]
+								,'assign_event_hasjoined' => [ 'smarty_assign_event_hasjoined', 'assign_event_hasjoined', 'Events', 'events', true, false ]
+								,'event_hasjoined' => [ 'smarty_event_hasjoined', 'event_hasjoined', 'Events', 'events', true, false ]
+								,'assign_rezept_voted' => [ 'smarty_assign_rezept_voted', 'assign_rezept_voted', 'Rezepte', 'rezepte', true, false ]
+								,'logerror' => [ 'smarty_logerror', 'logerror', 'PHP Error Log', 'errorhandling', false, false ]
+								,'url_exists' => [ 'smarty_url_exists', 'url_exists', 'URL Handling', 'Utilities Funktion urlExists() um eine URL/Pfad zu validieren. Usage: {url_exists url="[url]" assign="[smarty-variable]"}', false, false ]
 							);
-		
-	
+
+
 	/**
 	 * Function to register PHP Variables to Smarty
 	 *
@@ -1379,11 +1664,11 @@ function smarty_menuname ($name, &$smarty) {
 	 * Usage: $smarty->assign([array], [value])
 	 *
 	 * @author IneX
-	 * @since 1.0
-	 * @version 2.0
+	 * @version 1.0
+	 * @since 1.0 function added
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @var object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_arrays($php_vars_array)
 	{
@@ -1397,8 +1682,8 @@ function smarty_menuname ($name, &$smarty) {
 			if (!$smarty_var_data[3]) $smarty->assign($smarty_var_key, $smarty_var_data[0]);
 			$smarty_vars_documentation['{$'.$smarty_var_key.'}'] = array('category' => $smarty_var_data[1], 'description' => $smarty_var_data[2], 'members_only' => $smarty_var_data[3]);
 		}
-		
-		natcasesort($smarty_vars_documentation[]);
+
+		//natcasesort($smarty_vars_documentation);
 		$smarty->assign('smartyvars_doc', $smarty_vars_documentation); // {smartyvars_doc} Lists all available custom Smarty Vars
 	}
 
@@ -1411,28 +1696,28 @@ function smarty_menuname ($name, &$smarty) {
 	 * Usage: $smarty->register_modifier([template modifier], [php function])
 	 *
 	 * @author IneX
-	 * @since 1.0
 	 * @version 1.0
+	 * @since 1.0 function added
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @var object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_modifiers($php_modifiers_array)
 	{
 		// Globals
 		global $smarty, $user;
 		$documentation = array();
-		natcasesort($php_modifiers_array[]); // Sort the Array from A-Z
+		//natcasesort($php_modifiers_array); // Sort the Array from A-Z
 		
 		foreach ($php_modifiers_array as $function_name => $data)
-		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
+		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anstÃ¤ndiges datum/zeit Format', false)
 			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
 			if ($data[3] && $user != null) $smarty->register_modifier($smarty_name, $function_name);
-			if (!$data[3]) $smarty->register_modifier($smarty_name, $function_name);
+			elseif (!$data[3]) $smarty->register_modifier($smarty_name, $function_name);
 			$documentation['{$var|'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
-		//natcasesort($smarty_modifiers_documentation[]); // Sort the Array from A-Z
+		//natcasesort($smarty_modifiers_documentation); // Sort the Array from A-Z
 		$smarty->assign('smartymodifiers_doc', $documentation); // {smartymodifiers} Lists all available Smarty Modifiers
 	}
 
@@ -1445,11 +1730,11 @@ function smarty_menuname ($name, &$smarty) {
 	 * Usage: $smarty->register_block([template block], [php function])
 	 *
 	 * @author IneX
-	 * @since 1.0
 	 * @version 1.0
+	 * @since 1.0 function added
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @var object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_blocks($php_blocks_array)
 	{
@@ -1461,11 +1746,11 @@ function smarty_menuname ($name, &$smarty) {
 		{ // Format: 'smarty_zorg' => array('zorg', 'Layout', '{zorg title="Titel"}...{/zorg}	displays the zorg layout (including header, menu and footer)', false)
 			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
 			if ($data[3] && $user != null) $smarty->register_block($smarty_name, $function_name);
-			if (!$data[3]) $smarty->register_block($smarty_name, $function_name);
+			elseif (!$data[3]) $smarty->register_block($smarty_name, $function_name);
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
 		
-		natcasesort($documentation[]); // Sort the Array from A-Z
+		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyblocks_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 
@@ -1475,15 +1760,18 @@ function smarty_menuname ($name, &$smarty) {
 	 *
 	 * Maps custom Zorg PHP Functions to an equal Smarty Template Function
 	 * e.g. function "getLatestUpdates" will be available in Smarty as {latest_updates}
-	 * Usage 1: $smarty->register_function([template function], [php function])
-	 * Usage 2: $smarty->register_compiler_function([template function], [php function], [cacheable true/false])
+	 *   Usage 1: $smarty->register_function([template function], [php function])
+	 *   Usage 2: $smarty->register_function([template function], array([php class], [php function]))
+	 *   Usage 3: $smarty->register_compiler_function([template function], [php function], [cacheable true/false])
+	 * @link https://www.smarty.net/docsv2/en/api.register.function.tpl
 	 *
 	 * @author IneX
-	 * @since 1.0
-	 * @version 1.0
+	 * @version 2.0
+	 * @since 1.0 function added
+	 * @since 2.0 added support for registering array($class, $method)
 	 *
-	 * @global object Smarty Class
-	 * @global array User Information Array
+	 * @var object $smarty Smarty Class
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
 	function register_php_functions($php_functions_array)
 	{
@@ -1491,16 +1779,16 @@ function smarty_menuname ($name, &$smarty) {
 		global $smarty, $user;
 		$documentation = array();
 		
-		foreach ($php_functions_array as $function_name => $data)
-		{ // Format: 'smarty_apod' => array('apod', 'APOD', 'Astronomy Picture of the Day (APOD)', false)
-			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
-			if ($data[3] && $user != null && !$data[4]) $smarty->register_function($smarty_name, $function_name);
-			if (!$data[3] && !$data[4]) $smarty->register_function($smarty_name, $function_name);
-			if ($data[4]) $smarty->register_compiler_function($smarty_name, $function_name, false); // Compiler Functions
-			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3], 'compiler_function' => $data[4]);
+		foreach ($php_functions_array as $array_name => $data)
+		{ // Format: array_name => array( [0]{array([PHP-Klasse], }[PHP-Funktion]{)}, [1][Tpl-Funktion], [2][Kategorie], [3][Beschreibung], [4][Members only true/false], [5][Compiler Function true/false])
+			$smarty_name = (!empty($data[1]) ? $data[1] : $array_name);
+			if ($data[4] && $user != null && !$data[5]) $smarty->register_function($smarty_name, $data[0]); // Register "Members only"-Functions
+			elseif (!$data[4] && !$data[5]) $smarty->register_function($smarty_name, $data[0]);  // Register Functions for all Users
+			elseif ($data[5]) $smarty->register_compiler_function($smarty_name, $data[0], false); // Register Compiler Functions
+			$documentation['{'.$smarty_name.'}'] = array('category' => $data[2], 'description' => $data[3], 'members_only' => $data[4], 'compiler_function' => $data[5]);
 		}
 		
-		natcasesort($documentation[]); // Sort the Array from A-Z
+		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyfunctions_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
 
@@ -1513,4 +1801,3 @@ register_php_arrays($zorg_php_vars);
 register_php_blocks($zorg_php_blocks);
 register_php_modifiers($zorg_php_modifiers);
 register_php_functions($zorg_php_functions);
-?>

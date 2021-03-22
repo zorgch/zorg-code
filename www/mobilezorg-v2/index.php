@@ -1,15 +1,16 @@
-<?
-/* Ultra Debug:
-function shutdown(){
-  var_dump(error_get_last());
-} register_shutdown_function('shutdown');*/
+<?php
+/**
+ * Mobilezorg V2 Home
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
 
 /**
- * FILE INCLUDES
+ * File includes
  */
-if (!require_once 'config.php') die('ERROR: Configurations could NOT be loaded!'); // Load the general configurations
-if (!require_once PHP_INCLUDES_DIR.'mobilez/mobilez.smarty.inc.php') die('ERROR: Smarty could NOT be loaded!'); // Load Smarty
-include_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php'; // The main Chat class and methods
+if (!require_once dirname(__FILE__).'/config.php') die('ERROR: Configurations could NOT be loaded!'); // Load the general configurations
+if (!require_once MOBILEZ_INCLUDES_DIR.'mobilez.smarty.inc.php') die('ERROR: Smarty could NOT be loaded!'); // Load Smarty
+if (!require_once MOBILEZ_INCLUDES_DIR.'chat.inc.php') die('ERROR: Chat could NOT be loaded!'); // The main Chat class and methods
 
 /**
  * DO THE MAGIC STUFF

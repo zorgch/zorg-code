@@ -1,10 +1,27 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/smarty.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+/**
+ * zorg Rezepte Datenbank
+ *
+ * @package zorg\Rezepte
+ */
 
-Class Rezepte {
+/**
+ * File includes
+ * @include config.inc.php
+ * @include usersystem.inc.php
+ * @include util.inc.php
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
+/**
+ * zorg Rezepte Datenbank Klasse
+ *
+ * @package zorg\Rezepte
+ */
+class Rezepte
+{
 	static function getRezept($rezept_id) {
 		global $db;
 
@@ -160,9 +177,4 @@ Class Rezepte {
 		return $db->num($result, __FILE__, __LINE__);
 	}
 
-
-
-
 }
-
-?>

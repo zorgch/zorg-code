@@ -1,313 +1,321 @@
 <?php
 /**
- * APOD & Spaceweather
- * 
+ * APOD
+ *
  * Holt und speichert die Astronomy Pictures of the Day (APOD)
- * sowie das aktuelle Spaceweather.
  *
  * @author [z]biko
  * @date 01.01.2004
- * @version 1
- * @package Zorg
- * @subpackage APOD
+ * @package zorg\APOD
  */
-/** File includes */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/gallery.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
-
-/** Pfad zum initialen Download des aktuellen APOD-Bildes */
-define("APOD_TEMP_IMGPATH",$_SERVER['DOCUMENT_ROOT']."../data/temp/"); 
-
-/** ID der APOD-Gallery in der Datenbank */
-define("APOD_GALLERY_ID", 41);
-
-/** Source-URL von wo die APOD-Bilder heruntergeladen werden */
-define("APOD_SOURCE", "http://antwrp.gsfc.nasa.gov/apod/astropix.html");
-
-/** Source-URL von wo die Daten für das Spaceweather abgefragt werden */
-define("SPACEWEATHER_SOURCE", "http://www.spaceweather.com/");
-
+/**
+ * File includes
+ * @include config.inc.php	Include required global site configurations
+ * @include mysql.inc.php 	MySQL-DB Connection and Functions
+ * @include	forum.inc.php 	Forum and Commenting Functions
+ * @include	gallery.inc.php Gallery and Pic functions
+ * @include util.inc.php 	Various Helper Functions
+ */
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'gallery.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Astronomy Picture of the Day (APOD)
- * 
+ *
  * Holt und speichert das neus Astronomy Pic of the Day (APOD).
  * APOD Bild wird via Funktion createPic() nach /data/gallery/41/ kopiert!
- * (kann also aus dem APOD Temp img-Ordner gelöscht werden danach)
+ * (kann also aus dem APOD Temp img-Ordner gelÃ¶scht werden danach)
+ * 
+ * API Description: concept_tags are now disabled in this service. Also, an optional return parameter copyright is returned if the image is not public domain.
+ * 	QUERY PARAMETERS:
+ * 	Parameter	| Type			| Default	| Description
+ * 	date		| YYYY-MM-DD	| today		| The date of the APOD image to retrieve
+ * 	hd			| bool			| False		| Retrieve the URL for the high resolution image
+ * 	api_key		| string		| DEMO_KEY	| api.nasa.gov key for expanded usage
  *
- * @todo Wenn die Funktion createPic() erfolgreich ausgeführt wurde (= APOD Bild kopiert) soll das Original-Bild aus dem /data/temp/ Ordner gelöscht werden.
+ * @author [z]biko
+ * @author IneX
+ * @version 4.0
+ * @since 1.0 `01.01.2004` function added
+ * @since 2.0 `06.08.2018` function refactored to use NASA APOD API
+ * @since 3.0 `09.08.2018` enhanced function so an APOD date can be passed
+ * @since 4.0 `14.09.2018` added processing of videos & website links passed from the APOD API
+ *
+ * @uses APOD_API
+ * @uses APOD_TEMP_IMGPATH
+ * @uses APOD_GALLERY_ID
+ * @var $MAX_PIC_SIZE
+ * @uses cURLfetchJSON()
+ * @uses createPic()
+ * @uses getYoutubeVideoThumbnail()
+ * @uses getVimeoVideoThumbnail()
+ * @uses Comment::post()
+ * @param string $apod_date (Optional) A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)
+ * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
+ * @global	array	$MAX_PIC_SIZE	Globales Array im Scope von gallery.inc.php mit den Image-Width & -Height GrÃ¶ssen fÃ¼r Pics und Thumbnails
+ * @return boolean Returns true or false, depening on if the function was processed successfully or not
  */
-function get_apod() {
+function get_apod($apod_date_input=NULL)
+{
 	global $db, $MAX_PIC_SIZE;
-	//$source = "http://antwrp.gsfc.nasa.gov/apod/ap041209.html";
-	$file = @file(APOD_SOURCE);
-	if($file) {
-		$html = join("",$file);
-		$html = strip_tags($html,"<img> <a> <b>");
 
-		//Image file & BIG Image file
-		$pattern = "((<(a|A)\s(HREF|href)=\"image/(.*)\")|(<(IMG|img)\s(SRC|src)=\"(.*)\"))";
-		preg_match_all($pattern,$html,$out);
-		$image_big = $url."image/".$out[4][0];
-		foreach ($out[8] as $key => $val){
-			if($val != "") {
-				$img = $out[8][$key];
-			}	
-		}
-		$img_url = $url.$img;
-		
-		//desc
-		$pattern = "(<b>(.*)</b>)";
-		preg_match_all($pattern,$html,$out);
-		$image_desc = ltrim($out[1][0]);
-		
-		//explanation
-		$image_expl = substr($html,strpos($html,"Explanation:"),strrpos($html,"Tomorrow's picture:")-strpos($html,"Explanation:"));
-		//externe links bauen
-		$image_expl = preg_replace("/\/(\n)/i","/",$image_expl);
-		$image_expl = preg_replace("/\"(\n)/i","\"",$image_expl);
-		$image_expl = preg_replace("/href=(\n)/i","href=",$image_expl);
-		$image_expl = str_replace("<b>","",$image_expl);
-		$image_expl = preg_replace("/href=\"([^http].*)\"/i","href=\"".$url."\$1\"",$image_expl);
-		
-		$fp = @fopen($img_url,"r");
-		if($fp) {
-			//fetch image
-			while(!feof($fp)) {
-				$image .= fread($fp,1024);
-			}
-			fclose($fp);
-			
-			//write image
-			$img_src = APOD_TEMP_IMGPATH.date("Ymd").extension($img_url);
-			$fp = fopen($img_src,"w");
-			fwrite($fp,$image);
-			fclose($fp);
-			
-			//gallery id
-			//$id = $apod_gal_id;
-			$picid = $db->insert("gallery_pics", array("album"=>APOD_GALLERY_ID, "extension"=>extension($img_src)), __FILE__, __LINE__);
-			 
-			 // create pic
-			 createPic($img_src, picPath($id, $picid, extension($img_src)), $MAX_PIC_SIZE[picWidth], $MAX_PIC_SIZE[picHeight]);
-			
-			 // create thumbnail
-			 createPic($img_src, tnPath($id, $picid, extension($img_src)), $MAX_PIC_SIZE[tnWidth], $MAX_PIC_SIZE[tnHeight]);
-			 
-			 $sql = "UPDATE gallery_pics set name = '".addslashes($image_desc)."' WHERE id = '$picid'";
-			 $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			
-			 $text = "<a href='$image_big'><b>$image_desc</b></a><br>
-			 <br>".$image_expl."<br><br><a href='".$url."ap".date("ymd",time()-86400).".html'>Credit &amp; Copyright</a>";
-			 
-			 Comment::post($picid, 'i', 59, $text); 
-		}
-	}
-}
+	/** Validate $apod_date if passed */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $apod_date_input: %s', __FUNCTION__, __LINE__, $apod_date_input));
+	if (empty($apod_date_input) || strtotime($apod_date_input) === false) $apod_date_input = NULL;
 
-function get_spaceweather() {
-	global $db;
-	//$source = "http://www.spaceweather.com/";
-	$file = @file(SPACEWEATHER_SOURCE);
-	if($file) {
-		$html_source = join("",$file);
-		
-		//haupt chind
-		$html = str_replace("\n","",(strip_tags($html_source)));
-		$html = preg_replace("/\s+/i"," ",$html);
-		
-		//fuer PHAs
-		$html_table = str_replace("\n","",(strip_tags($html_source,"<table> <th> <tr> <td>")));
-		$html_table = preg_replace("/\s+/i"," ",$html_table);
-		
-		//Solar Wind
-		$pattern = "(Solar\sWind\sspeed:\s(\d+\.\d+)\skm\/s\sdensity:\s(\d+\.\d+)\sprotons\/cm3)";
-		preg_match_all($pattern,$html,$out);
-	
-		$space['solarwind_speed'] = $out[1][0];
-		$space['solarwind_density'] = $out[2][0];
-	
-		//Solar Flares
-		$pattern = "(X-ray\sSolar\sFlares\s6-hr\smax:\s(\w\d)\s(\d+)\sUT\s(.....)\s24-hr:\s(\w\d)\s(\d+)\sUT\s(.....)\sexplanation)";
-		preg_match_all($pattern,$html,$out);
-		
-		$space['solarflares_6hr_typ'] = $out[1][0];
-		$space['solarflares_6hr_time'] = $out[2][0];
-		$space['solarflares_6hr_date'] = $out[3][0];
-		
-		$space['solarflares_24hr_typ'] = $out[4][0];
-		$space['solarflares_24hr_time'] = $out[5][0];
-		$space['solarflares_24hr_date'] = $out[6][0];
-		
-		//Sunspot Number
-		$pattern = "(Sunspot\sNumber:\s(\d+))";
-		preg_match_all($pattern,$html,$out);
-		
-		$space['sunspot_number'] = $out[1][0];
-		
-		//Magnetfeld
-		$pattern = "(Interplanetary\sMag\.\sField\sBtotal:\s(\d+\.\d+)\snT\sBz:\s(\d+\.\d+)\snT\s(.....)\sexplanation)";
-		preg_match_all($pattern,$html,$out);
-	
-		$space['magnetfield_btotal'] = $out[1][0];
-		$space['magnet_bz_value'] = $out[2][0];
-		$space['magnet_z_unit'] = $out[3][0];
-		
-		//solarflars
-		$pattern = "(FLARE\s0-24\shr\s24-48\shr\sCLASS\s(\w)\s(\d+)%\s(\d+)%\sCLASS\s(\w)\s(\d+)%\s(\w+)%\s)";
-		preg_match_all($pattern,$html,$out);
-		
-		$space['solarflares_percent_24hr_'.$out[1][0].'_percent'] = $out[2][0];
-		$space['solarflares_percent_48hr_'.$out[1][0].'_percent'] = $out[3][0];
-		$space['solarflares_percent_24hr_'.$out[4][0].'_percent'] = $out[5][0];
-		$space['solarflares_percent_48hr_'.$out[4][0].'_percent'] = $out[6][0];
-		
-		//magnetsturm mid
-		$pattern = "(Mid-latitudes\s0-24\shr\s24-48\shr\sACTIVE\s(\d+)%\s(\d+)%\sMINOR\s(\d+)%\s(\d+)%\sSEVERE\s(\d+)%\s(\d+)%\sHigh\slatitudes)";
-		preg_match_all($pattern,$html,$out);
-		
-		$space['magstorm_mid_active_24hr'] = $out[1][0];
-		$space['magstorm_mid_active_48hr'] = $out[2][0];
-		$space['magstorm_mid_minor_24hr'] = $out[3][0];
-		$space['magstorm_mid_minor_48hr'] = $out[4][0];
-		$space['magstorm_mid_severe_24hr'] = $out[5][0];
-		$space['magstorm_mid_severe_48hr'] = $out[6][0];
-	
-		//magnetsturm max
-		$pattern = "(High\slatitudes\s0-24\shr\s24-48\shr\sACTIVE\s(\d+)%\s(\d+)%\sMINOR\s(\d+)%\s(\d+)%\sSEVERE\s(\d+)%\s(\d+)%\s)";
-		preg_match_all($pattern,$html,$out);
-		
-		$space['magstorm_high_active_24hr'] = $out[1][0];
-		$space['magstorm_high_active_48hr'] = $out[2][0];
-		$space['magstorm_high_minor_24hr'] = $out[3][0];
-		$space['magstorm_high_minor_48hr'] = $out[4][0];
-		$space['magstorm_high_severe_24hr'] = $out[5][0];
-		$space['magstorm_high_severe_48hr'] = $out[6][0];
-		
-		//PHAs today
-		$pattern = "(\sthere\swere\s(\d+)\sknown\sPotentially\sHazardous\sAsteroids\s)";
-		preg_match_all($pattern,$html,$out);
-		
-		$space['PHA'] = $out[1][0];
-		
-		//PHAs im detail
-		$PHAs = substr($html_table,strpos($html_table,"Earth-asteroid encounters <table"));
-		$PHAs = substr($PHAs,0,strpos($PHAs,"</table>"));
-	
-		$pa = @explode("</td>",$PHAs);
-		$anz = @count($pa) - 2;
-		if($anz) {
-			$x = 0;
-			$xs = array("asteroid", "datum", "distance", "mag");
-			$inn = 0;
-			for($i=4;$i<=$anz;$i++) {
-				$pha[$inn][$xs[$x]] = str_replace("&nbsp;","",strip_tags($pa[$i]));
-				$x++;
-				if($x == 4) {
-					$x = 0;
-					$inn++;
-				}	
-			}
-			
-			//write space Phas
-/*			foreach($pha as $key => $value) {
-				$ps = array();
-				foreach($value as $kk => $vv) {
-					$ps[] = trim($vv);	
+	/** Retrieve the APOD data from the APOD_API */
+	$apod_data = cURLfetchJSON(APOD_API . (!empty($apod_date_input) ? '&date='.$apod_date_input : ''));
+
+	/** If $apod_data is not empty / valid */
+	if (!empty($apod_data) && $apod_data !== false)
+	{
+		/**
+		 * Process $apod_data
+		 *
+		 * Example REST API response:
+		 *	 Array
+		 *	(
+		 *	    [copyright] => Francesco Sferlazza
+		 *	    [date] => 2018-08-01
+		 *	    [explanation] => Cosmic rays from outer space go through your body every second. Typically, they do you no harm [...]
+		 *	    [hdurl] => https://apod.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
+		 *	    [media_type] => image
+		 *	    [service_version] => v1
+		 *	    [title] => Live: Cosmic Rays from Minnesota
+		 *	    [url] => https://apod.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
+		 *	)
+		 */
+		if ( DEVELOPMENT && $apod_date_input != NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",$apod_date_input): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_date_input))));
+		if ( DEVELOPMENT && $apod_date_input == NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",strtotime($apod_data[date])): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_data['date']))));
+		$new_apod_date = ( $apod_date_input != NULL ? date('ymd',strtotime($apod_date_input)) : date('ymd',strtotime($apod_data['date'])) );
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_date: %s', __FUNCTION__, __LINE__, $new_apod_date));
+		$new_apod_title = $apod_data['title'];
+		$new_apod_explanation = $apod_data['explanation'];
+		$new_apod_copyright = $apod_data['copyright'];
+		$new_apod_mediatype = $apod_data['media_type'];
+		$new_apod_img_small = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['url']); // with fix for malformed url (APOD API issue)
+		$new_apod_img_large = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['hdurl']);  // with fix for malformed url (APOD API issue)
+		$new_apod_archive_url = APOD_SOURCE . 'ap'.$new_apod_date.'.html'; // E.g.: https://apod.nasa.gov/apod/ap180714.html
+		$new_apod_urlparts = pathinfo($new_apod_img_small);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> pathinfo(): %s', __FUNCTION__, __LINE__, print_r($new_apod_urlparts,true)));
+		$new_apod_fileext = $new_apod_urlparts['extension'];
+		$new_apod_filename = $apod_data['date'] . '.' . $new_apod_fileext;
+		$new_apod_temp_filepath = APOD_TEMP_IMGPATH . $new_apod_filename;
+		if ($new_apod_fileext === 'html') $new_apod_mediatype = 'website';
+
+		/** Check if APOD is not already fetched... */
+		try {
+			$sql = 'SELECT id, name, extension, pic_added FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' AND DATE(pic_added) = "'.$new_apod_date.'"';
+			$checkTodaysAPOD = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			return false;
+		}
+		if (empty($checkTodaysAPOD['name']) || strpos($checkTodaysAPOD['name'], $new_apod_title) === false)
+		{
+			/** Save new APOD to the gallery_pics database table */
+			if (!empty($new_apod_title))
+			{
+				try {
+					if ($new_apod_mediatype === 'image') $new_apod_fileext = '.'.$new_apod_fileext;
+					$new_apod_picid = $db->insert('gallery_pics', [
+																	 'album'=>APOD_GALLERY_ID
+																	,'extension'=>$new_apod_fileext
+																	,'pic_added'=>$new_apod_date
+																	,'name'=>escape_text($new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : ''))
+																  ], __FILE__, __LINE__, __FUNCTION__);
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_picid: %s', __FUNCTION__, __LINE__, $new_apod_picid));
+
+				} catch (Exception $e) {
+					error_log($e->getMessage());
+					return false;
 				}
-				$sql = "
-				REPLACE into spaceweather_pha
-					(asteroid,datum,distance,mag)
-				VALUES
-					('".$ps[0]."','".date("Y-m-d",strtotime(str_replace(".","",$ps[1])))."','".$ps[2]."','".$ps[3]."')";
-				$db->query($sql,__LINE__,__FILE__);
-			}*/
-		}
-		
-		//write spaceweather
-		foreach($space as $key => $val) {
-			$sql = "
-			REPLACE into spaceweather
-				(name, wert, datum)
-			VALUES
-				('$key','$val',now())";
-			$db->query($sql,__LINE__,__FILE__);
-		}	
-	}
-}
 
-function spaceweather_ticker() {
-	global $db;
+			/** If $new_apod_title is empty, abort */
+			} else {
+				error_log(sprintf('<%s:%d> $new_apod_title EMPTY: %s', __FUNCTION__, __LINE__, $new_apod_title));
+				return false;
+			}
+
+			/** APOD saved to DB successfully */
+			if (!empty($new_apod_picid) && is_numeric($new_apod_picid))
+			{
+				switch ($new_apod_mediatype)
+				{
+					/** APOD media_type is 'image'... */
+					case 'image':
+						/** Fetch and save the APOD image to APOD_TEMP_IMGPATH */
+						if (!cURLfetchUrl($new_apod_img_small, $new_apod_temp_filepath)) goto cleanup;
+
+						/** Filepfade zum finalen Speicherort des aktuellen APOD-Bildes (Original & Thumbnail) */
+						$new_apod_filepath_pic = picPath(APOD_GALLERY_ID, $new_apod_picid, $new_apod_fileext); // Fix eventual double-slashes in path
+						$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, $new_apod_fileext); // Fix eventual double-slashes in path
+
+						/** Create APOD gallery pic */
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic(): %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic));
+						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic, $MAX_PIC_SIZE['picWidth'], $MAX_PIC_SIZE['picHeight']))
+						{
+							error_log(sprintf('<%s:%d> %s createPic() ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic));
+							/** Goto: cleanup */
+							goto cleanup;
+						}
+
+						/** Create APOD gallery pic-thumbnail */
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
+						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
+						{
+							error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
+							/** Goto: cleanup */
+							goto cleanup;
+						}
+
+						/** Regular cleanup: remove temp-file from APOD_TEMP_IMGPATH */
+						if (!unlink($new_apod_temp_filepath)) error_log(sprintf('<%s:%d> unlink($new_apod_temp_filepath) ERROR: %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
+						break;
+
+					/**
+					 * APOD media_type is 'video'
+					 * Remark: for media_type="video", the API parameter hdurl="" is NOT AVAILABLE!
+					 */
+					case 'video':
+						/* Find out what 'video'-type exactly we're dealing with... */
+						$video_services = [
+												 [
+													 'service' => 'youtube'
+													,'identifier' => 'https://www.youtube.com/embed/'
+												 ]
+												,[
+													 'service' => 'vimeo'
+													,'identifier' => 'https://player.vimeo.com/video/'
+												 ]
+											];
+						foreach ($video_services as $service)
+						{
+							if (strpos($service['identifier'], $new_apod_urlparts['dirname']) !== false)
+							{
+							    $media_type = $service['service'];
+							    /** Video type found, let's exit the foreach{}-loop */
+							    if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $service[identifier] found: %s', __FUNCTION__, __LINE__, $media_type));
+								break;
+							}
+						}
+
+						/** No matching $media_type found, let's Goto: cleanup */
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $media_type: %s', __FUNCTION__, __LINE__, print_r($media_type,true)));
+						if (empty($media_type) || is_array($media_type))
+						{
+							/** Goto: cleanup */
+							goto cleanup;
+
+						} else {
+							/** Get Video-Thumbnail image */
+							$new_apod_img_thumbnail = getVideoThumbnail($media_type, $new_apod_urlparts['filename']);
+							$new_apod_temp_filepath = $new_apod_temp_filepath.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION);
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
+							if (!cURLfetchUrl($new_apod_img_thumbnail, $new_apod_temp_filepath)) goto cleanup;
 	
-	$add['solarwind_speed'][0] = "Solarwind";
-	$add['solarwind_speed'][1] = "km/s";
-	$add['solarwind_density'][0] = "Solarwind Dichte";
-	$add['solarwind_density'][1] = "Protonen/cm<sup>3</sup>";
-	$add['solarflares_6hr_typ'][0] = 0;
-	$add['solarflares_6hr_time'][0] = 0;
-	$add['solarflares_6hr_date'][0] = 0;
-	$add['solarflares_24hr_typ'][0] = 0;
-	$add['solarflares_24hr_time'][0] = 0;
-	$add['solarflares_24hr_date'][0] = 0;
-	$add['sunspot_number'][0] = "relative Anzahl Sonnenflecken";
-	$add['magnetfield_btotal'][0] = "Magnetfeldstärke";
-	$add['magnetfield_btotal'][1] = "nT";
-	$add['magnet_bz_value'][0] = "Magnetfeldrichtungsstärke";
-	$add['magnet_bz_value'][1] = "nT";
-	$add['magnet_z_unit'][0] = "Magnetfeldrichtung";
-	$add['solarflares_percent_24hr_M_percent'][0] = 0;
-	$add['solarflares_percent_48hr_M_percent'][0] = 0;
-	$add['solarflares_percent_24hr_X_percent'][0] = 0;
-	$add['solarflares_percent_48hr_X_percent'][0] = 0;
-	$add['magstorm_mid_active_24hr'][0] = 0;
-	$add['magstorm_mid_active_48hr'][0] = 0;
-	$add['magstorm_mid_minor_24hr'][0] = 0;
-	$add['magstorm_mid_minor_48hr'][0] = 0;
-	$add['magstorm_mid_severe_24hr'][0] = 0;
-	$add['magstorm_mid_severe_48hr'][0] = 0;
-	$add['magstorm_high_active_24hr'][0] = 0;
-	$add['magstorm_high_active_48hr'][0] = 0;
-	$add['magstorm_high_minor_24hr'][0] = 0;
-	$add['magstorm_high_minor_48hr'][0] = 0;
-	$add['magstorm_high_severe_24hr'][0] = 0;
-	$add['magstorm_high_severe_48hr'][0] = 0;
-	$add['PHA'][0] = "Potentiel gefährliche Asteroiden";
-		
-	$sql = "SELECT * FROM spaceweather";
-	$result = $db->query($sql,__LINE__,__FILE__);
-	while($rs = $db->fetch($result)) {
-		if($rs['wert'] == "") {
-			$rs['wert'] = "unbekannt";
-		}
-		if(strlen($add[$rs['name']][0]) > 2) {
-			$sw[$rs['name']] = $add[$rs['name']][0].": ".$rs['wert']." ".$add[$rs['name']][1];
-		}
-	}
+							/** Create APOD gallery pic-thumbnail for 'video' */
+							$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, '.'.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION));
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
+							if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
+							{
+								error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
+								goto cleanup;
+							}
 	
-	shuffle($sw);
-	for($i=0;$i<=2;$i++) {
-		$spw .= $sw[$i]." | ";	
-		
+							/** Update APOD 'video' entry in gallery_pics table */
+							try {
+								$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $media_type, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
+								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
+								if ($result === 0) goto cleanup;
+							} catch (Exception $e) {
+								error_log($e->getMessage());
+							}
+						}
+						break;
+
+					/**
+					 * APOD is actually a 'website'-type - not a 'video' (overwritten manually)
+					 * Remark: for media_type="website", the API parameter hdurl="" is NOT AVAILABLE!
+					 */
+					case 'website':
+						/** Create APOD gallery pic-thumbnail for 'video' or 'website' */
+						$new_apod_temp_filepath = PHP_IMAGES_DIR . 'apod/tn_website.png';
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_temp_filepath: %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
+						$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, '.'.pathinfo($new_apod_temp_filepath, PATHINFO_EXTENSION));
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
+						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
+						{
+							error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
+							goto cleanup;
+						}
+
+						/** Update APOD 'website' entry in gallery_pics table */
+						try {
+							$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $new_apod_mediatype, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
+							if ($result === 0) goto cleanup;
+						} catch (Exception $e) {
+							error_log($e->getMessage());
+						}
+						break;
+
+					/**
+					 * If APOD media_type is unsupported, goto cleanup
+					 */
+					default:
+						error_log(sprintf('<%s:%d> APOD has an unsupported media_type: %s', __FUNCTION__, __LINE__, $new_apod_mediatype));
+						goto cleanup;
+				}
+
+				/**
+				 * Add APOD explanation & links with user [z]Barbara Harris
+				 * - for media_type="video", the $new_apod_img_large is not available => therefore fallback to $new_apod_img_small
+				 * - the $new_apod_copyright is not always available => therefore fallback to $new_apod_archive_url
+				 */
+				$new_apod_comment = t('apod-pic-comment', 'apod', [ (!empty($new_apod_img_large) ? $new_apod_img_large : $new_apod_img_small), $new_apod_title, $new_apod_explanation, $new_apod_archive_url, (!empty($new_apod_copyright) ? $new_apod_copyright : $new_apod_archive_url) ]);
+				Comment::post($new_apod_picid, 'i', BARBARA_HARRIS, $new_apod_comment);
+				return true;
+
+				/** Goto cleanup: on createPic=FALSE this goto will Cleanup & DELETE DB-Entry */
+				cleanup:
+					try {
+						$deleteFromGalleryPics = $db->query('DELETE FROM gallery_pics WHERE id = ' . $new_apod_picid, __FILE__, __LINE__, __FUNCTION__);
+						return false;
+					} catch (Exception $e) {
+						error_log($e->getMessage());
+						return false;
+					}
+			}
+
+		/** ...APOD is already fetched! */
+		} else {
+			error_log(sprintf('<%s:%d> APOD for $new_apod_date already fetched! => "%s" %s', __FUNCTION__, __LINE__, $new_apod_title, tnPath(APOD_GALLERY_ID, $checkTodaysAPOD['id'], $checkTodaysAPOD['extension'])));
+			return false;
+		}
+
+	/** APOD_SOURCE URL is INVALID / NOT available */
+	} else {
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchJSON(APOD_API) ERROR: %s', __FUNCTION__, __LINE__, print_r($apod_data, true)));
+		return false;
 	}
-	$spw .= "<a href='spaceweather.php'>more ".htmlentities(">>")."</a>";
-	return $spw;
 }
 
 
 /**
  * Aktuelleste APOD Bild-ID
- * 
  * Holt das aktuellste APOD Bild aus der Datenbank
+ *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return array DB-Query Result als Resource (Array)
  */
-function get_apod_id() {
+function get_apod_id()
+{
 	global $db;
-	
-	$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
-	$result = $db->query($sql);
-	$rs = $db->fetch($result);
 
-	return $rs;
+	$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
+	return $db->fetch($db->query($sql));
 }
-?>

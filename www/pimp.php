@@ -1,10 +1,26 @@
 <?php
-//coded by [z]keep3r
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+/**
+ * Pimp Name Generator
+ * coded by [z]keep3r
+ *
+ * @author [z]keep3r
+ * @package zorg\Games\Pimp
+ */
 
-echo head(47, "pimp");
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Pimp();
+
+//$smarty->assign('tplroot', array('page_title' => 'pimp'));
+$model->showOverview($smarty);
+$smarty->display('file:layout/head.tpl');
 
 
 function PostToHost($host, $path, $referer, $data_to_send) {
@@ -71,13 +87,14 @@ function rnd_id($total) {
 	return rand (1,$total);
 }
 
-$first = $_POST['first'];
-$last = $_POST['last'];
+$first = (string)$_POST['first'];
+$last = (string)$_POST['last'];
+$doAction = (string)$_POST['do'];
 
 // pimpern von playerappreciate.com
 if($_POST['do'] == "pimpme"){
 
-	$data = "First=$first&Last=$last&Pimpify=Pimpify!";
+	$data = 'First='.sanitize_userinput($first).'&Last='.sanitize_userinput($last).'&Pimpify=Pimpify!';
 
 	$x = PostToHost(
               "www.playerappreciate.com",
@@ -88,42 +105,43 @@ if($_POST['do'] == "pimpme"){
 	$exp = "/Your Pimp Name is:\s<\/b><\/font><br><br><center><b><u\sstyle='color:darkred'>(.*)<\/u><\/center>/";
 
 	preg_match($exp, $x, $output);
-	echo ("<center><b>$output[1]</b><br><br></center>");
+	printf('<center><b class="blink">%s</b><br><br></center>', $output[1]);
 
 // pimpern aus zoomscher db
-} elseif ($_POST['do'] == "pimpme2"){
+} elseif ($doAction === 'pimpme2'){
 
-	$sql = "SELECT count(*) as anzahl FROM pimp";
+	$sql = 'SELECT count(*) as anzahl FROM pimp';
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
-	$total = $rs[anzahl];
+	$total = $rs['anzahl'];
 	$id = rnd_id($total);
 
-	$sql = "SELECT * FROM pimp WHERE id = $id";
+	$sql = 'SELECT * FROM pimp WHERE id = '.$id;
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
 
-	$prefix = $rs[prefix];
+	$prefix = $rs['prefix'];
 
 	$id = rnd_id($total);
 
-	$sql = "SELECT * FROM pimp WHERE id = $id";
+	$sql = 'SELECT * FROM pimp WHERE id = '.$id;
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
 
-	$suffix = $rs[suffix];
+	$suffix = $rs['suffix'];
 
 	$name = rnd_name($first, $last);
 
-	echo ("<center><b>$prefix $name $suffix</b><br><br></center>");
+	printf('<center><b class="blink">%s %s %s</b><br><br></center>', $prefix, $name, $suffix);
 }
 
-echo ("<center><table><tr><form name='pimpform' action='$_SERVER[PHP_SELF]' method='post'><td align='center'>"
-     ."First Name:&nbsp;<input type='text' class='text' name='first' value='$first'><br>"
-     ."Last Name:&nbsp;<input type='text' class='text' name='last' value='$last'><br>"
-     ."<input type='hidden' name='do' value='pimpme2'>"
-     ."<input type='submit' class='button' name='send' value='pimp me'>"
-	 ."</td></tr></table></center>");
+echo '<center><table><tr><form name="pimpform" action="'.getURL(false,false).'" method="post" autocomplete="off"><td align="center">'
+     .'First Name:&nbsp;<input type="text" class="text" name="first" value="'.$first.'"><br>'
+     .'Last Name:&nbsp;<input type="text" class="text" name="last" value="'.$last.'"><br>'
+     .'<input type="hidden" name="do" value="pimpme2">'
+     .'<input autocomplete="false" name="hidden" type="text" style="display:none;">'
+     .'<input type="submit" class="button" name="send" value="pimp me">'
+	 .'</td></tr></table></center>';
 
-echo foot(52);
-?>
+//echo foot(52);
+$smarty->display('file:layout/footer.tpl');

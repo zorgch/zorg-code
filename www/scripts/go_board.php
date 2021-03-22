@@ -1,43 +1,39 @@
-<?
+<?php
 /**
  * GO Board
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]berg, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
- * @subpackage GO
- * 
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
- * @global array $smarty Array mit allen Smarty-Variablen
+ * @package zorg\Games\Go
+ *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  */
+
 /**
  * File Includes
+ * @include go_game.inc.php
  */
-//     include_once('/home/CME/z/zooomclan/www/includes/usersystem.inc.php');
-//require_once($_SERVER['DOCUMENT_ROOT'].'/includes/mysql.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'go_game.inc.php';
 
-/**
- * Globals
- */
-//global $db, $user, $smarty;
-
-$gameid = $_GET[game];
-if (!is_numeric($gameid)) user_error("Invalid game supplied");
+$gameid = $_GET['game'];
+if (!is_numeric($gameid)) user_error(t('error-game-invalid', 'global', $gameid));
 $e = $db->query(
-		"SELECT *
+		'SELECT *
 		FROM go_games g
-		WHERE g.id = '$gameid'", __FILE__, __LINE__);
+		WHERE g.id = '.$gameid, __FILE__, __LINE__, 'SELECT FROM go_games');
 $game = $db->fetch($e);
 
 if (!$game){
-    user_error("Invalid game-ID: '$gameid'");
+    user_error(t('error-game-invalid', 'global', $gameid));
     return;
 }
 
@@ -69,8 +65,5 @@ if ($game['state'] == 'running'){
 
 draw_go_players($im, $game);
 
-
 header("Content-Type: image/png");
 imagepng($im);
-	
-?>

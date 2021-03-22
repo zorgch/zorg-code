@@ -1,39 +1,40 @@
-<?
+<?php
 /**
- * Addle DWZ
- * 
- * Wenn vom User ID 7 ausgeführt, wird Addle DWZ neu berechnet
- * 
+ * Addle force DWZ update
+ * DWZ Punkte aller Spieler über alle Addle Games force-updaten
+ *
  * @author [z]biko
  * @version 1.0
- * @package Zorg
- * @subpackage Addle
- *  
- * @param integer $user->id
+ * @since 1.0 `[z]biko` File added
+ * @since 1.1 `11.09.2019` `IneX` code updates
+ *
+ * @package zorg\Games\Addle
+ * @uses _update_dwz()
  */
 /**
  * File Includes
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/addle.inc.php');
-   
-	
-   if ($user->id == 7) {
-   	echo "processing<br/>";
-   	
-   	$db->query("TRUNCATE TABLE addle_dwz");
-   	
-      $e = $db->query("select * from addle where finish='1' order by date asc", __FILE__, __LINE__);
-      while ($d = $db->fetch($e)) {
-      	_update_dwz($d[id]);
-      	echo "=";
-      	flush();
-      }
-   	
-   	echo "<br />done";
-   }else{
-      echo "access denied";
-   }
-   
-?>
+require_once dirname(__FILE__).'/includes/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'addle.inc.php';
+
+/** Nur wenn User [z]biko oder User mit Super-Admin Rechten */
+if ($user->id == 7 || $user->typ >= USER_SPECIAL)
+{
+	echo '*** start processing ***<br/>';
+	$db->query('TRUNCATE TABLE addle_dwz', __FILE__, __LINE__, 'TRUNCATE Query');
+	$e = $db->query('SELECT * FROM addle WHERE finish="1" ORDER BY date ASC', __FILE__, __LINE__, 'SELECT Query');
+	while ($d = $db->fetch($e))
+	{
+		_update_dwz($d['id']);
+		echo '=';
+		flush();
+	}
+	echo '<br>*** done ***';
+}
+
+/** Permission denied */
+else {
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	echo "Access denied";
+}

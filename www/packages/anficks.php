@@ -1,36 +1,32 @@
-<?
+<?php
 /**
  * Anficker Package
- * 
+ *
  * Holt die ganzen Anficks und übergibt sie als Array an Smarty
- * 
+ *
  * @author ?
  * @version 1.0
- * @package Zorg
- * @subpackage Anficker
- *
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Uservariablen
- * @global array $smarty Array mit allen Smarty-Variablen
+ * @package zorg\Games\Anficker
  */
 /**
  * File Includes
+ * @include config.inc.php
+ * @include smarty.inc.php
+ * @include anficker.inc.php
  */
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/anficker.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/smarty.inc.php");
+require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'smarty.inc.php';
+require_once INCLUDES_DIR.'anficker.inc.php';
 
-global $db, $smarty, $user;
+global $user, $smarty;
 
-if($_GET['del'] != 'no') {
-	Anficker::deleteLog($user->id);
-}
-
-if ($user->typ != USER_NICHTEINGELOGGT)
+if ($user->is_loggedin())
 {
-	$smarty->assign("anficks", Anficker::getLog($user->id));
-	$smarty->assign("anfickstats", Anficker::getNumAnficks());
-} else {
-	echo '<h2 style="font-size:large; font-weight: bold">Wenn du <a href="'.SITE_URL.'/profil.php?do=anmeldung" title="Account für Zorg.ch erstellen">eingeloggt</a> wärst könntest du gegen Spresim batteln.</h2><img border="0" src="/files/396/aficks.jpg">';
+	if(isset($_GET['del']) && $_GET['del'] !== 'no') Anficker::deleteLog($user->id);
+
+	$smarty->assign('anficks', Anficker::getLog($user->id));
+	$smarty->assign('anfickstats', Anficker::getNumAnficks());
 }
-?>
+else {
+	$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => 'Spresim seit: nope!', 'message' => 'Wenn du <a href="/profil.php?do=anmeldung">eingeloggt</a> wärst könntest du gegen Spresim batteln.<br><img border="0" src="/files/396/aficks.jpg">']);
+}

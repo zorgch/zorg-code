@@ -1,19 +1,47 @@
-<?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/setiathome.inc.php');
+<?php
+/**
+ * SETI@Home Stats for zooomclan
+ *
+ * @author [z]keep3r
+ * @package zorg\SETI
+ */
 
+/**
+ * File includes
+ * @include main.inc.php Includes the Main Zorg Configs and Methods
+ * @include setiathome.inc.php Includes SETI@home setiathome() Class and Methods
+ * @include core.model.php required
+ */
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once INCLUDES_DIR.'setiathome.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
-if($_GET['update'] == 1) {
-	setiathome::update_group();	
-	header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Seti();
+
+/**
+ * Validate GET-Parameters
+ */
+if (!empty($_GET['update'])) $doAction = (string)$_GET['update'];
+
+if($doAction === 'true')
+{
+	if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
+	{
+		setiathome::update_group();	
+		header('Location: '.getURL(false,false));
+	} else {
+		$model->showOverview($smarty);
+		$smarty->display('file:layout/head.tpl');
+		echo 'Hier dürfen nur Member was machen. Tschau.';
+		$smarty->display('file:layout/footer.tpl');
+	}
 } else {
-	
-	echo head(63);
-	echo menu('main');
-	echo menu('mischt');
-	echo menu('seti');
-	
+	$model->showOverview($smarty);
+	$smarty->display('file:layout/head.tpl');
+
 	$sql = "
 	SELECT 
 	count(s.name) as number, 
@@ -41,18 +69,20 @@ if($_GET['update'] == 1) {
 		$result = $db->query($sql);
 	}
 	$group = $db->fetch($result);
-	
+
 	echo "
-	<table width='80%' cellpadding='3' cellspacing='1' bgcolor=".TABLEBACKGROUNDCOLOR.">
-	<tr><td align='center' colspan='6' bgcolor=".BORDERCOLOR."><b>SETI - zooomclan.org</b></td></tr>
-	<tr><td align='left' colspan='3' bgcolor=".BACKGROUNDCOLOR."><B>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></B></td>
-	<td align='left' colspan='3' bgcolor=".BACKGROUNDCOLOR."><B>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</B></td></tr>
-	<tr><td align='left' bgcolor=".BACKGROUNDCOLOR." colspan='2'><b>Name</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Units</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>CPU Zeit</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Durchschn. Zeit</b></td>
-	<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
-	
+	<h1>SETI - zooomclan.org</h1>
+	<h3>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></h3>
+	<h3>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</h3>
+	<table cellpadding='3' cellspacing='1' bgcolor=".TABLEBACKGROUNDCOLOR.">
+		<tr><td align='center' colspan='6' bgcolor=".BORDERCOLOR."><b></b></td></tr>
+		<tr>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR." colspan='2'><b>Name</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Units</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR." class='hide-mobile'><b>CPU Zeit</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR." class='hide-mobile'><b>Durchschn. Zeit</b></td>
+			<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
+
 	$secadd = (date("I",time()) ? 7200 : 3600);
 	$sql = "
 	SELECT 
@@ -89,20 +119,17 @@ if($_GET['update'] == 1) {
 		} else {
 			$add2 = "";
 		}
-		echo "
-		<tr>
-		<td align='left' $add>".$i."</td>
-		<td align='left' $add>".$rs['name']."</td>
-		<td align='left' $add>".$rs['num_results']."$add2</td>
-		<td align='left' $add>".setiathome::seti_time($rs['total_cpu'])."</td>
-	<td align='left' $add>".$rs['avg_cpu']."</td>
-	<td align='left' $add>".datename($rs['date_last_result'])."</td></tr>";	
-	$i++;
+		echo "<tr>
+			<td align='left' $add>".$i."</td>
+			<td align='left' $add>".$rs['name']."</td>
+			<td align='left' $add>".$rs['num_results']."$add2</td>
+			<td align='left' $add class='hide-mobile'>".setiathome::seti_time($rs['total_cpu'])."</td>
+			<td align='left' $add class='hide-mobile'>".$rs['avg_cpu']."</td>
+			<td align='left' $add>".datename($rs['date_last_result'])."</td>
+		</tr>";	
+		$i++;
 	}
 	echo "</table>";
 
-	echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 }
-
-
-?>

@@ -1,12 +1,18 @@
-<?
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
+<?php
+/**
+ * Hunting z Games Overview
+ * @package zorg\Games\Hz
+ */
+require_once dirname(__FILE__).'/../includes/hz_game.inc.php';
 
-	hz_turn_passing();
+hz_turn_passing();
 
-	global $db, $user, $smarty;
+global $db, $user, $smarty;
 
-
-	// running games
+/** Zugriff nur wenn User eingeloggt ist */
+if ($user->is_loggedin())
+{
+	/** running hz games */
 	$e = $db->query(
 		"SELECT hzg.*, unix_timestamp(hzg.turndate) AS turndate, z.user AS mrz, m.name AS mapname,
 		  if(me.type='z' && hzg.nextturn='z' || me.type!='z' && hzg.nextturn='players' &&
@@ -20,14 +26,14 @@
 		  ON (hzg.id=me.game && me.user='".$user->id."')
 		WHERE hzg.state='running'
 		ORDER BY hzg.turndate DESC",
-		__FILE__, __LINE__);
+		__FILE__, __LINE__, 'running hz games');
 	
-        $running_games = array();
+	    $running_games = array();
 	while ($d = $db->fetch($e)) {
 		$d['maplink'] = "map=$d[map]";
 		$d['gamelink'] = "game=$d[id]";
 	        $d['z'] = $d['mrz'];
-		$e2 = $db->query("SELECT * FROM hz_players WHERE type!='z' AND game='".$d[id]."'", __FILE__, __LINE__);
+		$e2 = $db->query('SELECT * FROM hz_players WHERE type!="z" AND game='.$d['id'], __FILE__, __LINE__, 'hz players');
 		$d['players'] = array();
 		if ($d['nextturn'] == 'z') $d['awaiting'] = array($d['z']);
 		else $d['awaiting'] = array();
@@ -38,67 +44,67 @@
 		$running_games[] = $d;
 	}
 	$smarty->assign("running_games", $running_games);
-
-	$own_games = $db->fetch($db->query(
-		"SELECT count(me.user) anz
-		FROM hz_games hzg
-		JOIN hz_players me
-		  ON me.game = hzg.id
-		WHERE hzg.state!='finished'
-		  AND me.type='z'
-		  AND me.user='".$user->id."'",
-		__FILE__, __LINE__
-	));
+	
+	$own_games = $db->fetch($db->query('SELECT count(me.user) anz
+										FROM hz_games hzg
+										JOIN hz_players me
+										  ON me.game = hzg.id
+										WHERE hzg.state!="finished"
+										  AND me.type="z"
+										  AND me.user='.$user->id,
+										__FILE__, __LINE__, 'new_game_possible'));
 	$smarty->assign("new_game_possible", $own_games['anz']<=MAX_HZ_GAMES ? 1 : 0);
-
+	
 	$e = $db->query("SELECT * FROM hz_maps 
-			  WHERE state='active'
-			  ORDER BY name ASC",
-			__FILE__, __LINE__);
+					  WHERE state='active'
+					  ORDER BY name ASC",
+					__FILE__, __LINE__, 'hz maps');
 	$map_ids = array();
 	$map_names = array();
 	while ($d = $db->fetch($e)) {
 		$map_ids[] = $d['id'];
-		$map_names[] = "$d[name] ($d[players] Inspectors)";
+		$map_names[] = sprintf('%s (%d Inspectors)', $d['name'], $d['players']);
 	}
 	$smarty->assign("map_ids", $map_ids);
 	$smarty->assign("map_names", $map_names);
-
-
-	// open games
-	$e = $db->query(
-		"SELECT hzg.*, z.user mrz, m.name mapname, m.players total,
-		  (m.players-count(numpl.user)+1) missing,
-		  IF(p.user IS NULL, '0', '1') joined
-		FROM hz_games hzg
-		LEFT JOIN hz_players p
-		  ON p.game=hzg.id
-		  AND p.user='".$user->id."'
-		LEFT JOIN hz_maps m
-		  ON hzg.map=m.id
-		LEFT JOIN hz_players z
-		  ON z.game=hzg.id
-		  AND z.type='z'
-		LEFT JOIN hz_players numpl
-		  ON numpl.game = hzg.id
-		WHERE hzg.state='open'
-		GROUP BY hzg.id",
-		__FILE__, __LINE__);
+	
+	
+	/** open hz games */
+	$e = $db->query('SELECT hzg.*, z.user mrz, m.name mapname, m.players total,
+					  (IFNULL(m.players,0)-count(numpl.user)+1) missing,
+					  IF(p.user IS NULL, "0", "1") joined
+					FROM hz_games hzg
+					LEFT JOIN hz_players p
+					  ON p.game=hzg.id
+					  AND p.user='.$user->id.'
+					LEFT JOIN hz_maps m
+					  ON hzg.map=m.id
+					LEFT JOIN hz_players z
+					  ON z.game=hzg.id
+					  AND z.type="z"
+					LEFT JOIN hz_players numpl
+					  ON numpl.game = hzg.id
+					WHERE hzg.state="open"
+					GROUP BY hzg.id, z.user',
+					__FILE__, __LINE__, 'open hz games');
 	$open_games = array();
 	while ($d = $db->fetch($e)) {
-		$d['maplink'] = "map=$d[map]";
-		$d['joinlink'] = "join=$d[id]";
-	        $d['z'] = $d['mrz'];
-	        $e2 = $db->query("SELECT * FROM hz_players
-				   WHERE type!='z'
-				   AND game='".$d[id]."'",
-				 __FILE__, __LINE__);
+		$d['maplink'] = 'map='.$d['map'];
+		$d['joinlink'] = 'join='.$d['id'];
+		$d['z'] = $d['mrz'];
+	    $e2 = $db->query('SELECT * FROM hz_players WHERE type!="z" AND game='.$d['id'], __FILE__, __LINE__, 'open games');
 		$d['players'] = array();
 		while ($d2 = $db->fetch($e2)) {
 			$d['players'][] = $d2;
 		}
 		$open_games[] = $d;
 	}
-
+	
 	$smarty->assign("open_games", $open_games);
-?>
+}
+
+/** Für nicht-eingeloggte */
+else {
+	$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Wenn Du eingeloggt wärst...', 'message' => '...könntest Du hier Hunting z spielen. Aber bis dahin: access denied!']);
+	$smarty->display('file:layout/elements/block_error.tpl');
+}

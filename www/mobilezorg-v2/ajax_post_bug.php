@@ -1,9 +1,15 @@
-<?
+<?php
+/**
+ * Mobilezorg V2 - Add new Bug
+ *
+ * @package zorg\Chat\Mobilezorg
+ */
+
 /**
  * FILE INCLUDES
  */
-require_once 'config.php';
-require_once PHP_INCLUDES_DIR.'mobilez/chat.inc.php';
+require_once dirname(__FILE__).'/config.php';
+require_once MOBILEZ_INCLUDES_DIR.'chat.inc.php';
 
 if(isset($_POST['title']) && isset($_POST['description']) && $user->id > 0)
 {

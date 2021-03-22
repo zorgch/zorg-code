@@ -1,0 +1,687 @@
+@charset "UTF-8";
+html { font-size: calc(1em + 1vw); }
+ 
+body {
+	background-color: #000;
+	color: #fff;
+	font-family: Verdana, Sans-Serif;
+	margin: 0;
+	padding: 0;
+}
+
+/**
+ * Responsive CSS Grid
+ */
+.zorg-site {
+	height: 100vh;
+	display: grid;
+	/*grid-column-gap: 20px;*/
+}
+@supports (grid-area: auto) {
+	.zorghead {
+		grid-area: header;
+	}
+		.zorghead > .logo {
+			grid-area: logo;
+		}
+		.zorghead > .announcements {
+			grid-area: announcements;
+		}
+		.zorghead > .service {
+			grid-area: service;
+		}
+		.zorghead > .onlineuser {
+			grid-area: onlineuser;
+		}
+		.zorghead > .notifications {
+			grid-area: notifications;
+		}
+		.zorghead > .infos {
+			grid-area: infos;
+		}
+	.navigation {
+		grid-area: nav;
+	}
+	.main-content {
+		grid-area: main;
+	}
+	.sidebar {
+		grid-area: sidebar;
+	}
+	.footer {
+		grid-area: footer;
+	}
+}
+
+/* Desktops, Laptops: Screen = B/w 1025px to 1280px */
+@media (min-width: 768px) {
+	.zorg-site {
+		width: 75vw;
+		margin: 0 auto;
+		grid-template-columns: 3fr 1fr;
+		grid-template-rows: 2fr 1fr 10fr 1fr;
+		grid-template-areas:
+			"header header"
+			"nav nav"
+			"main sidebar"
+			"footer footer";
+	}
+		.zorghead {
+			grid-template-columns: 1fr 2fr 1fr;
+			grid-template-rows: 1fr 1fr 1fr;
+			grid-template-areas:
+				"logo announcements service"
+				"infos announcements service"
+				"notifications notifications onlineuser"
+		}
+		header > .announcements {
+			text-align: center;
+		}
+		header > .infos {
+			text-align: left;
+		}
+		header > .infos .solarstate .event {
+			margin-right: 5px;
+		}
+}
+
+/* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
+@media (max-width: 767px) {
+	.zorg-site {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr 1fr 8fr auto 1fr;
+		grid-template-areas:
+			"header"
+			"nav"
+			"main"
+			"sidebar"
+			"footer";
+	}
+		.zorghead {
+			grid-template-columns: 1fr 1fr;
+			/*grid-template-rows: 1fr 1fr;*/
+			grid-template-areas:
+				"logo service"
+				"announcements service"
+				"onlineuser service"
+				"notifications notifications"
+				"..... infos"
+		}
+		.navigation {
+			display: flex;
+		}
+		.navigation div.menu {
+			flex-grow: 1;
+		}
+		header > .announcements {
+			text-align: left;
+		}
+		header > .infos {
+			text-align: right;
+		}
+		header > .infos .solarstate .event {
+			float: right;
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+	/* Navigation Menu */
+	div.menu {
+		border-top-color:#CBBA79;
+		border-bottom: none
+	}
+    div.menu > a {
+	    display: block;
+	    border-left: none;
+	    border-right: none;
+	}
+    div.menu > a.left, div.menu > a.right {
+	    display: none;
+	}
+}
+/** END: Responsive CSS Grid */
+
+/* START: HTML5 Structure Styling */
+.zorg-site:before {
+	content: "\200B";
+	background-color: #242424;
+}
+
+.zorg-site > * {
+	padding: 1vw 0.5vw 0 1.5vw;
+	background-color: #242424;
+}
+
+.zorghead {
+	display: grid;
+	grid-column-gap: 0px;
+	grid-row-gap: 0px;
+}
+
+.navigation {
+	font-size: 0.5rem;
+	text-align: center;
+	padding-left: 0;
+}
+
+.main-content {
+	font-size: 0.5rem;
+	padding-bottom: 1vw;
+}
+
+.sidebar {
+	font-size: 0.5rem;
+	text-align: center;
+}
+
+.footer {
+	font-size: 0.4rem;
+	background-color: #242424;
+	border-top: solid 1px #cbba79;
+	padding-top: 0.5vw;
+	padding-bottom: 1vw;
+}
+/* END: HTML5 Structure Styling */
+
+/**
+ * General Styles
+ */
+h1 { font-size: 1.0rem; }
+h2 { font-size: 0.8rem; }
+h3 { font-size: 0.7rem; }
+h4 { font-size: 0.6rem; }
+h5 { font-size: 0.5rem; }
+h6 { font-size: 0.4rem; }
+.small {
+	font-size: 0.35rem;
+}
+/** END: General Styles */
+
+/**
+ * Icons
+ */
+i.emoji {
+	font-style: normal;
+	padding: 0 2px 0 2px;
+	vertical-align: text-bottom;
+}
+i.user:before { content: "\01F464"; }
+i.password:before { content: "\01F510"; }
+
+/**
+ * Header
+ */
+header > .logo {
+	display: block;
+	font-size: 0.85rem;
+}
+header > .announcements {
+	display: inline-block;
+	font-size: 0.5rem;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	vertical-align: middle;
+}
+header > .announcements .event > a.join {
+	color: #8274ff;
+}
+header > .announcements .event > a.unjoin {
+	color: #88b351;
+}
+header > .service {
+	font-size: 0.4rem;
+	text-align: right;
+	vertical-align: top;
+}
+header > .service .countryflag {
+	margin-left: 5px;
+	height: 0.85em;
+}
+header > .onlineuser {
+	font-size: 0.4rem;
+	text-align: left;
+	vertical-align: bottom;
+}
+header > .notifications {
+	font-size: 0.4rem;
+	text-align: left;
+	vertical-align: bottom;
+	margin-top: 5px;
+}
+header > .infos {
+	font-size: 0.35rem;
+	vertical-align: bottom;
+	margin-top: 5px;
+}
+header > .infos .solarstate .time {
+	font-size: 1em;
+}
+header > .infos .solarstate .event,
+header > .infos .solarstate .countryflag {
+	height: 1.2em;
+	vertical-align: text-top;
+}
+header > .service form .login-input {
+	display: flex;
+	border: none;
+}
+header > .service form .login-input label {
+	flex: 1;
+	margin-right: 10px;
+	padding: 0 2px 0 2px;
+}
+header > .service label.user:before { content: "\01F464"; }
+header > .service label.password:before { content: "\01F510"; }
+/** END: Header */
+
+table {
+	/*background-color: #242424;*/
+	font-family: Verdana, Sans-Serif;
+	font-size: 12px;
+}
+table.header {
+	background-color: #000;
+	margin:0px;
+}
+
+table.shadedcells td {
+	background-color: #242424;
+}
+
+a, a.mention {
+	color: #CBBA79;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.border {
+	border-color: #CBBA79;
+	border-style: solid;
+	border-width: 1px;
+}
+
+.bottom_border {
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: #CBBA79;
+}
+
+.title {	
+	height: 20px;
+	font-weight: bold;
+}
+
+blockquote {
+	font: 13px/22px normal;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-left: 50px;
+	padding-left: 15px;
+	border-left: 3px solid #CBBA79;
+}
+
+code { word-wrap: break-word; }
+
+pre {
+	background-color: #23241f;
+	color: #f8f8f2;
+	overflow: visible;
+	white-space: pre-wrap;
+	margin-bottom: 5px;
+	margin-top: 5px;
+	padding: 5px 10px;
+	border-radius: 3px;
+}
+
+div.menu {
+	background-color: #42300A; /*EDF2F2*/
+	
+	border-bottom-style: solid;
+	border-bottom-color: #CBBA79; /*DDD*/
+	border-bottom-width: 1px;	
+	
+	border-top-style: solid;
+	border-top-color: #FFF;
+	border-top-width: 1px;
+
+	letter-spacing: 1px;
+	
+	/* Innenabstand */ 
+	padding-bottom: 1px;
+	padding-top: 1px;
+}
+
+table.dreid {
+	background-color: #141414; /*EDF2F2*/
+	
+	border-bottom-style: solid;
+	border-bottom-color: #CBBA79; /*DDD*/
+	border-bottom-width: 1px;	
+
+	border-left-style: solid;
+	border-left-color: #FFF;
+	border-left-width: 1px;
+
+	border-right-style: solid;
+	border-right-color: #CBBA79; /*DDD*/
+	border-right-width: 1px;	
+	
+	border-top-style: solid;
+	border-top-color: #FFF;
+	border-top-width: 1px;
+}
+
+div.menu a {	
+	background-color: #42300A; /*EDF2F2*/
+
+	border-bottom:	1px solid #CBBA79; /*DDD*/
+	border-left:		1px solid #FFF;
+	border-right:		1px solid #CBBA79; /*DDD*/
+
+	color: #CBBA79;		
+
+	padding-bottom: 1px;
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-top: 1px;
+	
+	text-decoration: none;
+}
+
+div.menu a:hover {
+	background: #62502A;
+	text-decoration: none;
+}
+
+div.menu a.left {
+	background-color: #42300A; /*EDF2F2*/
+	border-left-style: none;
+	padding-left: 0px;
+	padding-right: 1px;
+}
+
+div.menu a.left:hover {
+}
+
+div.menu a.right {
+	background-color: #42300A; /*EDF2F2*/
+	border-right-style: none;
+	padding-left: 1px;
+	padding-right: 0px;
+}
+
+div.menu a.right:hover {
+}		
+
+table.forum {
+	border-collapse:collapse;
+	/** table-layout:fixed; */
+	width:100%;
+}
+
+td.forum {
+	margin: 0px;
+	padding: 0px;
+}
+
+a img:hover {
+	box-shadow: 0 0 0 1px #cbba79;
+}
+
+img.forum {
+	height: 16px;
+	width: 16px;
+}
+
+td.end {
+	background-image: url("/images/forum/night/end.gif");
+	background-repeat: no-repeat;
+	height: 16px;
+	margin: 0px;
+	padding: 0px;
+	width: 16px;
+	vertical-align: top;
+}
+
+td.space {
+	background-image: url("/images/forum/night/space.gif");
+	height: 16px;
+	margin: 0px;
+	padding: 0px;
+	width: 16px;
+	vertical-align: top;
+}
+
+td.vertline {
+	background-image: url("/images/forum/night/vertline.gif");
+	height: 16px;
+	margin: 0px;
+	padding: 0px;
+	width: 16px;
+	vertical-align: top;
+}
+		
+input:focus {
+	border-style: inset;
+	border-color: #141414;
+}
+
+select { 
+	border-style: groove;
+	border-width: 2px;
+	border-color: #CBBA79;		
+	font-family: Verdana;
+	color: #fff;
+	background-color: #141414;
+	font-size: 10px;
+}
+
+option {
+	font-family: verdana;
+	font-size: 10px;
+	color: #fff;
+	background-color: #141414;
+
+}
+
+.text, textarea {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #CBBA79;
+	font-size: 10px;
+	font-family: verdana;
+	color: #fff;
+	background-color: #000;
+}
+
+.text:focus, textarea:focus {
+	border-style: inset;
+	border-color: #141414;
+}
+
+.tpleditor textarea {
+	font-family: Courier;
+	font-size: 12px;
+	color: #fff;
+	background-color: #000;
+	outline: none;
+	resize: vertical;
+	max-width: 710px;	
+}
+
+input[type=checkbox], input[type=radio] {
+	border-style: inset;
+	border-width: 2px;
+	border-color: #141414;
+	margin: 2px;
+	background-color: #42300A;
+}
+
+.button, dialog button {
+	border-style: outset;
+	border-width: 1px;
+	border-color: #CBBA79;
+	font-size: 11px;
+	font-family: verdana;
+	font-weight: bold;
+	color: #fff;
+	background-color: #000;
+}
+
+.button:hover, dialog button:hover {
+	border-style: inset;
+}
+
+.button:disabled, .button:disabled:hover {
+	  border-style: outset;
+	  background-color: #dddddd;
+}
+
+.small{
+	font-size: 9px;
+}
+
+.titlebar{
+	font-size: 20px;
+	font-stretch: expanded;
+	letter-spacing: 5px;
+}
+td.addletd {
+border-style:solid;
+border-color: #CBBA79;
+border-width:1px;
+font-size: 22px;
+	 text-align: center;
+}
+
+/** Shoot the Lamber */
+table.stl {
+	color: #000;
+}
+table.stl tr td del, table.stl tr td del .profilepic {
+	filter: grayscale(100%);
+	-webkit-filter: grayscale(100%);
+	text-decoration: line-through;
+	color: #666;
+}
+
+/** HTML5.2 Modial Dialog */
+dialog {
+	padding: 0;
+	border: 0;
+	border-radius: 0.6rem;
+	color: inherit;
+	box-shadow: 0 0 1em black;
+}
+/** native backdrop */
+dialog::-webkit-backdrop {
+	background-color: rgba(0, 0, 0, 0.4);
+}
+dialog::backdrop {
+	background-color: rgba(0, 0, 0, 0.4);
+}
+/** polyfill backdrop */
+dialog + .backdrop {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: rgba(0, 0, 0, 0.8);
+}
+dialog[open] {
+	-webkit-animation: slide-up 0.4s ease-out;
+	animation: slide-up 0.4s ease-out;
+}
+/** The following styles are for older browsers when using */
+dialog {
+	display: none;
+	position: absolute;
+	margin: 0 auto;
+	/** should center it, but not working in Safari */
+	max-width: 80vw;
+	color: inherit;
+	background-color: #42300A;
+}
+dialog[open] { display: block; }
+/** prettying things up a bit */
+.close {
+	position: absolute;
+	top: 0.2em;
+	right: 0.2em;
+	padding: 0.3em;
+	line-height: 0.6;
+	color: red;
+	background-color: transparent;
+	border: 0;
+}
+.modal-header,
+.modal-body,
+.modal-footer { padding: 1em; }
+.modal-header {
+	margin: 0;
+	padding-bottom: 0.6em;
+	padding-right: 2.5em;
+	background-color: #42300A;
+	border-top-left-radius: 0.6rem;
+	border-top-right-radius: 0.6rem;
+}
+.modal-footer { border: 0; }
+.modal-footer button:last-child { float:right; }
+
+/** Profile Pics - Circle Style */
+div.profilepic {
+	display: inline-block;
+	text-align: center;
+	padding: 4px;
+}
+div.profilepic img {
+	width: 65px;
+	height: 65px;
+	background-size: cover;
+	border: 0;
+	border-radius: 50%;
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+}
+div.profilepic a img:hover {
+	text-decoration: none;
+	box-shadow: 0 0 0 1px #cbba79;
+}
+
+/** Alert message boxes */
+.alert {
+	  padding: 10px;
+	  margin-bottom: 15px;
+	  background-color: #f44336; /** Red */
+	  color: white;
+	  cursor: pointer;
+	  opacity: 0.85;
+	  -webkit-transition: opacity 0.3s;
+	  -moz-transition: opacity 0.3s;
+	  -o-transition: opacity 0.3s;
+	  -ms-transition: opacity 0.3s;
+	  transition: opacity 0.3s;
+}
+.alert.success {background-color: #4CAF50} /** Green */
+.alert.info {background-color: #2196F3;} /** Blue */
+.alert.warn {background-color: #ff9800;} /** Orange */
+/** Alert message box close button */
+.closebtn {
+	  margin-left: 15px;
+	  color: white;
+	  font-weight: bold;
+	  float: right;
+	  font-size: 22px;
+	  line-height: 10px;
+	  cursor: pointer;
+	  -webkit-transition: 0.3s;
+	  -moz-transition: 0.3s;
+	  -o-transition: 0.3s;
+	  -ms-transition: 0.3s;
+	  transition: 0.3s;
+}
+/** When moving the mouse over the close button */
+.closebtn:hover {color: black;}

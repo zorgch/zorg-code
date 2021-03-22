@@ -1,10 +1,10 @@
-<?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
+<?php
+/** @deprecated
+require_once dirname(__FILE__) .'/includes/main.inc.php';
 
-
-echo head(27);
+//echo head(27);
+$smarty->assign('tplroot', array('page_title' => 'IMAP Messages'));
+$smarty->display('file:layout/head.tpl');
 if($_SESSION['user_id']) {
 	if($_SESSION['user_id']) {
 		
@@ -49,6 +49,6 @@ if($_SESSION['user_id']) {
 		$imap->close();
 	}
 }
-
-echo foot(1);
-?>
+//echo foot(1);
+$smarty->display('file:layout/footer.tpl');
+*/

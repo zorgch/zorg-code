@@ -1,5 +1,14 @@
-<?PHP
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+<?php
+/**
+ * @deprecated IMAP wird nicht mehr genutzt
+ */
+//include_once dirname(__FILE__).'/util.inc.php';
+
+/**
+ * IMAP Class
+ *
+ * @deprecated IMAP wird nicht mehr genutzt
+ */
 class imap {	//IMAP connection handle	
 	var $conn; 	//Mailbox overview handle	
 	var $box;	//IMAP server address	
@@ -8,12 +17,13 @@ class imap {	//IMAP connection handle
 	var $data;	//IMAP class status variable	
 	var $status;		
 
-	/**	
-	* @return imap	
-	* @param $user string username	
-	* @param $pw string mail Passwort	
-	* @desc Klassenkonstruktor, erstellt eine Verbindung zu einer Mailbox 	
-	*/	
+	/**
+	 * Klassenkonstruktor, erstellt eine Verbindung zu einer Mailbox
+	 *
+	 * @return imap
+	 * @param string $user username
+	 * @param string $pw mail Passwort
+	 */
 	function imap($user, $pw) {		
 		global $db;		
 		/*$this->conn = @imap_open($this->server."INBOX",$user."@zooomclan.org",$pw);		
@@ -24,11 +34,12 @@ class imap {	//IMAP connection handle
 
 
 	
-	/**	
-	* @return void	
-	* @param $oder int Sortby	
-	* @desc Schreibt s?mtliche Mailheader einer Mailbox in imap::data    
-	*/	
+	/**
+	 * Schreibt sämtliche Mailheader einer Mailbox in imap::data
+	 *
+	 * @return void
+	 * @param int $oder Sortby
+	 */
 	function getMails($oder) {
 		$this->box = @imap_sort($this->conn,$order,1,SE_UID);
 			if($this->box) {
@@ -53,11 +64,12 @@ class imap {	//IMAP connection handle
 			}	
 	}			
 	
-	/**	
-	* @return void	
-	* @param $uid int message Number	
-	* @desc Schreibt ein Mail einer aktiven Mailbox in imap::data, wobei $uid die Message ID ist 	
-	*/	
+	/**
+	 * Schreibt ein Mail einer aktiven Mailbox in imap::data, wobei $uid die Message ID ist 	
+	 *
+	 * @return void
+	 * @param int $uid message Number
+	 */
 	function getMessage($uid) {	
 			
 		$header = @imap_header($this->conn,$uid);
@@ -86,10 +98,11 @@ class imap {	//IMAP connection handle
 		return $this;	
 	}		
 	
-	/**	
-	* @return void	
-	* @desc Gibt den Status der Aktiven Mailbox zur?ck (Anzahl Messages, Ungelesen, Neu)    
-	*/	
+	/**
+	 * Gibt den Status der Aktiven Mailbox zur?ck (Anzahl Messages, Ungelesen, Neu)    
+	 *
+	 * @return void
+	 */
 	function getMailboxStatus() {		
 		$status = @imap_status ($this->conn, $this->server."INBOX", SA_ALL);			
 		if($status) {			
@@ -101,30 +114,33 @@ class imap {	//IMAP connection handle
 		}	
 	}		
 	
-	/**	
-	* @return void	
-	* @desc Schliesst die zugeh?rige IMAP Verbindung einer Klassen instanz	
-	*/	
+	/**
+	 * Schliesst die zugeh?rige IMAP Verbindung einer Klassen instanz	
+	 *
+	 * @return void
+	 */
 	function close() {		
 		if(!@imap_close($this->conn)) imapStatic::writeError();	
 	}		
 	
-	/**	
-	* @return void	
-	* @param $uid int Message ID	
-	* @param $flag int Flag ID (1 = Gelesen, 2 = zum l?schen)	
-	* @desc Setzt IMAP Flags auf eine Message 	
-	*/	
+	/**
+	 * Setzt IMAP Flags auf eine Message
+	 *
+	 * @return void
+	 * @param int $uid Message ID
+	 * @param int $flag Flag ID (1 = Gelesen, 2 = zum l?schen)
+	 */
 	function setFlag($uid,$flag) {		
 		$flag_array = array(1 => "\\Seen", 2 => "\\Deleted");		
 		if(!@imap_setflag_full($this->conn,$uid,$flag_array[$flag],SE_UID)) 
 		imapStatic::writeError();	
 	}			
 	
-	/**	
-	* @return void	
-	* @desc L?scht alle zum l?schen gemerkte Mails einer imap instanz 	
-	*/	
+	/**
+	 * Löscht alle zum l?schen gemerkte Mails einer imap instanz
+	 *
+	 * @return void
+	 */
 	function deleteAllFlagged() {		
 		if(!@imap_expunge($this->conn)) 
 		imapStatic::writeError();	
@@ -140,35 +156,40 @@ class ImapStatic {
 	
 	
 	/**
-	* @return object
-	* @param $uid int
-	* @param $imap object
-	* @desc holt infis aus einem mail heraus
-      subject
-      from - Absender
-      date - Sendedatum
-      message_id - Message-ID
-      references - bezieht sich auf Message-ID
-      size - Gr??e in Byte
-      uid - UID der Nachricht im Postfach
-      msgno - Index der Nachricht im Postfach
-      recent - Flag gesetzt
-      flagged - Flag gesetzt
-      answered - Flag gesetzt
-      deleted - Flag gesetzt
-      seen - Flag gesetzt
-      draft - Flag gesetzt 	
- 	*/
+	 * holt infis aus einem mail heraus
+	 *
+	 * subject
+     * from - Absender
+     * date - Sendedatum
+     * message_id - Message-ID
+     * references - bezieht sich auf Message-ID
+     * size - Gr??e in Byte
+     * uid - UID der Nachricht im Postfach
+     * msgno - Index der Nachricht im Postfach
+     * recent - Flag gesetzt
+     * flagged - Flag gesetzt
+     * answered - Flag gesetzt
+     * deleted - Flag gesetzt
+     * seen - Flag gesetzt
+     * draft - Flag gesetzt 	
+	 *
+	 * @deprecated
+	 *
+	 * @return object
+	 * @param int $uid
+	 * @param object $imap
+ 	 */
 	function getMailStatus($uid, $imap) {
 		$mail_status = imap_fetch_overview($imap->conn,$uid);
 		return $mail_status[0];
 	}
 	
 	
-	/**	
-	* @return void	
-	* @desc Speichert IMAP Errors in der DB ab.	
-	*/	
+	/**
+	 * Speichert IMAP Errors in der DB ab.
+	 *
+	 * @return void
+	 */	
 	function writeError() {		
 		global $db;		
 		$sql = "INSERT into error (user_id, do, ip, date) VALUES ('$_SESSION[user_id]','IMAP - "
@@ -187,11 +208,12 @@ class ImapStatic {
 		}		
 	}	
 	
-	/**	 
-	* @return string	 
-	* @param $imap object IMAP-Instanz	 
-	* @desc Gibt die Mailbox?bersicht zur?ck	 
-	*/	
+	/**
+	 * Gibt die Mailboxübersicht zurück
+	 *
+	 * @return string
+	 * @param object $imap IMAP-Instanz
+	 */	
 	function getOverview($imap) {				
 		$imap->getMailboxStatus();	
 			
@@ -249,12 +271,13 @@ class ImapStatic {
 		return $html;	
 	}		
 	
-	/**	
-	* @return string	
-	* @param $id int MessageID	
-	* @param $imap object IMAP-Instanz	
-	* @desc Gibt eine Message aus 	
-	*/	
+	/**
+	 * Gibt eine Message aus
+	 *
+	 * @return string
+	 * @param int $id MessageID
+	 * @param object $imap object IMAP-Instanz
+	 */
 	function getMail($id,$imap) {				
 		$imap->getMessage($id);		
 		$html = 		"		
@@ -287,11 +310,12 @@ class ImapStatic {
 		return $html;	
 	}		
 	
-	/**	
-	* @param $message_id Falls reply, auf welche	
-	* @return string	
-	* @desc Gibt ein Form zum Message schreiben zur?ck 	
-	*/	
+	/**
+	 * Gibt ein Form zum Message schreiben zurück
+	 *
+	 * @param int $message_id Falls reply, auf welche
+	 * @return string
+	 */
 	function newMail($toid="") {				
 		$html =		"		<form action='".$_SERVER['PHP_SELF']."?do=send' method='post'>		
 		<table width='550' class='border' cellpadding='2' cellspacing='0'>		
@@ -302,7 +326,7 @@ class ImapStatic {
 			$html .= "				
 			<input type='text' class='text' name='mailto' size='50' value='"				
 			//.usersystem::id2mailuser($toid)." <".usersystem::id2mailuser($toid)."@zooomclan.org>'>				
-			.usersystem::id2mailuser($toid)."@zooomclan.org'			";		
+			.usersystem::id2mailuser($toid).'@'.SITE_HOSTNAME;
 		} else {			
 			$html .= "				
 			<input type='text' class='text' name='mailto' size='50' value=''>			
@@ -323,11 +347,13 @@ class ImapStatic {
 		return $html;	
 	}		
 	
-	/**	
-	* @param $message_id Falls reply, auf welche	
-	* @return string	
-	* @desc Gibt ein Form zum Message schreiben zur?ck 	
-	*/	
+	/**
+	 * Gibt ein Form zum Message schreiben zurück
+	 *
+	 * @uses imap::getMessage()
+	 * @param int $message_id Falls reply, auf welche
+	 * @return string
+	 */	
 	function replyMail($imap, $message_id="") {			
 					
 		if($message_id) {			
@@ -362,4 +388,3 @@ class ImapStatic {
 		return $html;	
 	}
 }
-?>

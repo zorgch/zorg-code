@@ -1,0 +1,9 @@
+# DON'T ignore the "www" directory...
+!/www/
+
+# ...but ignore all these files & folders:
+/*
+/*/
+/www/test/*
+*.local.php
+*apis_key.inc.php

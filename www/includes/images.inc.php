@@ -1,15 +1,16 @@
-<?PHP
+<?php
 /*================================================================================
 Image Functions
 =================================================================================*/
 
 /**
+ * Erstellt ein Thumbnail eine GD Bildes
+ *
  * @return void
- * @param $img object Image
- * @param $dest object Destination Image
- * @param $dest_w int Width
- * @param $dest_h int Height
- * @desc Erstellt ein Thumbnail eine GD Bildes
+ * @param object $img object Image
+ * @param object $dest object Destination Image
+ * @param int $dest_w int Width
+ * @param int $dest_h int Height
 */
 function thumbnail($img,$dest,$dest_w,$dest_h) {
 	
@@ -26,10 +27,11 @@ MISC
 =================================================================================*/
 
 /**
+ * Gibt die Korrekte Breite (Seitenverhältnis) eines Bildes zurück
+ *
  * @return int
- * @param $filename string Filename
- * @param $targetwidth int Zielbreite
- * @desc Gibt die Korrekte Breite (Seitenverhältnis) eines Bildes zurück
+ * @param $string filename string Filename
+ * @param int $targetwidth int Zielbreite
 */
 function getthumbnailheight ($filename, $targetwidth) {
    $size = getimagesize($filename);
@@ -38,15 +40,14 @@ function getthumbnailheight ($filename, $targetwidth) {
 }
          
 /**
+ * Gibt die Korrekte Höhe (Seitenverhältnis) eines Bildes zurück
+ *
  * @return int
- * @param $filename string Filename
- * @param $targetheight int Zielhöhe
- * @desc Gibt die Korrekte Höhe (Seitenverhältnis) eines Bildes zurück
+ * @param string $filename string Filename
+ * @param int $targetheight int Zielhöhe
  */
 function getthumbnailwidth ($filename, $targetheight) {
    $size = getimagesize($filename);
    $targetwidth = $targetheight * ($size[1] / $size[0]);
    return $targetwidth;
 }
-
-?>

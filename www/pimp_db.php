@@ -1,14 +1,30 @@
 <?php
-//coded by [z]keep3r
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
+/**
+ * Pimp Names DB-Admin
+ *
+ * coded by [z]keep3r
+ *
+ * @author [z]keep3r
+ * @package zorg\Games\Pimp
+ */
 
-echo head(40);
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Pimp();
+
+//$smarty->assign('tplroot', array('page_title' => 'pimp'));
+$model->showOverview($smarty);
 
 // pimp in db speichern
-function insert_pimp($prefix, $suffix,$db) {
-
+function insert_pimp($prefix, $suffix,$db)
+{
 	$sql = "SELECT * FROM pimp WHERE prefix = '$prefix'";
 	$result = $db->query($sql);
 	$rs = $db->fetch($result);
@@ -34,7 +50,8 @@ function insert_pimp($prefix, $suffix,$db) {
 	}
 }
 
-function PostToHost($host, $path, $referer, $data_to_send) {
+function PostToHost($host, $path, $referer, $data_to_send)
+{
   $fp = fsockopen($host,80);
   //printf("Open!\n");
   fputs($fp, "POST $path HTTP/1.1\n");
@@ -52,8 +69,8 @@ function PostToHost($host, $path, $referer, $data_to_send) {
   return $res;
 }
 
-function get_pimp() {
-	
+function get_pimp()
+{	
 	$first = "Q";
 	$last = "Q";
 	$data = "First=$first&Last=$last&Pimpify=Pimpify!";
@@ -69,14 +86,23 @@ function get_pimp() {
 	return $output[1];
 }
 
-for ($i=0;$i<500;$i++){
-    $exp = "/(.*)\sQ?.\s(.*)/";
-    preg_match($exp, get_pimp(), $pimp);
-
-    echo "$pimp[0]<br>";
-
-    insert_pimp($pimp[1],$pimp[2],$db);
+if ($user->is_loggedin())
+{
+	//$smarty->assign('tplroot', array('page_title' => 'pimp db'));
+	$smarty->display('file:layout/head.tpl');
+	/* DEPRECATED
+	for ($i=0;$i<500;$i++){
+	    $exp = "/(.*)\sQ?.\s(.*)/";
+	    preg_match($exp, get_pimp(), $pimp);
+	
+	    echo $pimp[0].'<br>';
+	
+	    insert_pimp($pimp[1],$pimp[2],$db);
+	}*/
+} else {
+	http_response_code(403); // Set response code 403 (access denied) and exit.
+	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Access denied']);
+	//$smarty->assign('tplroot', array('page_title' => 'pimp db'));
+	$smarty->display('file:layout/head.tpl');
 }
-
-echo foot(52);
-?>
+$smarty->display('file:layout/footer.tpl');

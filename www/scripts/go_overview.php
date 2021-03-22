@@ -1,31 +1,28 @@
-<?
+<?php
 /**
  * GO Overview
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]berg, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  */
 /**
  * File Includes
  */
-//	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/hz_game.inc.php');
-
-//	hz_turn_passing();
+require_once dirname(__FILE__).'/../includes/config.inc.php';
 
 /**
  * Globals
  */
 global $db, $user, $smarty;
 
-// running games
-
+/** running games */
 $e = $db->query(
 		"SELECT g.*
 		  FROM go_games g
@@ -118,4 +115,4 @@ $sizes = array(9, 13, 19);
 $smarty->assign("sizes", $sizes);
 $handicap = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 $smarty->assign("handicap", $handicap);
-?>
+

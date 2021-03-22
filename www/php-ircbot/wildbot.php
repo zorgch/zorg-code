@@ -15,7 +15,7 @@
      * @author Matej Velikonja <matej@velikonja.si>
      */
 
-    define('ROOT_DIR', __DIR__);
+    define('ROOT_DIR', dirname(__FILE__));
 
     // Configure PHP
     //ini_set( 'display_errors', 'on' );
@@ -25,9 +25,9 @@
     require 'Classes/Autoloader.php';
 
     if (file_exists(ROOT_DIR . '/config.local.php')) {
-        $config = include_once(ROOT_DIR . '/config.local.php');
+        $config = require_once ROOT_DIR . '/config.local.php';
     } else {
-        $config = include_once(ROOT_DIR . '/config.php');
+        $config = require_once ROOT_DIR . '/config.php';
     }
 
 	// Full list with valid timezones can be found here:

@@ -1,12 +1,32 @@
 <?php
+/**
+ * Frets on Zorg
+ *
+ * "Frets on Fire" Hi-scores für zorg.
+ * coded by [z]keep3r
+ *
+ * @author [z]keep3r
+ * @package zorg\Games\Fretsonzorg
+ */
 
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
-echo head(35, "fretsonzorg");
-echo menu('main');
-echo menu('games');
-echo menu('fretsonzorg');
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Fretsonzorg();
+
+//echo head(35, "fretsonzorg");
+//$smarty->assign('tplroot', array('page_title' => 'fretsonzorg'));
+$model->showOverview($smarty);
+$smarty->display('file:layout/head.tpl');
+//echo menu('main');
+//echo menu('games');
+//echo menu('fretsonzorg');
 
 echo "<h2>Bang Bang, Mystery Man</h2>";
 echo "<table style='width: 100%'><tr>";
@@ -33,7 +53,8 @@ print_score_table("twibmpg",0);
 
 echo "<td></tr></table>";
 
-echo foot();
+//echo foot();
+$smarty->display('file:layout/footer.tpl');
 
 function print_stars($stars) {
 
@@ -83,6 +104,3 @@ function print_score_table($song,$difficulty){
 	echo "</table></td>";
 
 }
-
-
-?>

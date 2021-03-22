@@ -1,15 +1,20 @@
-<?
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
-	require_once($_SERVER['DOCUMENT_ROOT']."/includes/util.inc.php");
-	
+<?php
+/**
+ * @FIXME NOT IMPLEMENTED IN DATABASE!
+ *
+ * Show and Hide Favourite Templates
+ * @package zorg\Templates
+ */
+require_once dirname(__FILE__).'/../includes/main.inc.php';	
 
-	 if (isset($_GET['usershowfavourite'])) {
-	   $db->query("UPDATE user SET tpl_favourite_show='$_GET[usershowfavourite]' WHERE id=".$user->id, __FILE__, __LINE__);
-		$user->tpl_favourite_show = $_GET[usershowfavourite];
-	   
-      unset($_GET['usershowfavourite']);
-      header("Location: /smarty.php?".url_params());
-   }
-   
-?>
+if (isset($_GET['usershowfavourite']) && !empty($_GET['usershowfavourite'])) $doShowFavourite = sanitize_userinput($_GET['usershowfavourite']);
+
+if (isset($doShowFavourite))
+{
+	$db->query('UPDATE user SET tpl_favourite_show='.$doShowFavourite.' WHERE id='.$user->id, __FILE__, __LINE__, 'UPDATE user');
+	$user->tpl_favourite_show = $doShowFavourite;
+
+	unset($_GET['usershowfavourite']);
+	header("Location: /?".url_params());
+	die();
+}

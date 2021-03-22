@@ -1,115 +1,164 @@
 <?php
 /**
  * Picture Gallery
- * 
+ *
  * Die Bilder der Gallery liegen in ../data/gallery/ und in der Datenbank
  * Folgende Tables gehören zur Gallery:
  * gallery_albums, gallery_pics, gallery_pics_user, gallery_pics_votes
  *
  * @author [z]biko
+ * @author IneX
+ * @package zorg\Gallery
  * @date 01.01.2002
- * @version 1.5
- * @package Zorg
- * @subpackage Gallery
+ * @version 2.0
+ * @since 1.0 `01.01.2002` file added
+ * @since 1.5 `04.11.2013` Gallery nur noch für eingeloggte User anzeigen
+ * @since 1.6 `11.09.2018` `IneX` APOD Gallery & Pics auch für nicht-eingeloggte User anzeigen
+ * @since 2.0 `14.11.2019` `IneX` GV Beschluss 2018: added check if User is logged-in & Vereinsmitglied
  */
 
-//=============================================================================
-// Includes
-//=============================================================================
 /**
- * File Includes
+ * File includes
+ * @include main.inc.php
+ * @include core.model.php
  */
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/layout.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/gallery.inc.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/includes/usersystem.inc.php");
+require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
 
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Gallery();
 
+/** Pic-ID zu Album-ID auflösen */
+$getAlbId = isset( $_GET['albID'] ) ? (int) $_GET['albID'] : null;
+$getPicId = isset( $_GET['picID'] ) ? (int) $_GET['picID'] : null;
+$album_id = $model->setAlbumId($getAlbId, $getPicId);
 
-// fuer mod_rewrite solltes
-//header("Cache-Control: no-store, no-cache, must-revalidate");
-echo head(29, 'gallery');
-
-echo menu("zorg");
-echo menu("gallery");
-
-// Gallery nur für eingeloggte User anzeigen, siehe Bugtracker: http://www.zorg.ch/bugtracker.php?bug_id=708
-if ($user->typ == USER_NICHTEINGELOGGT)
+/**
+ * [Bug #708] Gallery nur für eingeloggte User anzeigen. Ausnahme: APOD Gallery
+ * @link https://zorg.ch/bugtracker.php?bug_id=708
+ */
+if (!$user->is_loggedin() && (int)$album_id !== APOD_GALLERY_ID)
 {
-	user_error("<h3>Gallery ist nur f&uuml;r eingeloggte User sichtbar!</h3>
-	<p>Bitte logge Dich ein oder <a href=\"profil.php?do=anmeldung&menu_id=13\">erstelle einen neuen Benutzer</a></p>", E_USER_NOTICE);
+	$model->showOverview($smarty);
+	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
+	http_response_code(403); // Set response code 403 (forbidden).
+	$smarty->display('file:layout/head.tpl');
+}
 
-} else {
+/**
+ * User & Vereinsmitglieder-Check: nur Vereinsmitglieder dürfen Pics sehen (Ausnahme: APOD Gallery & Pics)
+ * @link https://github.com/zorgch/zorg-verein-docs/blob/master/GV/GV%202018/2018-12-23%20zorg%20GV%202018%20Protokoll.md
+ */
+elseif ((int)$album_id !== APOD_GALLERY_ID && (empty($user->vereinsmitglied) || $user->vereinsmitglied === '0'))
+{
+	$model->showOverview($smarty);
+	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-no-member', 'gallery'), 'dismissable' => 'false']);
+	$smarty->display('file:layout/head.tpl');
+}
 
-	// Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen...
-	if ($_GET['do'] && $user->typ == USER_NICHTEINGELOGGT) user_error("Permission denied for <i>".$_GET['do']."</i>", E_USER_ERROR);
-	switch ($_GET['do']) {
-		case "benoten":
-	  	 	doBenoten($_POST['picID'], $_POST['score']);
-	  	 	break;
-	  	 	
-	  	 case "mypic":
-	  	 	// Ein <input type="image" ...> übergibt die X & Y Positionen via "inputName_x" & "inputName_y"
-	  	 	if ($_POST['picID'] > 0 && $_POST['mypic_x'] <> "" && $_POST['mypic_y'] <> "") {
-	  	 		//DEBUGGING: print_r($_POST);
-	  	 		doMyPic($_POST['picID'], $_POST['mypic_x'], $_POST['mypic_y']);
-	  	 	}
-	  	 	break;
+/** Gallery / Pics anzeigen */
+else {
+
+	if (!empty($_GET['do']))
+	{
+		$doAction = (string)$_GET['do'];
+		/** Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User,
+			deshalb müssen wirs vorziehen... */
+		if ($user->is_loggedin())
+		{
+			switch ($doAction)
+			{
+				case 'benoten':
+					 	doBenoten($_POST['picID'], $_POST['score']);
+					 	break;
+	
+					 case 'mypic':
+					 	// Ein <input type="image" ...> übergibt die X & Y Positionen via "inputName_x" & "inputName_y"
+					 	if ($_POST['picID'] > 0 && $_POST['mypic_x'] <> "" && $_POST['mypic_y'] <> "") {
+					 		doMyPic($_POST['picID'], $_POST['mypic_x'], $_POST['mypic_y']);
+					 	}
+					 	break;
+			}
+		} else {
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
+		}
+
+		/** Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen */
+		if ($user->typ >= USER_MEMBER)
+		{
+			switch ($doAction)
+			{
+				case 'editAlbum':
+					$res = doEditAlbum($album_id, $_POST['frm']);
+					if (!$album_id) $album_id = $res['id'];
+					break;
+				case 'editAlbumFromEvent':
+					$res = doEditAlbumFromEvent($album_id, $_POST['event']);
+					if (!$album_id) $album_id = $res['id'];
+					break;
+				case 'delAlbum':
+					$res = doDelAlbum($album_id, $_POST['del']);
+					$_GET['show'] = $res['show'];
+					break;
+				case 'zensur':
+					doZensur($getPicId);
+					break;
+				case 'delPic':
+					$res = doDelPic($_POST['picID']);
+					break;
+				case 'upload':
+					$res = doUpload($album_id, $_POST['frm']);
+					break;
+				case 'delUploadDir':
+					$res = doDelUploadDir($_POST['frm']['folder']);
+					break;
+				case 'mkUploadDir':
+					$res = doMkUploadDir($_POST['frm']);
+					break;
+				case 'editFotoTitle':
+					$res = doEditFotoTitle($getPicId, $_POST['frm']);
+					break;
+				case 'doRotatePic':
+					$res = doRotatePic($getPicId, $_POST['rotatedir']);
+					break;
+				/*case 'markieren':
+					doMark($getPicId);
+					break;*/
+			}
+		} else {
+			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
+		}
+	
+		unset($_GET['do']);
+		$doAction = null;
+	} else {
+		$res = array( 'state' => '', 'error' => '' );
 	}
-	
-	
-	// Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen
-	if ($_GET['do'] && $user->typ != USER_MEMBER) user_error("Permission denied for <i>".$_GET['do']."</i>", E_USER_ERROR);
-	
-	switch ($_GET['do']) {
-	  case "editAlbum":
-	     $res = doEditAlbum($_GET[albID], $_POST[frm]);
-	     if (!$_GET[albID]) $_GET[albID] = $res[id];
-	     break;
-	  case "editAlbumFromEvent":
-	     $res = doEditAlbumFromEvent($_GET[albID], $_POST[event]);
-	     if (!$_GET[albID]) $_GET[albID] = $res[id];
-	     break;
-	  case "delAlbum":
-	     $res = doDelAlbum($_GET[albID], $_POST[del]);
-	     $_GET[show] = $res[show];
-	     break;
-	  case "zensur":
-	     doZensur($_GET[picID]);
-	     break;
-	  case "delPic":
-	     $res = doDelPic($_POST[picID]);
-	     break;
-	  case "upload":
-	     $res = doUpload($_GET[albID], $_POST[frm]);
-	     break;
-	  case "delUploadDir":
-	     $res = doDelUploadDir($_POST[frm][folder]);
-	     break;
-	  case "mkUploadDir":
-	     $res = doMkUploadDir($_POST[frm]);
-	     break;
-	  case "editFotoTitle":
-	  	$res = doEditFotoTitle($_GET['picID'], $_POST['frm']);
-	  	break;
-	  case "doRotatePic":
-	  	$res = doRotatePic($_GET['picID'], $_POST['rotatedir']);
-	  	break;
-	  /*case "markieren":
-	     doMark($_GET[picID]);
-	     break;*/
-	}
-	
-	unset($_GET['do']);
-	
-	switch ($_GET[show]) {
-	  case "editAlbum": editAlbum($_GET[albID], $_GET['do'], $res[state], $res[error], $res[frm]); break;
-	  case "albumThumbs": albumThumbs($_GET[albID], $_GET[page]); break;
-	  case "pic": pic($_GET[picID]); break;
-	  default: echo '<br />'.galleryOverview($res[state], $res[error]);
+	$show = isset( $_GET['show'] ) ? $_GET['show'] : null;
+	switch ($show)
+	{
+		case 'editAlbum':
+			$model->showAlbumedit($smarty, $album_id);
+			$smarty->display('file:layout/head.tpl');
+			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']); // FIXME Undefined index: error
+			break;
+		case 'albumThumbs':
+			$model->showAlbum($smarty, $album_id);
+			albumThumbs($album_id, (int)$_GET['page']);
+			break;
+		case 'pic':
+			$model->showPic($smarty, $user, $getPicId, $album_id);
+			$smarty->display('file:layout/head.tpl');
+			pic($getPicId);
+			break;
+		default:
+			$model->showOverview($smarty);
+			$smarty->display('file:layout/head.tpl');
+			echo galleryOverview($res['state'], $res['error']);
 	}
 
 }
 
-echo foot(7);
-?>
+$smarty->display('file:layout/footer.tpl');

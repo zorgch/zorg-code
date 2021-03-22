@@ -25,7 +25,7 @@ class Webchat extends \Library\IRC\Command\Base {
      *
      * @var integer
      */
-    protected $numberOfArguments = -1;
+    protected $numberOfArguments = 1;
 
     /**
      * Sends the arguments to the channel, like say from a user.
@@ -38,8 +38,8 @@ class Webchat extends \Library\IRC\Command\Base {
 		}
 		
 	    $sql = 'INSERT
-	    		INTO chat (user_id, date, text)
-	    		VALUES (59, now(), "(IRC) '.implode(' ',array_slice($this->arguments,0)).'")';
+	    		INTO chat (user_id, date, text, irc)
+	    		VALUES (59, now(), "(IRC) '.escape_text($this->arguments[0]).'", "from")';
 		if(!$result = mysqli_query($db, $sql)){
 			die('There was an error running the query');
 		} else {

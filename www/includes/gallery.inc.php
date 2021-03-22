@@ -1,114 +1,97 @@
 <?php
 /**
  * Gallery Funktionen
- * 
+ *
  * Beinhaltet alle Funktionen der Gallery.
  *
  * @author [z]biko
- * @version 2.0
- * @package Zorg
- * @subpackage Gallery
+ * @package zorg\Gallery
+ * @version 3.0
+ * @since 1.0 File & functions added
+ * @since 2.0 Added code documentations, polished & optimized various functions
+ * @since 3.0 `09.08.2018` `IneX` Refactored picPath() & createPic(), added APOD specific specials
  *
- * @todo MyPic-Markierung von Bildern
- * @todo Wasserzeichen(?)
+ * @TODO MyPic-Markierung von Bildern
+ * @TODO Wasserzeichen(?)
  */
 /**
- * File Includes
+ * File includes
+ * @include config.inc.php
+ * @include forum.inc.php
+ * @include util.inc.php
+ * @include usersystem.inc.php
  */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/colors.inc.php");
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/forum.inc.php");
+require_once dirname(__FILE__).'/config.inc.php';
+include_once INCLUDES_DIR.'forum.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
-// ********************************** CONSTANTS *********************************************************************************
 /**
- * Konstante set_time_limit
- * Maximale Zeit in Sekunden, welche das Script laufen darf
+ * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
+ * @const FTP_UPDIT			FTP-Serveraddress and Directory-Path to Gallery Upload Dir
+ * @const DIR				Path to Gallery directory on the server
+ * @const UPDIR				Path to the Upload directory on the server
+ * @const ZENSUR			If the User is a Member, he can see censored Pics. Otherwise the SQL-Query addition will filter them out.
  */
 set_time_limit(600);
+define('FTP_UPDIR', 'ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/');
+define('DIR', $_SERVER['DOCUMENT_ROOT'].'/../data/gallery/');
+define('UPDIR', $_SERVER['DOCUMENT_ROOT'].'/../data/upload/');
+define('ZENSUR', ( $user->typ >= USER_MEMBER ? '' : 'AND p.zensur="0"' ));
 
 /**
- * Konstante FTP_UPDIT
+ * Globals
+ * @var array $MAX_PIC_SIZE	The maximum width & height for pictures
+ * @var array $THUMBPAGE		The image size for Thumbnail pictures
  */
-define("FTP_UPDIR", "ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/");
-/**
- * Konstante DIR
- */
-define("DIR", $_SERVER['DOCUMENT_ROOT']."/../data/gallery/");
-/**
- * Konstante UPDIR
- */
-define("UPDIR", $_SERVER['DOCUMENT_ROOT']."/../data/upload/");
-#define("UPDIR", DIR."upload/incoming/");
-/**
- * Konstante ZENSUR
- */
-if ($user->typ == USER_MEMBER) {
-define("ZENSUR", "");
-}else{
-define("ZENSUR", "AND p.zensur='0'");
-}
-
-/**
- * Global MAX_PIC_SIZE
- * @global array $MAX_PIC_SIZE
- */
-$MAX_PIC_SIZE = array("picWidth"=>800, "picHeight"=>800, "tnWidth"=>150, "tnHeight"=>150);
-/**
- * Global THUMBPAGE
- * @global array $THUMBPAGE
- */
-$THUMBPAGE = array("width"=>4, "height"=>3, "padding"=>10);
+$MAX_PIC_SIZE = array('picWidth'=>800, 'picHeight'=>800, 'tnWidth'=>150, 'tnHeight'=>150);
+$THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
 
 
 // ********************************** LAYOUT FUNCTIONS ***************************************************************************
-
-
 /**
  * Gallery Hauptseite anzeigen
- * 
+ *
  * Zeigt die Gallery-Übersicht mit allen Alben
- * 
+ *
  * @author [z]biko
  * @version 1.0
- * @package Zorg
- * @subpackage Gallery
+ * @since 1.0 function added
  *
+ * @uses ZENSUR
  * @param string $state Aktueller Status des Albums, z.B. wenn es gerade bearbeitet wird
  * @param string $error (Fehler-)Meldung, welche auf der Gallery-Seite angezeigt werden soll
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Benutzervariablen
- * @global string $MAX_PIC_SIZE String der Variable MAX_PIC_SIZE
- * @global string $THUMBPAGE String der Variable THUMBPAGE
- * @see ZENSUR
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
  * @return string HTML-Code der Gallery-Seite
  */
 function galleryOverview ($state="", $error="") {
 	global $db, $user, $MAX_PIC_SIZE, $THUMBPAGE;
 	
 	$out = '';
-	$sql =
-		"
-		SELECT
-			a.*
-			, COUNT(p.id) anz
-			, UNIX_TIMESTAMP(created) AS created_at
-		FROM gallery_albums a, gallery_pics p
-		WHERE p.album = a.id ".ZENSUR."
-		GROUP BY p.album
-		ORDER BY name ASC, created_at DESC
-		"
-	;
-	$e = $db->query($sql, __FILE__, __LINE__);
+	$sql = 'SELECT 
+				 a.id
+				, a.name
+				, COUNT(p.id) anz
+				, UNIX_TIMESTAMP(created) AS created_at
+			 FROM gallery_albums a, gallery_pics p
+			 WHERE p.album = a.id '.ZENSUR.'
+			 GROUP BY p.album
+			 ORDER BY name ASC, created_at DESC';
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$seen = Array();
 	$i = 0;
 	
-	$out .= '<b class="titlebar">Galleries</b><br /><br />';
+	$out .= '<h2>Galleries</h2>';
 	
 	$out .=
 		'<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border-width:1px; border-style: solid; border-color: #'.BORDERCOLOR.';" width="100%">'
 		//.'<tr class="title"><td align="center"colspan="4">Galleries</td></tr><tr>'
 	;
-	while ($d = mysql_fetch_array($e)) {
-		$seen[$i++] = $d[id];
+	while ($d = $db->fetch($e)) {
+		$seen[$i++] = $d['id'];
 		$out .= '<td align="center"
 		style="border-collapse: collapse; border-width:1px; border-style: solid; border-color: #'.BORDERCOLOR.'; padding: 10px;"
 		valign="middle" width="25%">';
@@ -122,10 +105,10 @@ function galleryOverview ($state="", $error="") {
 		}
 	
 		$out .= '</b>';
-		$out .= '<br />';
+		$out .= '<br>';
 		//$out .= '<tr><td align="center" valign="middle" width="'.($MAX_PIC_SIZE[tnWidth]+2*$THUMBPAGE[padding]).'">';
-		$out .= getAlbumLinkRandomThumb($d[id]);
-		//('.$d[anz].' Pics)
+		$out .= getAlbumLinkRandomThumb($d['id']);
+		//('.$d['anz'].' Pics)
 		//$out .= '</td></tr>';
 		//$out .= '</table>';
 		$out .= '</td>';
@@ -141,12 +124,12 @@ function galleryOverview ($state="", $error="") {
 		if ($state) echo '<b><font color="green">'.$state.'</font></b> <br/><br/>';
 		if ($error) echo '<b><font color="red">'.$error.'</font></b><br/><br/>';
 		$out .= '
-	   	<br />
+	   	<br>
 	   	<div align="center" width="100%">
 	   	<form action="gallery.php?show=editAlbum&albID=0" method="post">
 			<input type="submit" class="button" value="   neues Album erstellen   ">
 	   	</form>
-	   	<br />
+	   	<br>
 		';
 	}
 	
@@ -160,12 +143,12 @@ function galleryOverview ($state="", $error="") {
 		$where .= "id != $val AND ";
 		}
 		$where = substr($where, 0, -5);
-		$e = $db->query("SELECT * FROM gallery_albums $where", __FILE__, __LINE__);
-		while ($d = mysql_fetch_array($e)) {
+		$e = $db->query("SELECT * FROM gallery_albums $where", __FILE__, __LINE__, __FUNCTION__);
+		while ($d = mysqli_fetch_array($e)) {
 		$newexists = 1;
 		$out .= '<tr>';
-		$out .= '<td align="left">- '.$d[name].' &nbsp; &nbsp; </td>';
-		$out .= '<td align="left"><a href="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$d[id].'">[EDIT]</a></td>';
+		$out .= '<td align="left">- '.$d['name'].' &nbsp; &nbsp; </td>';
+		$out .= '<td align="left"><a href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$d['id'].'">[EDIT]</a></td>';
 		$out .= '</tr>';
 		}
 		$out .= '</table><br/>';
@@ -177,239 +160,302 @@ function galleryOverview ($state="", $error="") {
 }
 
 /**
- * Thumbnails anzeigen
+ * Album Thumbnails anzeigen
  *
- * @package Zorg
- * @subpackage Gallery
+ * @version 1.5
+ * @since 1.0 function added
+ * @since 1.5 moved pagination to new Sidebar, output it via $smarty
  *
+ * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
+ * @uses ZENSUR
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
- * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
  */
 function albumThumbs ($id, $page=0) {
-	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user;
-	
-	if (!$id) user_error("Missing Parameter <i>id</i> ", E_USER_ERROR);
-	
-	if (!$page) $page = 0;
-	
-	$pagepics = $THUMBPAGE[width] * $THUMBPAGE[height];
-	$e = $db->query("SELECT count(id) anz FROM gallery_pics p WHERE album=$id ".ZENSUR." GROUP BY album", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
-	$anz = $d[anz];
-	
-	$e = $db->query(
-		"SELECT g.*, e.name eventname
-		FROM gallery_albums g
-		LEFT JOIN events e ON e.gallery_id=g.id
-		WHERE g.id=$id", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
-	echo '<br />';
-	echo titlebar($d['eventname'] ? $d['eventname'] : $d['name']);
-	
-	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=$id ".ZENSUR." ORDER BY p.id LIMIT ".($page*$pagepics).", $pagepics", __FILE__, __LINE__);
-	echo '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
-	$hgt = $MAX_PIC_SIZE[tnHeight] + 2 * $THUMBPAGE[padding];
-	$wdt = $MAX_PIC_SIZE[tnWidth] + 2 * $THUMBPAGE[padding];
-	$rows = 0;
-	while ($d = mysql_fetch_array($e)) {
-		$comments = Thread::getNumPosts('i', $d['id']);
-		$unread = Thread::getNumUnread('i', $d['id']);
-	
-		if ($rows==0) echo '<tr>';
-		echo '<td class="border" cellpadding="'.$THUMBPAGE[padding].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
-		.'<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$d[id].'">'.($d['name']?"$d[name]<br />":'').'<img border="0" src="'.imgsrcThum($d[id]).'">';
-	
-		if ($comments) {
-			echo "<br />$comments Comments ";
-			if ($unread) echo "<br />($unread unread) ";
-		}
-	
-		echo '</a></td>';
-		if (++$rows == $THUMBPAGE[width]) {
+	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user, $smarty;
+
+	if (!$id || !is_numeric($id))
+	{
+		user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
+		exit;
+	}
+
+	$pagepics = $THUMBPAGE['width'] * $THUMBPAGE['height'];
+	$e = $db->query('SELECT count(id) anz FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' GROUP BY album', __FILE__, __LINE__, __FUNCTION__);
+	$d = mysqli_fetch_array($e);
+	$anz = $d['anz'];
+
+	if (!empty($d) && $d['anz'] > 0)
+	{
+		$htmlOutput = null;
+
+		$e = $db->query('SELECT g.*, e.name eventname
+						FROM gallery_albums g
+						LEFT JOIN events e ON e.gallery_id=g.id
+						WHERE g.id='.$id, __FILE__, __LINE__, __FUNCTION__);
+		$d = $db->fetch($e);
+		$htmlOutput .= '<table width="80%" align="center"><tr><td align="center" class="bottom_border">'
+			.'<h1>'.($d['eventname'] ? $d['eventname'] : $d['name']).($user->typ == USER_MEMBER ? ' <span class="small">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit</a>]</span>' : '').'</h1>'
+			.'</td></tr></table><br><br>';
+
+		$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' ORDER BY p.id LIMIT '.($page*$pagepics).', '.$pagepics, __FILE__, __LINE__, __FUNCTION__);
+		$htmlOutput .= '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
+		$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
+		$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
 		$rows = 0;
-		echo '</tr>';
+		while ($d = $db->fetch($e))
+		{
+			$comments = Thread::getNumPosts('i', $d['id']);
+			$unread = Thread::getNumUnread('i', $d['id']);
+	
+			if ($rows==0) $htmlOutput .= '<tr>';
+			$htmlOutput .= '<td class="border" cellpadding="'.$THUMBPAGE['padding'].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
+							.'<a href="?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br>':'').'<img border="0" src="'.imgsrcThum($d['id']).'" style="width: 100%;max-width: 100%;">';
+	
+			if ($comments) {
+				$htmlOutput .= "<br>$comments Comments ";
+				if ($unread) $htmlOutput .= "<br>($unread unread) ";
+			}
+	
+			$htmlOutput .= '</a></td>';
+			if (++$rows == $THUMBPAGE['width']) {
+				$rows = 0;
+				$htmlOutput .= '</tr>';
+			}
 		}
-	}
 	
-	for ($i=$rows; $i<$THUMBPAGE['width']; $i++) {
-		echo '<td>&nbsp;</td>';
-	}
-	if ($rows) echo '</tr>';
-	echo '</table><br /><font size="4">Seite: ';
-	
-	
-	for ($i=0; $i<$anz/$pagepics; $i++) {
-		if ($page==$i) {
-		echo '<b>['.($i+1).']</b> &nbsp; ';
-		}else{
-		echo '<a href="'.$_SERVER[PHP_SELF].'?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a> &nbsp; ';
+		for ($i=$rows; $i<$THUMBPAGE['width']; $i++)
+		{
+			$htmlOutput .= '<td>&nbsp;</td>';
 		}
+		if ($rows) $htmlOutput .= '</tr>';
+		$htmlOutput .= '</table>';
+	
+		/** Pagination */
+		$paginationHtml = '<h3>Seiten</h3><font size="4">';
+		for ($i=0; $i<$anz/$pagepics; $i++)
+		{
+			$paginationHtml .= ($page==$i ? '<b>['.($i+1).']</b>' : '<a href="?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a>').' &nbsp; ';
+		}
+		$paginationHtml .= '</font>';
 	}
 	
-	echo '</font><br /><br />';
+	/** Invalid / not found Album-ID */
+	else {
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('error-invalid-album', 'gallery')]);
+	}
 	
-	if ($user->typ == USER_MEMBER)
-	echo "<a href='/gallery.php?albID=$id&show=editAlbum'>edit Album</a><br /><br />";
+	if (!empty($paginationHtml)) $smarty->assign('sidebarHtml', $paginationHtml);
+	$smarty->display('file:layout/head.tpl');
+	echo $htmlOutput;
 }
 
 
 /**
  * Bild anzeigen
  *
- * @author Zorg, IneX
+ * @author [z]biko
+ * @author IneX
  * @date 21.10.2013
- * @version 2.0
- * @since 1.0
- * @package Zorg
- * @subpackage Gallery
+ * @version 2.1
+ * @since 1.0 `21.10.2013` `[z]biko` function added
+ * @since 2.0 `IneX` APOD Special: statt Pic ein Video embedden
+ * @since 2.1 `01.10.2019` `IneX` responsive scaling `img` and <iframe> tags
+ * @since 2.2 `04.12.2020` `IneX` fixed fallback to show Album Name on Pic
+ * @since 2.3 `04.12.2020` `IneX` switched file_exists() to is_file() and fixed PHP notice for undefined exif data
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
- * @see $THUMBPAGE, $MAX_PIC_SIZE, ZENSUR
+ * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
+ * @uses ZENSUR
  */
-function pic ($id) {
+function pic ($id)
+{
 	global $user, $db, $THUMBPAGE;
-	
-	if (!$id) user_error("Missing Parameter <i>id</i> ", E_USER_ERROR);
-	
-	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__);
-	$cur = mysql_fetch_array($e);
-	
+
+	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
+
+	$e = $db->query('SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+	$cur = $db->fetch($e);
+
 	if($cur == false) {
 		echo 'Bild '.$id.' existiert nicht!';
 		exit;
 	}
+
+	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
+	$last = mysqli_fetch_array($e);
 	
-	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=".$cur[album]." AND id<'$id' ".ZENSUR." ORDER BY id DESC LIMIT 0,1", __FILE__, __lINE__);
-	$last = mysql_fetch_array($e);
+	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
+	$next = mysqli_fetch_array($e);
 	
-	$e = $db->query("SELECT * FROM gallery_pics p WHERE album=".$cur[album]." AND id>'$id' ".ZENSUR." ORDER BY id ASC LIMIT 0,1", __FILE__, __LINE__);
-	$next = mysql_fetch_array($e);
-	
-	$e = $db->query("SELECT a.*, count(p.id) anz, e.name eventname
-				FROM gallery_pics p, gallery_albums a
-							LEFT JOIN events e ON e.gallery_id = a.id
-				WHERE p.id<='$id' AND p.album=$cur[album] AND a.id=$cur[album] ".ZENSUR."
-				GROUP BY album", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
-	$page = floor($d[anz] / ($THUMBPAGE[width] * $THUMBPAGE[height]));
-	echo '<br />';
-	echo titlebar($d['eventname'] ? $d['eventname'] : $d['name']);
-	
-	if ($cur[zensur] && $user->typ != USER_MEMBER) {
-		echo '<b><font color="red">Access denied for this picture</font></b><br /><br />';
+	$e = $db->query('SELECT album, a.id, count(p.id) anz, a.name, e.gallery_id, e.name eventname
+					 FROM gallery_pics p, gallery_albums a
+						LEFT JOIN events e
+						 ON e.gallery_id = a.id
+					 WHERE p.id<='.$id.' AND p.album='.$cur['album'].' AND a.id='.$cur['album'].' '.ZENSUR.'
+					 GROUP BY album, eventname', __FILE__, __LINE__, __FUNCTION__);
+	$d = mysqli_fetch_array($e);
+	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE['height']));
+	echo '<br><table width="80%" align="center"><tr>
+	<td align="center" class="bottom_border"><h3>'
+	.($d['eventname'] ? $d['eventname'] : $d['name'])
+	.'</h3></div></td></tr></table><br><br>';
+
+	if ($cur['zensur'] && $user->typ != USER_MEMBER) {
+		echo '<b><font color="red">Access denied for this picture</font></b><br><br>';
 		return;
 	}
-	
-	if ($_GET['editFotoTitle'] && $user->typ == USER_MEMBER) {
-		echo "<form method='post' action='$_SERVER[PHP_SELF]?do=editFotoTitle&".url_params()."'>";
-			echo "Foto-Titel: <input name=frm[name] size=30 class='text' value='$cur[name]'> ";
-			echo "<input type='submit' value=' OK ' class='button'>";
+
+	if (isset($_GET['editFotoTitle']) && $_GET['editFotoTitle'] && $user->typ >= USER_MEMBER) {
+		echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
+			echo 'Foto-Titel: <input name="frm[name]" size="30" class="text" value="'.$cur['name'].'"> ';
+			echo '<input type="submit" value=" OK " class="button">';
+			echo '&nbsp;<a class="small" href="?show=pic&picID='.$id.'">cancel</a>';
 		echo "</form>";
 	} else {
-		if (!$cur['name']) {
-			echo "<form method='post' action='$_SERVER[PHP_SELF]?do=editFotoTitle&".url_params()."'>";
-				echo "Foto-Titel: <input name=frm[name] size=30 class='text'>";
-				echo "<input type='submit' value=' OK ' class='button'>";
+		if (!$cur['name'] && $user->typ >= USER_MEMBER) {
+			echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
+				echo 'Foto-Titel: <input name="frm[name]" size="30" class="text">';
+				echo '<input type="submit" value=" OK " class="button">';
 			echo "</form>";
-		}elseif ($cur['name']) {
-			echo "<h2>$cur[name]</h2>";
-		}
-	
-		if ($cur['name'] && $user->typ == USER_MEMBER) {
-			echo "<small><a href='$_SERVER[PHP_SELF]?editFotoTitle=1&".url_params()."'>[edit Foto-Titel]</a></small>";
+		} elseif ($cur['name']) {
+			echo '<h1>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small"><a href="?editFotoTitle=1&'.url_params().'">[edit]</a></span>' : '').'</h1>';
 		}
 	}
-	
-	//$exif_data = exif_read_data(picPath($cur[album], $id, '.jpg'), 1, true); PHP wurde anscheinend ohne EXIF-Support kompiliert
-	//echo "<p>Bild erstellt am ".date('d. F Y H:i', filemtime(picPath($cur[album], $id, '.jpg')))."</p>";
-	$exif_data = exif_read_data(picPath($cur[album], $id, '.jpg'), 1, true);
-	if ($exif_data['FILE.FileDateTime'] != false) {
-		print("<p>Bild erstellt am ".date('d. F Y H:i', $exif_data['FILE.FileDateTime'])."</p>");
-	} else {
-		print("<p>Bild Upload am ".date('d. F Y H:i', filemtime(picPath($cur[album], $id, '.jpg')))."</p>");
+
+	$pic_filepath = picPath($cur['album'], $id, '.jpg');
+
+	if (is_file($pic_filepath) !== false)
+	{
+		/** APOD Special: use pic_added from database, instead of filemtime */
+		if ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
+			$pic_date = '<p>Bild von '.datename($cur['timestamp']).'</p>';
+		}
+		/** Regular zorg Pics */
+		else {
+			/** Check for EXIF data */
+			$exif_data = exif_read_data($pic_filepath, 1, true);
+			if ($exif_data !== false && isset($exif_data['FILE.FileDateTime'])) {
+				$pic_date = '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
+			}
+			/** Fallback: Datum aus dem filemtime() des Files */
+			else {
+				$pic_date = '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
+			}
+		}
+		echo $pic_date;
 	}
-	
+
 	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.
 	/*if ($user->typ == USER_MEMBER) {
-		echo "<form method='post' action='$_SERVER[PHP_SELF]?do=doRotatePic&".url_params()."'><p>";
+		echo "<form method='post' action='$_SERVER['PHP_SELF']?do=doRotatePic&".url_params()."'><p>";
 			echo "<input type='radio' class='text' name='rotatedir' value='left' checked /> 90&deg; links&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 			echo "<input type='radio' class='text' name='rotatedir' value='right' /> 90&deg; rechts&nbsp;&nbsp;";
 			echo "<input type='submit' class='button' name='rotatebutton' value='Bild drehen' /></p>";
 		echo "</form>";
 	}*/
-	
-	
+
+
 	## PIC SCORE FORMULAR ##
 	if ($user->typ >= USER_USER) {
-		if (hasVoted($user->id, $cur[id])) {
-			$anz_votes = getNumVotes($cur[id]);
+		if (hasVoted($user->id, $cur['id'])) {
+			$anz_votes = getNumVotes($cur['id']);
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			echo '<p>Bild Note: '.getScore($cur[id]).' <small>('.$votes.')</small></p>';
+			echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 		} else {
-			echo '
-			<br /><form action="'.$_SERVER[PHP_SELF].'?do=benoten&amp;'.url_params().'" method="post" name="f_benoten">
-			<input name="picID" type="hidden" value="'.$cur[id].'">
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="1">1
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="2">2
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="3">3
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="4">4
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="5">5
-			<input name="score" onClick="document.f_benoten.submit();" type="radio" value="6">6
-			<input class="button" type="submit" value="benoten">
-			</form><br />
-			';
+			echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" style="display: flex;">'
+					.'<input name="picID" type="hidden" value="'.$cur['id'].'">'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="1">'
+						.'1</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="2">'
+						.'2</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="3">'
+						.'3</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="4">'
+						.'4</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="5">'
+						.'5</label>'
+					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="6">'
+						.'6</label>'
+					.'<input class="button" type="submit" value="benoten">'
+				.'</form>';
 		}
 	} else {
-		$anz_votes = getNumVotes($cur[id]);
+		$anz_votes = getNumVotes($cur['id']);
 		$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-		echo '<p>Bild Note: '.getScore($cur[id]).' <small>('.$votes.')</small></p>';
+		echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 	}
-	
-	
-	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0" '.$cur[picsize].'>';
-	
+
+	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0">';//.$cur['picsize'].'>';
+
 	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
-	if ($last) echo '<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$last[id].'">previous</a>';
+	if ($last) echo '<a href="?show=pic&picID='.$last['id'].'">previous</a>';
 	else echo '&lt;- last';
-	echo '</td><td style="text-align:center"><a href="'.$_SERVER[PHP_SELF].'?show=albumThumbs&albID='.$cur[album].'&page='.$page.'">overview</a></td>';
+	echo '</td><td style="text-align:center"><a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">overview</a></td>';
 	echo '<td style="text-align:right" width="30%">';
 	if ($next) {
-		echo '<a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$next[id].'">next</a>';
+		echo '<a href="?show=pic&picID='.$next['id'].'">next</a>';
 	} else {
 		echo 'next';
 	}
 	echo '</td></tr>';
 	/* die DIVs machen mich verrückt... damn
 	echo '<tr><td colspan="3"><div style="position:static; width:800; height:600;"><div name="thepic" style="position:absolute;"><img border="0" src="'. imgsrcPic($id). '"></div>';
-	getUsersOnPic($cur[id]); // MyPic Markierungen laden
+	getUsersOnPic($cur['id']); // MyPic Markierungen laden
 	echo '</div></td></tr>';
 	*/
-	
+
 	echo '<tr><td colspan="3">';
-	
-	// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
-	if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
+
+	/** Normale Pic Anzeige (wenn nicht APOD UND Pic-Extension nicht mit '.' anfängt...) */
+	if ($cur['album'] != APOD_GALLERY_ID || mb_substr($cur['extension'],0,1,'utf-8') == '.')
 	{
-		printf('
-		<form action="%1$s" method="post" onsubmit="return markAsMypic()">
-			<input type="hidden" name="picID" value="%2$s" />
-			<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" />
-		</form>'
-				,$_SERVER['PHP_SELF'].'?do=mypic&amp;'.url_params()
-				,$id
-				,imgsrcPic($id)
-		);
-	// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
+		// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
+		if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
+		{ // NOTE: %% = needed to prevent printf() stripping e.g. '100%' into '100'
+			printf('
+			<form action="%1$s" method="post" onsubmit="return markAsMypic()">
+				<input type="hidden" name="picID" value="%2$s" />
+				<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" style="width: 100%%;max-width: 100%%;" />
+			</form>'
+					,'?do=mypic&amp;'.url_params()
+					,$id
+					,imgsrcPic($id)
+			);
+		// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
+		} else {
+			echo '<img border="0" src="'. imgsrcPic($id). '" style="width: 100%;max-width: 100%;">';
+		}
+
+	/** APOD Special: statt Pic ein Video embedden */
 	} else {
-		echo '<img border="0" src="'. imgsrcPic($id). '">';
+		switch ($cur['extension'])
+			{
+				case 'youtube':
+					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" allow="autoplay; encrypted-media" allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
+					break;
+				case 'vimeo':
+					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
+					break;
+				case 'website':
+					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" importance="low" style="overflow:hidden;" style="width: 800px;height: 800px;max-width: 100%;"></iframe>';
+					break;
+			}
 	}
-	
+
 	echo '</td></tr>';
-	
+
 	/*echo '<tr><td clspan="3">';
-	getUsersOnPic($cur[id]);  // MyPic Markierungen laden
+	getUsersOnPic($cur['id']);  // MyPic Markierungen laden
 	while($i < count($theusers))
 		{
 			echo $theusers[$i].', ';
@@ -417,28 +463,28 @@ function pic ($id) {
 	echo '</td></tr>';
 	*/
 	echo '<tr><td colspan="3">';
-	
+
 	// Commenting (Das hier reicht schon :-) ) ------------------------------
 	Forum::printCommentingSystem('i', $id);
 	// End Commenting -------------------------------------------------------
-	
+
 	echo '</td></tr></table></div>';
-	
+
 	if ($user->typ == USER_MEMBER) { // member
-		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br />';
-		if ($cur[zensur]) {
-		echo '<font color="red">Bild ist zensiert</font>';
-		$val = "Zensur aufheben";
+		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br>';
+		if ($cur['zensur']) {
+			echo '<font color="red">Bild ist zensiert</font>';
+			$val = "Zensur aufheben";
 		}else{
-		echo '<font color="green">Bild ist nicht zensiert</font>';
-		$val = "zensieren";
+			echo '<font color="green">Bild ist nicht zensiert</font>';
+			$val = "zensieren";
 		}
-		echo '</td><td valign="top"><br /><form action="'.$_SERVER[PHP_SELF].'?do=zensur&show=pic&picID='.$cur[id].'" method="post">'
+		echo '</td><td valign="top"><br><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
 		.'<input type="submit" class="button" value="'.$val.'"></form></td>';
 	
-		echo '<td valign="top" style="text-align:right" width="250"><br />'
-		.'<form action="'.$_SERVER[PHP_SELF].'?do=delPic&show=albumThumbs&albID='.$cur[album].'" method="post">'
-		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur[id].'">'
+		echo '<td valign="top" style="text-align:right" width="250"><br>'
+		.'<form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
+		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
 		.'</form></td></tr></table>';
 	}
 }
@@ -455,8 +501,8 @@ function getScore($pic_id) {
 		." FROM gallery_pics_votes"
 		." WHERE pic_id = ".$pic_id
 	;
-	$result = $db->query($sql, __FILE__, __LINE__);
-	$rs = $db->fetch($result, __FILE__, __LINE__);
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$rs = $db->fetch($result, __FILE__, __LINE__, __FUNCTION__);
 
 	return round($rs['score'], 1);
 }
@@ -469,9 +515,9 @@ function getNumVotes($pic_id) {
 		FROM gallery_pics_votes
 		WHERE pic_id = ".$pic_id
 	;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
-	return $db->num($result, __FILE__, __LINE__);
+	return $db->num($result, __FILE__, __LINE__, __FUNCTION__);
 }
 
 function hasVoted($user_id, $pic_id) {
@@ -482,9 +528,9 @@ function hasVoted($user_id, $pic_id) {
 		." FROM gallery_pics_votes"
 		." WHERE pic_id = '".$pic_id."' AND user_id =".$user_id
 	;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 
-	return $db->num($result, __FILE__, __LINE__);
+	return $db->num($result, __FILE__, __LINE__, __FUNCTION__);
 }
 // ====================================================
 // |                 END Pic Rating
@@ -492,318 +538,319 @@ function hasVoted($user_id, $pic_id) {
 
 
 
-function editAlbum ($id, $done="", $state="", $error="", $frm="") {
-global $db;
-
-if (!$frm) $frm = array();
-
-if ($id) {
-	$e = $db->query("SELECT * FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__);
-	$frm = mysql_fetch_array($e);
-
-	echo titlebar("Album #$id bearbeiten");
-}else {
-	echo titlebar("Neues Album erstellen");
-	$id = 0;
-}
-
-
-if ($done == "editAlbum" || $done == "delAlbum") {
-	$editError = $error;
-	$editState = $state;
-}else {
-	$uploadError = $error;
-	$uploadState = $state;
-}
-
-if ($editState) echo "<font color='green'><b>$editState</b></font><br /><br />";
-if ($editError) echo "<font color='red'><b>$editError</b></font><br /><br />";
-
-echo "<a href='/gallery.php?albID=$id&show=albumThumbs'>go to Album</a><br /><br />";
-?>
-<table class="border" cellspacing="3">
-<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=editAlbum"'?> method="post">
-	<?
+function editAlbum ($id, $done="", $state="", $error="", $frm="")
+{
+	global $db;
+	
+	if (!$frm) $frm = array();
+	
+	if ($id) {
+		$e = $db->query("SELECT * FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+		$frm = mysqli_fetch_array($e);
+	
+		echo '<h2>Album #'.$id.' bearbeiten</h2>';
+	}else {
+		echo '<h2>Neues Album erstellen</h2>';
+		$id = 0;
+	}
+	
+	
+	if ($done == "editAlbum" || $done == "delAlbum") {
+		$editError = $error;
+		$editState = $state;
+	}else {
+		$uploadError = $error;
+		$uploadState = $state;
+	}
+	
+	if ($editState) echo "<font color='green'><b>$editState</b></font><br><br>"; // FIXME Undefined variable: editState
+	if ($editError) echo "<font color='red'><b>$editError</b></font><br><br>"; // FIXME Undefined variable: editError
+	
+	echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookleftarrow; go to Album</a><br><br>';
 	?>
-	<tr>
-	<td align="left">ID: </td>
-	<td align="left"><?=$id?>
-	</tr>
-	<tr>
-	<td align="left">Name: </td>
-	<td align="left"><input type="text" class="text" size="50" name="frm[name]" value="<?=$frm[name]?>"></td>
-	</tr>
-	<tr>
-	<td colspan='2' align="center">
-		<br />
-		<input class="button" type="submit" value="   OK   ">
-		<br /><br />
-	</td>
-	</tr>
-</form>
-</table>
-<br />
-
-
-<?
-if ($id) {
-	?>
-	<table class="border"><tr><td>
-	<form <?='action="'.$SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
-	Album l&ouml;schen: <br />(Gib <i>OK</i> ins Feld ein, um zu best?tigen)<br /><br />
-		<input class="text" name="del" value="" size="4"> &nbsp;
-		<input type="submit" class="button" value="   l&ouml;schen   ">
+	<table class="border" cellspacing="3">
+	<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=editAlbum" method="post">
+		<tr>
+		<td align="left">ID: </td>
+		<td align="left"><?php echo $id?>
+		</tr>
+		<tr>
+		<td align="left">Name: </td>
+		<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?php echo $frm['name']?>"></td><?php /* FIXME Trying to access array offset on value of type null*/ ?>
+		</tr>
+		<tr>
+		<td colspan='2' align="center">
+			<br>
+			<input class="button" type="submit" value="   OK   ">
+			<br><br>
+		</td>
+		</tr>
 	</form>
-	</td></tr></table>
-	<br />
-	<?
+	</table>
+	<br>
 
 
-	echo '<br/><br/>';
-	echo titlebar("Picture Upload");
+	<?php
+	if ($id)
+	{ ?>
+		<table class="border"><tr><td>
+		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
+		Album l&ouml;schen: <br>(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br><br>
+			<input class="text" name="del" value="" size="4"> &nbsp;
+			<input type="submit" class="button" value="   l&ouml;schen   ">
+		</form>
+		</td></tr></table>
+		<br>
+		<?php
 
-	if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br /><br />";
-	if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br /><br />";
-	?>
+		echo '<h2>Picture Upload</h2>';
 
-	<table class="border"><tr><td>
-	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=mkUploadDir"'?> method="post">
-	Upload-Ordner erstellen (in /data/gallery/upload/):<br /><br />
-	<input type="text" class="text" name="frm[folder]" <?='value="'.$frm[folder].'"'?>> &nbsp; &nbsp;
-	<input type="submit" class="button" value="   erstellen   ">
-	</form>
-	</td></tr></table>
-	<br />
+		if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br><br>";
+		if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br><br>";
+		?>
 
-	<?
-	$d = opendir(UPDIR);
-	$fileoptions = array();
-	$i = 0;
-	while (false !== ($f = readdir($d))) {
-	if (is_dir(UPDIR.$f) && $f!="." && $f!="..") {
-		$f .= "/";
-		$anz = countFiles(UPDIR.$f);
-		if ($anz == -1) {
-		$count = "keine Rechte";
-		}elseif ($anz == 0) {
-		$count = "leerer Ordner";
-		}else{
-		$sub = opendir(UPDIR.$f);
-		$cpics = 0;
-		$cfiles = 0;
-		while (false !== ($subf = readdir($sub))) {
-			if (isPic(UPDIR.$f.$subf)) {
-			$cpics++;
-			}elseif (is_file(UPDIR.$f.$subf)) {
-			$cfiles++;
+		<table class="border"><tr><td>
+		<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=mkUploadDir" method="post">
+		Upload-Ordner erstellen (in /data/gallery/upload/):<br><br>
+		<input type="text" class="text" name="frm[folder]" value="<?php echo $frm['folder']?>"> &nbsp; &nbsp;<?php /* FIXME Trying to access array offset on value of type null */ ?>
+		<input type="submit" class="button" value="   erstellen   ">
+		</form>
+		</td></tr></table>
+		<br>
+
+		<?php
+		$d = opendir(UPDIR);
+		$fileoptions = array();
+		$i = 0;
+		while (false !== ($f = readdir($d))) {
+		if (is_dir(UPDIR.$f) && $f!="." && $f!="..") {
+			$f .= "/";
+			$anz = countFiles(UPDIR.$f);
+			if ($anz == -1) {
+			$count = "keine Rechte";
+			}elseif ($anz == 0) {
+			$count = "leerer Ordner";
+			}else{
+			$sub = opendir(UPDIR.$f);
+			$cpics = 0;
+			$cfiles = 0;
+			while (false !== ($subf = readdir($sub))) {
+				if (isPic(UPDIR.$f.$subf)) {
+				$cpics++;
+				}elseif (is_file(UPDIR.$f.$subf)) {
+				$cfiles++;
+				}
 			}
+			if (!$cfiles) {
+				$count = $cpics." Bilder";
+			}else{
+				$count = $cpics." Bilder, ".$cfiles." andereFiles";
+			}
+			closedir($sub);
+			}
+			$fileoptions[$i++] = '<option value="'.$f.'">'.$f.' &nbsp; ('.$count.')</option>';
 		}
-		if (!$cfiles) {
-			$count = $cpics." Bilder";
-		}else{
-			$count = $cpics." Bilder, ".$cfiles." andereFiles";
 		}
-		closedir($sub);
-		}
-		$fileoptions[$i++] = '<option value="'.$f.'">'.$f.' &nbsp; ('.$count.')</option>';
-	}
-	}
-	closedir($d);
-	sort($fileoptions);
-
-	?>
-
-	<table class="border"><tr><td>
-	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
-	Upload-Ordner l&ouml;schen:<br /><br />
-	<select size="1" class="text" name="frm[folder]">
-		<?
-		for ($i=0; $i<sizeof($fileoptions); $i++) {
+		closedir($d);
+		sort($fileoptions);
+	
+		?>
+	
+		<table class="border"><tr><td>
+		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
+		Upload-Ordner l&ouml;schen:<br><br>
+		<select size="1" class="text" name="frm[folder]">
+			<?php
+			for ($i=0; $i<sizeof($fileoptions); $i++) {
+				echo $fileoptions[$i];
+			}
+			?>
+		</select> &nbsp; &nbsp;
+		<input type="submit" class="button" value="   l&ouml;schen   ">
+		</form>
+		</td></tr>
+		<tr><td style="text-align:right">
+		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
+		</td></tr></table>
+		<br>
+	
+		<table class="border"><tr><td align="left" width="450">
+		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
+		Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
+		Rechte 0664 gibst.
+		(<?php echo '<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br><br>
+		W&auml;hle den Ordner hier aus, um die Pics zu indizieren: <br><br>
+		<input type="checkbox" checked name="frm[delPics]" value="1">
+		Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br>
+		<input type="checkbox" name="frm[delFiles]" value="1">
+		nicht indizierte Files aus Upload-Ordner l&ouml;schen
+		<br><br>
+		<select size="1" class="text" name="frm[folder]">
+			<?php
+			for ($i=0; $i<sizeof($fileoptions); $i++) {
 			echo $fileoptions[$i];
-		}
-		?>
-	</select> &nbsp; &nbsp;
-	<input type="submit" class="button" value="   l&ouml;schen   ">
-	</form>
-	</td></tr>
-	<tr><td style="text-align:right">
-	<a <?='href="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
-	</td></tr></table>
-	<br />
-
-	<table class="border"><tr><td align="left" width="450">
-	<form <?='action="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
-	Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
-	Rechte 0664 gibst.
-	(<?='<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br /><br />
-	W?hle den Ordner hier aus, um die Pics zu indizieren: <br /><br />
-	<input type="checkbox" checked name="frm[delPics]" value="1">
-	Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br />
-	<input type="checkbox" name="frm[delFiles]" value="1">
-	nicht indizierte Files aus Upload-Ordner l&ouml;schen
-	<br /><br />
-	<select size="1" class="text" name="frm[folder]">
-		<?
-		for ($i=0; $i<sizeof($fileoptions); $i++) {
-		echo $fileoptions[$i];
-		}
-		?>
-	</select> &nbsp; &nbsp;
-	<input class="button" type="submit" value="   upload   "><br />
-	</form>
-	</td></tr>
-	<tr><td style="text-align:right">
-	<a <?='href="'.$_SERVER[PHP_SELF].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
-	</td></tr></table>
-	<br />
-	<?
-}
+			}
+			?>
+		</select> &nbsp; &nbsp;
+		<input class="button" type="submit" value="   upload   "><br>
+		</form>
+		</td></tr>
+		<tr><td style="text-align:right">
+		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
+		</td></tr></table>
+		<br>
+		<?php
+	}
 }
 
 
 // ************************************** ACTION FUNCTIONS *************************************************************************
 
-function doEditAlbum ($id, $frm) {
-global $db;
-
-// function errors
-if (!is_array($frm)) user_error("Wrong Parameter-type for <i>frm</i>", E_USER_ERROR);
-
-$frm['name'] = htmlspecialchars($frm['name'], ENT_NOQUOTES);
-
-// save data
-if (!$id) {
-	$id = $db->insert("gallery_albums", $frm, __FILE__, __LINE__);
-}else{
-	$db->update("gallery_albums", $id, $frm, __FILE__, __LINE__);
-}
-
-return array('id'=>$id, 'state'=>"Database updated", 'frm'=>$frm);
-}
-
-
-function doUpload($id, $frm) {
-global $db, $MAX_PIC_SIZE;
-
-if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
-if (!is_array($frm)) user_error("Wrong Parameter-type <i>frm</i>", E_USER_ERROR);
-
-if (countFiles(UPDIR.$frm[folder]) == 0) return array("error"=>"Gew&auml;hlter Ordner '$frm[folder]' ist leer");
-if (countFiles(UPDIR.$frm[folder]) == -1) return array('error'=>"Keine Rechte auf den Ordner '$frm[folder]'");
-
-if (!is_dir(DIR.$id)) mkdir(DIR.$id, 0775); //system("mkdir ".DIR.$id." -m 0775");
-//system("chmod 0775 ".UPDIR.$frm[folder]);
-chmod(UPDIR.$frm[folder], 0775);
-
-$directory = opendir(UPDIR.$frm[folder]);
-$notDone = "";
-$done = "";
-$error = "";
-$picSize = "";
-$tnSize = "";
-while (false !== ($file = readdir ($directory))) {
-	// checks
-	if ($file=="." || $file=="..") continue;
-
-	if (!isPic(UPDIR.$frm[folder].$file)) {
-	$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br />";
-	if ($frm[delFiles]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
-	}
-	continue;
-	}
-
-	// writing DB
-	$picid = $db->insert("gallery_pics", array("album"=>$id, "extension"=>extension($file)), __FILE__, __LINE__);
-
-	// create pic
-	$t = createPic(UPDIR.$frm[folder].$file, picPath($id, $picid, extension($file)), $MAX_PIC_SIZE[picWidth], $MAX_PIC_SIZE[picHeight]);
-	if ($t[error]) {
-	$db->query("DELETE FROM gallery_pics WHERE id=$picid");
-	$notDone .= "- $file ";
-	if ($frm[delFiles]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
-	}
-
-	$notDone .= "(".$t[error].")<br />";
-	continue;
+function doEditAlbum ($id, $frm)
+{
+	global $db;
+	
+	// function errors
+	if (!is_array($frm)) user_error("Wrong Parameter-type for <i>frm</i>", E_USER_ERROR);
+	
+	$frm['name'] = htmlspecialchars($frm['name'], ENT_NOQUOTES);
+	
+	// save data
+	if (!$id) {
+		$id = $db->insert("gallery_albums", $frm, __FILE__, __LINE__, __FUNCTION__);
 	}else{
-	$picSize = "width=".$t[width]." height=".$t[height];
+		$db->update("gallery_albums", $id, $frm, __FILE__, __LINE__, __FUNCTION__);
 	}
+	
+	return array('id'=>$id, 'state'=>"Database updated", 'frm'=>$frm);
+}
 
-	// create thumbnail
-	$t = createPic(UPDIR.$frm[folder].$file, tnPath($id, $picid, extension($file)), $MAX_PIC_SIZE[tnWidth], $MAX_PIC_SIZE[tnHeight]);
-	if ($t == -1) {
-	$db->query("DELETE FROM gallery_pics WHERE id=$picid");
-	unlink(picPath($id, $picid, extension($file)));
-	$notDone .= "- $file (keine Rechte) <br />";
-	if ($frm[delFiles]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
+
+function doUpload($id, $frm)
+{
+	global $db, $MAX_PIC_SIZE;
+	
+	if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
+	if (!is_array($frm)) user_error("Wrong Parameter-type <i>frm</i>", E_USER_ERROR);
+	
+	if (countFiles(UPDIR.$frm[folder]) == 0) return array("error"=>"Gew&auml;hlter Ordner '$frm[folder]' ist leer");
+	if (countFiles(UPDIR.$frm[folder]) == -1) return array('error'=>"Keine Rechte auf den Ordner '$frm[folder]'");
+	
+	if (!is_dir(DIR.$id)) mkdir(DIR.$id, 0775); //system("mkdir ".DIR.$id." -m 0775");
+	//system("chmod 0775 ".UPDIR.$frm[folder]);
+	chmod(UPDIR.$frm[folder], 0775);
+	
+	$directory = opendir(UPDIR.$frm[folder]);
+	$notDone = "";
+	$done = "";
+	$error = "";
+	$picSize = "";
+	$tnSize = "";
+	while (false !== ($file = readdir ($directory))) {
+		// checks
+		if ($file=="." || $file=="..") continue;
+	
+		if (!isPic(UPDIR.$frm[folder].$file)) {
+		$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br>";
+		if ($frm[delFiles]) {
+			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+		}
+		continue;
+		}
+	
+		// writing DB
+		$picid = $db->insert("gallery_pics", array("album"=>$id, "extension"=>extension($file)), __FILE__, __LINE__, __FUNCTION__);
+	
+		// create pic
+		$t = createPic(UPDIR.$frm[folder].$file, picPath($id, $picid, extension($file)), $MAX_PIC_SIZE[picWidth], $MAX_PIC_SIZE[picHeight]);
+		if ($t[error]) {
+		$db->query("DELETE FROM gallery_pics WHERE id=$picid");
+		$notDone .= "- $file ";
+		if ($frm[delFiles]) {
+			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+		}
+	
+		$notDone .= "(".$t[error].")<br>";
+		continue;
+		}else{
+		$picSize = "width=".$t[width]." height=".$t[height];
+		}
+	
+		// create thumbnail
+		$t = createPic(UPDIR.$frm[folder].$file, tnPath($id, $picid, extension($file)), $MAX_PIC_SIZE[tnWidth], $MAX_PIC_SIZE[tnHeight]);
+		if ($t == -1) {
+		$db->query("DELETE FROM gallery_pics WHERE id=$picid");
+		unlink(picPath($id, $picid, extension($file)));
+		$notDone .= "- $file (keine Rechte) <br>";
+		if ($frm[delFiles]) {
+			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+		}
+		continue;
+		}else{
+		$tnSize = "width=".$t[width]." height=".$t[height];
+		}
+	
+		// update sizes in DB
+		$db->query("UPDATE gallery_pics SET tnsize='$tnSize', picsize='$picSize' WHERE id=$picid", __FILE__, __LINE__, __FUNCTION__);
+	
+		// del uploaded pic, if requested
+		if ($frm[delPics]) {
+		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+		}
+	
+		$done .= "- $file <br>";
 	}
-	continue;
+	closedir($directory);
+	
+	// delete directory if empty
+	if (countFiles(UPDIR.$frm[folder]) == 0) {
+		if (!@rmdir(UPDIR.$frm[folder]))
+		$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gel&ouml;scht werden <br>";
+	}
+	
+	if ($notDone) $notDone = "Folgende Files konnten nicht indiziert werden:<br>".$notDone;
+	if ($done) {
+		$done = "Folgende Files wurden indiziert:<br>".$done;
 	}else{
-	$tnSize = "width=".$t[width]." height=".$t[height];
+		$notDone = "Es konnten keine Files indiziert werden! <br><br>".$notDone;
 	}
+	
+return array('error'=>$notDone."<br>".$error, 'state'=>$done);
+}
 
-	// update sizes in DB
-	$db->query("UPDATE gallery_pics SET tnsize='$tnSize', picsize='$picSize' WHERE id=$picid", __FILE__, __LINE__);
 
-	// del uploaded pic, if requested
-	if ($frm[delPics]) {
-	if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br />";
+function doDelAlbum ($id, $del)
+{
+	global $db;
+	
+	if (!$id) user_error("Missing Parameter <i>$id</i>", E_USER_ERROR);
+	
+	if (strtolower($del) != "ok") {
+		return array('show'=>"editAlbum", 'error'=>"L&ouml;schen wurde nicht best&auml;tigt <br/>Album wurde nicht gel&ouml;scht");
 	}
-
-	$done .= "- $file <br />";
-}
-closedir($directory);
-
-// delete directory if empty
-if (countFiles(UPDIR.$frm[folder]) == 0) {
-	if (!@rmdir(UPDIR.$frm[folder]))
-	$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gel&ouml;scht werden <br />";
-}
-
-if ($notDone) $notDone = "Folgende Files konnten nicht indiziert werden:<br />".$notDone;
-if ($done) {
-	$done = "Folgende Files wurden indiziert:<br />".$done;
-}else{
-	$notDone = "Es konnten keine Files indiziert werden! <br /><br />".$notDone;
-}
-
-return array('error'=>$notDone."<br />".$error, 'state'=>$done);
+	
+	$db->query("DELETE FROM gallery_pics WHERE album='$id'", __FILE__, __LINE__, __FUNCTION__);
+	$db->query("DELETE FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+	
+	if (!delDir(DIR.$id)) return array('show'=>"", 'error'=>"Verzeichnis <i>".DIR.$id."</i> konnte nicht gel&ouml;scht werden.");
+	
+	return array('show'=>"", 'state'=>"Album wurde gel&ouml;scht");
 }
 
 
-function doDelAlbum ($id, $del) {
-global $db;
-
-if (!$id) user_error("Missing Parameter <i>$id</i>", E_USER_ERROR);
-
-if (strtolower($del) != "ok") {
-	return array('show'=>"editAlbum", 'error'=>"L&ouml;schen wurde nicht best&auml;tigt <br/>Album wurde nicht gel&ouml;scht");
-}
-
-$db->query("DELETE FROM gallery_pics WHERE album='$id'", __FILE__, __LINE__);
-$db->query("DELETE FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__);
-
-if (!delDir(DIR.$id)) return array('show'=>"", 'error'=>"Verzeichnis <i>".DIR.$id."</i> konnte nicht gel&ouml;scht werden.");
-
-return array('show'=>"", 'state'=>"Album wurde gel&ouml;scht");
-}
-
-
-function doZensur ($picID) {
-global $db;
-if (!$picID) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
-$e = $db->query("SELECT zensur FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__);
-$d = mysql_fetch_array($e);
-if ($d[zensur]) {
-	$db->query("UPDATE gallery_pics SET zensur='0' WHERE id='$picID'", __FILE__, __LINE__);
-	Thread::setRights('i', $picID, USER_ALLE);
-}else{
-	$db->query("UPDATE gallery_pics SET zensur='1' WHERE id='$picID'", __FILE__, __LINE__);
-	Thread::setRights('i', $picID, USER_MEMBER);
-}
+function doZensur ($picID)
+{
+	global $db;
+	if (!$picID) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
+	$e = $db->query("SELECT zensur FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
+	$d = mysqli_fetch_array($e);
+	if ($d[zensur]) {
+		$db->query("UPDATE gallery_pics SET zensur='0' WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
+		Thread::setRights('i', $picID, USER_ALLE);
+	}else{
+		$db->query("UPDATE gallery_pics SET zensur='1' WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
+		Thread::setRights('i', $picID, USER_MEMBER);
+	}
 }
 
 
@@ -821,16 +868,14 @@ if ($d[zensur]) {
  *
  * @author IneX
  * @date 13.08.2007
- * @version 0.9
- * @since 2.0
- * @package Zorg
- * @subpackage Gallery
+ * @version 1.0
+ * @since 1.0 function added
  *
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $pic_x X-Koordinaten wo der User geklickt hat
  * @param integer $pic_y Y-Koordinaten wo der User geklickt hat
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen Benutzervariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
 function doMyPic($pic_id, $pic_x, $pic_y) {
 	global $db, $user;
@@ -852,10 +897,10 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 				now()
 			)";
 				
-		$db->query($sql, __FILE__, __LINE__);
+		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 			
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
-		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 	} else {
 		user_error("Das dörfsch DU nöd - isch nur für igloggti User!", E_USER_ERROR);
 	}
@@ -897,51 +942,51 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 
 /**
  * Check User<-->Bild Verknüpfung
- * 
  * Prüft ob ein Benutzer bereits auf einem bestimmten Bild markiert wurde
- * 
- * @author keep3r, IneX
+ *
+ * @author [z]keep3r
+ * @author IneX
  * @date 19.08.2008
- * @version 2.0
- * @since 2.0
- * @package Zorg
- * @subpackage Gallery
+ * @version 1.1
+ * @since 1.0 `19.08.2008` `keep3r` function added
+ * @since 1.1 `20.08.2018` `IneX` minor SQL-Query improvements
  *
  * @param integer $picID ID des betroffenen Bildes
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean Gibt true/false zurück, je nachdem ob User<->Bild Verknüpfung gefunden wurde
  */
 function checkUserToPic($userID, $picID)
 {
 	global $db;
-	
-	$sql = "SELECT * FROM gallery_pics_users WHERE user_id = '$userID' AND pic_id = '$picID'";
-	$result = $db->query($sql, __FILE__, __LINE__);
-	//return $db->fetch($query);
-	
-	return ($db->num($result) > 0 ? true : false);
+
+	try {
+		$sql = 'SELECT * FROM gallery_pics_users WHERE user_id = '.$userID.' AND pic_id = '.$picID;
+		$result = $db->num($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+		return false;
+	}
+
+	return ($result > 0 ? true : false);
 }
 
 
 /**
  * Markierte User holen
- * 
+ *
  * Holt die Benutzer, welche auf einem bestimmten Bild markiert wurden
- * 
+ *
  * @author IneX
  * @date 19.08.2008
  * @version 1.0
- * @since 2.0
- * @package Zorg
- * @subpackage Gallery
+ * @since 1.0 function added
  *
  * @param integer $picID ID des betroffenen Bildes
- * @global array $db Array mit allen MySQL-Datenbankvariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
  */
 function getUsersOnPic($pic_id) {
-	global $db;
+	global $db, $user;
 	$usersonpic = array();
 	$html = '';
 	
@@ -950,13 +995,13 @@ function getUsersOnPic($pic_id) {
 		FROM gallery_pics_users
 		WHERE pic_id = ".$pic_id
 	;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	
 	while ($mp = $db->fetch($result)) {
-		array_push($usersonpic, usersystem::link_userpage($mp[user_id], FALSE));
+		array_push($usersonpic, $user->link_userpage($mp[user_id], FALSE));
 		/* für DIV basierte positionierung/Ausgabe:
 		$html .= '
-		<div name="'.usersystem::id2user($mp[user_id], FALSE, FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp[id].'">'.usersystem::id2user($mp[user_id], FALSE, FALSE).'<div>
+		<div name="'.$user->id2user($mp[user_id], FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.$user->id2user($mp[user_id], FALSE).'<div>
 		';*/
 	}
 	
@@ -967,84 +1012,68 @@ function getUsersOnPic($pic_id) {
 
 /**
  * Alle Bilder eines Users
- * 
+ *
  * Markierte Bilder eines bestimmten Benutzers ausgeben
  *
- * @author IneX <IneX@gmx.net>
+ * @author IneX
  * @date 18.10.2013
- * @version 1.0
- * @since 2.0
- * @package Zorg
- * @subpackage Gallery
- * 
+ * @version 1.1
+ * @since 1.0 `18.10.2013` `IneX` function added
+ * @since 1.1 `15.09.2019` `IneX` HTML-output & general code optimized
+ *
  * @param integer $userid ID des Users dessen Bilder angezeigt werden sollen
  * @param integer $limit Maximale Anzahl von Bildern
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $user Array mit allen User-Variablen 
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @return array Gibt ein Array mit allen Usern aus, welche auf dem Bild markiert sind
  */
 function getUserPics($userid, $limit=1)
 {
 	global $db, $user;
-	
-	$html_out = '';
+
+	$html_out = null;
 	$i = 1;
 	$table_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; text-align: center;';
 	$td_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; padding: 10px;';
-	
-	if ($userid > 0) {
-		
-		$sql =
-			"
-			SELECT *
-			FROM gallery_pics_users
-			WHERE user_id=$userid
-			ORDER BY id ASC"
-			.($limit > 0 ? " LIMIT ".$limit : ""); // LIMIT only when LIMIT Parameter given; 0 = all pics
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
-		$html_out .=
-				'<table style="'.$table_style.'" width="100%">'
-				.'	<thead>'
-				.'	<tr><th colspan="4">'.usersystem::id2user($userid, FALSE).'\'s Pics</th></tr>'
-				.'	</thead>';
-		
-		while($rs = $db->fetch($result)) {
-			$img_id = $rs['pic_id'];
-			$img_name = imgName($img_id);
-			$file = imgsrcThum($img_id);
-			
-			if ($i == 1) {
-				$html_out .= '<tr>';
+
+	if ($userid > 0)
+	{
+		$sql = 'SELECT * FROM gallery_pics_users 
+				WHERE user_id='.(integer)$userid.' 
+				ORDER BY id ASC'
+				.($limit > 0 ? ' LIMIT '.$limit : null); // LIMIT only when LIMIT Parameter given; 0 = all pics
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+
+		/** Hey, we've got some pics! */
+		if ($db->num($result) > 0)
+		{
+			$html_out .= '<h3>'.$user->id2user($userid).'\'s Pics</h3>';
+			$html_out .= '<table style="'.$table_style.'" width="100%">';
+
+			while($rs = $db->fetch($result))
+			{
+				$img_id = $rs['pic_id'];
+				$img_name = imgName($img_id);
+				$file = imgsrcThum($img_id);
+				if ($i == 1) {
+					$html_out .= '<tr>';
+				}
+				$html_out .= '<td style="'.$td_style.'">'
+							 .'<a href="/gallery.php?show=pic&picID='.$img_id.'">';
+				
+				$html_out .= '<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"><br>';
+				if ($img_name) $html_out .= $img_name.'</a>';
+				$html_out .= '</td>';
+				$i++;
+				if ($i == 4) {
+					$html_out .= '</tr>';
+					$i = 1;
+				}
 			}
-			
-			$html_out .=
-					'	<td style="'.$td_style.'">'
-					.'		<a href="/gallery.php?show=pic&picID='.$img_id.'">'
-			;
-			
-			$html_out .=
-					'		<img border="0" src="'.$file.'" /><br />'
-			;
-			if ($img_name) {
-				$html_out .= $img_name.'</a>';
-			}
-			
-			$html_out .= '	</td>';
-			
-			$i++;
-			
-			if ($i == 4) {
-				$html_out .='</tr>';
-				$i = 1;
-			}
+			$html_out .= '</table>';
 		}
-		
-		$html_out .= '</table>';
-		
+
 		return $html_out;
-		
 	}
 }
 /*====================================================
@@ -1055,19 +1084,17 @@ function getUserPics($userid, $limit=1)
 
 /**
  * Bild benoten
- * 
+ *
  * Benotet ein Bild mit einer vom User gewählten Score (1-5)
- * 
+ *
  * @author IneX
  * @version 1.0
- * @since 1.5
- * @package Zorg
- * @subpackage Gallery
+ * @since 1.0 `IneX` function added
  *
  * @param integer $pic_id ID des betroffenen Bildes
  * @param integer $score Bewertung (1-5) welche der User dem Bild gegeben hat
- * @global array $db Array mit allen MySQL-Datenbankvariablen
- * @global array $db Array mit allen Benutzervariablen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $db Globales Class-Object mit den User-Methoden & Variablen
  */
 function doBenoten($pic_id, $score) {
 	global $db, $user;
@@ -1084,12 +1111,14 @@ function doBenoten($pic_id, $score) {
 		.")"
 	;
 	
-	$db->query($sql, __FILE__, __LINE__);
+	$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	//header("Location: ".base64_decode($_POST['url']));
 	//return array('state'=>"Pic $pic_id benotet");
 	
 	// Activity Eintrag auslösen (ausser bei der Bärbel)
-	if ($user_id != 59) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit der Note <b>'.$score.'/6</b> bewertet.<br/><br /><a href="'.$_SERVER[PHP_SELF].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+	$sternli = '';
+	for ($s=0;$s<$score;$s++){$sternli .= '*';} // Sternli mache
+	if ($user_id != BARBARA_HARRIS) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
 }
 
 
@@ -1098,11 +1127,11 @@ function doDelPic ($id) {
 	
 	if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
 	
-	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
+	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+	$d = mysqli_fetch_array($e);
 	if (!@unlink(picPath($d[album], $id, $d[extension]))) return array('error'=>"Bild konnte nicht gel&ouml;scht werden");
 	@unlink(tnPath($d[album], $id, $d[extension]));
-	$db->query("DELETE FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__);
+	$db->query("DELETE FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
 	return array('state'=>"Pic $id gel&ouml;scht");
 }
 
@@ -1149,8 +1178,8 @@ function doMkUploadDir ($frm) {
 function doRotatePic($picID, $direction) {
 	global $db;
 
-	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__);
-	$d = mysql_fetch_array($e);
+	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
+	$d = mysqli_fetch_array($e);
 
 
 	$origimage = picPath($d[album], $picID, $d[extension]);
@@ -1258,21 +1287,25 @@ function doRotatePic($picID, $direction) {
 
 // ************************************ FUNCTIONS *********************************************************************************
 
+/**
+ * @author [z]deep
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 added support for PNG image file types
+ */
 function isPic($file) {
 	if (!is_file($file)) return 0;
-	
-	$ext = strtolower(substr($file, -4));
-	if (extension($file) == ".jpg") return 1;
-	if (extension($file) == ".gif") return 1;
+	if (extension($file) == '.jpg') return 1;
+	if (extension($file) == '.jpeg') return 1;
+	if (extension($file) == '.gif') return 1;
+	if (extension($file) == '.png') return 1;
 	else return 0;
-	
-	if ($ok) {
-		return 1;
-	}else{
-		return 0;
-	}
 }
 
+/**
+ * @deprecated Use pathinfo($file, PATHINFO_EXTENSION);
+ */
 function extension($file) {
 	$found = 0;
 	for ($i=1; $i<strlen($file); $i++) {
@@ -1302,11 +1335,24 @@ function countFiles ($directory) {
 }
 
 function picPath($albID, $id, $extension) {
-	return DIR.$albID."/pic_".$id.$extension;
+	return GALLERY_DIR.$albID.'/pic_'.$id.$extension;
 }
 
+/**
+ * Get Pic-Thumbnail Path
+ *
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 `15.09.2018` addedd switch-case for handling non-image entries from gallery_pics
+ */
 function tnPath($albID, $id, $extension) {
-	return DIR.$albID."/tn_".$id.$extension;
+	switch ($extension)
+	{
+		case 'website': return GALLERY_DIR.$albID.'/tn_'.$id.'.png';
+		case 'youtube': return GALLERY_DIR.$albID.'/tn_'.$id.'.jpg';
+		case 'vimeo': return GALLERY_DIR.$albID.'/tn_'.$id.'.jpg';
+		default: return GALLERY_DIR.$albID.'/tn_'.$id.$extension;
+	}
 }
 
 function imgsrcPic($id) {
@@ -1319,14 +1365,18 @@ function imgsrcThum($id) {
 		return "/gallery/thumbs/".$id;
 }
 
-
+/**
+ * @deprecated replace all references to this function with new picHasTitle()
+ * @see picHasTitle()
+ * @todo replace all references to this function with new picHasTitle()
+ */
 function imgName($id) {
 	global $db;
 	
-	$e = $db->query("SELECT id, name FROM gallery_pics WHERE id = $id", __FILE__, __LINE__);
-	$cur = mysql_fetch_array($e);
+	$e = $db->query("SELECT id, name FROM gallery_pics WHERE id = $id", __FILE__, __LINE__, __FUNCTION__);
+	$cur = mysqli_fetch_array($e);
 	
-	return $cur[name];
+	return $cur['name'];
 }
 
 
@@ -1350,17 +1400,41 @@ function delDir ($dir) {
 	return $done;
 }
 
-function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
+
+/**
+ * Create a z-Gallery ready Imagefile
+ *
+ * @author [z]deep
+ * @author IneX
+ * @version 4.0
+ * @since 1.0 function added
+ * @since 2.0 updated pathes
+ * @since 3.0 major overhaul - added better error handling, added debugging infos
+ * @since 4.0 added support for PNG image file types
+ *
+ * @FIXME getImageSize() funktioniert nicht mit .gif-Files
+ */
+function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
+{
 	// errors
-	if (!isPic($srcFile)) user_error("Wrong File Type", E_USER_ERROR);
-	if (extension($srcFile) != extension($dstFile))
-		user_error("Source- and Destination-Files doesn't have the same File Types.", E_USER_ERROR);
-	
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic(): %s, %s, %s, %s, %s', __FUNCTION__, __LINE__, $srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor));
+	if (!isPic($srcFile)) {
+		error_log(sprintf('<%s:%d> Wrong File Type: %s', __FUNCTION__, __LINE__, $srcFile));
+		return false;
+	}
+	if (extension($srcFile) != extension($dstFile)) {
+		error_log(sprintf('<%s:%d> Source- and Destination-Files have mismatching File Types: %s vs. %s', __FUNCTION__, __LINE__, $srcFile, $dstFile));
+		return false;
+	}
+
 	$ext = extension($srcFile);
-	
-	// calc new pic size
-	$img_size = @getImageSize($srcFile);
-	if (!$img_size) return array('error'=>"keine Rechte");
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $ext: %s', __FUNCTION__, __LINE__, $ext));
+
+	/** calc new pic size */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> calc new pic size', __FUNCTION__, __LINE__));
+	$img_size = getImageSize($srcFile);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $img_size: %s', __FUNCTION__, __LINE__, print_r($img_size,true)));
+	if (!$img_size) return array('error'=>'keine Rechte');
 	$width = $img_size[0];
 	$height = $img_size[1];
 	
@@ -1374,54 +1448,137 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0) {
 		$picHeight = $height;
 		$picWidth = $width;
 	}
-	
-	// create new pic
-	if ($ext == ".jpg") $src = ImageCreateFromJPEG($srcFile);
-	elseif ($ext == ".gif") $src = ImageCreateFromGIF($srcFile);
-	
-	if (is_array($bgcolor) && sizeof($bgcolor) == 3) {
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $picWidth & $picHeight: %d x %d', __FUNCTION__, __LINE__, $picWidth, $picHeight));
+
+	/** Create new Pic */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create new pic', __FUNCTION__, __LINE__));
+	switch ($ext)
+	{
+		case '.jpg':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG(): %s', __FUNCTION__, __LINE__, $srcFile));
+			$src = ImageCreateFromJPEG($srcFile);
+			if ($src === null) {
+				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+			break;
+
+		case '.gif':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF(): %s', __FUNCTION__, __LINE__, $srcFile));
+			$src = ImageCreateFromGIF($srcFile);
+			if ($src === null) {
+				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+			break;
+
+		case '.png':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromPNG(): %s', __FUNCTION__, __LINE__, $srcFile));
+			$src = ImageCreateFromPNG($srcFile);
+			if ($src === null) {
+				error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromPNG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
+			break;
+
+		default:
+			error_log(sprintf('<%s:%d> %s Wrong File Type', __FILE__, __LINE__, __FUNCTION__));
+			return false;
+			break;
+	}
+
+	/** Modify Pic */
+	if (is_array($bgcolor) && sizeof($bgcolor) == 3)
+	{
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $bgcolor: %s', __FUNCTION__, __LINE__, print_r($bgcolor, true)));
 		$dst = ImageCreateTrueColor ($maxWidth, $maxHeight);  // GD 2.0.1
 		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
-		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
+		if (!$dst) {
+			error_log(sprintf('<%s:%d> %s Bild konnte nicht erzeugt werden', __FILE__, __LINE__, __FUNCTION__));
+			return false;
+		}
 		$bg = imagecolorallocate($dst, $bgcolor[0], $bgcolor[1], $bgcolor[2]);
-	
+
 		$x = round(($maxWidth-$picWidth) / 2);
 		$y = round(($maxHeight-$picHeight) / 2);
-	
+
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> imagecopyresized()', __FUNCTION__, __LINE__));
 		imagecopyresized($dst, $src, $x,$y,0,0, $picWidth, $picHeight, $width, $height);
-	
+
 		$ret = array('width'=>$maxWidth, 'height'=>$maxHeight);
-	}else{
+	} else {
 		$dst = ImageCreateTrueColor ($picWidth, $picHeight);  // GD 2.0.1
 		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
 		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
-	
-		ImageCopyResampled($dst, $src, 0,0,0,0, $picWidth, $picHeight, $width, $height);
-	
-		array('width'=>$picWidth, 'height'=>$picHeight);
+
+		if (ImageCopyResampled($dst, $src, 0,0,0,0, $picWidth, $picHeight, $width, $height)) {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCopyResampled OK', __FUNCTION__, __LINE__));
+		} else {
+			error_log(sprintf('<%s:%d> ImageCopyResampled ERROR: %s => %s', __FUNCTION__, __LINE__, $src, $dst));
+			return false;
+		}
+
+		$ret = array('width'=>$picWidth, 'height'=>$picHeight);
 	}
-	
-	if ($ext == ".jpg") ImageJPEG($dst, $dstFile);
-	elseif ($ext == ".gif") ImageGIF($dst, $dstFile);
+
+	switch ($ext) {
+		case '.jpg':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (!ImageJPEG($dst, $dstFile)) {
+				error_log(sprintf('<%s:%d> ImageJPEG ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG() OK', __FUNCTION__, __LINE__));
+			break;
+
+		case '.gif':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (!ImageGIF($dst, $dstFile)) {
+				error_log(sprintf('<%s:%d> ImageGIF ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF() OK', __FUNCTION__, __LINE__));
+			break;
+
+		case '.png':
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImagePNG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			if (!ImagePNG($dst, $dstFile)) {
+				error_log(sprintf('<%s:%d> ImagePNG ERROR: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				return false;
+			}
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImagePNG() OK', __FUNCTION__, __LINE__));
+			break;
+
+		default:
+			error_log(sprintf('<%s:%d> %s Wrong File Type', __FILE__, __LINE__, __FUNCTION__));
+			return false;
+			break;
+	}
+	/*if ($ext == '.jpg') ImageJPEG($dst, $dstFile);
+	elseif ($ext == '.gif') ImageGIF($dst, $dstFile);*/
 	//system("chmod 0664 ".$dstFile);
 	chmod($dstFile, 0664);
-	
+
 	ImageDestroy($src);
 	ImageDestroy($dst);
-	
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageDestroy() OK', __FUNCTION__, __LINE__));
+
 	return $ret;
 }
 
 function getAlbumLinkRandomThumb($album_id) {
 	global $db, $user;
 
-	$result = $db->query("SELECT * FROM gallery_pics p WHERE album=".$album_id." ".ZENSUR." ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
-	$rs = $db->fetch($result, __FILE__, __LINE__);
-	$file = imgsrcThum($rs[id]);
+	$result = $db->query("SELECT * FROM gallery_pics p WHERE album=".$album_id." ".ZENSUR." ORDER BY RAND() LIMIT 1", __FILE__, __LINE__, __FUNCTION__);
+	$rs = $db->fetch($result, __FILE__, __LINE__, __FUNCTION__);
+	$file = imgsrcThum($rs['id']);
 
 	$html =
 		'<a href="/gallery.php?show=albumThumbs&albID='.$album_id.'">'
-		.'<img border="0" src="'.$file.'"/></a>'
+		.'<img border="0" src="'.$file.'" itemprop="image" style="width: 100%;max-width: 100%;"></a>'
 	;
 
 	return $html;
@@ -1433,301 +1590,366 @@ function getRandomThumb() {
 	if ($user->typ != USER_MEMBER) $zensur = "WHERE zensur='0'";
 	else $zensur = "";
 
-	$result = $db->query("SELECT * FROM gallery_pics $zensur ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
+	$result = $db->query("SELECT * FROM gallery_pics $zensur ORDER BY RAND() LIMIT 1", __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
 
 	return formatGalleryThumb($rs);
 }
 
-function getDailyThumb () {
-	global $db, $user;
-	$name = 'daily_pic';
 
-	$e = $db->query("SELECT g.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
-							FROM periodic p, gallery_pics g
-							WHERE p.name='$name' AND g.id=p.id", __FILE__, __LINE__);
-	$d = $db->fetch($e);
+/**
+ * Get Daily Pic
+ *
+ * @author [z]biko
+ * @author IneX
+ * @version 3.0
+ * @since 1.0
+ * @since 2.0 `19.03.2018` `IneX` added Telegram Notification (photo message)
+ * @since 2.1 Telegram will send now high-res photo, instead of low-res thumbnail
+ * @since 2.2 changed to new Telegram Send-Method
+ * @since 3.0 `18.08.2018` `IneX` function now only returns Daily Pic, generating a new Daily Pic is now done in setNewDailyPic()
+ *
+ * @see formatGalleryThumb()
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return string|boolean HTML-formatted String with Daily Pic Thumbnail, or false if something went wrong
+ */
+function getDailyThumb()
+{
+	global $db;
 
-	if (!$d || $d[upd]) {
-		$e = $db->query("SELECT * FROM gallery_pics WHERE zensur='0' ORDER BY RAND() LIMIT 1", __FILE__, __LINE__);
+	/** Get current Daily Pic */
+	try {
+		$e = $db->query('SELECT g.* FROM gallery_pics g
+						 INNER JOIN periodic p ON p.id=g.id
+						 WHERE p.name="daily_pic"', __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
-		$db->query("REPLACE INTO periodic (name, id, date) VALUES ('$name', $d[id], NOW())", __FILE__, __LINE__);
+	} catch (Exception $e) {
+		error_log($e->getMessage());
 	}
 
-	return formatGalleryThumb($d);
-}
+	/** If Daily Pic ID is available */
+	if (!empty($d) && $d['id'] > 0)
+	{
+		return formatGalleryThumb($d);
 
-
-function getTopPics($album_id, $limit, $options) {
-	global $db, $user;
-	
-	//if ($user->typ != USER_MEMBER) $zensur = "WHERE zensur='0'";
-	//else $zensur = "";
-	
-	//$sql = "SELECT *, AVG(score) FROM gallery_pics_votes WHERE score > 0 GROUP BY pic_id ORDER BY score DESC LIMIT $limit";
-	//echo $sql;
-	
-	
-	$i=1;
-	
-	if ($options == 'ranking-list') {
-		$html_out .=
-				'<table class="border">'
-		;
-	}
-	
-	
-	if ($album_id == 0) {
-		$sql =
-			"
-			SELECT *, AVG(score) as avgScore, COUNT(pic_id) as numVotes
-			FROM gallery_pics_votes
-			WHERE score > 0
-			GROUP BY pic_id
-			ORDER BY avgScore DESC, numVotes DESC
-			LIMIT $limit"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
-		while($rs = $db->fetch($result)) {
-			$file = imgsrcThum($rs[pic_id]);
-			
-			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			
-			//$anz_votes = getNumVotes($rs[pic_id]);
-			$anz_votes = $rs[numVotes];
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'<tr bgcolor="'.$color.'">'
-					.'<td align="left">'.$i.'.</td>'
-					.'<td align="center">';
-			}
-			
-			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs[pic_id].'">'
-			;
-			
-			$pic_name = imgName($rs[pic_id]);
-			if ($pic_name) {
-				$html_out .=
-					$pic_name.'<br />'
-				;
-			}
-			
-			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs[avgScore],1).' '
-			;
-			
-			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			$html_out .=
-				'<small>('.$votes.')</small>'
-				.'<br />'
-			;
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'</td>'
-					.'</tr>'
-				;
-			}
-			
-			$i++;
-		}
-		
-		
-	} elseif ($album_id > 0) {
-		$sql =
-			"
-			SELECT
-				p.id,
-				p.album,
-				p.name,
-				p_vote.pic_id,
-				AVG(p_vote.score) as avgScore,
-				COUNT(p_vote.pic_id) as numVotes
-			FROM
-			gallery_pics p LEFT OUTER
-			JOIN gallery_pics_votes p_vote ON p.id = p_vote.pic_id
-			WHERE p.album = ".$album_id." AND p_vote.score > 0
-			GROUP BY p_vote.pic_id
-			ORDER BY avgScore DESC, numVotes DESC
-			LIMIT $limit"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
-		while($rs = $db->fetch($result)) {
-			//$file = imgsrcThum($rs[id]);
-			$file = imgsrcThum($rs[pic_id]);
-			
-			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			
-			//$anz_votes = getNumVotes($rs[pic_id]);
-			$anz_votes = $rs[numVotes];
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'<tr bgcolor="'.$color.'">'
-					.'<td align="left">'.$i.'.</td>'
-					.'<td align="center">';
-			}
-			
-			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs[pic_id].'">'
-			;
-			
-			if ($rs[name]) {
-				$html_out .=
-					$rs[name].'<br />'
-				;
-			}
-			
-			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs[avgScore],1).' '
-			;
-			
-			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			$html_out .=
-				'<small>('.$votes.')</small>'
-				.'<br />'
-			;
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'</td>'
-					.'</tr>'
-				;
-			}
-			
-			$i++;
-		}
-		
-		
+	/** Daily Pic not found... */
 	} else {
-		$sql =
-			"
-			SELECT *, AVG(score) as avgScore, COUNT(pic_id) as numVotes
-			FROM gallery_pics_votes
-			WHERE score > 0
-			GROUP BY pic_id
-			ORDER BY avgScore DESC, numVotes DESC
-			LIMIT $limit"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
+		error_log(sprintf('[NOTICE] <%s:%d> %s Daily Pic not found', __FILE__, __LINE__, __FUNCTION__));
+		return false;
+	}
+}
+
+
+/**
+ * Set a new random Daily Pic
+ *
+ * @author IneX
+ * @date 18.08.2018
+ * @version 1.7
+ * @since 1.0 `18.08.2018` function added
+ * @since 1.1 `20.08.2018` minor code updates after extracting function from getDailyThumb()
+ * @since 1.5 `10.09.2018` excluded APOD Gallery-Pics from being assigned as Daily Pic
+ * @since 1.6 `04.12.2018` Bug #xxx: added Gallery-Name to Telegram-Notification for Daily Pic
+ * @since 1.7 `14.11.2019` Added "&token="-Param for Telegram-Bot API on $telegram->send->photo()
+ *
+ * @uses SITE_URL
+ * @uses imgsrcPic()
+ * @uses picHasTitle()
+ * @uses Telegram::send::photo()
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $telegram Globales Class-Object mit den Telegram-Methoden
+ * @return boolean Returns true or false, depending if new Daily Pic was set or not
+ */
+function setNewDailyPic()
+{
+	global $db, $telegram;
+
+	try {
+		/** Check if current Daily Pic is still from Today... */
+		$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
+						 FROM periodic p
+						 WHERE p.name="daily_pic"', __FILE__, __LINE__, __FUNCTION__);
+		$currdp = $db->fetch($sql);
+	} catch (Exception $e) {
+		error_log($e->getMessage());
+	}
+
+	/** If current Daily Pic is old - generate a new one: */
+	if (!$currdp || $currdp['upd'] < 0)
+	{
+		/** Randomly select a new Gallery-Pic */
+		$sql = $db->query('SELECT id, (SELECT name FROM gallery_albums WHERE id = album) galleryname FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' AND album<>'.APOD_GALLERY_ID.' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$newdp = $db->fetch($sql);
+
+		if (!empty($newdp) || $newdp['id'] > 0)
+		{
+			/** Add the new Daily-Pic into the `periodic` Database-Table */
+			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("daily_pic", '.$newdp['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d from album "%s"', __FUNCTION__, __LINE__, $newdp['id'], $newdp['galleryname']));
+
+			/**
+			 * Telegram Notification auslösen
+			 *     url = URL to the Pic
+			 *     caption = "Daily Pic: {Title - if available} [Gallery-Name]"
+			 */
+			$imgAuthToken = md5(TELEGRAM_API_URI);
+			$imgUrl = SITE_URL.imgsrcPic($newdp['id']).'?token='.$imgAuthToken;
+			$picTitle = picHasTitle($newdp['id']);
+			$picGallery = $newdp['galleryname'];
+			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ (empty($picTitle) ? ' ' : $picTitle), (empty($picGallery) ? ' ' : $picGallery) ]);
+			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
+
+			return true;
+
+		/** Error updating Daily Pic */
+		} else {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Updating Daily Pic: ERROR', __FUNCTION__, __LINE__));
+			return false;
+		}
+
+	/** Daily Pic for today is already set */
+	} else {
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Daily Pic for today already set', __FUNCTION__, __LINE__));
+		return false;
+	}
+}
+
+/**
+ * Get amount n of best rated pics
+ *
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 `23.06.2007` function added as part of Bug #609
+ * @since 2.0 `02.01.2019` fixed Bug #770: "'Bestes Pic' soll nur Pics berücksichtigen mit >1 Votes"
+ *
+ * @see imgsrcThum(), imgName(), getNumVotes()
+ * @global	object	$db			Globales Class-Object mit allen MySQL-Methoden
+ * @global	object	$user		Globales Class-Object mit den User-Methoden & Variablen
+ * @param	integer	$album_id	Album-ID für welches die Top Pics angezeigt werden sollen. Default: null (none)
+ * @param	integer	$limit		Max. Anzahl anzuzeigender Top Pics. Default: 5
+ * @param	boolean	$ranking_list	(Optional) Zusätzliche Settings für Darstellung der Top Pics als HTML-Tabelle mit Ranking. Default: false
+ * @return	string	HTML-Code mit den Top Gallery-Pic Thumbnails des $album_id
+ */
+function getTopPics($album_id=null, $limit=5, $ranking_list=false)
+{
+	global $db, $user;
+
+	$i=1;
+	$html_out = '';
+
+	if ($ranking_list === true) $html_out .= '<table class="border">';
+
+	/**
+	 * $album_id specified
+	 * show best rated pics from this Gallery only
+	 */
+	if (!empty($album_id) && is_numeric($album_id) && $album_id > 0)
+	{
+		try {
+			$sql = 'SELECT
+					 p.id,
+					 p.album,
+					 p.name,
+					 p_vote.pic_id,
+					 p.zensur,
+					 AVG(p_vote.score) as avgScore,
+					 COUNT(p_vote.pic_id) as numVotes
+				 FROM
+				 	gallery_pics p LEFT OUTER
+				 JOIN gallery_pics_votes p_vote ON p.id = p_vote.pic_id
+				 WHERE p.album = '.$album_id.' AND p_vote.score > 0 AND p.zensur != "1"
+				 GROUP BY p_vote.pic_id
+				 HAVING numVotes >= 3
+				 ORDER BY avgScore DESC, numVotes DESC, p.id ASC
+				 LIMIT '.$limit;
+			$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		} catch (Exception $e) {
+			user_error($e->getMessage(), E_USER_NOTICE);
+			return false;
+		}
+
 		while($rs = $db->fetch($result)) {
-			$file = imgsrcThum($rs[pic_id]);
-			
+			$file = imgsrcThum($rs['pic_id']);
+
 			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
-			
-			//$anz_votes = getNumVotes($rs[pic_id]);
-			$anz_votes = $rs[numVotes];
-			
-			if ($options == 'ranking-list') {
+
+			//$anz_votes = getNumVotes($rs['pic_id']);
+			$anz_votes = $rs['numVotes'];
+
+			if ($ranking_list === true) {
 				$html_out .=
 					'<tr bgcolor="'.$color.'">'
 					.'<td align="left">'.$i.'.</td>'
 					.'<td align="center">';
 			}
 			
-			$html_out .=
-					'<a href="/gallery.php?show=pic&picID='.$rs[pic_id].'">'
-			;
-			
-			$pic_name = imgName($rs[pic_id]);
-			if ($pic_name) {
-				$html_out .=
-					$pic_name.'<br />'
-				;
-			}
+			$html_out .= '<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">';
+
+			if ($rs['name']) $html_out .= $rs['name'].'<br>';
 			
 			$html_out .=
-					'<img border="0" src="'.$file.'" /></a>'
-					.'<br />Bild Note: '.round($rs[avgScore],1).' '
+					'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"></a>'
+					.'<br>Bild Note: '.round($rs['avgScore'],1).' '
 			;
-			
+
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
 			$html_out .=
 				'<small>('.$votes.')</small>'
-				.'<br />'
+				.'<br>'
 			;
-			
-			if ($options == 'ranking-list') {
-				$html_out .=
-					'</td>'
-					.'</tr>'
-				;
-			}
-			
+
+			if ($ranking_list === true) $html_out .= '</td></tr>';
+
 			$i++;
 		}
 	}
-	
-	if ($options == 'ranking-list') {
-		$html_out .= '</table>';
+
+	/**
+	 * No $album_id given
+	 * Show Top Pics over all Gallery Albums
+	 */
+	else {
+		$sql = 'SELECT pic_id, AVG(score) as avgScore, COUNT(pic_id) as numVotes,
+					(SELECT zensur FROM gallery_pics WHERE id = pic_id) zensiert
+				 FROM gallery_pics_votes
+				 WHERE score > 0
+				 GROUP BY pic_id
+				 HAVING (zensiert IS NULL OR zensiert = 0) AND numVotes >= 3
+				 ORDER BY avgScore DESC, numVotes DESC, pic_id ASC
+				 LIMIT '.$limit;
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+
+		while($rs = $db->fetch($result)) {
+			$file = imgsrcThum($rs['pic_id']);
+
+			$color = ($i % 2 == 0) ?  BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+
+			$anz_votes = $rs['numVotes'];
+
+			if ($ranking_list === true) {
+				$html_out .=
+					'<tr bgcolor="'.$color.'">'
+					.'<td align="left">'.$i.'.</td>'
+					.'<td align="center">';
+			}
+
+			$html_out .= '<a href="/gallery.php?show=pic&picID='.$rs['pic_id'].'">';
+
+			$pic_name = imgName($rs['pic_id']);
+			if ($pic_name) $html_out .= $pic_name.'<br>';
+
+			$html_out .=
+					'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"></a>'
+					.'<br>Bild Note: '.round($rs['avgScore'],1).' '
+			;
+
+			$votes = $anz_votes.' '.(($anz_votes > 1) || ($anz_votes == 0) ? 'Votes' : $anz_votes.'Vote');
+			$html_out .= '<small>('.$votes.')</small>'.'<br>';
+
+			if ($ranking_list === true) $html_out .= '</td></tr>';
+
+			$i++;
+		}
 	}
-	
+
+	if ($ranking_list === true) $html_out .= '</table>';
+
 	return $html_out;
-	
 }
 
-
-function formatGalleryThumb ($rs) {
+/**
+ * Format Gallery-Pic Thumbnail (HTML Output)
+ * 
+ * @author [z]biko
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 function added
+ * @since 2.0 `09.09.2018` Resolved Bug #759: added Pic-Title to HTML-Output & refactored function a bit
+ *
+ * @uses text_width()
+ * @uses remove_html()
+ * @see Thread::getNumPosts()
+ * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
+ * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
+ * @param	object	$rs		DB-Query Result Object containing all gallery_pics rows & values for one image
+ * @return	string	HTML-Code for the Gallery-Pic Thumbnail
+ */
+function formatGalleryThumb($rs)
+{
 	global $db, $user;
 
-	$file = imgsrcThum($rs[id]);
+	$file = imgsrcThum($rs['id']);
 
-	if ($user->typ == USER_MEMBER) { // schauen dass wirs nur bei membern machen...
+	/** HTML-Markup for Pic Thumbnail */
+	$html = '<a href="/gallery.php?show=pic&picID='.$rs['id'].'">' // Link
+			.text_width(remove_html($rs['name']), 80, '...').'<br>' // Pic-Title
+			.'<img border="0" src="'.$file.'" style="width: 100%;max-width: 100%;"><br>' // Image-Tag
+			.Thread::getNumPosts('i', $rs['id']).' Comments</a>'; // No. of Comments
+
+	/** Comment-Unreads bei Member holen & anzeigen... */
+	if ($user->typ == USER_MEMBER) {
 		if (!$user_id) { $user_id = $user->id; }
-
-		$e = $db->query(
-		"SELECT count(c.id) anz
-		FROM comments c, comments_unread u
-		WHERE c.board = 'i' AND c.thread_id=".$rs[id]." AND u.comment_id=c.id AND u.user_id=".$user_id,
-		__FILE__, __LINE__
-		);
+		$sql = 'SELECT count(c.id) anz
+				FROM comments c, comments_unread u
+				WHERE c.board = "i" AND c.thread_id='.$rs['id'].' AND u.comment_id=c.id AND u.user_id='.$user_id;
+		$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 
-		if ($d[anz] > 0) {
-			return
-			'<a href="/gallery.php?show=pic&picID='.$rs[id].'">'
-			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs[id]).' Comments</a>'
-			.' <small>('.$d[anz].' unread)</small>'
-			;
-		} else {
-			return
-			'<a href="/gallery.php?show=pic&picID='.$rs[id].'">'
-			.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs[id]).' Comments</a>'
-			;
-		}
-	} else { // wenns ein Gast ist...
-		return
-		'<a href="/gallery.php?show=pic&picID='.$rs[id].'">'
-		.'<img border="0" src="'.$file.'" /><br />'.Thread::getNumPosts('i', $rs[id]).' Comments</a>'
-		;
+		/** Wenn das Pic 1 oder mehr Unreads hat... */
+		if ($d['anz'] > 0) $html .= ' <small>('.$d['anz'].' unread)</small>'; // Unread Comments on Pic
 	}
+
+	return $html;
 }
 
-function doEditFotoTitle ($picID, $frm) {
+/**
+ * Updates a Pic's Title
+ *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return void
+ */
+function doEditFotoTitle($picID, $frm)
+{
 	global $db;
 
 	$frm['name'] = htmlentities($frm['name'], ENT_NOQUOTES);
-	$db->update('gallery_pics', $picID, $frm, __FILE__, __LINE__);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $frm[name]: ', __FUNCTION__, __LINE__, $frm['name']));
+	$db->update('gallery_pics', $picID, $frm, __FILE__, __LINE__, __FUNCTION__);
 
 	unset($_GET['editFotoTitle']);
 }
 
 /**
+ * Checks if Pic has a Title - if yes, return it
+ *
+ * @author IneX
+ * @date 21.01.2017
+ *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return string|bool If set, returns the Pic's title - otherwise 'false'
+ */
+function picHasTitle($picID)
+{
+	global $db;
+
+	if (is_numeric($picID) && $picID > 0) {
+		$e = $db->query('SELECT name FROM gallery_pics WHERE id='.$picID.' LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$d = $db->fetch($e);
+	}
+	if ($d) return $d['name'];
+	else return false;
+}
+
+/**
  * Flip an image vertically/horizontally
  *
- * @todo use native PHP Image Flip function! http://php.net/manual/function.imageflip.php
+ * @TODO use native PHP Image Flip function! http://php.net/manual/function.imageflip.php
  *
  * @see http://php.net/manual/function.imageflip.php
  * @see doRotatePic()
  */
-function doImageFlip($imgsrc, $imgout, $type) {
+function doImageFlip($imgsrc, $imgout, $type)
+{
    $width = imagesx($imgsrc);
    $height = imagesy($imgsrc);
 
@@ -1764,4 +1986,91 @@ function doImageFlip($imgsrc, $imgout, $type) {
 
    return( $imgdest );
 }
-?>
+
+/**
+ * Findet und returned die Album-ID zu welcher ein Pic gehört
+ *
+ * @author IneX
+ * @date 11.09.2018
+ * @version 1.0
+ * @since 1.0 `11.09.2018` function added
+ *
+ * @param integer $id ID des Pics für welches das Album geholt werden soll
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return integer|boolean Album-ID des Pics - oder false
+ */
+function pic2album($id)
+{
+	global $db;
+
+	/** Validate passed $id parameter */
+	if ($id <= 0 || !is_numeric($id)) user_error('Missing Parameter "id"', E_USER_ERROR);
+
+	$sql = $db->query('SELECT album FROM gallery_pics WHERE id='.$id.' LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
+	$picAlbum = $db->fetch($sql, __FILE__, __LINE__, __FUNCTION__);
+
+	return (!empty($picAlbum['album']) ? $picAlbum['album'] : false);
+}
+
+/**
+ * Video Thumbnail von YouTube & Vimeo holen
+ *
+ * Each YouTube & Vimeo video has multiple sizes of generated images. They are predictably formatted.
+ * @link https://stackoverflow.com/questions/2068344/how-do-i-get-a-youtube-video-thumbnail-from-the-youtube-api
+ * @link https://stackoverflow.com/questions/1361149/get-img-thumbnails-from-vimeo
+ *
+ * @author IneX
+ * @date 14.09.2018
+ * @version 1.0
+ * @since 1.0 `14.09.2018` function added
+ *
+ * @TODO If required (later), use $format Parameter to dynamically grab URLs from API response, instead of hard-coded $thumbnailUrl Path
+ *
+ * @see cURLfetchUrl()
+ * @param string $service Name der Plattform, gültige Werte: 'youtube' oder 'vimeo'
+ * @param string $video_id Video-ID für welches ein Thumbnail geholt werden soll
+ * @param string $image_size (Optional) Angabe als string, gültige Werte: 'small', 'medium' oder 'large' - default: 'small'
+ * @param string $output_to (Optional) Angabe als string wie das Thumbnail ausgegeben werden soll, gültige Werte: 'display'=nur anzeigen oder 'datei-zielpfad'=download auf dem server
+ * @return string|boolean Gibt die Bild-URL zurück wenn $output_to='display' - oder true/false wenn $output_to='datei-zielpfad'
+ */
+function getVideoThumbnail($service, $video_id, $image_size='small', $output_to='display')
+{
+	/** Validate & format passed parameters */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> getVideoThumbnail(): %s, %s, %s, %s', __FUNCTION__, __LINE__, $service, $video_id, $image_size, $output_to));
+	if (is_array($service) || is_array($video_id) || is_array($image_size) || is_array($output_to)) return false;
+	if (is_numeric($service) || is_numeric($image_size) || is_numeric($output_to)) return false;
+	if (strpos($video_id, '?') > 0) $video_id = strtok($video_id, '?');
+	$service = strtolower($service);
+
+	$service_data =  [
+					 'youtube' => [
+									 'url' =>	 'https://img.youtube.com/vi/%s/%s.jpg'
+									,'size' =>	 [
+													 'small' => 'default'
+													,'medium' => 'mqdefault'
+													,'large' => 'hqdefault'
+												 ]
+								 ]
+					,'vimeo' => [
+									 'url' =>	 'https://i.vimeocdn.com/video/%s_%s.jpg'
+									,'size' =>	 [
+													 'small' => '100x75'
+													,'medium' => '200x150'
+													,'large' => '640'
+												 ]
+								 ]
+					 ];
+	$thumbnailUrl = sprintf($service_data[$service]['url'], $video_id, $service_data[$service]['size'][$image_size]);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $thumbnailUrl: %s', __FUNCTION__, __LINE__, $thumbnailUrl));
+
+	/** Download Video-Thumbnail from URL to path as specified in $output_to */
+	if ($output_to != 'display')
+	{
+		/** Fetch and save the Thumbnail image to $output_to */
+		return (cURLfetchUrl($thumbnailUrl, $output_to) ? true : false);
+
+	} else {
+		/** Return URL to Video-Thumbnail */
+		return $thumbnailUrl;
+	}
+}

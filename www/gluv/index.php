@@ -141,7 +141,7 @@ usort($resultSet, "cmp_res");
     //  On click open gLuV in a pop-up window
     function gluv(index)
     {
-      settings='top=0,left=0,width=<?= printf($width); ?>,height=<?= printf($height); ?>,toolbar=no,scrollbars=no,menubar=no,directories=no,location=no,status=no,resizable=yes';
+      settings='top=0,left=0,width=<?php echo printf($width); ?>,height=<?php echo printf($height); ?>,toolbar=no,scrollbars=no,menubar=no,directories=no,location=no,status=no,resizable=yes';
       window.open("gluv.php?loc="+index,"blah",settings);
       return false;
     }
@@ -160,8 +160,8 @@ usort($resultSet, "cmp_res");
   }
 ?>
 </script>
-<TITLE><?= $title ?></TITLE>
-<LINK REL=stylesheet HREF="<?= $css ?>" TYPE="text/css">
+<TITLE><?php echo $title ?></TITLE>
+<LINK REL=stylesheet HREF="<?php echo $css ?>" TYPE="text/css">
 </HEAD>
 <body>
 
@@ -185,12 +185,12 @@ usort($resultSet, "cmp_res");
 
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
   <tr>
-    <td CLASS="cellHeading" WIDTH=<?= $widthname ?>%>Server Name</td>
-    <td CLASS="cellHeading" WIDTH=<?= $widthip ?>%>IP</td>
-    <td CLASS="cellHeading" WIDTH=<?= $widthmap ?>%>Map</td>
-    <td CLASS="cellHeading" WIDTH=<?= $widthplayers ?>%>Players</td>
-    <td CLASS="cellHeading" WIDTH=<?= $widthgame ?>%>Game Name</td>
-    <td CLASS="cellHeading" WIDTH=<?= $widthgametype ?>%>Game Type</td>
+    <td CLASS="cellHeading" WIDTH=<?php echo $widthname ?>%>Server Name</td>
+    <td CLASS="cellHeading" WIDTH=<?php echo $widthip ?>%>IP</td>
+    <td CLASS="cellHeading" WIDTH=<?php echo $widthmap ?>%>Map</td>
+    <td CLASS="cellHeading" WIDTH=<?php echo $widthplayers ?>%>Players</td>
+    <td CLASS="cellHeading" WIDTH=<?php echo $widthgame ?>%>Game Name</td>
+    <td CLASS="cellHeading" WIDTH=<?php echo $widthgametype ?>%>Game Type</td>
   </tr>
 </table>
 
@@ -219,31 +219,31 @@ usort($resultSet, "cmp_res");
 
   if($resultSet[$i]->name=="Server Timed Out") {
 ?>
-    <tr CLASS="<?= $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?= $row ?>';" onfocus="this.blur();">
+    <tr CLASS="<?php echo $row ?>" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?php echo $row ?>';" onfocus="this.blur();">
 <?php
   } else {
 ?>
-    <tr CLASS="<?= $row ?>" style="cursor: pointer;" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?= $row ?>';" onfocus="this.blur();" onclick="gluv(<?= $resultSet[$i]->index ?>);">
+    <tr CLASS="<?php echo $row ?>" style="cursor: pointer;" onMouseOver="this.className='rowHighlight';" onMouseOut="this.className='<?php echo $row ?>';" onfocus="this.blur();" onclick="gluv(<?php echo $resultSet[$i]->index ?>);">
 <?php
   }
 ?>
-      <td CLASS="<?= $cell ?>" style="text-align: left" WIDTH=<?= $widthname ?>%>
-        <?= $resultSet[$i]->name ?>
+      <td CLASS="<?php echo $cell ?>" style="text-align: left" WIDTH=<?php echo $widthname ?>%>
+        <?php echo $resultSet[$i]->name ?>
       </td>
-      <td CLASS="<?= $cell ?>" style="text-align: center" WIDTH=<?= $widthip ?>%>
-        <?= $resultSet[$i]->ip ?>
+      <td CLASS="<?php echo $cell ?>" style="text-align: center" WIDTH=<?php echo $widthip ?>%>
+        <?php echo $resultSet[$i]->ip ?>
       </td>
-      <td CLASS="<?= $cell ?>" style="text-align: center" WIDTH=<?= $widthmap ?>%>
-        <?= $resultSet[$i]->map ?>
+      <td CLASS="<?php echo $cell ?>" style="text-align: center" WIDTH=<?php echo $widthmap ?>%>
+        <?php echo $resultSet[$i]->map ?>
       </td>
-      <td CLASS="<?= $cell ?>" style="text-align: center" WIDTH=<?= $widthplayers ?>%>
-        <?= $resultSet[$i]->players."/".$resultSet[$i]->maxPlayers ?>
+      <td CLASS="<?php echo $cell ?>" style="text-align: center" WIDTH=<?php echo $widthplayers ?>%>
+        <?php echo $resultSet[$i]->players."/".$resultSet[$i]->maxPlayers ?>
       </td>
-      <td CLASS="<?= $cell ?>" style="text-align: center" WIDTH=<?= $widthgame ?>%>
-        <?= $resultSet[$i]->game ?>
+      <td CLASS="<?php echo $cell ?>" style="text-align: center" WIDTH=<?php echo $widthgame ?>%>
+        <?php echo $resultSet[$i]->game ?>
       </td>
-      <td CLASS="<?= $cell ?>" style="text-align: center" WIDTH=<?= $widthgametype ?>%>
-        <?= $resultSet[$i]->gametype ?>
+      <td CLASS="<?php echo $cell ?>" style="text-align: center" WIDTH=<?php echo $widthgametype ?>%>
+        <?php echo $resultSet[$i]->gametype ?>
       </td>
     </tr>
 <?php

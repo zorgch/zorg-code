@@ -1,25 +1,22 @@
-<?
-
-/* 
-	class OCR
-	----------------
-	schrifterkennung aus bildern, welche mit php generiert wurden. 
-	
-	author: biko
-	date: 11.10.04
-	requires: gdlib
-	
-*/
-
+<?php
+/**
+ * OCR - Schrifterkennung aus Bildern
+ *
+ * Schrifterkennung aus bildern, welche mit php generiert wurden. 
+ * requires: gdlib
+ *
+ * @author [z]biko
+ * @date 11.10.2004
+ */
 class OCR {
 	var $font = array();
 	var $_font_height;
 	var $_font_width;
 	
-	/*
-	 * @params int $fonttype
-	 * @desc Klassenkonstruktor - $fonttype als int-Kennung der gdlib
+	/**
+	 * Klassenkonstruktor - $fonttype als int-Kennung der gdlib
 	 *
+	 * @params int $fonttype
 	 */
 	function OCR ($fonttype, $fontset = array()) {
 		$this->_font_height = imagefontheight($fonttype);
@@ -157,5 +154,3 @@ class OCR {
 		return $bitmap;
 	}
 }
-
-?>

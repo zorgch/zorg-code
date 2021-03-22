@@ -1,132 +1,195 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="de">
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=us-ascii" />
+	<title>OFFLINE - zorg.ch</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="geo.position" content="47.4233;9.37" />
     <meta name="geo.region" content="CH-SG" />
     <meta name="geo.placename" content="St. Gallen" />
     <meta name="ICBM" content="47.4233, 9.37" />
-
-    <title>Home - zorg.ch - OFFLINE!</title>
-    <link rel="stylesheet" type="text/css" href="/includes/night.css" />
-    <link rel="shortcut icon" href="fav_night.ico" type="image/x-icon" />
-    <script type="text/javascript" src="/includes/javascript.js"></script>
-    <script type="text/javascript">
-	//<![CDATA[
-    var layout = "day";
-    //]]>
-    </script>
+    <!--link rel="stylesheet" type="text/css" href="/css/night.css" /-->
+    <link rel="shortcut icon" href="/images/favicons/fav_night.ico" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <style>
+  body{width:100%;-webkit-text-size-adjust:100%;text-align:center;}
+  h2,h3,h4,ul,ol{padding-top:10px;}
+  h2,h3,h4{padding-bottom:5px;}
+  ul,ol{padding-bottom:10px;}
+  p{padding-top:5px;padding-bottom:5px;}
+  div p{padding-top:10px;padding-bottom:10px;}
+  li{margin-left:25px !important}
+  table{font-size:12px}
+  table.header{background-color:#000000;margin:0px}
+  table.email-body-wrap{width:100%;max-width:860px;margin-left:auto;margin-right:auto;}
+  a{color:#CBBA79;text-decoration:none}
+  a:hover{text-decoration:underline}
+  div.menu{background-color:#42300A;border-bottom-style:solid;border-bottom-color:#CBBA79;border-bottom-width:1px;border-top-style:solid;border-top-color:#FFF;border-top-width:1px;letter-spacing:1px;padding-bottom:1px;padding-top:1px}
+  div.menu a{background-color:#42300A;border-bottom:1px solid #CBBA79;border-left:1px solid #FFF;border-right:1px solid #CBBA79;color:#CBBA79;padding-bottom:1px;padding-left:15px;padding-right:15px;padding-top:1px;text-decoration:none}
+  div.menu a:hover{background:#62502A;text-decoration:none}
+  div.menu a.left{background-color:#42300A;border-left-style:none;padding-left:0px;padding-right:1px}
+  div.menu a.right{background-color:#42300A;border-right-style:none;padding-left:1px;padding-right:0px}
+  input:focus{border-style:inset;border-color:#141414}
+  .text{border-style:solid;border-width:1px;border-color:#CBBA79;font-size:10px;font-family:verdana;color:#FFFFFF;background-color:#000000}
+  .text:focus{border-style:inset;border-color:#141414}
+  .button{border-style:outset;border-width:1px;border-color:#CBBA79;font-size:11px;font-family:verdana;font-weight:bold;color:#FFFFFF;background-color:#000000}
+  .button:hover{border-style:inset}
+  .small{font-size:6pt !important}
+  .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td {line-height: 100%}
+  .ExternalClass {width: 100%}
+  @media only screen and (max-width : 750px) {
+    table.email-body-wrap{min-width:300px !important;}
+    div.menu{border-top-color:#CBBA79 !important;border-bottom:none !important}
+    a.navlink{display:block;border-left:none !important;border-right:none !important}
+    a.left,a.right{display:none}
+    input.button{display:block}
+  }
+  </style>
 </head>
 
-<body>
-    <center>
-        <table height="97%" bgcolor="000000" cellspacing="0" cellpadding="0" width="860">
-            <tr>
-                <td valign="top" bgcolor="141414" height="100%">
-                    <a name="top"></a>
+<body style="width: 100%; height: 100%; margin: 0px; padding: 0px; background-color:#000000;color:#FFFFFF;font-family:Verdana, Sans-Serif;font-size:12px;">
+    <table id="email-body" class="email-body-wrap" height="97%" bgcolor="#000000" cellspacing="0" cellpadding="0">
+        <tr>
+            <td valign="top" bgcolor="141414" height="100%">
+                <a name="top"></a>
 
+                <div align="center">
+                    <table class="header" style="height: 55px; margin: 0px; width: 100%;">
+                        <tr>
+                            <td align="right" class="small" colspan="3" valign="middle" width="100%"></td>
+                        </tr>
+
+                        <tr>
+                            <td align="left">
+                                <h1><a href="/" style="color: #ffffff;">zorg.ch</a></h1>
+                            </td>
+
+                            <td align="center" style="font-size: x-small;" width="40%"></td>
+
+                            <td align="right">
+                                <table cellpadding="0" cellspacing="2">
+                                    <tr>
+                                        <td align="right">
+                                            <table>
+                                                <tr>
+                                                    <td align="left" class="small">
+                                                       &nbsp;
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td align="left" colspan="3">
+                                <table cellspacing="0" cellpadding="0" width="100%">
+                                    <tr>
+                                        <td align="left" class="small"></td>
+                                        <td class="small" width="300" align="right" valign="middle">
+                                            <table cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                    <td class="small" align="right">
+                                                      <span id="swisstime">23:23</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div align="center" valign="top" style="margin: 0px 40px;"></div>
+
+                <div class="menu" align="center" width="100%">
+                    <a class="left">&nbsp;</a><a href="/">Home</a>
+                </div>
+
+                <div align="center" valign="top" style="margin: 0px 40px;">
                     <div align="center">
-                        <table class="header" style="height: 55px; margin: 0px; width: 100%;">
+                        <center>
+                            <h2>Willkommen auf zorg.ch</h2>
+                            <h2>...aber der FUCKUP macht grad eine Auszeit!</h2>
+                            
+                            <div>
+                                Gib uns doch kurz Bescheid, dann k&uuml;mmern wir uns so schnell wie m&ouml;glich darum. Danke!
+                            </div>
+                        </center>
+
+                        <table cellpadding="5" height="100%" width="100%" style="padding-top:20px;">
+							
+							<!-- Mittlerer Content-Teil -->
                             <tr>
-                                <td align="right" class="small" colspan="3" valign="middle" width="100%"></td>
-                            </tr>
-
-                            <tr>
-                                <td align="left">
-                                    <h1><a href="#" style="color: #ffffff;">Zorg.ch</a></h1>
-                                </td>
-
-                                <td align="center" style="font-size: x-small;" width="40%"></td>
-
-                                <td align="right">
-                                    <table cellpadding="0" cellspacing="2">
-                                        <tr>
-                                            <td align="right">
-                                                <table>
-                                                    <tr>
-                                                        <td align="left" class="small">
-                                                           &nbsp;
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td align="left" colspan="3">
-                                    <table cellspacing="0" cellpadding="0" width="100%">
-                                        <tr>
-                                            <td align="left" class="small"></td>
-                                            <td class="small" width="300" align="right" valign="middle">
-                                                <table cellpadding="0" cellspacing="0" border="0">
-                                                    <tr>
-                                                        <td class="small" align="right">23:23 <img src="/images/sunrise.jpg" alt="Sunrise @ 23:23" title="Sunrise @ 23:23" /></td>
-                                                    </tr>
-                                                </table>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                <td align="center" valign="top" style="text-align: center;" width="100%">
+									<div><a class="twitter-timeline" href="https://twitter.com/ZorgCH" data-chrome="noheader nofooter noborders noscrollbar transparent" data-dnt="true" data-tweet-limit="4" data-height="860" data-widget-id="393755214169120768" data-link-color="#cbba79" data-theme="dark"></a></div>
+									<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
                                 </td>
                             </tr>
                         </table>
                     </div>
-
-                    <div align="center" valign="top" style="margin: 0px 40px;"></div>
-
-                    <div class="menu" align="center" width="100%">
-                        <a class="left">&nbsp;</a><a href="#">Home</a>
-                    </div>
-
-                    <div align="center" valign="top" style="margin: 0px 40px;">
-                        <div align="center">
-                            <center>
-                                <h2>Willkommen auf Zorg.ch</h2>
-                            </center>
-
-                            <table cellpadding="5" height="100%" width="100%">
-								
-								<!-- Mittlerer Content-Teil -->
-                                <tr>
-                                	<!-- Linke Content Spalte -->
-                                    <td valign="top">
-                                        <h2>...aber der xoli macht grad eine Auszeit!</h2>
-                                        
-                                        <div>
-	                                        Gib uns doch kurz Bescheid, dann k&uuml;mmern wir uns so schnell wie m&ouml;glich darum.<br /><br />Danke!
-                                        </div>
-                                    </td>
-                                    
-									<!-- Rechte Content Spalte -->
-                                    <td align="center" valign="top" style="text-align: center;" width="210">                                        
-                                        <div> <!-- @ZorgCH Twitter Stream -->
-                                            <a class="twitter-timeline" data-dnt="true" href="https://twitter.com/ZorgCH" data-widget-id="393755214169120768">Tweets von @ZorgCH</a>
-                                        </div><script type="text/javascript">
-										//<![CDATA[
-                                        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
-                                        //]]>
-                                        </script>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-
-            <tr>
-                <td width="100%" align="center" valign="center" class="small" bgcolor="242424" style="padding: 2px; border-top-style: solid; border-top-width: 1px; border-top-color: #CBBA79;">
-                    Parsetime: n/a | 0 SQL Querys | <nobr>444 B</nobr> | r: Alle <br />
-                    Relative Anzahl Sonnenflecken: n/a | Magnetfeldrichtungsst&#228;rke: n/a | Solarwind Dichte: n/a <br />
-                    <script type="text/javascript">
-					//<![CDATA[
-                    swisstimeJS()
-                    //]]>
-                    </script>
-                </td>
-            </tr>
-        </table>
-    </center>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td width="100%" align="center" valign="center" class="small" bgcolor="242424" style="padding: 2px; border-top-style: solid; border-top-width: 1px; border-top-color: #CBBA79;">
+                Parsetime: n/a | 0 SQL Querys | <nobr>23 B</nobr> | r: Alle <br />
+                Relative Anzahl Sonnenflecken: n/a | Magnetfeldrichtungsst&#228;rke: n/a | Solarwind Dichte: n/a <br />
+            </td>
+        </tr>
+    </table>
+    <script>
+      // Schwiizer Ziit vom Bsuecher usrechne
+      // Source: /ja/zorg.js
+      function swisstimeJS()
+      {
+        var jetzt = new Date();
+        var monet = jetzt.getMonth();
+        var tag = jetzt.getDate();
+        var tag_i_dae_woche = jetzt.getDay();
+        var johr = jetzt.getFullYear();
+        var minute = Math.floor(jetzt.getMinutes());
+        var stund = jetzt.getHours();
+        if (minute >= 25) stund = jetzt.getHours()+1;
+        var tagesziit = '';
+      
+        var minute_text = new Array("F&uuml;f ab", "Z&auml;h ab", "Viertel ab", "Zwanzg ab", "F&uuml;f vor halbi", "halbi", "F&uuml;f ab halbi", "Zwanzg vor", "Viertel vor", "Z&auml;h vor", "F&uuml;f vor", "");
+        var stunde_text = new Array("Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi", "Zw&ouml;lfi", "Eis", "Zwei", "Dr&uuml;&uuml;", "Vieri", "F&uuml;fi", "Sechsi", "Siebni", "Achti", "N&uuml;ni", "Zehni", "Elfi", "Zw&ouml;lfi");
+        var wochetag = new Array("Sunntig", "M&auml;ntig", "Ziistig", "Mittwoch", "Donschtig", "Friitig", "Samschtig");
+        var moenet = new Array("Januar", "Februar", "M&auml;rz", "April", "Mai", "Juni", "Juli", "Auguscht", "September", "Oktober", "November", "Dezember");
+      
+        if (minute > 2 && minute <= 7) minute_ziit = 0;
+        else if (minute > 7 && minute <= 12) minute_ziit = 1;
+        else if (minute > 12 && minute <= 17) minute_ziit = 2;
+        else if (minute > 17 && minute <= 22) minute_ziit = 3;
+        else if (minute > 22 && minute <= 27) minute_ziit = 4;
+        else if (minute > 27 && minute <= 32) minute_ziit = 5;
+        else if (minute > 32 && minute <= 37) minute_ziit = 6;
+        else if (minute > 37 && minute <= 42) minute_ziit = 7;
+        else if (minute > 42 && minute <= 47) minute_ziit = 8;
+        else if (minute > 47 && minute <= 52) minute_ziit = 9;
+        else if (minute > 52 && minute <= 57) minute_ziit = 10;
+        else if (minute > 57 || minute <= 2) minute_ziit = 11;
+      
+        if (stund >= 0 && stund < 6) tagesziit = "i d&auml; Nacht"
+        else if (stund >= 6 && stund < 12) tagesziit = "am Morg&auml;"
+        else if (stund >= 12 && stund < 17) tagesziit = "am Nomitag"
+        else if (stund >= 17 && stund <= 22) tagesziit = "am Abig"
+        else if (stund > 22 && stund >= 24) tagesziit = "i d&auml; Nacht"
+      
+        aktuelli_schwiizerziit = wochetag[tag_i_dae_woche] + " " + tag + ". " +  moenet[monet]  + ", " + minute_text[minute_ziit] + " " + stunde_text[stund] + " " + tagesziit;
+        var htmltag = document.getElementById('swisstime');
+      
+        if (typeof htmltag !== 'undefined') {
+          htmltag.innerHTML = aktuelli_schwiizerziit;
+        } else {
+          console.warn(' HTML Element ' + htmltag + ' not found.');
+        }
+      }
+    swisstimeJS()
+    </script>
 </body>
 </html>

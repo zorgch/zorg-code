@@ -27,9 +27,9 @@ var ns6=document.getElementById && !document.all;
 
 // globals for rules table closing and opening
 var rules, cookie;
-var showRules=<?= printf($showRules); ?>;
+var showRules=<?php echo printf($showRules); ?>;
 var expire=new Date();
-expire.setTime(expire.getTime()+<?= printf($expire*86400000); ?>);
+expire.setTime(expire.getTime()+<?php echo printf($expire*86400000); ?>);
 
 function openRules()
 {

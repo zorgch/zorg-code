@@ -1,146 +1,134 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/forum.inc.php');
+/**
+ * Edit Comment Post-Action
+ *
+ * @package zorg\Forum
+ */
 
+/**
+ * File includes
+ * @include main.inc.php DEPRECATED
+ * @include forum.inc.php
+ */
+//require_once dirname(__FILE__) .'/../includes/main.inc.php';
+require_once dirname(__FILE__).'/../includes/forum.inc.php';
 
-// Error-Checking -------------------------------------------------------------
-
-if($_POST['board'] == '') {
-	echo '$_POST[board] ist leer!';
+/** Board checken und validieren */
+if($_POST['board'] == '' || empty($_POST['board']) || strlen($_POST['board']) != 1) {
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	//user_error('Board nicht angegeben!', E_USER_WARNING);
+	$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('error-missing-board', 'commenting'));
+	header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
 	exit;
 }
-	
-// Parent id checken
-if(!is_numeric($_POST['parent_id'])) {
-	echo 'Deine parent_id ('.$_POST['parent_id'].') ist keine Nummer!';
+if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[board]: OK => %s', __FILE__, __LINE__, $_POST['board']));
+
+/** Parent id checken */
+if($_POST['parent_id'] <= 0 || empty($_POST['parent_id']) || $_POST['parent_id'] === '0' || !is_numeric($_POST['parent_id']))
+{
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	//user_error('Parent id leer oder ungültig: ' . $_POST['parent_id'], E_USER_WARNING);
+	$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('invalid-parent_id', 'commenting'));
+	header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
 	exit;
 }
+if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[parent_id]: OK => %s', __FILE__, __LINE__, $_POST['parent_id']));
 
-// Thread id checken
-if(!is_numeric($_POST['thread_id'])) {
-	echo 'Deine thread_id ('.$_POST['thread_id'].') ist keine Nummer!';
+/** Thread id checken */
+if($_POST['thread_id'] < 0 || empty($_POST['thread_id']) || $_POST['thread_id'] === '0' || !is_numeric($_POST['thread_id']))
+{
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	//user_error('Thread id leer oder ungültig: ' . $_POST['thread_id'], E_USER_WARNING);
+	$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('invalid-thread_id', 'commenting'));
+	header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
 	exit;
 }
+if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[thread_id]: OK => %s', __FILE__, __LINE__, $_POST['thread_id']));
 
-// Parent id checken
-if(strlen($_POST['board']) != 1) {
-	echo 'Das angegebene board ('.$_POST['board'].') existiert nicht!';
-	exit;
-}
-
-// Text escapen
-if($_POST['text'] == '') {
-	echo 'keine leeren Posts erlaubt.';
+/** Text escapen */
+if(trim($_POST['text']) === '' || empty($_POST['text']) || !isset($_POST['text']))
+{
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	//user_error('keine leeren Posts erlaubt.', E_USER_WARNING);
+	$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('invalid-comment-empty', 'commenting'));
+	header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
 	exit;
 } else {
 	$commentText = escape_text($_POST['text']);
+	$_POST['text'] = $commentText; // required for passing to Comment::update() later...
 }
+if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[text]: OK', __FILE__, __LINE__));
 
-// Existiert der Parent-Post?
-$sql = 
-	"
-	SELECT 
-	* 
-	FROM comments 
-	WHERE id = ".$_POST['parent_id']." 
-	AND board = '".$_POST['board']."'
-	AND thread_id = '".$_POST['thread_id']."'
-	"
-;
-$result = $db->query($sql, __FILE__, __LINE__);
-$rs = $db->fetch($result);
-if($rs == FALSE) {
-	
-	if($_POST['board'] == 'f') {
-		
-		$rs = $db->fetch($db->query("SELECT * FROM comments WHERE id = ".$_POST['id'], __FILE__, __LINE__));
-		if($rs['parent_id'] != $_POST['parent_id']) {
-			echo 'Du darfst per Edit keine neuen Threads erstellen';
+/** Existiert der Parent-Post? */
+/**try {
+	$sql = 
+		"
+		SELECT 
+		* 
+		FROM comments 
+		WHERE id = ".$_POST['parent_id']." 
+		AND board = '".$_POST['board']."'
+		AND thread_id = '".$_POST['thread_id']."'
+		"
+	;
+	$result = $db->query($sql, __FILE__, __LINE__);
+	$rs = $db->fetch($result);
+*/
+	$comment_recordset = Comment::getRecordset($_POST['id']);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $comment_recordset: fetched => %s', __FILE__, __LINE__, print_r($comment_recordset,true)));
+	$comment_parentid = Comment::getParentid($_POST['id'], 1);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $comment_parentid: fetched => %d', __FILE__, __LINE__, $comment_parentid));
+
+	/** Keine Parent-ID gefunden */
+	if ($comment_parentid == FALSE || $comment_parentid === 0 || empty($comment_parentid))
+	{
+		/** Comment ist im forum board */
+		if ($comment_recordset['board'] === 'f')
+		{
+			//$rs = $db->fetch($db->query("SELECT * FROM comments WHERE id = ".$_POST['id'], __FILE__, __LINE__));
+			if ($comment_recordset['parent_id'] != $_POST['parent_id'])
+			{
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> parent_id does NOT match!', __FILE__, __LINE__));
+				http_response_code(400); // Set response code 400 (bad request) and exit.
+				//user_error(t('invalid-comment-no-parentid', 'commenting'), E_USER_WARNING);
+				$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('invalid-comment-no-parentid', 'commenting'));
+				header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+				exit;
+			}
+		}
+
+		/** comment ist top level, da nicht im forum board */
+		elseif ($_POST['parent_id'] != $_POST['thread_id']) {
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> comment ist top level, da nicht im forum board', __FILE__, __LINE__));
+			http_response_code(400); // Set response code 400 (bad request) and exit.
+			//user_error(t('invalid-parent_id', 'commenting'), E_USER_WARNING);
+			$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('invalid-parent_id', 'commenting'));
+			header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
 			exit;
 		}
 	}
-	
-	if($_POST['board'] != 'f' && $_POST['parent_id'] != $_POST['thread_id']) { // top level, nicht im forum!
-		echo 'Die Parent ID existiert nicht.';
-		exit;
+
+	/** Parent-ID vorhanden */
+	else {
+		/** Besitzer checken */
+		//$rs = Comment::getRecordset($_POST['id']);
+		if($user->id != $comment_recordset['user_id'])
+		{
+			http_response_code(403.3); // Set response code 403.3 (Write access forbidden) and exit.
+			//user_error(t('invalid-comment-edit-permissions', 'commenting'), E_USER_WARNING);
+			$url_querystring = changeQueryString(parse_url(base64_decode($_POST['url']))['query'], 'error='.t('invalid-comment-edit-permissions', 'commenting'));
+			header('Location: '.changeURL(base64_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+			exit;
+		}
 	}
-}
+/*} catch(Exception $e) {
+	http_response_code(500); // Set response code 500 (internal server error)
+	echo $e->getMessage();
+}*/
 
+/** Update Comment with new $_POST Data */
+Comment::update($_POST['id'], $_POST);
 
-
-$rs = Comment::getRecordset($_POST['id']);
-// Besitzer checken
-if($_SESSION['user_id'] != $rs['user_id']) {
-	echo 'Das ist nicht dein Kommentar, den darfst du nicht bearbeiten!';
-	exit;
-}
-	
-
-// Los ------------------------------------------------------------------------
-
-$sql =
-	"
-	UPDATE comments 
-	SET
-		text='".$commentText."'
-		, board='".$_POST['board']."'
-		, parent_id='".$_POST['parent_id']."'
-		, thread_id='".$_POST['thread_id']."'
-		, date_edited=now()
-	WHERE id = ".$_POST['id']."	AND board='".$_POST['board']."'
-	"
-;
-$db->query($sql, __FILE__, __LINE__);
-
-
-// Templates neu Kompilieren 
-Comment::compile_template($rs['thread_id'], $rs['id'], $rs['board']); // sich selbst
-Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']); // alter parent
-Comment::compile_template($rs['thread_id'], $_POST['parent_id'], $rs['board']); // neuer Parent
-
-
-// last post setzen
-$sql = 
-	"UPDATE comments_threads"
-	." SET last_comment_id = (SELECT MAX(id) from comments WHERE thread_id = ".$_POST['thread_id']." AND board = '".$_POST['board']."')"
-	." WHERE thread_id = ".$_POST['thread_id'];
-$db->query($sql, __FILE__, __LINE__);
-
-
-// Mark comment as unread for all users.
-Comment::markasunread($_POST['id']); 
-
-
-// Mark comment as read for this user.
-Comment::markasread($_POST['id'], $user->id); 
-
-
-// Message an alle gew�nschten senden
-if(count($_POST['msg_users']) > 0) {
-	for ($i=0; $i < count($_POST['msg_users']); $i++) {				
-		Messagesystem::sendMessage(
-			$user->id
-			, $_POST['msg_users'][$i]
-			, addslashes(
-					stripslashes(
-					'[Forumpost] von '.usersystem::id2user($user->id)
-					)
-				)
-			, addslashes(
-					stripslashes(
-						usersystem::id2user($user->id).' hat geschrieben: <br /><i>'
-						.$commentText
-						.'</i><br /><br /><a href="'.Comment::getLink($_POST['board'], $_POST['parent_id'], $_POST['id'], $_POST['thread_id'])
-						.'">--> zum Post</a>'
-					)
-				)
-			, implode(',', $_POST['msg_users'])
-		);
-	}
-}
-
-
-// redirecten
-header("Location: ".base64_decode($_POST['url']));
-
-?>
+/** User redirecten nach erfolgreichem Comment Update */
+header('Location: '.base64_decode($_POST['url']));
+exit;

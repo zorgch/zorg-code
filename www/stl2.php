@@ -1,75 +1,93 @@
-<?PHP
-	require_once($_SERVER['DOCUMENT_ROOT'].'/includes/main.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/layout.inc.php');
-/*==================================================================
-mySQL Tables:
+<?php
+/**
+ * Shoot The Lamber v2 (Game)
+ *
+ * Shoot The Lamber ist ein Schiffchen-Versenken-Klon auf Zorg
+ * mySQL Tables:
+ *
+ *	Haupttable:
+ *		stl:
+ *			game_id (primary key)
+ *				spiel nummer 
+ *			game_size (max. 23, min. 5)
+ *				spielfeld grösse Anzahl x Anzahl
+ *			status int
+ *				0 = wurde erstellt, spieler werden gesucht
+ *				1 = läuft
+ *				2 = beendet
+ *			winner_team int
+ *				0 = team red
+ *				1 = team blue
+ *			creater_id
+ *				userID des spielerstellers (spiel-admin)
+ *			num_players (min. 6, max. 24)
+ *				anzahl spieler
+ *			game_title
+ *				spielname
+ *	
+ *	Spieler Table:
+ *		stl_players:
+ *			user_id
+ *				user ID aus der user table
+ *			team_id
+ *				team id bei dem der spieler mitglied ist.
+ *			game_id
+ *				spiel nummer
+ *			last_shoot
+ *				datum an dem der spieler zuletzt geschossen hat.
+ *			torpedos
+ *				Anzahl verbleibende Torpedos
+ *				
+ *	Schiffs- und treffer positionen			
+ *		stl_positions: 
+ *			pos_id (primary key)
+ *				positions id 
+ *			game_id
+ *				spiel nummer
+ *			grid_x
+ *				x koordinate
+ *			grid_y
+ *				y koordinate
+ *			hit_user_id
+ *				spieler id von dem hier ein torpedo gekommen ist, 0 bedeut kein schuss bis jetzt
+ *			hit_team_id
+ *				team_id vom topedo ;-)
+ *			ship_user_id
+ *				spieler id vom besitzer des schiffs, 0 bedeutet kein schiff
+ *			ship_team_id
+ *				team_id vom besitzer des schiffs
+ *			shoot_date
+ *				datum an dem der spieler das torpedo geschossen hat.
+ *
+ * @author [z]milamber
+ * @version 2.0
+ * @package zorg\Games\STL
+ */
+/**
+ * File includes
+ */
+require_once dirname(__FILE__).'/includes/main.inc.php';
 
-Haupttable:
-	stl:
-		game_id (primary key)
-			spiel nummer 
-		game_size (max. 23, min. 5)
-			spielfeld grösse Anzahl x Anzahl
-		status int
-			0 = wurde erstellt, spieler werden gesucht
-			1 = läuft
-			2 = beendet
-		winner_team int
-			0 = team red
-			1 = team blue
-		creater_id
-			userID des spielerstellers (spiel-admin)
-		num_players (min. 6, max. 24)
-			anzahl spieler
-		game_title
-			spielname
-
-Spieler Table:
-	stl_players:
-		user_id
-			user ID aus der user table
-		team_id
-			team id bei dem der spieler mitglied ist.
-		game_id
-			spiel nummer
-		last_shoot
-			datum an dem der spieler zuletzt geschossen hat.
-		torpedos
-			Anzahl verbleibende Torpedos
-			
-Schiffs- und treffer positionen			
-	stl_positions: 
-		pos_id (primary key)
-			positions id 
-		game_id
-			spiel nummer
-		grid_x
-			x koordinate
-		grid_y
-			y koordinate
-		hit_user_id
-			spieler id von dem hier ein torpedo gekommen ist, 0 bedeut kein schuss bis jetzt
-		hit_team_id
-			team_id vom topedo ;-)
-		ship_user_id
-			spieler id vom besitzer des schiffs, 0 bedeutet kein schiff
-		ship_team_id
-			team_id vom besitzer des schiffs
-		shoot_date
-			datum an dem der spieler das torpedo geschossen hat.
-
-=====================================================================================
+/** =====================================================================================
 config:
-====================================================================================*/
+==================================================================================== */
 
-class stl {
+/**
+ * Shoot The Lamber v2 (Game)
+ *
+ * @author [z]milamber
+ * @version 2.0
+ * @package zorg\Games\STL
+ */
+class stlv2 {
 	
 	/**
-	* @return stl
-	* @desc Klassenkonstruktor, generiert autom. die ganze ausgabe...(Game & Overview)
-	*/
-	function stl() {
-		global $db;
+	 * Klassenkonstruktor, generiert autom. die ganze ausgabe...(Game & Overview)
+	 *
+	 * @return stl
+	 */
+	function __construct() {
+		global $db, $user;
 		//Feldchengrösse
 		$this->case = 20;
 		//Sichtweite
@@ -78,23 +96,23 @@ class stl {
 		$this->exec();
 		
 		if($_GET['game_id']) {
-			$sql = "
+			$sql = '
 			SELECT 
 				* 
 			FROM stl 
 			WHERE 
-				game_id = '$_GET[game_id]'";
+				game_id = '.$_GET['game_id'];
 			$result = $db->query($sql,__FILE__,__LINE__);
 			$this->data['stl'] = $db->fetch($result);
 			
-			$sql = "
+			$sql = '
 			SELECT 
 				team_id 
 			FROM stl_players 
 			WHERE 
-				user_id = '$_SESSION[user_id]' 
+				user_id = '.$user->id.' 
 				AND 
-				game_id = '$_GET[game_id]'";
+				game_id = '.$_GET['game_id'];
 			$result = $db->query($sql,__FILE__,__LINE__);
 			$rs = $db->fetch($result);
 			$this->data['team_id'] = $rs['team_id'];
@@ -189,9 +207,10 @@ class stl {
 	
 
 	/**
-	* @return void
-	* @desc Liest die Teams zu einem Spiel und speichert die in klassen vars
-	*/
+	 * Liest die Teams zu einem Spiel und speichert die in klassen vars
+	 *
+	 * @return void
+	 */
 	function teams() {
 		global $db;
 	
@@ -229,43 +248,47 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Ermittelt ob ein Spieler bei einem Spiel bereits mitspielt (wenn nein, spielt er JETZT mit)
-	*/
+	 * Check und join user zu einem Game
+	 *
+	 * Ermittelt ob ein Spieler bei einem Spiel bereits mitspielt (wenn nein, spielt er JETZT mit)
+	 *
+	 * @return void
+	 */
 	function check4join() {
-		global $db;
-		$sql = "
+		global $db, $user;
+		$sql = '
 		SELECT
 			game_id
 		FROM stl
 		WHERE status = 0
-		AND game_id = '$_GET[game_id]'";
+		AND game_id = '.$_GET['game_id'];
 		$result = $db->query($sql,__FILE__,__LINE__);
 		if($db->num($result)) {
-			$sql = "
+			$sql = '
 			SELECT 
 				user_id 
 			FROM stl_players 
 			WHERE 
-				game_id = '$_GET[game_id]' 
+				game_id = '.$_GET['game_id'].' 
 				AND 
-				user_id = '$_SESSION[user_id]'";
+				user_id = '.$user->id;
 			$result = $db->query($sql);
 			//wenn spieler noch nicht eingetragen ist
 			if(!$db->num($result)) {
-				$sql = "
+				$sql = '
 				INSERT into stl_players (user_id, game_id)
 				VALUES
-				('$_SESSION[user_id]','$_GET[game_id]')";
+				('.$user->id.','.$_GET['game_id'].')';
 				$db->query($sql,__FILE__,__LINE__);		
 			}
 		}
 	}
 	
 	/**
-	* @return void
-	* @desc Prüft ob ein Spiel beendet werden kann und ermittelt das Gewinner Team
-	*/
+	 * Prüft ob ein Spiel beendet werden kann und ermittelt das Gewinner Team
+	 *
+	 * @return void
+	 */
 	function check4finish() {
 		global $db;
 	
@@ -327,9 +350,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Prüft ob ein Spiel gestartet werden kann, erstellt grid und weisst die Spieler zufällig einem Team und einem Feld zu
-	*/
+	 * Check ob Spiel gestartet werden kann
+	 *
+	 * Prüft ob ein Spiel gestartet werden kann, erstellt grid und weisst die Spieler zufällig einem Team und einem Feld zu
+	 *
+	 * @return void
+	 */
 	function check4start() {
 		global $db;
 		
@@ -438,11 +464,14 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Hauptfunktion, erstellt das gesamte Spielfeld und drum herum
-	*/
+	 * Game ausgeben
+	 *
+	 * Hauptfunktion, erstellt das gesamte Spielfeld und drum herum
+	 *
+	 * @return void
+	 */
 	function game() {
-		global $db;	
+		global $db, $user;	
 		$sql = "
 		SELECT 
 			*
@@ -522,14 +551,14 @@ class stl {
 			}
 			
 			//Team ID zuweisungen
-			$sql = "
+			$sql = '
 			SELECT 
 				team_id 
 			FROM stl_players 
 			WHERE 
-				game_id = '".$this->data['stl']['game_id']."'
+				game_id = '.$this->data['stl']['game_id'].'
 				AND
-				user_id = '$_SESSION[user_id]'";
+				user_id = '.$user->id;
 			$result = $db->query($sql);
 			//team zuweisung
 			if($db->num($result)) {
@@ -546,29 +575,29 @@ class stl {
 			//normalerweise
 			} else {
 				//Prüfen ob der Spieler getroffen wurde
-				$sql = "
+				$sql = '
 				SELECT 
 					hit_user_id 
 				FROM stl_positions 
 				WHERE 
-					ship_user_id = '$_SESSION[user_id]' 
+					ship_user_id = '.$user->id.' 
 					AND 
-					game_id = '$_GET[game_id]'"; 
+					game_id = '.$_GET['game_id']; 
 				$result = $db->query($sql,__FILE__,__LINE__);
 				$rs = $db->fetch($result);
 				//Wenn der spieler noch im spiel ist
 				if($rs['hit_user_id'] == 0) {
 					//Prüfen wann Seine Torpedos wieder geladen sind
-					$sql = "
+					$sql = '
 					SELECT 
 						game_id
 					FROM stl_players 
 					WHERE
-					game_id = '$_GET[game_id]'
+					game_id = '.$_GET['game_id'].'
 					AND
-					user_id = '$_SESSION[user_id]'
+					user_id = '.$user->id.'
 					AND
-					HOUR(last_shoot) <> HOUR(now())";
+					HOUR(last_shoot) <> HOUR(now())';
 					$result = $db->query($sql,__FILE__,__LINE__);
 					
 					//Zuweisung der Message wenn geladen wird oder nicht
@@ -605,15 +634,15 @@ class stl {
 			</td><td align='center' valign='middle' bgcolor='#".BORDERCOLOR."'>";
 			
 			//sichtbar
-			$sql = "
+			$sql = '
 			SELECT
 				grid_x,
 				grid_y
 			FROM stl_positions
 			WHERE
-				game_id = '$_GET[game_id]'
+				game_id = '.$_GET['game_id'].'
 				AND
-				ship_user_id = '$_SESSION[user_id]'";
+				ship_user_id = '.$user->id;
 			$result = $db->query($sql,__FILE__,__LINE__);
 			$rs = $db->fetch($result);
 			
@@ -698,7 +727,7 @@ class stl {
 							//=============================================================================
 							//Eigene Position
 							//=============================================================================					
-							if($this->data['game_data'][$y][$x]['ship_user_id'] == $_SESSION['user_id']) {
+							if($this->data['game_data'][$y][$x]['ship_user_id'] == $user->id) {
 								$this->add[0] = "bgcolor='#FFFFFF' ";
 							}
 							
@@ -706,7 +735,7 @@ class stl {
 							//Positionen an denen eigene torpedos erfolgreich detonierten
 							//=============================================================================
 							if(
-							$this->data['game_data'][$y][$x]['hit_user_id'] == $_SESSION['user_id'] 
+							$this->data['game_data'][$y][$x]['hit_user_id'] == $user->id 
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] != 0
 							){
 								$this->add[0] = "bgcolor='#FF0000'";
@@ -720,7 +749,7 @@ class stl {
 							if(
 							$this->data['game_data'][$y][$x]['hit_team_id'] == $this->data['team_id'] 
 							&& $this->data['game_data'][$y][$x]['hit_user_id'] != 0
-							&& $this->data['game_data'][$y][$x]['hit_user_id'] != $_SESSION['user_id']
+							&& $this->data['game_data'][$y][$x]['hit_user_id'] != $user->id
 							&& $this->data['game_data'][$y][$x]['ship_team_id'] != $this->data['team_id'] 
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] != 0
 		
@@ -734,7 +763,7 @@ class stl {
 							//Positionen an denen eigene torpedos erfolglos detonierten
 							//=============================================================================
 							if(
-							$this->data['game_data'][$y][$x]['hit_user_id'] == $_SESSION['user_id'] 
+							$this->data['game_data'][$y][$x]['hit_user_id'] == $user->id 
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] == 0
 		
 							) {
@@ -747,7 +776,7 @@ class stl {
 							//=============================================================================
 							if(
 							$this->data['game_data'][$y][$x]['hit_team_id'] == $this->data['team_id'] 
-							&& $this->data['game_data'][$y][$x]['hit_user_id'] != $_SESSION['user_id'] 
+							&& $this->data['game_data'][$y][$x]['hit_user_id'] != $user->id 
 							&& $this->data['game_data'][$y][$x]['hit_user_id'] != 0
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] == 0
 				
@@ -761,7 +790,7 @@ class stl {
 							//=============================================================================
 							if(
 							$this->data['game_data'][$y][$x]['hit_team_id'] != $this->data['team_id'] 
-							&& $this->data['game_data'][$y][$x]['hit_user_id'] != $_SESSION['user_id'] 
+							&& $this->data['game_data'][$y][$x]['hit_user_id'] != $user->id 
 							&& $this->data['game_data'][$y][$x]['hit_user_id'] != 0
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] == 0
 	
@@ -774,7 +803,7 @@ class stl {
 							//Positionen an denen befreundete Schiffe position bezogen haben
 							//=============================================================================
 							if(
-							$this->data['game_data'][$y][$x]['ship_user_id'] != $_SESSION['user_id'] 
+							$this->data['game_data'][$y][$x]['ship_user_id'] != $user->id 
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] != "" 
 							&& $this->data['game_data'][$y][$x]['hit_user_id'] == 0
 							&& $this->data['game_data'][$y][$x]['team_id'] == $this->team_id
@@ -789,7 +818,7 @@ class stl {
 							//Positionen an denen befreundete Schiffe gesunken sind
 							//=============================================================================
 							if(
-							$this->data['game_data'][$y][$x]['ship_user_id'] != $_SESSION['user_id'] 
+							$this->data['game_data'][$y][$x]['ship_user_id'] != $user->id 
 							&& $this->data['game_data'][$y][$x]['ship_user_id'] != "" 
 							&& $this->data['game_data'][$y][$x]['hit_user_id'] != 0
 							&& $this->data['game_data'][$y][$x]['team_id'] == $this->team_id
@@ -836,13 +865,16 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Übersichts funktion, zeigt alle offenen und joinbaren spiele eines users
-	*/
+	 * Games Übersicht anzeigen
+	 *
+	 * zeigt alle offenen und joinbaren spiele eines users
+	 *
+	 * @return void
+	 */
 	function overview() {
-		global $db;
+		global $db, $user;
 			//selektiert games bei denen ich mitmache
-			$sql = "
+			$sql = '
 			SELECT
 				stl.game_id as game_id,
 				stl.game_title as game_title,
@@ -860,10 +892,10 @@ class stl {
 					ON
 					user.id = stl.creator_id
 			WHERE 
-				stl_players.user_id = '$_SESSION[user_id]'
+				stl_players.user_id = '.$user->id.'
 				AND 
 				stl.status <> 2
-			ORDER by stl.status DESC";
+			ORDER by stl.status DESC';
 
 			$result = $db->query($sql,__FILE__,__LINE__);
 			
@@ -887,7 +919,7 @@ class stl {
 			}
 			
 			//selektiert games bei denen ich nicht mitmache und noch joinen kann
-			$sql = "
+			$sql = '
 			SELECT
 				stl.game_id as game_id,
 				stl.game_title as game_title,
@@ -903,9 +935,9 @@ class stl {
 					ON
 					user.id = stl.creator_id
 			WHERE 
-				stl_players.user_id <> '$_SESSION[user_id]'
+				stl_players.user_id <> '.$user->id.'
 				AND
-				stl.status = 0";
+				stl.status = 0';
 			$result = $db->query($sql,__FILE__,__LINE__);
 			
 			//wenns games gibt wo ich nicht mitmache
@@ -950,11 +982,12 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Prüft ob ein neues Spiel erstellt werden will
-	*/
+	 * Prüft ob ein neues Spiel erstellt werden will
+	 *
+	 * @return void
+	 */
 	function exec() {
-		global $db;
+		global $db, $user;
 	
 		$go = false;
 		//Wenn POST ist
@@ -973,34 +1006,34 @@ class stl {
 				if(($num_players % 2) == 1) { $num_players++; }
 				
 				//game erstellen
-				$sql = "
+				$sql = '
 				INSERT 
 					into stl 
 					(game_size, status, creator_id, game_title, num_players)
 				VALUES 
-					('$game_size',0,'$_SESSION[user_id]','$_POST[game_title]','$num_players')";
+					('.$game_size.',0,'.$user->id.',"'.$_POST['game_title'].'",'.$num_players.')';
 				$db->query($sql,__FILE__,__LINE__);
 				
 				//creator automatisch als spieler im neu erstellten game eintragen.
-				$sql = "
+				$sql = '
 				SELECT 
 					game_id 
 				FROM 
 					stl 
 				WHERE 
-					creator_id = '$_SESSION[user_id]' 
+					creator_id = '.$user->id.' 
 				ORDER by 	
 					game_id 
-				DESC";
+				DESC';
 				$result = $db->query($sql,__FILE__,__LINE__);
 				$rs = $db->fetch($result);
 				
-				$sql = "
+				$sql = '
 				INSERT 
 					into stl_players
 					(game_id, user_id)
 				VALUES
-					('$rs[game_id]', '$_SESSION[user_id]')";
+					('.$rs['game_id'].', '.$user->id.')';
 				$db->query($sql,__FILE__,__LINE__);
 				//setzte redirect
 				$go = true;
@@ -1012,34 +1045,37 @@ class stl {
 	}
 	
 	/**
-	* @return void
-	* @desc Führt die Torpedo schüsse aus, und prüft ob der User das auch darf
-	*/
+	 * Torpedo schiessen
+	 *
+	 * Führt die Torpedo schüsse aus, und prüft ob der User das auch darf
+	 *
+	 * @return void
+	 */
 	function shoot() {
-		global $db;
+		global $db, $user;
 
-		$sql = "
+		$sql = '
 		SELECT 
 			game_id
 		FROM stl_players 
 		WHERE
-			game_id = '$_GET[game_id]'
+			game_id = '.$_GET['game_id'].'
 			AND
-			user_id = '$_SESSION[user_id]'
+			user_id = '.$user->id.'
 			AND
-			HOUR(last_shoot) <> HOUR(now())";
+			HOUR(last_shoot) <> HOUR(now())';
 		$result = $db->query($sql,__FILE__,__LINE__);
 		
 		//Prüfen ob der Spieler schiessen darf und ob das Spiel den passenden Status hat
 		if($db->num($result) && $this->data['stl']['status'] == 1) {
-			$sql = "
+			$sql = '
 			SELECT 
 				hit_user_id
 			FROM stl_positions
 			WHERE
-				game_id = '$_GET[game_id]'
+				game_id = '.$_GET['game_id'].'
 				AND
-				ship_user_id = '$_SESSION[user_id]'";
+				ship_user_id = '.$user->id;
 			$result = $db->query($sql,__FILE__,__LINE__);
 			$rs = $db->fetch($result);
 			//Prüfen ob der Spieler nicht gesunken ist
@@ -1065,25 +1101,25 @@ class stl {
 					//Prüft ob Ziel keine verbündete sind
 					if($rs['ship_team_id'] != $this->data['team_id']) {
 						if($rs['hit_user_id'] == 0) {
-							$sql = "
+							$sql = '
 							UPDATE stl_positions 
 								set 
-									hit_user_id = '$_SESSION[user_id]',
-									hit_team_id = '".$this->data['team_id']."',
+									hit_user_id = '.$user->id.',
+									hit_team_id = '.$this->data['team_id'].',
 									shoot_date = now()
 							WHERE
-								pos_id = '$rs[pos_id]'";
+								pos_id = '.$rs['pos_id'];
 							$db->query($sql,__FILE__,__LINE__);
 							
 							//last_shoot neu setzen
-							$sql = "
+							$sql = '
 							UPDATE stl_players
 								set
 									last_shoot = now()
 							WHERE
-								game_id = '$_GET[game_id]'
+								game_id = '.$_GET['game_id'].'
 								AND
-								user_id = '$_SESSION[user_id]'";
+								user_id = '.$user->id;
 							$db->query($sql,__FILE__,__LINE__);
 							
 							$this->check4finish();
@@ -1096,22 +1132,20 @@ class stl {
 				//Wenn NEIN werden diese koords im Grid erstellt
 				} else {
 					//Neue Position im Grid erstellen
-					$sql = "
-					INSERT into stl_positions
-					(game_id, grid_x, grid_y, hit_user_id, hit_team_id, shoot_date)
-					VALUES
-					('$_GET[game_id]',$x_grid,$y_grid,'$_SESSION[user_id]','".$this->data['team_id']."',now())";
+					$sql = '
+					INSERT into stl_positions (game_id, grid_x, grid_y, hit_user_id, hit_team_id, shoot_date) 
+					VALUES ('.$_GET['game_id'].','.$x_grid.','.$y_grid.','.$user->id.','.$this->data['team_id'].',now())';
 					$db->query($sql,__FILE__,__LINE__);
 					
 					//last_shoot neu setzen
-					$sql = "
+					$sql = '
 					UPDATE stl_players
 						set
 							last_shoot = now()
 					WHERE
-						game_id = '$_GET[game_id]'
+						game_id = '.$_GET['game_id'].'
 						AND
-						user_id = '$_SESSION[user_id]'";
+						user_id = '.$user->id;
 					$db->query($sql,__FILE__,__LINE__);
 				}
 			} else {
@@ -1132,25 +1166,27 @@ class stl {
 
 $stl = new stl();
 		
-if($_SESSION['user_id']) {
-	
-	if($_GET['do'] == "game") {
-		if($_GET['game_id']) {
-			if($_GET['shoot']) {
-				$stl->shoot();
-			}
-			echo head(46, "Shoot the Lamber");
+if($user->id)
+{
+	if($_GET['do'] == "game")
+	{
+		if($_GET['game_id'])
+		{
+			if($_GET['shoot']) $stl->shoot();
+			//echo head(46, "Shoot the Lamber");
+			$smarty->assign('tplroot', array('page_title' => 'Shoot the Lamber'));
+			$smarty->display('file:layout/head.tpl');
 			echo $stl->data['game'];
 			echo $stl->data['legende'];
 		} else {
-			$sql = "
+			$sql = '
 			SELECT 
 				game_id 
 			FROM stl_players 
 			WHERE 
-				user_id = '$_SESSION[user_id]' 
+				user_id = '.$user->id.' 
 			ORDER by 
-				last_shoot DESC";	
+				last_shoot DESC';	
 			$result = $db->query($sql,__FILE__,__LINE__);
 			if($db->num($result)) {
 				$rs = $db->fetch($result);
@@ -1161,7 +1197,8 @@ if($_SESSION['user_id']) {
 		}
 	}
 	if($_GET['do'] == "overview" || !isset($_GET['do'])) {
-		echo head(45, "Shoot the Lamber");
+		$smarty->assign('tplroot', array('page_title' => 'Shoot the Lamber'));
+		$smarty->display('file:layout/head.tpl');
 		echo $stl->data['overview'];	
 		echo $stl->data['legende'];
 	}
@@ -1181,10 +1218,11 @@ if($_SESSION['user_id']) {
 		$db->query($sql,__FILE__,__LINE__);
 		header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());	
 	}
-	echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 } else {
-	echo head(45, "Shoot the Lamber");
+	$smarty->assign('tplroot', array('page_title' => 'Shoot the Lamber'));
+	$smarty->display('file:layout/head.tpl');
 	echo "<b style='font-size:20px; color:#FF0000;'>Access denied!</b>";
-	echo foot(1);
+	//echo foot(1);
+	$smarty->display('file:layout/footer.tpl');
 }
-?>

@@ -1,9 +1,14 @@
-<?
+<?php
+/**
+ * Mobilezorg V2 Migration-Script
+ * @package zorg\Scripts
+ */
+
 /**
  * FILE INCLUDES
  */
-if (!require_once rtrim($_SERVER['DOCUMENT_ROOT'].'/mobilezorg-v2/config.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
-if (!require_once rtrim($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
+if (!require_once rtrim(dirname(__FILE__).'/../mobilezorg-v2/config.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
+if (!require_once rtrim(dirname(__FILE__).'/../includes/usersystem.inc.php','/\\')) die('ERROR: Configurations could NOT be loaded!');
 
 /**
  * CONSTANTS
@@ -127,12 +132,12 @@ class mobilezSetup
 	
 	static function mobilez_setup_create($setup)
 	{
-		global $pdo_db;
+		global $pdo_db, $user;
 		
 		switch ($setup)
 		{
 			case 'user_files_testdir':
-				if (!usersystem::get_and_create_user_files_dir(USER_FILES_TESTDIR))
+				if (!$user->get_and_create_user_files_dir(USER_FILES_TESTDIR))
 				{
 					self::mobilez_setup_htmloutput('Setup: '.USER_FILES_TESTDIR, 3);
 				} else {

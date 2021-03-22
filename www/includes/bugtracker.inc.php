@@ -1,362 +1,380 @@
-<?PHP
+<?php
 /**
  * Bugtracker Includes
  *
  * @author [z]milamber
  * @version 1.0
- * @package Zorg
- * @subpackage Bugtracker
+ * @package zorg\Bugtracker
  */
+
 /**
  * File Includes
  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/messagesystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/usersystem.inc.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/includes/util.inc.php');
+require_once dirname(__FILE__).'/config.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Bugtracker Klasse
  *
  * @author [z]milamber
  * @version 1.0
- * @package Zorg
- * @subpackage Bugtracker
+ * @package zorg\Bugtracker
  */
-Class Bugtracker {
+class Bugtracker
+{
+	/**
+	 * Executing Bugtracker Actions
+	 *
+	 * Execute various Bugtracker GET- & POST-Actions such as:
+	 * - adding new Bug
+	 * - assigning Bug
+	 * - Bug klauen
+	 * - reopen a Bug
+	 * - resolve a Bug
+	 * - edit a Bug
+	 * - deny a Bug
+	 * - adding new Bug Category
+	 *
+	 * @author [z]milamber
+	 * @author IneX
+	 * @version 3.1
+	 * @since 1.0 `[z]milamber` function added
+	 * @since 2.0 `IneX` various code optimizations, I don't remember all of them
+	 * @since 3.0 `26.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
+	 * @since 3.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
+	 * @return void Header Location redirect
+	 */
+	static function execActions()
+	{
+		global $db, $user, $notification;
 
-	function execActions() {
-
-		global $db, $user;
-
-		if($_GET['action'] == 'new') {
-			// Validate & escape fields
+		/** Add new Bug */
+		if(isset($_GET['action']) && $_GET['action'] === 'new')
+		{
+			/** Validate & escape fields */
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
 			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
-			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
-			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description']) : '' );
-			
-			$sql =
-				"
-				INSERT INTO
-					bugtracker_bugs (category_id, reporter_id, priority, reported_date, title, description)
-				VALUES
-					(
-						".$bugCategory."
-						, ".$user->id."
-						, ".$bugPriority."
-						, now()
-						, '".$bugTitle."'
-						, '".$bugDescription."'
-					)
-				"
-			;
-			$db->query($sql, __FILE__, __LINE__);
+			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? sanitize_userinput($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description'], '<br>') : '' );
 
-			$sql = "SELECT MAX(id) AS id FROM bugtracker_bugs";
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			/** Add new Bug to DB */
+			$newBugId = $db->insert('bugtracker_bugs', [
+											 'category_id' => $bugCategory
+											,'reporter_id' => $user->id
+											,'priority' => $bugPriority
+											,'title' => $bugTitle
+											,'description' => $bugDescription
+											,'reported_date' => 'NOW()'
+										  ], __FILE__, __LINE__, __METHOD__);
 
-			// Benachrichtigungs-Message
-			if(count($_GET['msg_users']) > 0) {
-				for ($i=0; $i < count($_GET['msg_users']); $i++) {
-					Messagesystem::sendMessage(
-						$user->id
-						, $_GET['msg_users'][$i]
-						, addslashes(
-								stripslashes(
-								'[Bugreport] von '.usersystem::id2user($user->id)
-								)
-							)
-						, addslashes(
-								stripslashes(
-									'<a href="/bugtracker.php?bug_id="'.$rs['id'].'">'.$bugTitle.'</a>'
-									.'<br /><i>'
-									.$bugDescription
-									.'</i>'
-								)
-							)
-						, (is_array($_GET['msg_users']) ? implode(',', $_GET['msg_users']) : $_GET['msg_users'])
-					);
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, t('activity-newbug', 'bugtracker', [ SITE_URL, $newBugId, $bugTitle ]), 'bu');
+
+			/** Benachrichtigungs-Message */
+			if(count($_GET['msg_users']) > 0)
+			{
+				for ($i=0; $i < count($_GET['msg_users']); $i++)
+				{
+					$notification_subject = t('message-subject-newbug', 'bugtracker', [ $user->id2user($user->id, true), $newBugId ]);
+					$notification_text = t('message-newbug', 'bugtracker', [ remove_html($bugDescription, '<a><br><i><b><code><pre>'), SITE_URL, $newBugId, $bugTitle]);
+					$notification_status = $notification->send($_GET['msg_users'][$i], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text, 'to_users' => $_GET['msg_users']]);
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $_GET['msg_users'][$i]));
 				}
 			}
 
-			header("Location: /bugtracker.php?bug_id=".$rs['id']);
+			header('Location: /bug/'.$newBugId);
 			exit;
 		}
 
-		else if($_GET['action'] == 'assign') {
+		/** Assign Bug */
+		elseif ( isset($_GET['action']) && $_GET['action'] === 'assign')
+		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			
 			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0) {
-				$sql =
-					"UPDATE bugtracker_bugs"
-					." SET assignedto_id=".$user->id
-					." , assigned_date = now()"
-					." WHERE id = ".$bugId
-				;
-				$db->query($sql, __FILE__, __LINE__);
+				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			}
-			header("Location: ".base64_decode($_GET['url']));
+			header('Location: '.base64_decode($_GET['url']));
 			exit;
 		}
 
-		else if($_GET['action'] == 'klauen') {
+		/** Bug klauen */
+		elseif (isset($_GET['action']) &&  $_GET['action'] === 'klauen')
+		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			
 			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0 OR $rs['assignedto_id'] > 0) {
-				$sql =
-					"UPDATE bugtracker_bugs"
-					." SET assignedto_id=".$user->id
-					." , assigned_date = now()"
-					." WHERE id = ".$bugId
-				;
-				$db->query($sql, __FILE__, __LINE__);
+				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			}
-			header("Location: ".base64_decode($_GET['url']));
+			header('Location: '.base64_decode($_GET['url']));
 			exit;
 		}
 
-		else if($_GET['action'] == 'reopen') {
+		/** Bug erneut öffnen */
+		elseif (isset($_GET['action']) && $_GET['action'] === 'reopen')
+		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
-			
-			$sql =
-				"UPDATE bugtracker_bugs
-				SET
-					resolved_date = 0
-					, denied_date = 0
-				WHERE id = ".$bugId
-			;
-			$db->query($sql, __FILE__, __LINE__);
-
-			if($user->id != $rs['reporter_id']) {
-				Messagesystem::sendMessage(
-					$user->id,
-					$rs['reporter_id'],
-					'[Bugtracker] Bug '.$_GET['bug_id'].' reopened',
-					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a>'
-					.'<br />'
-					.$rs['description']
-					.'</i>',
-					$rs['reporter_id']
-				);
-			}
-
-			header("Location: ".base64_decode($_GET['url']));
-			exit;
-		}
-
-		else if($_GET['action'] == 'resign') {
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
-			
-			$sql =
-				"UPDATE bugtracker_bugs
-				SET assignedto_id = 0, assigned_date = 0
-				WHERE id = ".$bugId
-			;
-			$db->query($sql, __FILE__, __LINE__);
-			header("Location: ".base64_decode($_GET['url']));
-			exit;
-		}
-
-		else if($_GET['action'] == 'resolve') {
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
-			
-			$sql =
-				"UPDATE bugtracker_bugs
-				SET resolved_date = now()
-				WHERE id = ".$bugId
-			;
-			$db->query($sql, __FILE__, __LINE__);
+			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NULL', 'denied_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
 
 			$rs = Bugtracker::getBugRS($bugId);
-			if($user->id != $rs['reporter_id']) {
-				Messagesystem::sendMessage(
-					$user->id,
-					$rs['reporter_id'],
-					'[Bugtracker] Bug '.$bugId.' resolved',
-					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a> '
-					.'<br />'
-					.$rs['description']
-					.'</i>'
-				);
+			if($user->id != $rs['reporter_id'])
+			{
+				$notification_subject = t('message-subject-reopenbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
+				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header("Location: ".base64_decode($_GET['url']));
+			header('Location: '.base64_decode($_GET['url']));
 			exit;
 		}
 
-		else if($_GET['action'] == 'edit') {
-			// Validate & escape fields
+		/** Bug wieder freigeben (unassign) */
+		elseif (isset($_GET['action']) && $_GET['action'] === 'resign')
+		{
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => 'NULL', 'assigned_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
+
+			header('Location: '.base64_decode($_GET['url']));
+			exit;
+		}
+
+		/** Bug als gelöst markieren */
+		elseif (isset($_GET['action']) && $_GET['action'] === 'resolve')
+		{
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
+			$rs = Bugtracker::getBugRS($bugId);
+
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bug/'.$bugId.'">'.$rs['title'].'</a> gelöst.<br/><br/>', 'bu');
+
+			if($user->id != $rs['reporter_id'])
+			{
+				$notification_subject = t('message-subject-resolvedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
+				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
+			}
+
+			header('Location: '.base64_decode($_GET['url']));
+			exit;
+		}
+
+		/** Bug bearbeiten */
+		elseif (isset($_GET['action']) && $_GET['action'] == 'edit')
+		{
+			/** Validate & escape fields */
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
 			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
-			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? sanitize_userinput($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
 			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description']) : '' );
-			
-			$sql =
-				"UPDATE bugtracker_bugs"
-				." SET title = '".$bugTitle."'"
-				." , description = '".$bugDescription."'"
-				.",  category_id = ".$bugCategory.""
-				.",  priority = ".$bugPriority.""
-				." WHERE id = ".$bugId
-			;
-			$db->query($sql, __FILE__, __LINE__);
-			header("Location: ".base64_decode($_GET['url']));
+			$bugCommit = ( !empty($_GET['code_commit']) ? sanitize_userinput($_GET['code_commit']) : '' );
+
+			/** Update Bug in DB */
+			$result = $db->update('bugtracker_bugs', $bugId, [
+																 'title' => $bugTitle
+																,'description' => $bugDescription
+																,'category_id' => $bugCategory
+																,'priority' => $bugPriority
+																,'code_commit' => $bugCommit
+															], __FILE__, __LINE__, __METHOD__);
+
+			header('Location: '.base64_decode($_GET['url']));
 			exit;
 		}
 
-		else if($_GET['action'] == 'deny') {
-			$sql =
-				"UPDATE bugtracker_bugs"
-				." SET denied_date = now()"
-				." WHERE id = ".$bugId
-			;
-			$db->query($sql, __FILE__, __LINE__);
-
+		/** Bug ablehnen */
+		elseif (isset($_GET['action']) && $_GET['action'] == 'deny')
+		{
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			$rs = Bugtracker::getBugRS($bugId);
-			if($user->id != $rs['reporter_id']) {
-				Messagesystem::sendMessage(
-					$user->id,
-					$rs['reporter_id'],
-					'[Bugtracker] Bug '.$bugId.' denied',
-					'<i><a href="/bugtracker.php?bug_id='.$rs['id'].'">'.$rs['title'].'</a>'
-					.'<br />'
-					.$rs['description']
-					.'</i>'
-				);
+
+			/** Activity Eintrag auslösen */
+			Activities::addActivity($user->id, 0, 'hat den Bug <a href="/bug/'.$bugId.'">'.$rs['title'].'</a> abgelehnt.<br/><br/>', 'bu');
+
+			if($user->id != $rs['reporter_id'])
+			{
+				$notification_subject = t('message-subject-deniedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
+				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header("Location: ".base64_decode($_GET['url']));
+			header('Location: '.base64_decode($_GET['url']));
 			exit;
 		}
 
-		else if($_GET['action'] == 'newcategory') {
-			$categoryTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? escape_text($_GET['title']) : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
-			
-			$sql =
-				"INSERT INTO bugtracker_categories (title)"
-				." VALUES('".$categoryTitle."')"
-			;
-			$db->query($sql, __FILE__, __LINE__);
-			header("Location: ".base64_decode($_GET['url']));
+		/** Add new Category */
+		elseif (isset($_GET['action']) && $_GET['action'] == 'newcategory')
+		{
+			$title_sanitized = sanitize_userinput($_GET['title']);
+			$categoryTitle = ( isset($title_sanitized) && !empty($title_sanitized) ? $title_sanitized : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
+
+			/** Add new Category to DB */
+			$newBugId = $db->insert('bugtracker_categories', [ 'title' => $categoryTitle ], __FILE__, __LINE__, __METHOD__);
+
+			header('Location: '.base64_decode($_GET['url']));
 			exit;
 		}
 	}
 
-	function getBugHTML($bug_id, $edit=FALSE) {
-
+	/**
+	 * Display Bug / Bug edit form
+	 *
+	 * @author [z]milamber
+	 * @author IneX
+	 * @version 2.1
+	 * @since 1.0 function added
+	 * @since 2.0 `10.11.2018` `IneX` added Code Commit field
+	 * @since 2.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries & sanitized HTML-output from DB
+	 *
+	 * @see Thread::getNumPosts
+	 * @return string HTML-Code for page output
+	 */
+	static function getBugHTML($bug_id, $edit=FALSE)
+	{
 		global $db, $user;
 
-		$sql =
-			"SELECT"
-			." bugtracker_bugs.*"
-			.", categories.title as category"
-			.", UNIX_TIMESTAMP(assigned_date) as assigned_date"
-			.", UNIX_TIMESTAMP(denied_date) as denied_date"
-			.", UNIX_TIMESTAMP(resolved_date) as resolved_date"
-			.", UNIX_TIMESTAMP(reported_date) as reported_date"
-			.", CONCAT(reporter.clan_tag, reporter.username) as reporter"
-			.", CONCAT(assignedto.clan_tag, assignedto.username) as assignedto"
-			." FROM bugtracker_bugs"
-			." LEFT JOIN user as reporter ON (bugtracker_bugs.reporter_id = reporter.id)"
-			." LEFT JOIN user as assignedto ON (bugtracker_bugs.assignedto_id = assignedto.id)"
-			." LEFT JOIN bugtracker_categories as categories ON (bugtracker_bugs.category_id = categories.id)"
-			." WHERE bugtracker_bugs.id =".$bug_id
-		;
+		$html = null;
 
-		$result = $db->query($sql, __FILE__, __LINE__);
-
+		$sql = 'SELECT 
+					 bugtracker_bugs.*
+					,categories.title as category
+					,UNIX_TIMESTAMP(assigned_date) as assigned_date
+					,UNIX_TIMESTAMP(denied_date) as denied_date
+					,UNIX_TIMESTAMP(resolved_date) as resolved_date
+					,UNIX_TIMESTAMP(reported_date) as reported_date
+				 FROM bugtracker_bugs 
+					 LEFT JOIN bugtracker_categories as categories ON (bugtracker_bugs.category_id = categories.id) 
+				 WHERE bugtracker_bugs.id ='.$bug_id;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
 
-		if($edit == TRUE) {
+		$reportedDate_iso8601 = date('c', $rs['reported_date']);
+		if ($rs['resolved_date'] > 0) $resolvedDate_iso8601 = date('c', $rs['resolved_date']);
+		if ($rs['denied_date'] > 0) $deniedDate_iso8601 = date('c', $rs['denied_date']);
+
+		if($edit == TRUE)
+		{
 			$html .=
-				'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
+				'<form action="/bug/'.$rs['id'].'" method="get">'
 				.'<input name="action" type="hidden" value="edit">'
 				.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
 				.'<input name="url" type="hidden" value="'.base64_encode(getChangedURL('action=')).'">'
 			;
 		}
 
-		$html .=
-			'<table class="border shadedcells" width="100%">'
-
-			.'<tr>'
-			.'<td align="left" width="100">Nummer</td>'
-			.'<td align="left">'.$rs['id'].'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="left">Priorit&auml;t:</td>'
-			.'<td align="left">'
-			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldPriority($rs['priority']) : $rs['priority'].' ('.Bugtracker::getPriorityDescription($rs['priority']).')' )
-			.'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="left">Bereich</td>'
-			.'<td align="left" style="color: #FF0000; font-weight: bold;">'
-			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCategory($rs['category_id']) : $rs['category'])
-			.'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="left">Title</td>'
-			.'<td align="left" style="font-weight: bold;">'
-			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldTitle($rs['title']) : $rs['title'])
-			.'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="left">Reported by:</td>'
-			.'<td align="left">'.$rs['reporter'].' @ '.datename($rs['reported_date']).'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="left" valign="top">Beschreibung</td>'
-			.'<td align="left" colspan="5">'
-			.($user->typ == USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldDescription($rs['description']) : nl2br($rs['description']))
-			.'<br />&nbsp;'
-			.'</td></tr>'
-
-			.'<tr>'
-			.'<td align="left">Assigned to:</td>'
-			.'<td align="left">'.usersystem::link_userpage($rs['assignedto_id']).' @ '.datename($rs['assigned_date']).'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="left">Status:</td>'
-			.'<td align="left">'
-			.($rs['resolved_date'] > 0 ? '<b>Resolved</b> @ '.datename($rs['resolved_date']) : '')
-			.($rs['denied_date'] > 0 ? '<b>Denied</b> @ '.datename($rs['denied_date']) : '')
-			.'</td>'
-			.'</tr>'
-
-			.'<tr>'
-			.'<td align="center" colspan="6">'
-			.($user->typ == USER_MEMBER && $edit == TRUE ? '<input class="button" type="submit" value="Updaten">' : Bugtracker::getFormActionsHTML($rs))
-			.'</td></tr>'
-
-
-			.'</table>'
-		;
-
-		if($edit == TRUE) {
-			$html .= '</form>';
+		/** schema.org QAPage/Question "itemprop=answerCount" berechnen */
+		$bugNumComments = Thread::getNumPosts('b', $rs['id']);
+		if ($bugNumComments <= 0)
+		{
+			$schemaQuestionAnswerCount = ($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? '1' : '1');
+		} else {
+			$schemaQuestionAnswerCount = $bugNumComments;
 		}
+
+		$html .=
+			'<table class="border shadedcells" itemscope itemprop="mainEntity" itemtype="http://schema.org/Question">'
+				.'<tr style="display:none;"><td itemprop="answerCount">'.$schemaQuestionAnswerCount.'</td></tr>'
+				.'<tr>'
+					.'<td align="left">Bug #</td>'
+					.'<td align="left"><a itemprop="url" href="/bug/'.$rs['id'].'">'.$rs['id'].'</a></td>'
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left">Priorit&auml;t:</td>'
+					.'<td align="left">'
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldPriority($rs['priority']) : $rs['priority'].' ('.Bugtracker::getPriorityDescription($rs['priority']).')' )
+					.'</td>'
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left">Bereich</td>'
+					.'<td align="left" class="strong info" itemprop="keywords">'
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCategory($rs['category_id']) : $rs['category'])
+					.'</td>'
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left">Title</td>'
+					.'<td align="left" style="font-weight: bold;" itemprop="name">'
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldTitle($rs['title']) : $rs['title'])
+					.'</td>'
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left">Reported by:</td>'
+					.'<td align="left"><span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['reporter_id']).'</span> @ <time itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time></td>'//|date_format:"%Y-%m-%d-T%H:00"}
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left" valign="top">Beschreibung</td>'
+					.'<td align="left" colspan="5" itemprop="text">'
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldDescription($rs['description']) : nl2br($rs['description']))
+					.'</td>'
+				.'</tr>'
+				.'<tr><td colspan="2">&nbsp;</td></tr>'
+				.'<tbody itemtype="http://schema.org/Answer" itemscope itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'">'
+				.'<tr>'
+					.'<td align="left">Assigned to:</td>'
+					.'<td align="left">'.(!empty($rs['assignedto_id']) ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['assignedto_id']).'</span> @ '.datename($rs['assigned_date']) : '<span style="display:none;" itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['reporter_id']).'</span>').'</td>' // suggestedAnswer:author
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left">Status:</td>'
+					.'<td align="left">'
+						.(empty($rs['resolved_date']) && empty($rs['denied_date']) ? '<span itemprop="text" style="display:none;">Antwort ausstehend...</span>' : '')
+						.($rs['resolved_date'] > 0 ? '<span class="strong success" itemprop="text">Resolved</span> @ <time itemprop="dateCreated" datetime="'.$resolvedDate_iso8601.'">'.datename($rs['resolved_date']).'</time>' : '')
+						.($rs['denied_date'] > 0 ? '<span class="strong warn" itemprop="text">Denied</span> @ <time itemprop="dateCreated" datetime="'.$deniedDate_iso8601.'">'.datename($rs['denied_date']).'</time>' : '')
+						.(empty($rs['resolved_date']) && empty($rs['denied_date']) ? '<time style="display:none;" itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time>' : '') // suggestedAnswer:dateCreated (hidden)
+						.'<a style="display:none;" itemprop="url" href="/bug/'.$rs['id'].'">'.$rs['id'].'</a>' // suggestedAnswer:url (hidden)
+						.'<span style="display:none;" itemprop="upvoteCount">'.$schemaQuestionAnswerCount.'</span>' // suggestedAnswer:upvoteCount (hidden)
+					.'</td>'
+				.'</tr>'
+				.'<tr>'
+					.'<td align="left">Code Commit:</td>'
+					.'<td align="left">'
+						.($user->typ >= USER_MEMBER && $edit == TRUE ? Bugtracker::getFormFieldCommit($rs['code_commit']) : (!empty($rs['code_commit']) ? '<a href="'.GIT_REPOSITORY_URL.htmlentities($rs['code_commit'], ENT_QUOTES).'" target="_blank">'.htmlentities($rs['code_commit'], ENT_QUOTES).'</a>' : ''))
+					.'</td>'
+				.'</tr>'
+				.(!empty($rs['assignedto_id']) ? '</tbody>' : '')
+			.'</table>';
+			
+			if ($user->typ >= USER_MEMBER && $edit == TRUE)
+			{
+				$html .= '<div style="margin-top: 10px; display: flex;white-space: nowrap;align-items: flex-start;align-content: flex-start;">'
+							.'<input type="button" onclick="window.location.href=\'/bug/'.$rs['id'].'\';" value="cancel" class="align-to-text secondary" style="flex: 0.25;" />'
+							.'<input type="submit" value="Updaten" class="align-to-text primary" style="flex: 0.75;">
+						</div>';
+			} else {
+				$html .= Bugtracker::getFormActionsHTML($rs);
+			}
+
+		if ($edit == TRUE) $html .= '</form>';
 
 		return $html;
 	}
 
-	function getBugRS($bug_id) {
+	/**
+	 * Return a Bug's DB-Recordset
+	 *
+	 * @author [z]milamber
+	 * @version 1.0
+	 * @since 1.0 method added
+	 *
+	 * @param int $bug_id Bug-ID to fetch as record from DB
+	 * @return array
+	 */
+	static function getBugRS($bug_id)
+	{
 		global $db;
-		$sql =
-			"SELECT *"
-			." FROM bugtracker_bugs"
-			." WHERE id =".$bug_id
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
+
+		$sql = 'SELECT * FROM bugtracker_bugs WHERE id ='.$bug_id;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		return $db->fetch($result);
 	}
 
@@ -369,27 +387,22 @@ Class Bugtracker {
 	* @param Array $show
 	* @param String $order
 	*/
-	function getBugList($show, $order) {
+	static function getBugList($show, $order)
+	{
 		global $db, $user;
 
-		if($order == '') $order = "priority ASC, category_id ASC, assignedto_id ASC";
+		if($order == '') $order = 'priority ASC, category_id ASC, assignedto_id ASC';
 
-		$sql =
-			"
-			SELECT DISTINCT
-				cat.title AS category_title
-				, CONCAT(user.clan_tag, user.username) AS assignedto
-				, CONCAT(userrep.clan_tag, userrep.username) AS reportedby
-				, bugs.*
-				, UNIX_TIMESTAMP(resolved_date) AS resolved_date
-				, UNIX_TIMESTAMP(denied_date) as denied_date
-			FROM bugtracker_bugs AS bugs
-			LEFT JOIN bugtracker_categories AS cat ON (bugs.category_id = cat.id)
-			LEFT OUTER JOIN user ON (bugs.assignedto_id = user.id)
-			LEFT OUTER JOIN user AS userrep ON (bugs.reporter_id = userrep.id)
-			WHERE 1=1
-			"
-		;
+		$sql = 'SELECT DISTINCT
+					bugs.*
+					, cat.title AS category_title
+					, UNIX_TIMESTAMP(resolved_date) AS resolved_date
+					, UNIX_TIMESTAMP(denied_date) as denied_date
+				FROM bugtracker_bugs AS bugs
+				LEFT JOIN bugtracker_categories AS cat ON (bugs.category_id = cat.id)
+				LEFT OUTER JOIN user ON (bugs.assignedto_id = user.id)
+				LEFT OUTER JOIN user AS userrep ON (bugs.reporter_id = userrep.id)
+				WHERE 1=1';
 
 		if(in_array('open', $show) || in_array('resolved', $show)) {
 			$sql .=
@@ -445,195 +458,155 @@ Class Bugtracker {
 		$result = $db->query($sql, __FILE__, __LINE__);
 
 		$html =
-			'<table class="border" width="100%">'
-			.'<tr class="title">'
-			.'<td>'
-			.'<a href="'.getChangedURL('order=priority ASC, category_id ASC, assignedto_id ASC').'">'
-			.'Prio'
-			.'</a>'
-			.'</td>'
-			.'<td>'
-			.'<a href="'.getChangedURL('order=category_id ASC, priority ASC, assignedto_id ASC').'">'
-			.'Category'
-			.'</a>'
-			.'</td>'
+			'<table class="border shadedcells" width="100%">'
+				.'<thead><tr class="title">'
+					.'<td><a href="'.getChangedURL('order=priority ASC, category_id ASC, assignedto_id ASC').'">Prio</a></td>'
+					.'<td><a href="'.getChangedURL('order=category_id ASC, priority ASC, assignedto_id ASC').'">Category</a></td>'
+					.'<td>Title</td>'
+					.'<td class="hide-mobile">Reported by</td>'
+					.'<td class="hide-mobile"><a href="'.getChangedURL('order=assignedto_id DESC, category_id ASC, priority ASC').'">Assignee</a></td>'
+					.'<td>Status</td>'
+				.'</tr></thead>'
+				.'<tbody>';
 
-			.'<td>Title</td>'
-
-			.'<td>Reported by</td>'
-
-			.'<td>'
-			.'<a href="'.getChangedURL('order=assignedto_id DESC, category_id ASC, priority ASC').'">'
-			.'Assigned to'
-			.'</a>'
-			.'</td>'
-
-			.'<td>Resolved @</td>'
-
-			.'</tr>'
-		;
-
-		while($rs = $db->fetch($result)) {
+		while($rs = $db->fetch($result))
+		{
 			$html .=
 				'<tr>'
-				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['priority'].'</td>'
-				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['category_title'].'</td>'
-				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
-				.'<a href="/bugtracker.php?bug_id='.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a>'
-				.'</td>'
-				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['reportedby'].'</td>'
-				.'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.$rs['assignedto'].'</td>'
-			;
-			if ($rs['resolved_date'] > 0) { // wenn der Bug resolved wurde...
-				$html .=
-					'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">'.datename($rs['resolved_date']).'</td>'
-				;
-			} elseif ($rs['denied_date'] > 0) { // wenn der Bug denied wurde...
-				$html .=
-					'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'">Denied @ '.datename($rs['denied_date']).'</td>'
-				;
+					.'<td align="left">'.($rs['priority'] === '1' ? '&#128314;' : ($rs['priority'] === '2' ? '&#128312;' : ($rs['priority'] === '3' ? '&#128313;' : ($rs['priority'] === '4' ? '&#9660;' : '?')))).'</td>'
+					.'<td align="left">'.$rs['category_title'].'</td>'
+					.'<td align="left"><a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a></td>'
+					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['reporter_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>'
+					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['assignedto_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>';
+			if (!empty($rs['resolved_date'])) { // wenn der Bug resolved wurde...
+				$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span> <span class="hide-mobile">'.datename($rs['resolved_date']).'</span></td>';
+			} elseif (!empty($rs['denied_date'])) { // wenn der Bug denied wurde...
+				$html .= '<td align="left" class="tiny"><span class="strong warn">Denied</span> <span class="hide-mobile">'.datename($rs['denied_date']).'</span></td>';
 			} else { // wenn der Bug noch offen ist...
-				$html .=
-					'<td align="left" bgcolor="'.TABLEBACKGROUNDCOLOR.'"></td>'
-				;
+				$html .= '<td align="left"></td>';
 			}
-			$html .=
-				'</tr>'
-			;
+			$html .= '</tr>';
 		}
-		$html .= '</table>';
+		$html .= '</tbody></table>';
 
 		return $html;
 	}
 
 	/**
 	* Formular für neuen Bug generieren
-	* 
-	* @return string HTML-Code der Seite
+	* @return string HTML-Code für das Formular "Neuen Bug eintragen"
 	*/
-	function getFormNewBugHTML() {
-
-		global $db;
-
-		$html =
-			'<table>'
-			.'<form action="'.$_SERVER['PHP_SELF'].'" method="get">'
-			.'<input name="action" type="hidden" value="new">'
-			.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-			.'<tr><td>'
-			.'Neuen Bug/Request eintragen:'
-			.'</td>'
-
-			.'</tr>'
-			.'<tr><td>'
-			.'Bereich: '
-			.Bugtracker::getFormFieldCategory()
-			.'</td>'
-			.'<td align="left" rowspan="5" valign="top">'
-			.'Benachrichtigen:<br />'
-	    .usersystem::getFormFieldUserlist('msg_users[]', 20)
-			.'</td>'
-			.'</tr>'
-			.'<tr><td>'
-			.'Titel: '.Bugtracker::getFormFieldTitle()
-			.'</td></tr>'
-			.'<tr><td>'
-			.'Priorit&auml;t: '
-			.Bugtracker::getFormFieldPriority()
-			.'</td></tr>'
-			.'<tr><td>'
-			.Bugtracker::getFormFieldDescription()
-			.'</td></tr>'
-			.'<tr><td>'
-			.'<input class="button" type="submit" value="Eintragen">'
-			.'</td></tr>'
-			.'</form>'
-			.'</table>'
-		;
-
-		return $html;
-	}
-
-	function getFormNewCategoryHTML() {
-
-		$html =
-			'<table>'
-			.'<form action="'.$_SERVER['PHP_SELF'].'" method="GET">'
-			.'<input name="action" type="hidden" value="newcategory">'
-			.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-			.'<tr><td>'
-			.'<b>Neue Kategorie hinzuf&uuml;gen:'
-			.'</td></tr>'
-			.'<tr><td>'
-			.'<input class="text" name="title" maxlength="40" size="40" type="text" value="'.$rs['title'].'">'
-			.'<input class="button" type="submit" value="Add">'
-			.'</td></tr>'
-			.'</form>'
-			.'</table>'
-		;
-
-		return $html;
-	}
-
-	function getFormActionsHTML($rs) {
-
+	static function getFormNewBugHTML()
+	{
 		global $user;
-		
-		$html = '';
-		
-		// Formular nur anzeigen, wenn User ein Member ist
-		if($user->typ == USER_MEMBER) {
-		
-			$html .=
-				'<table>'
-				.'<form action="'.$_SERVER['PHP_SELF'].'" method="GET">'
-				.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
-				.'<input name="url" type="hidden" value="'.base64_encode('http://'.$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-				.'<tr>'
-				.'<td>'
-				.'Bug '
-				.'<select name="action" size="1">'
-			;
-	
-			if($rs['resolved_date'] == 0 && $rs['denied_date'] == 0) { // noch offen ------------------------------
-	
-				if($rs['assignedto_id'] == $user->id) { // mein bug ------------------------
-					$html .= '<option value="resolve">resolven</option>';
-					$html .= '<option value="deny">ablehnen</option>';
-					$html .= '<option value="resign">wieder weggeben</option>';
-				} else if($rs['assignedto_id'] == '0') { // noch niemandem zugewiesen
-					$html .= '<option value="assign">zu mir nehmen</option>';
-				} elseif ($rs['assignedto_id'] != $user->id) { // nicht mein bug --------------------
-					$html .= '<option value="klauen">klauen</option>';
-				}
-	
-			} else { // Bereits fertig --------------------
-	
-				if($rs['assignedto_id'] == $user->id) { // mein bug --------------------
-					$html .= '<option value="reopen">neu eröffnen</option>';
-				}
-			}
-	
-			$html .= '<option value="editlayout">editieren</option>';
-	
-			$html .=
-				'</select>'
-				.'</td>'
-				.'<td><input class="button" type="submit" value="Ok."></td>'
-				.'</tr>'
-				.'</form>'
-				.'</table>'
-			;
-			
+
+		/** Formular nur Ausgeben für eingeloggte User oder Member */
+		if ($user->typ >= USER_USER)
+		{
+			$html = t('newbug-headline', 'bugtracker')
+					.'<form action="'.getURL(false,false).'" method="get">'
+						.'<input type="hidden" name="action" value="new">'
+						.'<input type="hidden" name="url" value="'.getURL(true,true).'">'
+						.'<fieldset>'
+							.'<label style="display: flex;flex-direction: column;">Titel<br>'.Bugtracker::getFormFieldTitle().'</label>'
+							.'<label style="display: flex;flex-direction: column;">Bereich<br>'.Bugtracker::getFormFieldCategory().'</label>'
+							.'<label style="display: flex;flex-direction: column;">Priorit&auml;t<br>'.Bugtracker::getFormFieldPriority(3).'</label>'
+							.'<label style="display: flex;flex-direction: column;">Beschreibung<br>'.Bugtracker::getFormFieldDescription().'</label>'
+						.'</fieldset>
+						<fieldset>'
+							.'<label style="display: flex;flex-direction: column;">User informieren<br>'.$user->getFormFieldUserlist('msg_users[]', 10).'</label>'
+							.'<input type="submit" value="Eintragen" class="secondary">'
+						.'</fieldset>'
+					.'</form>';
+
+			return $html;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	* Formular für neue Kategorie generieren
+	* @return string HTML-Code für das Formular "Neue Kategorie hinzufügen"
+	*/
+	function getFormNewCategoryHTML()
+	{
+		global $user;
+
+		/** Formular nur Ausgeben für eingeloggte Member (normale User nicht) */
+		if ($user->typ >= USER_MEMBER)
+		{
+			$html =
+				 t('newcategory-headline', 'bugtracker')
+				.'<form action="'.getURL(true,false).'" method="GET" style="width: 50%">'
+					.'<input name="action" type="hidden" value="newcategory">'
+					.'<input name="url" type="hidden" value="'.getURL(true,true).'">'
+					.'<fieldset style="display: flex;white-space: nowrap;align-items: center;">'
+						.'<input type="text" name="title" maxlength="100" value="'.$rs['title'].'" placeholder="Kategorie-Bezeichnung" style="flex: 1.5;">'
+						.'<input class="button" type="submit" value="Add" style="flex: 0.5;">'
+					.'</fieldset>'
+				.'</form>';
+
+			return $html;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Bug Actions-Form
+	 *
+	 * @param array $rs Fetched Bug DB-record
+	 * @return string
+	 */
+	static function getFormActionsHTML($rs)
+	{
+		global $user;
+
+		$html = null;
+
+		/** Formular nur Ausgeben für eingeloggte Member (normale User nicht) */
+		if($user->typ >= USER_MEMBER)
+		{
+			$html .= '<form action="/bug/'.$rs['id'].'" method="GET" style="width: 50%">'
+						.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
+						.'<input name="url" type="hidden" value="'.base64_encode('/bug/'.$rs['id']).'">'
+						.'<fieldset>'
+							.'<label style="white-space: nowrap;">Bug&nbsp;</label>'
+								.'<select name="action" size="1">';
+								if(empty($rs['resolved_date']) && empty($rs['denied_date']))
+								{ // Bug ist noch offen
+									if($rs['assignedto_id'] == $user->id)
+									{ // Bug ist mir zugewiesen
+										$html .= '<option value="resolve">resolven</option>';
+										$html .= '<option value="deny">ablehnen</option>';
+										$html .= '<option value="resign">wieder weggeben</option>';
+									} else if(empty($rs['assignedto_id'])) { // Bug ist noch niemandem zugewiesen
+										$html .= '<option value="assign">zu mir nehmen</option>';
+									} elseif ($rs['assignedto_id'] != $user->id) { // nicht mein Bug
+										$html .= '<option value="klauen">klauen</option>';
+									}
+								} else { // Bug ist bereits gelöst
+									if($rs['assignedto_id'] == $user->id) { // Bug ist mir assigned
+										$html .= '<option value="reopen">neu eröffnen</option>';
+									}
+								}
+								$html .= '<option value="editlayout">editieren</option>'
+								.'</select>';
+
+					$html .= '<input type="submit" value="maaachs" class="secondary">'
+						.'</fieldset>'
+					.'</form>';
 		}
 
 		return $html;
 	}
 
-	static function getNumOwnBugs () {
+	static function getNumOwnBugs()
+	{
 		global $db, $user;
 
-		if ($user->typ == USER_MEMBER) {
+		if ($user->typ >= USER_MEMBER) {
 			$sql =
 					"SELECT count(*) as num FROM bugtracker_bugs"
 					." WHERE assignedto_id = ".$user->id
@@ -646,11 +619,12 @@ Class Bugtracker {
 		}
 	}
 
-	static function getNumOpenBugs () {
+	static function getNumOpenBugs()
+	{
 		global $db, $user;
 
-		if ($user->typ == USER_MEMBER) {
-		$sql = "SELECT count(*) as num FROM bugtracker_bugs WHERE assignedto_id = 0";
+		if ($user->typ >= USER_MEMBER) {
+		$sql = 'SELECT count(*) as num FROM bugtracker_bugs WHERE assignedto_id = 0';
 			$result = $db->query($sql, __FILE__, __LINE__);
 		  $rs = $db->fetch($result);
 
@@ -658,10 +632,11 @@ Class Bugtracker {
 		}
 	}
 
-	static function getNumNewBugs () {
+	static function getNumNewBugs()
+	{
 		global $db, $user;
 
-		if ($user->typ == USER_MEMBER) {
+		if ($user->typ >= USER_MEMBER) {
 			$sql =
 				"
 				SELECT count(*) as num FROM bugtracker_bugs
@@ -677,99 +652,93 @@ Class Bugtracker {
 		}
 	}
 
-	function getFormFieldBuglist($name) {
+	function getFormFieldBuglist($name)
+	{
 		global $db;
-		$sql =
-			"SELECT * FROM bugtracker_bugs "
-			." WHERE denied_date = 0 && resolved_date = 0";
+
+		$sql = 'SELECT * FROM bugtracker_bugs WHERE (denied_date = 0 OR denied_date IS NULL) && (resolved_date = 0 OR resolved_date IS NULL)';
 		$result = $db->query($sql, __FILE__, __LINE__);
 
 		$html .= '<select name="'.$name.'" size="1">';
 		$html .= '<option value="0"> -- kein Bug --</option>';
-		while ($rs = mysql_fetch_array($result)) {
-		   $html .= '<option value="'.$rs['id'].'">#'.$rs['id'].' '.$rs['title'].'</option>';
+		while ($rs = $db->fetch($result)) {
+		   $html .= '<option value="'.$rs['id'].'">#'.$rs['id'].' '.htmlentities($rs['title'], ENT_QUOTES).'</option>';
 		}
 		$html .= '</select>';
 
 		return $html;
 	}
 
-	function getFormFieldCategory($category_id='') {
-
+	static function getFormFieldCategory($category_id='')
+	{
 		global $db;
 
-		$html = '<select name="category_id">';
-
-		$sql =
-			"SELECT *"
-			." FROM bugtracker_categories"
-			." order by title asc"
-		;
+		$sql = 'SELECT * FROM bugtracker_categories ORDER BY title ASC';
 		$result = $db->query($sql, __FILE__, __LINE__);
-		while($rs = $db->fetch($result)) {
+
+		$html = '<select name="category_id"><option label="--- Kategorie wählen ---" selected disabled>--- Kategorie wählen ---</option>';
+		while($rs = $db->fetch($result))
+		{
 			$html .=
 				'<option value="'.$rs['id'].'" '.($rs['id'] == $category_id ? 'selected' : '').'>'
-				.$rs['title'].'</option>'
+				.htmlentities($rs['title'], ENT_QUOTES).'</option>'
 			;
 		}
 
-
 		$html .= '</select>';
 
 		return $html;
 	}
 
-	function getFormFieldFilterCategory($category_id='') {
-
+	function getFormFieldFilterCategory($category_id='')
+	{
 		global $db;
+
+		$sql = 'SELECT * FROM bugtracker_categories ORDER BY title ASC';
+		$result = $db->query($sql, __FILE__, __LINE__);
 
 		$html = '<select name="show[]">';
-
-		$sql =
-			"SELECT *"
-			." FROM bugtracker_categories"
-			." order by title asc"
-		;
-		$result = $db->query($sql, __FILE__, __LINE__);
-		while($rs = $db->fetch($result)) {
+		while($rs = $db->fetch($result))
+		{
 			$html .=
 				'<option value="'.$rs['id'].'" '.($rs['id'] == $category_id ? 'selected' : '').'>'
-				.$rs['title'].'</option>'
+				.htmlentities($rs['title'], ENT_QUOTES).'</option>'
 			;
 		}
-
 
 		$html .= '</select>';
 
 		return $html;
 	}
 
-	function getFormFieldDescription($description='') {
-		return '<textarea cols="50" name="description" rows="15">'.$description.'</textarea>';
+	static function getFormFieldDescription($description='') {
+		return '<textarea name="description" placeholder="Klare Beschreibung, Herleitung und URL bei Problemen..." style="width: 90%;min-height: 200px;">'.htmlentities($description, ENT_QUOTES).'</textarea>';
 	}
 
-	function getFormFieldPriority($priority=4) {
+	static function getFormFieldPriority($priority=4) {
 		return '<select name="priority" size="1">'
-			.'<option value="1" '.($priority == 1 ? 'selected' : '').'>(1) '.Bugtracker::getPriorityDescription(1).'</option>'
-			.'<option value="2" '.($priority == 2 ? 'selected' : '').'>(2) '.Bugtracker::getPriorityDescription(2).'</option>'
-			.'<option value="3" '.($priority == 3 ? 'selected' : '').'>(3) '.Bugtracker::getPriorityDescription(3).'</option>'
-			.'<option value="4" '.($priority == 4 ? 'selected' : '').'>(4) '.Bugtracker::getPriorityDescription(4).'</option>'
-			.'</select>'
-		;
+					.'<option value="1" '.($priority == 1 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(1).'</option>'
+					.'<option value="2" '.($priority == 2 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(2).'</option>'
+					.'<option value="3" '.($priority == 3 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(3).'</option>'
+					.'<option value="4" '.($priority == 4 ? 'selected' : '').'>'.Bugtracker::getPriorityDescription(4).'</option>'
+				.'</select>';
 	}
 
-	function getFormFieldTitle($title='') {
-		return '<input class="text" name="title" type="text" value="'.$title.'">';
+	static function getFormFieldTitle($title='') {
+		return '<input type="text" name="title" value="'.htmlentities($title, ENT_QUOTES).'" placeholder="Feature/Problem Titel" style="width: 90%;">';
 	}
 
-	function getPriorityDescription($priority_id) {
+	static function getPriorityDescription($priority_id) {
 		switch($priority_id) {
-			case 1: $descr = 'Sehr Hoch'; break;
-			case 2: $descr = 'Hoch'; break;
-			case 3: $descr = 'Normal'; break;
-			case 4: $descr = 'Niedrig'; break;
+			case 1: $descr = '&#128314; Sehr Hoch'; break;
+			case 2: $descr = '&#128312; Hoch'; break;
+			case 3: $descr = '&#128313; Normal'; break;
+			case 4: $descr = '&#9660; Niedrig'; break;
 		}
 		return $descr;
 	}
+
+	function getFormFieldCommit($commit='') {
+		return '<input class="text" name="code_commit" type="text" value="'.htmlentities($commit, ENT_QUOTES).'" style="width:25%;" maxlength="7"> <label for="code_commit" class="tiny">Commit-ID, 7 Zeichen. z.B. 7cb0118</label>';
+	}
 }
-?>

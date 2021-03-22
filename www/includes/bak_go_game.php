@@ -1,21 +1,21 @@
-<?
+<?php
 /**
  * GO Board Funktionen
- * 
+ *
  * ...
  * ...
  * ...
  *
- * @author [z]berg, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
- * @subpackage GO
+ * @package zorg\Games\Go
  */
 /**
  * File Includes
  */
-        include_once($_SERVER['DOCUMENT_ROOT'].'/includes/go_game.inc.php');
+        include_once dirname(__FILE__).'/go_game.inc.php';
 
 	/**
 	 * Defines
@@ -25,7 +25,7 @@
 
 
 function draw_go_base ($size) {
-        define("GOIMGPATH", $_SERVER['DOCUMENT_ROOT'].'/images/go/');
+        define("GOIMGPATH", PHP_IMAGES_DIR.'go/');
         define("LINE", imagecreatefrompng(GOIMGPATH."line.png"));
         define("DOT", imagecreatefrompng(GOIMGPATH."dot.png"));
         define("BLACKSTONE", imagecreatefrompng(GOIMGPATH."go_black.png"));
@@ -71,5 +71,3 @@ function draw_go_stone(&$im, $x, $y, $which){
     $offset = FIELDSIZE / 2;
     imagecopy($im, $stone, $offset + $x * FIELDSIZE, $offset + $y * FIELDSIZE, 0, 0, imagesx($stone), imagesy($stone));
 }
-
-?>

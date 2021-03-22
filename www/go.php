@@ -1,46 +1,60 @@
 <?PHP
 /**
  * GO (Game)
- * 
+ *
  * Hier kommt die Beschreibung zu dieser
  * Datei hinein. Auch über mehrere Dateien
  * wenn man will.
  * GO benutzt folgende Tabellen in der DB:
  *		xy, xy_dwz, ...
  *
- * @package Zorg
- * @subpackage GO
+ * @author [z]bert
+ * @author [z]domi
+ * @package zorg\Games\Go
  */
-include_once($_SERVER['DOCUMENT_ROOT']."/includes/main.inc.php");
+
+/**
+ * File includes
+ * @include main.inc.php
+ * @include core.model.php
+ */
+include_once dirname(__FILE__).'/includes/main.inc.php';
+require_once MODELS_DIR.'core.model.php';
+
+/**
+ * Initialise MVC Model
+ */
+$model = new MVC\Go();
 
 /**
  * GO Klasse
- * 
+ *
  * Dies ist die Klasse zum GO Spiel.
  *
- * @author [z]bert, [z]domi
+ * @author [z]bert
+ * @author [z]domi
  * @date nn.nn.nnnn
  * @version 1.0
- * @package Zorg
+ * @package zorg
  * @subpackage GO
  */
-class go {
-	
+class Go
+{
 	/**
 	 * Feldgrösse Standartwert
 	 * @var integer Variable für die Feldgrösse, Default = 40
 	 */
 	var $feld_groesse = 40;
-	
-	
+
 	/**
 	 * GO Spielfeld (Goban?) der Grösse \$size anzeigen
 	 *
-	 * @author [z]bert, [z]domi
+	 * @author [z]bert
+	 * @author [z]domi
 	 * @date nn.nn.nnnn
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer $size Grösse des GO-Spielfeldes
 	 */
 	function go($size) {
@@ -58,16 +72,16 @@ class go {
 		$this->partei[0] = imagecolorallocate($this->img,23,23,23);
 		$this->partei[1] = imagecolorallocate($this->img,200,200,200);
 	}	
-	
-	
+
 	/**
 	 * ...
 	 *
-	 * @author [z]bert, [z]domi
+	 * @author [z]bert
+	 * @author [z]domi
 	 * @date nn.nn.nnnn
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer $x ...
 	 * @param integer $y ...
 	 * @param integer $partei ...
@@ -75,12 +89,13 @@ class go {
 	function stone($x,$y,$partei) {
 		imagefilledellipse($this->img,$x,$y,23,23,$this->partei[$partei]);
 	}
-	
-	
+
+
 	/**
 	 * ...
 	 *
-	 * @author [z]bert, [z]domi
+	 * @author [z]bert
+	 * @author [z]domi
 	 * @date nn.nn.nnnn
 	 * @version 1.0
 	 * @since 1.0
@@ -88,14 +103,13 @@ class go {
 	function display() {
 		imagepng($this->img);	
 	}
-	
+
 }
 
 
 header("Content-Type: Image/PNG");
 
-$go = new go(13);
+$go = new Go(13);
 $go->stone(40,40,0);
 $go->stone(40,120,1);
 $go->display();
-?>

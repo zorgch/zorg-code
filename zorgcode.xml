@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- phpDocumentor Configuration-File https://www.phpdoc.org -->
+<phpdoc>
+	<title>zorg Code Doku</title>
+	<parser>
+		<target>/var/zorgcode</target>
+		<encoding>utf8</encoding>
+		<default-package-name>zorg</default-package-name>
+		<markers>
+			<item>TODO</item>
+			<item>todo</item>
+			<item>FIXME</item>
+			<item>fixme</item>
+		</markers>
+		<extensions>
+			<extension>php</extension>
+			<extension>js</extension>
+		</extensions>
+		<visibility></visibility>
+	</parser>
+	<transformer>
+		<target>/var/zorgcode</target>
+	</transformer>
+	<logging>
+		<level>warn</level>
+		<!--paths-->
+			<!--default>/var/log/phpdoc/{DATE}.log</default-->
+			<!--errors>/var/log/phpdoc/{DATE}.errors.log</errors-->
+		<!--/paths-->
+	</logging>
+	<transformations>
+		<template name="clean" />
+	</transformations>
+	<files>
+		<!-- directory>/var/data</directory -->
+		<directory>/var/www</directory>
+		<file>dreamjournal.php</file>
+		<file>irc2telegram.php</file>
+		<ignore>allstats/*</ignore>
+		<ignore>awstats/*</ignore>
+		<ignore>downloads/*</ignore>
+		<ignore>files/*</ignore>
+		<ignore>frets_py/*</ignore>
+		<ignore>gluv/*</ignore>
+		<ignore>images/*</ignore>
+		<ignore>img/*</ignore>
+		<ignore>mt/*</ignore>
+		<ignore>mobilezorg/*</ignore>
+		<ignore>smartylib*/</ignore>
+		<ignore>test/*</ignore>
+		<ignore>traffic/*</ignore>
+		<ignore>date-format.js</ignore>
+		<ignore>dropzone.js</ignore>
+		<ignore>emoji*</ignore>
+		<ignore>hightlight*</ignore>
+		<ignore>jquery*</ignore>
+		<ignore>quill*</ignore>
+		<ignore>tribute*</ignore>
+		<ignore>google*.html</ignore>
+	</files>
+</phpdoc>
