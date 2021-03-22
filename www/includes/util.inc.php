@@ -161,10 +161,16 @@ function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
 	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generate $timestamp for $date_array_or_timestamp: %s', __FUNCTION__, __LINE__, (is_array($date_array_or_timestamp) ? print_r($date_array_or_timestamp,true) : intval($date_array_or_timestamp))));
 
 	/** Create $timestamp */
-	if ($return_unix_timestamp == true) $timestamp = date('U');
-	elseif (is_array($date_array_or_timestamp) && count($date_array_or_timestamp) > 0) $timestamp = date('Y-m-d G:i:s', mktime($date_array_or_timestamp['second'], $date_array_or_timestamp['minute'], $date_array_or_timestamp['hour'], $date_array_or_timestamp['day'], $date_array_or_timestamp['month'], $$date_array_or_timestamp['year']));
-	elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) $timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
-	else $timestamp = date('Y-m-d G:i:s');
+	if ($return_unix_timestamp == true)
+	{
+		$timestamp = date('U');
+	} elseif (is_array($date_array_or_timestamp) && count($date_array_or_timestamp) > 0) {
+		$timestamp = date('Y-m-d G:i:s', mktime($date_array_or_timestamp['second'], $date_array_or_timestamp['minute'], $date_array_or_timestamp['hour'], $date_array_or_timestamp['day'], $date_array_or_timestamp['month'], $$date_array_or_timestamp['year']));
+	} elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) {
+		$timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
+	} else {
+		$timestamp = date('Y-m-d G:i:s');
+	}
 
 	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
 	return $timestamp;

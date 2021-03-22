@@ -364,7 +364,7 @@ class usersystem
 									 %1$s,
 									 UNIX_TIMESTAMP(%2$s) %2$s,
 									 %3$s,
-									 UNIX_TIMESTAMP(%4$s) %4$s
+									 %4$s
 								FROM
 									 %5$s
 								WHERE 
@@ -436,7 +436,7 @@ class usersystem
 							/** Last Login & current Login updaten */
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, timestamp(false, $rs[$this->field_lastlogin]), $this->field_currentlogin, timestamp(false, $rs[$this->field_currentlogin])));
 							$db->update($this->table_name, ['id', $rs['id']], [
-								$this->field_lastlogin => $rs[$this->field_currentlogin],
+								$this->field_lastlogin => timestamp(false, $rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(false),
 								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 							], __FILE__, __LINE__, __METHOD__);
@@ -878,14 +878,17 @@ class usersystem
 	{
 		global $_geaechtet;
 
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => %s > %s ?', __FUNCTION__, __LINE__, $ausgesperrt_bis_timestamp, time()));
 		if (!empty($ausgesperrt_bis_timestamp) && $ausgesperrt_bis_timestamp > 0)
 		{
 			if ($ausgesperrt_bis_timestamp > time())
 			{
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE', __FUNCTION__, __LINE__));
 				$_geaechtet[] = $_SESSION['user_id'];
 				return true;
 			}
 		} else if (isset($_SESSION['user_id']) && !empty($_geaechtet[$_SESSION['user_id']])) {
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE ($_geachtet !)', __FUNCTION__, __LINE__));
 			return true;
 		} else {
 			if (isset($this->ausgesperrt_bis) && $this->ausgesperrt_bis > time())
@@ -894,6 +897,7 @@ class usersystem
 				return true;
 			}
 		}
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => FALSE', __FUNCTION__, __LINE__));
 		return false;
 	}
 
