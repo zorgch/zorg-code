@@ -19,7 +19,7 @@
 		<a href="/profil.php?do=anmeldung#pwreset">forgot</a>
 	</div>
 	<div class="login-input">
-		<label>autologin&nbsp;<input type="checkbox" name="cookie" id="cookie" tabindex="3" style="vertical-align: baseline;"></label>
+		<label>autologin&nbsp;<input type="checkbox" name="autologin" id="autologin" value="cookie" tabindex="3" style="vertical-align: baseline;"></label>
 		<input type="submit" value="login" tabindex="4">
 	</div>
 </form>
@@ -47,7 +47,7 @@
 		</div>
 		<footer class="modal-footer">
 			<div class="login-input">
-				<label>autologin&nbsp;<input type="checkbox" name="cookie" id="cookie" tabindex="4" style="vertical-align: baseline;"></label>
+				<label>autologin&nbsp;<input type="checkbox" name="autologin" id="autologin" value="cookie" tabindex="4" style="vertical-align: baseline;"></label>
 				<input type="submit" value="login" tabindex="3">
 			</div>
 		</footer>
