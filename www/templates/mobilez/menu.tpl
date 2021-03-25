@@ -1,14 +1,14 @@
 {* Header *}
 <h1>Mobilezorg V2</h1>
 {*<a href="#menu" class="ui-btn ui-btn-left ui-corner-all ui-nodisc-icon ui-icon-bars ui-btn-icon-notext">Menu</a>*}
-<div class="ui-btn ui-btn-right" data-role="controlgroup" data-type="horizontal">
-	{if $errors || $smarty.get.error_msg}<a href="#popupError" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-alert ui-btn-icon-notext">Errors</a>{/if}
-	{if $user->id > 0}<a href="#popupBugtracker" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-bug ui-btn-icon-notext">Bugs</a>{/if}
+<div class="ui-btn ui-btn-right" data-ui-role="controlgroup" data-type="horizontal">
+	{if $errors || isset($smarty.get.error_msg)}<a href="#popupError" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-alert ui-btn-icon-notext">Errors</a>{/if}
+	{if $user->typ > 0}<a href="#popupBugtracker" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-bug ui-btn-icon-notext">Bugs</a>{/if}
 	<a href="https://zorg.ch/" rel="external" data-ajax="false" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-nosvg ui-icon-desktop">Desktop</a>
-	<a href="{if $user->id > 0}#popupLogout{else}#popupLogin{/if}" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-user ui-btn-icon-notext {if $errors}ui-disabled{/if}">User</a>
+	<a href="{if $user->typ > 0}#popupLogout{else}#popupLogin{/if}" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-user ui-btn-icon-notext {if $errors}ui-disabled{/if}">User</a>
 </div>
 
-{if $user->id > 0}
+{if $user->typ > 0}
 {* Menu left *}
 {*<div data-role="panel" data-display="push" data-theme="a" id="{assign var='menuId' value='menu'}{$menuId}">
 	<ul data-role="listview>
@@ -60,9 +60,9 @@ $(document).on("pagecreate", "#{$pageId}", function(){ldelim}
 <div data-role="popup" id="popupLogout" data-theme="{$layout}" class="ui-content" data-dismissible="false">
     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
 	<h3>Willst Du Dich wirklich aus zorg.ch abmelden?</h3>
-	<form data-ajax="true" method="post" action="{$smarty.server.SCRIPT_NAME}">
+	<form data-ajax="false" method="post" action="{$smarty.server.SCRIPT_NAME}">
 		<a data-role="button" href="#" data-rel="back" data-inline="true" data-mini="true" class="ui-btn ui-corner-all ui-nodisc-icon ui-btn-b ui-btn-icon-left ui-icon-delete">Oops nei doch nö</a>
-		<button type="submit" id="logout" name="logout" value="logout" data-inline="true" data-mini="true" class="ui-btn ui-corner-all ui-nodisc-icon ui-btn-b ui-btn-icon-left ui-icon-thumbs-up">Jawohl!</button>
+		<button type="submit" id="logout" name="logout" value="iwillbeback" data-inline="true" data-mini="true" class="ui-btn ui-corner-all ui-nodisc-icon ui-btn-b ui-btn-icon-left ui-icon-thumbs-up">Jawohl!</button>
 	</form>
 </div>
 <script>{literal}
