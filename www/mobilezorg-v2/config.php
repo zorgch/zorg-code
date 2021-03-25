@@ -1,5 +1,6 @@
 <?php
-require_once dirname(__FILE__).'/../includes/config.inc.php';
+if (!require_once dirname(__FILE__).'/../includes/config.inc.php') die('ERROR: Configs could NOT be loaded!');
+
 /**
  * DEFINE CONSTANTS
  */

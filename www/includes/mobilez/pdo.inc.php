@@ -12,7 +12,7 @@
 /**
  * Include MySQL Database login information file
  */
-require_once (file_exists(SITE_ROOT.'/includes/mysql_login.inc.local.php') ? SITE_ROOT.'/includes/mysql_login.inc.local.php' : SITE_ROOT.'/includes/mysql_login.inc.php') ;
+require_once (file_exists(INCLUDES_DIR.'mysql_login.inc.local.php') ? INCLUDES_DIR.'mysql_login.inc.local.php' : INCLUDES_DIR.'mysql_login.inc.php') ;
 
 // class dbconn
 // {

@@ -1,15 +1,16 @@
 <div data-ui-role="popup" id="popupLogin" data-theme="a" class="ui-corner-all" style="padding:10px 20px;">
 	<form id="formLogin" data-ajax="false" method="post" action="{$smarty.server.SCRIPT_NAME}">
+		<input type="hidden" name="do" id="do" value="login">
 		<h3>Bitte anmelden</h3>
 		<p id="login_error" style="color:red;">{$login_error}</p>
 		<label for="user" class="ui-hidden-accessible">Username:</label>
-		<input type="text" data-ui-role="text" name="username" id="user" placeholder="Username" data-theme="a" value="{$smarty.post.username}">
+		<input type="text" name="username" id="user" placeholder="Username" data-theme="a" value="{if isset($smarty.post.username)}{$smarty.post.username}{/if}">
 		<label for="pass" class="ui-hidden-accessible">Passwort:</label>
-		<input type="password" data-ui-role="password" name="password" id="pass" placeholder="Passwort" data-theme="a">
-		<label for="cookie">Angemeldet bleiben?</label>
-		<select name="cookie" id="cookie" data-ui-role="slider" class="ui-mini">
+		<input type="password" name="password" id="pass" placeholder="Passwort" data-theme="a">
+		<label for="autologin">Angemeldet bleiben?</label>
+		<select name="autologin" id="autologin" data-role="slider" data-mini="true">
 		    <option value="false">Nein</option>
-		    <option value="true">Ja</option>
+		    <option value="cookie">Ja</option>
 		</select>
 		<button type="submit" name="login" id="loginButton" value="login" class="ui-btn ui-corner-all ui-nodisc-icon ui-btn-b ui-widget-icon-floatend ui-icon-check">Login</button>
 		<p><a id="showPwReset" href="#popupPwReset" data-rel="popup" data-position-to="origin">Passwort vergessen?</a></p>
