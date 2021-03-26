@@ -1,7 +1,7 @@
 {* Header *}
 <h1>Mobilezorg V2</h1>
 {*<a href="#menu" class="ui-btn ui-btn-left ui-corner-all ui-nodisc-icon ui-icon-bars ui-btn-icon-notext">Menu</a>*}
-<div class="ui-btn ui-btn-right" data-ui-role="controlgroup" data-type="horizontal">
+<div class="ui-btn ui-btn-right" data-role="controlgroup" data-type="horizontal">
 	{if $errors || isset($smarty.get.error_msg)}<a href="#popupError" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-alert ui-btn-icon-notext">Errors</a>{/if}
 	{if $user->typ > 0}<a href="#popupBugtracker" data-position-to="window" data-rel="popup" class="ui-btn ui-corner-all {$btnIconOptions} ui-icon-bug ui-btn-icon-notext">Bugs</a>{/if}
 	<a href="https://zorg.ch/" rel="external" data-ajax="false" class="ui-btn ui-corner-all {$btnIconOptions} ui-btn-icon-notext ui-nosvg ui-icon-desktop">Desktop</a>

@@ -97,10 +97,9 @@
 </body>
 <script>
 {if $user->typ > 0}var myUserId = {$user->id};{/if}
-{literal}
 var loadmoreIconClass = 'ui-btn-icon-refresh-{$layoutReverse}';
 var divLoadmoreDOM;
-$('#btnLoadmore').click(function(e){
+{literal}$('#btnLoadmore').click(function(e){
 	$(this).buttonMarkup({ icon: loadmoreIconClass });
 	var previousdate = '';
 	var lastMessageId = $('#messages div:last-child').attr('data-id');
