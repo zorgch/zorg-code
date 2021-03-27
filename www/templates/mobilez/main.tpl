@@ -74,13 +74,13 @@
 			 {include file='file:mobilez/messages.tpl'}
 		</div>
  
-		{if $user->id > 0}<div data-role="footer" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
+		{if $user->typ > 0}<div data-role="footer" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
 				{include file='file:mobilez/chat_input.tpl'}
 		</div>{/if}
 		
-		{if $user->id == ''}{include file='file:mobilez/login.tpl'}{/if}
+		{if $user->typ == 0}{include file='file:mobilez/login.tpl'}{/if}
 		
-		{if $errors || $smarty.get.error_msg}<div data-role="popup" id="popupError" data-theme="{$layout}" class="popupError">
+		{if $errors || isset($smarty.get.error_msg)}<div data-role="popup" id="popupError" data-theme="{$layout}" class="popupError">
 			{if $smarty.get.error_msg <> ''}
 				<p>{$smarty.get.error_msg}</p>
 			{else}
@@ -96,12 +96,10 @@
 	</div>
 </body>
 <script>
-{if $user->id > 0}
-var myUserId = {$user->id};
-{/if}
+{if $user->typ > 0}var myUserId = {$user->id};{/if}
 var loadmoreIconClass = 'ui-btn-icon-refresh-{$layoutReverse}';
-{literal}var divLoadmoreDOM;
-$('#btnLoadmore').click(function(e){
+var divLoadmoreDOM;
+{literal}$('#btnLoadmore').click(function(e){
 	$(this).buttonMarkup({ icon: loadmoreIconClass });
 	var previousdate = '';
 	var lastMessageId = $('#messages div:last-child').attr('data-id');
@@ -116,18 +114,18 @@ $('#btnLoadmore').click(function(e){
 			}
             var newMessageDiv = $('#messages div:last').clone();
 			newMessageDiv.attr('data-id', data[index].date);
-			{/literal}{if $user->id > 0}
-			if (data[index].user_id == myUserId) {ldelim}
+			{/literal}{if $user->typ > 0}{literal}
+			if (data[index].user_id == myUserId) {
 				newMessageDiv.attr('class', 'message me');
 				newMessageDiv.html(data[index].text);
-			{rdelim}
-			else {ldelim}
-			{/if}
+			}
+			else {
+			{/literal}{/if}{literal}
 				newMessageDiv.attr('class', 'message them');
 				newMessageDiv.html('<a href="/profil.php?user_id=' + data[index].user_id + '" class="ui-link">' + data[index].user_name + '</a>: ' + data[index].text);
-			{if $user->id > 0}
-			{rdelim}
-			{/if}{literal}
+			{/literal}{if $user->typ > 0}{literal}
+			}
+			{/literal}{/if}{literal}
 			$('#messages div:last').after(newMessageDiv);
         });
     }).fail(function(d, textStatus, error) {

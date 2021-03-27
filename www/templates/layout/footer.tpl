@@ -76,7 +76,6 @@
 		</footer>
 	<script>const layout = '{$daytime}';</script>
 	{*if $tplroot.page_title == 'Home' && !$smarty.get.tpleditor}<!-- Redirect Mobile Devices, kudos to http://detectmobilebrowsers.com/ -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
 	<div id="popup-dialog" style="padding: 0">
 		<dialog id="mobile-zchat-popup" style="display:none;">
 			<h4 class="modal-header">[z]Chat anzeigen?</h4>

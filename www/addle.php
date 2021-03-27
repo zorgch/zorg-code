@@ -587,7 +587,7 @@ function play($id=0)
 		<tr>
 			<td style="text-align: center;">
 
-				<table cellspacing="0" cellpadding="2" style="border-collapse:collapse;" bgcolor='<?php echo TABLEBORDERCOLOR?>'>	<?php
+				<table cellspacing="0" cellpadding="2" style="border-collapse:collapse;" bgcolor='<?php echo TABLEBORDERC ?>'>	<?php
 					for ($y=0; $y<8; $y++) {
 						?><tr><?php
 						for ($x=0; $x<8; $x++) {

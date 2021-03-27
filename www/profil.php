@@ -166,7 +166,7 @@ if (!empty($user_id))
 	$rs = $db->fetch($result);
 	if (isset($_geaechtet[$user_id])) $smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('user-wird-geaechtet', 'user', $user->id2user($user_id, true))]);
 
-	$htmlOutput .= '<h1>'.$rs['clan_tag'].$rs['username'].'</h1>';
+	$htmlOutput .= '<h1>'.(!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'].'</h1>';
 	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'" style="width: 100%;max-width: 100%;">';
 
 	/** User Addle */

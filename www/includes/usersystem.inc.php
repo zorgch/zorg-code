@@ -158,7 +158,7 @@ class usersystem
 		/**
 		 * Session init'en
 		 */
-		if(!session_id()) {
+		if (!session_id()) {
 			session_name(ZORG_SESSION_ID);
 			session_start();
 		}
@@ -172,6 +172,9 @@ class usersystem
 		 * - ...ZORG_SESSION_ID => gesetzt
 		 * - ...oder ZORG_COOKIE_SESSION => gesetzt
 		 */
+		if (DEVELOPMENT && isset($_GET[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_GET[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_GET[ZORG_SESSION_ID]));
+		if (DEVELOPMENT && isset($_POST[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_POST[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_POST[ZORG_SESSION_ID]));
+		if (DEVELOPMENT && isset($_COOKIE[ZORG_COOKIE_SESSION])) error_log(sprintf('[DEBUG] <%s:%d> $_COOKIE[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_COOKIE[ZORG_COOKIE_SESSION]));
 		if (!empty($_GET[ZORG_SESSION_ID]) || !empty($_POST[ZORG_SESSION_ID]) || !empty($_COOKIE[ZORG_COOKIE_SESSION]))
 		{
 			//session_start();
@@ -364,7 +367,7 @@ class usersystem
 									 %1$s,
 									 UNIX_TIMESTAMP(%2$s) %2$s,
 									 %3$s,
-									 UNIX_TIMESTAMP(%4$s) %4$s
+									 %4$s
 								FROM
 									 %5$s
 								WHERE 
@@ -429,14 +432,14 @@ class usersystem
 								setcookie(ZORG_COOKIE_USERID, $username, $cookieSettings);
 								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, $cookieSettings);
 								*/
-								setcookie(ZORG_COOKIE_USERID, $username, $cookieTimeout, '/', SITE_HOSTNAME, $cookieSecure);
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, $cookieTimeout, '/', SITE_HOSTNAME, $cookieSecure);
+								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]);
+								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]);
 							}
 
 							/** Last Login & current Login updaten */
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, timestamp(false, $rs[$this->field_lastlogin]), $this->field_currentlogin, timestamp(false, $rs[$this->field_currentlogin])));
 							$db->update($this->table_name, ['id', $rs['id']], [
-								$this->field_lastlogin => $rs[$this->field_currentlogin],
+								$this->field_lastlogin => timestamp(false, $rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(false),
 								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 							], __FILE__, __LINE__, __METHOD__);
@@ -489,8 +492,8 @@ class usersystem
 		self::invalidate_session();
 
 		/** Redirect user back to last page */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logout: redirect url => %s', __METHOD__, __LINE__, base64_decode($_POST['redirect'])));
-		header('Location: '. (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logout: redirect url => %s', __METHOD__, __LINE__, (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF'])));
+		header('Location: '. (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']) );
 		exit;
 	}
 
@@ -507,18 +510,25 @@ class usersystem
 	{
 		/** Session destroy */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : -1)));
-		if(!empty(session_id()))
-		session_destroy();
+		//if(!empty(session_id()))
+		session_name(ZORG_SESSION_ID);
+		session_start();
 
 		/** Cookies killen - einmal unsetten & danach invalidieren */
-		unset($_GET[ZORG_SESSION_ID]); // Session-Parameter unsetten
-		unset($_POST[ZORG_SESSION_ID]); // Session-Parameter unsetten
+		$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
+		if (isset($_GET[ZORG_SESSION_ID])) unset($_GET[ZORG_SESSION_ID]); // Session-Parameter unsetten
+		if (isset($_POST[ZORG_SESSION_ID])) unset($_POST[ZORG_SESSION_ID]); // Session-Parameter unsetten
 		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
-		setcookie(ZORG_COOKIE_SESSION, '', time()-3600); // zorg Session-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERID, '', time()-3600); // Login-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERPW, '', time()-3600); // Password-Cookie invalidieren
+		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]); // zorg Session-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]); // Login-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]); // Password-Cookie invalidieren
+
+		/** Finally destroy the PHP Session store */
+		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
+		session_unset();
+		session_destroy();
 	}
 
 	/**
@@ -730,18 +740,19 @@ class usersystem
 		$html = '';
 		while($rs = $db->fetch($result))
 		{
+			$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
 			if ($pic == FALSE)
 			{
 				//$html .= usersystem::link_userpage($rs[id], FALSE).', ';
-				$html .= '<a href="/profil.php?user_id='.$rs['id'].'">'.$rs['clan_tag'].$rs['username'].'</a>';
+				$html .= '<a href="/profil.php?user_id='.$rs['id'].'">'.$full_username.'</a>';
 				if(($i+1) < $db->num($result)) $html .= ', ';
 			} else {
 				$html .= '<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
-						 .'<img border="0" src="'.USER_IMGPATH_PUBLIC.$rs['id'].'.jpg" title="'.$rs['clan_tag'].$rs['username'].'">'
+						 .'<img border="0" src="'.USER_IMGPATH_PUBLIC.$rs['id'].'.jpg" title="'.$full_username.'">'
 						 .'</a></td></tr>'
 						 .'<tr>'
 						 .'<td align="center">'
-						 .'<a href="/profil.php?user_id='.$rs['id'].'">'.$rs['clan_tag'].$rs['username'].'</a>'
+						 .'<a href="/profil.php?user_id='.$rs['id'].'">'.$full_username.'</a>'
 						 .'</td></tr></table><br />';
 			}
 			$i++;
@@ -877,14 +888,17 @@ class usersystem
 	{
 		global $_geaechtet;
 
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => %s > %s ?', __FUNCTION__, __LINE__, $ausgesperrt_bis_timestamp, time()));
 		if (!empty($ausgesperrt_bis_timestamp) && $ausgesperrt_bis_timestamp > 0)
 		{
 			if ($ausgesperrt_bis_timestamp > time())
 			{
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE', __FUNCTION__, __LINE__));
 				$_geaechtet[] = $_SESSION['user_id'];
 				return true;
 			}
 		} else if (isset($_SESSION['user_id']) && !empty($_geaechtet[$_SESSION['user_id']])) {
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE ($_geachtet !)', __FUNCTION__, __LINE__));
 			return true;
 		} else {
 			if (isset($this->ausgesperrt_bis) && $this->ausgesperrt_bis > time())
@@ -893,6 +907,7 @@ class usersystem
 				return true;
 			}
 		}
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => FALSE', __FUNCTION__, __LINE__));
 		return false;
 	}
 
@@ -1047,8 +1062,9 @@ class usersystem
 		$htmlSelectElements = [];
 		while ($rs = $db->fetch($result))
 		{
+			$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
 			$selectCurrent = (in_array($rs['id'], $users_selected) ? 'selected' : false);
-			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $rs['clan_tag'].$rs['username']);
+			$elementHtml = sprintf('<option value="%d" %s>%s</option>', $rs['id'], $selectCurrent, $full_username);
 			if ($selectCurrent !== false) array_unshift($htmlSelectElements, $elementHtml);
 			else array_push($htmlSelectElements, $elementHtml);
 		}
@@ -1084,41 +1100,47 @@ class usersystem
 	{
 		global $db, $_users;
 
+		/** Validate passed parameters */
+		$userid = (empty($id) || !is_numeric($id) ? false : (int)$id);
+		$use_clantag = (bool)$clantag;
+		$show_pic = (bool)$pic;
+
 		/** If given User-ID is not valid (not numeric), show a User Error */
-		if (!empty($id) && !is_numeric($id)) {
+		if (false === $userid) {
 			user_error(t('invalid-id', 'user'), E_USER_WARNING);
 			return false;
 		}
-		$clantag = (empty($clantag) || $clantag === 'false' || $clantag === 0 ? FALSE : TRUE);
 
-		if (!isset($_users[$id]) || !isset($_users[$id]['clan_tag']))
+		if (!isset($_users[$userid]) || ($use_clantag === true && !isset($_users[$userid]['clan_tag'])))
 		{
-			if ($clantag === TRUE)
+			if ($use_clantag === true && !isset($_users[$userid]['clan_tag']))
 			{
-				$sql = 'SELECT clan_tag, username FROM user WHERE id="'.$id.'" LIMIT 0,1'; // ATTENTION: Query fails when $id is not quoted with "$id"!
+				$sql = 'SELECT username, clan_tag FROM user WHERE id='.$userid.' LIMIT 0,1';
 			} else {
-				$sql = 'SELECT username FROM user WHERE id="'.$id.'" LIMIT 0,1';
+				$sql = 'SELECT username FROM user WHERE id='.$userid.' LIMIT 0,1';
 			}
 			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			if (!empty($rs) || $rs !== false || !empty($rs['username']))
 			{
-				/** User $id exists - returned a result */
-				$_users[$id] = $rs;
+				/** User $id exists - add record to global $_users-Array */
+				$_users[$userid] = $rs;
 			} else {
 				/** User $id does NOT exist */
+				user_error(t('invalid-id', 'user'), E_USER_WARNING);
 				return false;
 			}
 		}
 
 		/** Set string with Username */
-		$username = $_users[$id]['username'];
+		$username = (isset($_users[$userid]['username']) && !empty($_users[$userid]['username']) ? $_users[$userid]['username'] : 'yarak');
 
 		/** If applicable, prefix Username with the Clantag */
-		if ($clantag == TRUE)
+		if ($use_clantag === true)
 		{
 			/** ...but only if the user really HAS a Clantag! */
-			if (!empty($_users[$id]['clan_tag'])) {
-				$username = $_users[$id]['clan_tag'].$username;
+			if (isset($_users[$userid]['clan_tag']) && !empty($_users[$userid]['clan_tag']))
+			{
+				$username = $_users[$userid]['clan_tag'].$username;
 			}
 		}
 
@@ -2017,7 +2039,7 @@ class usersystem
 	}
 }
 
-/** Static $_users Array to load & keep feteched Userdata while processing */
+/** Static $_users Array to load & keep fetched Userdata while processing */
 static $_users = array();
 
 /** Ausgesperrte User werden geächtet! */
@@ -2059,7 +2081,7 @@ if (isset($_POST['do']) && $_POST['do'] === 'login')
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form)', '$user->login()', __LINE__));
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
-		$auto = isset($_POST['cookie']) && $_POST['cookie'];
+		$auto = isset($_POST['autologin']) && $_POST['autologin'] === 'cookie';
 		$login_error = $user->login($_POST['username'], $_POST['password'], $auto);
 	} else {
 		$login_error = t('authentication-failed', 'user');
