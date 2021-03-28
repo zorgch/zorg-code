@@ -212,8 +212,8 @@ return
 			,'message-game-forceclosed' => '<a href="%s/addle.php?show=play&id=%d">Du hast unser Addle-Game %s, weil %s nicht mehr weiter gespielt %s.</a>'
 			,'message-your-turn' => 'Ich habe meinen Addle-Zug gemacht, du bist wieder dran in <a href="%s/addle.php?show=play&amp;id=%d">unserem Addle Spiel</a>'
 			,'unentschieden' => 'unentschieden'
-			,'gewinner' => '%s hat gewonnen.'
-			,'gewinner-dwz' => '%s hat %s DWZ-Punkte gewonnen.'
+			,'gewinner' => '<b>%s</b> hat gewonnen.'
+			,'gewinner-dwz' => '<b>%s</b> hat %s DWZ-Punkte gewonnen.'
 		]
 	,'hz' =>
 		[

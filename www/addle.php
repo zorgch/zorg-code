@@ -496,9 +496,12 @@ function play($id=0)
 			LEFT JOIN addle_dwz d2 ON d2.user=a.player2 
 			WHERE a.id='.$id;
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-	if ($db->num($e) != 1) {
+	if ($db->num($e) !== 1) {
 		http_response_code(404); // Set response code 404 (not found)
-		user_error(t('error-game-invalid', 'global', $id), E_USER_ERROR);
+		//user_error(t('error-game-invalid', 'global', [ $id ]), E_USER_ERROR);
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('error-game-invalid', 'global', [ $id ])]);
+		$model->showOverview($smarty);
+		$smarty->display('file:layout/head.tpl');
 		exit;
 	}
 	$d = $db->fetch($e);
@@ -560,7 +563,8 @@ function play($id=0)
 	<center>
 	<h2 style="font-size: x-large;">
 		<?php if (!$d['finish']) {
-			echo t('next', 'addle', $user->id2user($d['player'.$d['nextturn']], true));
+			$next = $user->id2user($d['player'.$d['nextturn']], true);
+			echo t('next', 'addle', [ $next ]);
 		} else {
 			if ($d['score1'] == $d['score2']) {
 				echo t('unentschieden', 'addle');
@@ -570,7 +574,7 @@ function play($id=0)
 				} else {
 					$winner = $user->id2user($d['player2']);
 				}
-				echo t('gewinner', 'addle', $winner);
+				echo t('gewinner', 'addle', [ $winner ]);
 			}
 		} ?>
 	</h2>
@@ -644,7 +648,8 @@ function play($id=0)
 	 *
 	 * @uses evil_max()
 	 */
-	if (sanitize_userinput($_GET['debug']) === 'true' && $user->typ >= USER_MEMBER) {
+	if (isset($_GET['debug']) && $_GET['debug'] === 'true' && $user->typ >= USER_MEMBER)
+	{
 		$data = $d['data'];
 		$nextrow = $d['nextrow'];
 		$game_id = $d['id'];
