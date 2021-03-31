@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /**
  * GO (Game)
  *
@@ -57,7 +57,8 @@ class Go
 	 *
 	 * @param integer $size Grösse des GO-Spielfeldes
 	 */
-	function go($size) {
+	function __construct($size)
+	{
 		$this->size = $size;
 		$this->img_size = $this->feld_groesse * $this->size;
 		$this->img = imagecreatetruecolor($this->img_size,$this->img_size);
@@ -86,10 +87,10 @@ class Go
 	 * @param integer $y ...
 	 * @param integer $partei ...
 	 */
-	function stone($x,$y,$partei) {
+	function stone($x,$y,$partei)
+	{
 		imagefilledellipse($this->img,$x,$y,23,23,$this->partei[$partei]);
 	}
-
 
 	/**
 	 * ...
@@ -100,14 +101,13 @@ class Go
 	 * @version 1.0
 	 * @since 1.0
 	 */
-	function display() {
+	function display()
+	{
 		imagepng($this->img);	
 	}
-
 }
 
-
-header("Content-Type: Image/PNG");
+header('Content-Type: Image/PNG');
 
 $go = new Go(13);
 $go->stone(40,40,0);
