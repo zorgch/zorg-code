@@ -115,12 +115,12 @@ class dbconn
 		}
 
 		try {
-			$result = mysqli_query($this->conn, $sql); // DEPRECATED - PHP5 only
+			$result = mysqli_query($this->conn, $sql);
 			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
-			if ($sql_query_type == 'insert') {
+			if ($sql_query_type === 'insert') {
 				$sql_insert_id = mysqli_insert_id($this->conn);
 				return (is_numeric($sql_insert_id) && $sql_insert_id !== 0 ? $sql_insert_id : ($sql_insert_id !== false ? true : false));
-			} elseif ($sql_query_type == 'update') {
+			} elseif ($sql_query_type === 'update' || $sql_query_type === 'delete') {
 				$sql_affected_rows = mysqli_affected_rows($this->conn);
 				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
 			} elseif ($result === false && $this->display_error == 1) {
