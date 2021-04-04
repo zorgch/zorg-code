@@ -104,10 +104,10 @@ class Astro_Sunrise
 	 * @var array Array containing sunrise/sunset, civil twilight, nautical twilight, astronomical twilight
 	 */
 	var $twilight = array(
-		'effective' => -.0145439,		// sunrise/sunset
+		'effective' => -.0145439,	// sunrise/sunset
 		'civil' => -.104528,		// civil twilight
 		'nautical' => -.207912,		// nautical twilight
-		'astronomical' => -.309017		// astronomical twilight
+		'astronomical' => -.309017	// astronomical twilight
 	);
  
 	/**
@@ -243,7 +243,7 @@ class Astro_Sunrise
 
 		// multiples of pi
 		$A = 0.5 * M_PI; // Quarter circle
-		$B =			 M_PI; // Half circle
+		$B = 	   M_PI; // Half circle
 		$C = 1.5 * M_PI; // 3/4 circle
 		$D = 2	 * M_PI; // Full circle
 
@@ -281,7 +281,7 @@ class Astro_Sunrise
 		$S /= cos($Q) * cos($E);
 
 		if (abs($S) > 1)
-			return "(Mitternachtssonne/Dauernacht)";
+			return '(Mitternachtssonne/Dauernacht)';
 
 		$S /= sqrt(-$S * $S + 1);
 		$S = $A - atan2($S, 1);
@@ -302,7 +302,7 @@ class Astro_Sunrise
 		$V *= 24 / $D;
 
 		// Universal time
-		$hour = intval($U);
+		$hour	= intval($U);
 		$U		= ($U - $hour) * 60;
 		$min	= intval($U);
 		$U		= ($U - $min) * 60;
@@ -310,7 +310,7 @@ class Astro_Sunrise
 		$this->last_utc = gmmktime($hour, $min, $sec, $this->month, $this->mday, $this->year);
 
 		// Local time
-		$hour = intval($V);
+		$hour	= intval($V);
 		$min	= intval(($V - $hour) * 60 + 0.5);
 
 		return sprintf('%02d:%02d', $hour, $min);
@@ -346,8 +346,8 @@ if (!empty($user_ip))
 				ON co.country_code = ci.country_code
 			WHERE
 				ci.ip_from >= '.$user_ip.' AND ci.ip_to <= '.$user_ip.' 
-        OR ci.ip_from >= '.$user_ip.' AND ci.ip_to <= '.($user_ip+200000000).'
-      LIMIT 1'; // little trick to have more often a match
+	        OR ci.ip_from >= '.$user_ip.' AND ci.ip_to <= '.($user_ip+200000000).'
+	        LIMIT 1'; // little trick to have more often a match
 	$result = $db->query($sql,__FILE__,__LINE__);
 	$rs = $db->fetch($result);
 
@@ -362,7 +362,7 @@ if (!empty($user_ip))
 
 		$suncalc = new Astro_Sunrise();
 		$suncalc->setCoords($lat, $lon);
-		$suncalc->setTimezone(round($lon/15.0)+date("I"));
+		$suncalc->setTimezone(round($lon/15.0)+date('I'));
 		$suncalc->setTimestamp(time()+(3600*round($lon/15.0)+date('I')));
 		$sunrise = $suncalc->getSunrise();
 		$sunset = $suncalc->getSunset();

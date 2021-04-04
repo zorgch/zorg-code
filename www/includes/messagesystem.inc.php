@@ -51,8 +51,10 @@ class Messagesystem {
 	 * Controller für diverse Message Actions
 	 *
 	 * @author [z]milamber
-	 * @date 
-	 * @version 2.0
+	 * @version 2.1
+	 * @since 1.0 `milamber` method added
+	 * @since 2.0 `IneX` code optimizations
+	 * @since 2.1 `04.04.2021` `IneX` fixed wrong check if own message, and PHP Deprecated: Non-static method Messagesystem::sendMessage()
 	 *
 	 * @uses BARBARA_HARRIS
 	 * @uses Messagesystem::sendMessage()
@@ -71,10 +73,11 @@ class Messagesystem {
 
 			for ($i=0; $i < count($to_users); $i++)
 			{
-				/** Wenn ich mir selber was schicke, dann nimm die Bärbe als Absender */
+				/** Wenn ich mir selber was schicke, dann nimm die Bärbel als Absender */
 				if ($to_users[$i] == $user->id)
 				{
-					Messagesystem::sendMessage(
+					//Messagesystem::sendMessage(
+					(new self())->sendMessage(
 						BARBARA_HARRIS,
 						$to_users[$i],
 						$_POST['subject'],
@@ -85,7 +88,8 @@ class Messagesystem {
 
 				/** Nachricht an andere Leute */
 				else {
-					Messagesystem::sendMessage(
+					//Messagesystem::sendMessage(
+					(new self())->sendMessage(
 						$user->id,
 						$to_users[$i],
 						$_POST['subject'],
@@ -97,7 +101,8 @@ class Messagesystem {
 			}
 
 			/** Eigene Message für den 'Sent'-Ordner */
-			Messagesystem::sendMessage(
+			//Messagesystem::sendMessage(
+			(new self())->sendMessage(
 				$user->id,
 				$user->id,
 				$_POST['subject'],
@@ -107,18 +112,16 @@ class Messagesystem {
 			);
 
 			/** @FIXME Wieso wird hier die deleteMessage-Funktion aufgerufen in der "sendmessage"-Aktion? Inex/28.10.2013 */
-			if($_POST['delete_message_id'] > 0) {
+			if (isset($_POST['delete_message_id']) && $_POST['delete_message_id'] > 0) {
 				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
 			}
 
-			//header("Location: profil.php?user_id=".$user->id."&box=outbox&sent=successful".session_name()."=".session_id());
-			$headerLocation = ( !empty($_POST['url']) ? base64_decode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful&%s=%s', SITE_URL, $user->id, session_name(), session_id()) );
+			$headerLocation = ( !empty($_POST['url']) ? base64_decode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful', SITE_URL, $user->id) );
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> header() Location: %s', __METHOD__, __LINE__, $headerLocation));
 			header('Location: ' . $headerLocation);
 
 			//exit;
 		}
-
 
 		if(isset($_POST['do']) && $_POST['do'] == 'delete_messages')
 		{
@@ -146,10 +149,9 @@ class Messagesystem {
 			header("Location: ".base64_decode($_POST['url']));
 			//exit;
 		}
-		
-		
-		if(isset($_POST['do']) && $_POST['do'] == 'messages_as_unread') {
-			
+
+		if(isset($_POST['do']) && $_POST['do'] == 'messages_as_unread')
+		{
 			/** Change Message Status to UNREAD */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
 				Messagesystem::doMessagesUnread($_POST['message_id'][$i], $user->id);
@@ -169,10 +171,9 @@ class Messagesystem {
 			header("Location: ".base64_decode($_POST['url']));
 			//exit;
 		}
-		
-		
-		if(isset($_POST['do']) && $_POST['do'] == 'mark_all_as_read') {
-			
+
+		if(isset($_POST['do']) && $_POST['do'] == 'mark_all_as_read')
+		{
 			/** Mark all Messages as read */
 			Messagesystem::doMarkAllAsRead($user->id);
 
@@ -711,10 +712,10 @@ class Messagesystem {
 
 		/**
 		 * Notify $owner about new zorg Message
-		 * ...ausser wenn der $from_user_id & $user->id identisch sind,
+		 * ...ausser wenn der $from_user_id & $owner identisch sind,
 		 * siehe 'Eigene Message für den 'Sent'-Ordner'
 		 */
-		if ($from_user_id != $user->id)
+		if ($from_user_id != $owner)
 		{
 			$notification_status = $notification->send($owner, 'messagesystem', ['from_user_id'=>$from_user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));

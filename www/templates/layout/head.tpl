@@ -62,7 +62,7 @@
 		<header class="zorghead" {if $tplroot.write_rights neq '' && tpl_permission($tplroot.write_rights, $tplroot.owner)}onDblClick="document.location.href='{edit_url}';"{/if}>
 		{include_php file="file:header.php"}
 			{if $user->id}
-				{if $new_messages > 0}{capture append=myUpdates}<li id="messages"><a href="/profil.php?user_id={$user->id}">{$new_messages|quantity:"Message":"Messages"}</a></li>{/capture}{/if}
+				{if $new_messages > 0}{capture append=myUpdates}<li id="messages"><a href="/profil.php?user_id={$user->id}">✉️ {$new_messages|quantity:"Message":"Messages"}</a></li>{/capture}{/if}
 				{capture append=myUpdates}<li id="unreads">{if $new_comments>0}<a href="/actions/comment_gotolastunread.php">{$new_comments|quantity:"Comment":"Comments"}</a>{/if}</li>{/capture}
 				{if $user->typ > 0 && $num_new_events > 0}{capture append=myUpdates}<li id="events">{link tpl=158 param="event_id=`$event_newest.id`"}{$num_new_events|quantity:"new Event":"new Events"}{/link}</li>{/capture}{/if}
 				{if $open_addle>0}{capture append=myUpdates}<li id="addles"><a href="/addle.php">{$open_addle|quantity:"Addlezug":"Addlezüge"}</a></li>{/capture}{/if}

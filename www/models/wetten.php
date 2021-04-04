@@ -27,7 +27,6 @@ class Wetten extends Model
 
 		/** Menus sind für alle Seiten gleich */
 		$this->menus = [ 'zorg' ];
-		if ($user->is_loggedin()) array_push($this->menus, 'eingeloggte_user');
 		array_push($this->menus, 'user');
 	}
 
