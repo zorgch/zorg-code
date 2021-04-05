@@ -156,6 +156,7 @@ class usersystem
 		/**
 		 * Session init'en
 		 */
+		//if (!session_id()) {
 		if (!session_id()) {
 			session_name(ZORG_SESSION_ID);
 			session_start();
@@ -173,7 +174,7 @@ class usersystem
 		if (DEVELOPMENT && isset($_GET[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_GET[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_GET[ZORG_SESSION_ID]));
 		if (DEVELOPMENT && isset($_POST[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_POST[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_POST[ZORG_SESSION_ID]));
 		if (DEVELOPMENT && isset($_COOKIE[ZORG_COOKIE_SESSION])) error_log(sprintf('[DEBUG] <%s:%d> $_COOKIE[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_COOKIE[ZORG_COOKIE_SESSION]));
-		if (!empty($_GET[ZORG_SESSION_ID]) || !empty($_POST[ZORG_SESSION_ID]) || !empty($_COOKIE[ZORG_COOKIE_SESSION]))
+		if (session_id() || !empty($_GET[ZORG_SESSION_ID]) || !empty($_POST[ZORG_SESSION_ID]) || !empty($_COOKIE[ZORG_COOKIE_SESSION]))
 		{
 			//session_start();
 
@@ -284,7 +285,7 @@ class usersystem
 
 		/** Ansonsten falls keine Session: zur Sicherheit Session-Cookie(s) & Session-Paramter in URL invalidieren */
 		else {
-			$this->invalidate_session();
+			self::invalidate_session();
 		}
 	}
 
@@ -352,9 +353,10 @@ class usersystem
 				/** Cookie Password vs. User DB-Eintrag matchen NICHT! */
 				else {
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> User Cookie Password vs. User DB-Eintrag matchen NICHT!', __METHOD__, __LINE__));
-					$this->invalidate_session();
+					self::invalidate_session();
 					http_response_code(403); // Set response code 403 (forbidden)
-					return user_error(t('invalid-cookie', 'user'), E_USER_WARNING); // Warnung ausgeben
+					$error = t('invalid-cookie', 'user');
+					user_error(t('invalid-cookie', 'user'), E_USER_WARNING); // Warnung ausgeben
 				}
 			}
 
@@ -496,7 +498,7 @@ class usersystem
 	static function invalidate_session()
 	{
 		/** Session destroy */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : -1)));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'not logged in')));
 		session_name(ZORG_SESSION_ID);
 		session_start();
 
@@ -507,9 +509,9 @@ class usersystem
 		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
-		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]); // zorg Session-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]); // Login-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]); // Password-Cookie invalidieren
+		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => '/']); // zorg Session-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => '/']); // Login-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => '/']); // Password-Cookie invalidieren
 
 		/** Finally destroy the PHP Session store */
 		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
@@ -2054,7 +2056,7 @@ if (isset($_POST['logout']))
 	usersystem::logout();
 } else {
 	/** Instantiate a new usersystem Class */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Instantiate a new usersystem Class', '$_POST[logout]', __LINE__));
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Instantiate a new usersystem Class', 'false === $_POST[logout]', __LINE__));
 	$user = new usersystem();
 }
 
