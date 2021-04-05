@@ -422,8 +422,8 @@ class usersystem
 								 */
 								$cookieTimeout = time()+60*60*24*7; // 1 Woche
 								$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
-								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]);
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]);
+								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']);
+								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']);
 							}
 
 							/** Last Login & current Login updaten */
@@ -509,9 +509,9 @@ class usersystem
 		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
-		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => '/']); // zorg Session-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => '/']); // Login-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => '/']); // Password-Cookie invalidieren
+		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => '/', 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']); // zorg Session-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => '/', 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']); // Login-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => '/', 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']); // Password-Cookie invalidieren
 
 		/** Finally destroy the PHP Session store */
 		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
