@@ -133,8 +133,6 @@ class usersystem
 	/**
 	 * Klassen Konstruktor
 	 *
-	 * @TODO Will be deprecated in PHP7! -> http://php.net/manual/de/migration70.deprecated.php
-	 *
 	 * @author [z]biko
 	 * @author IneX
 	 * @version 4.1
@@ -297,12 +295,13 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 4.1
+	 * @version 4.2
 	 * @since 1.0 method added
-	 * @since 2.0 `12.11.2018` code & query optimizations
-	 * @since 3.0 `21.11.2018` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
-	 * @since 4.0 `10.12.2018` Improved Cookie-Settings (secure and stuff)
-	 * @since 4.1 `21.12.2018` Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
+	 * @since 2.0 `12.11.2018` `IneX` code & query optimizations
+	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
+	 * @since 4.0 `10.12.2018` `IneX` Improved Cookie-Settings (secure and stuff)
+	 * @since 4.1 `21.12.2018` `IneX` Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
+	 * @since 4.2 `04.04.2021` `IneX` Optimized Cookie and Session initialisation
 	 *
 	 * @uses ZORG_SESSION_ID
 	 * @uses ZORG_COOKIE_SESSION
@@ -421,19 +420,8 @@ class usersystem
 								 */
 								$cookieTimeout = time()+60*60*24*7; // 1 Woche
 								$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
-								/** PHP7.x ready
-								$cookieSettings = [
-													 'expires' => $cookieTimeout
-													,'path' => '/'
-													,'domain' => SITE_HOSTNAME
-													,'secure' => $cookieSecure
-													,'httponly' => true
-												  ];
-								setcookie(ZORG_COOKIE_USERID, $username, $cookieSettings);
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, $cookieSettings);
-								*/
-								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]);
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]);
+								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]);
+								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]);
 							}
 
 							/** Last Login & current Login updaten */
@@ -446,7 +434,6 @@ class usersystem
 
 							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
-							//header('Location: '.changeURL( (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']), session_name().'='.session_id() ));
 							header('Location: '.$loginRedirectUrl);
 							exit;
 						} else {
@@ -510,10 +497,8 @@ class usersystem
 	{
 		/** Session destroy */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : -1)));
-		if(!empty(session_id())) {
-			session_name(ZORG_SESSION_ID);
-			session_start();
-		}
+		session_name(ZORG_SESSION_ID);
+		session_start();
 
 		/** Cookies killen - einmal unsetten & danach invalidieren */
 		$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
@@ -522,9 +507,9 @@ class usersystem
 		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
 		unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
-		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]); // zorg Session-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]); // Login-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure]); // Password-Cookie invalidieren
+		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]); // zorg Session-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]); // Login-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-1, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true]); // Password-Cookie invalidieren
 
 		/** Finally destroy the PHP Session store */
 		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
@@ -559,12 +544,13 @@ class usersystem
 	 * Neues Passwort
 	 * Generiert ein Passwort für einen bestehenden User
 	 *
-	 * @version 4.1
+	 * @version 4.2
 	 * @since 1.0 method added
 	 * @since 2.0 global strings added
-	 * @since 3.0 `17.10.2018` Fixed Bug #763: Passwort vergessen funktioniert nicht
-	 * @since 4.0 `21.10.2018` Code & DB-Query improvements
-	 * @since 4.1 `04.01.2019` Fixed handling $db->update() result, changed Error messages, added debugging-output on DEV
+	 * @since 3.0 `17.10.2018` `IneX` Fixed Bug #763: Passwort vergessen funktioniert nicht
+	 * @since 4.0 `21.10.2018` `IneX` Code & DB-Query improvements
+	 * @since 4.1 `04.01.2019` `IneX` Fixed handling $db->update() result, changed Error messages, added debugging-output on DEV
+	 * @since 4.2 `04.04.2021` `IneX` Adjusted string encoding for MIME header of To: & Subject: lines in e-mail
 	 *
 	 * @uses usersystem::password_gen()
 	 * @uses crypt_pw()
@@ -609,10 +595,17 @@ class usersystem
 				if ($result !== false)
 				{
 					/** 5. versende email mit neuem passwort */
-					$new_pass_mail_status = mail($email, t('message-newpass-subject', 'user'), t('message-newpass', 'user', [ $rs['username'], $new_pass ]), "From: ".ZORG_EMAIL."\n");
+					$mail_header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
+					$mail_subject = sprintf('=?UTF-8?Q?%s?=', quoted_printable_encode(remove_html(t('message-newpass-subject', 'user'), ENT_DISALLOWED, 'UTF-8')));
+					$mail_body = t('message-newpass', 'user', [$rs['username'], $new_pass]);
+					$new_pass_mail_status = mail($email, $mail_subject, $mail_body, $mail_header);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Passwort reset mail() sent with status: %s', __METHOD__, __LINE__, ($new_pass_mail_status?'true':'false')));
-					if ($new_pass_mail_status) return true;//$error = t('newpass-confirmation', 'user');
-					else return false;
+					if ($new_pass_mail_status) {
+						return true;
+					} else {
+						error_log(sprintf('[WARN] <%s:%d> Passwort reset e-mail could not be sent to "%s"', __METHOD__, __LINE__, $email));
+						return false;
+					}
 				} else {
 					error_log(sprintf('[NOTICE] <%s:%d> Passwort could not be updated in DB', __METHOD__, __LINE__));
 					return false;
