@@ -18,9 +18,8 @@ class Quotes
 	{
 		global $db, $user;
 
-		if($_POST['action'] == 'benoten' && $_POST['score'] != '')
+		if(isset($_POST['action']) && $_POST['action'] == 'benoten' && isset($_POST['score']) && is_numeric($_POST['score']))
 		{
-
 		  	$sql =
 		  		"REPLACE INTO quotes_votes (quote_id, user_id, score) "
 		  		." VALUES ("
@@ -47,7 +46,6 @@ class Quotes
 		if ($user->is_loggedin())
 		{
 			if (Quotes::hasVoted($user->id, $rs['id'])) $html .= '<small>(Note: '.round(Quotes::getScore($rs['id']), 1).')</small>';
-				//.' (votes: '.Quotes::getNumvotes($rs['id']).($user->typ != USER_NICHTEINGELOGGT ? ', deine Note: '.Quotes::getScorebyUser($rs['id'], $user->id) : '').')'
 			if (!Quotes::hasVoted($user->id, $rs['id']))
 			{
 				$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" style="display: flex;">'

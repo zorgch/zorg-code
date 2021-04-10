@@ -4,7 +4,7 @@
  *
  * Enthält alle User Funktionen von zorg
  *
- * @author [z]biko
+ * @author [z]cylander
  * @package zorg\Usersystem
  */
 /**
@@ -21,47 +21,43 @@ require_once INCLUDES_DIR.'activities.inc.php';
 
 /**
  * Usersystem Klasse
- *
- * Verschlüsselungs Möglichkeiten:
- * CRYPT_STD_DES - Standard DES-Schlüssel mit 2-Zeichen Salt
- * CRYPT_EXT_DES - Erweiterter DES-Schlüssel mit einem 9-Zeichen Salt
- * CRYPT_MD5 - MD5-Schlüssel mit 12-Zeichen Salt, beginnend mit $1$
- * CRYPT_BLOWFISH - Erweiterter DES-Schlüssel, 16-Zeichen Salt, beginnend mit $2$
  * 
- * User Typen:
- * 1 = Normaler User ##################### 0 isch nöd so cool wil wenns nöd gsetzt isch chunt jo au 0
- * 2 = [z]member und schöne
- * 0 = nicht eingeloggt ##################### Aber Weber: wenn typ = 2, gits $user jo gar nöd?! -> doch s'usersystem isch jo immer verfügbar
- * verfügbar über $user->typ
+ * User Typen (verfügbar über $user->typ):
+ * - 0 = nicht eingeloggt ##################### Aber Weber: wenn typ = 2, gits $user jo gar nöd?! -> doch s'usersystem isch jo immer verfügbar
+ * - 1 = Normaler User ##################### 0 isch nöd so cool wil wenns nöd gsetzt isch chunt jo au 0
+ * - 2 = [z]member und schöne
+ * - 3 = Admins & Coder
  *
- * @author [z]biko
- * @author IneX
+ * @author [z]cylander
  * @package zorg\Usersystem
- * @version 5.0
+ * @version 6.0
  * @since 1.0 class added
  * @since 2.0 additional methods added
  * @since 3.0 code optimizations and new methods
- * @since 4.0 `10.12.2018` major refactorings & migrated methods from profil.php as part of the usersystem()-class
- * @since 5.0 `26.12.2018` Bug #769: 'usertyp'-Spalte entspricht neu einer Usergruppe aus dem Table 'usergroups' (quasi als Foreign-Key)
+ * @since 4.0 `10.12.2018` `IneX` major refactorings & migrated methods from profil.php as part of the usersystem()-class
+ * @since 5.0 `26.12.2018` `IneX` Bug #769: 'usertyp'-Spalte entspricht neu einer Usergruppe aus dem Table 'usergroups' (quasi als Foreign-Key)
+ * @since 6.0 `10.04.2021` `IneX` Upgrade to new password_hash() & password_verify(), major rework of User Session & Cookies handling
  */
 class usersystem
 {
 	/**
 	 * Usersystem Configs
 	 *
-	 * @var bool $use_cookie Auto-einloggen mit Cookie aktivieren
+	 * @var bool $enable_cookies Auto-einloggen mit Cookie aktivieren
 	 * @var bool $use_current_login Wird benötigt um nicht gesichteten content hervorzuheben
 	 * @var bool $use_registration_code Wird benötigt um ein Account von einem User zweifelsfrei aufzuschalten
 	 * @var bool $use_online_list Unterstützung einer "wer-ist-alles-online-liste"
 	 * @var bool $use_user_picture Jeder User kann ein Bild von sich hochladen
 	 * @var string $table_name DB-Table wo die User-Daten gespeichert sind, wird für die SQL-Queries benötigt
+	 * @var string $reuse_session_id Speichert, falls vorhanden, eine übergebene Session ID
 	 */
-	var $use_cookie = TRUE;
+	var $enable_cookies = TRUE;
 	var $use_current_login = TRUE;
 	var $use_registration_code = TRUE;
 	var $use_online_list = TRUE;
 	var $use_user_picture = TRUE;
 	var $table_name = 'user';
+	var $reuse_session_id = null;
 
 	/**
 	 * Var to map User Fields
@@ -101,6 +97,7 @@ class usersystem
 
 	/**
 	 * Default Userprofile Settings
+	 *
 	 * @used-by usersystem::exec_changeprofile()
 	 */
 	var $default_clan_tag = null; // none
@@ -126,6 +123,7 @@ class usersystem
 	
 	/**
 	 * Object Vars
+	 *
 	 * @var string (Optional) Error-Message, see: self::activate_user()
 	 */
 	var $error_message;
@@ -135,17 +133,15 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 4.1
+	 * @version 5.0
 	 * @since 1.0 method added
 	 * @since 2.0 `20.11.2018` `IneX` code & query optimizations, updated Cookie & Session info taken from config.inc.php
 	 * @since 3.0 `27.11.2018` `IneX` refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
 	 * @since 4.0 `10.12.2018` `IneX` adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
 	 * @since 4.1 `02.11.2019` `IneX` fixed ENUM("0")-Values from User DB-Record wrongfully set=true instead of =false
+	 * @since 5.0 `09.04.2021` `IneX` reworked Session and Cookie handling
 	 *
-	 * @uses ZORG_SESSION_ID
-	 * @uses ZORG_COOKIE_SESSION
-	 * @uses ZORG_COOKIE_USERID
-	 * @uses ZORG_COOKIE_USERPW
+	 * @uses ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW, ZORG_SESSION_LIFETIME, ZORG_COOKIE_SECURE
 	 * @see usersystem::login(), usersystem::invalidate_session(), timestamp()
 	 * @return object usersystem()-Class object
 	 */
@@ -153,16 +149,16 @@ class usersystem
 	{
 		global $db;
 
-		/**
-		 * Session init'en
-		 */
-		//if (!session_id()) {
-		if (!session_id()) {
-			session_name(ZORG_SESSION_ID);
-			session_start();
-		}
+		/** Grundsätzlich mal jeden zuerst als "Gast" anschauen */
+		$this->typ = USER_ALLE;
 
-		$this->typ = USER_ALLE; // grundsätzlich ist jeder zuerst mal "Gast"
+		/** Generelle Session Settings */
+		if (DEVELOPMENT && isset($_GET[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_GET[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_GET[ZORG_SESSION_ID]));
+		if (DEVELOPMENT && isset($_POST[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_POST[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_POST[ZORG_SESSION_ID]));
+		if (DEVELOPMENT && isset($_COOKIE[ZORG_COOKIE_SESSION])) error_log(sprintf('[DEBUG] <%s:%d> $_COOKIE[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_COOKIE[ZORG_COOKIE_SESSION]));
+		session_name(ZORG_SESSION_ID);
+		$this->reuse_session_id = (isset($_COOKIE[ZORG_SESSION_ID]) ? $_COOKIE[ZORG_SESSION_ID] : (isset($_POST[ZORG_SESSION_ID]) ? $_POST[ZORG_SESSION_ID] : (isset($_GET[ZORG_SESSION_ID]) ? $_GET[ZORG_SESSION_ID] : null))); // Reuse existing Session ID
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Reuse existing Session ID => %s', __METHOD__, __LINE__, (!empty($this->reuse_session_id) ? $this->reuse_session_id : 'false')));
 
 		/**
 		 * User Session konfigurieren
@@ -171,103 +167,108 @@ class usersystem
 		 * - ...ZORG_SESSION_ID => gesetzt
 		 * - ...oder ZORG_COOKIE_SESSION => gesetzt
 		 */
-		if (DEVELOPMENT && isset($_GET[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_GET[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_GET[ZORG_SESSION_ID]));
-		if (DEVELOPMENT && isset($_POST[ZORG_SESSION_ID])) error_log(sprintf('[DEBUG] <%s:%d> $_POST[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_POST[ZORG_SESSION_ID]));
-		if (DEVELOPMENT && isset($_COOKIE[ZORG_COOKIE_SESSION])) error_log(sprintf('[DEBUG] <%s:%d> $_COOKIE[ZORG_SESSION_ID]: %s', __METHOD__, __LINE__, $_COOKIE[ZORG_COOKIE_SESSION]));
-		if (session_id() || !empty($_GET[ZORG_SESSION_ID]) || !empty($_POST[ZORG_SESSION_ID]) || !empty($_COOKIE[ZORG_COOKIE_SESSION]))
+		if (!empty($this->reuse_session_id))
 		{
-			//session_start();
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Session Info bereits vorhanden', __METHOD__, __LINE__));
+			if (session_status() === PHP_SESSION_NONE) {
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Restart USER Session', __METHOD__, __LINE__));
+				session_set_cookie_params(['lifetime' => ZORG_SESSION_LIFETIME, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']);
+				session_id($this->reuse_session_id);
+				session_start();
+			}
 
+			/** User-ID ist in der Session vorhanden */
 			if (!empty($_SESSION['user_id']))
 			{
 				/** Query User Infos in der DB */
-				$sql = 'SELECT
-							 *,
+				$sql = 'SELECT *,
 							 UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
 							 UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
 							 UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
 						FROM '.$this->table_name.' 
-						WHERE
-							 id = '.$_SESSION['user_id'];
+						WHERE id = '.$_SESSION['user_id'];
 				$result = $db->query($sql, __FILE__, __LINE__);
 				$rs = $db->fetch($result);
 
-				/**
-				 * Assign User Infos to Vars of the Class-Object
-				 *
-				 * @var integer $id user_ID
-			 	 * @var string $activity Letzte Aktivität (Timestamp) des Users
-				 * @var string $addle Ob user addle spielen will.
-				 * @var string $clantag Clan Tag
-				 * @var string $currentlogin Aktueller login (Timestamp)
-				 * @var string $email Benutzer E-Mail Adresse
-				 * @var string $from_mobile wenn <>"", dann nutzt User einen mobilen Browser, bei 0 oder 'false' Desktop-Browser
-				 * @var string $image Benutzer bild (vollst?ndiger Pfad, falls kein Bild: "none.jpg")
-				 * @var string $lastlogin Letzer Login (Timestamp)
-				 * @var integer $maxdepth Forumanzeigeschwelle
-				 * @var integer $member Member (bool)
-				 * @var string $menulayout welches menu layout der user eingestellt hat.
-				 * @var string $password User passwort
-				 * @var string $show_comments Ob die Comments auf den smarty-pages angezeigt werden sollen (=1) oder nicht (=0)
-				 * @var integer $typ Benutzer typ
-				 * @var string $username Benutzername (ohne Clan Tag)
-				 * @var string $zorger hat der user zooomclan.org (retro) gewählt? sonst zorg.ch (modern) anzeigen
-				 * @var string $vereinsmitglied Vereinsmitglied-Status des user
-				 */
-				$this->id = $_SESSION['user_id'];
-				$this->email = $rs[$this->field_email];
-				$this->username = $rs[$this->field_username];
-				$this->clantag = $rs[$this->field_clantag];
-				$this->userpw = $rs[$this->field_userpw];
-				$this->typ = ($rs[$this->field_usertyp] != '' ? $rs[$this->field_usertyp] : USER_ALLE);
-				$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
-				$this->image = self::userImage(intval($_SESSION['user_id']));
-				$this->telegram = ($rs[$this->field_telegram] === '0' ? null : $rs[$this->field_telegram]);
-				$this->irc = $rs[$this->field_irc];
-				$this->activity = $rs[$this->field_activity];
-				$this->lastlogin = $rs[$this->field_lastlogin];
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->lastlogin: %s', __METHOD__, __LINE__, $this->lastlogin));
-				$this->currentlogin = $rs[$this->field_currentlogin];
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->currentlogin: %s', __METHOD__, __LINE__, $this->currentlogin));
-				$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
-				if ($this->ausgesperrt_bis > time()) $_geaechtet[] = $this->id;
-				$this->last_ip = $rs[$this->field_last_ip];
-				$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
-				$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
-				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
-				$this->sql_tracker = ($rs[$this->field_sql_tracker] === '0' ? false : true);
-				$this->addle = ($rs[$this->field_addle] === '0' ? false : true);
-				$this->chess = ($rs[$this->field_chess] === '0' ? false : true);
-				$this->forum_boards = json_decode($rs['forum_boards'], true);//explode(',', $rs['forum_boards']);
-				$this->forum_boards_unread = json_decode($rs['forum_boards_unread'], true);//explode(',', $rs['forum_boards_unread']);
-				$this->maxdepth = ($rs[$this->field_maxdepth] ? $rs[$this->field_maxdepth] : $this->maxdepth = DEFAULT_MAXDEPTH);
-				$this->menulayout = $rs[$this->field_menulayout];
-				$this->mymenu = $rs[$this->field_mymenu];
-				$this->zorger = ($rs[$this->field_zorger] === '0' ? false : true);
-				$this->vereinsmitglied = $rs[$this->field_vereinsmitglied];
-				$this->z_gremium = $rs[$this->field_z_gremium];
+				if (!empty($rs) && $rs !== false)
+				{
+					/**
+					 * Assign User Infos to Vars of the Class-Object
+					 *
+					 * @var integer $id user_ID
+					 * @var string $activity Letzte Aktivität (Timestamp) des Users
+					 * @var string $addle Ob user addle spielen will.
+					 * @var string $clantag Clan Tag
+					 * @var string $currentlogin Aktueller login (Timestamp)
+					 * @var string $email Benutzer E-Mail Adresse
+					 * @var string $from_mobile wenn <>"", dann nutzt User einen mobilen Browser, bei 0 oder 'false' Desktop-Browser
+					 * @var string $image Benutzer bild (vollst?ndiger Pfad, falls kein Bild: "none.jpg")
+					 * @var string $lastlogin Letzer Login (Timestamp)
+					 * @var integer $maxdepth Forumanzeigeschwelle
+					 * @var integer $member Member (bool)
+					 * @var string $menulayout welches menu layout der user eingestellt hat.
+					 * @var string $password User passwort
+					 * @var string $show_comments Ob die Comments auf den smarty-pages angezeigt werden sollen (=1) oder nicht (=0)
+					 * @var integer $typ Benutzer typ
+					 * @var string $username Benutzername (ohne Clan Tag)
+					 * @var string $zorger hat der user zooomclan.org (retro) gewählt? sonst zorg.ch (modern) anzeigen
+					 * @var string $vereinsmitglied Vereinsmitglied-Status des user
+					 */
+					$this->id = $_SESSION['user_id'];
+					$this->email = $rs[$this->field_email];
+					$this->username = $rs[$this->field_username];
+					$this->clantag = $rs[$this->field_clantag];
+					$this->userpw = $rs[$this->field_userpw];
+					$this->typ = ($rs[$this->field_usertyp] != '' ? $rs[$this->field_usertyp] : USER_ALLE);
+					$rs[$this->field_usertyp] >= 1 ? $this->member = 1 : $this->member = 0;
+					$this->image = self::userImage(intval($_SESSION['user_id']));
+					$this->telegram = ($rs[$this->field_telegram] === '0' ? null : $rs[$this->field_telegram]);
+					$this->irc = $rs[$this->field_irc];
+					$this->activity = $rs[$this->field_activity];
+					$this->lastlogin = $rs[$this->field_lastlogin];
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->lastlogin: %s', __METHOD__, __LINE__, $this->lastlogin));
+					$this->currentlogin = $rs[$this->field_currentlogin];
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->currentlogin: %s', __METHOD__, __LINE__, $this->currentlogin));
+					$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
+					if ($this->ausgesperrt_bis > time()) $_geaechtet[] = $this->id;
+					$this->last_ip = $rs[$this->field_last_ip];
+					$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
+					$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
+					$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
+					$this->sql_tracker = ($rs[$this->field_sql_tracker] === '0' ? false : true);
+					$this->addle = ($rs[$this->field_addle] === '0' ? false : true);
+					$this->chess = ($rs[$this->field_chess] === '0' ? false : true);
+					$this->forum_boards = json_decode($rs['forum_boards'], true);//explode(',', $rs['forum_boards']);
+					$this->forum_boards_unread = json_decode($rs['forum_boards_unread'], true);//explode(',', $rs['forum_boards_unread']);
+					$this->maxdepth = ($rs[$this->field_maxdepth] ? $rs[$this->field_maxdepth] : $this->maxdepth = DEFAULT_MAXDEPTH);
+					$this->menulayout = $rs[$this->field_menulayout];
+					$this->mymenu = $rs[$this->field_mymenu];
+					$this->zorger = ($rs[$this->field_zorger] === '0' ? false : true);
+					$this->vereinsmitglied = $rs[$this->field_vereinsmitglied];
+					$this->z_gremium = $rs[$this->field_z_gremium];
 
-				/** Nur für Vereinsmitglieder */
-				if (!empty($this->vereinsmitglied)) $this->firstname = $rs[$this->field_firstname];
-				if (!empty($this->vereinsmitglied)) $this->lastname = $rs[$this->field_lastname];
+					/** Nur für Vereinsmitglieder */
+					if (!empty($this->vereinsmitglied)) $this->firstname = $rs[$this->field_firstname];
+					if (!empty($this->vereinsmitglied)) $this->lastname = $rs[$this->field_lastname];
 
-				/**
-				 * Mobile User Agent abfragen & speichern
-				 * wenn nicht Mobile, dann in der DB '' (leer) und im $user Object 'false'
-				 */
-				$userMobileClientAgent = isMobileClient($_SERVER['HTTP_USER_AGENT']);
-				$this->from_mobile = (!empty($userMobileClientAgent) ? reset($userMobileClientAgent) : false );
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> isMobileClient(): %s => %s', __METHOD__, __LINE__, $_SERVER['HTTP_USER_AGENT'], ( $this->from_mobile ? $this->from_mobile : 'false')));
+					/**
+					 * Mobile User Agent abfragen & speichern
+					 * wenn nicht Mobile, dann in der DB '' (leer) und im $user Object 'false'
+					 */
+					$userMobileClientAgent = isMobileClient($_SERVER['HTTP_USER_AGENT']);
+					$this->from_mobile = (!empty($userMobileClientAgent) ? reset($userMobileClientAgent) : false );
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> isMobileClient(): %s => %s', __METHOD__, __LINE__, $_SERVER['HTTP_USER_AGENT'], ( $this->from_mobile ? $this->from_mobile : 'false')));
 
-				/**
-				 * Update last user activity
-				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
-				 */
-				$db->update($this->table_name, ['id', $this->id], [
-					$this->field_activity => timestamp(false),
-					$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
-					$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
-				], __FILE__, __LINE__, __METHOD__);
+					/**
+					 * Update last user activity
+					 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
+					 */
+					$db->update($this->table_name, ['id', $this->id], [
+						$this->field_activity => timestamp(false),
+						$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
+						$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
+					], __FILE__, __LINE__, __METHOD__);
+				}
 			}
 
 			/** Falls Session-Cookies existieren */
@@ -283,9 +284,15 @@ class usersystem
 			$this->login($_COOKIE[ZORG_COOKIE_USERID], $_COOKIE[ZORG_COOKIE_USERPW], true);
 		}
 
-		/** Ansonsten falls keine Session: zur Sicherheit Session-Cookie(s) & Session-Paramter in URL invalidieren */
+		/** Ansonsten falls keine Session: Guest Session initialisieren */
 		else {
-			self::invalidate_session();
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Keine Session Info vorhanden', __METHOD__, __LINE__));
+			if (session_status() === PHP_SESSION_NONE) {
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Starte neue GUEST Session', __METHOD__, __LINE__));
+				session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']); // Default Session expiration: Session only
+				if (!empty($this->reuse_session_id)) session_id($this->reuse_session_id);
+				session_start();
+			}
 		}
 	}
 
@@ -294,22 +301,20 @@ class usersystem
 	 *
 	 * Erstellt eine Session (login)
 	 *
-	 * @author [z]biko
-	 * @author IneX
-	 * @version 4.2
+	 * @author [z]cylander
+	 * @version 4.3
 	 * @since 1.0 method added
 	 * @since 2.0 `12.11.2018` `IneX` code & query optimizations
 	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
 	 * @since 4.0 `10.12.2018` `IneX` Improved Cookie-Settings (secure and stuff)
 	 * @since 4.1 `21.12.2018` `IneX` Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
 	 * @since 4.2 `04.04.2021` `IneX` Optimized Cookie and Session initialisation
+	 * @since 4.3 `07.04.2021` `IneX` Updated to use modified usersystem::crypt_pw(), use better IP detection and Session handling
 	 *
-	 * @uses ZORG_SESSION_ID
-	 * @uses ZORG_COOKIE_SESSION
-	 * @uses ZORG_COOKIE_USERID
-	 * @uses ZORG_COOKIE_USERPW
-	 * @see crypt_pw(), timestamp(), usersystem::invalidate_session()
-	 * @var $login_error
+	 * @uses ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW, ZORG_SESSION_LIFETIME, ZORG_COOKIE_SECURE
+	 * @uses usersystem::crypt_pw(), usersystem::invalidate_session()
+	 * @uses timestamp(), getRealIPaddress()
+	 *
 	 * @param string $username Benutzername
 	 * @param string $password Passwort-Hash
 	 * @param boolean $use_cookie Use Cookie 'true' oder 'false' - default: false
@@ -328,17 +333,34 @@ class usersystem
 			$rs = $db->fetch($result);
 
 			/**
-			 * Verschlüsslet das übergebenes Passwort
-			 * a) ...wie übergeben vom Login-Formular
-			 * b) ...aus dem - wenn vorhanden - Brwoser-Cookie
+			 * Verifiziert das übergebenes Passwort
 			 */
 			if (!empty($password) && empty($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
 				/** a) Login-Form Password Check */
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> !empty($password)', __METHOD__, __LINE__));
-				$crypted_pw = crypt_pw($password);
+				$hash_matches_pw = $this->verify_pw($password, $rs['userpw']);
+				if (true === $hash_matches_pw)
+				{
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: Password matches Hash - OK', __METHOD__, __LINE__));
+					/** But wait: do we have a new Hash? Because usersystem::upgrade_old_pw() was invoked? */
+					if (isset($this->userpw) && !empty($this->userpw))
+					{
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: Ou dang! Password-Fallback using Hash from $this->userpw', __METHOD__, __LINE__));
+						$crypted_pw = $this->userpw;
+					} else {
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: All good, regular Password match is OK', __METHOD__, __LINE__));
+						$crypted_pw = $rs['userpw'];
+					}
+				} else {
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: Password and Hash MISMATCH!', __METHOD__, __LINE__));
+					$crypted_pw = null;
+				}
 			}
 
+			/**
+			 * b) ...aus dem - wenn vorhanden - Browser-Cookie
+			 */
 			elseif (!empty($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
 				/** Cookie-Passwort Plausibilisierung gegen User DB-Eintrag */
@@ -353,14 +375,14 @@ class usersystem
 				/** Cookie Password vs. User DB-Eintrag matchen NICHT! */
 				else {
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> User Cookie Password vs. User DB-Eintrag matchen NICHT!', __METHOD__, __LINE__));
-					self::invalidate_session();
+					$this->invalidate_session();
 					http_response_code(403); // Set response code 403 (forbidden)
 					$error = t('invalid-cookie', 'user');
 					user_error(t('invalid-cookie', 'user'), E_USER_WARNING); // Warnung ausgeben
 				}
 			}
 
-			if (!empty($crypted_pw))
+			if (isset($crypted_pw) && !empty($crypted_pw))
 			{
 				/** erstellt SQL string für Passwort-überprüfung */
 				$sql = sprintf('SELECT
@@ -400,10 +422,27 @@ class usersystem
 						/** überprüfe ob User nicht ausgesperrt ist */
 						if($this->is_lockedout($rs[$this->field_ausgesperrt_bis]) === false)
 						{
+							if (!empty($this->reuse_session_id)) {
+								/**
+								 * Note: it's best practice to create a new Session ID after login.
+								 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#define_the_lifetime_of_a_cookie
+								 */
+								$this->invalidate_session();
+								if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Starte neue ZORG USER Session', __METHOD__, __LINE__));
+								session_set_cookie_params(['lifetime' => ZORG_SESSION_LIFETIME, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']);
+								$new_session_id = session_create_id();
+								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> NEW Session ID created: %s', __METHOD__, __LINE__, $new_session_id));
+								if ($new_session_id !== false) {
+									$this->reuse_session_id = $new_session_id;
+									session_id($new_session_id);
+								}
+								session_start();
+							}
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Assigning $rs[id] => $_SESSION[user_id]: %s', __METHOD__, __LINE__, $rs['id']));
 							$_SESSION['user_id'] = $rs['id'];
 
 							/** Wenn "Autologin" (mit Cookie) aktiviert wurde vom User */
-							if($this->use_cookie == TRUE && $use_cookie)
+							if($this->enable_cookies === true && $use_cookie === true)
 							{
 								/**
 								 * Cookie settings:
@@ -415,15 +454,13 @@ class usersystem
 								 * - secure: Gibt an, dass das Cookie vom Client nur über eine sichere HTTPS-Verbindung übertragen werden soll.
 								 * - httponly:  Wenn auf TRUE gesetzt, ist das Cookie nur via HTTP-Protokoll zugreifbar (z.B. nicht mehr via JavaScript auslesbar/veränderbar)
 								 * 
-								 * *Important remark for 'domain': domain names must contain at least two dots (.),
-								 * hence 'localhost' is invalid and the browser will refuse to set the cookie! instead for localhost you should use false. 
+								 * Domain 'localhost' is invalid and the browser will refuse to set the cookie! instead for localhost you should use false. 
 								 * @link http://php.net/manual/de/function.setcookie.php
 								 * @link http://php.net/manual/de/function.setcookie.php#73107
 								 */
-								$cookieTimeout = time()+60*60*24*7; // 1 Woche
-								$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
-								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']);
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => $cookieTimeout, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']);
+								setcookie(ZORG_COOKIE_SESSION, session_id(), ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']);
+								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']);
+								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']);
 							}
 
 							/** Last Login & current Login updaten */
@@ -431,7 +468,7 @@ class usersystem
 							$db->update($this->table_name, ['id', $rs['id']], [
 								$this->field_lastlogin => timestamp(false, $rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(false),
-								$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
+								$this->field_last_ip => getRealIPaddress(),
 							], __FILE__, __LINE__, __METHOD__);
 
 							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : htmlspecialchars($_SERVER['PHP_SELF']).(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
@@ -471,8 +508,7 @@ class usersystem
 	 * @since 2.0 fixed "If you put a date too far in the past, IE will bark and igores it, i.e. the value will not be removed"
 	 * @since 3.0 `21.11.2018` Fixed redirect bei Logout auf jeweils aktuelle Seite, nicht immer Home
 	 *
-	 * @link https://stackoverflow.com/questions/686155/remove-a-cookie
-	 * @uses self::invalidate_session()
+	 * @uses usersystem::invalidate_session()
 	 * @return void
 	 */
 	static function logout()
@@ -489,32 +525,41 @@ class usersystem
 	/**
 	 * Session & Cookies invalidieren
 	 *
+	 * @link https://stackoverflow.com/questions/686155/remove-a-cookie
+	 *
 	 * @author IneX
-	 * @version 1.0
+	 * @version 2.0
 	 * @since 1.0 `28.11.2018` `IneX` method added
+	 * @since 2.0 `08.04.2021` `IneX` Fixed proper Session & Cookie removal (order matters... who knew)
 	 *
 	 * @return void
 	 */
 	static function invalidate_session()
 	{
-		/** Session destroy */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Destroying Session for user %d', __METHOD__, __LINE__, (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'not logged in')));
-		session_name(ZORG_SESSION_ID);
-		session_start();
 
-		/** Cookies killen - einmal unsetten & danach invalidieren */
-		$cookieSecure = (SITE_PROTOCOL === 'https' ? true : false);
+		/** Session destroy */
 		if (isset($_GET[ZORG_SESSION_ID])) unset($_GET[ZORG_SESSION_ID]); // Session-Parameter unsetten
 		if (isset($_POST[ZORG_SESSION_ID])) unset($_POST[ZORG_SESSION_ID]); // Session-Parameter unsetten
-		unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
-		unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
-		unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
-		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => '/', 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']); // zorg Session-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => '/', 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']); // Login-Cookie invalidieren
-		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => '/', 'secure' => $cookieSecure, 'httponly' => true, 'samesite' => 'strict']); // Password-Cookie invalidieren
+		if (session_status() === PHP_SESSION_NONE) {
+			/** Session muss vor dem Destroy initialisiert werden ! */
+			session_set_cookie_params(['lifetime' => null, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']);
+			session_name(ZORG_SESSION_ID);
+			$reuse_session_id = (isset($_COOKIE[ZORG_SESSION_ID]) ? $_COOKIE[ZORG_SESSION_ID] : (isset($_POST[ZORG_SESSION_ID]) ? $_POST[ZORG_SESSION_ID] : (isset($_GET[ZORG_SESSION_ID]) ? $_GET[ZORG_SESSION_ID] : null))); // Reuse existing Session ID
+			if (!empty($reuse_session_id)) session_id($reuse_session_id);
+			session_start();
+		}
+		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
+
+		/** Cookies killen - einmal unsetten & danach invalidieren */
+		if (isset($_COOKIE[ZORG_COOKIE_SESSION])) unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
+		if (isset($_COOKIE[ZORG_COOKIE_USERID])) unset($_COOKIE[ZORG_COOKIE_USERID]); // Login-Cookie unsetten
+		if (isset($_COOKIE[ZORG_COOKIE_USERPW])) unset($_COOKIE[ZORG_COOKIE_USERPW]); // Password-Cookie unsetten
+		setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']); // zorg Session-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']); // Login-Cookie invalidieren
+		setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Lax']); // Password-Cookie invalidieren
 
 		/** Finally destroy the PHP Session store */
-		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
 		session_unset();
 		session_destroy();
 	}
@@ -546,16 +591,17 @@ class usersystem
 	 * Neues Passwort
 	 * Generiert ein Passwort für einen bestehenden User
 	 *
-	 * @version 4.2
+	 * @version 4.3
 	 * @since 1.0 method added
 	 * @since 2.0 global strings added
 	 * @since 3.0 `17.10.2018` `IneX` Fixed Bug #763: Passwort vergessen funktioniert nicht
 	 * @since 4.0 `21.10.2018` `IneX` Code & DB-Query improvements
 	 * @since 4.1 `04.01.2019` `IneX` Fixed handling $db->update() result, changed Error messages, added debugging-output on DEV
 	 * @since 4.2 `04.04.2021` `IneX` Adjusted string encoding for MIME header of To: & Subject: lines in e-mail
+	 * @since 4.3 `07.04.2021` `IneX` Updated to use modified usersystem::crypt_pw()
 	 *
 	 * @uses usersystem::password_gen()
-	 * @uses crypt_pw()
+	 * @uses usersystem::crypt_pw()
 	 * @uses ZORG_EMAIL
 	 * @param string $email E-Mailadresse für deren User das PW geändert werden soll
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -585,7 +631,7 @@ class usersystem
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> password_gen() done: %s', __METHOD__, __LINE__, $new_pass));
 
 				/** 2. verschlüssle neues passwort */
-				$crypted = crypt_pw($new_pass);
+				$crypted = $this->crypt_pw($new_pass);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> crypt_pw() done: %s', __METHOD__, __LINE__, $crypted));
 
 				/** 3. trage aktion in errors ein */
@@ -632,7 +678,7 @@ class usersystem
 	 * @since 2.0 replaced messages with Translation-String solution t()
 	 * @since 3.0 `04.12.2018` removed IMAP-code, code & query optimizations
 	 *
-	 * @uses crypt_pw()
+	 * @uses usersystem::crypt_pw()
 	 * @uses t()
 	 * @param string $username Benutzername
 	 * @param string $pw Passwort
@@ -670,7 +716,7 @@ class usersystem
 							$key = $this->regcode_gen($username);
 
 							/** verschlüssle passwort */
-							$crypted_pw = crypt_pw($pw);
+							$crypted_pw = $this->crypt_pw($pw);
 
 							/** user eintragen */
 							$sql = "INSERT into ".$this->table_name." 
@@ -708,13 +754,122 @@ class usersystem
 	}
 
 	/**
+	 * Passwort encryption
+	 *
+	 * Verschlüsselt ein Passwort als Hash.
+	 * Benutzt den Default Algorithmus (Blowfish).
+	 * ACHTUNG: nicht PASSWORD_BCRYPT verwenden, weil dann der eingehende String auf 72 chars truncated wird!
+	 *
+	 * @version 2.0
+	 * @since 1.0 `milamber` Method added
+	 * @since 2.0 `07.04.2021` `IneX` Moved function from util.inc.php & changed to password_hash() conversion
+	 *
+	 * @link https://www.php.net/manual/en/function.password-hash.php
+	 * @see usersystem::verify_pw()
+	 *
+	 * @param string $password Plaintext Passwort
+	 * @return string|bool Hashed $password (or false)
+	 */
+	function crypt_pw($password)
+	{
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Calculation a Password Hash for you...', __METHOD__, __LINE__));
+		return password_hash($password, PASSWORD_DEFAULT);
+	}
+
+	/**
+	 * Passwort hash verification
+	 *
+	 * Prüft ein Passwort mit dem vorhandenen Password-Hash.
+	 * Ist das Gegenstück zur password_hash()-Funktion.
+	 *
+	 * @version 1.0
+	 * @since 1.0 `07.04.2021` `IneX` Method added
+	 *
+	 * @link https://www.php.net/manual/en/function.password-verify.php
+	 * @uses usersystem::upgrade_pw()
+	 *
+	 * @param string $password Plaintext Passwort das verifiziert werden soll
+	 * @param string $password_hash Plaintext Passwort das verifiziert werden soll
+	 * @return bool True wenn $password zum Hash matchen, False wenn nicht
+	 */
+	function verify_pw($password, $password_hash)
+	{
+		$password_hash_check = $this->upgrade_old_pw($password, $password_hash);
+		if (false === $password_hash_check)
+		{
+			/** PW upgrade required, but it failed */
+			return false;
+		} else {
+			/** Regular Verification */
+			return password_verify($password, (true === $password_hash_check ? $password_hash : $password_hash_check));
+		}
+	}
+
+	/**
+	 * Upgrade an old DES encrypted Password Hash
+	 *
+	 * Upgrade für alte crypt() DES basierten PW Hashes. Nur falls nötig.
+	 * Diese Hashes haben eine fixe Länge von 13 Zeichen & starten immer mit "CR":
+	 * - z.B.:`CR0DiniMueter`
+	 *
+	 * @version 1.0
+	 * @since 1.0 `08.04.2021` `IneX` Method added
+	 *
+	 * @param string $password Plaintext Passwort das verifiziert werden soll
+	 * @param string $password_hash Plaintext Passwort das verifiziert werden soll
+	 * @return string|bool True wenn kein Upgrade nötig, neuer Hash-String wenn $password_hash updated wurde, False bei Fehler
+	 */
+	function upgrade_old_pw($password, $password_hash)
+	{
+		/**
+		 * Check ob Hash ein alter crypt() DES basierter Hash ist & upgraded werden muss
+		 */
+		if (strlen($password_hash) === 13 && substr($password_hash, 0, 2) === 'CR')
+		{
+			/** $password_hash is old, thus we need to upgrade it NOW! */
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Oh, oh - we have an old Password Hash!', __METHOD__, __LINE__));
+			if ($password_hash === crypt($password, 'CRYPT_BLOWFISH'))
+			{
+				/** ...but only if it matches to old Hash */
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Old Password Hash is VALID', __METHOD__, __LINE__));
+				$temp_password_hash = $this->crypt_pw($password); // Temporary *Upgraded* Password Hash
+				$this->userpw = $temp_password_hash; // Store temporary *new" Password Hash -> needed for exec_newpassword()
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> TEMPORARY $this->userpw = %s', __METHOD__, __LINE__, $this->userpw));
+
+				/** Directly update the User's OLD hash with the NEW one */
+				$pw_upgrade = $this->exec_newpassword($this->user2id($_POST['username']), $password, $password, $password); // The Password itself does not change, of course.
+				if ($pw_upgrade[0] !== false)
+				{
+					/** exec_newpassword() failed, deshalb ABBRUCH */
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Password *Upgrade* FAILED', __METHOD__, __LINE__));
+					return false;
+				} else {
+					/* DONE - return upgraded Password Hash */
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Password *Upgrade* SUCCESS', __METHOD__, __LINE__));
+					return $password_hash;
+				}
+			} else {
+				/** Otherwise: no need to proceed... */
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Old Password Hash is WRONG', __METHOD__, __LINE__));
+				return false;
+			}
+		} else {
+			/** Not an old DES Hash... */
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Skip - Password is not old / not DES', __METHOD__, __LINE__));
+			return true;
+		}
+	}
+	
+	/**
 	 * Online Users
+	 *
 	 * Gibt Online Users als HTML aus
 	 *
-	 * @version 2.1
+	 * @version 2.2
 	 * @since 1.0 Method added
 	 * @since 2.0 `IneX` Code optimizations
 	 * @since 2.1 `17.04.2020` `IneX` SQL Slow-Query optimization
+	 * @since 2.2 `10.04.2021` `IneX` Code optimizations (store $db->num instead of calling it in loop)
 	 *
 	 * @TODO HTML can be returned using new function usersystem::userpage_link()
 	 *
@@ -727,31 +882,34 @@ class usersystem
 	{
 		global $db;
 
-		$sql = 'SELECT id, username, clan_tag, activity
-				FROM user
-				WHERE activity > (NOW() - '.USER_TIMEOUT.')
-				ORDER by activity DESC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		$i = 0;
 		$html = '';
-		while($rs = $db->fetch($result))
+		$count = 0;
+		$sql = 'SELECT id, username, clan_tag, activity FROM user 
+				WHERE activity > (NOW() - '.USER_TIMEOUT.') ORDER by activity DESC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$num_online = $db->num($result);
+		if (!empty($num_online) && $num_online !== false)
 		{
-			$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
-			if ($pic == FALSE)
+			while ($rs = $db->fetch($result))
 			{
-				//$html .= usersystem::link_userpage($rs[id], FALSE).', ';
-				$html .= '<a href="/profil.php?user_id='.$rs['id'].'">'.$full_username.'</a>';
-				if(($i+1) < $db->num($result)) $html .= ', ';
-			} else {
-				$html .= '<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" border="0"><tr><td><a href="/profil.php?user_id='.$rs['id'].'">'
-						 .'<img border="0" src="'.USER_IMGPATH_PUBLIC.$rs['id'].'.jpg" title="'.$full_username.'">'
-						 .'</a></td></tr>'
-						 .'<tr>'
-						 .'<td align="center">'
-						 .'<a href="/profil.php?user_id='.$rs['id'].'">'.$full_username.'</a>'
-						 .'</td></tr></table><br />';
+				$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
+				if ($pic == FALSE)
+				{
+					$html .= sprintf('<a href="/profil.php?user_id=%s">%s</a>', (string)$rs['id'], $full_username);
+					if(($count+1) < $num_online) $html .= ', ';
+				} else {
+					// @FIXME Change to <div> with flexbox, use Smarty Tpl Partial?
+					$html .= sprint('<table bgcolor="%1$s" border="0"><tr><td>
+										<a href="/profil.php?user_id=%2$s">
+											<img border="0" src="%3$s.jpg" title="%4$s">
+										</a>
+									</td></tr><tr><td align="center">
+										<a href="/profil.php?user_id=%2$s">%4$s</a>
+									</td></tr></table><br>',
+							TABLEBACKGROUNDCOLOR, (string)$rs['id'], USER_IMGPATH_PUBLIC.$rs['id'], $full_username);
+				}
+				$count++;
 			}
-			$i++;
 		}
 		return $html;
 	}
@@ -777,7 +935,7 @@ class usersystem
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		if($db->num($result))
 		{
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: VALID', __FUNCTION__, __LINE__));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: VALID', __METHOD__, __LINE__));
 			$rs = $db->fetch($result);
 
 			/** User already activated */
@@ -805,7 +963,7 @@ class usersystem
 				}
 			}
 		} else {
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: INVALID', __FUNCTION__, __LINE__));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: INVALID', __METHOD__, __LINE__));
 			$this->error_message = t('invalid-regcode', 'user');
 			$this->logerror(2,0);
 			return false;
@@ -820,8 +978,8 @@ class usersystem
 	 * @TODO Refactor this functionality & solve this differently. Needs updateing of usersystem::login()
 	 *
 	 * @return void
-	 * @param $do int Aktion
-	 * @param $user_id int User ID
+	 * @param int $do Aktion
+	 * @param int $user_id User ID
 	 */
 	function logerror($do,$user_id) {
 		global $db;
@@ -841,8 +999,8 @@ class usersystem
 	 *
 	 * Erstellt einen Registrationscode für einen Benutzer
 	 *
+	 * @param string $username
 	 * @return string hash
-	 * @param $username string
 	 */
 	function regcode_gen($username) {
 		$hash = md5($username);
@@ -875,7 +1033,6 @@ class usersystem
 	 * @version 1.0
 	 * @since 1.0 `14.11.2018` method added
 	 *
-	 * @var $_geaechtet
 	 * @param integer $ausgesperrt_bis_timestamp Unix-Timestamp for specific date to check lockout against 
 	 * @global array $_geaechtet Globales Array mit allen geächteten Usern
 	 * @return bool Returns true/false if user is currently locked out, or not 
@@ -884,17 +1041,17 @@ class usersystem
 	{
 		global $_geaechtet;
 
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => %s > %s ?', __FUNCTION__, __LINE__, $ausgesperrt_bis_timestamp, time()));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => %s > %s ?', __METHOD__, __LINE__, $ausgesperrt_bis_timestamp, time()));
 		if (!empty($ausgesperrt_bis_timestamp) && $ausgesperrt_bis_timestamp > 0)
 		{
 			if ($ausgesperrt_bis_timestamp > time())
 			{
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE', __FUNCTION__, __LINE__));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE', __METHOD__, __LINE__));
 				$_geaechtet[] = $_SESSION['user_id'];
 				return true;
 			}
 		} else if (isset($_SESSION['user_id']) && !empty($_geaechtet[$_SESSION['user_id']])) {
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE ($_geachtet !)', __FUNCTION__, __LINE__));
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => TRUE ($_geachtet !)', __METHOD__, __LINE__));
 			return true;
 		} else {
 			if (isset($this->ausgesperrt_bis) && $this->ausgesperrt_bis > time())
@@ -903,7 +1060,7 @@ class usersystem
 				return true;
 			}
 		}
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => FALSE', __FUNCTION__, __LINE__));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Ausgesperrt => FALSE', __METHOD__, __LINE__));
 		return false;
 	}
 
@@ -918,7 +1075,7 @@ class usersystem
 	 * @since 1.0 method added
 	 * @since 2.0 `04.01.2019` updated mechanism and form of generated passwords, not using $username string anymore
 	 *
-	 * @param $length integer (Optional) specify length of random password to generate, Default: 12
+	 * @param integer $length (Optional) specify length of random password to generate, Default: 12
 	 * @return string Passwort
 	 */
 	function password_gen($length=12)
@@ -950,7 +1107,7 @@ class usersystem
 	 *
 	 * @uses USER_IMGPATH
 	 * @uses USER_IMGEXTENSION
-	 * @param $userid int User ID
+	 * @param int $userid User ID
 	 * @return string|bool Returns userimage path as string, or false if not found
 	 */
 	function checkimage($userid)
@@ -986,12 +1143,8 @@ class usersystem
 	 * @since 1.0 Method added
 	 * @since 2.0 `IneX` Check & load cached Gravatar, optimized if-else
 	 *
-	 * @uses USER_IMGPATH
-	 * @uses USER_IMGPATH_PUBLIC
-	 * @uses USER_IMGSIZE_SMALL
-	 * @uses USER_IMGSIZE_LARGE
-	 * @uses self::checkimage()
-	 * @uses self::get_gravatar()
+	 * @uses USER_IMGPATH, USER_IMGPATH_PUBLIC, USER_IMGSIZE_SMALL, USER_IMGSIZE_LARGE
+	 * @uses usersystem::checkimage(), usersystem::get_gravatar()
 	 * @param int $userid User ID
 	 * @param boolean $large Large image true/false
 	 * @return string URL-Pfad zum Bild des Users
@@ -1075,6 +1228,8 @@ class usersystem
 	 *
 	 * Konvertiert eine ID zum entsprechenden Username (wahlweise inkl. Clantag oder ohne), oder dem HTML-Code zur Anzeige des Userpics
 	 *
+	 * @TODO 20.07.2018 Find out & fix issue with Query failing on id=$id instead of id="$id"...
+	 *
 	 * @author IneX
 	 * @version 5.0
 	 * @since 1.0
@@ -1083,9 +1238,7 @@ class usersystem
 	 * @since 4.0 changed output to new function usersystem::userprofile_link()
 	 * @since 5.0 added better validation for $id & changed return to 'false' if $id doesn't exist
 	 *
-	 * @TODO 20.07.2018 Find out & fix issue with Query failing on id=$id instead of id="$id"...
-	 *
-	 * @uses self::userprofile_link()
+	 * @uses usersystem::userprofile_link()
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @param integer $id User ID
 	 * @param boolean $clantag Username mit Clantag true/false
@@ -1168,20 +1321,22 @@ class usersystem
 	 *
 	 * Konvertiert einen Username zur dazugehörigen User ID
 	 *
+	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 initial function
 	 * @since 2.0 optimized sql-query
-	 * @author IneX
+	 * @since 2.1 `07.07.2021` code & return value optimization
 	 *
 	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
-	 * @param $username string Username
+	 * @param string $username Username
 	 * @return int User ID oder 0
 	 */
-	function user2id ($username) {
+	function user2id ($username)
+	{
 		global $db;
-		$e = $db->query("SELECT id FROM user WHERE username='$username' LIMIT 1", __FILE__, __LINE__, __METHOD__);
+		$e = $db->query('SELECT id FROM user WHERE username="'.$username.'" LIMIT 1', __FILE__, __LINE__, __METHOD__);
 		$d = $db->fetch($e);
-		return ($d ? $d['id'] : 0);
+		return ($d !== false || !empty($d) ? $d['id'] : 0);
 	}
 
 	/**
@@ -1197,7 +1352,7 @@ class usersystem
 	 *
 	 * @TODO there is no $clantag passed to this function?!
 	 *
-	 * @uses self::userprofile_link()
+	 * @uses usersystem::userprofile_link()
 	 * @param	integer	$id				User-ID
 	 * @param	boolean	$displayName	Zeigt Usernamen unter dem Bild an
 	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
@@ -1427,7 +1582,7 @@ class usersystem
 	 * Prüft eine User-ID, ob der User von einem Mobilen Browser zugreift
 	 *
 	 * @return string last Mobile Useragent
-	 * @param $id int User ID
+	 * @param int $id User ID
 	 */
 	function ismobile ($id)
 	{
@@ -1504,7 +1659,7 @@ class usersystem
 	 * @since 1.0 initial version
 	 * @since 2.0 changed output to new function usersystem::userprofile_link()
 	 *
-	 * @uses self::userprofile_link()
+	 * @uses usersystem::userprofile_link()
 	 * @param int $user_id User ID
 	 * @param bool $pic Userpic mitausgeben
 	 * @return string html
@@ -1535,7 +1690,7 @@ class usersystem
 	 * @deprecated Ersetzt mit usersystem::userprofile_link()
 	 * @TODO wird diese Methode usersystem::userpagelink() noch benötigt irgendwo? Sonst: raus!
 	 *
-	 * @uses self::userpage_link()
+	 * @uses usersystem::userpage_link()
 	 */
 	function userpagelink($userid, $clantag, $username) {
 		/** @deprecated
@@ -1601,7 +1756,7 @@ class usersystem
 	 * @TODO @[z]milamber: Warum ist dies nicht im quotes.inc.php? Und wir brauchen das nicht mal?!</b>
 	 *
 	 * @return string quote
-	 * @param $user_id int User ID
+	 * @param int $user_id User ID
 	 */
 	function quote($user_id) {
 		global $db;
@@ -1680,12 +1835,13 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 3.0
+	 * @version 4.0
 	 * @since 1.0 function added
-	 * @since 2.0 `03.10.2018` function improved
-	 * @since 3.0 `11.11.2018` function moved to usersystem()-Class
+	 * @since 2.0 `03.10.2018` `IneX` function improved
+	 * @since 3.0 `11.11.2018` `IneX` function moved to usersystem()-Class
+	 * @since 4.0 `07.04.2021` `IneX` Updated to use modified usersystem::crypt_pw()
 	 *
-	 * @uses crypt_pw()
+	 * @uses usersystem::crypt_pw()
 	 * @param integer $user_id User-ID
 	 * @param string $old_pass Previous User Password
 	 * @param string $new_pass New User Password 
@@ -1700,21 +1856,24 @@ class usersystem
 
 		$error[0] = FALSE;
 
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d>', __METHOD__, __LINE__));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec_newpassword...', __METHOD__, __LINE__));
 		if(!empty($old_pass) && !empty($new_pass) && !empty($new_pass2))
 		{
 			/** Hash $old_pass */
-			$crypted_old_pass = crypt_pw($old_pass);
+			//$crypted_old_pass = $this->crypt_pw($old_pass);
 
 			/** Check Hash of $old_pw against saved Hash */
-			if($crypted_old_pass === $this->userpw)
+			//if($crypted_old_pass === $this->userpw)
+			if ($this->verify_pw($old_pass, $this->userpw))
 			{
 				/** Check $new_pass was entered twice & identical */
 				if($new_pass === $new_pass2)
 				{
 					/** Hash $new_pass for storing in DB */
-					$crypted_new_pass = crypt_pw($new_pass);
-					$result = $db->update('user', ['id', $_SESSION['user_id']], ['userpw' => $crypted_new_pass], __FILE__, __LINE__, __METHOD__);
+					$crypted_new_pass = $this->crypt_pw($new_pass); // FINAL *Upgraded* Password Hash
+					$this->userpw = $crypted_new_pass; // Store FINAL *new" Password Hash
+					$result = $db->update('user', ['id', $user_id], ['userpw' => $crypted_new_pass], __FILE__, __LINE__, __METHOD__);
+					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Final $this->userpw = %s', __METHOD__, __LINE__, $this->userpw));
 					if ($result === 0 || !$result) {
 						$error[0] = TRUE;
 						$error[1] = t('error-userpw-update', 'user');
@@ -1750,7 +1909,6 @@ class usersystem
 	 * @since 3.0 `11.11.2018` function moved to usersystem()-Class
 	 *
 	 * @uses check_email()
-	 * @var $_geaechtet
 	 * @param integer $user_id User-ID
 	 * @param array $data_array Userprofile Infos in einem assoziativen Array, mit denen das Profil aktualisiert wird ($_POST aus dem Form)
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1982,13 +2140,13 @@ class usersystem
 	/**
 	 * User aussperren bis zu einem gewissen Zeitpunkt
 	 *
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/profil.php Logout-action is triggered through /actions/profil.php
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0 `11.11.2018` method added, code adapted from /actions/profil.php
 	 *
-	 * @var $_geaechtet
-	 * @uses self::logout()
-	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/profil.php Logout-action is triggered through /actions/profil.php
+	 * @uses usersystem::logout()
 	 * @param integer $user_id User-ID
 	 * @param array $date_array Array mit Datum-Elementen bis wann User ausgesperrt werden soll ('year' => xxxx, 'month' => xxxx,...)
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -2041,9 +2199,6 @@ static $_users = array();
 /** Ausgesperrte User werden geächtet! */
 static $_geaechtet = array();
 
-/** Instantiate a new usersystem Class */
-//$user = new usersystem();
-
 /**
  * LOGOUT
  * Fun fact: wenn der NACH dem Login-Check kommt, dann wird man wieder eingeloggt...
@@ -2077,7 +2232,7 @@ if (isset($_POST['do']) && $_POST['do'] === 'login')
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form)', '$user->login()', __LINE__));
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
-		$auto = isset($_POST['autologin']) && $_POST['autologin'] === 'cookie';
+		$auto = (isset($_POST['autologin']) && $_POST['autologin'] === 'cookie' ? true : false); // User wants Autologin on/off?
 		$login_error = $user->login($_POST['username'], $_POST['password'], $auto);
 	} else {
 		$login_error = t('authentication-failed', 'user');

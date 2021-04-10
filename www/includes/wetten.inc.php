@@ -5,17 +5,13 @@
  * @author freiländer
  * @package zorg\Wetten
  */
-/**
- * File includes
- */
-
 
 /**
  * Wettbüro Klasse
  */
-class wetten {
-
-	function exec()
+class wetten
+{
+	static function exec()
 	{
 		global $db, $user;
 		if(isset($_POST) && count($_POST) > 0)
@@ -185,7 +181,7 @@ class wetten {
 
 
 
-	function listopen() {
+	static function listopen() {
 		global $db, $user;
 		
 		$wetter = array();
@@ -238,7 +234,7 @@ class wetten {
 	}
 	
 
-	function listlaufende() {
+	static function listlaufende() {
 		global $db, $user;
 
 		$wetter = array();
@@ -294,7 +290,7 @@ class wetten {
 	}
 	
 	
-	function listclosed() {
+	static function listclosed() {
 		global $db, $user;
 		
 		$wetter = array();
@@ -352,7 +348,7 @@ class wetten {
 	 * @since 1.0 `[z]cylander` method added
 	 * @since 1.1 `09.09.2019` `IneX` changed echo to return() to assign output to Smarty
 	 */
-	function newform()
+	static function newform()
 	{
 		return '
 		<h2>Neue Wette eintragen</h2>
@@ -398,7 +394,7 @@ class wetten {
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return void Printed HTML-Output
 	 */
-	function get_wette ($id)
+	static function get_wette ($id)
 	{
 		global $db, $user, $smarty;
 
@@ -435,14 +431,14 @@ class wetten {
 			{
 				if($rsi['seite'] == "wetter") {
 					array_push($wetter, $user->link_userpage($rsi['user_id']));
-					if($rsi['user_id'] == $user->id) $wjoin = true;
+					if($user->is_loggedin() && $rsi['user_id'] === $user->id) $wjoin = true;
 				} else {
 					array_push($gegner, $user->link_userpage($rsi['user_id']));
-					if($rsi['user_id'] == $user->id) $gjoin = true;
+					if($user->is_loggedin() && $rsi['user_id'] === $user->id) $gjoin = true;
 				}
 			}
 
-			if($user->id != $rs['user_id'] && $user->typ != USER_NICHTEINGELOGGT)
+			if($user->is_loggedin() && $user->id != $rs['user_id'])
 			{
 				if(!$gjoin && !$wjoin) {
 					$gg = '<a href="?id='.$id.'&do=gjoin">join</a>';
@@ -512,7 +508,7 @@ class wetten {
 			switch ($rs['status'])
 			{
 				case 'offen':
-					if($user->id == $rs['user_id'])
+					if($user->is_loggedin() && $user->id == $rs['user_id'])
 					{
 						$html .= '
 						<form action="'.getURL(true,false).'" method="post">
@@ -528,7 +524,7 @@ class wetten {
 					break;
 					
 				case 'laeuft':
-					if($user->id == $rs['user_id'])
+					if($user->is_loggedin() && $user->id == $rs['user_id'])
 					{
 						
 						$html .= '

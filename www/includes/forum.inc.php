@@ -1499,7 +1499,7 @@ class Forum {
 	      //.usersystem::userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username']) @deprecated
 	      .$user->userprofile_link($rs['user_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => TRUE])
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
-	      .datename($rs[date])
+	      .datename($rs['date'])
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .Comment::getLinkThread($rs['board'], $rs['thread_id'])
 	      .'</td></tr>'
@@ -2017,6 +2017,8 @@ class Forum {
 	 * Commenting-System ausgeben
 	 * Printet das "Pluggable" Commenting-System
 	 *
+	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/commentform.tpl Template used for output is commentform.tpl
+	 *
 	 * @author	[z]biko
 	 * @author	IneX
 	 * @version	3.2
@@ -2027,8 +2029,7 @@ class Forum {
 	 * @since	3.2 `22.01.2020` `IneX` Fixed PHP Notice undefined property: usersystem::$id
 	 *
 	 * @uses USER_USER
-	 * @uses USER_NICHTEINGELOGGT
-	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/commentform.tpl Template used for output is commentform.tpl
+	 * @uses usersystem::is_loggedin()
 	 * @uses Thread::hasRights()
 	 * @uses Thread::setLastSeen()
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -2684,7 +2685,7 @@ class Thread {
 	  		defined('USER_USER') && $user->typ >= USER_USER
 	  		&& $hierdepth < $user->maxdepth
 	  		|| $rs['isunread'] != ''
-	  		|| $user->typ == USER_NICHTEINGELOGGT && $hierdepth < 10
+	  		|| !$user->is_loggedin() && $hierdepth < 10
 	  	) {
 	  		echo Comment::getHTML($rs, $depth2); // print formatted post => Methode gibts gar nicht (mehr)?!
 	  		if ($rs['numchildposts'] > 0) {

@@ -458,8 +458,9 @@ class Messagesystem {
 	{
 		global $db, $user;
 
-		if ($user->typ != USER_NICHTEINGELOGGT) {
-			$sql = "SELECT count(*) as num FROM messages WHERE owner = ".$user->id." AND isread = '0'";
+		if ($user->is_loggedin())
+		{
+			$sql = 'SELECT count(*) AS num FROM messages WHERE owner='.$user->id.' AND isread = "0"'; // isread = ENUM(0;1)
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$rs = $db->fetch($result);
 
