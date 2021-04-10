@@ -24,24 +24,20 @@ $model = new MVC\Quotes();
  */
 if (!empty($_GET['quote_id'])) $quote_id = (int)$_GET['quote_id'];
 if (!empty($_GET['do'])) $action = (string)$_GET['do'];
-$userid = (!empty($_GET['user_id']) ? (int)$_GET['user_id'] : $user->id);
+$userid = (isset($_GET['user_id']) ? (int)$_GET['user_id'] : (isset($user->id) ? $user->id : null));
 
 /** Form-Post Aktionen ausführen */
 Quotes::execActions();
 
-//echo head(40, "quotes");
-//$smarty->assign('tplroot', array('page_title' => 'quotes'));
-//echo menu('main');
-//echo menu('quotes');
-
 /** Aenderung an Quote speichern */
-if($_POST['do'] == 'edit_now' && $user->is_loggedin())
+if(isset($_POST['do']) && $_POST['do'] == 'edit_now' && $user->is_loggedin())
 {
 	//FIXME Quote Editing not implented yet./keep3r
+}
 
 /** Quote hinzufuegen */
-} elseif($_POST['do'] === 'add_now' && $user->is_loggedin()) {
-
+elseif (isset($_POST['do']) && $_POST['do'] === 'add_now' && $user->is_loggedin())
+{
 	$sql = 'INSERT INTO quotes(user_id, date, text) 
 			VALUES('.$user->id.',"'.date('YmdHis').'","'.sanitize_userinput($_POST['text']).'")';
 	$db->query($sql,__FILE__, __LINE__);
@@ -51,8 +47,10 @@ if($_POST['do'] == 'edit_now' && $user->is_loggedin())
 	unset($_GET['do']);
 	$action = null;
 
+}
+
 /** Quote loeschen */
-} elseif($action === 'delete_now' && $user->is_loggedin()) {
+elseif (isset($action) && $action === 'delete_now' && $user->is_loggedin()) {
 	$sql = 'SELECT * FROM quotes WHERE id = '.sanitize_userinput($quote_id);
 	$result = $db->query($sql, __FILE__, __LINE__);
 	$rs = $db->fetch($result, __FILE__, __LINE__);
@@ -75,17 +73,16 @@ if($_POST['do'] == 'edit_now' && $user->is_loggedin())
 }
 
 /** Quotes ausgeben, ev. von speziellem User */
-if(empty($action) || $action === 'my' )
+if (!isset($action) || isset($action) && $action === 'my')
 {
-	$sql = 'SELECT count(*) as anzahl FROM quotes '.($action === 'my' ? 'WHERE user_id = '.$userid : '');
+	$sql = 'SELECT count(*) as anzahl FROM quotes '.(isset($action) && $action === 'my' ? 'WHERE user_id = '.$userid : '');
 	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 	$total = $rs['anzahl'];
 
-	$site = $_GET['site'];
-	if (empty($site) || $site < 0) $site = 0;
+	$site = (isset($_GET['site']) && is_numeric($_GET['site']) && $_GET['site'] > 0 ? (int)$_GET['site'] : 0);
 	$cnt = 10; // wird hier noch auf usercount gesetzt
 
-	if ($action === 'my')
+	if (isset($action) && $action === 'my')
 	{
 		$sql = sprintf('SELECT * FROM quotes WHERE user_id = %s ORDER BY date DESC LIMIT %d,%d', $userid, $site, $cnt);
 	} else {
@@ -101,7 +98,7 @@ if(empty($action) || $action === 'my' )
 	while ($rs = $db->fetch($result, __FILE__, __LINE__))
 	{
 		echo Quotes::formatQuote($rs);
-		echo "<br>";
+		echo '<br>';
 	}
 
 	/** Ausgabe der Navigationspfeile */
@@ -114,14 +111,14 @@ if(empty($action) || $action === 'my' )
 		} else {
 			$last = $total - ($total % 10);
 		}
-		echo '<a href="?site='.$site.'">Next page &gt;</a>'
-			 .'<span style="padding-left: 25px;"><a href="?site='.$last.'">Last page &gt;&gt;</a></span>';
+		echo '<a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">Next page &gt;</a>'
+			 .'<span style="padding-left: 25px;"><a href="?site='.$last.(isset($action) && $action === 'my' ? '&do=my' : null).'">Last page &gt;&gt;</a></span>';
 
 	} elseif ($site >= 10 && $site+$cnt < $total ) {
 
 		$site -= 10;
 		echo '<a href="?site=0">&lt;&lt; First</a>'
-			 .'<span style="padding-left: 25px;"><a href="?site='.$site.'">&lt; Prev</a></span>';
+			 .'<span style="padding-left: 25px;"><a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">&lt; Prev</a></span>';
 
 		$site_next = $site + $cnt + 10;
 		echo ' '.$site.' - '.$site_next.' ';
@@ -133,21 +130,21 @@ if(empty($action) || $action === 'my' )
 			$last = $total - ($total % 10);
 		}
 
-		echo '<a href="?site='.$site.'">Next &gt;</a>'
-			 .'<span style="padding-left: 25px;"><a href="?site='.$last.'">Last &gt;&gt;</a></span>';
+		echo '<a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">Next &gt;</a>'
+			 .'<span style="padding-left: 25px;"><a href="?site='.$last.(isset($action) && $action === 'my' ? '&do=my' : null).'">Last &gt;&gt;</a></span>';
 
 	} elseif ($site+$cnt >= $total) {
 		$site -= 10;
 
 		echo '<a href="?site=0">&lt;&lt; First</a>'
-			 .'<span style="padding-left: 25px;"><a href="?site='.$site.'">&lt; Prev</a></span>';
+			 .'<span style="padding-left: 25px;"><a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">&lt; Prev</a></span>';
 	}
 
 	echo '</div>';
 }
 
 // Quote hinzufügen
-elseif($action === 'add' && $user->is_loggedin()) {
+elseif (isset($action) && $action === 'add' && $user->is_loggedin()) {
 	$model->showAddnew($smarty);
 	$smarty->display('file:layout/head.tpl');
 	if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
@@ -167,7 +164,7 @@ elseif($action === 'add' && $user->is_loggedin()) {
 }
 
 // Quote wirklich loeschen?
-elseif($action === 'delete' && $user->is_loggedin()) {
+elseif (isset($action) && $action === 'delete' && $user->is_loggedin()) {
 	$sql = 'SELECT * FROM quotes where id = '.sanitize_userinput($quote_id);
 	$result = $db->query($sql, __FILE__, __LINE__);
 	$rs = $db->fetch($result, __FILE__, __LINE__);

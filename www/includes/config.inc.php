@@ -167,7 +167,6 @@ if (!defined('USER_ALLE')) define('USER_ALLE', 0);
 if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
 if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
-if (!defined('USER_NICHTEINGELOGGT')) define('USER_NICHTEINGELOGGT', USER_ALLE); // @FIXME Remove & update codes using it
 if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
 if (!defined('USER_IMGPATH')) define('USER_IMGPATH', SITE_ROOT.'/../data/userimages/');
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
