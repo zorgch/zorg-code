@@ -15,19 +15,6 @@ include_once INCLUDES_DIR.'mysql.inc.php';
 include_once INCLUDES_DIR.'activities.inc.php';
 
 /**
- * Define preferred encryption type for user password encryption
- *
- * @const CRYPT_SALT Sets the Salt encryption type to be used
- * @see crypt_pw()
- * @see exec_newpassword()
- * @see UserManagement::login()
- * @see usersystem::login()
- * @see usersystem::new_pass()
- * @see usersystem::create_newuser()
-*/
-if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
-
-/**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
  *
  * @author [z]milamber
@@ -192,18 +179,6 @@ function emailusername($username) {
 	$username = str_replace("ü", "ue", $username);
 	$username = preg_replace("/([^[:alnum:]])/sU", "", $username);
 	return $username;
-}
-
-/**
- * Passwort encryption
- *
- * Verschlüsselt ein Passwort
- *
- * @return string crypted Passwort
- * @param $password string Plaintext Passwort
- */
-function crypt_pw($password) {
-	return crypt($password, CRYPT_SALT);
 }
 
 /**

@@ -26,11 +26,11 @@ if (DEVELOPMENT) include_once dirname(__FILE__).'/development.config.php';
  * @const SITE_PROTOCOL https or http, required for building links like http(s)://... - Default: true
  * @link https://stackoverflow.com/questions/1175096/how-to-find-out-if-youre-using-https-without-serverhttps
  */
-$isSecure = true;
-if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+$isSecure = false;
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     $isSecure = true;
 }
-elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') {
     $isSecure = true;
 }
 if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));
@@ -134,12 +134,14 @@ if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
 
 /**
  * Define User & Usersystem constants
- * User Typen:
- *	1 = Normaler User ##################### 0 isch nöd so cool wil wenns nöd gsetzt isch chunt jo au 0
- *	2 = [z]member und schöne
- *	0 = nicht eingeloggt ##################### Aber Weber: wenn typ = 2, gits $user jo gar nöd?! -> doch s'usersystem isch jo immer verfügbar
- *	=> verfügbar über $user->typ
  *
+ * @const ZORG_SESSION_ID			Session name
+ * @const ZORG_SESSION_LIFETIME	Session duration time = 12 hours
+ * @const ZORG_COOKIE_SESSION		Session Cookie name
+ * @const ZORG_COOKIE_USERID		User-ID Cookie name
+ * @const ZORG_COOKIE_USERPW		User Password Cookie name
+ * @const ZORG_COOKIE_SECURE		Cookie is secure (true=https) or not (false=http)
+ * @const ZORG_COOKIE_EXPIRATION	Cookie Lifetime = 1 week
  * @const USER_ALLE		Wert für nicht eingeloggte User
  * @const USER_USER		Wert für normale eingeloggte User
  * @const USER_MEMBER 	Wert für [z]member & schöne
@@ -155,17 +157,17 @@ if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
  * @const DEFAULT_MAXDEPTH	Standard Setting für die Anzeigetiefe von Comments in Forum-Threads
  */
 if (!defined('ZORG_SESSION_ID')) define('ZORG_SESSION_ID', 'z');
+if (!defined('ZORG_SESSION_LIFETIME')) define('ZORG_SESSION_LIFETIME', 60*60*12);
 if (!defined('ZORG_COOKIE_SESSION')) define('ZORG_COOKIE_SESSION', ZORG_SESSION_ID);
 if (!defined('ZORG_COOKIE_USERID')) define('ZORG_COOKIE_USERID', 'autologin_id');
 if (!defined('ZORG_COOKIE_USERPW')) define('ZORG_COOKIE_USERPW', 'autologin_pw');
+if (!defined('ZORG_COOKIE_SECURE')) define('ZORG_COOKIE_SECURE', $isSecure);
+if (!defined('ZORG_COOKIE_EXPIRATION')) define('ZORG_COOKIE_EXPIRATION', time()+60*60*24*7);
 if (!defined('USER_ALLE')) define('USER_ALLE', 0);
 if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
 if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
-//define('USER_EINGELOGGT', 0);
-//define('USER_NICHTEINGELOGGT', 2);
-define('USER_NICHTEINGELOGGT', false);
-//define('USER_ALLE', 3);
+if (!defined('USER_NICHTEINGELOGGT')) define('USER_NICHTEINGELOGGT', USER_ALLE); // @FIXME Remove & update codes using it
 if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
 if (!defined('USER_IMGPATH')) define('USER_IMGPATH', SITE_ROOT.'/../data/userimages/');
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
