@@ -140,8 +140,11 @@ if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
  * @const ZORG_COOKIE_SESSION		Session Cookie name
  * @const ZORG_COOKIE_USERID		User-ID Cookie name
  * @const ZORG_COOKIE_USERPW		User Password Cookie name
- * @const ZORG_COOKIE_SECURE		Cookie is secure (true=https) or not (false=http)
+ * @const ZORG_COOKIE_SECURE		Cookie is secure (true=https) or not (false=http), you should not use boolean values: use 0 for false and 1 for true.
  * @const ZORG_COOKIE_EXPIRATION	Cookie Lifetime = 1 week
+ * @const ZORG_COOKIE_DOMAIN		Domain where Cookie is valid. Add leading dot '.zorg.ch' for better compatibility
+ * @const ZORG_COOKIE_PATH			Site Path where the Cookie is valid. '/' = all pages
+ * @const ZORG_COOKIE_SAMESITE		Cookie strictness. Valid is only "Lax" or "Strict". Strict is problematic in Cross-Site Requests.
  * @const USER_ALLE		Wert für nicht eingeloggte User
  * @const USER_USER		Wert für normale eingeloggte User
  * @const USER_MEMBER 	Wert für [z]member & schöne
@@ -161,8 +164,11 @@ if (!defined('ZORG_SESSION_LIFETIME')) define('ZORG_SESSION_LIFETIME', 60*60*12)
 if (!defined('ZORG_COOKIE_SESSION')) define('ZORG_COOKIE_SESSION', ZORG_SESSION_ID);
 if (!defined('ZORG_COOKIE_USERID')) define('ZORG_COOKIE_USERID', 'autologin_id');
 if (!defined('ZORG_COOKIE_USERPW')) define('ZORG_COOKIE_USERPW', 'autologin_pw');
-if (!defined('ZORG_COOKIE_SECURE')) define('ZORG_COOKIE_SECURE', $isSecure);
+if (!defined('ZORG_COOKIE_SECURE')) define('ZORG_COOKIE_SECURE', ($isSecure ? 1 : 0));
 if (!defined('ZORG_COOKIE_EXPIRATION')) define('ZORG_COOKIE_EXPIRATION', time()+60*60*24*7);
+if (!defined('ZORG_COOKIE_DOMAIN')) define('ZORG_COOKIE_DOMAIN', '.'.SITE_HOSTNAME);
+if (!defined('ZORG_COOKIE_PATH')) define('ZORG_COOKIE_PATH', '/');
+if (!defined('ZORG_COOKIE_SAMESITE')) define('ZORG_COOKIE_SAMESITE', 'Lax');
 if (!defined('USER_ALLE')) define('USER_ALLE', 0);
 if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
