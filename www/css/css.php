@@ -575,6 +575,11 @@ footer #swisstime { font-size: 0.7rem; }
 }
 .closebtn:hover {color: black;}
 
+/** Dialog */
+#login-popup {
+	z-index: 99;
+}
+
 /** Activities */
 div.zorg-activities-list { }
 div.zorg-activity {
