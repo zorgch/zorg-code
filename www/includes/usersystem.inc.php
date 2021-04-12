@@ -81,7 +81,6 @@ class usersystem
 	var $field_notifications = 'notifications';
 	var $field_regcode = 'regcode';
 	var $field_regdate = 'regdate';
-	var $field_sessionid = 'sessionid';
 	var $field_show_comments = 'show_comments';
 	var $field_sql_tracker = 'sql_tracker';
 	var $field_telegram = 'telegram_chat_id';
@@ -120,7 +119,7 @@ class usersystem
 	var $default_z_gremium = ''; // no
 	var $default_firstname = null; // none
 	var $default_lastname = null; // none
-	
+
 	/**
 	 * Object Vars
 	 *
@@ -170,11 +169,14 @@ class usersystem
 			if (session_status() === PHP_SESSION_NONE) {
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Restart USER Session', __METHOD__, __LINE__));
 				session_set_cookie_params(['lifetime' => ZORG_SESSION_LIFETIME, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
-				session_id($this->reuse_session_id);
+				if (!session_id()) session_id($this->reuse_session_id);
 				session_start();
 			}
 
-			/** User-ID ist in der Session vorhanden */
+			/**
+			 * Wenn bereits usersystem::login() erfolgreich triggered wurde,
+			 * dann wurde nach session_start() die User-ID in die Session geschrieben
+			 */
 			if (!empty($_SESSION['user_id']))
 			{
 				/** Query User Infos in der DB */
@@ -268,7 +270,11 @@ class usersystem
 				}
 			}
 
-			/** Falls Session-Cookies existieren */
+			/**
+			* User Login wurde noch nicht durchgeführt,
+			* aber der User hat nebst z-Session weitere Cookies dazu im Browser.
+			* => dann mach einen Login!
+			*/
 			elseif (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Session-Cookie vorhanden -> Login', __METHOD__, __LINE__));
@@ -276,20 +282,25 @@ class usersystem
 			}
 		}
 
-		/** Oder Login-Passthrough - falls Autologin-Cookies existieren */
+		/**
+		 * Falls keine Session vorhanden ist, dafür Autologin-Cookies existieren:
+		 * mach einen automatischen Login-Passthrough!
+		 */
 		elseif (empty($_SESSION['user_id']) && !empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 		{
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Autologin-Cookies existieren -> Login-Passthrough', __METHOD__, __LINE__));
 			$this->login($_COOKIE[ZORG_COOKIE_USERID], $_COOKIE[ZORG_COOKIE_USERPW], true);
 		}
 
-		/** Ansonsten falls keine Session: Guest Session initialisieren */
+		/**
+		 * Es sind weder eine Session noch User Cookies vorhanden...
+		 * mach eine neue Guest Session!
+		 */
 		else {
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Keine Session Infos vorhanden', __METHOD__, __LINE__));
-			if (session_status() === PHP_SESSION_NONE) {
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Keine Session & Cookies vorhanden...', __METHOD__, __LINE__));
+			if (session_status() === PHP_SESSION_NONE || session_status() === PHP_SESSION_ACTIVE) {
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Starte neue GUEST Session', __METHOD__, __LINE__));
-				session_set_cookie_params(['lifetime' => 0, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]); // Default Session expiration: Session only
-				if (!empty($this->reuse_session_id)) session_id($this->reuse_session_id);
+				// Brauchts wirklich ein Session Cookie? hmm... Disabled. session_set_cookie_params(['lifetime' => 0, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]); // Default Session expiration: Session only
 				session_start();
 			}
 		}
@@ -430,8 +441,12 @@ class usersystem
 							 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#define_the_lifetime_of_a_cookie
 							 */
 							if (!empty($this->reuse_session_id)) {
-								session_unset();
-								session_destroy();								
+								// FIXME use session_regenerate_id() instead? / 12.04.2021, IneX
+								if (session_status() === PHP_SESSION_ACTIVE) {
+									session_unset();
+									session_destroy();
+									session_write_close();
+								}
 								$new_session_id = session_create_id();
 								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> NEW Session ID created: %s', __METHOD__, __LINE__, $new_session_id));
 								if ($new_session_id !== false) {
@@ -563,6 +578,7 @@ class usersystem
 			if (!empty($reuse_session_id)) session_id($reuse_session_id);
 			session_start();
 		}
+		session_regenerate_id(true);
 		if (isset($_GET[ZORG_SESSION_ID])) unset($_GET[ZORG_SESSION_ID]); // Session-Parameter unsetten
 		if (isset($_POST[ZORG_SESSION_ID])) unset($_POST[ZORG_SESSION_ID]); // Session-Parameter unsetten
 		foreach (array_keys($_SESSION) as $k) unset($_SESSION[$k]); // PHP Session Superglobal leeren
@@ -587,6 +603,7 @@ class usersystem
 		/** Finally destroy the PHP Session store */
 		session_unset();
 		session_destroy();
+		session_write_close();
 	}
 
 	/**
