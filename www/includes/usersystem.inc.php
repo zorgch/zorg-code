@@ -263,7 +263,7 @@ class usersystem
 					 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
 					 */
 					$db->update($this->table_name, ['id', $this->id], [
-						$this->field_activity => timestamp(false),
+						$this->field_activity => timestamp(true),
 						$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 						$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
 					], __FILE__, __LINE__, __METHOD__);
@@ -312,7 +312,7 @@ class usersystem
 	 * Erstellt eine Session (login)
 	 *
 	 * @author [z]cylander
-	 * @version 4.3
+	 * @version 4.4
 	 * @since 1.0 method added
 	 * @since 2.0 `12.11.2018` `IneX` code & query optimizations
 	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
@@ -320,6 +320,7 @@ class usersystem
 	 * @since 4.1 `21.12.2018` `IneX` Fixed redirect auf ursprüngliche Seite bei Cookie-Login ohne Session
 	 * @since 4.2 `04.04.2021` `IneX` Optimized Cookie and Session initialisation
 	 * @since 4.3 `07.04.2021` `IneX` Updated to use modified usersystem::crypt_pw(), use better IP detection and Session handling
+	 * @since 4.4 `13.04.2021` `IneX` Fixed currentlogin & lastlogin timestamps
 	 *
 	 * @uses ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW, ZORG_SESSION_LIFETIME, ZORG_COOKIE_SECURE
 	 * @uses usersystem::crypt_pw(), usersystem::invalidate_session()
@@ -403,8 +404,8 @@ class usersystem
 									 id,
 									 %1$s,
 									 UNIX_TIMESTAMP(%2$s) %2$s,
-									 %3$s,
-									 %4$s
+									 UNIX_TIMESTAMP(%3$s) %3$s,
+									 UNIX_TIMESTAMP(%4$s) %4$s
 								FROM
 									 %5$s
 								WHERE 
@@ -462,10 +463,10 @@ class usersystem
 							$_SESSION['user_id'] = $rs['id'];
 
 							/** Last Login & current Login updaten */
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, timestamp(false, $rs[$this->field_lastlogin]), $this->field_currentlogin, timestamp(false, $rs[$this->field_currentlogin])));
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, $rs[$this->field_lastlogin], $this->field_currentlogin, $rs[$this->field_currentlogin]));
 							$db->update($this->table_name, ['id', $rs['id']], [
-								$this->field_lastlogin => timestamp(false, $rs[$this->field_currentlogin]),
-								$this->field_currentlogin => timestamp(false),
+								$this->field_lastlogin => timestamp(true, $rs[$this->field_currentlogin]),
+								$this->field_currentlogin => timestamp(true),
 								$this->field_last_ip => getRealIPaddress(),
 							], __FILE__, __LINE__, __METHOD__);
 
@@ -1482,7 +1483,8 @@ class usersystem
 	 *
 	 * @author IneX
 	 * @version 1.0
-	 * @since 1.0 `12.07.2018` `IneX` function added
+	 * @since 1.0 `12.07.2018` `IneX` method added
+	 * @since 1.1 `13.04.2021` `IneX` fixed switch-case conditions
 	 *
 	 * @param integer|string $userScope Scope for whom to get the Gravatar image for: a single User-ID integer, or 'all' string for all Useraccounts.
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -1497,15 +1499,15 @@ class usersystem
 		if (empty($userScope)) return false;
 
 		/** Get the Gravatar image for a User or a List of Users */
-		switch ($userScope)
+		switch (true)
 		{
 			/** (integer)USER: If $userScope = User-ID: try to get the User's Gravatar-Image */
-			case is_numeric($userScope) && $userScope > 0:
+			case (is_numeric($userScope) && $userScope > 0):
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Checking for User-ID: %d', __METHOD__, __LINE__, $userScope));
 				if (self::exportGravatarImages([$userScope])) return true;
 
 			/** (array)LIST: If $userScope = User-ID list: try to get Gravatar-Image for all of them */
-			case $userScope === 'all':
+			case ($userScope === 'all'):
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Checking for %s User-IDs', __METHOD__, __LINE__, $userScope));
 				$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email <> "" AND active = 1';
 				$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__);

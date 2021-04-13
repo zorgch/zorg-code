@@ -129,37 +129,75 @@ function datetimeToTimestamp($datetime)
 /**
  * Timestamp erzeugen wie NOW() oder für spezifisches DateTime
  *
- * @author IneX
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
- * @version 1.0
- * @since 1.0 `12.11.2018` function added
  *
- * @see usersystem(), usersystem::login()
- * @param boolean $return_unix_timestamp Wenn 'true', dann wird ein Timestamp in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
- * @param array $date_array Array mit Date-Time-Werten für welchen Zeitpunkt ein Timestamp erzeugt werden soll (statt 'jetzt') - default: null
- * @return boolean|string String mit aktuellem Timestamp - oder 'false', falls funktion nicht ausführbar war
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 `12.11.2018` function added
+ * @since 2.0 `13.04.2021` Complete refactoring because it was f*cked up. Changed 1st param to $return_sql_datetime
+ *
+ * @param boolean $return_sql_datetime Wenn 'true', dann wird ein SQL-kompatibles Date-Time in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
+ * @param array|int $date_array_or_timestamp Array mit Date-Time-Werten für welchen Zeitpunkt ein Timestamp erzeugt werden soll (statt 'jetzt') - default: null
+ * @return string|bool String mit konvertiertem Timestamp als Timestamp (`1618332031`) oder Date-Time (`2021-04-13 18:40:31`) - oder `false` bei falschem mktime()
  */
-function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
+function timestamp($return_sql_datetime=false, $date_array_or_timestamp=null)
 {
 	/** Validate passed parameters */
-	if (empty($date_array_or_timestamp) || (!is_array($date_array_or_timestamp) && !is_numeric($date_array_or_timestamp))) $date_array_or_timestamp = null;;
-	if (empty($return_unix_timestamp) || is_array($return_unix_timestamp) || $return_unix_timestamp <= 0) $return_unix_timestamp = null;
-	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generate $timestamp for $date_array_or_timestamp: %s', __FUNCTION__, __LINE__, (is_array($date_array_or_timestamp) ? print_r($date_array_or_timestamp,true) : intval($date_array_or_timestamp))));
+	if (empty($return_sql_datetime) || !is_bool($return_sql_datetime)) $return_sql_datetime = false;
+	if (empty($date_array_or_timestamp) || (!is_array($date_array_or_timestamp) && !is_numeric($date_array_or_timestamp))) $date_array_or_timestamp = null;
 
-	/** Create $timestamp */
-	if ($return_unix_timestamp == true)
+	/** Generate $timestamp */
+	switch (true)
 	{
-		$timestamp = date('U');
-	} elseif (is_array($date_array_or_timestamp) && count($date_array_or_timestamp) > 0) {
-		$timestamp = date('Y-m-d G:i:s', mktime($date_array_or_timestamp['second'], $date_array_or_timestamp['minute'], $date_array_or_timestamp['hour'], $date_array_or_timestamp['day'], $date_array_or_timestamp['month'], $$date_array_or_timestamp['year']));
-	} elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) {
-		$timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
-	} else {
-		$timestamp = date('Y-m-d G:i:s');
-	}
+		/** Current Unix Timestamp: 1618332031 */
+		case (false === $return_sql_datetime && empty($date_array_or_timestamp)):
+			$timestamp = time();
+			break;
 
-	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
+		/** SQL-compatible, like NOW(): 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime && empty($date_array_or_timestamp)):
+			$timestamp = date('Y-m-d H:i:s');
+			break;
+
+		/** Unix Timestamp with given Integer-Timestamp: 1618332031 */
+		case (false === $return_sql_datetime
+				 && !empty($date_array_or_timestamp) && is_numeric($date_array_or_timestamp)):
+			$timestamp = date('U', $date_array_or_timestamp);
+			break;
+
+		/** SQL-compatible with given Integer-Timestamp: 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime
+				 && !empty($date_array_or_timestamp) && is_numeric($date_array_or_timestamp)):
+			$timestamp = date('Y-m-d H:i:s', $date_array_or_timestamp);
+			break;
+
+		/** Unix Timestamp with given Array-DateTime: 1618332031 */
+		case (false === $return_sql_datetime
+				 && !empty($date_array_or_timestamp) && is_array($date_array_or_timestamp)):
+			$timestamp = date('U', mktime(
+				 (isset($date_array_or_timestamp['hour']) ? $date_array_or_timestamp['hour'] : 0)
+				,(isset($date_array_or_timestamp['minute']) ? $date_array_or_timestamp['minute'] : 0)
+				,(isset($date_array_or_timestamp['second']) ? $date_array_or_timestamp['second'] : 0)
+				,(isset($date_array_or_timestamp['month']) ? $date_array_or_timestamp['month'] : date('m'))
+				,(isset($date_array_or_timestamp['day']) ? $date_array_or_timestamp['day'] : date('d'))
+				,(isset($date_array_or_timestamp['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+			));
+			break;
+
+		/** SQL-compatible with given Array-DateTime: 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime
+				 && !empty($date_array_or_timestamp) && is_array($date_array_or_timestamp)):
+			$timestamp = date('Y-m-d H:i:s', mktime(
+				 (isset($date_array_or_timestamp['hour']) ? $date_array_or_timestamp['hour'] : 0)
+				,(isset($date_array_or_timestamp['minute']) ? $date_array_or_timestamp['minute'] : 0)
+				,(isset($date_array_or_timestamp['second']) ? $date_array_or_timestamp['second'] : 0)
+				,(isset($date_array_or_timestamp['month']) ? $date_array_or_timestamp['month'] : date('m'))
+				,(isset($date_array_or_timestamp['day']) ? $date_array_or_timestamp['day'] : date('d'))
+				,(isset($date_array_or_timestamp['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+			));
+			break;
+	}
 	return $timestamp;
 }
 
