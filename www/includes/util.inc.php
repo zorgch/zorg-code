@@ -127,7 +127,7 @@ function datetimeToTimestamp($datetime)
 }
 
 /**
- * Timestamp erzeugen wie NOW() oder für spezifisches DateTime
+ * Timestamp erzeugen wie time() aber auch SQL-Insert tauglich und für spezifisches DateTime Inputs
  *
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
@@ -138,63 +138,69 @@ function datetimeToTimestamp($datetime)
  * @since 2.0 `13.04.2021` Complete refactoring because it was f*cked up. Changed 1st param to $return_sql_datetime
  *
  * @param boolean $return_sql_datetime Wenn 'true', dann wird ein SQL-kompatibles Date-Time in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
- * @param array|int $date_array_or_timestamp Array mit Date-Time-Werten für welchen Zeitpunkt ein Timestamp erzeugt werden soll (statt 'jetzt') - default: null
- * @return string|bool String mit konvertiertem Timestamp als Timestamp (`1618332031`) oder Date-Time (`2021-04-13 18:40:31`) - oder `false` bei falschem mktime()
+ * @param int|string|array $date_to_convert Array mit Date-Time-Werten, Integer oder Datum-String welche konvertiert werden sollen (statt 'jetzt') - default: null
+ * @return int|string|bool Integer oder String mit konvertiertem Timestamp (`1618332031`) oder Date-Time (`2021-04-13 18:40:31`) - oder `false` bei falschem mktime()
  */
-function timestamp($return_sql_datetime=false, $date_array_or_timestamp=null)
+function timestamp($return_sql_datetime=false, $date_to_convert=null)
 {
 	/** Validate passed parameters */
 	if (empty($return_sql_datetime) || !is_bool($return_sql_datetime)) $return_sql_datetime = false;
-	if (empty($date_array_or_timestamp) || (!is_array($date_array_or_timestamp) && !is_numeric($date_array_or_timestamp))) $date_array_or_timestamp = null;
+	if (empty($date_to_convert) || !is_array($date_to_convert) || !is_numeric($date_to_convert) || !is_string($date_to_convert)) $date_to_convert = null;
 
 	/** Generate $timestamp */
 	switch (true)
 	{
-		/** Current Unix Timestamp: 1618332031 */
-		case (false === $return_sql_datetime && empty($date_array_or_timestamp)):
+		/** (Quasi Default) Current Unix Timestamp: 1618332031 */
+		case (false === $return_sql_datetime && empty($date_to_convert)):
 			$timestamp = time();
 			break;
 
-		/** SQL-compatible, like NOW(): 2021-04-13 18:40:31 */
-		case (true === $return_sql_datetime && empty($date_array_or_timestamp)):
+		/** Current SQL-compatible DateTime, like NOW(): 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime && empty($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s');
 			break;
 
-		/** Unix Timestamp with given Integer-Timestamp: 1618332031 */
+		/** Unix Timestamp from given Date-String: 1618332031 (or `false`) */
 		case (false === $return_sql_datetime
-				 && !empty($date_array_or_timestamp) && is_numeric($date_array_or_timestamp)):
-			$timestamp = date('U', $date_array_or_timestamp);
+				 && !empty($date_to_convert) && is_string($date_to_convert)):
+			$timestamp = date('U', strtotime($date_to_convert));
 			break;
 
-		/** SQL-compatible with given Integer-Timestamp: 2021-04-13 18:40:31 */
+		/** SQL-compatible from given Date-String: 2021-04-14 19:57:31 (or `false`) */
 		case (true === $return_sql_datetime
-				 && !empty($date_array_or_timestamp) && is_numeric($date_array_or_timestamp)):
-			$timestamp = date('Y-m-d H:i:s', $date_array_or_timestamp);
+				 && !empty($date_to_convert) && is_string($date_to_convert)):
+			$timestamp = date('Y-m-d H:i:s', strtotime($date_to_convert));
 			break;
 
-		/** Unix Timestamp with given Array-DateTime: 1618332031 */
+		/** SQL-compatible from given Integer-Timestamp: 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime
+				 && !empty($date_to_convert) && is_numeric($date_to_convert)):
+			$timestamp = date('Y-m-d H:i:s', $date_to_convert);
+			break;
+
+		/** Unix Timestamp from given Array-DateTime: 1618332031 (or `false`) */
 		case (false === $return_sql_datetime
-				 && !empty($date_array_or_timestamp) && is_array($date_array_or_timestamp)):
+				 && !empty($date_to_convert) && is_array($date_to_convert)):
 			$timestamp = date('U', mktime(
-				 (isset($date_array_or_timestamp['hour']) ? $date_array_or_timestamp['hour'] : 0)
-				,(isset($date_array_or_timestamp['minute']) ? $date_array_or_timestamp['minute'] : 0)
-				,(isset($date_array_or_timestamp['second']) ? $date_array_or_timestamp['second'] : 0)
-				,(isset($date_array_or_timestamp['month']) ? $date_array_or_timestamp['month'] : date('m'))
-				,(isset($date_array_or_timestamp['day']) ? $date_array_or_timestamp['day'] : date('d'))
-				,(isset($date_array_or_timestamp['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+				 (isset($date_to_convert['hour']) ? $date_to_convert['hour'] : 0)
+				,(isset($date_to_convert['minute']) ? $date_to_convert['minute'] : 0)
+				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
+				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
+				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
+				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
 			));
 			break;
 
-		/** SQL-compatible with given Array-DateTime: 2021-04-13 18:40:31 */
+		/** SQL-compatible from given Array-DateTime: 2021-04-13 18:40:31 (or `false`) */
 		case (true === $return_sql_datetime
-				 && !empty($date_array_or_timestamp) && is_array($date_array_or_timestamp)):
+				 && !empty($date_to_convert) && is_array($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s', mktime(
-				 (isset($date_array_or_timestamp['hour']) ? $date_array_or_timestamp['hour'] : 0)
-				,(isset($date_array_or_timestamp['minute']) ? $date_array_or_timestamp['minute'] : 0)
-				,(isset($date_array_or_timestamp['second']) ? $date_array_or_timestamp['second'] : 0)
-				,(isset($date_array_or_timestamp['month']) ? $date_array_or_timestamp['month'] : date('m'))
-				,(isset($date_array_or_timestamp['day']) ? $date_array_or_timestamp['day'] : date('d'))
-				,(isset($date_array_or_timestamp['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+				 (isset($date_to_convert['hour']) ? $date_to_convert['hour'] : 0)
+				,(isset($date_to_convert['minute']) ? $date_to_convert['minute'] : 0)
+				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
+				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
+				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
+				,(isset($date_to_convert['year']) ? $date_array_or_timestamp['year'] : date('Y'))
 			));
 			break;
 	}
