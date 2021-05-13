@@ -6,11 +6,15 @@
 require_once dirname(__FILE__).'/../includes/main.inc.php';
 require_once INCLUDES_DIR.'tpleditor.inc.php';
 
-tpleditor_unlock($_GET['tplupd']);
-
-if (empty($_GET['location']))
+/** Unlock etc. only when Tpl ID not "new" */
+if (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) && $_GET['tplupd'] !== 'new')
 {
-	if ($_GET['tplupd'] == 'new') $_GET['location'] = base64_encode('/?');
+    tpleditor_unlock($_GET['tplupd']);
+}
+
+if (!isset($_GET['location']) || empty($_GET['location']))
+{
+	if ($_GET['tplupd'] == 'new') $_GET['location'] = base64_encode('/');
 	else $_GET['location'] = base64_encode('/tpl/'.$_GET['tplupd']);
 }
 
