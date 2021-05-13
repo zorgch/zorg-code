@@ -150,7 +150,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 					write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
 
 	/** No Template found (404) */
-	if (empty($db->num($e)) || $db->num($e) === false)
+	if (empty($db->num($e)) || $e === false)
 	{
 		if (isset($_GET['tpl'])) $_TPLROOT['id'] = (string)$_GET['tpl'];
 		if (isset($_GET['word'])) $_TPLROOT['word'] = (string)$_GET['word'];

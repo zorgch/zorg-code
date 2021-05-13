@@ -10,7 +10,8 @@
 
 <center>
 	<h2>ERR. These are no the robots you're looking for.</h2>
-	<h3>the requested {if $tplroot.word neq ''}page «{$tplroot.word}»{else}template id #{$tplroot.id}{/if} does not exist.</h4>
+	<h3>{if $tplroot.word neq ''}Die Seite «{$tplroot.word}»{else}Das Template ID #{$tplroot.id}{/if} gibt es nicht.</h4>
+	{if $user->typ > 0}Aber du kannst <a href="/tpl/33?query={if $tplroot.word neq ''}{$tplroot.word}{else}{$tplroot.id}{/if}">danach suchen</a> - oder sie <a href="/tpl/17?tpleditor=1&tplupd=new">neu erstellen</a>.{/if}
 </center>
 
 {include file='file:layout/footer.tpl'}
