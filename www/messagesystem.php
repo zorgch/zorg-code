@@ -4,7 +4,6 @@
  *
  * @package zorg\Messagesystem
  */
-
 /**
  * File includes
  */
@@ -16,82 +15,76 @@ require_once MODELS_DIR.'core.model.php';
  */
 $model = new MVC\Messagesystem();
 
-/**
- * Validate passed GET-Parameters
- */
-$messageId = (int)$_GET['message_id'];
-
-Messagesystem::execActions();
-
-//echo head(24).menu("zorg").'<br />';
-//$smarty->assign('tplroot', array('page_title' => 'Messagesystem'));
 $model->showOverview($smarty);
-//$html .= menu("zorg");
-//$html .= menu("user");
+$html = '';
 
 if ($user->is_loggedin())
 {
-	$model->showInvalidmessage($smarty, $messageId);
-	if(empty($messageId) || $messageId == '0' || $messageId <= 0)
+	Messagesystem::execActions();
+
+	/** Validate passed GET-Parameters */
+	$messageId = (isset($_GET['message_id']) && is_numeric($_GET['message_id']) && (int)$_GET['message_id'] > 0 ? (int)$_GET['message_id'] : null);
+	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $messageId: %d', __FILE__, __LINE__, $messageId));
+
+	if (empty($messageId))
 	{
+		$model->showInvalidmessage($smarty, $messageId);
 		http_response_code(404); // Set response code 404 (not found) and exit.
 		$html = $smarty->fetch('file:layout/head.tpl');
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Keine Nachricht angegeben!']);
 		$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
-		//user_error('Keine Nachricht angegeben!', E_USER_WARNING);
 
-		die($html);
+		//die($html);
 	}
+	/** Message-ID ist grundsätzlich valide */
+	else {
+		$messageDetails = Messagesystem::getMessageDetails($messageId);
 
-	try {
-		$sql = 'SELECT *, UNIX_TIMESTAMP(date) AS date FROM messages WHERE id = '.$messageId;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-
-		if ($rs == false)
+		/** Nachricht NICHT gefunden */
+		if ($messageDetails === false || empty($messageDetails))
 		{
 			http_response_code(400); // Set response code 400 (bad request) and exit.
+			$model->showInvalidmessage($smarty, $messageId);
 			$html = $smarty->fetch('file:layout/head.tpl');
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Nachricht '.$messageId.' konnte nicht geladen werden.']);
 			$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
-			//user_error('Nachricht '.$messageId.' konnte nicht geladen werden.', E_USER_WARNING);
-
 		}
-		elseif ($rs['owner'] == $user->id)
+
+		/** Nachricht gefunden & darf vom aktuellen User gelsen werden */
+		elseif (intval($messageDetails['owner']) === $user->id)
 		{
-			$model->showMessage($smarty, $user, $messageId, $rs['from_user_id'], $rs['subject']);
+			$model->showMessage($smarty, $user, $messageId, $messageDetails['from_user_id'], $messageDetails['subject']);
 			$html = $smarty->fetch('file:layout/head.tpl');
 
-			$html .= Messagesystem::getMessage($messageId);
+			$html .= Messagesystem::displayMessage($messageId);
 
-			if(!is_int(strpos($rs['subject'], "Re:"))) { 
-				$subject = $rs['subject'];
+			if(!is_int(strpos($messageDetails['subject'], 'Re:'))) {
+				$subject = $messageDetails['subject'];
 			} else {
-				$subject = 'Re: '.$rs['subject'];
+				$subject = 'Re: '.$messageDetails['subject'];
 			}
 
 			$html .= '<br />';
 			$html .= Messagesystem::getFormSend(
-						array($rs['from_user_id'])
+						array(intval($messageDetails['from_user_id']))
 						, $subject, '> '.str_replace("\n", "\n> "
-						, $rs['text'])
+						, $messageDetails['text'])
 						, $messageId
 					);
-		} else {
+		}
+		/** User darf diese Nachricht nicht lesen (weil es nicht seine ist, doh!) */
+		else {
 			http_response_code(403); // Set response code 403 (access denied) and exit.
+			$model->showInvalidmessage($smarty, $messageId);
+			$html = $smarty->fetch('file:layout/head.tpl');
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Du darfst diese Message nicht lesen!']);
 			$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
-			//user_error('<b>Du darfst diese Message nicht lesen!</b>', E_USER_NOTICE);
 		}
 	}
-	catch(Exception $e) {
-		http_response_code(500); // Set response code 500 (internal server error)
-		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $e->getMessage()]);
-		$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
-		//user_error($e->getMessage(), E_USER_WARNING);
-	}
 }
-// Nicht eingeloggte User
 else {
+	/** Nicht eingeloggter User */
+	$model->showOverview($smarty);
 	$html = $smarty->fetch('file:layout/head.tpl');
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Nur eingeloggte User können Messages schreiben und empfangen!']);
 	$html .= $smarty->fetch('file:layout/elements/block_error.tpl');
@@ -99,5 +92,4 @@ else {
 
 echo $html;
 
-//echo foot();
 $smarty->display('file:layout/footer.tpl');
