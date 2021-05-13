@@ -957,6 +957,11 @@ td > textarea, td > input, td > input[type=text], td > input[type=password], td 
 	width: 95%;
 }
 
+/** No 100% width within Labels => messes up flexbox */
+label > input[type=text], label > input[type=password], label > input[type=search], label > input[type=number], label > textarea, label > input.text {
+	width: unset;
+}
+
 @media screen and (max-width: 767px) {
 	/**
 	 * Fix input zoom on iPhones
