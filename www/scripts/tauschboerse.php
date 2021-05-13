@@ -8,7 +8,9 @@ global $db, $user, $smarty;
 // Angebote
 $result = $db->query(
 	"
-	SELECT *, UNIX_TIMESTAMP(datum) AS datum
+	SELECT *,
+		CONVERT(kommentar USING latin1) kommentar,
+		UNIX_TIMESTAMP(datum) AS datum
 	FROM tauschboerse
 	WHERE 
 		art = 'angebot'
@@ -27,7 +29,9 @@ $smarty->assign("angebote", $angebote);
 // Nachfragen
 $result = $db->query(
 	"
-	SELECT *, UNIX_TIMESTAMP(datum) AS datum
+	SELECT *,
+		CONVERT(kommentar USING latin1) kommentar,
+		UNIX_TIMESTAMP(datum) AS datum
 	FROM tauschboerse
 	WHERE 
 		art = 'nachfrage'

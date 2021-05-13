@@ -612,7 +612,7 @@ function var_request ()
 		global $db;
 		$result = $db->query(
 			"
-			SELECT *, UNIX_TIMESTAMP(datum) AS datum
+			SELECT *, CONVERT(kommentar USING latin1) kommentar, UNIX_TIMESTAMP(datum) AS datum
 			FROM tauschboerse
 			WHERE id = ".$params['id']."
 			",

@@ -22,7 +22,7 @@ define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment
 if (DEVELOPMENT) include_once dirname(__FILE__).'/development.config.php';
 
 /**
- * Define preferred Protocol that zorg.ch is running on
+ * Define preferred Protocol that zorg.ch is running on.
  * @const SITE_PROTOCOL https or http, required for building links like http(s)://... - Default: true
  * @link https://stackoverflow.com/questions/1175096/how-to-find-out-if-youre-using-https-without-serverhttps
  */
@@ -36,26 +36,27 @@ elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED
 if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));
 
 /**
- * Define preferred Hostname where zorg.ch is accessible on
+ * Define preferred Hostname where zorg.ch is accessible on.
  * @const SITE_HOSTNAME e.g. zorg.ch WITHOUT trailing slash! (no ".../") - Default: zorg.ch
  */
 if (empty($_SERVER['SERVER_NAME'])) $_SERVER['SERVER_NAME'] = 'zorg.ch';
 if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']);
 
 /**
- * Define preferred base URL where zorg.ch is accessible through
+ * Define preferred base URL where zorg.ch is accessible through.
  * @const SITE_URL Don't edit! Is generated using SITE_PROTOCOL and SITE_HOSTNAME
  */
 if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME);
 
 /**
- * Set a constant for the Site's Web Root
+ * Set a constant for the Site's Web Root.
  * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/". IMPORTANT: relative to the config.inc.php File!
  */
 if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'/..');
 
 /**
  * Set a constant for the custom Error Log path
+ *
  * @see zorgErrorHandler(), user_error(), trigger_error()
  * @link https://github.com/zorgch/zorg-code/blob/master/www/includes/errlog.inc.php errlog.inc.php
  * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
@@ -73,6 +74,7 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
 
 /**
  * Define global Contact points, such as e-mail addresses (From:)
+ *
  * @const ZORG_EMAIL Sets valid sender e-mailadress such as info@zooomclan.org
  * @const ZORG_ADMIN_EMAIL Don't edit! This grabs the Admin E-Mail from the apache2 config
  * @const ZORG_VEREIN_EMAIL Zorg Verein E-Mail address
@@ -104,6 +106,7 @@ if (!defined('GIT_REPOSITORY_URL')) define('GIT_REPOSITORY_URL', 'https://github
 
 /**
  * Define paths to directories where HTML web resources will be referenced from
+ *
  * @const INCLUDES_DIR PHP-Script includes directory for using in PHP-Scripts
  * @const APIKEYS_DIR Base directory for various API key files required. No trailing slash /
  * @const MODELS_DIR MVC-Models directory
@@ -112,11 +115,12 @@ if (!defined('GIT_REPOSITORY_URL')) define('GIT_REPOSITORY_URL', 'https://github
  * @const PHP_IMAGES_DIR Images directory for including Images in PHP-Scripts
  * @const FILES_DIR Files directory (local server path)
  * @const GALLERY_DIR Gallery directory (local server path)
- * @const ACTIONS_DIR Actions directory for Frontend-Resources 
- * @const SCRIPTS_DIR Scripts directory for Frontend-Resources 
- * @const UTIL_DIR Utilities directory for Frontend-Resources 
- * @const JS_DIR JavaScripts directory for Frontend-Resources 
- * @const CSS_DIR CSS directory for Frontend-Resources 
+ * @const TAUSCHARTIKEL_IMGPATH Path to store uploaded images for Tauschbörse-Angebote
+ * @const ACTIONS_DIR Actions directory for Frontend-Resources
+ * @const SCRIPTS_DIR Scripts directory for Frontend-Resources
+ * @const UTIL_DIR Utilities directory for Frontend-Resources
+ * @const JS_DIR JavaScripts directory for Frontend-Resources
+ * @const CSS_DIR CSS directory for Frontend-Resources
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
 if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys'); // No trailing slash /
@@ -126,6 +130,7 @@ if (!defined('IMAGES_DIR')) define('IMAGES_DIR', '/images/');
 if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', SITE_ROOT . '/images/');
 if (!defined('FILES_DIR')) define('FILES_DIR', SITE_ROOT . '/../data/files/');
 if (!defined('GALLERY_DIR')) define('GALLERY_DIR', SITE_ROOT . '/../data/gallery/');
+if (!defined('TAUSCHARTIKEL_IMGPATH')) define('TAUSCHARTIKEL_IMGPATH', SITE_ROOT.'/../data/tauschboerse/');
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', '/actions/');
 if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
@@ -196,25 +201,25 @@ if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/p
 if (!defined('SMARTY_PACKAGES_EXTENSION')) define('SMARTY_PACKAGES_EXTENSION', '.php');
 
 /**
- * Load Error Handling
+ * Load Error Handling.
  * @include errlog.inc.php 	Errorlogging Class
  */
 require_once INCLUDES_DIR.'errlog.inc.php';
 
 /**
- * Define and include various Placeholder-Strings related constants and files
+ * Define and include various Placeholder-Strings related constants and files.
  * @include strings.inc.php
  */
 include_once INCLUDES_DIR.'strings.inc.php';
 
 /**
- * Define and include various Notification System-related constants and files
+ * Define and include various Notification System-related constants and files.
  * @include notifications.inc.php
  */
 include_once INCLUDES_DIR.'notifications.inc.php';
 
 /**
- * Grab the NASA API Key
+ * Grab the NASA API Key.
  * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
  * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
  */
@@ -222,7 +227,7 @@ if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once APIKEYS_DIR.'/
 if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
 
 /**
- * Define various APOD related constants
+ * Define various APOD related constants.
  * @const APOD_GALLERY_ID ID der APOD-Gallery in der Datenbank
  * @const APOD_TEMP_IMGPATH Pfad zum initialen Download des aktuellen APOD-Bildes
  * @const APOD_SOURCE Source-URL für die APOD-Bilder Archiv-Links
@@ -234,13 +239,13 @@ if (!defined('APOD_SOURCE')) define('APOD_SOURCE', 'https://apod.nasa.gov/apod/'
 if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key='.NASA_API_KEY);
 
 /**
- * Define and include various Telegram-Bot/Telegram-Messaging related constants and files
+ * Define and include various Telegram-Bot/Telegram-Messaging related constants and files.
  * @include telegrambot.inc.php Required to send Telegram-Notifications
  */
 include_once INCLUDES_DIR.'telegrambot.inc.php';
 
 /**
- * Define various Addle related constants
+ * Define various Addle related constants.
  * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
  * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
  * @const MAX_ADDLE_GAMES	Anzahl der erlaubten gleichzeitig offenen Addle-Spiele eines Users
@@ -250,7 +255,7 @@ define('ADDLE_BASE_POINTS', 1600);
 define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);
 
 /**
- * Define and include various Layout related constants and files
+ * Define and include various Layout related constants and files.
  * @include colors.inc.php Required to have various color vars accessible
  */
 include_once INCLUDES_DIR.'colors.inc.php';
