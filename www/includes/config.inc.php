@@ -28,10 +28,10 @@ if (DEVELOPMENT) include_once dirname(__FILE__).'/development.config.php';
  */
 $isSecure = false;
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
-    $isSecure = true;
+	$isSecure = true;
 }
 elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') {
-    $isSecure = true;
+	$isSecure = true;
 }
 if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));
 
@@ -141,13 +141,13 @@ if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
  * Define User & Usersystem constants
  *
  * @const ZORG_SESSION_ID			Session name
- * @const ZORG_SESSION_LIFETIME	Session duration time = 12 hours
+ * @const ZORG_SESSION_LIFETIME		Session duration time = 12 hours
  * @const ZORG_COOKIE_SESSION		Session Cookie name
  * @const ZORG_COOKIE_USERID		User-ID Cookie name
  * @const ZORG_COOKIE_USERPW		User Password Cookie name
  * @const ZORG_COOKIE_SECURE		Cookie is secure (true=https) or not (false=http), you should not use boolean values: use 0 for false and 1 for true.
  * @const ZORG_COOKIE_EXPIRATION	Cookie Lifetime = 1 week
- * @const ZORG_COOKIE_DOMAIN		Domain where Cookie is valid. Add leading dot '.zorg.ch' for better compatibility
+ * @const ZORG_COOKIE_DOMAIN		Domain where Cookie is valid. Add leading dot '.zorg.ch' for better compatibility ==> caused issues! No dot now.
  * @const ZORG_COOKIE_PATH			Site Path where the Cookie is valid. '/' = all pages
  * @const ZORG_COOKIE_SAMESITE		Cookie strictness. Valid is only "Lax" or "Strict". Strict is problematic in Cross-Site Requests.
  * @const USER_ALLE		Wert für nicht eingeloggte User
@@ -171,17 +171,17 @@ if (!defined('ZORG_COOKIE_USERID')) define('ZORG_COOKIE_USERID', 'autologin_id')
 if (!defined('ZORG_COOKIE_USERPW')) define('ZORG_COOKIE_USERPW', 'autologin_pw');
 if (!defined('ZORG_COOKIE_SECURE')) define('ZORG_COOKIE_SECURE', ($isSecure ? 1 : 0));
 if (!defined('ZORG_COOKIE_EXPIRATION')) define('ZORG_COOKIE_EXPIRATION', time()+60*60*24*7);
-if (!defined('ZORG_COOKIE_DOMAIN')) define('ZORG_COOKIE_DOMAIN', '.'.SITE_HOSTNAME);
+if (!defined('ZORG_COOKIE_DOMAIN')) define('ZORG_COOKIE_DOMAIN', SITE_HOSTNAME);
 if (!defined('ZORG_COOKIE_PATH')) define('ZORG_COOKIE_PATH', '/');
 if (!defined('ZORG_COOKIE_SAMESITE')) define('ZORG_COOKIE_SAMESITE', 'Lax');
 if (!defined('USER_ALLE')) define('USER_ALLE', 0);
 if (!defined('USER_USER')) define('USER_USER', 1);
 if (!defined('USER_MEMBER')) define('USER_MEMBER', 2);
 if (!defined('USER_SPECIAL')) define('USER_SPECIAL', 3);
-if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION',  '.jpg');
+if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION', '.jpg');
 if (!defined('USER_IMGPATH')) define('USER_IMGPATH', SITE_ROOT.'/../data/userimages/');
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', '/data/userimages/');
-if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE',  SITE_ROOT.'/../data/userimages/archiv/');
+if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE', SITE_ROOT.'/../data/userimages/archiv/');
 if (!defined('USER_IMGSIZE_LARGE')) define('USER_IMGSIZE_LARGE', 500);
 if (!defined('USER_IMGSIZE_SMALL')) define('USER_IMGSIZE_SMALL', 150);
 if (!defined('USER_IMGPATH_DEFAULT')) define('USER_IMGPATH_DEFAULT', 'none.jpg');
@@ -194,8 +194,8 @@ if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', 10);
  */
 if (!defined('SMARTY_DIR')) define('SMARTY_DIR', SITE_ROOT.'/smartylib/');
 if (!defined('SMARTY_TRUSTED_DIRS')) define('SMARTY_TRUSTED_DIRS', SITE_ROOT.'/scripts/'); // TODO PHP7.x: make this an array
-if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML',  SITE_ROOT.'/templates/');
-if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE',  SITE_ROOT.'/../data/smartylib/cache/');
+if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML', SITE_ROOT.'/templates/');
+if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE', SITE_ROOT.'/../data/smartylib/cache/');
 if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', SITE_ROOT.'/../data/smartylib/templates_c/');
 if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/packages/');
 if (!defined('SMARTY_PACKAGES_EXTENSION')) define('SMARTY_PACKAGES_EXTENSION', '.php');
