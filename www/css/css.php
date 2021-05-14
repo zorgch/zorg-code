@@ -671,7 +671,7 @@ input.replybutton { margin: 0; }
 	bottom: 0;
 }
 #schickenaaab {
-	margin-left: 15px;
+	margin: 0 8px 8px 8px;
 	bottom: 0;
 	right: 0;
 }
@@ -973,6 +973,9 @@ label > input[type=text], label > input[type=password], label > input[type=searc
 	button, input[type=submit], input[type=button], select {
 		width: 100%;
 	}
+	#schickenaaab {
+		width: 95%; /** Fix 100% overflow */
+	}
 
 	/**
 	 * Fix responsive Google reCaptcha
@@ -1043,6 +1046,7 @@ dialog[open] { display: block; }
 	color: red;
 	background-color: transparent;
 	border: 0;
+	width: unset; /** Prevent 100% width */
 }
 .modal-header,
 .modal-body,

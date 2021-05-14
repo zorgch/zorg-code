@@ -18,7 +18,8 @@
 	{/if}
 </head>
 
-<body{if $sun == "down" || $user->zorger} style="background:#242424; filter:invert(90%);"{/if}>{if $user->id > 0}
+<body{if $sun == "down" || $user->zorger} style="background:#242424; filter:invert(90%);"{/if}>
+{if $user->id > 0}
 	<header class="text-center">
 		<h1>zorg Userprofil</h1>
 		<p class="text-secondary text-small">

@@ -5,7 +5,6 @@
  * @package zorg\Usersystem
  *
  */
-
 /**
  * File includes
  * @include main.inc.php required
@@ -22,7 +21,7 @@ $user_id     = null;
 $userRegcode = null;
 if (!empty($_GET['do']) && !is_numeric($_GET['do'])) $doAction = sanitize_userinput($_GET['do']);
 if (!empty($_GET['regcode'])) $userRegcode = sanitize_userinput($_GET['regcode']);
-if (!empty($_GET['user_id']) && is_numeric($_GET['user_id'])) $user_id = sanitize_userinput($_GET['user_id']);
+if (!empty($_GET['user_id']) && is_numeric($_GET['user_id']) && (int)$_GET['user_id'] > 0) $user_id = sanitize_userinput((int)$_GET['user_id']);
 
 //=============================================================================
 // Layout & code
@@ -39,7 +38,7 @@ Messagesystem::execActions();
 /**
  * Userlist anzeigen
  */
-if ( !$doAction && !$user_id && !$userRegcode )
+if (empty($doAction) && empty($user_id) && empty($userRegcode))
 {
 	$smarty->display('file:layout/head.tpl');
 	$smarty->display('tpl:219');
@@ -48,21 +47,21 @@ if ( !$doAction && !$user_id && !$userRegcode )
 }
 
 /**
- * Mein Profil ändern
+ * Mein Profil
  */
-if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
+if ($doAction === 'view' && empty($user_id) && $user->is_loggedin())
 {
 	/**
 	 * Profil als anderen User anzeigen (DEV only!)
 	 */
-	if (!empty($_GET['viewas']) && DEVELOPMENT === true)
+	if (DEVELOPMENT === true && isset($_GET['viewas']) && (int)$_GET['viewas'] > 0)
 	{
 		$model->showOtherprofile($smarty, $user, $_GET['viewas']);
-		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user($_GET['viewas'], TRUE).'</strong>']);
+		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user((int)$_GET['viewas'], TRUE).'</strong>']);
 
 		/** Switch to "viewas"-User */
 		$saveMyUserID = $user->id;
-		$_SESSION['user_id'] = $_GET['viewas'];
+		$_SESSION['user_id'] = (int)$_GET['viewas'];
 		$user = new usersystem();
 		$smarty->assign('user', $user);
 
@@ -76,68 +75,71 @@ if ($user->is_loggedin() && $doAction === 'view' && !$user_id)
 		$smarty->assign('user', $user);
 
 	/**
-	 * Mein Profil
+	 * Mein Profil anzeigen + updaten
 	 */
-	} elseif ($doAction === 'view' || empty($user_id)) {
+	} else {//if ($doAction === 'view' || empty($user_id)) {
 		$model->showProfileupdate($smarty);
 
 		/** Update Userprofile infos & settings */
-		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
+		if (isset($_POST['do']))
 		{
-			/** Validate $_POST-request */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
-			if (count($_POST) > 1)
+			if(isset($user->id) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
 			{
-				$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
-			}
-		}
-		/** Upload and change new Userpic */
-		if($user->id && isset($_POST['do']) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
-		{
-			$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
-		}
-		/** Change User Password */
-		if($user->id && isset($_POST['do']) && $_POST['do'] === 'change_password')
-		{
-			$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
-		}
-
-		/**
-		 * Error or Success message handling
-		*/
-			/* Userprofile change */
-			if (isset($changeprofile_result[0])) {
-				if ($changeprofile_result[0] === TRUE) {
-					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $changeprofile_result[1]]);
-				} else {
-					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userprofile-change-ok', 'user')]);
+				/** Validate $_POST-request */
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
+				if (count($_POST) > 1)
+				{
+					$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
 				}
 			}
-			/** Userpic change */
-			if (isset($uploadimage_result[0])) {
-				if ($uploadimage_result[0] === TRUE) {
-					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $uploadimage_result[1]]);
-				} else {
-					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userpic-change-ok', 'user')]);
-				}
+			/** Upload and change new Userpic */
+			if(isset($user->id) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
+			{
+				$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
 			}
-			/** New Password */
-			if (isset($newpassword_result[0])) {
-				if ($newpassword_result[0] === TRUE) {
-					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $newpassword_result[1]]);
-				} else {
-					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('new-userpw-confirmation', 'user')]);
-				}
+			/** Change User Password */
+			if(isset($user->id) && $_POST['do'] === 'change_password')
+			{
+				$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
 			}
 
-		/** Instantiate a new, updated $user-Object (because new data...) */
-		$user = new usersystem();
-		$smarty->assign('user', $user);
+			/**
+			 * Error or Success message handling
+			*/
+				/* Userprofile change */
+				if (isset($changeprofile_result[0])) {
+					if ($changeprofile_result[0] === TRUE) {
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $changeprofile_result[1]]);
+					} else {
+						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userprofile-change-ok', 'user')]);
+					}
+				}
+				/** Userpic change */
+				if (isset($uploadimage_result[0])) {
+					if ($uploadimage_result[0] === TRUE) {
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $uploadimage_result[1]]);
+					} else {
+						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userpic-change-ok', 'user')]);
+					}
+				}
+				/** New Password */
+				if (isset($newpassword_result[0])) {
+					if ($newpassword_result[0] === TRUE) {
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $newpassword_result[1]]);
+					} else {
+						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('new-userpw-confirmation', 'user')]);
+					}
+				}
+
+			/** Instantiate a new, updated $user-Object (because new data...) */
+			$user = new usersystem();
+			$smarty->assign('user', $user);
+		}
 
 		/** Display "Mein Profil ändern" */
 		$smarty->assign('form_action', '?do=view');
 		$smarty->display('file:layout/pages/profile_page.tpl');
-		
+
 		exit; // make sure only personal Profile page is processed / displayed
 	}
 }
@@ -226,7 +228,7 @@ if (!empty($user_id))
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
 	$smarty->display('file:layout/footer.tpl');
-	
+
 	exit; // make sure only Userprofile page is processed / displayed
 }
 
@@ -269,7 +271,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			{
 				//$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
 				$resp = $reCaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
-	
+
 				/** reCaptcha VALID */
 				if ($resp->isSuccess())
 				{
@@ -278,7 +280,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 					if (empty($_POST['new_password']) || empty($_POST['new_password2'])) $registerError = t('invalid-userpw-missing', 'user');
 					if ($_POST['new_password'] != $_POST['new_password2']) $registerError = t('invalid-userpw-match', 'user');
 					if (!check_email($_POST['new_email'])) $registerError = t('invalid-email', 'user');
-	
+
 					/** Userregistrierung schaut gut aus - User anlegen probieren */
 					if (!isset($registerError) || empty($registerError))
 					{
