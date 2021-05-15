@@ -1,9 +1,19 @@
-# DON'T ignore the "www" directory...
-!/www/
-
-# ...but ignore all these files & folders:
+# Ignore all these files & folders:
 /*
-/*/
-/www/test/*
+/www/test
 *.local.php
 *apis_key.inc.php
+*.log
+
+# ...and DON'T ignore these things
+!.github/
+!.gitignore
+!.gitkeep
+!.issuetracker
+!.npmignore
+!/www
+!/cd
+!/cron
+!/keys
+!/migration
+!/scripts

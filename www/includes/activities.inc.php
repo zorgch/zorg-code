@@ -268,7 +268,7 @@ class Activities
 	{
 		global $db, $user;
 		
-		if ($user->typ != USER_NICHTEINGELOGGT && !hasRated($activity_id, $user->id))
+		if ($user->is_loggedin() && !hasRated($activity_id, $user->id))
 		{
 			if($activity_id > 0 && $rating != '')
 			{

@@ -16,7 +16,7 @@
  * @link sprintf() https://secure.php.net/manual/function.sprintf.php
  */
 return
-[ 
+[
 	'global' =>
 		[
 			 'error-newgame-not-logged-in' => 'You must be logged in to start a new game.'
@@ -69,7 +69,8 @@ return
 			,'account-activated' => 'Dein Account wurde erfolgreich aktiviert!'
 			,'account-activated-text' => 'Herzlich willkommen - Schön, dass du da bist :)<br>Du kannst dich jetzt mit dem gewählten Username + PW einloggen.'
 			,'authentication-failed' => 'Benutzer/Passwort Kombination falsch!'
-			,'invalid-cookie' => 'Dein Browser-Cookie für den zorg Login wurde kompromittiert! Bitte nochmals neu einloggen.'
+			,'authentication-empty' => 'Benutzer+Passwort muss ausgefüllt sein!'
+			,'invalid-cookie' => 'Dein Browser-Cookie für den zorg Login wurde kompromittiert! Bitte Browser-Cookies löschen.'
 			,'invalid-id' => '<h1>ID is not valid!</h1><p><strong>Please tell us about this via the <a href="bugtracker.php" title="Bugtracker - zorg.ch">Bugtracker</a>.</strong><br>You will contribute making zorg more secure and stable :) Thanks!</p>'
 			,'invalid-email' => 'E-Mailadresse ist ungültig! (wotsch wieder cheatä ?)'
 			,'invalid-username' => 'Username ist ung&uuml;ltig!'

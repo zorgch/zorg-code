@@ -39,8 +39,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 	$smarty->assign('link_sentinel', 'game='.$gameid.'&do=sentinel');
 	$smarty->assign('link_stay', 'game='.$gameid.'&do=stay');
 	$smarty->assign('link_game', 'game='.$gameid.'');
-	
-	
+
 	/** choose ticket */
 	if (isset($_GET['ticket']) && is_string($_GET['ticket']))
 	{
@@ -56,8 +55,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 		$smarty->assign("ticket_text", $ticket_text);
 		$smarty->assign("ticket_cost", turn_cost($_GET['ticket']));
 	}
-	
-	
+
 	/** view */
 	$e = $db->query('SELECT hzg.*, m.name mapname,
 						z.user z, max(me.money) mymoney,
@@ -67,13 +65,13 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 						sum(a.score) - hzg.z_score player_score,
 						ceil((sum(a.score)-2*hzg.z_score)/2) missing_score,
 						if(me.type="z", "z", if(me.type IS NULL, "guest", "player")) mytype,
-						if(me.user IS NULL || hzg.state!="running", "0", "1") i_play,
+						if('.($user->is_loggedin() ? 'me.user IS NULL || ' : null).'hzg.state!="running", "0", "1") i_play,
 						if(hzg.nextturn="z" && me.type="z" || hzg.nextturn="players" && me.type!="z" && me.turndone="0", "0", "1") myturndone,
 						if(hzg.nextturn="z" && me.type="z" || hzg.nextturn="players" && me.type!="z" && me.turndone="0",
 							'.TURN_COUNT.'-hzg.turncount, '.TURN_COUNT.'-hzg.turncount-1) turns_to_money,
 						max(catcher.user) catcher
 					FROM user u, hz_maps m, hz_games hzg
-						LEFT JOIN hz_players me ON (me.user='.$user->id.' AND me.game=hzg.id)
+						LEFT JOIN hz_players me ON ('.($user->is_loggedin() ? 'me.user='.$user->id.' AND ' : null).'me.game=hzg.id)
 						LEFT JOIN hz_stations mys ON (mys.id=me.station AND mys.map=hzg.map)
 						LEFT JOIN hz_aims a ON a.map=hzg.map
 						JOIN hz_players z ON z.game=hzg.id AND z.type="z"
@@ -82,7 +80,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 					GROUP BY a.map, z.user, me.type, me.turndone',
 					__FILE__, __LINE__, 'Hz View Game Query');
 	    $game = $db->fetch($e);
-	
+
 	if (!empty($game) && $game !== false)
 	{
 		if ($game['i_play']) {
@@ -122,7 +120,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 								   AND (other.station = r.start OR other.station = r.end)
 								   AND other.user!=p.user
 								 WHERE g.id='.$gameid.'
-								   AND p.user='.$user->id.'
+								   '.($user->is_loggedin() ? 'AND p.user='.$user->id : null).'
 								   AND (other.user is null OR other.type="z")',
 							    __FILE__, __LINE__, 'Query available Tickets');
 	

@@ -10,7 +10,7 @@
  * Wenn ein User die entsprechende Option in seinen Ein-
  * stellungen aktiviert hat, wird zudem auch eine E-Mail
  * Nachricht verschickt.
- * 
+ *
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		messages
  *
@@ -43,8 +43,8 @@ require_once INCLUDES_DIR.'usersystem.inc.php';
  * @since		3.0 17.03.2018 implemented with telegrambot.inc.php
  * @since		4.0 21.10.2018 implemented with notifications.inc.php
  */
-class Messagesystem {
-
+class Messagesystem
+{
 	/**
 	 * Message-Actions ausführen
 	 *
@@ -67,8 +67,8 @@ class Messagesystem {
 	{
 		global $db, $user;
 
-		if(isset($_POST['action']) && $_POST['action'] == 'sendmessage') {
-
+		if(isset($_POST['action']) && $_POST['action'] === 'sendmessage')
+		{
 			$to_users = ( empty($_POST['to_users']) ? $user->id : $_POST['to_users'] );
 
 			for ($i=0; $i < count($to_users); $i++)
@@ -97,11 +97,10 @@ class Messagesystem {
 						implode(',', $to_users)
 					);
 				}
-				
+
 			}
 
 			/** Eigene Message für den 'Sent'-Ordner */
-			//Messagesystem::sendMessage(
 			(new self())->sendMessage(
 				$user->id,
 				$user->id,
@@ -119,11 +118,9 @@ class Messagesystem {
 			$headerLocation = ( !empty($_POST['url']) ? base64_decode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful', SITE_URL, $user->id) );
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> header() Location: %s', __METHOD__, __LINE__, $headerLocation));
 			header('Location: ' . $headerLocation);
-
-			//exit;
 		}
 
-		if(isset($_POST['do']) && $_POST['do'] == 'delete_messages')
+		if(isset($_POST['do']) && $_POST['do'] === 'delete_messages')
 		{
 			/** Delete all passed message_id's */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
@@ -150,7 +147,7 @@ class Messagesystem {
 			//exit;
 		}
 
-		if(isset($_POST['do']) && $_POST['do'] == 'messages_as_unread')
+		if(isset($_POST['do']) && $_POST['do'] === 'messages_as_unread')
 		{
 			/** Change Message Status to UNREAD */
 			for ($i=0; $i < count($_POST['message_id']); $i++) {
@@ -172,7 +169,7 @@ class Messagesystem {
 			//exit;
 		}
 
-		if(isset($_POST['do']) && $_POST['do'] == 'mark_all_as_read')
+		if(isset($_POST['do']) && $_POST['do'] === 'mark_all_as_read')
 		{
 			/** Mark all Messages as read */
 			Messagesystem::doMarkAllAsRead($user->id);
@@ -192,8 +189,8 @@ class Messagesystem {
 			//exit;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Nachrichten löschen
 	 *
@@ -236,7 +233,7 @@ class Messagesystem {
 	function doMessagesUnread($messageid, $userid)
 	{
 		global $db;
-		
+
 		if ($messageid > 0 && $messageid != '' && $userid > 0 && $userid != '') // ok man könnte auch noch auf $user->id checken
 		{
 			$sql =
@@ -264,16 +261,11 @@ class Messagesystem {
 
 		if (!empty($messageid))
 		{
-			try {
-				$sql = "UPDATE messages set isread='1' WHERE id=$messageid;";
-				if ( $db->query($sql, __FILE__, __LINE__, __METHOD__) )
-				{
-					return true;
-				} else {
-					return false;
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
+			$sql = "UPDATE messages set isread='1' WHERE id=$messageid;";
+			if (false !== $db->query($sql, __FILE__, __LINE__, __METHOD__))
+			{
+				return true;
+			} else {
 				return false;
 			}
 		}
@@ -294,11 +286,10 @@ class Messagesystem {
 	static function doMarkAllAsRead($userid)
 	{
 		global $db;
-		
-		if ($userid > 0 && $userid != '') // man könnte auch noch auf $user->id checken
+
+		if (!empty($userid) && is_numeric($userid) && $userid > 0) // man könnte auch noch auf $user->id checken
 		{
-			$sql =
-				"UPDATE messages SET isread='1' WHERE isread='0' AND owner=$userid";
+			$sql = 'UPDATE messages SET isread="1" WHERE isread="0" AND owner='.$userid;
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
 	}
@@ -411,24 +402,18 @@ class Messagesystem {
 		$smarty->assign('sort_order', $sortby);
 
 		/** Query messages - Neuste (!isread) immer zuoberst */
-		try {
-			$messages = [];
-			$sql = "
-				SELECT *, UNIX_TIMESTAMP(date) as date
+		$messages = [];
+		$sql = "SELECT *, UNIX_TIMESTAMP(date) as date
 				FROM messages where owner = ".$user->id ."
 				AND from_user_id ".($box == "inbox" ? "<>" : "=").$user->id ."
 				ORDER BY isread ASC, ".$orderby." ".$sortby."
-				LIMIT ".($page-1) * $pagesize.",".$pagesize
-			;
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			while($rs = $db->fetch($result)) {
-				$messages[] = $rs;
-		 	}
-			$smarty->assign('messages', $messages);
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-			return false;
+				LIMIT ".($page-1) * $pagesize.",".$pagesize;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+
+		while($rs = $db->fetch($result)) {
+			$messages[] = $rs;
 		}
+		$smarty->assign('messages', $messages);
 
 		/** Calculate number of pages */
 		$numMessages = Messagesystem::getNumUserMessages($user->id);
@@ -447,7 +432,7 @@ class Messagesystem {
 	 * Berechnet die Anzahl neuer Nachrichten
 	 *
 	 * @author [z]milamber
-	 * @date 
+	 * @date
 	 * @version 1.0
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -458,12 +443,13 @@ class Messagesystem {
 	{
 		global $db, $user;
 
-		if ($user->typ != USER_NICHTEINGELOGGT) {
-			$sql = "SELECT count(*) as num FROM messages WHERE owner = ".$user->id." AND isread = '0'";
+		if ($user->is_loggedin())
+		{
+			$sql = 'SELECT count(*) AS num FROM messages WHERE owner='.$user->id.' AND isread = "0"'; // isread = ENUM(0;1)
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$rs = $db->fetch($result);
 
-			return $rs['num'];
+			return intval($rs['num']);
 		}
 	}
 
@@ -488,23 +474,19 @@ class Messagesystem {
 	{
 		global $db;
 
-		try {
-			/** A MySQL Sub-Query retrieving user's total messages for the inbox & outbox at the same time */
-			$sql = "SELECT
-						(SELECT count(id) as num FROM messages where owner = 117 AND from_user_id <> 117) num_inbox,
-						(SELECT count(id) as num FROM messages where owner = 117 AND from_user_id = 117) num_outbox
-					FROM messages
-					LIMIT 1";
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			$rs = $db->fetch($result);
-	
-			if (!empty($rs)) {
-				return [ 'inbox' => $rs['num_inbox'], 'outbox' => $rs['num_outbox'] ];
-			} else {
-				return false;
-			}
-		} catch (Exception $e) {
-			error_log($e->getMessage());
+		/** A MySQL Sub-Query retrieving user's total messages for the inbox & outbox at the same time */
+		$sql = "SELECT
+					(SELECT count(id) as num FROM messages where owner = 117 AND from_user_id <> 117) num_inbox,
+					(SELECT count(id) as num FROM messages where owner = 117 AND from_user_id = 117) num_outbox
+				FROM messages
+				LIMIT 1";
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$rs = $db->fetch($result);
+
+		if ($db->num($result) > 0 && false !== $rs)
+		{
+			return [ 'inbox' => $rs['num_inbox'], 'outbox' => $rs['num_outbox'] ];
+		} else {
 			return false;
 		}
 	}
@@ -522,28 +504,28 @@ class Messagesystem {
 	 * @since 1.0 initial method release
 	 * @since 2.0 frontend is now a template - as it should be
 	 *
-	 * @see Messagesystem::getUserMessages()
+	 * @see Messagesystem::getMessageDetails()
 	 * @see Messagesystem::doMarkMessageAsRead()
 	 * @param int $id ID der Nachricht
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
 	 */
-	static function getMessage($id)
+	static function displayMessage($messageid)
 	{
 		global $user, $smarty;
 
-		$messageDetails = Messagesystem::getUserMessage($id);
+		$messageDetails = Messagesystem::getMessageDetails($messageid);
 
-		if (!empty($messageDetails) && $messageDetails['owner'] === $user->id)
+		if (false !== $messageDetails && !empty($messageDetails) && intval($messageDetails['owner']) === $user->id)
 		{
-			$smarty->assign('prevmessage_url', (Messagesystem::getNextMessageid($messageDetails['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getNextMessageid($messageDetails['id']).'"><-- </a> | ' : ''));
-			$smarty->assign('nextmessage_url', (Messagesystem::getPrevMessageid($messageDetails['id']) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getPrevMessageid($messageDetails['id']).'"> --></a>' : ''));
-			$smarty->assign('deletemessage_html', Messagesystem::getFormDelete($id));
+			$smarty->assign('prevmessage_url', (Messagesystem::getNextMessageid($messageid) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getNextMessageid($messageid).'"><-- </a> | ' : ''));
+			$smarty->assign('nextmessage_url', (Messagesystem::getPrevMessageid($messageid) > 0 ? '<a href="/messagesystem.php?message_id='.Messagesystem::getPrevMessageid($messageid).'"> --></a>' : ''));
+			$smarty->assign('deletemessage_html', Messagesystem::getFormDelete($messageid));
 			$smarty->assign('messagedetails', $messageDetails);
 			$smarty->assign('recipientslist', explode(',', $messageDetails['to_users']));
 
-			Messagesystem::doMarkMessageAsRead($id);
+			Messagesystem::doMarkMessageAsRead($messageid);
 
 		} else {
 			$smarty->assign('error', t('invalid-permissions', 'messagesystem'));
@@ -557,32 +539,29 @@ class Messagesystem {
 	 * Message holen
 	 *
 	 * @author IneX
-	 * @date 24.06.2018
-	 * @version 1.0
-	 * @since 1.0 initial method release
+	 * @version 2.0
+	 * @since 1.0 `24.06.2018` `IneX` Method added
+	 * @since 2.0 `13.05.2021` `IneX` Code and query refactoring, returns false on error
 	 *
 	 * @param integer $messageid ID der Nachricht die abgefragt werden soll
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return array|boolean Returns an Array containing the query results - or false if the query failed
 	 */
-	static function getUserMessage($messageid)
+	static function getMessageDetails($messageid)
 	{
 		global $db;
 
-		if (!empty($messageid))
+		if (!empty($messageid) && $messageid > 0)
 		{
-			try {
-				$sql = "SELECT
-							 *, UNIX_TIMESTAMP(date) as date
-						FROM messages
-						WHERE id = ".$messageid."
-						LIMIT 0,1";
-				$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-				return $rs;
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
+			$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
+					FROM messages
+					WHERE id = '.$messageid.'
+					LIMIT 0,1';
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			if (false !== $rs && !empty($rs)) return $rs;
+			else return false;
+		} else {
+			return false;
 		}
 	}
 
@@ -593,7 +572,7 @@ class Messagesystem {
 	 * Holt die ID der jeweils älteren Nachricht gegenüber der aktuell geöffneten
 	 *
 	 * @author [z]milamber
-	 * @date 
+	 * @date
 	 * @version 1.0
 	 *
 	 * @param integer $id ID der aktuell angezeigten Nachricht
@@ -605,23 +584,18 @@ class Messagesystem {
 	{
 		global $db, $user;
 
-		try {
-			$sql =
-				"SELECT *, UNIX_TIMESTAMP(date) as date"
-				." FROM messages"
-				." WHERE owner = ".$user->id
-				." AND from_user_id !=".$user->id
-				." AND id > ".$id
-				." ORDER BY id ASC"
-				." LIMIT 0,1"
-			;
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-
-			return $rs['id'];
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql =
+			"SELECT *, UNIX_TIMESTAMP(date) as date"
+			." FROM messages"
+			." WHERE owner = ".$user->id
+			." AND from_user_id !=".$user->id
+			." AND id > ".$id
+			." ORDER BY id ASC"
+			." LIMIT 0,1"
+		;
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		if (false !== $rs && !empty($rs)) return intval($rs['id']);
+		else return false;
 	}
 
 
@@ -656,8 +630,8 @@ class Messagesystem {
 			." LIMIT 0,1"
 		;
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-
-		return $rs['id'];
+		if (false !== $rs && !empty($rs)) return intval($rs['id']);
+		else return false;
 	}
 
 

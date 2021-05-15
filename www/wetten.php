@@ -41,7 +41,7 @@ if (empty($wette) || $wette <= 0)
 	 * neue wette erstellen form anzeigen
 	 * aber nur wenn eingeloggter user
 	 */
-	if ($user->typ != USER_NICHTEINGELOGGT) $smarty->assign('sidebarHtml', wetten::newform());
+	if ($user->is_loggedin()) $smarty->assign('sidebarHtml', wetten::newform());
 	$smarty->display('file:layout/head.tpl');
 	echo '<h1>zorg Wettbüro</h1>';
 

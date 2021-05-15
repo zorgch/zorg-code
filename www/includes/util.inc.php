@@ -15,19 +15,6 @@ include_once INCLUDES_DIR.'mysql.inc.php';
 include_once INCLUDES_DIR.'activities.inc.php';
 
 /**
- * Define preferred encryption type for user password encryption
- *
- * @const CRYPT_SALT Sets the Salt encryption type to be used
- * @see crypt_pw()
- * @see exec_newpassword()
- * @see UserManagement::login()
- * @see usersystem::login()
- * @see usersystem::new_pass()
- * @see usersystem::create_newuser()
-*/
-if (!defined('CRYPT_SALT')) define('CRYPT_SALT', 'CRYPT_BLOWFISH');
-
-/**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
  *
  * @author [z]milamber
@@ -140,39 +127,83 @@ function datetimeToTimestamp($datetime)
 }
 
 /**
- * Timestamp erzeugen wie NOW() oder für spezifisches DateTime
+ * Timestamp erzeugen wie time() aber auch SQL-Insert tauglich und für spezifisches DateTime Inputs
  *
- * @author IneX
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
- * @version 1.0
- * @since 1.0 `12.11.2018` function added
  *
- * @see usersystem(), usersystem::login()
- * @param boolean $return_unix_timestamp Wenn 'true', dann wird ein Timestamp in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
- * @param array $date_array Array mit Date-Time-Werten für welchen Zeitpunkt ein Timestamp erzeugt werden soll (statt 'jetzt') - default: null
- * @return boolean|string String mit aktuellem Timestamp - oder 'false', falls funktion nicht ausführbar war
+ * @author IneX
+ * @version 2.0
+ * @since 1.0 `12.11.2018` function added
+ * @since 2.0 `13.04.2021` Complete refactoring because it was f*cked up. Changed 1st param to $return_sql_datetime
+ *
+ * @param boolean $return_sql_datetime Wenn 'true', dann wird ein SQL-kompatibles Date-Time in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
+ * @param int|string|array $date_to_convert Array mit Date-Time-Werten, Integer oder Datum-String welche konvertiert werden sollen (statt 'jetzt') - default: null
+ * @return int|string|bool Integer oder String mit konvertiertem Timestamp (`1618332031`) oder Date-Time (`2021-04-13 18:40:31`) - oder `false` bei falschem mktime()
  */
-function timestamp($return_unix_timestamp=false, $date_array_or_timestamp=null)
+function timestamp($return_sql_datetime=false, $date_to_convert=null)
 {
 	/** Validate passed parameters */
-	if (empty($date_array_or_timestamp) || (!is_array($date_array_or_timestamp) && !is_numeric($date_array_or_timestamp))) $date_array_or_timestamp = null;;
-	if (empty($return_unix_timestamp) || is_array($return_unix_timestamp) || $return_unix_timestamp <= 0) $return_unix_timestamp = null;
-	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generate $timestamp for $date_array_or_timestamp: %s', __FUNCTION__, __LINE__, (is_array($date_array_or_timestamp) ? print_r($date_array_or_timestamp,true) : intval($date_array_or_timestamp))));
+	if (empty($return_sql_datetime) || !is_bool($return_sql_datetime)) $return_sql_datetime = false;
+	if (empty($date_to_convert) || !is_array($date_to_convert) || !is_numeric($date_to_convert) || !is_string($date_to_convert)) $date_to_convert = null;
 
-	/** Create $timestamp */
-	if ($return_unix_timestamp == true)
+	/** Generate $timestamp */
+	switch (true)
 	{
-		$timestamp = date('U');
-	} elseif (is_array($date_array_or_timestamp) && count($date_array_or_timestamp) > 0) {
-		$timestamp = date('Y-m-d G:i:s', mktime($date_array_or_timestamp['second'], $date_array_or_timestamp['minute'], $date_array_or_timestamp['hour'], $date_array_or_timestamp['day'], $date_array_or_timestamp['month'], $$date_array_or_timestamp['year']));
-	} elseif (is_numeric($date_array_or_timestamp) && strlen($date_array_or_timestamp) === 10) {
-		$timestamp = date_format(date_create_from_format('U.u', $date_array_or_timestamp/1000), 'Y-m-d G:i:s');
-	} else {
-		$timestamp = date('Y-m-d G:i:s');
-	}
+		/** (Quasi Default) Current Unix Timestamp: 1618332031 */
+		case (false === $return_sql_datetime && empty($date_to_convert)):
+			$timestamp = time();
+			break;
 
-	//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Generated $timestamp: %s', __FUNCTION__, __LINE__, $timestamp));
+		/** Current SQL-compatible DateTime, like NOW(): 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime && empty($date_to_convert)):
+			$timestamp = date('Y-m-d H:i:s');
+			break;
+
+		/** Unix Timestamp from given Date-String: 1618332031 (or `false`) */
+		case (false === $return_sql_datetime
+				 && !empty($date_to_convert) && is_string($date_to_convert)):
+			$timestamp = date('U', strtotime($date_to_convert));
+			break;
+
+		/** SQL-compatible from given Date-String: 2021-04-14 19:57:31 (or `false`) */
+		case (true === $return_sql_datetime
+				 && !empty($date_to_convert) && is_string($date_to_convert)):
+			$timestamp = date('Y-m-d H:i:s', strtotime($date_to_convert));
+			break;
+
+		/** SQL-compatible from given Integer-Timestamp: 2021-04-13 18:40:31 */
+		case (true === $return_sql_datetime
+				 && !empty($date_to_convert) && is_numeric($date_to_convert)):
+			$timestamp = date('Y-m-d H:i:s', $date_to_convert);
+			break;
+
+		/** Unix Timestamp from given Array-DateTime: 1618332031 (or `false`) */
+		case (false === $return_sql_datetime
+				 && !empty($date_to_convert) && is_array($date_to_convert)):
+			$timestamp = date('U', mktime(
+				 (isset($date_to_convert['hour']) ? $date_to_convert['hour'] : 0)
+				,(isset($date_to_convert['minute']) ? $date_to_convert['minute'] : 0)
+				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
+				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
+				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
+				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
+			));
+			break;
+
+		/** SQL-compatible from given Array-DateTime: 2021-04-13 18:40:31 (or `false`) */
+		case (true === $return_sql_datetime
+				 && !empty($date_to_convert) && is_array($date_to_convert)):
+			$timestamp = date('Y-m-d H:i:s', mktime(
+				 (isset($date_to_convert['hour']) ? $date_to_convert['hour'] : 0)
+				,(isset($date_to_convert['minute']) ? $date_to_convert['minute'] : 0)
+				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
+				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
+				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
+				,(isset($date_to_convert['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+			));
+			break;
+	}
 	return $timestamp;
 }
 
@@ -192,18 +223,6 @@ function emailusername($username) {
 	$username = str_replace("ü", "ue", $username);
 	$username = preg_replace("/([^[:alnum:]])/sU", "", $username);
 	return $username;
-}
-
-/**
- * Passwort encryption
- *
- * Verschlüsselt ein Passwort
- *
- * @return string crypted Passwort
- * @param $password string Plaintext Passwort
- */
-function crypt_pw($password) {
-	return crypt($password, CRYPT_SALT);
 }
 
 /**

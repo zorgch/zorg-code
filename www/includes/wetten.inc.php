@@ -5,17 +5,13 @@
  * @author freiländer
  * @package zorg\Wetten
  */
-/**
- * File includes
- */
-
 
 /**
  * Wettbüro Klasse
  */
-class wetten {
-
-	function exec()
+class wetten
+{
+	static function exec()
 	{
 		global $db, $user;
 		if(isset($_POST) && count($_POST) > 0)
@@ -185,64 +181,74 @@ class wetten {
 
 
 
-	function listopen() {
+	static function listopen()
+	{
 		global $db, $user;
-		
-		$wetter = array();
-		$gegner = array();
-		
+
 		$sql = 'SELECT w.*, UNIX_TIMESTAMP(w.datum) as datum 
 				FROM wetten w 
 				WHERE w.status = "offen" 
 				ORDER by w.datum DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		echo '<h2>Offene Wetten</h2>
-		<table width="700" cellpadding="4" cellspacing="1" bgcolor="'.BORDERCOLOR.'">
-		<tr align="left"  bgcolor="'.BORDERCOLOR.'">
-			<td><b>Wettstarter</b>
-			</td><td><b>Titel</b>
-			</td><td><b>Einsatz</b>
-			</td><td><b>Wetter</b>
-			</td><td><b>Gegner</b>
-			</td><td><b>Datum</b></td>
-		</tr>';
-
-		while($rs = $db->fetch($result))
+		
+		if ($db->num($result) > 0)
 		{
-			$sqli = 'SELECT wt.user_id, wt.seite 
-					 FROM wetten_teilnehmer wt 
-					 WHERE wt.wetten_id = '.$rs['id'];
-			$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
-			while ($rsi = $db->fetch($resulti)) {
-				$username = $user->id2user($rsi['user_id']);
-				if($rsi['seite'] === 'wetter') {
-					array_push($wetter, $username);
-				} else {
-					array_push($gegner, $username);
+			echo '<h2>Offene Wetten</h2>
+			<table width="700" cellpadding="4" cellspacing="1" bgcolor="'.BORDERCOLOR.'">
+			<tr align="left"  bgcolor="'.BORDERCOLOR.'">
+				<td><b>Wettstarter</b>
+				</td><td><b>Titel</b>
+				</td><td><b>Einsatz</b>
+				</td><td><b>Wetter</b>
+				</td><td><b>Gegner</b>
+				</td><td><b>Datum</b></td>
+			</tr>';
+	
+			while($rs = $db->fetch($result))
+			{
+				/** Wetter & Gegner bei jedem Wette-Eintrag neu initialisieren */
+				$wetter = array();
+				$gegner = array();
+	
+				$sqli = 'SELECT wt.user_id, wt.seite 
+						 FROM wetten_teilnehmer wt 
+						 WHERE wt.wetten_id = '.$rs['id'];
+				$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
+				while ($rsi = $db->fetch($resulti)) {
+					$username = $user->userprofile_link($rsi['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]);
+					if($rsi['seite'] === 'wetter') {
+						array_push($wetter, $username);
+					} else {
+						array_push($gegner, $username);
+					}
 				}
+	
+				echo '<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">
+				<td>'.$user->userprofile_link($rs['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]).'</td>
+				<td><a href="?id='.$rs['id'].'">'.stripslashes($rs['titel']).'</a></td>
+				<td>'.stripslashes($rs['einsatz']).'</td><td>';
+				echo (count($wetter) > 0 ? implode(', ', (array)$wetter) : 'keine');
+				echo '</td><td>';
+				echo (count($gegner) > 0 ? implode(', ', (array)$gegner) : 'keine');
+				echo '</td><td>
+					'.datename($rs['datum']).'
+				</td></tr>';
 			}
-
-			echo "<tr bgcolor='".TABLEBACKGROUNDCOLOR."'>
-			<td>".$username."</td>
-			<td><a href='?id=".$rs['id']."'>".stripslashes($rs['titel'])."</a></td>
-			<td>".stripslashes($rs['einsatz'])."</td><td>";
-			echo (count($wetter) > 0 ? implode(', ', (array)$wetter) : 'keine');
-			echo '</td><td>';
-			echo (count($gegner) > 0 ? implode(', ', (array)$gegner) : 'keine');
-			echo "</td><td>
-			".datename($rs['datum'])."
-			</td></tr>";
+	
+			echo '</table>';
 		}
+		/** Keine Wetten gefunden */
+		else {
+			if ($user->is_loggedin()) echo '<p>Keine offene Wette wo du noch mitwetten kannst.</p>';
+			else echo 'Keine offene Wette gefunden. <a href="?showlogin=true">Logge dich ein</a> um eine anzureissen!</p>';
 
-		echo '</table>';
+		}
 	}
 	
 
-	function listlaufende() {
+	static function listlaufende()
+	{
 		global $db, $user;
-
-		$wetter = array();
-		$gegner = array();
 
 		$sql = 'SELECT
 					w.*,
@@ -251,63 +257,12 @@ class wetten {
 				WHERE w.status = "laeuft"
 				ORDER by w.datum DESC';
 		$result = $db->query($sql, __FILE__ ,__LINE__, __METHOD__);
-		echo '<h2>Laufende Wetten</h2>
-		<table width="700" cellpadding="4" cellspacing="1" bgcolor="'.BORDERCOLOR.'">
-		<tr align="left"  bgcolor="'.BORDERCOLOR.'">
-			<td><b>Wettstarter</b></td>
-			<td><b>Titel</b></td>
-			<td><b>Einsatz</b></td>
-			<td><b>Wetter</b></td>
-			<td><b>Gegner</b></td>
-			<td><b>Datum</b></td>
-		</tr>';
-
-		while($rs = $db->fetch($result))
+		
+		if ($db->num($result) > 0)
 		{
-			$sqli = 'SELECT wt.user_id, wt.seite 
-					 FROM wetten_teilnehmer wt 
-					 WHERE wt.wetten_id = '.$rs['id'];
-			$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
-			while ($rsi = $db->fetch($resulti)) {
-				$username = $user->id2user($rsi['user_id'], true);
-				if($rsi['seite'] === 'wetter') {
-					array_push($wetter, $username);
-				} else {
-					array_push($gegner, $username);
-				}
-			}
-
-			echo '<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">
-			<td>'.$username.'</td>
-			<td><a href="?id='.$rs['id'].'">'.stripslashes($rs['titel']).'</a>
-			</td>
-			<td>'.stripslashes($rs['einsatz']).'</td>
-			<td>';
-			echo (count($wetter) > 0 ? implode(', ', (array)$wetter) : 'keine');
-			echo '</td><td>';
-			echo (count($gegner) > 0 ? implode(', ', (array)$gegner) : 'keine');
-			echo '</td>
-			<td>'.datename($rs['datum']).'</td>
-			</tr>';
-		}
-		echo '</table>';
-	}
-	
-	
-	function listclosed() {
-		global $db, $user;
-		
-		$wetter = array();
-		$gegner = array();
-		
-		$sql = 'SELECT w.*, UNIX_TIMESTAMP(w.datum) as datum 
-				FROM wetten w 
-				WHERE w.status = "geschlossen" 
-				ORDER by w.datum DESC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		echo '<h2>Abgeschlossene Wetten</h2>
+			echo '<h2>Laufende Wetten</h2>
 			<table width="700" cellpadding="4" cellspacing="1" bgcolor="'.BORDERCOLOR.'">
-				<tr align="left"  bgcolor="'.BORDERCOLOR.'">
+			<tr align="left"  bgcolor="'.BORDERCOLOR.'">
 				<td><b>Wettstarter</b></td>
 				<td><b>Titel</b></td>
 				<td><b>Einsatz</b></td>
@@ -315,34 +270,107 @@ class wetten {
 				<td><b>Gegner</b></td>
 				<td><b>Datum</b></td>
 			</tr>';
-
-		while($rs = $db->fetch($result))
-		{
-			$sqli = 'SELECT wt.user_id, wt.seite
-					 FROM wetten_teilnehmer wt
-					 WHERE wt.wetten_id = '.$rs['id'];
-			$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
-			while ($rsi = $db->fetch($resulti)) {
-				$username = $user->id2user($rsi['user_id'], true);
-				if($rsi['seite'] === 'wetter') {
-					array_push($wetter, $username);
-				} else {
-					array_push($gegner, $username);
+	
+			while($rs = $db->fetch($result))
+			{
+				/** Wetter & Gegner bei jedem Wette-Eintrag neu initialisieren */
+				$wetter = array();
+				$gegner = array();
+	
+				$sqli = 'SELECT wt.user_id, wt.seite 
+						 FROM wetten_teilnehmer wt 
+						 WHERE wt.wetten_id = '.$rs['id'];
+				$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
+				while ($rsi = $db->fetch($resulti)) {
+					$username = $user->userprofile_link($rsi['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]);
+					if($rsi['seite'] === 'wetter') {
+						array_push($wetter, $username);
+					} else {
+						array_push($gegner, $username);
+					}
 				}
-			}
-
-			echo "<tr bgcolor='".TABLEBACKGROUNDCOLOR."'>
-				<td>".$username."</td>
-				<td><a href='?id=".$rs['id']."'>".stripslashes($rs['titel'])."</a></td>
-				<td>".stripslashes($rs['einsatz'])."</td><td>";
+	
+				echo '<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">
+				<td>'.$user->userprofile_link($rs['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]).'</td>
+				<td><a href="?id='.$rs['id'].'">'.stripslashes($rs['titel']).'</a>
+				</td>
+				<td>'.stripslashes($rs['einsatz']).'</td>
+				<td>';
 				echo (count($wetter) > 0 ? implode(', ', (array)$wetter) : 'keine');
 				echo '</td><td>';
 				echo (count($gegner) > 0 ? implode(', ', (array)$gegner) : 'keine');
-				echo "</td><td>".datename($rs['datum'])."</td>
-			</tr>";
+				echo '</td>
+				<td>'.datename($rs['datum']).'</td>
+				</tr>';
+			}
+			echo '</table>';
 		}
+		/** Keine Wetten gefunden */
+		else {
+			echo '<p>Zur Zeit läuft gerade keine Wette mehr...</p>';
+		}
+	}
+	
+	
+	static function listclosed()
+	{
+		global $db, $user;
 
-		echo '</table>';
+		$sql = 'SELECT w.*, UNIX_TIMESTAMP(w.datum) as datum 
+				FROM wetten w 
+				WHERE w.status = "geschlossen" 
+				ORDER by w.datum DESC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		
+		if ($db->num($result) > 0)
+		{
+			echo '<h2>Abgeschlossene Wetten</h2>
+				<table width="700" cellpadding="4" cellspacing="1" bgcolor="'.BORDERCOLOR.'">
+					<tr align="left"  bgcolor="'.BORDERCOLOR.'">
+						<td><b>Wettstarter</b></td>
+						<td><b>Titel</b></td>
+						<td><b>Einsatz</b></td>
+						<td><b>Wetter</b></td>
+						<td><b>Gegner</b></td>
+						<td><b>Datum</b></td>
+					</tr>';
+	
+			while($rs = $db->fetch($result))
+			{
+				/** Wetter & Gegner bei jedem Wette-Eintrag neu initialisieren */
+				$wetter = array();
+				$gegner = array();
+	
+				$sqli = 'SELECT wt.user_id, wt.seite
+						 FROM wetten_teilnehmer wt
+						 WHERE wt.wetten_id = '.$rs['id'];
+				$resulti = $db->query($sqli, __FILE__, __LINE__, __METHOD__);
+				while ($rsi = $db->fetch($resulti)) {
+					$username = $user->userprofile_link($rsi['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]);
+					if($rsi['seite'] === 'wetter') {
+						array_push($wetter, $username);
+					} else {
+						array_push($gegner, $username);
+					}
+				}
+	
+				echo '<tr bgcolor="'.TABLEBACKGROUNDCOLOR.'">
+						<td>'.$user->userprofile_link($rs['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]).'</td>
+						<td><a href="?id='.$rs['id'].'">'.stripslashes($rs['titel']).'</a></td>
+						<td>'.stripslashes($rs['einsatz']).'</td><td>';
+						echo (count($wetter) > 0 ? implode(', ', (array)$wetter) : 'keine');
+						echo '</td><td>';
+						echo (count($gegner) > 0 ? implode(', ', (array)$gegner) : 'keine');
+						echo '</td><td>'.datename($rs['datum']).'</td>
+					</tr>';
+			}
+	
+			echo '</table>';
+		}
+		/** Keine Wetten gefunden */
+		else {
+			echo '<p>Keine fertige Wette gefunden.</p>';
+		}
 	}
 	
 	/**
@@ -352,7 +380,7 @@ class wetten {
 	 * @since 1.0 `[z]cylander` method added
 	 * @since 1.1 `09.09.2019` `IneX` changed echo to return() to assign output to Smarty
 	 */
-	function newform()
+	static function newform()
 	{
 		return '
 		<h2>Neue Wette eintragen</h2>
@@ -398,7 +426,7 @@ class wetten {
 	 * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
 	 * @return void Printed HTML-Output
 	 */
-	function get_wette ($id)
+	static function get_wette ($id)
 	{
 		global $db, $user, $smarty;
 
@@ -434,15 +462,15 @@ class wetten {
 			while ($rsi = $db->fetch($resulti))
 			{
 				if($rsi['seite'] == "wetter") {
-					array_push($wetter, $user->link_userpage($rsi['user_id']));
-					if($rsi['user_id'] == $user->id) $wjoin = true;
+					array_push($wetter, $user->userprofile_link($rsi['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]));
+					if($user->is_loggedin() && $rsi['user_id'] === $user->id) $wjoin = true;
 				} else {
-					array_push($gegner, $user->link_userpage($rsi['user_id']));
-					if($rsi['user_id'] == $user->id) $gjoin = true;
+					array_push($gegner, $user->userprofile_link($rsi['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false]));
+					if($user->is_loggedin() && $rsi['user_id'] === $user->id) $gjoin = true;
 				}
 			}
 
-			if($user->id != $rs['user_id'] && $user->typ != USER_NICHTEINGELOGGT)
+			if($user->is_loggedin() && $user->id != $rs['user_id'])
 			{
 				if(!$gjoin && !$wjoin) {
 					$gg = '<a href="?id='.$id.'&do=gjoin">join</a>';
@@ -469,7 +497,7 @@ class wetten {
 			</td></tr><tr><td valign=\"top\">
 			<b>Wettstarter</b>
 			</td><td>
-			".$user->link_userpage($rs['user_id'])."
+			".$user->userprofile_link($rs['user_id'], ['username' => true, 'clantag' => true, 'link' => true, 'pic' => false])."
 			</td></tr><tr><td valign=\"top\">
 			<b>Wetter</b>
 			</td><td>
@@ -512,7 +540,7 @@ class wetten {
 			switch ($rs['status'])
 			{
 				case 'offen':
-					if($user->id == $rs['user_id'])
+					if($user->is_loggedin() && $user->id == $rs['user_id'])
 					{
 						$html .= '
 						<form action="'.getURL(true,false).'" method="post">
@@ -528,7 +556,7 @@ class wetten {
 					break;
 					
 				case 'laeuft':
-					if($user->id == $rs['user_id'])
+					if($user->is_loggedin() && $user->id == $rs['user_id'])
 					{
 						
 						$html .= '

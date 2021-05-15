@@ -421,7 +421,7 @@ function var_request ()
 		return $smarty->fetch('file:email/verein/elements/block_info.tpl');
 		//}
 	}
-	
+
 	/**
 	 * Verein Mailer - Call-to-Action Button Block
 	 *
@@ -440,7 +440,7 @@ function var_request ()
 								]);
 		return $smarty->fetch('file:email/verein/elements/block_ctabutton.tpl');
 	}
-	
+
 	/**
 	 * Verein Mailer - Telegram Messenger Button Block
 	 *
@@ -612,7 +612,7 @@ function var_request ()
 		global $db;
 		$result = $db->query(
 			"
-			SELECT *, UNIX_TIMESTAMP(datum) AS datum
+			SELECT *, CONVERT(kommentar USING latin1) kommentar, UNIX_TIMESTAMP(datum) AS datum
 			FROM tauschboerse
 			WHERE id = ".$params['id']."
 			",
@@ -627,24 +627,26 @@ function var_request ()
 	function var_online_users ()
 	{
 		global $db;
-	
+
 		$online_users = array();
 		$sql = 'SELECT id FROM user
 				WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - '.USER_TIMEOUT.')
 				ORDER by activity DESC';
 		$e = $db->query($sql, __FILE__, __LINE__);
-	
+
 		while ($d = mysqli_fetch_row($e)) {
 			array_push($online_users, $d[0]);
 		}
 		return $online_users;
 	}
 	function smarty_FormFieldUserlist($params) {
-		return usersystem::getFormFieldUserlist($params['name'], $params['size']);
+		global $user;
+		return $user->getFormFieldUserlist($params['name'], $params['size']);
 	}
 	function smarty_onlineusers($params) {
+		global $user;
 		if (!isset($params['images'])) $params['images'] = false;
-		return usersystem::online_users($params['images']);
+		return $user->online_users($params['images']);
 	}
 
 /** Addle */
@@ -912,7 +914,7 @@ error_log('out: '.$out);
 					 '</td></tr><tr><td>';
 					Forum::printCommentingSystem($params['board'], $params['thread_id']);
 					echo '</td></tr></table>';
-	
+
 					return '';
 				}
 				/** User preferences = hide Comments */
@@ -1395,7 +1397,7 @@ function smarty_menuname ($name, &$smarty) {
 
 		$smarty->assign($var, $value);
 	}
-	
+
 	/**
 	 * Smarty |rendertime modifier function
 	 *
@@ -1410,9 +1412,9 @@ function smarty_menuname ($name, &$smarty) {
 	 * close enough that it is splitting hairs, IMHO
 	 * Usage:
 	 * - in index.php
-	 *    util::timer('begin', 'Page'); // starts a timer block with the message 'Page' 
+	 *    util::timer('begin', 'Page'); // starts a timer block with the message 'Page'
 	 *    // other code
-	 *    echo 'history: '.util::timer('list'); // returns a history of timed block results 
+	 *    echo 'history: '.util::timer('list'); // returns a history of timed block results
 	 * - in template.tpl
 	 *    {"begin"|timer:"template block"}
 	 *    template stuff...
@@ -1429,7 +1431,7 @@ function smarty_menuname ($name, &$smarty) {
 		case 'begin':
 			$_timer_blocks[] =array(microtime(true));
 			break;
-	
+
 		case 'end':
 			$last = array_pop($_timer_blocks);
 			$_start = $last[0];
@@ -1439,7 +1441,7 @@ function smarty_menuname ($name, &$smarty) {
 			$_timer_history[] = [ $elapsed ];
 			return $elapsed;
 			break;
-	
+
 		case 'list':
 			$o = '';
 			foreach ($_timer_history as $mark) {
@@ -1447,7 +1449,7 @@ function smarty_menuname ($name, &$smarty) {
 			}
 			return $o;
 			break;
-	
+
 		case 'stop':
 			$result = '';
 			while(!empty($_timer_blocks)) {
@@ -1519,7 +1521,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'code_info' => array(getGitCodeVersion(), 'Code Info', 'Holt die aktuellen Code Infos (Version, last commit, etc.) aus dem Git HEAD', false)
 								,'smarty_menus' => array(smarty_get_menus(), 'Smarty', 'Array mit allen verfügbaren Smarty-Menutemplates', true)
   						 );
-	
+
 	/**
 	 * PHP Functions as Modifiers for Smarty Functions
      *
@@ -1578,8 +1580,8 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_mailinfoblock' => array('mail_infoblock', 'Verein Mailer - Info Block', '{mail_infoblock topic="headline"}...{/mail_infoblock}', false)
 								,'smarty_mailctabutton' => array('mail_button', 'Verein Mailer - Call-to-Action-Button', '{mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}', false)
 								,'smarty_mailtelegrambutton' => array('telegram_button', 'Verein Mailer - Telegram Messenger Button', '{telegram_button}button-text{/telegram}', false)
-								
-								
+
+
 								);
 
 	/**
@@ -1675,7 +1677,7 @@ function smarty_menuname ($name, &$smarty) {
 		// Globals
 		global $smarty, $user;
 		$smarty_vars_documentation = array();
-		
+
 		foreach ($php_vars_array as $smarty_var_key => $smarty_var_data)
 		{ // Format: 'color' => array($color, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
 			if ($smarty_var_data[3] && $user != null) $smarty->assign($smarty_var_key, $smarty_var_data[0]);
@@ -1708,15 +1710,15 @@ function smarty_menuname ($name, &$smarty) {
 		global $smarty, $user;
 		$documentation = array();
 		//natcasesort($php_modifiers_array); // Sort the Array from A-Z
-		
+
 		foreach ($php_modifiers_array as $function_name => $data)
 		{ // Format: 'datename' => array('datename', 'Datum und Zeit', '{$timestamp|datename} konviertiert einen timestamp in ein anständiges datum/zeit Format', false)
-			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
+			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);
 			if ($data[3] && $user != null) $smarty->register_modifier($smarty_name, $function_name);
 			elseif (!$data[3]) $smarty->register_modifier($smarty_name, $function_name);
 			$documentation['{$var|'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
-		
+
 		//natcasesort($smarty_modifiers_documentation); // Sort the Array from A-Z
 		$smarty->assign('smartymodifiers_doc', $documentation); // {smartymodifiers} Lists all available Smarty Modifiers
 	}
@@ -1741,15 +1743,15 @@ function smarty_menuname ($name, &$smarty) {
 		// Globals
 		global $smarty, $user;
 		$documentation = array();
-		
+
 		foreach ($php_blocks_array as $function_name => $data)
 		{ // Format: 'smarty_zorg' => array('zorg', 'Layout', '{zorg title="Titel"}...{/zorg}	displays the zorg layout (including header, menu and footer)', false)
-			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);			
+			$smarty_name = (!empty($data[0]) ? $data[0] : $function_name);
 			if ($data[3] && $user != null) $smarty->register_block($smarty_name, $function_name);
 			elseif (!$data[3]) $smarty->register_block($smarty_name, $function_name);
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[1], 'description' => $data[2], 'members_only' => $data[3]);
 		}
-		
+
 		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyblocks_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}
@@ -1778,7 +1780,7 @@ function smarty_menuname ($name, &$smarty) {
 		// Globals
 		global $smarty, $user;
 		$documentation = array();
-		
+
 		foreach ($php_functions_array as $array_name => $data)
 		{ // Format: array_name => array( [0]{array([PHP-Klasse], }[PHP-Funktion]{)}, [1][Tpl-Funktion], [2][Kategorie], [3][Beschreibung], [4][Members only true/false], [5][Compiler Function true/false])
 			$smarty_name = (!empty($data[1]) ? $data[1] : $array_name);
@@ -1787,7 +1789,7 @@ function smarty_menuname ($name, &$smarty) {
 			elseif ($data[5]) $smarty->register_compiler_function($smarty_name, $data[0], false); // Register Compiler Functions
 			$documentation['{'.$smarty_name.'}'] = array('category' => $data[2], 'description' => $data[3], 'members_only' => $data[4], 'compiler_function' => $data[5]);
 		}
-		
+
 		//natcasesort($documentation); // Sort the Array from A-Z
 		$smarty->assign('smartyfunctions_doc', $documentation); // {smartyblocks_doc} Lists all available Smarty HTML-Blocks
 	}

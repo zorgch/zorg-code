@@ -129,8 +129,6 @@ body {
 	}
 		header > .logo { font-size: 0.85rem; }
 		header > .service { font-size: 0.6rem; }
-		header > .service label.user::before { content: "\01F464"; }
-		header > .service label.password::before { content: "\01F510"; }
 		header > .announcements {
 			justify-self: center;
 			font-size: 0.5rem;
@@ -173,6 +171,8 @@ body {
 	h5 { font-size: 0.5rem; }
 	h6 { font-size: 0.3rem; }
 	blockquote { font: 0.7rem/0.8rem normal; }
+	.small { font-size: 0.75em; }
+	.tiny { font-size: 0.65em; }
 }
 
 /* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
@@ -198,7 +198,7 @@ body {
 	}
 		header > .logo { font-size: 1.5rem; }
 		header > .service { font-size: 0.65rem; }
-		header > .service input[type=text], header > .service input[type=password] { width: 80px; }
+		header > .service input[type=text], header > .service input[type=password] { min-width: 80px; }
 		header > .announcements {
 			justify-self: start;
 			font-size: 0.7rem;
@@ -255,6 +255,8 @@ body {
 	h5 { font-size: 1.2rem; }
 	h6 { font-size: 1.0rem; }
 	blockquote { font: 1rem/1.2rem normal; }
+	.small { font-size: 0.75rem; }
+	.tiny { font-size: 0.65rem; }
 }
 
 /* Mobile Smartphones (Landscape) */
@@ -370,8 +372,6 @@ blockquote {
 	height: 100%;
 	vertical-align: text-top;
 }
-.tiny { font-size: 0.35rem; }
-.small { font-size: 0.5rem; }
 .title {
 	height: 20px;
 	font-weight: bold;
@@ -426,6 +426,9 @@ header > .announcements .event > a > .name { }
 header > .announcements .event > a.join { }
 header > .announcements .event > a.unjoin { color: #cbba79; }
 header > .service { text-align: right; }
+header > .service label.user::before { content: "\01F464"; }
+header > .service label.password::before { content: "\01F510"; }
+
 header > .service h5 {
 	margin-top: 0;
 	margin-bottom: 0.5em;
@@ -437,20 +440,22 @@ header > .service .countryflag {
 header > .service form fieldset { margin-top: 0; }
 header > .service form .login-input {
 	display: flex;
-	white-space: nowrap;
-	align-items: flex-start;
+	align-items: center;
+	text-align: left;
 	margin: 0;
 	padding: 0;
 }
+#login-popup form:first-child { padding-top: 25px; }
 header > .service form .login-input label {
 	flex: 1;
 	margin: 0 0 0 10px;
 	padding: 0 2px 0 2px;
 	font-size: inherit;
+	align-self: center;
 }
 header > .service form .login-input a {
 	flex: 1;
-	font-size: 0.8em;
+	font-size: inherit;
 }
 header > .service form .login-input input[type=submit] {
 	flex: 1;
@@ -575,44 +580,49 @@ footer #swisstime { font-size: 0.7rem; }
 }
 .closebtn:hover {color: black;}
 
+/** Dialog */
+#login-popup {
+	z-index: 99;
+}
+
 /** Activities */
 div.zorg-activities-list { }
 div.zorg-activity {
-	position:relative;
-	width:100%;
-	height:90px;
-	display:block;
+	position: relative;
+	width: 100%;
+	height: 90px;
+	display: block;
 }
 div.activity-left {
-	position:relative;
-	width:150px;
-	height:150px;
-	float:left;
-	display:block;
+	position: relative;
+	width: 150px;
+	height: 150px;
+	float: left;
+	display: block;
 }
 div.activity-right {
-	position:relative;
-	width:100%;
-	height:150px;
-	float:right;
-	clear:right;
-	display:block;
+	position: relative;
+	width: 100%;
+	height: 150px;
+	float: right;
+	clear: right;
+	display: block;
 }
 div.activity-content {
-	position:relative;
-	width:100%;
-	height:100%;
-	display:inline;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	display: inline;
 }
 div.activity-footer {
-	position:relative;
-	width:100%;
-	height:25px;
+	position: relative;
+	width: 100%;
+	height: 25px;
 }
 /** END: Activities */
 
 /** Commenting */
-table.forum { width:100%; }
+table.forum { width: 100%; }
 td.forum {
 	word-wrap: break-word;
 	margin: 0;
@@ -661,7 +671,7 @@ input.replybutton { margin: 0; }
 	bottom: 0;
 }
 #schickenaaab {
-	margin-left: 15px;
+	margin: 0 8px 8px 8px;
 	bottom: 0;
 	right: 0;
 }
@@ -851,14 +861,10 @@ input, textarea, select, button {
 	font-size: 0.8em;
 	margin: 3px 10px 10px 0;
 }
-/**
- * Fix input zoom on iPhones
- * @link https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields/
- */
-@media screen and (max-width: 767px) {
-	input, textarea, select, button {
-		font-size: 1em;
-	}
+
+textarea {
+	overflow: auto;/** Remove the default vertical textarea scrollbar in IE 10+ */
+	resize: vertical;
 }
 
 input::placeholder, textarea::placeholder {
@@ -870,6 +876,7 @@ input[type=text], input[type=password], input[type=search], input[type=number], 
 	padding: 5px 10px;
 	border: none;
 	outline: var(--outline-input, 'solid 1px #ccc');
+	width: 100%;
 }
 
 input:focus, textarea:focus, select:focus, option:focus {
@@ -878,15 +885,10 @@ input:focus, textarea:focus, select:focus, option:focus {
 	outline-offset: 0px; /** Prevent default user agent styling behaviour */
 }
 
-textarea {
-	overflow: auto;/** Remove the default vertical textarea scrollbar in IE 10+ */
-	resize: vertical;
-}
-
 input[type=checkbox], input[type=radio] {
 	border: var(--border-input, 'none');
 	outline: none; /** Revert input:focus */
-    vertical-align: middle; /** Adjust positioning of checkbox & radio boxes */
+    vertical-align: baseline; /** Adjust positioning of checkbox & radio boxes */
     transform: scale(1.2); /** Adjust positioning of checkbox & radio boxes */
     filter: var(--filter-invert, 'none');
 }
@@ -898,7 +900,7 @@ button, input[type=button], input[type=submit], .button, dialog button {
 	background: var(--background-color-input, '#fff');
 }
 .button, dialog button {
-	font-size: 0.4rem;
+	font-size: 1em;
 }
 
 button:hover, input[type=button]:hover, input[type=submit]:hover, .button:hover, dialog button:hover {
@@ -927,6 +929,7 @@ select {
 	background-position: right .7em top 50%, 0 0;
 	background-size: .65em auto, 100%;
 	outline: none;
+	width: 100%;
 }
 select[multiple] { background-image: none; }
 select::-ms-expand { display: none; }
@@ -948,6 +951,44 @@ select:disabled, select[aria-disabled=true] {
 	  linear-gradient(to bottom, var(--color-font-input-disabled, graytext) 0%,var(--color-font-input-disabled, graytext) 100%);
 }
 select:disabled:hover, select[aria-disabled=true] { border-color: var(--border-input-disabled, graytext); }
+
+/** No left/right Padding inside Tables, because 100% => over-stretches */
+td > textarea, td > input, td > input[type=text], td > input[type=password], td > input[type=search], td > input[type=number], td > input.text {
+	width: 95%;
+}
+
+/** No 100% width within Labels => messes up flexbox */
+label > input[type=text], label > input[type=password], label > input[type=search], label > input[type=number], label > textarea, label > input.text {
+	width: unset;
+}
+
+@media screen and (max-width: 767px) {
+	/**
+	 * Fix input zoom on iPhones
+	 * @link https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields/
+	 */
+	input, textarea, select {
+		font-size: 1rem;
+	}
+	button, input[type=submit], input[type=button], select {
+		width: 100%;
+	}
+	#schickenaaab {
+		width: 95%; /** Fix 100% overflow */
+	}
+
+	/**
+	 * Fix responsive Google reCaptcha
+	 * @link https://www.scratchcode.io/how-to-resize-the-google-recaptcha/
+	 */
+	.g-recaptcha {
+		transform:scale(0.87);
+		-webkit-transform:scale(0.87);
+		transform-origin:0 0;
+		-webkit-transform-origin:0 0;
+	}
+
+}
 /** END: Form elements */
 
 
@@ -1005,6 +1046,7 @@ dialog[open] { display: block; }
 	color: red;
 	background-color: transparent;
 	border: 0;
+	width: unset; /** Prevent 100% width */
 }
 .modal-header,
 .modal-body,

@@ -57,7 +57,7 @@
 			<input type="hidden" name="text">
 		</div>
 		<input type="hidden" name="msg_users[]" id="notificationList">
-		<input type="submit" name="submit" id="schickenaaab" tabindex="2" value="Speichern">
+		<input type="submit" name="submit" id="schickenaaab" tabindex="2" value="Sag es!">
 	</form>
 </div>
 

@@ -6,7 +6,7 @@
 </form>
 {else}
 	{if $smarty.get.showlogin == 'true'}
-<form name="loginform" id="loginform" class="login" action="{$self}" method="post">
+<form name="loginform" id="loginform" class="login" action="{$url|base64decode}" method="post">
 	<input type="hidden" name="do" value="login">
 	<input type="hidden" name="redirect" value="{$url}">
 	<!-- Prevent autofocus of "username" on mobile devices --><input type="text" autofocus="autofocus" style="display:none">
@@ -19,8 +19,8 @@
 		<a href="/profil.php?do=anmeldung#pwreset">forgot</a>
 	</div>
 	<div class="login-input">
-		<label>autologin&nbsp;<input type="checkbox" name="autologin" id="autologin" value="cookie" tabindex="3" style="vertical-align: baseline;"></label>
-		<input type="submit" value="login" tabindex="4">
+		<label style="white-space: nowrap;"><input type="checkbox" name="autologin" id="autologin" value="cookie" tabindex="3" style="margin-right: 0;">&nbsp;🍪-autologin</label>
+		<input type="submit" value="login" tabindex="4" class="primary" style="margin-left: 10px;margin-right: 0;">
 	</div>
 </form>
 	{else}
@@ -33,22 +33,22 @@
 <link rel="stylesheet" type="text/css" href="{$smarty.const.JS_DIR}dialog-polyfill/dialog-polyfill.css">
 <script src="{$smarty.const.JS_DIR}dialog-polyfill/dialog-polyfill.js"></script>
 <dialog id="login-popup">
-	<form name="loginform" id="loginform" class="login" action="{$self}" method="post">
+	<form name="loginform" id="loginform" class="login" action="{$url|base64decode}" method="post">
 		<!--h4 class="modal-header">Auf zorg einloggen</h4-->
 		<input type="hidden" name="do" value="login">
 		<input type="hidden" name="redirect" value="{$url}">
 		<div class="login-input">
-			<label class="emoji user">user <input type="text" name="username" value="{$smarty.post.username}" tabindex="1"></label>
+			<label class="emoji user">user<br><input type="text" name="username" value="{$smarty.post.username}" tabindex="1"></label>
 			<a href="/profil.php?do=anmeldung#newuser">new</a>
 		</div>
 		<div class="login-input">
-			<label class="emoji password">pass <input type="password" name="password" tabindex="2"></label>
+			<label class="emoji password">pass<br><input type="password" name="password" tabindex="2"></label>
 			<a href="/profil.php?do=anmeldung#pwreset">forgot</a>
 		</div>
 		<footer class="modal-footer">
 			<div class="login-input">
-				<label>autologin&nbsp;<input type="checkbox" name="autologin" id="autologin" value="cookie" tabindex="4" style="vertical-align: baseline;"></label>
-				<input type="submit" value="login" tabindex="3">
+				<label style="white-space: nowrap;"><input type="checkbox" name="autologin" id="autologin" value="cookie" tabindex="3" style="margin-right: 0;">&nbsp;🍪-autologin</label>
+				<input type="submit" value="login" tabindex="4" class="primary" style="margin-left: 10px;margin-right: 0;">
 			</div>
 		</footer>
 	</form>
