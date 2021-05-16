@@ -419,17 +419,17 @@ class usersystem
 								 * @link http://php.net/manual/de/function.setcookie.php#73107
 								 */
 								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Enabling & setting Cookies. Use cookies: %s', __METHOD__, __LINE__, ($user_wants_cookies ? 'true' : 'false')));
-								session_set_cookie_params(['lifetime' => 60*60*24*7, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
+								if (session_status() === PHP_SESSION_NONE) session_set_cookie_params(['lifetime' => 60*60*24*7, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
 								setcookie(ZORG_COOKIE_SESSION, session_id(), ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
 								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
 								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
 							} else {
 								/** No Cookies wanted - Session/Login will expire on Browser close */
-								session_set_cookie_params(['path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]); // DISABLED: 'lifetime' => ZORG_SESSION_LIFETIME,
+								if (session_status() === PHP_SESSION_NONE) session_set_cookie_params(['path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]); // DISABLED: 'lifetime' => ZORG_SESSION_LIFETIME,
 							}
 
 							/** Fire up a new Session for the authenticated user */
-							session_start();
+							if (session_status() === PHP_SESSION_NONE) session_start();
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> NEW Session ID created: %s', __METHOD__, __LINE__, session_id()));
 
 							/** Push User-ID to the Session Superglobal */
@@ -455,7 +455,7 @@ class usersystem
 							exit;
 
 						} else {
-							$error = t('lockout-message', 'user', date('d.m.Y', $rs[$this->field_ausgesperrt_bis]));
+							$error = t('lockout-message', 'user', date('d.m.Y HH:MM', $rs[$this->field_ausgesperrt_bis]));
 						}
 					} else {
 						$error = t('account-inactive', 'user');
@@ -466,8 +466,8 @@ class usersystem
 					if (isset($_COOKIE[ZORG_COOKIE_USERPW]))
 					{
 						/** If User came with Cookie PW, request clearing them... */
-						$this->invalidate_session();
 						header('Clear-Site-Data: "cookies"'); // Request Client Browser to remove all Cookies
+						$this->invalidate_session();
 						$error = t('invalid-cookie', 'user');
 						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->num($result)=>ERROR: %s', __METHOD__, __LINE__, $error));
 						//user_error(t('invalid-cookie', 'user'), E_USER_WARNING); // Warnung loggen
@@ -559,9 +559,9 @@ class usersystem
 		/** Previous z Cookie Version / Settings */
 		if (isset($_COOKIE[ZORG_COOKIE_USERPW]) && strlen($_COOKIE[ZORG_COOKIE_USERPW]) === 13 && substr($_COOKIE[ZORG_COOKIE_USERPW], 0, 2) === 'CR')
 		{
-			setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $isSecure, 'httponly' => true, 'samesite' => 'Strict']); // Session-Cookie invalidieren
-			setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $isSecure, 'httponly' => true, 'samesite' => 'Strict']); // Login-Cookie invalidieren
-			setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => '/', 'domain' => SITE_HOSTNAME, 'secure' => $isSecure, 'httponly' => true, 'samesite' => 'Strict']); // Password-Cookie invalidieren
+			setcookie(ZORG_COOKIE_SESSION, '', ['expires' => time()-3600, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Strict']); // Session-Cookie invalidieren
+			setcookie(ZORG_COOKIE_USERID, '', ['expires' => time()-3600, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Strict']); // Login-Cookie invalidieren
+			setcookie(ZORG_COOKIE_USERPW, '', ['expires' => time()-3600, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => 'Strict']); // Password-Cookie invalidieren
 		}
 		/** z Cookies unsetten */
 		if (isset($_COOKIE[ZORG_COOKIE_SESSION])) unset($_COOKIE[ZORG_COOKIE_SESSION]); // zorg Session-Cookie unsetten
