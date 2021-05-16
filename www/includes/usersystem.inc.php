@@ -2052,8 +2052,8 @@ class usersystem
 		$oldfilename = $user_id.USER_IMGEXTENSION;
 		$oldfile = USER_IMGPATH.$user_id.USER_IMGEXTENSION;
 		$oldfile_tn = USER_IMGPATH.$user_id.'_tn'.USER_IMGEXTENSION;
-		$archiv = USER_IMGPATH_ARCHIVE.$user_id.'_'.$currtimestamp.USER_IMGEXTENSION; // (mit timestamp versehen, damits keine pics Ÿberschreibt
-		$archiv_tn = USER_IMGPATH_ARCHIVE.$user_id.'_'.$currtimestamp.'_tn'.USER_IMGEXTENSION; // (mit timestamp versehen, damits keine pics Ÿberschreibt
+		$archiv = USER_IMGPATH_ARCHIVE.$user_id.'_'.$currtimestamp.USER_IMGEXTENSION; // (mit timestamp versehen, damits keine pics überschreibt
+		$archiv_tn = USER_IMGPATH_ARCHIVE.$user_id.'_'.$currtimestamp.'_tn'.USER_IMGEXTENSION; // (mit timestamp versehen, damits keine pics überschreibt
 
 		/** ...aber nur wenn bereits ein Pic raufgeladen wurde (und nicht das Standartpic gesetzt ist) */
 		if (file_exists($oldfile)) {

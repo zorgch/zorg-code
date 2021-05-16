@@ -8,7 +8,7 @@
  * oder an Telegram-Gruppenchats übermittelt werden. Dies
  * erfolgt durch die Übergabe der jeweiligen Chat-ID oder
  * des Namens (z.B. @telegramuser).
- * 
+ *
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		messages_telegram_queue
  *
@@ -51,7 +51,7 @@ class Telegram
 	const PARSE_MODE = 'html';
 	const DISABLE_WEB_PAGE_PREVIEW = 'false';
 	const DISABLE_NOTIFICATION = 'false';
-	
+
 	/**
 	 * Send a Message via Telegram Messenger
 	 * Schickt eine Notification an die Telegram Chats von Usern
@@ -270,7 +270,7 @@ class Telegram
 				$attr = implode(' ', array_map(function($attr) {
 					return sprintf('%s="%s"', $attr->name, $attr->value);
 				}, iterator_to_array($node->attributes)));
-		
+
 				return sprintf('<%1$s %3$s>%2$s</%1$s>', $node->nodeName, $textContent, $attr);
 			}, $nodes)
 		);
@@ -281,9 +281,9 @@ class Telegram
 		$notificationText = str_replace('href="/', 'href="' . SITE_URL . '/', $notificationText);
 		$notificationText = str_replace('href="zorg.local/', 'href="' . SITE_URL . '/', $notificationText);
 		$notificationText = str_replace('zorg.local', 'zorg.ch', $notificationText);
-		
+
 		/**
-		 * Deoce HTML-Entities
+		 * Decode HTML-Entities
 		 */
 		$notificationText = html_entity_decode($notificationText);
 
@@ -293,7 +293,7 @@ class Telegram
 
 
 	/**
-	 * Validate Data agains Model for various Telegram Message Types
+	 * Validate Data against Model for various Telegram Message Types
 	 *
 	 * Check for valid parameters and returns Array with key:value pairs assigned
 	 * This function is related (but no depending!) to the following MySQL-table:
@@ -303,9 +303,9 @@ class Telegram
 	 *			- Column: :content_additional
 	 *
 	 * @author	IneX
-	 * @date	10.06.2018
-	 * @version	1.0
-	 * @since	1.0
+	 * @version	1.1
+	 * @since	1.0 `10.06.2018` `IneX` Method added
+	 * @since	1.1 `16.05.2021` `IneX` Added "sendPoll" method support
 	 *
 	 * @link https://core.telegram.org/bots/api#sendmessage
 	 * @link https://core.telegram.org/bots/api#sendphoto
@@ -316,6 +316,7 @@ class Telegram
 	 * @link https://core.telegram.org/bots/api#sendvideonote
 	 * @link https://core.telegram.org/bots/api#sendvoice
 	 * @link https://core.telegram.org/bots/api#sendlocation
+	 * @link https://core.telegram.org/bots/api#sendpoll
 	 * @param	string	$messageType	A valid Telegram Message Type, see Telegram Bot API docu
 	 * @param	array	$parameters		A Multidimensional Array containing the key:value parameter-pairs that should be passed to the Message Type Model
 	 * @return	array|boolean			Returns an Array (or "false" on error...) with key:value pairs assigned for the specified Message Type
@@ -378,6 +379,10 @@ class Telegram
 				,'sendContact'		=>	[
 										 'required' => [ 'phone_number', 'first_name' ],
 										 'optional' => [ 'last_name' ]
+										]
+				,'sendPoll'			=>	[
+										 'required' => [ 'chat_id', 'question', 'options' ],
+										 'optional' => [ 'is_anonymous', 'type', 'allows_multiple_answers', 'correct_option_id' ]
 										]
 			];
 
@@ -525,6 +530,25 @@ class send extends Telegram
 	 */
 	public function event($scope, float $latitude, float $longitude, $title, $address, $foursquare_id=NULL, $parameters=[]) {
 		$this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['title' => $title], ['address' => $address], ['foursquare_id' => $foursquare_id], $parameters) );
+	}
+
+	/**
+	 * sendPoll
+	 *
+	 * Send a native Telegram poll or quiz
+	 *
+	 * @TODO Stop Poll on close via chat_id using https://core.telegram.org/bots/api#stoppoll
+	 */
+	public function poll($scope, $question, $options, $is_anonymous=true, $type='regular', $allows_multiple_answers=false, $correct_option_id=null, $parameters=[]) {
+		$this->send( $scope, 'sendPoll', array_merge(
+			 ['question' => $question] // 1-300 characters
+			,['options' => $options] // JSON-serialized list of answer options, 2-10 strings 1-100 characters each
+			,['is_anonymous' => ($is_anonymous ? 'true' : 'false')] // (Optional) True, if the poll needs to be anonymous, defaults to True
+			,['type' => $type] // (Optional) Poll type, “quiz” or “regular”, defaults to “regular”
+			,['allows_multiple_answers' => ($allows_multiple_answers ? 'true' : 'false')] // (Optional) True to allow multiple answers, ignored for quiz, default: False
+			,['correct_option_id' => $correct_option_id] // (Optional / required for "quiz") 0-based identifier of the correct answer option
+			,$parameters
+		));
 	}
 }
 
