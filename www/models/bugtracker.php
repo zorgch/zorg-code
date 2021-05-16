@@ -66,7 +66,7 @@ class Bugtracker extends Model
 	public function showEdit(&$smarty, $bug_id)
 	{
 		$this->page_title = 'Bug #'.$bug_id.' bearbeiten';
-		$this->page_link = $this->page_link . '?do=edit&book_id=' . $book_id;
+		$this->page_link = $this->page_link . '?action=edit&bug_id=' . $bug_id;
 
 		$this->assign_model_to_smarty($smarty);
 	}

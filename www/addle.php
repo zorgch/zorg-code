@@ -322,7 +322,7 @@ function overview() {
 
 	/** Laufende Addle Games auflisten */
 	games();
-	
+
 	echo '<h2>Anleitung</h2>';
 	echo t('howto', 'addle');
 }
@@ -482,7 +482,7 @@ function doplay($id, $choose) {
  */
 function play($id=0)
 {
-	global $db, $user, $smarty, $model;
+	global $db, $sun, $user, $smarty, $model;
 
 	/** Validate passed $id */
 	if (empty($id) || !$id || !is_numeric($id) || $id <= 0)
@@ -556,7 +556,7 @@ function play($id=0)
 		</tr>
 	</table></center>';
 	$smarty->assign('sidebarHtml', $sidebarHtml);
-	$model->showGame($smarty, $game_id);
+	$model->showGame($smarty, $id);
 	$smarty->display('file:layout/head.tpl');
 	?>
 
@@ -622,10 +622,13 @@ function play($id=0)
 									if (DEVELOPMENT) error_log('============');
 									*/
 									$out = '<b>'.(ord($act)-96).'</b>';
-									if ($d['player1']==$user->id && $d['nextturn']==1 && $y==$d['nextrow'] && $d['finish']==0) {
-										$out = "<a href='?show=play&do=play&id=".$id."&choose=".$x."'>$out</a>";
-									} elseif ($d['player2']==$user->id && $d['nextturn']==2 && $x==$d['nextrow'] && $d['finish']==0) {
-										$out = "<a href='?show=play&do=play&id=".$id."&choose=".$y."'>$out</a>";
+									if ($user->is_loggedin())
+									{
+										if ($d['player1']==$user->id && $d['nextturn']==1 && $y==$d['nextrow'] && $d['finish']==0) {
+											$out = "<a href='?show=play&do=play&id=".$id."&choose=".$x."'>$out</a>";
+										} elseif ($d['player2']==$user->id && $d['nextturn']==2 && $x==$d['nextrow'] && $d['finish']==0) {
+											$out = "<a href='?show=play&do=play&id=".$id."&choose=".$y."'>$out</a>";
+										}
 									}
 									echo $out;
 								} ?>
@@ -679,7 +682,7 @@ function play($id=0)
  */
 function highscore() {
 	global $db, $user, $smarty;
-	
+
 	$e = $db->query('SELECT * FROM addle WHERE finish=1', __FILE__, __LINE__, __FUNCTION__);
 	$score = array();
 	$win = array();
@@ -721,12 +724,12 @@ function highscore() {
 	$keys = array_keys($usr);
 	for ($i=0; $i<sizeof($keys); $i++) {
 		/** old score calculation
-		 * nachteile: wenn user nur 1 spiel gemacht hat und dieses gewonnen hat, war er zuoberst in der rangliste... 
+		 * nachteile: wenn user nur 1 spiel gemacht hat und dieses gewonnen hat, war er zuoberst in der rangliste...
 		$anz = $win[$keys[$i]] + $loose[$keys[$i]] + $unent[$keys[$i]];
 		$sc = $score[$keys[$i]] / $anz;
 		$score[$keys[$i]] = round($sc * 100 / 3);
 		*/
-		
+
 		/** new score calculation */
 		//$score[$keys[$i]] = round(($win[$keys[$i]]+1) / ($loose[$keys[$i]]+1) * 100);
 		$score[$keys[$i]] = round($score[$keys[$i]] * ($win[$keys[$i]]+1) / ($loose[$keys[$i]]+1));
@@ -803,7 +806,7 @@ function archiv() {
 				<td>Ausgang</td>
 				<td>&nbsp;</td>
 		</tr>	<?php
-		
+
 		$e = $db->query('SELECT * FROM addle WHERE (player1='.$uid.' OR player2='.$uid.') ORDER BY date DESC', __FILE__, __LINE__, __FUNCTION__);
 		$i = 0;
 		while ($d = $db->fetch($e))
@@ -877,21 +880,21 @@ if ($user->is_loggedin())
 			//$smarty->assign('tplroot', array('page_title' => 'Addle Highscores'));
 			$model->showHighscore($smarty);
 			$smarty->display('file:layout/head.tpl');
-			highscore(); 
+			highscore();
 			break;
 
 		case 'dwz':
 			//$smarty->assign('tplroot', array('page_title' => 'Addle DWZ'));
 			$model->showDwz($smarty);
 			$smarty->display('file:layout/head.tpl');
-			echo highscore_dwz(999); 
+			echo highscore_dwz(999);
 			break;
 
 		case 'archiv':
 			//$smarty->assign('tplroot', array('page_title' => 'Addle Archiv'));
 			$model->showArchive($smarty);
 			$smarty->display('file:layout/head.tpl');
-			archiv(); 
+			archiv();
 			break;
 
 		default: // will also apply to: case 'overview'
