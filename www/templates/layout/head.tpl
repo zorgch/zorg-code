@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="de">
-	<head>{if $daytime eq ''}{if $sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}{/if}
+<html lang="de">{if $daytime eq ''}{if $sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}{/if}
+	<head>{if $code_info.last_commit != ''}{assign var=currversion value=$code_info.last_commit}{else}{assign var=currversion value='4-2-0'}{/if}
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="application-name" content="zorg.ch Website"/>
@@ -28,7 +28,6 @@
 			<meta name="description" content="{$meta_description}">
 		{/if}
 		{if $tplroot.page_image != ''}
-		{*assign var=page_image = value='{$smarty.const.SITE_URL}/images/zorg.jpg'*}
 			<meta name="twitter:image" content="{$tplroot.page_image}">
 			<meta property="og:image" content="{$tplroot.page_image}">
 		{/if}
@@ -37,8 +36,8 @@
 		<link rel="canonical" href="{$smarty.const.SITE_URL}{$tplroot.page_link}" />
 		{/if}
 		{include file="file:layout/partials/head/favicons.tpl"}
-		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v=4-0-1&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
-		<script src="{$smarty.const.JS_DIR}zorg.js?v=4-0-1"></script>
+		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v={$currversion}&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
+		<script src="{$smarty.const.JS_DIR}zorg.js?v={$currversion}"></script>
 		<script src="{$smarty.const.JS_DIR}ie11cssproperties.min.js"></script>
 		<script src="{$smarty.const.JS_DIR}highlight-js/highlight.pack.js"></script>
 		<link class="codestyle" rel="stylesheet" href="{$smarty.const.JS_DIR}highlight-js/styles/github-gist.css">

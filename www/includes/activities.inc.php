@@ -137,25 +137,31 @@ class Activities
 		{
 			/** Array to JSON conversion */
 			if (is_array($values) && !empty($values)) $activityValues = json_encode($values);
-	
-			try {
-				$sql = sprintf('INSERT INTO activities
-									(`date`, `activity_area`, `from_user_id`, `owner`, `activity`, `values`)
-								VALUES
-									(NOW(), "%s", %d, %d, "%s", "%s")',
-									$activityArea, $fromUser, $forUser, (strpos($activity,' ')!==false ? escape_text($activity) : $activity), $values
-								);
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> INSERT INTO activities: %s', __METHOD__, __LINE__, $sql));
-				$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			} catch (Exception $e) {
-				error_log($e->getMessage());
+			$sql = sprintf('INSERT INTO activities
+								(`date`, `activity_area`, `from_user_id`, `owner`, `activity`, `values`)
+							VALUES
+								(NOW(), "%s", %d, %d, "%s", "%s")',
+								$activityArea, $fromUser, $forUser, (strpos($activity,' ')!==false ? escape_text($activity) : $activity), $values
+							);
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> INSERT INTO activities: %s', __METHOD__, __LINE__, $sql));
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			if ($result !== false)
+				{
+				/** Telegram Notification auslösen */
+				if ($activityArea === 'p')
+				{
+					/** For Polls */
+					// Do nothing because already done in poll_edit.php
+				}
+				else {
+					/** For all other Activites */
+					$telegram->send->message('group', t('telegram-notification', 'activity', [ $user->id2user($fromUser, TRUE), $activity ]), ['disable_notification' => 'true']);
+				}
+
+				return true;
+			} else {
 				return false;
 			}
-
-			/** Telegram Notification auslösen */
-			$telegram->send->message('group', t('telegram-notification', 'activity', [ $user->id2user($fromUser, TRUE), $activity ]), ['disable_notification' => 'true']);
-
-			return true;
 		} else {
 			return false;
 		}
@@ -186,18 +192,12 @@ class Activities
 			/** Array to JSON conversion */
 			if (is_array($newValues) && !empty($newValues)) $activityValues = json_encode($newValues);
 
-			try {
-				$sql = sprintf('UPDATE activities SET
-									values = "%s"
-								WHERE
-									id = %d',
-								$activityValues, $activity_id);
-				return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? true : false );
-
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
+			$sql = sprintf('UPDATE activities SET
+								values = "%s"
+							WHERE
+								id = %d',
+							$activityValues, $activity_id);
+			return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? true : false );
 
 		/** When User is not allowed to edit the specified $activity_id, then exit */
 		} else {
@@ -225,28 +225,22 @@ class Activities
 	static public function remove ($activity_id)
 	{
 		global $db, $user;
-		
+
 		if($user->id === self::getActivityOwner($activity_id))
 		{
-			try {
-				$sql = 'DELETE FROM
-							activities
-						WHERE
-							id = '.$activity_id.' AND
-							owner = '.$user->id
-						;
-				return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? true : false );
-			}
-			catch(Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
+			$sql = 'DELETE FROM
+						activities
+					WHERE
+						id = '.$activity_id.' AND
+						owner = '.$user->id
+					;
+			return ( $db->query($sql, __FILE__, __LINE__, __METHOD__) ? true : false );
 		} else {
 			return false;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Activity bewerten
 	 *
@@ -267,36 +261,30 @@ class Activities
 	static public function rate ($activity_id, $rating)
 	{
 		global $db, $user;
-		
+
 		if ($user->is_loggedin() && !hasRated($activity_id, $user->id))
 		{
 			if($activity_id > 0 && $rating != '')
 			{
-				try {
-					$sql = 'REPLACE INTO
-								activities_votes
-									(activity_id,
-									 date,
-									 user_id,
-									 rating)
-							VALUES
-									('.$activity_id.',
-									 now(),
-									 '.$user->id.',
-									 "'.addslashes(stripslashes($rating)).'")
-							';
-					$db->query($sql, __FILE__, __LINE__, __METHOD__);
-				}
-				catch(Exception $e) {
-					error_log($e->getMessage());
-					return false;
-				}
+				$sql = 'REPLACE INTO
+							activities_votes
+								(activity_id,
+								 date,
+								 user_id,
+								 rating)
+						VALUES
+								('.$activity_id.',
+								 now(),
+								 '.$user->id.',
+								 "'.addslashes(stripslashes($rating)).'")
+						';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			}
 		}
-		
+
 	}
-	
-	
+
+
 	/**
 	 * Activity Bewertung entfernen
 	 *
@@ -314,25 +302,19 @@ class Activities
 	static public function unrate ($activity_id)
 	{
 		global $db, $user;
-		
+
 		if ($activity_id > 0 && hasRated($activity_id, $user->id))
 		{
-			try {
-				$sql = 'DELETE FROM activities_votes WHERE
-							activity_id = '.$activity_id.'
-							AND user_id = '.$user->id
-						;
-				$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			}
-			catch(Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
+			$sql = 'DELETE FROM activities_votes WHERE
+						activity_id = '.$activity_id.'
+						AND user_id = '.$user->id
+					;
+			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 		}
-		
+
 	}
-	
-	
+
+
 	/**
 	 * Activity durch User bereits bewertet
 	 *
@@ -349,18 +331,12 @@ class Activities
 	{
 		global $db;
 
-		try {
-			$sql = 'SELECT * FROM activities_votes WHERE activity_id='.$activity_id.' AND user_id='.$user_id;
-			$rs = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			return ( $rs > 0 ? TRUE : FALSE );
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT * FROM activities_votes WHERE activity_id='.$activity_id.' AND user_id='.$user_id;
+		$rs = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		return ( $rs > 0 ? TRUE : FALSE );
 	}
-	
-	
+
+
 	/**
 	 * Activity Owner
 	 * (Gibt die User ID des Activity Owners zurück)
@@ -378,18 +354,12 @@ class Activities
 	{
 		global $db;
 
-		try {
-			$sql = 'SELECT owner FROM activities WHERE id = '.$activity_id;
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			return $rs['owner'];
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT owner FROM activities WHERE id = '.$activity_id;
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		return $rs['owner'];
 	}
-	
-	
+
+
 	/**
 	 * Activities zählen
 	 *
@@ -405,19 +375,13 @@ class Activities
 	static public function countActivities ($user_id=0)
 	{
 		global $db;
-		
-		try {
-			$sql = 'SELECT COUNT(id) AS num FROM activities'.($user_id > 0 ? ' WHERE owner = '.$user_id : '');
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			return $rs['num'];
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+
+		$sql = 'SELECT COUNT(id) AS num FROM activities'.($user_id > 0 ? ' WHERE owner = '.$user_id : '');
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		return (!empty($rs['num']) ? $rs['num'] : false);
 	}
-	
-	
+
+
 	/**
 	 * Activity darf geloggt werden
 	 *
@@ -442,16 +406,10 @@ class Activities
 		/** Validte $user_id - valid integer & not empty/null */
 		if (empty($user_id) || $user_id === NULL || $user_id <= 0) return false;
 
-		try {
-			$sql = 'SELECT activities_allow FROM user WHERE id = '.$user_id.' LIMIT 0,1';
-			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_id %d => activities_allow: %s (%s)', __METHOD__, __LINE__, $user_id, $result['activities_allow'], ($result['activities_allow'] === '1' ? 'true' : 'false')));
-			return ( $result ? ($result['activities_allow'] === '1' ? true : false) : false );
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT activities_allow FROM user WHERE id = '.$user_id.' LIMIT 0,1';
+		$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_id %d => activities_allow: %s (%s)', __METHOD__, __LINE__, $user_id, $result['activities_allow'], ($result['activities_allow'] === '1' ? 'true' : 'false')));
+		return ( $result ? ($result['activities_allow'] === '1' ? true : false) : false );
 	}
 
 
@@ -519,7 +477,7 @@ class Activities
 			/** Return XML */
 			return $xmlfeed;
 
-		} // end if count()	
+		} // end if count()
 	}
 
 

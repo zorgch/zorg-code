@@ -259,6 +259,7 @@ return
 	,'poll' =>
 		[
 			 'invalid-poll_id' => 'Invalid Poll id "%s"'
+			,'activity-new-poll' => 'm&ouml;chte gerne wissen, ob...<br><br>{poll id=%d}'
 		]
 	,'util' =>
 		[

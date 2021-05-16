@@ -52,7 +52,10 @@ $layout = (isset($_GET['layout']) ? $_GET['layout'] : 'day');
 	--shadow-input-focus-moz_mac: 0 0 0 3px -moz-mac-focusring;
 }
 
-html { font-size: calc(1em + 1vw); }
+html {
+	font-size: calc(1em + 1vw);
+	scroll-behavior: smooth;
+}
 
 body {
 	background: var(--background-image-body, rgba(1,1,1,1));
@@ -141,6 +144,7 @@ body {
 		header > .onlineuser { font-size: 0.4rem; }
 		header > .notifications { font-size: 0.4rem; }
 	.navigation { font-size: 0.5rem; }
+		div.menu { overflow-x: auto; }
 		div.menu:last-of-type {
 			border-bottom: solid 1px var(--border-navigation, #ccc);
 		}
@@ -178,8 +182,8 @@ body {
 /* Mobile Smartphones (Portrait): Screen = B/w 320px to 479px */
 @media (max-width: 767px) {
 	body {
-		grid-template-columns: auto;
-		grid-template-rows: minmax(min-content, 100px) minmax(min-content, max-content) minmax(min-content, max-content) auto 1fr;
+		grid-template-columns: minmax(10px, 1fr);
+		grid-template-rows: minmax(min-content, 100px) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) 1fr;
 		grid-template-areas:
 			"header"
 			"nav"
@@ -219,6 +223,7 @@ body {
 			flex-grow: 1;
 			border-top-color: var(--border-navigation, #ccc);
 			border-bottom: solid 1px var(--border-navigation, #ccc);
+			border-right: 1px solid var(--border-navigation, #ccc);
 		}
 	    div.menu a {
 		    display: block;
@@ -245,6 +250,9 @@ body {
 	.footer > .shadow { margin: 0 -0.5rem 0 -1rem; } /** Compensate .footer{padding-left & -right} */
 	.footer > .flex-one-column { align-items: flex-start; }
 	.tpl-footer { font-size: 1em; }
+	.navigation, .main-content {
+		overflow-x: auto; /** Make container horizontally scrollable when content larger than viewport width */
+	}
 
 	.hide-mobile { display: none; }
 

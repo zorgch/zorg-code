@@ -1,6 +1,6 @@
 <?php
 /**
- * Poll Klasse und Funktionen
+ * Poll Klasse und Funktionen.
  * @package zorg\Polls
  */
 /**
@@ -47,7 +47,7 @@ class Polls
 				WHERE id='.$id.'
 				GROUP BY p.id';
 		$poll = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $poll: %s', __FUNCTION__, __LINE__, print_r($poll,true)));
+		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $poll: %s', __FUNCTION__, __LINE__, print_r($poll,true)));
 
 		if (!empty($poll) && $poll !== false)
 		{
@@ -56,7 +56,7 @@ class Polls
 			/** Check current User's user_has_vote_permission() */
 			$user_has_vote_permission = $this->user_has_vote_permission($poll['type']);
 			$smarty->assign('user_has_vote_permission', $user_has_vote_permission);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_has_vote_permission: %s', __FUNCTION__, __LINE__, ($user_has_vote_permission?'true':'false')));
+			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_has_vote_permission: %s', __FUNCTION__, __LINE__, ($user_has_vote_permission?'true':'false')));
 
 			/** Query Poll answers and return each answer with votes count */
 			$pollMaxvotes = 0;
@@ -88,7 +88,7 @@ class Polls
 					}
 				}
 			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $pollAnswersArray: %s', __FUNCTION__, __LINE__, print_r($pollAnswersArray,true)));
+			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $pollAnswersArray: %s', __FUNCTION__, __LINE__, print_r($pollAnswersArray,true)));
 			$smarty->assign('answers', $pollAnswersArray);
 
 			/** Poll Voting: add Vote-Form if user_has_vote_permission() */
@@ -108,7 +108,7 @@ class Polls
 				while ($pollVoter = $db->fetch($pollVoters)) {
 					$pollVotersArray[$pollVoter['answer']][] = $pollVoter;
 				}
-				if (DEVELOPMENT) error_log('[DEBUG] $pollVotersArray: '.print_r($pollVotersArray,true));
+				//if (DEVELOPMENT) error_log('[DEBUG] $pollVotersArray: '.print_r($pollVotersArray,true));
 				$smarty->assign('voters', $pollVotersArray);
 			}
 
