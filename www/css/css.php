@@ -880,7 +880,7 @@ input::placeholder, textarea::placeholder {
   opacity: 0.3;
 }
 
-input[type=text], input[type=password], input[type=search], input[type=number], textarea, input.text {
+input[type=text], input[type=password], input[type=search], input[type=number], input[type=date], textarea {
 	padding: 5px 10px;
 	border: none;
 	outline: var(--outline-input, 'solid 1px #ccc');
@@ -961,12 +961,13 @@ select:disabled, select[aria-disabled=true] {
 select:disabled:hover, select[aria-disabled=true] { border-color: var(--border-input-disabled, graytext); }
 
 /** No left/right Padding inside Tables, because 100% => over-stretches */
-td > textarea, td > input, td > input[type=text], td > input[type=password], td > input[type=search], td > input[type=number], td > input.text {
+td > textarea, td > input, td > input[type=text], td > input[type=password], td > input[type=search], td > input[type=number], td > input[type=date],
+form > input[type=text], form > input[type=password], form > input[type=search], form > input[type=number], form > input[type=date] {
 	width: 95%;
 }
 
 /** No 100% width within Labels => messes up flexbox */
-label > input[type=text], label > input[type=password], label > input[type=search], label > input[type=number], label > textarea, label > input.text {
+label > input[type=text], label > input[type=password], label > input[type=search], label > input[type=number], label > input[type=date], label > textarea {
 	width: unset;
 }
 
