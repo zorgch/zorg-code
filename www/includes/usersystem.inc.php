@@ -438,7 +438,7 @@ class usersystem
 							/** Last Login & current Login updaten */
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, $rs[$this->field_lastlogin], $this->field_currentlogin, $rs[$this->field_currentlogin]));
 							$db->update($this->table_name, ['id', $rs['id']], [
-								$this->field_lastlogin => (int)$rs[$this->field_currentlogin],
+								$this->field_lastlogin => timestamp(true, (int)$rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(true),
 								$this->field_last_ip => getRealIPaddress(),
 							], __FILE__, __LINE__, __METHOD__);
