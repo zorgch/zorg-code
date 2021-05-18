@@ -272,7 +272,7 @@ class usersystem
 				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
 				 */
 				$db->update($this->table_name, ['id', $this->id], [
-					$this->field_activity => timestamp(),
+					$this->field_activity => timestamp(true),
 					$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 					$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
 				], __FILE__, __LINE__, __METHOD__);
