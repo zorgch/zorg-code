@@ -272,7 +272,7 @@ class usersystem
 				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
 				 */
 				$db->update($this->table_name, ['id', $this->id], [
-					$this->field_activity => timestamp(true),
+					$this->field_activity => timestamp(),
 					$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
 					$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
 				], __FILE__, __LINE__, __METHOD__);
@@ -287,7 +287,7 @@ class usersystem
 	 *
 	 * @author [z]cylander
 	 * @author IneX
-	 * @version 5.0
+	 * @version 5.1
 	 * @since 1.0 `cylander` method added
 	 * @since 2.0 `12.11.2018` `IneX` code & query optimizations
 	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
@@ -438,8 +438,8 @@ class usersystem
 							/** Last Login & current Login updaten */
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, $rs[$this->field_lastlogin], $this->field_currentlogin, $rs[$this->field_currentlogin]));
 							$db->update($this->table_name, ['id', $rs['id']], [
-								$this->field_lastlogin => timestamp(true, $rs[$this->field_currentlogin]),
-								$this->field_currentlogin => timestamp(true),
+								$this->field_lastlogin => (int)$rs[$this->field_currentlogin],
+								$this->field_currentlogin => timestamp(),
 								$this->field_last_ip => getRealIPaddress(),
 							], __FILE__, __LINE__, __METHOD__);
 
