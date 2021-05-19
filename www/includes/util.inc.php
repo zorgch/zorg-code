@@ -7,8 +7,8 @@
 /**
  * File includes
  * @include config.inc.php
- * @include mysql.inc.php 		
- * @include activities.inc.php 	
+ * @include mysql.inc.php
+ * @include activities.inc.php
  */
 require_once dirname(__FILE__).'/config.inc.php';
 include_once INCLUDES_DIR.'mysql.inc.php';
@@ -71,7 +71,7 @@ function timename($timestamp)
 
 		/** Zeitperioden */
 		$timeLengths = array('s' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800, 'mt' => 2592000, 'y' => 31536000);
-	
+
 		if ($timeDiff <= 10) { /** Gerade eben */
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
 			return t('datetime-recently');
@@ -133,9 +133,10 @@ function datetimeToTimestamp($datetime)
  * @link http://php.net/manual/de/datetime.createfromformat.php
  *
  * @author IneX
- * @version 2.0
+ * @version 2.1
  * @since 1.0 `12.11.2018` function added
  * @since 2.0 `13.04.2021` Complete refactoring because it was f*cked up. Changed 1st param to $return_sql_datetime
+ * @since 2.1 `19.05.2021` Fixed wrong OR-Conditions when validating the function params & made is_string()-Cases more precise.
  *
  * @param boolean $return_sql_datetime Wenn 'true', dann wird ein SQL-kompatibles Date-Time in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
  * @param int|string|array $date_to_convert Array mit Date-Time-Werten, Integer oder Datum-String welche konvertiert werden sollen (statt 'jetzt') - default: null
@@ -144,8 +145,8 @@ function datetimeToTimestamp($datetime)
 function timestamp($return_sql_datetime=false, $date_to_convert=null)
 {
 	/** Validate passed parameters */
-	if (empty($return_sql_datetime) || !is_bool($return_sql_datetime)) $return_sql_datetime = false;
-	if (empty($date_to_convert) || !is_array($date_to_convert) || !is_numeric($date_to_convert) || !is_string($date_to_convert)) $date_to_convert = null;
+	if (empty($return_sql_datetime) && !is_bool($return_sql_datetime)) $return_sql_datetime = false;
+	if (empty($date_to_convert) && !is_array($date_to_convert) && !is_numeric($date_to_convert) && !is_string($date_to_convert)) $date_to_convert = null;
 
 	/** Generate $timestamp */
 	switch (true)
@@ -153,29 +154,34 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 		/** (Quasi Default) Current Unix Timestamp: 1618332031 */
 		case (false === $return_sql_datetime && empty($date_to_convert)):
 			$timestamp = time();
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %d', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** Current SQL-compatible DateTime, like NOW(): 2021-04-13 18:40:31 */
 		case (true === $return_sql_datetime && empty($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s');
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** Unix Timestamp from given Date-String: 1618332031 (or `false`) */
 		case (false === $return_sql_datetime
-				 && !empty($date_to_convert) && is_string($date_to_convert)):
+				 && !empty($date_to_convert) && is_string($date_to_convert) && !is_numeric($date_to_convert)):
 			$timestamp = date('U', strtotime($date_to_convert));
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** SQL-compatible from given Date-String: 2021-04-14 19:57:31 (or `false`) */
 		case (true === $return_sql_datetime
-				 && !empty($date_to_convert) && is_string($date_to_convert)):
+				 && !empty($date_to_convert) && is_string($date_to_convert) && !is_numeric($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s', strtotime($date_to_convert));
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** SQL-compatible from given Integer-Timestamp: 2021-04-13 18:40:31 */
 		case (true === $return_sql_datetime
 				 && !empty($date_to_convert) && is_numeric($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s', $date_to_convert);
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** Unix Timestamp from given Array-DateTime: 1618332031 (or `false`) */
@@ -189,6 +195,7 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
 				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
 			));
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** SQL-compatible from given Array-DateTime: 2021-04-13 18:40:31 (or `false`) */
@@ -202,6 +209,7 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
 				,(isset($date_to_convert['year']) ? $date_array_or_timestamp['year'] : date('Y'))
 			));
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 	}
 	return $timestamp;
@@ -288,7 +296,7 @@ function set_daily_quote()
 
 	if (!$rs) {
 		$quote = quote();
-		$sql = 'INSERT INTO daily_quote (date, quote) 
+		$sql = 'INSERT INTO daily_quote (date, quote)
 				VALUES ("'.$date.'", '.$quote.')';
 		$db->query($sql,__FILE__, __LINE__, __FUNCTION__);
 		return 1;
@@ -781,13 +789,13 @@ function sanitize_userinput($string)
  */
 function gmt_diff($date) {
 	$diff = ($date - date('Z', $date)) / 3600;
-	
+
 	if ($diff < 0) {
 			$diff2gmt = $diff;
 	} else {
 			$diff2gmt = '+' . $diff;
 	}
-	
+
 	return $diff2gmt;
 }
 
@@ -812,7 +820,7 @@ function isMobileClient($userAgent)
 	/** Validate & format $userAgent param */
 	if (empty($userAgent) || is_numeric($userAgent)) return false;
 	$userAgent = strtolower($userAgent);
-	
+
 	/**
 	* Liste von Mobile-Clients
 	*
@@ -902,7 +910,7 @@ function findStringInArray($searchFor, $inArray, $arrayColumn=null, $caseSensiti
  * @link https://stackoverflow.com/a/39811033/5750030
  * @param string $url 	The URL to validate
  * @return boolean		Returns true or false indicating the validity of the given URL
- */ 
+ */
 function urlExists($url)
 {
 	if (@file_get_contents($url,false,NULL,0,1)) return true;
@@ -1082,7 +1090,7 @@ function cURLfetchJSON($url)
 		$json_decoded_array = json_decode($curl_data, true);
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $json_decoded: %s', __FUNCTION__, __LINE__, print_r($json_decoded_array, true)));
 	}
-	
+
 	/** If cURL request is ERROR */
 	else {
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_getinfo() ERROR: %d', __FUNCTION__, __LINE__, $curl_done['http_code']));
@@ -1110,7 +1118,7 @@ function cURLfetchJSON($url)
  *
  * @param string $filepath 	The filepath to validate
  * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
- */ 
+ */
 function fileExists($filepath)
 {
 	return (is_file($filepath) !== false ? $filepath : false);
@@ -1163,7 +1171,7 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 		if (md5_file($filepath_to_compare) !== false)
 		{
 			$file_to_compare_hash = md5_file($filepath_to_compare);
-	
+
 			if ($use_last_modification_datetime)
 			{
 				/** filemtime() requires a LOCAL file (no URL) */
@@ -1200,7 +1208,7 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
  * @since 1.0 `29.09.2019` `IneX` function added
  *
  * @return string|null Returns the real IP address, or null
- */ 
+ */
 function getRealIPaddress()
 {
 	if ($_SERVER['REMOTE_ADDR'] === '::1' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1') $public_ip = trim(shell_exec('dig +short myip.opendns.com @resolver1.opendns.com'));
