@@ -287,7 +287,7 @@ class usersystem
 	 *
 	 * @author [z]cylander
 	 * @author IneX
-	 * @version 5.0
+	 * @version 5.1
 	 * @since 1.0 `cylander` method added
 	 * @since 2.0 `12.11.2018` `IneX` code & query optimizations
 	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
@@ -436,9 +436,9 @@ class usersystem
 							$_SESSION['user_id'] = intval($rs['id']);
 
 							/** Last Login & current Login updaten */
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s', __METHOD__, __LINE__, $this->field_lastlogin, $rs[$this->field_lastlogin], $this->field_currentlogin, $rs[$this->field_currentlogin]));
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s %s', __METHOD__, __LINE__, $this->field_lastlogin, timestamp(true, (int)$rs[$this->field_currentlogin]), $this->field_currentlogin, timestamp(true), print_r($rs,true)));
 							$db->update($this->table_name, ['id', $rs['id']], [
-								$this->field_lastlogin => timestamp(true, $rs[$this->field_currentlogin]),
+								$this->field_lastlogin => timestamp(true, (int)$rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(true),
 								$this->field_last_ip => getRealIPaddress(),
 							], __FILE__, __LINE__, __METHOD__);

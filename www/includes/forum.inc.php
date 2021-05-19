@@ -735,7 +735,7 @@ class Comment
 						last_comment_id = '.$rs['id'].'
 						, comment_id = IF(ISNULL(comment_id), '.$rs['id'].', comment_id)
 					WHERE
-						thread_id = '.$rs['thread_id'].' 
+						thread_id = '.$rs['thread_id'].'
 						AND board = "'.$board.'"';
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -838,7 +838,7 @@ class Comment
 		global $db, $user, $notification;
 
 		try {
-			$sql = 'UPDATE comments 
+			$sql = 'UPDATE comments
 					SET
 						text="'.$_POST['text'].'"
 						, board="'.$_POST['board'].'"
@@ -873,10 +873,10 @@ class Comment
 		}
 
 		/** Mark comment as unread for all users (again) */
-		self::markasunread($comment_id); 
+		self::markasunread($comment_id);
 
 		/** Mark comment as read for this user */
-		self::markasread($comment_id, $user->id); 
+		self::markasread($comment_id, $user->id);
 
 		/** Message an alle gewünschten senden */
 		if(count($_POST['msg_users']) > 0)
@@ -940,11 +940,11 @@ class Forum {
 		while ($d = $db->fetch($e)) {
 			$anz++;
 			if ($d['board']=='f' && $d['id']==1) {
-				$smarty->clear_compiled_tpl("comments:$d[thread_id]");
+				$smarty->clear_compiled_tpl('comments:'.$d['thread_id']);
 			}elseif ($d['board'] != 'f' && $d['thread_id']==$d['id']) {
-				$smarty->clear_compiled_tpl("comments:$d[board]-$d[id]");
+				$smarty->clear_compiled_tpl('comments:'.$d['board'].'-'.$d['id']);
 			}else{
-				$smarty->clear_compiled_tpl("comments:$d[id]");
+				$smarty->clear_compiled_tpl('comments:'.$d['id']);
 			}
 		}
 
@@ -1180,7 +1180,7 @@ class Forum {
 
 	  return $html;
 	}
-	
+
 	/**
 	 * Start Ausgabe Commentform Form HTML-Tag
 	 *
@@ -1194,7 +1194,7 @@ class Forum {
 	static function getFormNewPart1of2() {
 		return '<form action="/actions/comment_new.php" method="post" name="commentform">';
 	}
-	
+
 	/**
 	 * Ausgabe Commentforms HTML
 	 *
@@ -1452,7 +1452,7 @@ class Forum {
 		$wboard = ( $board ? 'comments.board="'.$board.'"' : '' );
 
 	    //beschränkt auf 365 tage, da sonst unglaublich lahm
-		$sql = 
+		$sql =
 			'SELECT
 				 comments.*,
 				 IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread,
@@ -1534,27 +1534,27 @@ class Forum {
 		/** For guests (no unread check) */
 		if (!$user->is_loggedin())
 		{
-			$sql = 'SELECT comments.*, UNIX_TIMESTAMP(date) as date 
-					FROM comments 
-						LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board 
-						LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='.$user_id.' 
-						LEFT JOIN user u ON u.id='.$user_id.' 
-					WHERE comments.user_id = '.$user_id.' 
-						AND (u.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL) 
-					ORDER BY date DESC 
+			$sql = 'SELECT comments.*, UNIX_TIMESTAMP(date) as date
+					FROM comments
+						LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board
+						LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='.$user_id.'
+						LEFT JOIN user u ON u.id='.$user_id.'
+					WHERE comments.user_id = '.$user_id.'
+						AND (u.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL)
+					ORDER BY date DESC
 					LIMIT 0,7';
 		}
 		/** For logged in users (check if user comment is unread) */
 		else {
-			$sql = 'SELECT comments.*, comments_unread.user_id as isunread, UNIX_TIMESTAMP(date) as date 
-					FROM comments 
-						LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '.$user->id.') 
-						LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board 
-						LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='.$user->id.' 
-						LEFT JOIN user u ON u.id='.$user->id.' 
-					WHERE comments.user_id = '.$user_id.' 
+			$sql = 'SELECT comments.*, comments_unread.user_id as isunread, UNIX_TIMESTAMP(date) as date
+					FROM comments
+						LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '.$user->id.')
+						LEFT JOIN comments_threads ct ON ct.thread_id=comments.thread_id AND ct.board=comments.board
+						LEFT JOIN comments_threads_rights ctr ON ctr.thread_id=comments.thread_id AND ctr.board=comments.board AND ctr.user_id='.$user->id.'
+						LEFT JOIN user u ON u.id='.$user->id.'
+					WHERE comments.user_id = '.$user_id.'
 						 AND (u.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL)
-					ORDER BY date DESC 
+					ORDER BY date DESC
 					LIMIT 0,7';
 		}
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -1621,7 +1621,7 @@ class Forum {
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small" width="30%">'
 	      .$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
 	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="30%">'
-	      .datename($rs[date])
+	      .datename($rs['date'])
 	      .'</td></tr>'
 	    ;
 
@@ -1680,7 +1680,7 @@ class Forum {
 			      .'</td><td align="left" bgcolor="'.$color.'" width="30%">'
 			      .$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
 			      .'</td><td align="center" bgcolor="'.$color.'" width="30%">'
-			      .datename($rs[date])
+			      .datename($rs['date'])
 			      .'</td></tr>'
 			    ;
 
@@ -1733,7 +1733,7 @@ class Forum {
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small" width="30%">'
 	      .$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
 	      .'</td><td align="center" bgcolor="'.$color.'" class="small" width="30%">'
-	      .datename($rs[date])
+	      .datename($rs['date'])
 	      .'</td></tr>'
 	    ;
 
@@ -1969,7 +1969,7 @@ class Forum {
 			  .'</td>'
 			;
 			$html .= '</tr>';
-			
+
 			$numpages = $rs['numthreads'];
 		}
 
@@ -2175,7 +2175,7 @@ class Forum {
 			 * Long-running query, wenn LEFT JOIN & WHERE auf comments_threads_rights gemacht wird
 			 * @TODO 20.07.2018 Query vereinfacht um SQL query-time von >1.5s auf <200ms zu reduzieren (!) - dafür werden Berechtigungen nicht geprüft. Wird aber eh nicht genutzt, von da her...
 			 * @TODO 20.07.2018 Wieso ein LEFT JOIN auf comments_unread wenn der Query für "nicht eingeloggte" User ist? Rausgenommen...
-			 */			
+			 */
 			}
 			else {
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
@@ -2297,7 +2297,7 @@ class Forum {
 
 /**
  * Thread Class
- * 
+ *
  * In dieser Klasse befinden sich alle Funktionen zum Thread-System
  *
  * @author [z]milamber

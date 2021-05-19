@@ -91,14 +91,14 @@ function var_request ()
 		return floor($zahl);
 	}
 	function smarty_sizebytes ($size) {
-	   $units = array("B", "kB", "MB", "GB", "TB");
+	   $units = array('B', 'kB', 'MB', 'GB', 'TB');
 	   $i = 0;
 	   while ($size >= 1000 && $i<5) {
 	      $i++;
 	      $size /= 1024;
 	   }
 	   $size = round($size, 2);
-	   return "<nobr>$size $units[$i]</nobr>";
+	   return sprintf('<nobr>%g %s</nobr>', $size, $units[$i]);
 	}
 	function smarty_quantity ($count, $singular="", $plural="") {
 		if ($count == 1) return "$count $singular";
@@ -391,7 +391,7 @@ function var_request ()
 		if ($content) {
 			if ($user->typ == USER_MEMBER) {
 
-				if ($params['width']) $width = "width='$params[width]'";
+				if ($params['width']) $width = 'width="'.$params['width'].'"';
 				else $width = '';
 
 				if (!$params['noborder']) {
@@ -1027,27 +1027,25 @@ error_log('out: '.$out);
 
 		if (!$params['anzahl']) $params['anzahl'] = 5;
 
-		$sql =
-			"SELECT *, UNIX_TIMESTAMP(last_update) as date"
-			." FROM templates"
-			." ORDER BY last_update desc"
-			." LIMIT 0, $params[anzahl]"
-		;
+		$sql = 'SELECT *, UNIX_TIMESTAMP(last_update) as date
+				FROM templates
+				ORDER BY last_update desc
+				LIMIT 0,'.$params['anzahl'];
 		$result = $db->query($sql, __FILE__, __LINE__);
 
 		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
 		while($rs = $db->fetch($result)) {
 	    $i++;
 
-			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+		$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 
 	    $html .=
 	      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
-	      .'<a href="/?tpl='.$rs[id].'">'.stripslashes($rs[title]).' ('.$rs[id].')'.'</a>'
+	      .'<a href="/?tpl='.$rs['id'].'">'.stripslashes($rs['title']).' ('.$rs['id'].')'.'</a>'
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
 	      .$user->link_userpage($rs['update_user'])
 	      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
-	      .datename($rs[date])
+	      .datename($rs['date'])
 	      .'</nobr></td></tr>'
 	    ;
 
@@ -1088,7 +1086,7 @@ error_log('out: '.$out);
 				$d = $db->fetch($e);
 				if ($d && tpl_permission($d['read_rights'], $d['owner']))
 				{
-					return $smarty->fetch("tpl:$d[tpl_id]");
+					return $smarty->fetch('tpl:'.$d['tpl_id']);
 				//}elseif ($d) {
 					//return '</nav>';
 				} else {

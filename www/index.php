@@ -21,7 +21,7 @@ require_once dirname(__FILE__).'/includes/main.inc.php';
 if (!empty(key($_GET)))
 {
 	$routeSwitch = key($_GET);
-	$routeValue = $_GET[$routeSwitch];
+	$routeValue = htmlspecialchars(trim($_GET[$routeSwitch]), ENT_QUOTES, 'UTF-8');
 	switch ($routeSwitch)
 	{
 		/** Route: /user/[user-id|username] */
@@ -30,7 +30,7 @@ if (!empty(key($_GET)))
 			if (!empty($getUserId)) {
 				$_GET['user_id'] = $getUserId;
 				include('profil.php');
-				die();
+				exit;
 			}
 			break;
 
@@ -40,7 +40,7 @@ if (!empty(key($_GET)))
 			if (!empty($getBugId)) {
 				$_GET['bug_id'] = $getBugId;
 				include('bugtracker.php');
-				die();
+				exit;
 			}
 			break;
 
@@ -70,8 +70,7 @@ if (!empty(key($_GET)))
  * Standardtemplate setzen, wenn tpl oder word nicht oder leer übergeben wurden
  */
 if (isset($_GET['layout']) && $_GET['layout'] != 'rss' && ((!isset($_GET['tpl']) && !isset($_GET['word'])) ||
-	(empty($_GET['tpl']) && empty($_GET['word'])) ||
-	($_GET['tpl'] <= 0 || is_numeric($_GET['word'])))) $_GET['tpl'] = 23;
+	(empty($_GET['tpl']) && empty($_GET['word'])) || ($_GET['tpl'] <= 0 || is_numeric($_GET['word'])))) $_GET['tpl'] = 23;
 
 
 /**
@@ -140,22 +139,26 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 } else {
 	/** Fallback for missing Template-ID */
 	if (empty($_GET['word']) && empty($_GET['tpl'])) $_GET['tpl'] = SMARTY_DEFAULT_TPL;
-
+	if (isset($_GET['word']) && is_string($_GET['word'])) {
+		$tplWord = (string)strip_tags(filter_var(trim($_GET['word']), FILTER_SANITIZE_STRING | FILTER_FLAG_STRIP_HIGH));
+		if (false !== $tplWord && !empty($tplWord)) $queryWhere = 'word="'.$tplWord.'"';
+	} else {
+		$tplId = (int)strip_tags(filter_var(trim($_GET['tpl']), FILTER_SANITIZE_NUMBER_INT));
+		if (false !== $tplId && !empty($tplId)) $queryWhere = 'id="'.$tplId.'"';
+	}
 	/** Load Template data */
 	// FIXME change this to use Smarty:: Function!
-	$where = (isset($_GET['word']) && is_string($_GET['word']) ? 'word="'.(string)$_GET['word'].'"' : 'id='.(int)$_GET['tpl'] );
-
-	$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
-					UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-					write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$where, __FILE__, __LINE__, '$_TPLROOT');
+	if (!empty($queryWhere)) $e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
+									UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
+									write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$queryWhere, __FILE__, __LINE__, '$_TPLROOT');
 
 	/** No Template found (404) */
-	if (empty($db->num($e)) || $e === false)
+	if (empty($queryWhere) || empty($db->num($e)) || $e === false)
 	{
-		if (isset($_GET['tpl'])) $_TPLROOT['id'] = (string)$_GET['tpl'];
-		if (isset($_GET['word'])) $_TPLROOT['word'] = (string)$_GET['word'];
-		$_TPLROOT['page_title'] = sprintf('Page «%s» not found', (isset($_GET['word']) ? (string)$_GET['word'] : $_GET['tpl']));
-		$_TPLROOT['page_link'] = (isset($_GET['word']) ? '/page/'.(string)$_GET['word'] : '/tpl/'.$_GET['tpl']);
+		if (isset($tplId)) $_TPLROOT['id'] = $tplId;
+		if (isset($tplWord)) $_TPLROOT['word'] = $tplWord;
+		$_TPLROOT['page_title'] = sprintf('Page «%s» not found', (isset($_TPLROOT['word']) ? $_TPLROOT['word'] : $_TPLROOT['id']));
+		$_TPLROOT['page_link'] = (isset($_TPLROOT['word']) ? '/page/'.$_TPLROOT['word'] : '/tpl/'.$_TPLROOT['id']);
 		$_TPLROOT['title'] = $_TPLROOT['page_title'];
 
 		/** Display 404 page */
