@@ -2135,10 +2135,11 @@ class usersystem
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/profil.php Logout-action is triggered through /actions/profil.php
 	 *
 	 * @author IneX
-	 * @version 1.0
+	 * @version 1.1
 	 * @since 1.0 `11.11.2018` method added, code adapted from /actions/profil.php
+	 * @since 1.1 `22.05.2021` SQL-insert DateTime is now created using `timestamp()`
 	 *
-	 * @uses usersystem::logout()
+	 * @uses usersystem::logout(), timestamp()
 	 * @param integer $user_id User-ID
 	 * @param array $date_array Array mit Datum-Elementen bis wann User ausgesperrt werden soll ('year' => xxxx, 'month' => xxxx,...)
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -2162,18 +2163,26 @@ class usersystem
 		if (!isset($date_array['second']) || $date_array['second'] <= 0 || $date_array['second'] > 60) $date_array['second'] = 23;
 
 		/** Format Lockout date-time. Format: Y-m-d H:i:s */
-		$lockout_jahr = $date_array['year'];
-		$lockout_monat = $date_array['month'];
-		$lockout_tag = $date_array['day'];
-		$lockout_stunde = $date_array['hour'];
-		$lockout_minute = $date_array['minute'];
-		$lockout_sekunde = $date_array['second'];
-		$lockout_date = sprintf('%d-%d-%d %d:%d:%d', $lockout_jahr, $lockout_monat, $lockout_tag, $lockout_stunde, $lockout_minute, $lockout_sekunde);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $lockout_date: %s', __METHOD__, __LINE__, $lockout_date));
+		// $lockout_jahr = $date_array['year'];
+		// $lockout_monat = $date_array['month'];
+		// $lockout_tag = $date_array['day'];
+		// $lockout_stunde = $date_array['hour'];
+		// $lockout_minute = $date_array['minute'];
+		// $lockout_sekunde = $date_array['second'];
+		// $lockout_date = sprintf('%d-%d-%d %d:%d:%d', $lockout_jahr, $lockout_monat, $lockout_tag, $lockout_stunde, $lockout_minute, $lockout_sekunde);
+		$lockout_datetime = timestamp(true, [
+											 'year' => $date_array['year']
+											,'month' => $date_array['month']
+											,'day' => $date_array['day']
+											,'hour' => $date_array['hour']
+											,'minute' => $date_array['minute']
+											,'second' => $date_array['second']
+										]);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $lockout_date: %s', __METHOD__, __LINE__, $lockout_datetime));
 
 		/** User aussperren */
-		$result = $db->update($this->table_name, ['id', $user_id], [$this->field_ausgesperrt_bis => $lockout_date], __FILE__, __LINE__, __METHOD__);
-		if ($result === 0 || !$result)
+		$result = $db->update($this->table_name, ['id', $user_id], [$this->field_ausgesperrt_bis => $lockout_datetime], __FILE__, __LINE__, __METHOD__);
+		if ($result !== false)
 		{
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> User ausgesperrt: %s', __METHOD__, __LINE__, ($result?'true':'false')));
 			$_geaechtet[] = $user_id;

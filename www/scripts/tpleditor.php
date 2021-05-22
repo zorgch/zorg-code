@@ -33,20 +33,20 @@ if ($tpl_id != 'new')
 	if (tpleditor_access_lock($tpl_id, $access_error))
 	{
 		/** Template content */
-		$templatesQuerySql = 'SELECT *, unix_timestamp(created) created, unix_timestamp(last_update) last_update FROM templates WHERE id='.$tpl_id;
+		$templatesQuerySql = 'SELECT *, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(last_update) last_update FROM templates WHERE id='.$tpl_id;
 		$templatesQuery = $db->query($templatesQuerySql, __FILE__, __LINE__, 'SELECT FROM templates');
 		$templateData = $db->fetch($templatesQuery);
-	
+
 		if ($templateData && !$vars['tpleditor_frm'])
 		{
 			/** Template menus */
 			$menusQuerySql = 'SELECT menu_id FROM tpl_menus WHERE tpl_id='.$tpl_id;
 			$menusQuery = $db->query($menusQuerySql, __FILE__, __LINE__, 'SELECT FROM tpl_menus');
-	
+
 			/** Template packages */
 			$packagesQuerySql = 'SELECT package_id FROM tpl_packages WHERE tpl_id='.$tpl_id;
 			$packagesQuery = $db->query($packagesQuerySql, __FILE__, __LINE__, 'SELECT FROM tpl_packages');
-	
+
 			/** Assign Template Values to Tpleditor Frame */
 			$templateData['title'] = stripslashes($templateData['title']);
 			$templateData['tpl'] = stripslashes(htmlentities($templateData['tpl']));
@@ -56,14 +56,14 @@ if ($tpl_id != 'new')
 			while ($packagesData = $db->fetch($packagesQuery)) {
 				$templateData['packages'][] = $packagesData['package_id'];
 			}
-	
+
 			$smarty->assign('tpleditor_frm', $templateData);
-	
+
 		/** Template not found */
 		} elseif (!$templateData) {
 			$smarty->assign('tpleditor_strongerror', 'Template "'.$tpl_id.'" not found');
 		}
-	} else {	 
+	} else {
 		$smarty->assign('tpleditor_strongerror', $access_error);
 	}
 }

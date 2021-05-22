@@ -29,7 +29,7 @@ include_once INCLUDES_DIR.'activities.inc.php';
 function datename($timestamp)
 {
 	/** Leer */
-	if($timestamp == 0) return '';
+	if(empty($timestamp)) return '';
 
 	/** Heute */
 	if(date('d.m.y', time()) == date('d.m.y', $timestamp)) {
@@ -59,53 +59,49 @@ function timename($timestamp)
 	/** Leer */
 	if(empty($timestamp)) return '';
 
-	try {
-		/** Jetzt */
-		$currTime = time();
+	/** Jetzt */
+	$currTime = time();
 
-		/** Vergangen oder in der Zukunft? */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Comparing timestamps %s vs %s', __FUNCTION__, __LINE__, $timestamp, $currTime));
-		$prefix = ($timestamp >= $currTime ? 'in ' : 'vor ');
-		$timeDiff = ($timestamp >= $currTime ? $timestamp - $currTime : $currTime - $timestamp);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps time difference: %s %d', __FUNCTION__, __LINE__, $prefix, $timeDiff));
+	/** Vergangen oder in der Zukunft? */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Comparing timestamps %s vs %s', __FUNCTION__, __LINE__, $timestamp, $currTime));
+	$prefix = ($timestamp >= $currTime ? 'in ' : 'vor ');
+	$timeDiff = ($timestamp >= $currTime ? $timestamp - $currTime : $currTime - $timestamp);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps time difference: %s %d', __FUNCTION__, __LINE__, $prefix, $timeDiff));
 
-		/** Zeitperioden */
-		$timeLengths = array('s' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800, 'mt' => 2592000, 'y' => 31536000);
+	/** Zeitperioden */
+	$timeLengths = array('s' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800, 'mt' => 2592000, 'y' => 31536000);
 
-		if ($timeDiff <= 10) { /** Gerade eben */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-			return t('datetime-recently');
+	if ($timeDiff <= 10) { /** Gerade eben */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
+		return t('datetime-recently');
 
-		} elseif ($timeDiff < $timeLengths['m']) { /** Sekunden */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', array($timeDiff));
+	} elseif ($timeDiff < $timeLengths['m']) { /** Sekunden */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d seconds apart', __FUNCTION__, __LINE__, $timeDiff));
+		return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-seconds' : 'datetime-second' ), 'global', array($timeDiff));
 
-		} elseif ($timeDiff < $timeLengths['h']) { /** Minuten */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', array(floor($timeDiff/$timeLengths['m'])));
+	} elseif ($timeDiff < $timeLengths['h']) { /** Minuten */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d minutes apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['m'])));
+		return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-minutes' : 'datetime-minute'), 'global', array(floor($timeDiff/$timeLengths['m'])));
 
-		} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', array(floor($timeDiff/$timeLengths['h'])));
+	} elseif ($timeDiff < $timeLengths['d']) { /** Stunden */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d hours apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['h'])));
+		return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-hours' : 'datetime-hour'), 'global', array(floor($timeDiff/$timeLengths['h'])));
 
-		} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', array(floor($timeDiff/$timeLengths['d'])));
+	} elseif ($timeDiff < $timeLengths['w']) { /** Tage */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d days apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['d'])));
+		return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-days' : 'datetime-day'), 'global', array(floor($timeDiff/$timeLengths['d'])));
 
-		} elseif ($timeDiff < $timeLengths['mt']) { /** Wochen */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', array(floor($timeDiff/$timeLengths['w'])));
+	} elseif ($timeDiff < $timeLengths['mt']) { /** Wochen */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d weeks apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['w'])));
+		return $prefix . t((floor($timeDiff/$timeLengths['m']) > 1 ? 'datetime-weeks' : 'datetime-week'), 'global', array(floor($timeDiff/$timeLengths['w'])));
 
-		} elseif ($timeDiff < $timeLengths['y']) { /** Monate */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', array(floor($timeDiff/$timeLengths['mt'])));
+	} elseif ($timeDiff < $timeLengths['y']) { /** Monate */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d months apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['mt'])));
+		return $prefix . t((floor($timeDiff/$timeLengths['mt']) > 1 ? 'datetime-months' : 'datetime-month'), 'global', array(floor($timeDiff/$timeLengths['mt'])));
 
-		} elseif ($timeDiff >= $timeLengths['y']) { /** Jahre oder mehr */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
-			return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', array(floor($timeDiff/$timeLengths['y'])));
-		}
-	} catch (Exception $e) {
-		error_log($e->getMessage());
+	} elseif ($timeDiff >= $timeLengths['y']) { /** Jahre oder mehr */
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps are %d years apart', __FUNCTION__, __LINE__, floor($timeDiff/$timeLengths['y'])));
+		return $prefix . t((floor($timeDiff/$timeLengths['y']) > 1 ? 'datetime-years' : 'datetime-year'), 'global', array(floor($timeDiff/$timeLengths['y'])));
 	}
 }
 

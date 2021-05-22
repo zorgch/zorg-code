@@ -42,7 +42,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 	if (!smarty_brackets_ok($frm['tpl'], $brack_err)) $error .= $brack_err;
 
 	/** @FIXME deaktiviert bis ein besserer syntax checker gebaut ist. (biko)
-	/* 
+	/*
 	$syntaxerr = smarty_remove_invalid_html($frm['tpl']);
 	if ($syntaxerr) $error .= "<br />HTML Syntax Error: $syntaxerr <br />";
 	*/
@@ -104,7 +104,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		 */
 		} elseif ($frm['id'] > 0) {
 			/** Backup current version */
-			$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'].' AND unix_timestamp(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup');
+			$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'].' AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup');
 
 			/*if ($frm['word']) $set_word = ', word="'.$frm['word'].'"';*/
 			$templateUpdateParams = [
