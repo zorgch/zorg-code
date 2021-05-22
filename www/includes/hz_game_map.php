@@ -15,7 +15,7 @@ if (empty($gameid))
 {
 	http_response_code(404); // Set response code 404 (not found) and exit.
 	user_error("nuet isch", E_USER_ERROR);
-} else {
+} elseif ($user->is_loggedin()) {
     $e = $db->query('SELECT p.user from hz_players p where p.user='.$user->id.' and p.game='.$gameid, __FILE__, __LINE__, 'SELECT FROM hz_players');
 	$iplay = $db->fetch($e);
 	$e = $db->query(
@@ -25,29 +25,29 @@ if (empty($gameid))
 		  ON z.game=g.id
 		JOIN hz_maps m
 		  ON m.id=g.map
-		WHERE g.id=".$gameid." AND z.type='z'", 
+		WHERE g.id=".$gameid." AND z.type='z'",
 		__FILE__, __LINE__);
 	$d = $db->fetch($e);
 	if ($d) {
 		$im = draw_map_base($d['width'], $d['height']);
 
 		$e = $db->query(
-				"SELECT *, 
-				CASE type 
-				WHEN 'ubahn' THEN 1 
+				"SELECT *,
+				CASE type
+				WHEN 'ubahn' THEN 1
 				WHEN 'bus' THEN 2
 				WHEN 'taxi' THEN 3
 				WHEN 'black' THEN 4
 				END AS typesort
-				FROM hz_routes 
+				FROM hz_routes
 				WHERE map=".$d['map']."
 				ORDER BY typesort ASC", __FILE__, __LINE__);
 		while ($r = $db->fetch($e)) {
 			draw_route(
-				$im, 
-				$r['type'], 
-				station_pos($d['map'], $r['start']), 
-				station_pos($d['map'], $r['end']), 
+				$im,
+				$r['type'],
+				station_pos($d['map'], $r['start']),
+				station_pos($d['map'], $r['end']),
 				transit_string2array($r['transit'], $d['map'])
 			);
 		}
@@ -62,7 +62,7 @@ if (empty($gameid))
 			  ON t.game='".$gameid."'
 			  AND t.station=a.station
 			  AND t.player='z'
-			WHERE a.map=".$d['map'], 
+			WHERE a.map=".$d['map'],
 			__FILE__, __LINE__
 		);
 		while ($a = $db->fetch($e)) {
@@ -101,7 +101,7 @@ if (empty($gameid))
 			LEFT JOIN hz_tracks t ON t.game=".$d['id']." AND t.station=s.id AND t.player='z'
 			WHERE sen.game=".$d['id']." AND sen.station=s.id AND s.map=".$d['map'], __FILE__, __LINE__, 'JOIN hz_stations and hz_tracks');
 		while ($sen = $db->fetch($e)) {
-		        if ((!$d['iamz'] && $iplay) || $sen['disp'] || $d['state']=="finished") draw_sentinel($im, $sen['x'], $sen['y']); 
+		        if ((!$d['iamz'] && $iplay) || $sen['disp'] || $d['state']=="finished") draw_sentinel($im, $sen['x'], $sen['y']);
 		}
 
 		$e = $db->query('SELECT * FROM hz_stations WHERE map='.$d['map'], __FILE__, __LINE__, 'SELECT FROM hz_stations');
@@ -112,7 +112,7 @@ if (empty($gameid))
 		header("Content-Type: image/gif");
 		imagegif($im);
 	}
-	
+
 	/** Map not found / invalid Game */
 	else {
 		http_response_code(404); // Set response code 404 (not found) and exit.

@@ -269,12 +269,14 @@ function ticket_map ($game, $ticket='all')
 {
 	global $db, $user;
 
-	if (!in_array($ticket, array("taxi", "ubahn", "bus", "black", 'all'))) user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
-	if ($ticket == "black") $where_ticket = "p.type='z'";
-	elseif ($ticket == 'all') $where_ticket = "(p.type='z' OR r.type!='black')";
-	else $where_ticket = "r.type='$ticket'";
+	if (!in_array($ticket, array('taxi', 'ubahn', 'bus', 'black', 'all'))) user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
+	if ($ticket == 'black') $where_ticket = 'p.type="z"';
+	elseif ($ticket == 'all') $where_ticket = '(p.type="z" OR r.type!="black")';
+	else $where_ticket = 'r.type="'.$ticket.'"';
 
-	$ret = '<map name="moves">';
+	/** Clickable image <map>-Overlay only for logged in Users */
+	$ret = '';
+	if ($user->is_loggedin()) $ret .= '<map name="moves">';
 
 	/** Select all possible destinations from the current location, excluding taken ones, but including z's station */
 	$sql = 'SELECT
@@ -292,7 +294,7 @@ function ticket_map ($game, $ticket='all')
 			 LEFT JOIN hz_stations s ON s.map = g.map
 			   AND s.id = IF(r.start = p.station, r.end, r.start)
 			 WHERE g.id = '.$game.'
-			   AND p.user = '.$user->id.'
+			   '.($user->is_loggedin() ? 'AND p.user = '.$user->id : null).'
 			   AND '.$where_ticket.'
 			   AND (other.user IS NULL OR other.type = "z")';
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
@@ -320,8 +322,8 @@ function ticket_map ($game, $ticket='all')
 						 'title="Mit '.$vk.' hier hin fahren ('.turn_cost($vkt).'$)">';
 		}
 	}
+	if ($user->is_loggedin()) $ret .= '</map>';
 
-	$ret .= '</map>';
 	return $ret;
 }
 
@@ -354,32 +356,31 @@ function turn_cost ($type) {
  * Prüft ob ein abgesetzter Spielzug eines Spielers auch valide ist und ausgeführt werden darf
  *
  * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
+ * @version 1.1
+ * @since 1.0 `biko` function added
+ * @since 1.1 `22.05.2021` `IneX` Changed SQL-response for `allowed` & adjusted Function return
  *
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den Spielzug macht
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
- * @return Boolean (True/False) ob gewünschter Spielzug erlaubt ist oder nicht
+ * @return bool Boolean (True/False) ob gewünschter Spielzug erlaubt ist oder nicht
  */
-function turn_allowed ($game, $uid=0) {
+function turn_allowed ($game, $uid=0)
+{
 	global $db, $user;
 
-	if (!$uid) $uid = $user->id;
+	if (empty($uid) && $user->is_loggedin()) $uid = $user->id;
 
-	$e = $db->query(
-		"SELECT if((g.nextturn='z' && me.type='z' || g.nextturn='players' && me.type!='z' && me.turndone='0')
-		  && state='running', '1', '0') allowed
-		FROM hz_games g
-		LEFT JOIN hz_players me on me.game=g.id
-		WHERE g.id='".$game."'
-		AND me.user='".$uid."'",
-		__FILE__, __LINE__, __FUNCTION__
-	);
+	$e = $db->query('SELECT if((g.nextturn="z" && me.type="z" || g.nextturn="players" && me.type!="z" && me.turndone="0")
+					  && state="running", "allowed", 0) allowed
+					FROM hz_games g
+					LEFT JOIN hz_players me on me.game=g.id
+					WHERE g.id='.$game.' AND me.user='.$uid.' LIMIT 0,1'
+					,__FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 
-	return $d['allowed'];
+	return ($d['allowed'] === 'allowed' ? true : false);
 }
 
 /**
@@ -391,13 +392,15 @@ function turn_allowed ($game, $uid=0) {
  * @version 1.0
  * @since 1.0 function added
  *
+ * @uses turn_stay()
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
- * @return boolean
+ * @return void
  */
-function hz_turn_passing ()
+function hz_turn_passing()
 {
 	global $db;
 
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking hz_turn_passing()', __FUNCTION__, __LINE__));
 	$e = $db->query('SELECT g.id, p.user
 					 FROM hz_games g
 					 JOIN hz_players p
@@ -407,7 +410,11 @@ function hz_turn_passing ()
 					  AND if(g.nextturn="z" && p.type="z"
 						OR g.nextturn="players" && p.type!="z" && p.turndone="0", "1", "0") = "1"',
 					__FILE__, __LINE__, __FUNCTION__);
-	while ($game = $db->fetch($e)) turn_stay($game['id'], $game['user']);
+	while ($game = $db->fetch($e))
+	{
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Go to turn_stay(%d, %d)', __FUNCTION__, __LINE__, $game['id'], $game['user']));
+		turn_stay($game['id'], $game['user']);
+	}
 }
 
 
@@ -423,7 +430,7 @@ function hz_turn_passing ()
  * @since 1.0 function added
  * @since 2.0 `15.11.2018` updated to use new $notifcation Class & some code and query optimizations
  *
- * @uses timestamp()
+ * @uses finish_mails(), timestamp()
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den finalen Spielzug macht - Default: null
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -435,14 +442,12 @@ function turn_finalize ($game, $uid=null)
 	global $db, $user, $notification;
 
 	if (empty($uid) && $user->is_loggedin()) $uid = $user->id;
-	else return false;
 
-	$db->query('UPDATE hz_players
-				SET turndone="1"
-				WHERE game='.$game.'
-				  AND user='.$uid.'
-				  AND type!="z"',
-				  __FILE__, __LINE__, 'turn_finalize()');
+	/** Mark Player as "turndone=1" */
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Updating turndone=1 on game %d => user %d)', __FUNCTION__, __LINE__, $game, $uid));
+	$db->query('UPDATE hz_players SET turndone="1"
+				WHERE game='.$game.' AND user='.$uid.' AND type!="z"',
+				  __FILE__, __LINE__, 'UPDATE turn_finalize()');
 
 	$e = $db->query('SELECT g.*, SUM(a.score)-g.z_score player_score, m.players totalplayers,
 					 IF (pl.user IS NOT NULL || z_score >= (SUM(a.score)-g.z_score), "true", "false") finished
@@ -488,11 +493,9 @@ function turn_finalize ($game, $uid=null)
 		 */
 		elseif ($d['nextturn'] === 'players' && $d['totalplayers'] === $turndone['num'] && $d['finished'] === 'false')
 		{
-			$query = $db->query('UPDATE hz_games
-								SET round=round+1, nextturn="z", turndate=NOW(),
-								turncount=(turncount+1)%'.TURN_COUNT.'
-								WHERE id='.$game,
-								__FILE__, __LINE__, __FUNCTION__);
+			$query = $db->query('UPDATE hz_games SET
+									round=(round+1), nextturn="z", turndate=NOW(), turncount=(turncount+1)%'.TURN_COUNT.'
+								WHERE id='.$game, __FILE__, __LINE__, __FUNCTION__);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> update(hz_games(%s)): game=%d | nextturn=z | turndate=%s', __FUNCTION__, __LINE__, $query, $game, timestamp(true)));
 
 			/** add money and reset 'turndone' */
@@ -543,17 +546,20 @@ function turn_finalize ($game, $uid=null)
  * @since 1.0 function added
  * @since 2.0 `25.11.2018` code & query optimizations
  *
+ * @uses turn_finalize()
  * @param integer $game ID des Hunting z Spiels
  * @param integer $uid ID des Users welcher den Spielzug macht - Default: null
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
-function turn_stay ($game, $uid=null)
+function turn_stay($game, $uid=null)
 {
 	global $db, $user;
 
-	if (!$uid) $uid = $user->id; // uid, so that the "overdue" turns can be triggered by everybody
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Doing turn_stay(%d, %d)', __FUNCTION__, __LINE__, $game, $uid));
+	if (empty($uid) && $user->is_loggedin()) $uid = $user->id; // uid, so that the "overdue" turns can be triggered by everybody
 
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Check if turn_allowed(%d, %d)', __FUNCTION__, __LINE__, $game, $uid));
 	if (!turn_allowed($game, $uid)) user_error(t('error-game-notyourturn'), E_USER_WARNING);
 
 	/** look up the round in the game the player is in */
@@ -722,25 +728,24 @@ function finish_mails ($game)
  * @since 1.0 function added
  *
  * @param integer $game ID des Hunting z Spiels
- * @param integer $ticket String mit Art der gewählten Fortbewegung
+ * @param string $ticket String mit Art der gewählten Fortbewegung
  * @param integer $station Integer der ID der gewählten Destinations-Station
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
-function turn_move ($game, $ticket, $station) {
+function turn_move ($game, $ticket, $station)
+{
 	global $db, $user;
 
-	if (!$user->id) trigger_error(t('error-play-not-logged-in'), E_USER_ERROR);
-
+	if (!$user->is_loggedin()) trigger_error(t('error-play-not-logged-in'), E_USER_ERROR);
 	if (!turn_allowed($game)) user_error(t('error-game-notyourturn'), E_USER_ERROR);
+	if (!in_array($ticket, array('taxi', 'ubahn', 'bus', 'black'))) user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
 
-	if (!in_array($ticket, array("taxi", "ubahn", "bus", "black")))
-			user_error(t('invalid-ticket', 'hz', $ticket), E_USER_ERROR);
-	if ($ticket == "black") $where_ticket = "p.type='z'";
-	else $where_ticket = "r.type='$ticket'";
+	if ($ticket === 'black') $where_ticket = 'p.type="z"';
+	else $where_ticket = 'r.type="'.$ticket.'"';
 
 	$e = $db->query(
-/*			"SELECT g.id, p.type playertype, count(t.nr) tracks, a.score,
+	/* "SELECT g.id, p.type playertype, count(t.nr) tracks, a.score,
 		if (a.station IS NOT NULL && at.nr IS NULL, '1', '0') aim_catch,
 		if (sen.station IS NOT NULL || a.station IS NOT NULL && at.nr IS NULL, '1', '0') seen
 		FROM hz_games g, hz_players p, hz_routes r
@@ -754,60 +759,56 @@ function turn_move ($game, $ticket, $station) {
 			AND p.money-".turn_cost($ticket)." >= 0 AND other.user IS NULL
 			AND (r.start=$station && r.end=p.station || r.end=$station && r.start=p.station)
 		GROUP BY t.game",*/
-		"SELECT g.id, p.type playertype, g.round tracks, a.score,
-		  IF (a.station IS NOT NULL && MAX(at.nr) IS NULL , '1', '0') aim_catch,
-		  IF (sen.station IS NOT NULL || a.station IS NOT NULL && MAX(at.nr) IS NULL , '1', '0') seen
+		'SELECT g.id, p.type playertype, g.round tracks, a.score,
+		  IF (a.station IS NOT NULL && MAX(at.nr) IS NULL , "1", "0") aim_catch,
+		  IF (sen.station IS NOT NULL || a.station IS NOT NULL && MAX(at.nr) IS NULL , "1", "0") seen
 		  FROM hz_games g
 		  LEFT JOIN hz_tracks t ON t.game = g.id
-			AND t.player = 'z'
+			AND t.player="z"
 		  LEFT JOIN hz_sentinels sen ON sen.game = g.id
-			AND sen.station =$station
+			AND sen.station='.$station.'
 		  LEFT JOIN hz_aims a ON a.map = g.map
-			AND a.station =$station
+			AND a.station='.$station.'
 		  LEFT JOIN hz_tracks at ON at.game = g.id
-			AND at.station =$station
-			AND at.player = 'z'
-		  LEFT JOIN hz_players p ON p.user='$user->id'
-			AND p.game = g.id
+			AND at.station='.$station.'
+			AND at.player = "z"
+		  LEFT JOIN hz_players p ON p.user='.$user->id.'
+			AND p.game=g.id
 		  LEFT JOIN hz_routes r ON r.map = g.map
-			AND $where_ticket
-		  LEFT JOIN hz_players other ON other.station =$station
+			AND '.$where_ticket.'
+		  LEFT JOIN hz_players other ON other.station='.$station.'
 			AND other.game = g.id
-			AND IF (
-			  p.type = 'z' || p.type != 'z' && other.type != 'z', '1', '0'
-			  ) = '1'
-		  WHERE g.id = '$game'
-			AND p.money -".turn_cost($ticket)." >=0
+			AND IF (p.type = "z" || p.type != "z" && other.type != "z", "1", "0") = "1"
+		  WHERE g.id='.$game.'
+			AND (p.money-'.turn_cost($ticket).') >=0
 			AND other.user IS NULL
-			AND (r.start=$station && r.end=p.station || r.end=$station && r.start=p.station)
-		  GROUP BY t.game, p.type",
-		__FILE__, __LINE__, __FUNCTION__);
+			AND (r.start='.$station.' && r.end=p.station || r.end='.$station.' && r.start=p.station)
+		  GROUP BY t.game, p.type'
+		,__FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
-	if ($d) {
-		$db->query("UPDATE hz_players
-				SET station=$station, money=money-".turn_cost($ticket)."
-				WHERE game=$d[id] AND user=$user->id", __FILE__, __LINE__, __FUNCTION__);
-		if ($d['playertype'] == 'z') {
-  				if ($d['seen']) $track_station = $station;
+	if ($d)
+	{
+		$db->query('UPDATE hz_players SET station='.$station.', money=(money-'.turn_cost($ticket).')
+					WHERE game='.$d['id'].' AND user='.$user->id, __FILE__, __LINE__, __FUNCTION__);
+		if ($d['playertype'] === 'z')
+		{
+  			if ($d['seen']) $track_station = $station;
 			else $track_station = 0;
 
-			$db->query("INSERT INTO hz_tracks
-					 (game, ticket, station, nr, player)
-							 VALUES ($game, '$ticket', $track_station,
-						 '".($d['tracks'])."', 'z')",
-				   __FILE__, __LINE__, __FUNCTION__);
+			$db->query('INSERT INTO hz_tracks (game, ticket, station, nr, player)
+						VALUES ('.$game.', "'.$ticket.'", '.$track_station.', '.$d['tracks'].', "z")'
+						,__FILE__, __LINE__, __FUNCTION__);
 
 			if ($d['aim_catch']) {
-				$db->query("UPDATE hz_games SET z_score=z_score+$d[score] WHERE id=$game", __FILE__, __LINE__, __FUNCTION__);
+				$db->query('UPDATE hz_games SET z_score=(z_score+'.$d['score'].') WHERE id='.$game, __FILE__, __LINE__, __FUNCTION__);
 			}
-		}else{
-			$db->query("INSERT INTO hz_tracks
-					 (game, ticket, station, nr, player)
-			  VALUES ($game, '$ticket', $station,
-				  '".$d['tracks']."', '$d[playertype]')", __FILE__, __LINE__, __FUNCTION__);
+		} else {
+			$db->query('INSERT INTO hz_tracks (game, ticket, station, nr, player)
+						VALUES ('.$game.', "'.$ticket.'", '.$station.', '.$d['tracks'].', "'.$d['playertype'].'")'
+						,__FILE__, __LINE__, __FUNCTION__);
 		}
 
-	}else{
+	} else {
 		user_error(t('invalid-turn', 'hz', $game), E_USER_ERROR);
 	}
 
@@ -828,38 +829,35 @@ function turn_move ($game, $ticket, $station) {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  */
-function turn_sentinel ($game) {
+function turn_sentinel ($game)
+{
 	global $user, $db;
 
-	if (!$user->id) trigger_error(t('error-play-not-logged-in'), E_USER_ERROR);
+	if (!$user->is_loggedin()) trigger_error(t('error-play-not-logged-in'), E_USER_ERROR);
 	if (!turn_allowed($game)) user_error(t('error-game-notyourturn'), E_USER_ERROR);
 
 	/** get the player's station and, in the same run, find out if he's got enough money */
-	$e = $db->query(
-		"SELECT g.id, p.money, p.station, p.type playertype, g.round tracknr
-		FROM hz_games g
-		JOIN hz_players p
-		  ON p.game=g.id
-		WHERE g.id='".$game."'
-		  AND p.user='".$user->id."'
-		  AND p.money-".turn_cost("sentinel")." >= 0
-		  AND p.type!='z'
-		LIMIT 0,1",
-		__FILE__, __LINE__, __FUNCTION__
-	);
+	$e = $db->query('SELECT g.id, p.money, p.station, p.type playertype, g.round tracknr
+					FROM hz_games g
+					JOIN hz_players p
+					  ON p.game=g.id
+					WHERE g.id='.$game.'
+					  AND p.user='.$user->id.'
+					  AND p.money-'.turn_cost('sentinel').' >= 0
+					  AND p.type!="z"
+					LIMIT 0,1'
+					,__FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
-	if ($d) {
-		$db->query("INSERT INTO hz_sentinels
-				 (game, station)
-						 VALUES ($game, $d[station])", __FILE__, __LINE__, __FUNCTION__);
-		$db->query("UPDATE hz_players
-				 SET money=money-".turn_cost("sentinel")."
-				 WHERE game=$game
-				   AND user=$user->id", __FILE__, __LINE__, __FUNCTION__);
-		$db->query("INSERT INTO hz_tracks
-				 (game, ticket, station, nr, player)
-		  VALUES ($game, 'sentinel', '$d[station]', $d[tracknr], '$d[playertype]')", __FILE__, __LINE__, __FUNCTION__);
-	}else{
+	if ($d !== false)
+	{
+		$db->query('INSERT INTO hz_sentinels (game, station)
+					VALUES ('.$game.', '.$d['station'].')', __FILE__, __LINE__, __FUNCTION__);
+		$db->query('UPDATE hz_players SET money=money-'.turn_cost('sentinel').'
+				 	WHERE game='.$game.' AND user='.$user->id, __FILE__, __LINE__, __FUNCTION__);
+		$db->query('INSERT INTO hz_tracks (game, ticket, station, nr, player)
+		  			VALUES ('.$game.', "sentinel", '.$d['station'].', '.$d['tracknr'].', '.$d['playertype'].')'
+					,__FILE__, __LINE__, __FUNCTION__);
+	} else {
 		user_error(t('invalid-turn', 'hz', $game), E_USER_ERROR);
 	}
 

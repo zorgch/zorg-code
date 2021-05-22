@@ -13,14 +13,14 @@ if (isset($_GET['game']) && is_numeric($_GET['game']) && $_GET['game'] > 0) $gam
 /** wenn kein spiel angegeben: spiel auswählen, wo man am zug ist. */
 if (!isset($gameid) && $user->is_loggedin())
 {
-	$e = $db->query('SELECT hzg.id 
-					 FROM hz_games hzg 
-					 LEFT JOIN hz_players p 
-						ON hzg.id=p.game 
-						AND p.user='.$user->id.' 
+	$e = $db->query('SELECT hzg.id
+					 FROM hz_games hzg
+					 LEFT JOIN hz_players p
+						ON hzg.id=p.game
+						AND p.user='.$user->id.'
 					 WHERE hzg.state="running"
-						AND IF(hzg.nextturn="z" AND p.type="z" 
-					    OR hzg.nextturn!="z" AND p.type!="z" AND p.turndone="0", "1", "0") = "1" 
+						AND IF(hzg.nextturn="z" AND p.type="z"
+					    OR hzg.nextturn!="z" AND p.type!="z" AND p.turndone="0", "1", "0") = "1"
 					 ORDER BY hzg.turndate DESC',
 					__FILE__, __LINE__, 'Hz Spiel auswählen');
 	$d = $db->fetch($e);
@@ -75,7 +75,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 						LEFT JOIN hz_stations mys ON (mys.id=me.station AND mys.map=hzg.map)
 						LEFT JOIN hz_aims a ON a.map=hzg.map
 						JOIN hz_players z ON z.game=hzg.id AND z.type="z"
-						LEFT JOIN hz_players catcher ON (catcher.game=hzg.id AND catcher.type!="z" AND catcher.station=z.station) 
+						LEFT JOIN hz_players catcher ON (catcher.game=hzg.id AND catcher.type!="z" AND catcher.station=z.station)
 					WHERE hzg.id='.$gameid.' AND u.id=z.user AND m.id=hzg.map
 					GROUP BY a.map, z.user, me.type, me.turndone',
 					__FILE__, __LINE__, 'Hz View Game Query');
@@ -87,16 +87,16 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 			if (isset($_GET['ticket'])) $smarty->assign("ticket_map", ticket_map($gameid, $_GET['ticket']));
 			else $smarty->assign("ticket_map", ticket_map($gameid));
 		}
-	
+
 		$smarty->assign("game", $game);
-	
+
 		/** select players whose turn it is */
 		$e = $db->query('SELECT p.*
 						 FROM hz_games g
 						 JOIN hz_players p
 							ON p.game=g.id
-						 WHERE g.id='.$gameid.' 
-							AND if(g.nextturn="z" && p.type="z" 
+						 WHERE g.id='.$gameid.'
+							AND if(g.nextturn="z" && p.type="z"
 						    OR g.nextturn="players" && p.type!="z" && p.turndone="0", "1", "0") = "1"',
 						__FILE__, __LINE__, 'select players whose turn it is'); // turndone = ENUM(string)!
 		$awaiting_turn = array();
@@ -104,7 +104,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 			$awaiting_turn[] = $p['user'];
 		}
 		$smarty->assign("awaiting_turns", $awaiting_turn);
-	
+
 		$tix_query = $db->query('SELECT s.*, p.type playertype
 								 FROM hz_games g
 								 JOIN hz_stations s
@@ -123,7 +123,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 								   '.($user->is_loggedin() ? 'AND p.user='.$user->id : null).'
 								   AND (other.user is null OR other.type="z")',
 							    __FILE__, __LINE__, 'Query available Tickets');
-	
+
 		$avail_tickets = array("taxi"=>0, "bus"=>0, "ubahn"=>0, "black"=>0);
 		while ($tix = $db->fetch($tix_query)) {
 			$avail_tickets['taxi'] = 1;
@@ -132,7 +132,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 			if ($tix['playertype'] == 'z') $avail_tickets['black'] = 1;
 		}
 		$smarty->assign("avail_tickets", $avail_tickets);
-	
+
 		$pl_query = $db->query(
 			"SELECT p.*, if(p.type='z', 'Mister z', 'Inspector') playertype,
 				d.rank, d.score
@@ -149,7 +149,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 			$players[] = $pl;
 		}
 		$smarty->assign("players", $players);
-	
+
 		$tracks_query = $db->query("SELECT *
 				 FROM hz_tracks
 				 WHERE game = '".$gameid."'

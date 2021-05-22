@@ -141,8 +141,8 @@ function datetimeToTimestamp($datetime)
 function timestamp($return_sql_datetime=false, $date_to_convert=null)
 {
 	/** Validate passed parameters */
-	if (empty($return_sql_datetime) && !is_bool($return_sql_datetime)) $return_sql_datetime = false;
-	if (empty($date_to_convert) && !is_array($date_to_convert) && !is_numeric($date_to_convert) && !is_string($date_to_convert)) $date_to_convert = null;
+	if (empty($return_sql_datetime) || !is_bool($return_sql_datetime)) $return_sql_datetime = false;
+	if (empty($date_to_convert) || (!is_array($date_to_convert) && !is_numeric($date_to_convert) && !is_string($date_to_convert))) $date_to_convert = null;
 
 	/** Generate $timestamp */
 	switch (true)

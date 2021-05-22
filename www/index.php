@@ -140,7 +140,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 	/** Fallback for missing Template-ID */
 	if (empty($_GET['word']) && empty($_GET['tpl'])) $_GET['tpl'] = SMARTY_DEFAULT_TPL;
 	if (isset($_GET['word']) && is_string($_GET['word'])) {
-		$tplWord = (string)strip_tags(filter_var(trim($_GET['word']), FILTER_SANITIZE_STRING | FILTER_FLAG_STRIP_HIGH));
+		$tplWord = (string)strip_tags(filter_var(trim($_GET['word']), FILTER_SANITIZE_STRING));
 		if (false !== $tplWord && !empty($tplWord)) $queryWhere = 'word="'.$tplWord.'"';
 	} else {
 		$tplId = (int)strip_tags(filter_var(trim($_GET['tpl']), FILTER_SANITIZE_NUMBER_INT));
