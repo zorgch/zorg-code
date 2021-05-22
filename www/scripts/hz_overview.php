@@ -14,7 +14,7 @@ if ($user->is_loggedin())
 {
 	/** running hz games */
 	$e = $db->query(
-		"SELECT hzg.*, unix_timestamp(hzg.turndate) AS turndate, z.user AS mrz, m.name AS mapname,
+		"SELECT hzg.*, UNIX_TIMESTAMP(hzg.turndate) AS turndate, z.user AS mrz, m.name AS mapname,
 		  if(me.type='z' && hzg.nextturn='z' || me.type!='z' && hzg.nextturn='players' &&
 		     me.turndone='0', '1', '0') AS myturn
 		FROM hz_games hzg
@@ -27,7 +27,7 @@ if ($user->is_loggedin())
 		WHERE hzg.state='running'
 		ORDER BY hzg.turndate DESC",
 		__FILE__, __LINE__, 'running hz games');
-	
+
 	    $running_games = array();
 	while ($d = $db->fetch($e)) {
 		$d['maplink'] = "map=$d[map]";
@@ -44,7 +44,7 @@ if ($user->is_loggedin())
 		$running_games[] = $d;
 	}
 	$smarty->assign("running_games", $running_games);
-	
+
 	$own_games = $db->fetch($db->query('SELECT count(me.user) anz
 										FROM hz_games hzg
 										JOIN hz_players me
@@ -54,8 +54,8 @@ if ($user->is_loggedin())
 										  AND me.user='.$user->id,
 										__FILE__, __LINE__, 'new_game_possible'));
 	$smarty->assign("new_game_possible", $own_games['anz']<=MAX_HZ_GAMES ? 1 : 0);
-	
-	$e = $db->query("SELECT * FROM hz_maps 
+
+	$e = $db->query("SELECT * FROM hz_maps
 					  WHERE state='active'
 					  ORDER BY name ASC",
 					__FILE__, __LINE__, 'hz maps');
@@ -67,8 +67,8 @@ if ($user->is_loggedin())
 	}
 	$smarty->assign("map_ids", $map_ids);
 	$smarty->assign("map_names", $map_names);
-	
-	
+
+
 	/** open hz games */
 	$e = $db->query('SELECT hzg.*, z.user mrz, m.name mapname, m.players total,
 					  (IFNULL(m.players,0)-count(numpl.user)+1) missing,
@@ -99,7 +99,7 @@ if ($user->is_loggedin())
 		}
 		$open_games[] = $d;
 	}
-	
+
 	$smarty->assign("open_games", $open_games);
 }
 
