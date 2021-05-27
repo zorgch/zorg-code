@@ -130,13 +130,8 @@ class Comment
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> compile_template() $resource: %s', __METHOD__, __LINE__, $resource));
 
 		/** Update record in database */
-		try {
-			$result = $db->update('comments', ['id', $comment_id], ['error' => null], __FILE__, __LINE__, __METHOD__);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(comments) $result: %d %s', __METHOD__, __LINE__, $result, ($result > 0 ? 'updates' : 'no change')));
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			return $e->getMessage();
-		}
+		$result = $db->update('comments', ['id', $comment_id], ['error' => null], __FILE__, __LINE__, __METHOD__);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(comments) $result: %d %s', __METHOD__, __LINE__, $result, ($result > 0 ? 'updates' : 'no change')));
 
 		if (($result || $result >= 0) && !empty($resource))
 		{
@@ -288,15 +283,9 @@ class Comment
 			return false;
 		}
 
-		try {
-			$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
-		  			FROM comments WHERE id = '.$id;
-			return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
+	  			FROM comments WHERE id = '.$id;
+		return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 	}
 
 	/**
@@ -837,40 +826,27 @@ class Comment
 	{
 		global $db, $user, $notification;
 
-		try {
-			$sql = 'UPDATE comments
-					SET
-						text="'.$_POST['text'].'"
-						, board="'.$_POST['board'].'"
-						, parent_id='.$_POST['parent_id'].'
-						, thread_id='.$_POST['thread_id'].'
-						, date_edited=NOW()
-					WHERE id = '.$comment_id.' AND board="'.$_POST['board'].'"';
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'UPDATE comments
+				SET
+					text="'.$_POST['text'].'"
+					, board="'.$_POST['board'].'"
+					, parent_id='.$_POST['parent_id'].'
+					, thread_id='.$_POST['thread_id'].'
+					, date_edited=NOW()
+				WHERE id = '.$comment_id.' AND board="'.$_POST['board'].'"';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-			/** Smarty Comment Templates neu Kompilieren */
-			self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
-			self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // alter parent
-			self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // neuer Parent
-		} catch(Exception $e) {
-			http_response_code(500); // Set response code 500 (internal server error)
-			error_log($e->getMessage());
-			header('Location: '.base64_decode($_POST['url'])); // redirect user back where he came from
-			exit;
-		}
+		/** Smarty Comment Templates neu Kompilieren */
+		self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
+		self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // alter parent
+		self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // neuer Parent
+
 
 		/** last post setzen */
-		try {
-			$sql = 'UPDATE comments_threads
-					 SET last_comment_id = (SELECT MAX(id) from comments WHERE thread_id = '.$_POST['thread_id'].' AND board = "'.$_POST['board'].'")
-					 WHERE thread_id = '.$_POST['thread_id'];
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		} catch (Exception $e) {
-			http_response_code(500); // Set response code 500 (internal server error)
-			error_log($e->getMessage());
-			header('Location: '.base64_decode($_POST['url'])); // redirect user back where he came from
-			exit;
-		}
+		$sql = 'UPDATE comments_threads
+				 SET last_comment_id = (SELECT MAX(id) from comments WHERE thread_id = '.$_POST['thread_id'].' AND board = "'.$_POST['board'].'")
+				 WHERE thread_id = '.$_POST['thread_id'];
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		/** Mark comment as unread for all users (again) */
 		self::markasunread($comment_id);
@@ -1042,24 +1018,19 @@ class Forum {
 		/** Validate passed $selected_boards_array */
 		if (!empty($selected_boards_array) && !is_array($selected_boards_array)) return false;
 
-		try {
-			$sql = 'SELECT * FROM comments_boards ORDER BY title';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			if (!empty($result) && $result !== false)
-			{
-				while ($forumBoard = $db->fetch($result)) $boards[] = $forumBoard;
-				$smarty->assign('boards', $boards);
-				$smarty->assign('boards_checked', $selected_boards_array);
-				if ($update_mode === 'threads') $smarty->assign('do', 'set_show_boards'); // for on Forum Overview
-				elseif ($update_mode === 'unreads') $smarty->assign('do', 'set_unread_boards'); // for on User's Edit Profile
-				else $smarty->assign('do', 'disable'); // only show subscribed boards, no selection possible
-				return $smarty->fetch('file:layout/partials/forum/forum_boards.tpl');
-			} else {
-				return false;
-			}
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			return $e->getMessage();
+		$sql = 'SELECT * FROM comments_boards ORDER BY title';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		if (!empty($result) && $result !== false)
+		{
+			while ($forumBoard = $db->fetch($result)) $boards[] = $forumBoard;
+			$smarty->assign('boards', $boards);
+			$smarty->assign('boards_checked', $selected_boards_array);
+			if ($update_mode === 'threads') $smarty->assign('do', 'set_show_boards'); // for on Forum Overview
+			elseif ($update_mode === 'unreads') $smarty->assign('do', 'set_unread_boards'); // for on User's Edit Profile
+			else $smarty->assign('do', 'disable'); // only show subscribed boards, no selection possible
+			return $smarty->fetch('file:layout/partials/forum/forum_boards.tpl');
+		} else {
+			return false;
 		}
 	}
 
@@ -1104,14 +1075,9 @@ class Forum {
 		/** Validate passed $board */
 		if (empty($board) || is_numeric($board) || is_array($board)) return false;
 
-		try {
-			$sql = 'SELECT title FROM comments_boards WHERE board = "'.$board.'" LIMIT 1';
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-			return $rs['title'];
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			return $e->getMessage();
-		}
+		$sql = 'SELECT title FROM comments_boards WHERE board = "'.$board.'" LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		return $rs['title'];
 	}
 
 
@@ -2539,14 +2505,8 @@ class Thread {
 		if (empty($board) || is_numeric($board) || is_bool($board)) return false;
 		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0) return false;
 
-		try {
-			$sql = 'SELECT id FROM comments WHERE thread_id = '.$thread_id.' AND board="'.$board.'"';
-			return $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT id FROM comments WHERE thread_id = '.$thread_id.' AND board="'.$board.'"';
+		return $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
 	}
 
 	/**
@@ -2585,18 +2545,12 @@ class Thread {
 		if (is_array($user_id) || !is_numeric($user_id) || $user_id <= 0) return false;
 		if (empty($user_id) || $user_id === null) $user_id = $user->id; // $user_id must always be $user->id (current user!)
 
-		try {
-			$sql = 'SELECT count(c.id) anz
-					FROM comments c, comments_unread u
-					WHERE c.board = "'.$board.'" AND c.thread_id='.$thread_id.' AND u.comment_id=c.id AND u.user_id='.$user_id
-					;
-			$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-			return $d['anz'];
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT count(c.id) anz
+				FROM comments c, comments_unread u
+				WHERE c.board = "'.$board.'" AND c.thread_id='.$thread_id.' AND u.comment_id=c.id AND u.user_id='.$user_id
+				;
+		$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		return $d['anz'];
 	}
 
 	/**
@@ -2618,15 +2572,9 @@ class Thread {
 		if (empty($board) || is_numeric($board) || is_array($board)) return false;
 		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0 || is_array($thread_id)) return false;
 
-		try {
-			$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
-					FROM comments where thread_id='.$thread_id.' and board="'.$board.'"';
-			return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
-		}
-		catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
+				FROM comments where thread_id='.$thread_id.' and board="'.$board.'"';
+		return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 	}
 
 	/**

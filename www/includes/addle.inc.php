@@ -36,15 +36,10 @@ function getOpenAddleGames($user_id)
 	if(isset($user_id))
 	{
 		/** Spieler am zug (nexttur) ist aktueller User und spiel ist nicht fertig */
-		try {
-			$sql = 'SELECT id FROM addle WHERE ( (player1 = '.$user_id.' AND nextturn = 1) OR (player2 = '.$user_id.' AND nextturn = 2) ) AND finish = 0';
-			$result = $db->query($sql);
-			$openGames = $db->num($result);
-			return $openGames;
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT id FROM addle WHERE ( (player1 = '.$user_id.' AND nextturn = 1) OR (player2 = '.$user_id.' AND nextturn = 2) ) AND finish = 0';
+		$result = $db->query($sql);
+		$openGames = $db->num($result);
+		return $openGames;
 	}
 }
 
@@ -64,42 +59,36 @@ function getOpenAddleGames($user_id)
  */
 function addle_remove_old_games() {
 	global $db, $notification;
-	
-	try {
-		$e = $db->query('SELECT * FROM addle WHERE finish=0 and UNIX_TIMESTAMP(NOW()) - date > (60*60*24*7*15)', __FILE__, __LINE__, __FUNCTION__);
-		while ($d = $db->fetch($e)) {
-			if ($d['nextturn'] == 1) {
-				$winner = $d['player2'];
-				$looser = $d['player1'];
-				$winner_score = 'score2';
-				$looser_score = 'score1';
-			} else {
-				$winner = $d['player1'];
-				$looser = $d['player2'];
-				$winner_score = 'score1';
-				$looser_score = 'score2';
-			}
-			/** Addle-Game finishen & DWZ updaten */
-			$result = $db->update('addle', ['id', $d['id']], ['finish' => 1, $winner_score => 1, $looser_score => 0], __FILE__, __LINE__, __METHOD__);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(addle_dwz) $result: %d %s', __METHOD__, __LINE__, $result, ($result > 0 ? 'updates' : 'no change')));
-			_update_dwz($d['id']);
 
-			/** Den $Looser benachrichtigen */
-			$notification_text_looser = t('message-game-forceclosed', 'addle', [ SITE_URL, $d['id'], 'verloren', 'du', 'hast' ]);
-			$notification_status_looser = $notification->send($looser, 'games', ['from_user_id'=>$winner, 'subject'=>t('message-subject', 'addle'), 'text'=>$notification_text_looser, 'message'=>$notification_text_looser]);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status_looser: %s', __METHOD__, __LINE__, ($notification_status_looser == 'true' ? 'true' : 'false')));
-
-			/** Den $Winner benachrichtigen */
-			$notification_text_winner = t('message-game-forceclosed', 'addle', [ SITE_URL, $d['id'], 'gewonnen', 'ich', 'habe' ]);
-			$notification_status_winner = $notification->send($winner, 'games', ['from_user_id'=>$looser, 'subject'=>t('message-subject', 'addle'), 'text'=>$notification_text_winner, 'message'=>$notification_text_winner]);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status_winner: %s', __METHOD__, __LINE__, ($notification_status_winner == 'true' ? 'true' : 'false')));
+	$e = $db->query('SELECT * FROM addle WHERE finish=0 and UNIX_TIMESTAMP(NOW()) - date > (60*60*24*7*15)', __FILE__, __LINE__, __FUNCTION__);
+	while ($d = $db->fetch($e)) {
+		if ($d['nextturn'] == 1) {
+			$winner = $d['player2'];
+			$looser = $d['player1'];
+			$winner_score = 'score2';
+			$looser_score = 'score1';
+		} else {
+			$winner = $d['player1'];
+			$looser = $d['player2'];
+			$winner_score = 'score1';
+			$looser_score = 'score2';
 		}
-		return true;
+		/** Addle-Game finishen & DWZ updaten */
+		$result = $db->update('addle', ['id', $d['id']], ['finish' => 1, $winner_score => 1, $looser_score => 0], __FILE__, __LINE__, __METHOD__);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(addle_dwz) $result: %d %s', __METHOD__, __LINE__, $result, ($result > 0 ? 'updates' : 'no change')));
+		_update_dwz($d['id']);
+
+		/** Den $Looser benachrichtigen */
+		$notification_text_looser = t('message-game-forceclosed', 'addle', [ SITE_URL, $d['id'], 'verloren', 'du', 'hast' ]);
+		$notification_status_looser = $notification->send($looser, 'games', ['from_user_id'=>$winner, 'subject'=>t('message-subject', 'addle'), 'text'=>$notification_text_looser, 'message'=>$notification_text_looser]);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status_looser: %s', __METHOD__, __LINE__, ($notification_status_looser == 'true' ? 'true' : 'false')));
+
+		/** Den $Winner benachrichtigen */
+		$notification_text_winner = t('message-game-forceclosed', 'addle', [ SITE_URL, $d['id'], 'gewonnen', 'ich', 'habe' ]);
+		$notification_status_winner = $notification->send($winner, 'games', ['from_user_id'=>$looser, 'subject'=>t('message-subject', 'addle'), 'text'=>$notification_text_winner, 'message'=>$notification_text_winner]);
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status_winner: %s', __METHOD__, __LINE__, ($notification_status_winner == 'true' ? 'true' : 'false')));
 	}
-	catch (Exception $e) {
-		user_error($e->getMessage(), E_USER_ERROR);
-		return false;
-	}
+	return true;
 }
 
 
@@ -295,23 +284,23 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 			}
 		} elseif($mode == 2) {
 			for($i=0;$i<8;$i++) {
-				$row_data[$i] = $game_data_array[($i * 8) + $row];	
+				$row_data[$i] = $game_data_array[($i * 8) + $row];
 			}
 		}
-		
-		//$row_data = preg_split("[]", $row_data_string, 0, PREG_SPLIT_NO_EMPTY); 
-		//$game_data_array = preg_split("[]", $game_data, 0, PREG_SPLIT_NO_EMPTY); 
-		
+
+		//$row_data = preg_split("[]", $row_data_string, 0, PREG_SPLIT_NO_EMPTY);
+		//$game_data_array = preg_split("[]", $game_data, 0, PREG_SPLIT_NO_EMPTY);
+
 		//$p_st = mt();
 		for($i=0;$i<8;$i++)  {
 			if($row_data[$i] != ".") {
 
 				$new_game_data = $game_data_array;
-				
+
 				if($mode == 1) {
 					$new_game_data[$row * 8 + $i] = ".";
 				} elseif ($mode == 2){
-					$new_game_data[($i * 8) + $row] = ".";	
+					$new_game_data[($i * 8) + $row] = ".";
 				}
 
 				//$new_game_data = join($new_game_data,"");
@@ -319,12 +308,12 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 			} else {
 				$max[$i] = ".";
 			}
-			
+
 		}
 		//$total = mt() - $p_st;
 		if(/*($_SESSION['s_userid'] == 1 || $_SESSION['s_userid'] == 8) &&*/ $depth == $max_depth) {
 			foreach($max as $key) {
-				echo $key." ";	
+				echo $key." ";
 			}
 			echo "<br />";
 		//	echo $total."<br />";
@@ -335,12 +324,12 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 			if($max[$i] != "." && $max_check < $max[$i]) {
 				$max_check = $max[$i];
 				$to_select = $i;
-			}	
+			}
 		}
 		$max_end = $score_self - $score_chind + ord($row_data[$to_select]) - 96;
-		
+
 		if($to_select == 23 && $depth != $max_depth) {
-			return $score_self - $score_chind + 2000;	
+			return $score_self - $score_chind + 2000;
 		}
 		if($depth == $max_depth) {
 			if($mode == 1) {
@@ -350,7 +339,7 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 			$new_data['game_data'] = join($game_data_array, "");
 			$new_data['row'] = $to_select;
 			$new_data['score'] = ($score_self + ord($row_data[$to_select])) - 96;
-		
+
 			return $new_data;
 		} else {
 			return $max_check;
@@ -362,10 +351,10 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 
 /**
  * KI - möglichst kleine Punktzahl
- * 
+ *
  * Ermittelt, welches das kleinste Feld für die KI ist,
  * um dem Gegner möglichst wenig Punkte zur Wahl zu lassen
- * 
+ *
  * @author [z]stamp
  * @author [z]cylander
  * @version 1.0
@@ -392,87 +381,83 @@ function evil_min($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 				else $new_game_data[$row*8+$i] = ".";
 				//$new_game_data = join($new_game_data,"");
 				$min[$i] =  evil_max($new_game_data , $i, $score_self, ($score_chind + ord($row_data[$i]) - 96), ($depth-1), $mode);
-				
+
 			} else {
 				$min[$i] = ".";
 			}
-			
+
 		}
 		/*foreach($min as $key) {
-			echo $key." ";	
+			echo $key." ";
 		}
 		echo "<br />";
 		*/
 		//	echo $total."<br />";
-		
+
 		$to_select = 23;
 		$min_check = 3000;
 		for($i=0;$i<8;$i++) {
 			if( $min[$i] != "." && $min_check > $min[$i]) {
 				$min_check = $min[$i];
 				$to_select = $i;
-			}		
+			}
 		}
 		$min_end = $score_self - $score_chind - ord($row_data[$to_select]) + 96;
-		
+
 		if($to_select == 23) {
-			return $score_self - $score_chind + 2000;	
+			return $score_self - $score_chind + 2000;
 		}
 		return $min_check;
-		
+
 	}
 	return $score_self - $score_chind + 2000;
 }
 
-try {
-	$sql = 'SELECT * FROM addle WHERE ((player1 = '.BARBARA_HARRIS.' OR player2 = '.BARBARA_HARRIS.') AND (player1 = 1 OR player2 = 1) AND finish = 0)';
-	$result = $db->query($sql,__LINE__,__FILE__);
-	while($rs = $db->fetch($result)) {
-		$data = $rs['data'];
-		$nextturn = $rs['nextturn'];
-		$nextrow = $rs['nextrow'];
-		$game_id = $rs['id'];
-		$new_nextturn = $nextturn;
-		$checker = 0;
-	
-		$data = preg_split("[]", $data, 0, PREG_SPLIT_NO_EMPTY);
-		 
-		if($rs['player1'] == BARBARA_HARRIS && $nextturn == 1) {
-			$mode = 1;
-			$score_self = $rs['score1'];
-		    $score_chind = $rs['score2'];
-		    $new_nextturn = 2;
-			$new_data = evil_max($data , $nextrow , $score_self, $score_chind,$max_depth, $mode);
-			$checker = 1;
-			$my_score = "score1";
-		} elseif($rs['player2'] == BARBARA_HARRIS && $nextturn == 2) {
-			$mode = 2;
-			$score_self = $rs['score2'];
-			$score_chind = $rs['score1'];
-			$new_nextturn = 1;
-			$new_data = evil_max($data , $nextrow , $score_self, $score_chind,$max_depth, $mode);
-			$checker = 1;
-			$my_score = "score2";
-		}
-	
-		if ($checker == 1) {
-			$sql = 'UPDATE addle 
-					SET 
-						data = "'.$new_data['game_data'].'",
-						nextturn = '.$new_nextturn.',
-						nextrow = "'.$new_data['row'].'", 
-						'.$my_score.' = '.$new_data['score'].',
-						date = NOW()';
-			if($new_data['row'] != 23) {
-				$sql_add = '';
-			} else {
-				$sql_add = ', finish = 1 ';
-			}	
-			$sql = $sql.$sql_add.' WHERE id = '.$game_id;
-			echo $sql;
-			$db->query($sql,__LINE__,__FILE__,'UPDATE addle');
-		}
+$sql = 'SELECT * FROM addle WHERE ((player1 = '.BARBARA_HARRIS.' OR player2 = '.BARBARA_HARRIS.') AND (player1 = 1 OR player2 = 1) AND finish = 0)';
+$result = $db->query($sql,__LINE__,__FILE__);
+while($rs = $db->fetch($result)) {
+	$data = $rs['data'];
+	$nextturn = $rs['nextturn'];
+	$nextrow = $rs['nextrow'];
+	$game_id = $rs['id'];
+	$new_nextturn = $nextturn;
+	$checker = 0;
+
+	$data = preg_split("[]", $data, 0, PREG_SPLIT_NO_EMPTY);
+
+	if($rs['player1'] == BARBARA_HARRIS && $nextturn == 1) {
+		$mode = 1;
+		$score_self = $rs['score1'];
+	    $score_chind = $rs['score2'];
+	    $new_nextturn = 2;
+		$new_data = evil_max($data , $nextrow , $score_self, $score_chind,$max_depth, $mode);
+		$checker = 1;
+		$my_score = "score1";
+	} elseif($rs['player2'] == BARBARA_HARRIS && $nextturn == 2) {
+		$mode = 2;
+		$score_self = $rs['score2'];
+		$score_chind = $rs['score1'];
+		$new_nextturn = 1;
+		$new_data = evil_max($data , $nextrow , $score_self, $score_chind,$max_depth, $mode);
+		$checker = 1;
+		$my_score = "score2";
 	}
-} catch(Exception $e) {
-	error_log($e->getMessage());
+
+	if ($checker == 1) {
+		$sql = 'UPDATE addle
+				SET
+					data = "'.$new_data['game_data'].'",
+					nextturn = '.$new_nextturn.',
+					nextrow = "'.$new_data['row'].'",
+					'.$my_score.' = '.$new_data['score'].',
+					date = NOW()';
+		if($new_data['row'] != 23) {
+			$sql_add = '';
+		} else {
+			$sql_add = ', finish = 1 ';
+		}
+		$sql = $sql.$sql_add.' WHERE id = '.$game_id;
+		echo $sql;
+		$db->query($sql,__LINE__,__FILE__,'UPDATE addle');
+	}
 }

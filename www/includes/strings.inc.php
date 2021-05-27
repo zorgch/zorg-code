@@ -21,7 +21,7 @@ $GLOBALS['strings'] = include_once INCLUDES_DIR.'strings.array.php';
  * text string from the list of valid strings. This helps to not have
  * any hard-coded messages / strings as part of the code. And allows
  * same strings to be reused at different points in the whole code.
- * 
+ *
  * Features:
  * - singular & plurarl
  * - values können übergeben werden
@@ -44,7 +44,7 @@ $GLOBALS['strings'] = include_once INCLUDES_DIR.'strings.array.php';
 function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 {
 	//global $smarty;
-	
+
 	/**
 	 * Validate the passed $values
 	 */
@@ -59,26 +59,22 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	} elseif (isset($values) && $values == '') {
 		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
 	}
-	
+
 
 	/**
 	 * Resolve the placeholder reference
 	 */
 	if ($found_string = findReferenceInArray($context, $reference))
 	{
-		try {
-			/** Check if the number of $values matches the sprintf-placeholders */
-			$sprintf_count = substr_count($found_string, '%');
-			if ($values_count != $sprintf_count) error_log(sprintf('[NOTICE] strings.inc.php: possible mismatch between values (num: %d) & sprintf (num: %d) for string "%s"', $values_count, $sprintf_count, $found_string));
-			
-			/**
-			 * Replace & return - or return only - a matched string
-			 * vsprintf = sprintf with an array for params
-			 */
-			$string = ( !empty($values) && $values_count > 0 ? vsprintf($found_string, $values) : $found_string );
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-		}
+		/** Check if the number of $values matches the sprintf-placeholders */
+		$sprintf_count = substr_count($found_string, '%');
+		if ($values_count != $sprintf_count) error_log(sprintf('[NOTICE] strings.inc.php: possible mismatch between values (num: %d) & sprintf (num: %d) for string "%s"', $values_count, $sprintf_count, $found_string));
+
+		/**
+		 * Replace & return - or return only - a matched string
+		 * vsprintf = sprintf with an array for params
+		 */
+		$string = ( !empty($values) && $values_count > 0 ? vsprintf($found_string, $values) : $found_string );
 	}
 	else {
 		$string = sprintf('[WARN] %s: %s in %s', NO_STRING_FOUND, $reference, $context);
@@ -97,15 +93,15 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 		}
 		$string = $smarty->fetch($tploutput);
 	}*/
-	
+
 	/** Trim multiple tabs from String */
 	$string = preg_replace('/\t{2,}/', '', $string);
-	
+
 	/** Return String */
 	return $string;
 }
 
-/** 
+/**
  * Find & return a given reference in the Strings-Array
  *
  * @param $reference The placeholder reference to be replaced with a string
@@ -115,7 +111,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 function findReferenceInArray($context, $reference)
 {
 	global $strings;
-	
+
 	if (is_array($strings))
 	{
 		if (array_key_exists($context, $strings))
@@ -144,7 +140,7 @@ function findReferenceInArray($context, $reference)
 	}
 }
 
-/** 
+/**
  * Return single or plural string
  * @TODO Single/Plural Strings-Feature is yet to be implemented...
  * @param $array The array containing two values: one for singular & one for pluaral
@@ -152,5 +148,5 @@ function findReferenceInArray($context, $reference)
  */
 function checkSingleOrPlural($array, $integer)
 {
-	
+
 }

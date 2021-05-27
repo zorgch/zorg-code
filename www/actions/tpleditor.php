@@ -202,12 +202,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		/** If compile-error, write it to the template in the DB */
 		if (!empty($error))
 		{
-			try {
-				$db->query('UPDATE templates SET error="'.addslashes($error).'" WHERE id='.$frm['id'], __FILE__, __LINE__, 'UPDATE templates (tplid)');
-			}
-			catch (Exception $e) {
-				error_log($e->getMessage(), E_USER_ERROR);
-			}
+			$db->query('UPDATE templates SET error="'.addslashes($error).'" WHERE id='.$frm['id'], __FILE__, __LINE__, 'UPDATE templates (tplid)');
 		}
 	}
 

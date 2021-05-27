@@ -28,7 +28,7 @@ require_once INCLUDES_DIR.'util.inc.php';
  * Holt und speichert das neus Astronomy Pic of the Day (APOD).
  * APOD Bild wird via Funktion createPic() nach /data/gallery/41/ kopiert!
  * (kann also aus dem APOD Temp img-Ordner gelöscht werden danach)
- * 
+ *
  * API Description: concept_tags are now disabled in this service. Also, an optional return parameter copyright is returned if the image is not public domain.
  * 	QUERY PARAMETERS:
  * 	Parameter	| Type			| Default	| Description
@@ -107,32 +107,21 @@ function get_apod($apod_date_input=NULL)
 		if ($new_apod_fileext === 'html') $new_apod_mediatype = 'website';
 
 		/** Check if APOD is not already fetched... */
-		try {
-			$sql = 'SELECT id, name, extension, pic_added FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' AND DATE(pic_added) = "'.$new_apod_date.'"';
-			$checkTodaysAPOD = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-			return false;
-		}
+		$sql = 'SELECT id, name, extension, pic_added FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' AND DATE(pic_added) = "'.$new_apod_date.'"';
+		$checkTodaysAPOD = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
 		if (empty($checkTodaysAPOD['name']) || strpos($checkTodaysAPOD['name'], $new_apod_title) === false)
 		{
 			/** Save new APOD to the gallery_pics database table */
 			if (!empty($new_apod_title))
 			{
-				try {
-					if ($new_apod_mediatype === 'image') $new_apod_fileext = '.'.$new_apod_fileext;
-					$new_apod_picid = $db->insert('gallery_pics', [
-																	 'album'=>APOD_GALLERY_ID
-																	,'extension'=>$new_apod_fileext
-																	,'pic_added'=>$new_apod_date
-																	,'name'=>escape_text($new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : ''))
-																  ], __FILE__, __LINE__, __FUNCTION__);
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_picid: %s', __FUNCTION__, __LINE__, $new_apod_picid));
-
-				} catch (Exception $e) {
-					error_log($e->getMessage());
-					return false;
-				}
+				if ($new_apod_mediatype === 'image') $new_apod_fileext = '.'.$new_apod_fileext;
+				$new_apod_picid = $db->insert('gallery_pics', [
+																 'album'=>APOD_GALLERY_ID
+																,'extension'=>$new_apod_fileext
+																,'pic_added'=>$new_apod_date
+																,'name'=>escape_text($new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : ''))
+															  ], __FILE__, __LINE__, __FUNCTION__);
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_picid: %s', __FUNCTION__, __LINE__, $new_apod_picid));
 
 			/** If $new_apod_title is empty, abort */
 			} else {
@@ -216,7 +205,7 @@ function get_apod($apod_date_input=NULL)
 							$new_apod_temp_filepath = $new_apod_temp_filepath.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION);
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
 							if (!cURLfetchUrl($new_apod_img_thumbnail, $new_apod_temp_filepath)) goto cleanup;
-	
+
 							/** Create APOD gallery pic-thumbnail for 'video' */
 							$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, '.'.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION));
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
@@ -225,15 +214,11 @@ function get_apod($apod_date_input=NULL)
 								error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
 								goto cleanup;
 							}
-	
+
 							/** Update APOD 'video' entry in gallery_pics table */
-							try {
-								$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $media_type, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
-								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
-								if ($result === 0) goto cleanup;
-							} catch (Exception $e) {
-								error_log($e->getMessage());
-							}
+							$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $media_type, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
+							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
+							if ($result === 0) goto cleanup;
 						}
 						break;
 
@@ -254,13 +239,9 @@ function get_apod($apod_date_input=NULL)
 						}
 
 						/** Update APOD 'website' entry in gallery_pics table */
-						try {
-							$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $new_apod_mediatype, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
-							if ($result === 0) goto cleanup;
-						} catch (Exception $e) {
-							error_log($e->getMessage());
-						}
+						$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $new_apod_mediatype, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
+						if ($result === 0) goto cleanup;
 						break;
 
 					/**
@@ -282,13 +263,8 @@ function get_apod($apod_date_input=NULL)
 
 				/** Goto cleanup: on createPic=FALSE this goto will Cleanup & DELETE DB-Entry */
 				cleanup:
-					try {
-						$deleteFromGalleryPics = $db->query('DELETE FROM gallery_pics WHERE id = ' . $new_apod_picid, __FILE__, __LINE__, __FUNCTION__);
-						return false;
-					} catch (Exception $e) {
-						error_log($e->getMessage());
-						return false;
-					}
+					$deleteFromGalleryPics = $db->query('DELETE FROM gallery_pics WHERE id = ' . $new_apod_picid, __FILE__, __LINE__, __FUNCTION__);
+					return false;
 			}
 
 		/** ...APOD is already fetched! */

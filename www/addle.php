@@ -113,18 +113,12 @@ function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $
 function newgame($player) {
 	global $db, $user, $smarty, $notification;
 
-	try {
-		$anz = $db->fetch($db->query('SELECT count(*) anz FROM addle WHERE finish=0 AND ((player1='.$user->id.' AND player2='.$player.') OR (player1='.$player.' AND player2='.$user->id.'))',
-			__FILE__, __LINE__, 'SELECT FROM addle'));
-		if ($anz['anz'] > MAX_ADDLE_GAMES) user_error(t('error-game-max-limit-reached'), E_USER_NOTICE);
+	$anz = $db->fetch($db->query('SELECT count(*) anz FROM addle WHERE finish=0 AND ((player1='.$user->id.' AND player2='.$player.') OR (player1='.$player.' AND player2='.$user->id.'))',
+		__FILE__, __LINE__, 'SELECT FROM addle'));
+	if ($anz['anz'] > MAX_ADDLE_GAMES) user_error(t('error-game-max-limit-reached'), E_USER_NOTICE);
 
-		$e = $db->query('SELECT addle FROM user WHERE id='.$player, __FILE__, __LINE__, 'SELECT FROM user');
-		$d = $db->fetch($e);
-	} catch(Exception $e) {
-		error_log($e->getMessage());
-		user_error(t('error-newgame'), E_USER_ERROR);
-		exit;
-	}
+	$e = $db->query('SELECT addle FROM user WHERE id='.$player, __FILE__, __LINE__, 'SELECT FROM user');
+	$d = $db->fetch($e);
 
 	if (!$player || $player == $user->id || $d['addle'] !=1) {
 		user_error(t('error-newgame'), E_USER_ERROR);
@@ -197,14 +191,10 @@ function newgame($player) {
 	/**
 	* Notification - New Game
 	*/
-	try {
-		$notification_text = t('neue-herausforderung', 'addle', [ SITE_URL, $gameid ]);
-		$notification_status = $notification->send($player, 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'addle'), 'text'=>$notification_text, 'message'=>$notification_text]);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
-		//Messagesystem::sendMessage($user->id, $player, t('message-subject', 'addle'), t('neue-herausforderung', 'addle', [ SITE_URL, $gameid ]));
-	} catch (Exception $e) {
-		user_error($e->getMessage(), E_USER_ERROR);
-	}
+	$notification_text = t('neue-herausforderung', 'addle', [ SITE_URL, $gameid ]);
+	$notification_status = $notification->send($player, 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'addle'), 'text'=>$notification_text, 'message'=>$notification_text]);
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
+	//Messagesystem::sendMessage($user->id, $player, t('message-subject', 'addle'), t('neue-herausforderung', 'addle', [ SITE_URL, $gameid ]));
 
 	header('Location: ?show=play&id='.$gameid);
 	exit;
@@ -357,14 +347,8 @@ function doplay($id, $choose) {
 
 	if ($id)
 	{
-		try {
-			$e = $db->query('SELECT * FROM addle WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
-			$d = $db->fetch($e);
-		} catch(Exception $e) {
-			error_log($e->getMessage());
-			user_error(t('error-game-invalid'), E_USER_ERROR);
-			exit;
-		}
+		$e = $db->query('SELECT * FROM addle WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+		$d = $db->fetch($e);
 		if ($d) { //&& $choose>=0 && $choose<=7) { <- wird schon in der parameter validierung abgefragt
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $d: %s', __METHOD__, __LINE__, print_r($d,true)));
 			if ($d['player'.$d['nextturn']] == $user->id) {
@@ -401,15 +385,15 @@ function doplay($id, $choose) {
 						}
 					}
 					/** db entry zug */
-					$sql = 'UPDATE addle 
-							SET 
-								date=UNIX_TIMESTAMP(NOW()), 
-								score'.$d['nextturn'].'='.$score.', 
-								data="'.$data.'", 
-								nextturn='.$nextturn.', 
-								nextrow='.$choose.', 
+					$sql = 'UPDATE addle
+							SET
+								date=UNIX_TIMESTAMP(NOW()),
+								score'.$d['nextturn'].'='.$score.',
+								data="'.$data.'",
+								nextturn='.$nextturn.',
+								nextrow='.$choose.',
 								finish='.$finish.',
-								last_pick_data = "'.(ord($act)-96).'", 
+								last_pick_data = "'.(ord($act)-96).'",
 								last_pick_row = '.$d['nextrow'].'
 							WHERE id='.$id;
 					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
@@ -490,10 +474,10 @@ function play($id=0)
 		overview();
 		exit;
 	}
-	$sql = 'SELECT a.*, d1.score dwz1, d1.rank dwzr1, d2.score dwz2, d2.rank dwzr2 
-			FROM addle a 
-			LEFT JOIN addle_dwz d1 ON d1.user=a.player1 
-			LEFT JOIN addle_dwz d2 ON d2.user=a.player2 
+	$sql = 'SELECT a.*, d1.score dwz1, d1.rank dwzr1, d2.score dwz2, d2.rank dwzr2
+			FROM addle a
+			LEFT JOIN addle_dwz d1 ON d1.user=a.player1
+			LEFT JOIN addle_dwz d2 ON d2.user=a.player2
 			WHERE a.id='.$id;
 	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	if ($db->num($e) !== 1) {
