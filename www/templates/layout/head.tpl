@@ -58,7 +58,7 @@
 
 	{* Wenn es ein eingeloggter User ist, wird im Fenstertitel die Anzahl Unreads angezeigt... *}
 	<body onload="init()">
-		<header class="zorghead" {if $tplroot.write_rights neq '' && tpl_permission($tplroot.write_rights, $tplroot.owner)}onDblClick="document.location.href='{edit_url}';"{/if}>
+		<header class="zorghead">
 		{include_php file="file:header.php"}
 			{if $user->id}
 				{if $new_messages > 0}{capture append=myUpdates}<li id="messages"><a href="/profil.php?user_id={$user->id}">✉️ {$new_messages|quantity:"Message":"Messages"}</a></li>{/capture}{/if}
@@ -127,6 +127,6 @@
 		<!--nav class="navigation" -->
 		{*if $user->mymenu}{include file="tpl:`$user->mymenu`"}{/if*}
 		{include file='file:layout/navigation.tpl'}
-		
+
 		<main class="main-content">
 			{if $error.title <> ''}{include file="file:layout/elements/block_error.tpl"}{/if}
