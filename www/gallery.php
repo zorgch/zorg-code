@@ -42,7 +42,7 @@ $album_id = $model->setAlbumId($getAlbId, $getPicId);
 if (!$user->is_loggedin() && (int)$album_id !== APOD_GALLERY_ID)
 {
 	$model->showOverview($smarty);
-	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', SITE_URL), 'dismissable' => 'false']);
+	$smarty->assign('error', ['type' => 'warn', 'title' => t('error-not-logged-in', 'gallery', [ SITE_URL ]), 'dismissable' => 'false']);
 	http_response_code(403); // Set response code 403 (forbidden).
 	$smarty->display('file:layout/head.tpl');
 }
@@ -73,7 +73,7 @@ else {
 				case 'benoten':
 					 	doBenoten($_POST['picID'], $_POST['score']);
 					 	break;
-	
+
 					 case 'mypic':
 					 	// Ein <input type="image" ...> übergibt die X & Y Positionen via "inputName_x" & "inputName_y"
 					 	if ($_POST['picID'] > 0 && $_POST['mypic_x'] <> "" && $_POST['mypic_y'] <> "") {
@@ -130,7 +130,7 @@ else {
 		} else {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
 		}
-	
+
 		unset($_GET['do']);
 		$doAction = null;
 	} else {
