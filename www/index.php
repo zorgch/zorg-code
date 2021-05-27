@@ -113,7 +113,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 			} else {
 				/** genereller Forum RSS Feed */
 				$smarty->assign('feedtitle', 'Forum RSS' . PAGETITLE_SUFFIX);
-				$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum' . $_GET['board']);
+				$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum');
 				$smarty->assign('feeditems', Forum::printRSS(null, (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
 			}
 			break;
