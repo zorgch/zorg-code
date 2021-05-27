@@ -86,21 +86,16 @@ class UserStatistics
 		{
 			error_log(sprintf('[WARN] <%s:%d> Invalid $userid: %d', __METHOD__, __LINE__, $userid));
 			return false;
-		
+
 		/** Passed $userid seems legit */
 		} else {
-			try {
-				$sql = 'SELECT UNIX_TIMESTAMP(activity) AS last_activity FROM user WHERE id='.$userid;
-				$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$sql = 'SELECT UNIX_TIMESTAMP(activity) AS last_activity FROM user WHERE id='.$userid;
+			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-				/** A User with $userid exists */
-				if (!empty($result))
-				{
-					return $result['last_activity'];
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
+			/** A User with $userid exists */
+			if (!empty($result))
+			{
+				return $result['last_activity'];
 			}
 		}
 	}
@@ -128,21 +123,16 @@ class UserStatistics
 		{
 			error_log(sprintf('[WARN] <%s:%d> Invalid $userid: %d', __METHOD__, __LINE__, $userid));
 			return false;
-		
+
 		/** Passed $userid seems legit */
 		} else {
-			try {
-				$sql = 'SELECT count(*) AS bugs_pending FROM bugtracker_bugs WHERE resolved_date IS NULL AND denied_date IS NULL AND reporter_id='.$userid;
-				$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$sql = 'SELECT count(*) AS bugs_pending FROM bugtracker_bugs WHERE resolved_date IS NULL AND denied_date IS NULL AND reporter_id='.$userid;
+			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-				/** User has reported Bugs which are pending */
-				if (!empty($result) && $result['bugs_pending'] > 0)
-				{
-					return $result['bugs_pending'];
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
+			/** User has reported Bugs which are pending */
+			if (!empty($result) && $result['bugs_pending'] > 0)
+			{
+				return $result['bugs_pending'];
 			}
 		}
 	}
@@ -161,7 +151,7 @@ class UserStatistics
  * @since		1.0 Class added with first version of methods
  */
 class ZorgStatistics
-{	
+{
 	/**
 	 * Threads created statistics
 	 *
@@ -186,21 +176,16 @@ class ZorgStatistics
 		{
 			error_log(sprintf('[WARN] <%s:%d> Invalid $userid: %d', __METHOD__, __LINE__, $userid));
 			return false;
-		
+
 		/** Passed $userid seems legit */
 		} else {
-			try {
-				$sql = 'SELECT UNIX_TIMESTAMP(activity) AS last_activity FROM user WHERE id='.$userid;
-				$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$sql = 'SELECT UNIX_TIMESTAMP(activity) AS last_activity FROM user WHERE id='.$userid;
+			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-				/** A User with $userid exists */
-				if (!empty($result))
-				{
-					return $result['last_activity'];
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
+			/** A User with $userid exists */
+			if (!empty($result))
+			{
+				return $result['last_activity'];
 			}
 		}
 	}
@@ -230,21 +215,16 @@ class ZorgStatistics
 		{
 			error_log(sprintf('[WARN] <%s:%d> Invalid $userid: %d', __METHOD__, __LINE__, $userid));
 			return false;
-		
+
 		/** Passed $userid seems legit */
 		} else {
-			try {
-				$sql = 'SELECT UNIX_TIMESTAMP(activity) AS last_activity FROM user WHERE id='.$userid;
-				$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$sql = 'SELECT UNIX_TIMESTAMP(activity) AS last_activity FROM user WHERE id='.$userid;
+			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-				/** A User with $userid exists */
-				if (!empty($result))
-				{
-					return $result['last_activity'];
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
+			/** A User with $userid exists */
+			if (!empty($result))
+			{
+				return $result['last_activity'];
 			}
 		}
 	}
@@ -273,21 +253,16 @@ class ZorgStatistics
 		{
 			error_log(sprintf('[WARN] <%s:%d> Invalid $userid: %d', __METHOD__, __LINE__, $userid));
 			return false;
-		
+
 		/** Passed $userid seems legit */
 		} else {
-			try {
-				$sql = 'SELECT count(*) AS bugs_pending FROM bugtracker_bugs WHERE resolved_date IS NULL AND denied_date IS NULL AND reporter_id='.$userid;
-				$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$sql = 'SELECT count(*) AS bugs_pending FROM bugtracker_bugs WHERE resolved_date IS NULL AND denied_date IS NULL AND reporter_id='.$userid;
+			$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-				/** User has reported Bugs which are pending */
-				if (!empty($result) && $result['bugs_pending'] > 0)
-				{
-					return $result['bugs_pending'];
-				}
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
+			/** User has reported Bugs which are pending */
+			if (!empty($result) && $result['bugs_pending'] > 0)
+			{
+				return $result['bugs_pending'];
 			}
 		}
 	}

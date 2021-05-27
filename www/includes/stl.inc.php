@@ -1096,28 +1096,23 @@ class stl {
 		$count = 0;
 		if ($user->is_loggedin())
 		{
-			try {
-				$sql = 'SELECT
-						 stlg.game_id
-						FROM
-							 stl_players AS stlp
-							,stl AS stlg
-						LEFT JOIN
-							stl_players stljp ON stljp.game_id=stlg.game_id
-							AND stljp.user_id='.$user->id.'
-						WHERE
-							stlg.status=0
-							AND stlp.game_id=stlg.game_id
-							AND stlg.creator_id<>'.$user->id.'
-							AND stljp.user_id IS NULL
-						GROUP BY stlg.game_id';
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				$count = ($result ? $db->num($result) : 0);
-				$next = $db->fetch($result);
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
+			$sql = 'SELECT
+					 stlg.game_id
+					FROM
+						 stl_players AS stlp
+						,stl AS stlg
+					LEFT JOIN
+						stl_players stljp ON stljp.game_id=stlg.game_id
+						AND stljp.user_id='.$user->id.'
+					WHERE
+						stlg.status=0
+						AND stlp.game_id=stlg.game_id
+						AND stlg.creator_id<>'.$user->id.'
+						AND stljp.user_id IS NULL
+					GROUP BY stlg.game_id';
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$count = ($result ? $db->num($result) : 0);
+			$next = $db->fetch($result);
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' open STL game'.($count > 1 ? 's' : '').'</a>' : '' );
 		} else {
 			return null;
@@ -1146,26 +1141,21 @@ class stl {
 		$count = 0;
 		if ($user->is_loggedin())
 		{
-			try {
-				$sql = 'SELECT
-							 stl.game_id AS game_id
-							,HOUR( pl.last_shoot) AS last_shoot
-						FROM stl
-							LEFT JOIN stl_players pl ON pl.game_id = stl.game_id
-							LEFT JOIN stl_positions p ON stl.game_id = p.game_id
-						WHERE
-							pl.user_id='.$user->id.'
-							AND stl.status=1
-							AND p.ship_user_id='.$user->id.'
-							AND p.hit_user_id=0
-							AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				$count = ($result ? $db->num($result) : 0);
-				$next = $db->fetch($result);
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-				return false;
-			}
+			$sql = 'SELECT
+						 stl.game_id AS game_id
+						,HOUR( pl.last_shoot) AS last_shoot
+					FROM stl
+						LEFT JOIN stl_players pl ON pl.game_id = stl.game_id
+						LEFT JOIN stl_positions p ON stl.game_id = p.game_id
+					WHERE
+						pl.user_id='.$user->id.'
+						AND stl.status=1
+						AND p.ship_user_id='.$user->id.'
+						AND p.hit_user_id=0
+						AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
+			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$count = ($result ? $db->num($result) : 0);
+			$next = $db->fetch($result);
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' STL-shot'.($count > 1 ? 's' : '').'</a>' : '' );
 		} else {
 			return null;

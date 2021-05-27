@@ -3,19 +3,19 @@
  * The Line Graph generator by Ashish Kasturia (http://www.123ashish.com)
  *
  * Copyright (C) 2003 Ashish Kasturia (ashish at 123ashish.com)
- * 
+ *
  * The Line Graph generator is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, 
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  *
  * @link http://developers-heaven.net/display_source_code.php?id=117
@@ -56,7 +56,7 @@ class Line
 		$this->height = $imgHeight;
 		$this->image = ImageCreate($this->width, $this->height);
 		$this->InitializeColors();
-		ImageFill($this->image, 0, 0, $this->bgCol);	
+		ImageFill($this->image, 0, 0, (int)$this->bgCol);
 	}
 
 	function InitializeColors()
@@ -83,9 +83,9 @@ class Line
 		$this->height = $height;
 		$this->width = $width;
 
-		$this->image = ImageCreate($this->width, $this->height);
+		$this->image = ImageCreate((int)$this->width, (int)$this->height);
 		InitializeColors();
-		ImageFill($this->image, 0, 0, $this->bgCol);
+		ImageFill((int)$this->image, 0, 0, (int)$this->bgCol);
 	}
 
 	function SetBGJPEGImage($file)
@@ -117,8 +117,8 @@ class Line
 	}
 	function SetBGColor($bgR, $bgG, $bgB)
 	{
-		ImageColorDeallocate($this->image, $this->bgCol);
-		$this->bgCol = ImagecolorAllocate($this->image, $bgR, $bgG, $bgB);
+		ImageColorDeallocate($this->image, (int)$this->bgCol);
+		$this->bgCol = ImagecolorAllocate($this->image, (int)$bgR, (int)$bgG, (int)$bgB);
 	}
 
 	function SetTitle($title)
@@ -129,8 +129,8 @@ class Line
 
 	function SetTitleColor($bgR, $bgG, $bgB)
 	{
-		ImageColorDeallocate($this->image, $this->titleCol);
-		$this->titleCol = ImagecolorAllocate($this->image, $bgR, $bgG, $bgB);
+		ImageColorDeallocate($this->image, (int)$this->titleCol);
+		$this->titleCol = ImagecolorAllocate($this->image, (int)$bgR, (int)$bgG, (int)$bgB);
 	}
 
 	function AddValue($xVal, $yVal, $xVal2)
@@ -148,14 +148,14 @@ class Line
 
 	function SetBarColor($bgR, $bgG, $bgB)
 	{
-		ImageColorDeallocate($this->image, $this->barCol);
-		$this->barCol = ImagecolorAllocate($this->image, $bgR, $bgG, $bgB);
+		ImageColorDeallocate($this->image, (int)$this->barCol);
+		$this->barCol = ImagecolorAllocate($this->image, (int)$bgR, (int)$bgG, (int)$bgB);
 	}
 
 	function SetAxesColor($bgR, $bgG, $bgB)
 	{
-		ImageColorDeallocate($this->image, $this->axesCol);
-		$this->axesCol = ImagecolorAllocate($this->image, $bgR, $bgG, $bgB);
+		ImageColorDeallocate($this->image, (int)$this->axesCol);
+		$this->axesCol = ImagecolorAllocate($this->image, (int)$bgR, (int)$bgG, (int)$bgB);
 	}
 
 	/**
@@ -183,11 +183,11 @@ class Line
 		{
 			$tmpVal = 4 - $i;
 			$y1 = 40 + (($tmpVal * ($this->height - 80)) / 4);
-			ImageLine($this->image, 40, $y1, $this->width - 80, $y1, $this->axesCol);
+			ImageLine($this->image, 40, (int)$y1, intval($this->width - 80), (int)$y1, (int)$this->axesCol);
 		}
 		// X
-		ImageLine($this->image, 40, $this->height - 40, 40, 40, $this->axesCol);
-		ImageLine($this->image, $this->width - 80, $this->height - 40, $this->width - 80, 40, $this->axesCol);
+		ImageLine($this->image, 40, intval($this->height - 40), 40, 40, (int)$this->axesCol);
+		ImageLine($this->image, intval($this->width - 80), intval($this->height - 40), intval($this->width - 80), 40, (int)$this->axesCol);
 
 		// calculate the max of each range
 		$tmpArray = Array();
@@ -213,18 +213,18 @@ class Line
 		{
 			$tmpVal = 4 - $i;
 			$y1 = 40 + (($i * ($this->height - 80)) / 4);
-			
+
 			for($j = 0; $j < $numSequences; $j++)
 			{
-				$str = sprintf("%.2f", ($maxValues[$j] * (4 - $i) / 4));
+				$str = sprintf('%4d', intval($maxValues[$j] * (4 - $i) / 4));
 				$strHeight = ImageFontHeight(2);
-				ImageString($this->image, 2, 5, $y1 + (($j - $numSequences / 2) * $strHeight), $str, $this->barCol[$j % 9]);
+				ImageString($this->image, 2, 5, intval($y1 + (($j - $numSequences / 2) * $strHeight)), $str, (int)$this->barCol[$j % 9]);
 			}
 		}
-		
+
 		// put the title
 		$titleWidth = ImageFontWidth(3) * strlen($this->title);
-		ImageString($this->image, 3, ($this->width - $titleWidth) / 2, 10, $this->title, $this->titleCol);
+		ImageString($this->image, 3, intval(($this->width - $titleWidth) / 2), 10, $this->title, (int)$this->titleCol);
 
 		// put the series legend
 		/*$legendWidth = ImageFontWidth(3) * strlen("Legend");
@@ -249,16 +249,16 @@ class Line
 			$labelWidth = ImageFontWidth(1) * strlen($this->dataXLabels[$i]);
 			$labelHeight = ImageFontHeight(1);
 
-			ImageString($this->image, (count($this->dataXLabels2) > 1 ? 1 : 2), 
-				40 + $xUnit * ($i + 0.5) - $labelWidth / 2, 
-				$this->height - 35 + ($i % 2) * $labelHeight, 
+			ImageString($this->image, (count($this->dataXLabels2) > 1 ? 1 : 2),
+				40 + $xUnit * ($i + 0.5) - $labelWidth / 2,
+				$this->height - 35 + ($i % 2) * $labelHeight,
 				$this->dataXLabels[$i], $this->titleCol); // 2nd param = font-size. Higher = larger (only if dataXLabels2 = empty)
-			
+
 			/** @TODO Dieser String sollte nun die Jahreszahlen ausgeben...?! ([z]cylander) */
-			ImageString($this->image, 2, 
-				40 + $xUnit2 * ($i + 1) - $labelWidth / 2, 
-				$this->height - 22 + ($i % 2) * $labelHeight, 
-				$this->dataXLabels2[$i], $this->titleCol); // 2nd param = font-size. Higher = larger.
+			ImageString($this->image, 2,
+				intval(40 + $xUnit2 * ($i + 1) - $labelWidth / 2),
+				intval($this->height - 22 + ($i % 2) * $labelHeight),
+				$this->dataXLabels2[$i], (int)$this->titleCol); // 2nd param = font-size. Higher = larger.
 
 			for($j = 0; $j < sizeof($this->dataValues[$i]); $j++)
 			{
@@ -267,11 +267,11 @@ class Line
 				// $maxValues[$j] corresponds to $this->height - 80
 				$tmpVal = $maxValues[$j] - $this->dataValues[$i][$j];
 				// $tmpVal corresponds to ($tmpVal * ($this->height - 80)) / $maxValues[$j];
-				$y1 = 40 + (($tmpVal * ($this->height - 80)) / $maxValues[$j]);
-				ImageFilledRectangle($this->image, $x1 - 2, $y1 - 2, $x1 + 2, $y1 + 2, $this->barCol[$j % 9]);
+				$y1 = (!empty($maxValues[$j]) ? 40 + (($tmpVal * ($this->height - 80)) / $maxValues[$j]) : 40);
+				ImageFilledRectangle($this->image, intval($x1 - 2), intval($y1 - 2), intval($x1 + 2), intval($y1 + 2), (int)$this->barCol[$j % 9]);
 				if($i != 0)
 				{
-					ImageLine($this->image, $x1, $y1, $x2[$j], $y2[$j], $this->barCol[$j % 9]);
+					ImageLine($this->image, (int)$x1, (int)$y1, (int)$x2[$j], (int)$y2[$j], (int)$this->barCol[$j % 9]);
 				}
 				$x2[$j] = $x1;
 				$y2[$j] = $y1;

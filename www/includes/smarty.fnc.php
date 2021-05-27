@@ -851,14 +851,14 @@ function smarty_peter ($params, &$smarty) {
 		}else{
 			return '<font color="red"><b>[gettext: Gib mittels dem Parameter "file" oder "id" eine Datei an]</b></font><br />';
 		}
-		error_log('file path: '.$file);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> file path: %s', __FUNCTION__, __LINE__, $file));
 		$out = '<div align="left"><pre>';
 
 		/** Output only n lines (as passed) */
 		if (isset($params['linelength']))
 		{
 			$len = $params['linelength'];
-			error_log('linelength: '.$len);
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> linelength: %d', __FUNCTION__, __LINE__, $len));
 			if (!is_numeric($len) || $len < 1) {
 				return '<font color="red"><b>[gettext: Parameter linelength has to be numeric and greater than 0]</b></font><br />';
 			}
@@ -876,7 +876,7 @@ function smarty_peter ($params, &$smarty) {
 		else{
 			$out .= htmlspecialchars(file_get_contents($file));
 		}
-error_log('out: '.$out);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> out: %s', __FUNCTION__, __LINE__, $out));
 		$out .= '</pre></div>';
 
 		return $out;
@@ -1162,19 +1162,14 @@ error_log('out: '.$out);
 	{
 		global $db;
 
-		try {
-			$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			if (!empty($result) && $result !== false)
-			{
-				while ($menuTemplate = $db->fetch($result)) $menus[] = $menuTemplate;
-				return $menus;
-				//$smarty->assign('smarty_menus', $menus);
-			} else {
-				return false;
-			}
-		} catch (Exception $e) {
-			error_log($e->getMessage());
+		$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		if (!empty($result) && $result !== false)
+		{
+			while ($menuTemplate = $db->fetch($result)) $menus[] = $menuTemplate;
+			return $menus;
+			//$smarty->assign('smarty_menus', $menus);
+		} else {
 			return false;
 		}
 	}

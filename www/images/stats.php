@@ -16,10 +16,10 @@
  */
 
 /** Validate passed GET-Parameters */
-$user_id = (is_numeric($_GET['user_id']) && (int)$_GET['user_id'] > 0 ? (int)$_GET['user_id'] : 'all');
-$group = (empty($_GET['group']) || ($_GET['group'] !== 'month' && $_GET['group'] !== 'year') ? 'year' : $_GET['group']);
-$w = (is_numeric($_GET['w']) && (int)$_GET['w'] > 100 ? (int)$_GET['w'] : 600); // width: min 100px
-$h = (is_numeric($_GET['h']) && (int)$_GET['h'] > 100 ? (int)$_GET['h'] : 300); // height: min 100px
+$user_id = (isset($_GET['user_id']) && is_numeric($_GET['user_id']) && (int)$_GET['user_id'] > 0 ? (int)$_GET['user_id'] : 'all');
+$group = (!isset($_GET['group']) || empty($_GET['group']) || ($_GET['group'] !== 'month' && $_GET['group'] !== 'year') ? 'year' : $_GET['group']);
+$w = (isset($_GET['w']) && is_numeric($_GET['w']) && (int)$_GET['w'] > 100 ? (int)$_GET['w'] : 600); // width: min 100px
+$h = (isset($_GET['h']) && is_numeric($_GET['h']) && (int)$_GET['h'] > 100 ? (int)$_GET['h'] : 300); // height: min 100px
 
 /**
  * File includes
@@ -31,7 +31,7 @@ require_once INCLUDES_DIR.'graph.inc.php';
 /**
  * Define some vars
  */
-$monthNames = array(1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr", 5 => "Mai", 6 => "Jun", 7 => "Jul", 8 => "Aug", 9 => "Sep", 10 => "Okt", 11 => "Nov", 12 => "Dez");
+$monthNames = array(1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mai', 6 => 'Jun', 7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Dez');
 $zorg1stJahr = 2001;
 $startM = 0;
 $startJ = 0;
@@ -77,11 +77,11 @@ switch ($group)
 	 */
 	case 'year':
 		/** Get # Comments by Year */
-		$sql = 'SELECT 
+		$sql = 'SELECT
 					YEAR( date ) AS jahr,
 					count( id ) AS num
-				FROM comments 
-				'.($user_id !== 'all' ? 'WHERE user_id = '.$user_id : '').' 
+				FROM comments
+				'.($user_id !== 'all' ? 'WHERE user_id = '.$user_id : '').'
 				GROUP BY jahr ORDER by jahr ASC';
 		$result = $db->query($sql, __FILE__, __LINE__, 'Comments by Year');
 		$numResult = $db->num($result);
@@ -97,6 +97,7 @@ switch ($group)
 		/** 0 Comments... */
 		} else {
 			$startJ = date('Y'); // Current Year only
+			$jahre[$startJ] = 0; // Should not be null/empty...
 		}
 		for ($yearRange=$startJ;$yearRange<=date('Y');$yearRange++)
 		{
@@ -115,8 +116,8 @@ switch ($group)
 					YEAR( date ) AS jahr,
 					MONTH( date ) AS monat,
 					count( id ) AS num
-				FROM comments 
-				'.($user_id !== 'all' ? 'WHERE user_id = '.$user_id : '').' 
+				FROM comments
+				'.($user_id !== 'all' ? 'WHERE user_id = '.$user_id : '').'
 				GROUP BY jahr, monat
 				ORDER by jahr ASC, monat ASC';
 		$result = $db->query($sql, __FILE__, __LINE__, 'Comments by Month');

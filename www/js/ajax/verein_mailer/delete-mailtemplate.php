@@ -17,22 +17,15 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 /**
  * Delete a template
  */
-try {
-	if ( $_GET['action'] == 'delete' && !empty($_GET['template_id']) && is_numeric($_GET['template_id']) )
-	{
-		error_log('[INFO] Deleting existing Mail Template ' . $_GET['template_id']);
+if ( $_GET['action'] == 'delete' && !empty($_GET['template_id']) && is_numeric($_GET['template_id']) )
+{
+	error_log('[INFO] Deleting existing Mail Template ' . $_GET['template_id']);
 
 
-		http_response_code(200); // Set response code 200 (OK)
-		echo $tplid;
+	http_response_code(200); // Set response code 200 (OK)
+	echo $tplid;
 
-	} else {
-		http_response_code(403); // Set response code 403 (forbidden) and exit.
-		die('Method not allowed');
-	}
-
-}
-catch(Exception $e) {
-	http_response_code(500); // Set response code 500 (internal server error)
-	echo $e->getMessage();
+} else {
+	http_response_code(403); // Set response code 403 (forbidden) and exit.
+	die('Method not allowed');
 }
