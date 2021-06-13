@@ -6,4 +6,5 @@
 		<link rel="shortcut icon" href="{$smarty.const.IMAGES_DIR}favicons/{$daytime}/favicon.ico?v={$currversion}">
 		<meta name="msapplication-TileColor" content="#000000">
 		<meta name="msapplication-config" content="{$smarty.const.IMAGES_DIR}favicons/browserconfig.xml?v={$currversion}">
-		<meta name="theme-color" content="#000000">
+		<meta name="theme-color" content="#07132c" media="(prefers-color-scheme: dark)">
+		<meta name="theme-color" content="#f6f9fe" media="(prefers-color-scheme: light)">
