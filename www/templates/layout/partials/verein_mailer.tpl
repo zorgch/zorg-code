@@ -4,7 +4,7 @@
 {assign_array var=president value="array('userid'=>117,'value'=>'president','label'=>'Präsidentensache')"}
 {assign_array var=actuary value="array('userid'=>11,'value'=>'actuary','label'=>'Aktuarssache')"}
 {assign_array var=treasurer value="array('userid'=>52,'value'=>'treasurer','label'=>'Kassiersache')"}
-{assign_array var=eventmanager value="array('userid'=>713,'value'=>'eventmanager','label'=>'Eventsache')"}
+{assign_array var=eventmanager value="array('userid'=>714,'value'=>'eventmanager','label'=>'Eventsache')"}
 <head>
 	<meta charset="utf-8">
 	<title>zorg Verein - Mailer</title>
