@@ -38,7 +38,7 @@ if(isset($_POST['do']) && $_POST['do'] == 'edit_now' && $user->is_loggedin())
 /** Quote hinzufuegen */
 elseif (isset($_POST['do']) && $_POST['do'] === 'add_now' && $user->is_loggedin())
 {
-	$sql = 'INSERT INTO quotes(user_id, date, text) 
+	$sql = 'INSERT INTO quotes(user_id, date, text)
 			VALUES('.$user->id.',"'.date('YmdHis').'","'.sanitize_userinput($_POST['text']).'")';
 	$db->query($sql,__FILE__, __LINE__);
 
@@ -79,18 +79,18 @@ if (!isset($action) || isset($action) && $action === 'my')
 	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
 	$total = $rs['anzahl'];
 
-	$site = (isset($_GET['site']) && is_numeric($_GET['site']) && $_GET['site'] > 0 ? (int)$_GET['site'] : 0);
+	$curr_site_num = (isset($_GET['site']) && is_numeric($_GET['site']) && $_GET['site'] > 0 ? (int)$_GET['site'] : 0);
 	$cnt = 10; // wird hier noch auf usercount gesetzt
 
 	if (isset($action) && $action === 'my')
 	{
-		$sql = sprintf('SELECT * FROM quotes WHERE user_id = %s ORDER BY date DESC LIMIT %d,%d', $userid, $site, $cnt);
+		$sql = sprintf('SELECT * FROM quotes WHERE user_id = %s ORDER BY date DESC LIMIT %d,%d', $userid, $curr_site_num, $cnt);
 	} else {
-		$sql = sprintf('SELECT * FROM quotes ORDER BY date DESC LIMIT %d,%d', $site, $cnt);
+		$sql = sprintf('SELECT * FROM quotes ORDER BY date DESC LIMIT %d,%d', $curr_site_num, $cnt);
 	}
 	$result = $db->query($sql, __FILE__, __LINE__);
 
-	$model->showOverview($smarty, $user, $userid, $site);
+	$model->showOverview($smarty, $user, $userid, $curr_site_num);
 	$smarty->display('file:layout/head.tpl');
 
 	echo '<h1>Quotes</h1>';
@@ -103,41 +103,41 @@ if (!isset($action) || isset($action) && $action === 'my')
 
 	/** Ausgabe der Navigationspfeile */
 	echo '<div>';
-	if ($site == 0)
+	if (empty($curr_site_num))
 	{
-		$site += 10;
+		$curr_site_num += 10;
 		if($total % 10 == 0){
 			$last = $total - 10;
 		} else {
 			$last = $total - ($total % 10);
 		}
-		echo '<a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">Next page &gt;</a>'
+		echo '<a href="?site='.$curr_site_num.(isset($action) && $action === 'my' ? '&do=my' : null).'">Next page &gt;</a>'
 			 .'<span style="padding-left: 25px;"><a href="?site='.$last.(isset($action) && $action === 'my' ? '&do=my' : null).'">Last page &gt;&gt;</a></span>';
 
-	} elseif ($site >= 10 && $site+$cnt < $total ) {
+	} elseif ($curr_site_num >= 10 && $curr_site_num+$cnt < $total ) {
 
-		$site -= 10;
+		$curr_site_num -= 10;
 		echo '<a href="?site=0">&lt;&lt; First</a>'
-			 .'<span style="padding-left: 25px;"><a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">&lt; Prev</a></span>';
+			 .'<span style="padding-left: 25px;"><a href="?site='.$curr_site_num.(isset($action) && $action === 'my' ? '&do=my' : null).'">&lt; Prev</a></span>';
 
-		$site_next = $site + $cnt + 10;
-		echo ' '.$site.' - '.$site_next.' ';
+		$site_next = $curr_site_num + $cnt + 10;
+		echo ' '.$curr_site_num.' - '.$site_next.' ';
 
-		$site += 20;
+		$curr_site_num += 20;
 		if($total % 10 == 0){
 			$last = $total - 10;
 		} else {
 			$last = $total - ($total % 10);
 		}
 
-		echo '<a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">Next &gt;</a>'
+		echo '<a href="?site='.$curr_site_num.(isset($action) && $action === 'my' ? '&do=my' : null).'">Next &gt;</a>'
 			 .'<span style="padding-left: 25px;"><a href="?site='.$last.(isset($action) && $action === 'my' ? '&do=my' : null).'">Last &gt;&gt;</a></span>';
 
-	} elseif ($site+$cnt >= $total) {
-		$site -= 10;
+	} elseif ($curr_site_num+$cnt >= $total) {
+		$curr_site_num -= 10;
 
 		echo '<a href="?site=0">&lt;&lt; First</a>'
-			 .'<span style="padding-left: 25px;"><a href="?site='.$site.(isset($action) && $action === 'my' ? '&do=my' : null).'">&lt; Prev</a></span>';
+			 .'<span style="padding-left: 25px;"><a href="?site='.$curr_site_num.(isset($action) && $action === 'my' ? '&do=my' : null).'">&lt; Prev</a></span>';
 	}
 
 	echo '</div>';
@@ -182,7 +182,7 @@ elseif (isset($action) && $action === 'delete' && $user->is_loggedin()) {
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $confirmSubject, 'message' => $confirmMessage]);
 	$smarty->display('file:layout/elements/block_error.tpl');
 } else {
-	$model->showOverview($smarty);
+	$model->showOverview($smarty, $user);
 	$smarty->display('file:layout/head.tpl');
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-permissions-write', 'tpl')]);
 	$smarty->display('file:layout/elements/block_error.tpl');

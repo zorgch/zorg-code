@@ -275,8 +275,8 @@ class stl {
 			$result = $db->query($sql);
 			//wenn spieler noch nicht eingetragen ist
 			if(!$db->num($result)) {
-				$sql = 'INSERT into stl_players (user_id, game_id)
-						VALUES ('.$user->id.','.$this->data['stl']['game_id'].')';
+				$sql = sprintf('INSERT INTO stl_players (game_id, user_id)
+								VALUES (%d, %d)', $this->data['stl']['game_id'], $user->id);
 				$db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 				/** Activity Eintrag auslösen */
