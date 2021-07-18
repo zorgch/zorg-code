@@ -167,7 +167,7 @@ class Comment
 	/**
 	 * Macht Textformatierungen fürs Forum
 	 *
-	 * @author [z]biko
+	 * @author [z]milamber
 	 * @version 1.0
 	 * @since 1.0 method added
 	 *
@@ -199,6 +199,12 @@ class Comment
 			$text = str_replace("\n", "<br />", $text); // Newline
 		}
 
+		/* REMOVED BY [z]Duke
+			// Milambers b?ser Post
+			if($user->typ != 2) {
+				$text = str_replace("###user###", usersystem::id2user($_SESSION['user_id']), $text);
+			}
+		*/
 		return $text;
 	}
 
