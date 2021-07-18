@@ -28,12 +28,13 @@ class Quotes extends Model
 	}
 
 	/**
-	 * @version 1.0
+	 * @version 1.1
 	 * @since 1.0 `29.08.2019` `IneX` method added
+	 * @since 1.1 `18.07.2020` `IneX` Optionalised Method Params due to PHP Fatal error: "Uncaught ArgumentCountError: Too few arguments"
 	 *
 	 * @param object $smarty Smarty Class-Object
 	 */
-	public function showOverview(&$smarty, &$user, $user_id, $curr_pagination)
+	public function showOverview(&$smarty, &$user, $user_id = null, $curr_pagination = null)
 	{
 		$quotes_pagesuffix = (!empty($curr_pagination) && $curr_pagination > 0 ? ' (page '.$curr_pagination.')' : '');
 		$quotes_usersuffix = (!empty($user_id) ? ' von '.$user->id2user($user_id, true) : '');
