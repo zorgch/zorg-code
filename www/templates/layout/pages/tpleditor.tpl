@@ -45,6 +45,9 @@
 		.the-sidebar {
 			width: 100%;
 		}
+		.custom-formbuttons {
+			width: unset;
+		}
 	}
 	ul.tplinfos { padding: 0; }
 	ul.tplinfos li {
@@ -80,12 +83,12 @@
 					<input type="text" size="30" id="word" name="frm[word]" autocomplete="off" value="{$tpleditor_frm.word}">
 				{else}<pre>{$smarty.const.SITE_URL}/page/<a href="/page/{$tpleditor_frm.word}" target="_blank">{$tpleditor_frm.word}</a><input type="hidden" name="frm[word]" value="{$tpleditor_frm.word}" autocomplete="off"></pre>{/if}
 		</div>
-		
+
 		<!-- Template Editor with ACE -->
 		<h3>Template content</h3>
 		<style type="text/css" media="screen">
 		#tpleditor{ldelim}width: 100%;height: 100%;resize: vertical;{rdelim}</style>
-		<select onchange="insertStyle(this, this.selectedIndex);"><option selected disabled>Style</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option><option value="h4">Heading 4</option><option value="pre">Preformatted</option></select><button type="button" onclick="insertStrong()"><strong>b</strong></button><button type="button" onclick="insertEm();"><em>i</em></button><button type="button" onclick="insertU();"><u>u</u></button><button type="button" onclick="insertStrike();"><strike>s</strike></button><button type="button" onclick="insertLink();"><a onclick="javascript:return false;">link</a></button><span style="display: inline-block;margin: 0 20px;"></span><button type="button" onclick="insertUl();">• ...</button><button type="button" onclick="insertBlockquote();">&rdquo;</button><button type="button" onclick="insertCode();">&lt;/&gt;</button><button type="button" onclick="insertZmember();">[z]</button>
+		<select class="custom-formbuttons" onchange="insertStyle(this, this.selectedIndex);"><option selected disabled>Style</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option><option value="h4">Heading 4</option><option value="pre">Preformatted</option></select><button type="button" class="custom-formbuttons" onclick="insertStrong()"><strong>b</strong></button><button type="button" class="custom-formbuttons" onclick="insertEm();"><em>i</em></button><button type="button" class="custom-formbuttons" onclick="insertU();"><u>u</u></button><button type="button" class="custom-formbuttons" onclick="insertStrike();"><strike>s</strike></button><button type="button" class="custom-formbuttons" onclick="insertLink();"><a onclick="javascript:return false;">link</a></button><span style="display: inline-block;margin: 0 20px;"></span><button type="button" class="custom-formbuttons" onclick="insertUl();">• ...</button><button type="button" class="custom-formbuttons" onclick="insertBlockquote();">&rdquo;</button><button type="button" class="custom-formbuttons" onclick="insertCode();">&lt;/&gt;</button><button type="button" class="custom-formbuttons" onclick="insertZmember();">[z]</button>
 		<textarea id="content" name="frm[tpl]">{$tpleditor_frm.tpl}</textarea>
 		<div id="tpleditor">{$tpleditor_frm.tpl}</div>
 		<script src="{if !$dev}https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.6/{else}{$smarty.const.JS_DIR}ace-editor/{/if}ace.js" integrity="sha256-CVkji/u32aj2TeC+D13f7scFSIfphw2pmu4LaKWMSY8=" crossorigin="anonymous"></script>
@@ -250,13 +253,13 @@
 				editor.session.replace(editor.selection.getRange(), '<img src="https://..." />');
 				editor.focus();
 			}
-			
+
 		{/literal}</script>
 		{*<div id="tpleditor" class="tpleditor">
 			<textarea id="content" name="frm[tpl]" class="text" rows="30">{$tpleditor_frm.tpl}</textarea>
 		</div>*}
 	</div>
-	<div class="the-sidebar">		
+	<div class="the-sidebar">
 		<h3>Layout</h3>
 		<fieldset>
 			<label for="menus">Menus
