@@ -87,8 +87,8 @@ function start_new_game ($map) {
 	/** get number of games the users has opened (i.e. is mister z) */
 	$own_games = $db->fetch($db->query( // FIXME gibt immer 0 zurück?!
 		'SELECT count(p.user) AS anz
-		FROM hz_players AS p JOIN hz_games AS g ON p.game=g.id
-		WHERE g.state!="finished" AND p.type="z" AND p.user='.$user->id,
+		 FROM hz_players AS p JOIN hz_games AS g ON p.game=g.id
+		 WHERE g.state!="finished" AND p.type="z" AND p.user='.$user->id,
 		__FILE__, __LINE__
 	));
 
@@ -209,10 +209,10 @@ function join_game ($game) {
 function unjoin_game ($game) {
 	global $db, $user;
 
-	$e = $db->query("SELECT * FROM hz_games g, hz_players p WHERE g.id=$game AND p.game=g.id AND p.user='$user->id' AND p.type!='z'", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT * FROM hz_games g, hz_players p WHERE g.id='.$game.' AND p.game=g.id AND p.user='.$user->id.' AND p.type!="z"', __FILE__, __LINE__, __FUNCTION__);
 	$d = $db->fetch($e);
 	if ($d) {
-		$db->query("DELETE FROM hz_players WHERE user=$user->id AND game=$game", __FILE__, __LINE__, __FUNCTION__);
+		$db->query('DELETE FROM hz_players WHERE user='.$user->id.' AND game='.$game, __FILE__, __LINE__, __FUNCTION__);
 	}
 }
 
@@ -231,17 +231,17 @@ function unjoin_game ($game) {
 function start_game ($game) {
 	global $db;
 
-	$e = $db->query(
-		"SELECT count(p.user) numplayers, m.players+1 awaitingplayers
-		FROM hz_games g, hz_maps m, hz_players p
-		WHERE g.map=m.id AND g.id=p.game AND g.id=$game
-		GROUP BY p.user",
-		__FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT count(p.user) numplayers, m.players+1 awaitingplayers
+					 FROM hz_games g, hz_maps m, hz_players p
+					 WHERE g.map=m.id AND g.id=p.game AND g.id='.$game.'
+					 GROUP BY p.user',
+					__FILE__, __LINE__, __FUNCTION__
+		);
 	$d = $db->fetch($e);
 	if ($d) {
-		$db->query("UPDATE hz_games SET state='running', turndate=now() WHERE id=$game", __FILE__, __LINE__, __FUNCTION__);
+		$db->query('UPDATE hz_games SET state="running", turndate=NOW() WHERE id='.$game, __FILE__, __LINE__, __FUNCTION__);
 		$rights = array();
-		$e = $db->query("SELECT * FROM hz_players WHERE game='$game' AND type!='z'", __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT * FROM hz_players WHERE game='.$game.' AND type!="z"', __FILE__, __LINE__, __FUNCTION__);
 		while ($d = $db->fetch($e)) $rights[] = $d['user'];
 		Thread::setRights('h', $game, $rights);
 	}else{
@@ -449,6 +449,7 @@ function turn_finalize ($game, $uid=null)
 				WHERE game='.$game.' AND user='.$uid.' AND type!="z"',
 				  __FILE__, __LINE__, 'UPDATE turn_finalize()');
 
+	/** Get updated Game Infos including if Inspector Station = Mr. z Station (Game = finished ;)) */
 	$e = $db->query('SELECT g.*, SUM(a.score)-g.z_score player_score, m.players totalplayers,
 					 IF (pl.user IS NOT NULL || z_score >= (SUM(a.score)-g.z_score), "true", "false") finished
 					 FROM hz_maps m, hz_games g
@@ -471,7 +472,7 @@ function turn_finalize ($game, $uid=null)
 		/**
 		 * Mr. z hat den Zug gespielt - Inspectors sind dran:
 		 */
-		if ($d['nextturn'] === 'z' && $d['finished'] == 'false')
+		if ($d['nextturn'] === 'z' && $d['finished'] === 'false')
 		{
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> update(hz_games()): game=%d | nextturn=players | turndate=%s', __FUNCTION__, __LINE__, $game, timestamp(true)));
 			$query = $db->update('hz_games', ['id', $game], ['nextturn' => 'players', 'turndate' => timestamp(true)], __FILE__, __LINE__, __FUNCTION__);
@@ -494,8 +495,8 @@ function turn_finalize ($game, $uid=null)
 		elseif ($d['nextturn'] === 'players' && $d['totalplayers'] === $turndone['num'] && $d['finished'] === 'false')
 		{
 			$query = $db->query('UPDATE hz_games SET
-									round=(round+1), nextturn="z", turndate=NOW(), turncount=(turncount+1)%'.TURN_COUNT.'
-								WHERE id='.$game, __FILE__, __LINE__, __FUNCTION__);
+								 round=(round+1), nextturn="z", turndate=NOW(), turncount=(turncount+1)%'.TURN_COUNT.'
+								 WHERE id='.$game, __FILE__, __LINE__, __FUNCTION__);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> update(hz_games(%s)): game=%d | nextturn=z | turndate=%s', __FUNCTION__, __LINE__, $query, $game, timestamp(true)));
 
 			/** add money and reset 'turndone' */
@@ -516,7 +517,7 @@ function turn_finalize ($game, $uid=null)
 		}
 
 		/** Niemand ist dran (nur für Error-Logging...) */
-		else {
+		elseif (DEVELOPMENT === true) {
 			error_log(sprintf('[ERROR] <%s:%d> Es scheint niemand den Zug gemacht zu haben. Interessant, interessant,... %s', __FUNCTION__, __LINE__, print_r($d,true)));
 		}
 
@@ -600,11 +601,12 @@ function turn_stay($game, $uid=null)
  *
  * @author [z]biko
  * @author IneX
- * @version 4.0
+ * @version 4.1
  * @since 1.0 function added
  * @since 2.0 updated mechnism and messages come from Strings-Array now
  * @since 3.0 `15.11.2018` updated sendMessage() to new $notification-Class, plus other code & query optimizations
  * @since 4.0 `20.11.2018` Fixed Bug #764: Hz Finish-Messages sind "verdreht"
+ * @since 4.1 `13.08.2021` Fixed SQL-Error SELECT list is not in GROUP BY clause & PHP-Error in_array() expects parameter 2 to be array
  *
  * @param integer $game ID des Hunting z Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -622,7 +624,7 @@ function finish_mails ($game)
 	$e = $db->query('SELECT if(g.z_score >= (sum(a.score)-g.z_score), "z", "players") winner, p.*
 					 FROM hz_games g, hz_players p, hz_aims a
 					 WHERE g.id='.$game.' AND p.game='.$game.' AND p.user!='.$user->id.' AND a.map=g.map
-					 GROUP BY a.map, p.user',
+					 GROUP BY a.map, p.turndone, p.station, p.type, p.user, p.money',
 					__FILE__, __LINE__, __FUNCTION__);
 	/**
 	 * Aktueller Player ist immer $user->id, hier also andere Players loopen & Notifications schicken
@@ -658,6 +660,7 @@ function finish_mails ($game)
 	{
 		/** Winner setzen: 'z' oder 'players' */
 		$winner = $d['winner'];
+		$inspectors = array();
 
 		/**
 		 * A) Inspector $user->id hat Zug gemacht, und Inspectors haben Spiel gewonnen (Mr. z hat verloren)
@@ -678,7 +681,7 @@ function finish_mails ($game)
 		 */
 		if ($winner === 'players' && is_numeric($d['type']) && $d['type'] > 0)
 		{
-			$inspectors = $d['user'];
+			$inspectors[] = $d['user'];
 			$notification_text = t('message-game-won-inspectors', 'hz', [ SITE_URL, $game ]);
 			$notification_status = $notification->send($d['user'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'hz'), 'text'=>$notification_text, 'message'=>$notification_text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> finish_mails() with status "%s" for Players from User=%s to User=%d', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $d['user']));
@@ -703,7 +706,7 @@ function finish_mails ($game)
 		 */
 		if ($winner === 'z' && is_numeric($d['type']) && $d['type'] > 0)
 		{
-			$inspectors = $d['user'];
+			$inspectors[] = $d['user'];
 			$notification_text = t('message-game-lost-inspectors', 'hz', [ SITE_URL, $game ]);
 			$notification_status = $notification->send($d['user'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'hz'), 'text'=>$notification_text, 'message'=>$notification_text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> finish_mails() with status "%s" for Players from User=%s to User=%d', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $d['user']));
@@ -926,28 +929,29 @@ function hz_open_games () {
  * Aktualisiert die DWZ Punkte der Spieler eines bestimmten Hz Spiels
  *
  * @author [z]biko
- * @version 1.0
+ * @version 1.1
  * @since 1.0 function added
+ * @since 1.1 `13.08.2021` IneX` Fixed SQL-error SELECT list is not in GROUP BY clause and contains nonaggregated column z.user
  *
  * @param integer $gid ID des Hunting z Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
-function _update_hz_dwz ($gid) {
+function _update_hz_dwz ($gid)
+{
 	global $db;
 
-	define("BASE_POINTS", 1600);
-	define("MAX_POINTS_TRANSFERABLE", 32);
+	define('BASE_POINTS', 1600);
+	define('MAX_POINTS_TRANSFERABLE', 32);
 
 	$players = array();
 
-	$e = $db->query(
-		"SELECT g.*, sum(a.score)-g.z_score i_score, z.user z, d.score zdwz
-		FROM hz_games g, hz_aims a, hz_players z
-		LEFT JOIN hz_dwz d ON d.user=z.user
-		WHERE g.id=$gid AND g.state='finished' AND a.map=g.map AND z.game=g.id AND z.type='z'
-		GROUP BY g.id",
-		__FILE__, __LINE__, __FUNCTION__
-	);
+	$e = $db->query('SELECT g.*, sum(a.score)-g.z_score i_score, z.user z, d.score zdwz
+					 FROM hz_games g, hz_aims a, hz_players z
+					 LEFT JOIN hz_dwz d ON d.user=z.user
+					 WHERE g.id='.$gid.' AND g.state="finished" AND a.map=g.map AND z.game=g.id AND z.type="z"
+					 GROUP BY g.id, z.user',
+					__FILE__, __LINE__, __FUNCTION__
+		);
 	$g = $db->fetch($e);
 
 	$players[] = $g['z'];
@@ -964,14 +968,13 @@ function _update_hz_dwz ($gid) {
 		$prev_score_z = BASE_POINTS;
 	}
 
-	$e = $db->query(
-		"SELECT d.score, p.user
-		FROM hz_games g, hz_players p
-		LEFT JOIN hz_dwz d ON d.user=p.user
-		WHERE p.game=g.id AND p.type!='z'
-		AND g.id=$gid",
-		__FILE__, __LINE__, __FUNCTION__
-	);
+	$e = $db->query('SELECT d.score, p.user
+					 FROM hz_games g, hz_players p
+					 LEFT JOIN hz_dwz d ON d.user=p.user
+					 WHERE p.game=g.id AND p.type!="z"
+					 AND g.id='.$gid,
+					__FILE__, __LINE__, __FUNCTION__
+		);
 	$idwz = array();
 	$prev_score_i = array();
 	while($is = $db->fetch($e)) {
@@ -994,36 +997,39 @@ function _update_hz_dwz ($gid) {
 	$difi = round (MAX_POINTS_TRANSFERABLE * ($pi - $probi));
 	$difi_avg = round (MAX_POINTS_TRANSFERABLE * ($pi - $probi) / sizeof($idwz));
 
-	$tusr = $db->fetch($db->query("SELECT * FROM hz_dwz WHERE user=$g[z]", __FILE__, __LINE__, __FUNCTION__));
-	if ($tusr) $db->query("UPDATE hz_dwz SET score=".($zdwz+$difz).", prev_score=$prev_score_z WHERE user=$g[z]", __FILE__, __LINE__, __FUNCTION__);
-	else $db->query("INSERT INTO hz_dwz (user, score, prev_score) VALUES ($g[z], ".($zdwz+$difz).", $prev_score_z)", __FILE__, __LINE__, __FUNCTION__);
+	$tusr = $db->fetch($db->query('SELECT * FROM hz_dwz WHERE user='.$g['z'], __FILE__, __LINE__, __FUNCTION__));
+	if ($tusr) $db->query('UPDATE hz_dwz SET score='.($zdwz+$difz).', prev_score='.$prev_score_z.' WHERE user='.$g['z'], __FILE__, __LINE__, __FUNCTION__);
+	else $db->query('INSERT INTO hz_dwz (user, score, prev_score) VALUES ('.$g['z'].', '.($zdwz+$difz).', '.$prev_score_z.')', __FILE__, __LINE__, __FUNCTION__);
 	foreach ($idwz as $key => $val) {
-		$tusr = $db->fetch($db->query("SELECT * FROM hz_dwz WHERE user=$key", __FILE__, __LINE__, __FUNCTION__));
-		if ($tusr) $db->query("UPDATE hz_dwz SET score=".($val+$difi_avg).", prev_score=$prev_score_i[$key] WHERE user=$key", __FILE__, __LINE__, __FUNCTION__);
-		else $db->query("INSERT INTO hz_dwz (user, score, prev_score) VALUES ($key, ".($val+$difi_avg).", $prev_score_i[$key])", __FILE__, __LINE__, __FUNCTION__);
+		$tusr = $db->fetch($db->query('SELECT * FROM hz_dwz WHERE user='.$key, __FILE__, __LINE__, __FUNCTION__));
+		if ($tusr) $db->query('UPDATE hz_dwz SET score='.($val+$difi_avg).', prev_score='.$prev_score_i[$key].' WHERE user='.$key, __FILE__, __LINE__, __FUNCTION__);
+		else $db->query('INSERT INTO hz_dwz (user, score, prev_score) VALUES ('.$key.', '.($val+$difi_avg).', '.$prev_score_i[$key].')', __FILE__, __LINE__, __FUNCTION__);
 	}
 
 	/** dwz_dif für game */
-	$db->query("UPDATE hz_games SET dwz_dif=".abs($difz)." WHERE id=$gid AND state='finished'", __FILE__, __LINE__, __FUNCTION__);
+	$db->query('UPDATE hz_games SET dwz_dif='.abs($difz).' WHERE id='.$gid.' AND state="finished"', __FILE__, __LINE__, __FUNCTION__);
 
 	/** rank update */
-	$e = $db->query("SELECT * FROM hz_dwz ORDER BY score DESC", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT * FROM hz_dwz ORDER BY score DESC', __FILE__, __LINE__, __FUNCTION__);
 	$i = 1;
 	$prev_score = 0;
 	$rank = 0;
 
-	while ($upd = $db->fetch($e)) {
-		if ($upd['score'] != $prev_score) {
+	while ($upd = $db->fetch($e))
+	{
+		if ($upd['score'] != $prev_score)
+		{
 			$rank = $i;
 		}
 
-		if (in_array($upd['user'], $players)) {
-			$prev_rank = ", prev_rank=$upd[rank]";
+		if (in_array($upd['user'], $players))
+		{
+			$prev_rank = ', prev_rank='.$upd['rank'];
 		}else{
-			$prev_rank = "";
+			$prev_rank = '';
 		}
 
-		$db->query("UPDATE hz_dwz SET rank=$rank $prev_rank WHERE user=$upd[user]", __FILE__, __LINE__, __FUNCTION__);
+		$db->query('UPDATE hz_dwz SET rank='.$rank.$prev_rank.' WHERE user='.$upd['user'], __FILE__, __LINE__, __FUNCTION__);
 
 		$prev_score = $upd['score'];
 		++$i;

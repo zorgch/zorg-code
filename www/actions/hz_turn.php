@@ -8,7 +8,7 @@ $gameId = (isset($_GET['game']) && is_numeric($_GET['game']) && $_GET['game']>0 
 $ticketType = (isset($_GET['ticket']) && !is_numeric($_GET['ticket']) && !is_bool($_GET['ticket']) ? (string)strip_tags(filter_var(trim($_GET['ticket']), FILTER_SANITIZE_STRING)) : null);
 $moveToStationNum = (isset($_GET['move']) && is_numeric($_GET['move']) && $_GET['move']>0 ? (int)strip_tags(filter_var(trim($_GET['move']), FILTER_SANITIZE_NUMBER_INT)) : null);
 if (isset($_GET['do']) && !is_numeric($_GET['do']) && !is_bool($_GET['do'])) $doAction = (string)strip_tags(filter_var(trim($_GET['do']), FILTER_SANITIZE_STRING));
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sanitized-Params (%s): $gameId => %d | $ticketType => %s | $stationNum => %d | $doAction => %s', __FILE__, __LINE__, (isset($doAction) ? $doAction : 'mobe'), $gameId, $ticketType, $moveToStationNum));
+if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sanitized-Params (%s): $gameId => %d | $ticketType => %s | $stationNum => %d', __FILE__, __LINE__, (isset($doAction) ? $doAction : 'mobe'), $gameId, $ticketType, $moveToStationNum));
 
 /** hz actions */
 if (!empty($gameId) && $user->is_loggedin())
