@@ -6,7 +6,7 @@
  * ein User nur über die von ihm gewählten Benachrichtigungs-Kanäle
  * der unterschiedlichen Notifications-Arten benachrichtigt wird.
  * Z.B. nur E-Mails oder Telegram und zorg Mesasges, etc.
- * 
+ *
  * Diese Klasee benutzt folgende Tabellen aus der DB:
  *		user
  *		- notifications
@@ -38,8 +38,9 @@ class Notification
 	 * Schickt eine Notification an einen User über die aktivierten Kanäle
 	 *
 	 * @author	IneX
-	 * @version	1.0
+	 * @version	1.1
 	 * @since	1.0 `21.10.2018` `IneX` method added
+	 * @since	1.1 `13.08.2021` `IneX` fixed Undefined index: games & Invalid argument supplied for foreach()
 	 *
 	 * @param integer $user_id Valid User-ID integer
 	 * @param string $notification_source String representing the source of Notification to send $content for. E.g. 'messagesystem', 'mentions', 'games', etc...
@@ -64,13 +65,17 @@ class Notification
 		/**
 		 * Check and send User Notifications
 		 * @TODO harmonise $text & $message...
-		 * @FIXME Undefined index: 'games'
 		 */
-		if (is_array($userNotifications) && count($userNotifications)>0)
+		if (is_array($userNotifications) && count($userNotifications)>0) // @FIXME what if the user has NO (0) Notifications activated?
 		{
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $userNotifications: %s', __METHOD__, __LINE__, print_r($userNotifications,true)));
-			// FIXME [04-Apr-2021 15:07:30 Europe/Zurich] PHP Notice:  Undefined index: games in notifications.inc.php on line 71
-			// FIXME [04-Apr-2021 15:07:30 Europe/Zurich] PHP Warning:  Invalid argument supplied for foreach() in notifications.inc.php on line 71
+			/** Make sure $notification_source = eixsts in $userNotifications */
+			if (false === array_key_exists($notification_source, $userNotifications))
+			{
+				/** ...othwise fallback: add it from the Default Notification-Settings */
+				$userDefaultNotificationsArr = json_decode($user->default_notifications, true); // JSON-DECODE to Array
+				$userNotifications[$notification_source] = $userDefaultNotificationsArr[$notification_source];
+			}
 			foreach($userNotifications[$notification_source] as $notification_type => $notification_value)
 			{
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $notification_type, $notification_value));
@@ -171,8 +176,8 @@ class Notification
 		if (!$result || empty($result))
 		{
 			/** Use fallback usersystem::$default_notifications if No query result / empty "notifications"-field */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use fallback usersystem::$default_notifications for $user_id %d: %s', __METHOD__, __LINE__, $user_id, $user->$default_notifications));
-			$userEnabledNotifications = json_decoce( $user->$default_notifications ); // JSON-DECODE to Array
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use fallback usersystem::$default_notifications for $user_id %d: %s', __METHOD__, __LINE__, $user_id, $user->default_notifications));
+			$userEnabledNotifications = json_decode( $user->default_notifications, true ); // JSON-DECODE to Array
 		} else {
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use $userEnabledNotifications for $user_id %d: %s', __METHOD__, __LINE__, $user_id, $result['notifications']));
 			$userEnabledNotifications = json_decode( $result['notifications'], true); // JSON-Decode to Array
