@@ -15,33 +15,41 @@ if (empty($gameid))
 {
 	http_response_code(404); // Set response code 404 (not found) and exit.
 	user_error("nuet isch", E_USER_ERROR);
-} elseif ($user->is_loggedin()) {
-    $e = $db->query('SELECT p.user from hz_players p where p.user='.$user->id.' and p.game='.$gameid, __FILE__, __LINE__, 'SELECT FROM hz_players');
-	$iplay = $db->fetch($e);
-	$e = $db->query(
-		"SELECT g.*, m.width, m.height, if(z.user=".$user->id.", '1', '0') iamz
-		FROM hz_games g
-		JOIN hz_players z
-		  ON z.game=g.id
-		JOIN hz_maps m
-		  ON m.id=g.map
-		WHERE g.id=".$gameid." AND z.type='z'",
-		__FILE__, __LINE__);
+} else {
+	if ($user->is_loggedin())
+	{
+		/** When logged-in */
+		$e = $db->query('SELECT p.user from hz_players p where p.user='.$user->id.' and p.game='.$gameid, __FILE__, __LINE__, 'SELECT FROM hz_players');
+		$iplay = $db->fetch($e);
+	} else {
+		/** ...when NOT logged-in */
+		$iplay = null; // Set to NULL without query
+	}
+	$e = $db->query('SELECT g.*, m.width, m.height, '.($user->is_loggedin() ? 'if(z.user='.$user->id.', "1", "0")' : '0').' iamz
+					 FROM hz_games g
+					 JOIN hz_players z
+					   ON z.game=g.id
+					 JOIN hz_maps m
+					   ON m.id=g.map
+					 WHERE g.id='.$gameid.' AND z.type="z"',
+					__FILE__, __LINE__, 'Hunting z Game Map'
+				);
 	$d = $db->fetch($e);
 	if ($d) {
 		$im = draw_map_base($d['width'], $d['height']);
 
-		$e = $db->query(
-				"SELECT *,
-				CASE type
-				WHEN 'ubahn' THEN 1
-				WHEN 'bus' THEN 2
-				WHEN 'taxi' THEN 3
-				WHEN 'black' THEN 4
-				END AS typesort
-				FROM hz_routes
-				WHERE map=".$d['map']."
-				ORDER BY typesort ASC", __FILE__, __LINE__);
+		$e = $db->query('SELECT *,
+						 CASE type
+						 WHEN "ubahn" THEN 1
+						 WHEN "bus" THEN 2
+						 WHEN "taxi" THEN 3
+						 WHEN "black" THEN 4
+						 END AS typesort
+						 FROM hz_routes
+						 WHERE map='.$d['map'].'
+						 ORDER BY typesort ASC',
+						 __FILE__, __LINE__, 'Hunting z Game Map'
+					);
 		while ($r = $db->fetch($e)) {
 			draw_route(
 				$im,
@@ -52,19 +60,18 @@ if (empty($gameid))
 			);
 		}
 
-		$e = $db->query(
-			"SELECT a.*, s.x, s.y, if(t.station IS NULL, '1', '0') caught
-			FROM hz_aims a
-			JOIN hz_stations s
-			  ON a.map=s.map
-			  AND a.station=s.id
-			LEFT JOIN hz_tracks t
-			  ON t.game='".$gameid."'
-			  AND t.station=a.station
-			  AND t.player='z'
-			WHERE a.map=".$d['map'],
-			__FILE__, __LINE__
-		);
+		$e = $db->query('SELECT a.*, s.x, s.y, if(t.station IS NULL, "1", "0") caught
+						 FROM hz_aims a
+						 JOIN hz_stations s
+						   ON a.map=s.map
+						   AND a.station=s.id
+						 LEFT JOIN hz_tracks t
+						   ON t.game='.$gameid.'
+						   AND t.station=a.station
+						   AND t.player="z"
+						 WHERE a.map='.$d['map'],
+						 __FILE__, __LINE__, 'Hunting z Game Map'
+					);
 		while ($a = $db->fetch($e)) {
 			draw_aim($im, $a['x'], $a['y'], $a['score'], $a['caught']);
 		}
@@ -78,7 +85,7 @@ if (empty($gameid))
 			if ($p['type']=='z' && $d['iamz'] || $p['type']!='z' || $last_track['station']==$p['station'])
 			{
 				draw_player($im, $p['x'], $p['y'], $p['type']);
-				if ($p['user'] == $user->id) draw_player_me($im, $p['x'], $p['y']);
+				if ($user->is_loggedin() && $p['user'] == $user->id) draw_player_me($im, $p['x'], $p['y']);
 			}
 		}
 
@@ -95,13 +102,14 @@ if (empty($gameid))
 			if ($d) draw_z_seen($im, $f['x'], $f['y'], 1);
 		}
 
-		$e = $db->query(
-			"SELECT sen.*, s.x, s.y, if(t.station IS NULL, '0', '1') disp
-			FROM hz_sentinels sen, hz_stations s
-			LEFT JOIN hz_tracks t ON t.game=".$d['id']." AND t.station=s.id AND t.player='z'
-			WHERE sen.game=".$d['id']." AND sen.station=s.id AND s.map=".$d['map'], __FILE__, __LINE__, 'JOIN hz_stations and hz_tracks');
-		while ($sen = $db->fetch($e)) {
-		        if ((!$d['iamz'] && $iplay) || $sen['disp'] || $d['state']=="finished") draw_sentinel($im, $sen['x'], $sen['y']);
+		$e = $db->query('SELECT sen.*, s.x, s.y, if(t.station IS NULL, "0", "1") disp
+						 FROM hz_sentinels sen, hz_stations s
+						 LEFT JOIN hz_tracks t ON t.game='.$d['id'].' AND t.station=s.id AND t.player="z"
+						 WHERE sen.game='.$d['id'].' AND sen.station=s.id AND s.map='.$d['map'],
+						 __FILE__, __LINE__, 'JOIN hz_stations and hz_tracks');
+		while ($sen = $db->fetch($e))
+		{
+			if ((!$d['iamz'] && $iplay) || $sen['disp'] || $d['state']==="finished") draw_sentinel($im, $sen['x'], $sen['y']);
 		}
 
 		$e = $db->query('SELECT * FROM hz_stations WHERE map='.$d['map'], __FILE__, __LINE__, 'SELECT FROM hz_stations');
