@@ -55,6 +55,7 @@ $layout = (isset($_GET['layout']) ? $_GET['layout'] : 'day');
 html {
 	font-size: calc(1em + 1vw);
 	scroll-behavior: smooth;
+	-webkit-tap-highlight-color: transparent; /** Removes gray Tap-Highlight on links with iOS Safari */
 }
 
 body {
