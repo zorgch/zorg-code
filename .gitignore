@@ -4,6 +4,7 @@
 *.local.php
 *apis_key.inc.php
 *.log
+/www/vendor/
 
 # ...and DON'T ignore these things
 !.github/

@@ -1,0 +1,8 @@
+{
+	"require": {
+		"sprain/swiss-qr-bill": "3.1.1"
+	},
+	"require-dev": {
+
+	}
+}
