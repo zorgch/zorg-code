@@ -347,6 +347,7 @@ p {
 a, a:visited, a img {
 	color: var(--color-link-primary, rgba(241,241,241,1));
 	text-decoration: none;
+	-webkit-background-clip: content-box; /** Try to get rid of fat border in iOS Safari when tapping on links */
 }
 a:hover { text-decoration: underline; }
 a img:hover {
@@ -970,6 +971,12 @@ form > input[type=text], form > input[type=password], form > input[type=search],
 /** No 100% width within Labels => messes up flexbox */
 label > input[type=text], label > input[type=password], label > input[type=search], label > input[type=number], label > input[type=date], label > textarea {
 	width: unset;
+}
+
+/** Fix to remove tap highlight on Input elements on iOS Safari */
+input, textarea, button, select, label, a {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media screen and (max-width: 767px) {

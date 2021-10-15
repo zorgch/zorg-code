@@ -294,6 +294,9 @@ function init()
 
 	// Highlight.js - http://highlightjs.org
 	//hljs.initHighlightingOnLoad()
+
+	// Allows removing gray Tap-Highlight on links with iOS Safari using -webkit-tap-highlight-color:
+	document.addEventListener('touchstart', function(){}, true);
 }
 
 const origTitle = document.title;
