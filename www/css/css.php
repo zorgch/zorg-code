@@ -354,7 +354,10 @@ a img:hover {
 	text-decoration: none;
 	box-shadow: 0 0 0 1px #344586;
 }
-a:active { color: #ccbc7a; }
+a:active {
+	color: #ccbc7a;
+	background-color: transparent;
+}
 a img:active {
 	box-shadow: 0 0 0 1px #cbba79;
 	-webkit-filter: opacity(.1);
@@ -834,6 +837,7 @@ div.menu a:hover {
 
 div.menu a:active {
 	text-decoration: underline;
+	background-color: transparent;
 }
 
 div.menu a.left {
