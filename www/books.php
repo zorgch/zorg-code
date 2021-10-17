@@ -23,7 +23,7 @@ $model = new MVC\Books();
  * Validate Passed Parameters
  */
 /** GET */
-if (isset($_GET['book_id']) && is_numeric($_GET['book_id'])) $book_id = (int)$_GET['book_id'];
+if (isset($_GET['book_id']) && is_numeric($_GET['book_id']) && $_GET['book_id'] > 0) $book_id = (int)$_GET['book_id'];
 if (isset($_GET['do']) && is_string($_GET['do'])) $action = (string)$_GET['do'];
 $user_id = (isset($_GET['user']) && is_numeric($_GET['user']) ? (int)$_GET['user'] : $user->id);
 /** POST */
@@ -158,7 +158,7 @@ elseif ($postAction === 'add_now' && $user->is_loggedin())
 		$db->query($sql, __FILE__, __LINE__, 'Neuer Buchbesitzer');
 
 		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Boook #'.$IdNewBook.' hinzugefügt']);
-		
+
 		$action = 'show';
 		$book_id = $IdNewBook;
 	} else {
@@ -190,12 +190,12 @@ elseif ($action === 'add_owner' && $user->id > 0)
 	/** Testen ob bereits besitzer */
 	$sql = 'SELECT user_id FROM books_holder where book_id = '.$book_id.' AND user_id = '.$user->id;
 	if ($db->num($db->query($sql, __FILE__, __LINE__, 'add_owner')) == 0)
-	{ 
+	{
 		/** Neuen Benutzer hinzufuegen */
 		$sql = 'INSERT INTO books_holder (book_id, user_id) VALUES ('.$book_id.','.$user->id.')';
 		$db->query($sql, __FILE__, __LINE__, 'add_owner');
 	}
-	
+
 	$action = 'show';
 }
 /** Besitzer in DB loeschen */
@@ -324,91 +324,104 @@ if (!isset($action) || empty($action))
 /** Buch ansehen */
 elseif ($action === 'show' && isset($book_id))
 {
+	/** Get Book Details */
 	$sql = 'SELECT * from books WHERE id = '.$book_id;
 	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen'));
 
-	$sql = 'SELECT * from books_title WHERE id = '.$rs['titel_id'];
-	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen'));
-
-	$htmlOutput .= '<h1>'.htmlentities($rs['title']).'</h1>';
-	$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="border" align="center" style="max-width: 100%;">'
-		.'<tr><td align="left" style="font-weight: 600;">'
-		.'Autor:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['autor'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Verlag:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['verlag'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'ISBN:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['isbn'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Thema:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs2['typ'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Druckjahr:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.$rs['jahrgang']
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Preis:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.'CHF '.htmlentities($rs['preis'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Seiten:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		.htmlentities($rs['seiten'])
-		.'</td></tr><tr><td align="left" style="font-weight: 600;">'
-		.'Besitzer:'
-		.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-		;
-
-	/** besitzer auflisten */
-	$sql = 'SELECT * from books_holder WHERE book_id = '.$rs['id'];
-	$result3 = $db->query($sql, __FILE__, __LINE__, 'Besitzer auflisten');
-	$alleBesitzer = '';
-	while ($rs3 = $db->fetch($result3))
+	if ($rs !== false && $rs !== null)
 	{
-		$alleBesitzer .= sprintf('<a href="?do=my&user=%d">%s</a>, ', $rs3['user_id'], $user->id2user($rs3['user_id'], 0));
-	}
-	$htmlOutput .= substr($alleBesitzer, 0, -2); // Entfernt das allerletzte Komma
+		$sql = 'SELECT * from books_title WHERE id = '.$rs['titel_id'];
+		$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen'));
 
-	$htmlOutput .= '</td></tr></table>';
+		$htmlOutput .= '<h1>'.htmlentities($rs['title']).'</h1>';
+		$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="border" align="center" style="max-width: 100%;">'
+			.'<tr><td align="left" style="font-weight: 600;">'
+			.'Autor:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['autor'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Verlag:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['verlag'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'ISBN:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['isbn'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Thema:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs2['typ'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Druckjahr:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.$rs['jahrgang']
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Preis:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.'CHF '.htmlentities($rs['preis'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Seiten:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.htmlentities($rs['seiten'])
+			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'Besitzer:'
+			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			;
 
-	$htmlOutput .= nl2br(htmlentities($rs['text']));
-
-	/** Ists ein angemeldeter User? */
-	if (true === $user->is_loggedin())
-	{
-		$sidebarHtml = '<h3>Boook Actions</h3>';
-
-		/** Wer das Buch besitzt kanns loeschen, wer nicht kanns hinzufuegen */
-		$sql = 'SELECT user_id FROM books_holder WHERE book_id = '.$rs['id'].' AND user_id = '.$user->id;
-		if ($db->num($db->query($sql, __FILE__, __LINE__, 'Buchbesitzer')) == 1)
+		/** besitzer auflisten */
+		$sql = 'SELECT * from books_holder WHERE book_id = '.$rs['id'];
+		$result3 = $db->query($sql, __FILE__, __LINE__, 'Besitzer auflisten');
+		$alleBesitzer = '';
+		while ($rs3 = $db->fetch($result3))
 		{
-			$sidebarHtml .= '<a href="?do=edit&book_id='.$rs['id'].'">[edit]</a><br>'
-							.'<a href="?do=delete_owner&book_id='.$rs['id'].'">[delete book from my list]</a><br>';
+			$alleBesitzer .= sprintf('<a href="?do=my&user=%d">%s</a>, ', $rs3['user_id'], $user->id2user($rs3['user_id'], 0));
+		}
+		$htmlOutput .= substr($alleBesitzer, 0, -2); // Entfernt das allerletzte Komma
+
+		$htmlOutput .= '</td></tr></table>';
+
+		$htmlOutput .= nl2br(htmlentities($rs['text']));
+
+		/** Ists ein angemeldeter User? */
+		if (true === $user->is_loggedin())
+		{
+			$sidebarHtml = '<h3>Boook Actions</h3>';
+
+			/** Wer das Buch besitzt kanns loeschen, wer nicht kanns hinzufuegen */
+			$sql = 'SELECT user_id FROM books_holder WHERE book_id = '.$rs['id'].' AND user_id = '.$user->id;
+			if ($db->num($db->query($sql, __FILE__, __LINE__, 'Buchbesitzer')) == 1)
+			{
+				$sidebarHtml .= '<a href="?do=edit&book_id='.$rs['id'].'">[edit]</a><br>'
+								.'<a href="?do=delete_owner&book_id='.$rs['id'].'">[delete book from my list]</a><br>';
+			} else {
+				$sidebarHtml .= '<a href="?do=add_owner&book_id='.$rs['id'].'">[add book to my list]</a><br>';
+			}
+
+			/** nur ersteller kann loeschen, falls keine anderen besitzer vorhanden */
+			if ($user->id == $rs['ersteller'])
+			{
+				$sidebarHtml .= '<a href="?do=delete&book_id='.$rs['id'].'">[delete]</a>';
+			}
 		} else {
-			$sidebarHtml .= '<a href="?do=add_owner&book_id='.$rs['id'].'">[add book to my list]</a><br>';
+			$sidebarHtml = '&nbsp;';
 		}
 
-		/** nur ersteller kann loeschen, falls keine anderen besitzer vorhanden */
-		if ($user->id == $rs['ersteller'])
-		{
-			$sidebarHtml .= '<a href="?do=delete&book_id='.$rs['id'].'">[delete]</a>';
-		}
-	} else {
-		$sidebarHtml = '&nbsp;';
+		/** HTML Output */
+		$model->showBook($smarty, $book_id, $rs['title']);
+		$smarty->assign('sidebarHtml', $sidebarHtml);
+		$smarty->display('file:layout/head.tpl');
+		echo $htmlOutput;
 	}
-	
-	/** HTML Output */
-	$model->showBook($smarty, $book_id, $rs['title']);
-	$smarty->assign('sidebarHtml', $sidebarHtml);
-	$smarty->display('file:layout/head.tpl');
-	echo $htmlOutput;
 
+	/** Invalid Book ID / Book not found */
+	else {
+		http_response_code(404); // Set response code 404 (not found) and exit.
+		$model->notFound($smarty, $book_id);
+		$htmlOutput = $smarty->fetch('file:layout/head.tpl');
+		$smarty->assign('error', ['type' => 'danger', 'dismissable' => 'false', 'title' => 'Buch nicht gefunden!']);
+		$htmlOutput .= $smarty->fetch('file:layout/elements/block_error.tpl');
+		echo $htmlOutput;
+	}
 }
 /** Buch bearbeiten */
 elseif ($action === 'edit' && true === $user->is_loggedin())
@@ -653,10 +666,10 @@ elseif ($action === 'my' && isset($user_id))
 
 	$htmlOutput .= '<h2>Boooks von '.$user->id2user($user_id).'</h2>';
 
-	$sql = 'SELECT DISTINCT titel_id 
-			FROM books, books_holder 
-			WHERE 
-			books.id = books_holder.book_id AND 
+	$sql = 'SELECT DISTINCT titel_id
+			FROM books, books_holder
+			WHERE
+			books.id = books_holder.book_id AND
 			books_holder.user_id = '.$user_id;
 	$result = $db->query($sql, __FILE__, __LINE__);
 	while($rs = $db->fetch($result))
@@ -674,12 +687,12 @@ elseif ($action === 'my' && isset($user_id))
 		while($rs2 = $db->fetch($result2))
 		{
 			$htmlOutput .= "<li>".get_title($rs2['parent_id'])."</li><ul>";
-			$sql = 'SELECT * 
-					FROM books, books_holder 
-					WHERE 
-					books.titel_id = '.$rs['titel_id'].' AND 
-					books.parent_id = '.$rs2['parent_id'].' AND 
-					books.id = books_holder.book_id AND 
+			$sql = 'SELECT *
+					FROM books, books_holder
+					WHERE
+					books.titel_id = '.$rs['titel_id'].' AND
+					books.parent_id = '.$rs2['parent_id'].' AND
+					books.id = books_holder.book_id AND
 					books_holder.user_id = '.$user_id;
 			$result3 = $db->query($sql, __FILE__, __LINE__);
 			while($rs3 = $db->fetch($result3))
@@ -689,12 +702,12 @@ elseif ($action === 'my' && isset($user_id))
 			$htmlOutput .= '</ul>';
 		}
 
-		$sql = 'SELECT * 
-				FROM books, books_holder 
-				WHERE 
-				books.titel_id = '.$rs['titel_id'].' AND 
-				books.parent_id = 0 AND 
-				books.id = books_holder.book_id AND 
+		$sql = 'SELECT *
+				FROM books, books_holder
+				WHERE
+				books.titel_id = '.$rs['titel_id'].' AND
+				books.parent_id = 0 AND
+				books.id = books_holder.book_id AND
 				books_holder.user_id = '.$user_id;
 		$result4 = $db->query($sql, __FILE__, __LINE__);
 		while($rs4 = $db->fetch($result4)) {
@@ -702,7 +715,7 @@ elseif ($action === 'my' && isset($user_id))
 		}
 		$htmlOutput .= '</ul>';
 	}
-	
+
 	/** HTML Output */
 	$model->showUserbooks($smarty, $user, $user_id);
 	$smarty->assign('sidebarHtml', $user->userprofile_link($user_id, ['pic' => true, 'username' => true, 'clantag' => true, 'link' => true]));

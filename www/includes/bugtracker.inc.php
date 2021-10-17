@@ -319,7 +319,7 @@ class Bugtracker
 					.'<td align="left"><span itemprop="author" itemscope itemtype="http://schema.org/Person">'.$user->link_userpage($rs['reporter_id']).'</span> @ <time itemprop="dateCreated" datetime="'.$reportedDate_iso8601.'">'.datename($rs['reported_date']).'</time></td>'//|date_format:"%Y-%m-%d-T%H:00"}
 				.'</tr>'
 				.'<tr><td colspan="2">&nbsp;</td></tr>'
-			.'<tbody'.(!empty($rs['assignedto_id']) ? ' itemtype="http://schema.org/Answer" itemscope itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'"' : '').'>'
+			.'<tbody'.(!empty($rs['assignedto_id']) ? ' itemtype="http://schema.org/Answer" itemscope itemprop="suggestedAnswer'.($rs['resolved_date'] > 0 || $rs['denied_date'] > 0 ? ' acceptedAnswer' : '').'"' : '').'>' // FIXME Either "acceptedAnswer" or "suggestedAnswer" should be specified
 				.'<tr>'
 					.'<td align="left">Git Commit</td>'
 					.'<td align="left">'

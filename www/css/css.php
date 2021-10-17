@@ -55,6 +55,7 @@ $layout = (isset($_GET['layout']) ? $_GET['layout'] : 'day');
 html {
 	font-size: calc(1em + 1vw);
 	scroll-behavior: smooth;
+	-webkit-tap-highlight-color: transparent; /** Removes gray Tap-Highlight on links with iOS Safari */
 }
 
 body {
@@ -155,12 +156,12 @@ body {
 	.main-content {
 		font-size: 0.5rem;
 		padding: .5rem .5rem .5rem 1.25rem;
-		background: var(--background-color-main, rgba(1,1,1,1));
+		background: var(--background-color-main, #000);
 	}
 	.sidebar {
 		font-size: 0.5rem;
 		padding: .5rem 1rem .5rem 1rem;
-		background: var(--background-color-main, rgba(1,1,1,1));
+		background: var(--background-color-main, #000);
 	}
 	.footer {
 		font-size: 0.5rem;
@@ -235,13 +236,13 @@ body {
 	.main-content {
 		font-size: 0.85rem;
 		padding: .2rem 1rem 0 1rem;
-		background: var(--background-color-main, rgba(1,1,1,1));
+		background: var(--background-color-main);
 	}
 	.main-content > img { max-width: 100%; }
 	.sidebar {
 		font-size: 0.85rem;
 		padding: .5rem 1rem .5rem 1rem;
-		background: var(--background-color-sidebar-mobile, rgba(1,1,1,1));
+		background: var(--background-color-sidebar-mobile);
 	}
 	.footer {
 		font-size: 0.7rem;
@@ -279,7 +280,7 @@ body {
 /**
  * HTML5 Structure Styling
  */
-.zorghead, .navigation { background: var(--background-color-base, rgba(1,1,1,1)); }
+.zorghead, .navigation { background: var(--background-color-base); }
 .navigation {
 	text-align: center;
 	padding-left: 0;
@@ -352,7 +353,10 @@ a img:hover {
 	text-decoration: none;
 	box-shadow: 0 0 0 1px #344586;
 }
-a:active { color: #ccbc7a; }
+a:active {
+	color: #ccbc7a;
+	background-color: transparent;
+}
 a img:active {
 	box-shadow: 0 0 0 1px #cbba79;
 	-webkit-filter: opacity(.1);
@@ -832,6 +836,7 @@ div.menu a:hover {
 
 div.menu a:active {
 	text-decoration: underline;
+	background-color: transparent;
 }
 
 div.menu a.left {
@@ -969,6 +974,12 @@ form > input[type=text], form > input[type=password], form > input[type=search],
 /** No 100% width within Labels => messes up flexbox */
 label > input[type=text], label > input[type=password], label > input[type=search], label > input[type=number], label > input[type=date], label > textarea {
 	width: unset;
+}
+
+/** Fix to remove tap highlight on Input elements on iOS Safari */
+input, textarea, button, select, label, a {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media screen and (max-width: 767px) {

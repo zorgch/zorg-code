@@ -1737,7 +1737,14 @@ class usersystem
 		if ($show_pic) $smarty->assign('profilepic_imgsrc', $this->userImage($userid));
 		$smarty->assign('show_username', ($show_username ? 'true' : 'false'));
 		if ($show_username) $smarty->assign('username', $this->id2user($userid, $show_clantag, false));
-		if ($show_username) $smarty->assign('username_link', $this->id2user($userid, false, false));
+		if ($show_username) {
+			/** URL-safe Username encoding including . and ~ (but not - and _) */
+			$urlencoded_username = str_replace('.', '%2E',
+										str_replace('~', '%7E',
+											rawurlencode($this->id2user($userid, false, false))
+									));
+			$smarty->assign('username_link', $urlencoded_username);
+		}
 		$smarty->assign('show_profile_link', ($show_link ? 'true' : 'false'));
 
 		return $smarty->fetch('file:layout/partials/profile/userprofile_link.tpl');
