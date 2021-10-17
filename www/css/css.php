@@ -156,12 +156,12 @@ body {
 	.main-content {
 		font-size: 0.5rem;
 		padding: .5rem .5rem .5rem 1.25rem;
-		background: var(--background-color-main, rgba(1,1,1,1));
+		background: var(--background-color-main, #000);
 	}
 	.sidebar {
 		font-size: 0.5rem;
 		padding: .5rem 1rem .5rem 1rem;
-		background: var(--background-color-main, rgba(1,1,1,1));
+		background: var(--background-color-main, #000);
 	}
 	.footer {
 		font-size: 0.5rem;
@@ -236,13 +236,13 @@ body {
 	.main-content {
 		font-size: 0.85rem;
 		padding: .2rem 1rem 0 1rem;
-		background: var(--background-color-main, rgba(1,1,1,1));
+		background: var(--background-color-main);
 	}
 	.main-content > img { max-width: 100%; }
 	.sidebar {
 		font-size: 0.85rem;
 		padding: .5rem 1rem .5rem 1rem;
-		background: var(--background-color-sidebar-mobile, rgba(1,1,1,1));
+		background: var(--background-color-sidebar-mobile);
 	}
 	.footer {
 		font-size: 0.7rem;
@@ -280,7 +280,7 @@ body {
 /**
  * HTML5 Structure Styling
  */
-.zorghead, .navigation { background: var(--background-color-base, rgba(1,1,1,1)); }
+.zorghead, .navigation { background: var(--background-color-base); }
 .navigation {
 	text-align: center;
 	padding-left: 0;
@@ -347,7 +347,6 @@ p {
 a, a:visited, a img {
 	color: var(--color-link-primary, rgba(241,241,241,1));
 	text-decoration: none;
-	-webkit-background-clip: content-box; /** Try to get rid of fat border in iOS Safari when tapping on links */
 }
 a:hover { text-decoration: underline; }
 a img:hover {
