@@ -55,7 +55,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 			$smarty->assign('user_param', $recipient_id);
 			$smarty->assign('hash_param', $mailRecipientHash );
 			$smarty->assign('user_email', $recipientEmail);
-			$compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);	
+			$compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);
 
 			/** Cleanup Smarty-Tags from HTML-Markup */
 			$compiledMailTpl = str_replace('{literal}', '', $compiledMailTpl);
@@ -143,7 +143,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				$mailHeaders .= 'X-Mailer: PHP/'.phpversion().$formatNewline;
 				$mailHeaders .= 'List-Unsubscribe: <mailto: '.ZORG_VEREIN_EMAIL.'?subject=unsubscribe>'.$formatNewline;
 				$mailHeaders .= 'Content-type: multipart/alternative; boundary="'.$mailBoundaryHeader.'"; charset=utf-8';
-				$mailSubject = '=?UTF-8?Q?'.quoted_printable_encode($mailMessage['subject_text']).'?=';
+				$mailSubject = sprintf('=?UTF-8?B?%s?=', base64_encode($mailMessage['subject_text']));
 
 					/** Plain-Text E-Mail Part (= lower Prio)
 					 * chunk_split() alternative supporting unicode strings
