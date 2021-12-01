@@ -4,7 +4,7 @@
 *.local.php
 *apis_key.inc.php
 *.log
-/www/vendor/
+/vendor
 
 # ...and DON'T ignore these things
 !.github/
@@ -12,6 +12,7 @@
 !.gitkeep
 !.issuetracker
 !.npmignore
+!composer.lock
 !/www
 !/cd
 !/cron
