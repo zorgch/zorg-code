@@ -12,6 +12,7 @@
 !.gitkeep
 !.issuetracker
 !.npmignore
+!composer.json
 !composer.lock
 !/www
 !/cd
