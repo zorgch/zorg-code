@@ -455,6 +455,53 @@ function var_request ()
 	}
 
 	/**
+	 * Verein Mailer - Swiss QR Bill Block
+	 *
+	 * @uses zorgSwissQRBill()
+	 * @uses remove_html(), sanitize_userinput()
+	 *
+	 * @example {swissqrbillcode}Spende an zorg Verein{/swissqrbillcode}
+	 * @example {swissqrbillcode size="s|m|l" user=23 betrag=23.00}zorg Verein Mitgliederbeitrag{/swissqrbillcode}
+	 */
+	function smarty_swissqrbillimage($params, $content, &$smarty, &$repeat)
+	{
+		/** Validate Params */
+		if (isset($params['user']) && (int)$params['user'] > 0) $userid = filter_var($params['user'], FILTER_VALIDATE_INT, ['flags' => FILTER_NULL_ON_FAILURE]);
+		if (isset($params['betrag']) && (float)$params['betrag'] > 0) $betrag = filter_var($params['betrag'], FILTER_VALIDATE_FLOAT, ['flags' => FILTER_NULL_ON_FAILURE]);
+		if (isset($content) && !empty($content)) $rechnungszweck = remove_html(sanitize_userinput($content));
+		if (isset($params['size']) && !empty($params['size'])) {
+				$sizeInput = remove_html(sanitize_userinput($params['size']));
+				switch ($sizeInput) {
+					case 's':
+						$imgSize = '25%';
+						break;
+
+					case 'm':
+						$imgSize = '50%';
+						break;
+
+					case 'l':
+						$imgSize = '100%';
+						break;
+
+					default:
+						$imgSize = '50%';
+				}
+			}
+
+		/** Load the zorg Swiss QR Bill Class */
+		include_once INCLUDES_DIR.'swissqrbill.inc.php';
+
+		$zorgQRCodeBill = new zorgSwissQRBill();
+		$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
+
+		if (false !== $qrCodeImageString && !empty($qrCodeImageString))
+		{
+			return sprintf('<img title="%s %s %s" style="width: %s;" src="%s">', $userid, $betrag, $rechnungszweck, $imgSize, $qrCodeImageString);
+		}
+	}
+
+	/**
 	 * Smarty Menubar
 	 *
 	 * Usage: 	{menubar}
@@ -1573,7 +1620,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_mailinfoblock' => array('mail_infoblock', 'Verein Mailer - Info Block', '{mail_infoblock topic="headline"}...{/mail_infoblock}', false)
 								,'smarty_mailctabutton' => array('mail_button', 'Verein Mailer - Call-to-Action-Button', '{mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}', false)
 								,'smarty_mailtelegrambutton' => array('telegram_button', 'Verein Mailer - Telegram Messenger Button', '{telegram_button}button-text{/telegram}', false)
-
+								,'smarty_swissqrbillimage' => ['swissqrbillcode', 'zorg Swiss QR Bill - QR-Code', '{swissqrbillcode size="s|m|l" user=23 betrag=23.00}zorg Verein Mitgliederbeitrag{/swissqrbillcode}', true]
 
 								);
 
