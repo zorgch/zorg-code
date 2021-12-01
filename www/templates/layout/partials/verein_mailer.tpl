@@ -82,20 +82,20 @@
 					<input type="text" name="text_mail_subject" id="text_mail_subject" maxlength="47" data-emojiable="true" data-emoji-input="unicode" placeholder="E-Mail Betreff" autocomplete="off" {if $dev}value="🔥Zorg Verein - Mailtemplate Testing"{/if}>
 					<div class="progress progress-xs" id="text_mail_subject_progressbar"><div class="progress-bar" id="text_mail_subject_progress"></div></div>
 				</div>
-				
+
 				<div class="input-field">
 					<label for="text_mail_description">Vorschautext</label>
 					<span class="input-hint hide-xs"><a class="badge" href="https://litmus.com/blog/the-ultimate-guide-to-preview-text-support" target="_blank">?</a> Wird in E-Mailclients als Vorschautext der E-Mail angezeigt</span>
 					<input type="text" name="text_mail_description" id="text_mail_description" maxlength="99" placeholder="Kurzbeschreibung / Vorschau Text" autocomplete="off" {if $dev}value="Protokoll der GV 2017, wichtigste Beschlüsse & Highlights"{/if}>
 					<div class="progress progress-xs" id="text_mail_description_progressbar"><div class="progress-bar" id="text_mail_description_progress"></div></div>
 				</div>
-				
+
 				<div class="input-field">
 					<label class="text-muted">[z] Layout</label>
 					<label class="bg-dark text-muted pad-xs"><input type="radio" name="layout" value="night" checked disabled> Night</label>
 					<label class="bg-light text-muted pad-xs">&nbsp;<input type="radio" name="layout" value="day" disabled> Day&nbsp;</label>
 				</div>
-				
+
 				<label>Nachricht</label>
 				<div class="commenting">
 					<div id="toolbar">
@@ -161,10 +161,11 @@
 						</span>
 						<span class="ql-format-separator"></span>
 						<span class="ql-format-group">
-					 		<button id="info-block"><i class="fa fa-info-circle"></i></button>
-					 		<button id="button-block"><i class="fa fa-share-square"></i></button>
-					 		<button id="username-block"><i class="fa fa-user-circle"></i></button>
-					 		<!--button id="useraddress-block"><i class="fa fa-address-book"></i></button-->
+							<button id="info-block"><i class="fa fa-info-circle"></i></button>
+							<button id="button-block"><i class="fa fa-share-square"></i></button>
+							<button id="username-block"><i class="fa fa-user-circle"></i></button>
+							<!--button id="useraddress-block"><i class="fa fa-address-book"></i></button-->
+							<button id="swissqrbill-block"><i class="far fa-money-bill-alt"></i></button>
 						</span>
 					</div>
 					<div id="quill_editor">{if $dev}
@@ -309,6 +310,23 @@
 		}
 		quill.setSelection(textSelection.index + textPrefix.length);
 	});
+	$('#swissqrbill-block').on('click', function(e){
+		var textPrefix = '{swissqrbillcode size="m" user=$user_param betrag=23.00}';
+		var textPlaceholder = 'Mitgliederbeitrag ' + new Date().getFullYear();
+		var textSuffix = '{/swissqrbillcode}';
+		e.preventDefault()
+		quill.focus();
+		var textSelection = quill.getSelection();
+		if (textSelection) {
+			if (textSelection.length == 0) {
+				quill.insertText(textSelection.index, textPrefix + textPlaceholder + textSuffix, false);
+			} else {
+				quill.insertText(textSelection.index, textPrefix, false);
+				quill.insertText(textSelection.index + textPrefix.length + textSelection.length, textSuffix, false);
+			}
+		}
+		quill.setSelection(textSelection.index + textPrefix.length);
+	});
 	// Quill - Duplicate HTML into Input-Field
 	function updateMessageHtml(html) {
 		if (typeof html != 'undefined' && html) {
@@ -423,14 +441,14 @@
 				}
 		});
 	}
-	
+
 	/**
 	 * Update a Recipient's E-Mail status
 	 */
 	function checkRecipientStatus(template) {
 		var recipientsList = $("div[class='input-field'] fieldset label input:checkbox");
 		console.info('Checking Mail status for all users on template ' + template);
-		
+
 		recipientsList.each(function(e){
 			//console.info('Checking Mail status for user ' + $(this).val() + ' and template ' + template);
 			var recipient_label = $(this).parent();
@@ -497,7 +515,7 @@
 			console.info('Update Mode: disabled');
 		}
 	}
-	
+
 	function addUseridToRecipients(recipient_id) {
 		hidden_selected_recipients.val(hidden_selected_recipients.val() + '"' + recipient_id + '",');
 	}
@@ -567,7 +585,7 @@
 				});
 			}
 		});
-		
+
 		/**
 		 * Add or remove recipient to hidden field
 		 */

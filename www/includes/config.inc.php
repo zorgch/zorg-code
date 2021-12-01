@@ -88,6 +88,18 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
  * @const TELEGRAM_CHATLINK Telegram Messenger Group-Chat link to join the Zorg Community group
  * @const GIT_REPOSITORY_ROOT zorg Code Git-Repository on the server (for code version info). For dev adjust in development.config.php
  * @const GIT_REPOSITORY_URL zorg Code Git-Repository public URL
+ * @const ZORG_VEREIN_NAME Bezeichnung des Vereins (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_STRASSE Strasse der Adresse des Vereins (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_PLZ PLZ der Adresse des Vereins (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_ORT Ort der Adresse des Vereins (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_LAND Zorg Land der Adresse des Vereins (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_LAND_ISO2 2-stelliger ISO-Code des Land des Vereins (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_BANK Bankname des Vereinskontos (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_SWIFT SWIFT-Identifikation des Vereinskontos (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_IBAN IBAN-Nummer des Vereinskontos (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_IBAN_QRBILL Swiss QR-Bill IBAN-Nummer des Vereinskontos (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_CURRENCY Akzeptierte Währung des Vereinskontos (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_BESRID Diese Identifikationsnummer (BESR-ID) wird von der Bank vergeben (nicht bei Post Finance). Wird nur benötigt in Zusammenhang mit Referenznummern auf Rechnungen.
  */
 if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME);
 if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN']);
@@ -103,6 +115,18 @@ if (!defined('TELEGRAM_CHATLINK')) define('TELEGRAM_CHATLINK', 'https://t.me/joi
 if (!defined('TWITTER_NAME')) define('TWITTER_NAME', 'ZorgCH');
 if (!defined('GIT_REPOSITORY_ROOT')) define('GIT_REPOSITORY_ROOT', SITE_ROOT.'/../zorg-code/');
 if (!defined('GIT_REPOSITORY_URL')) define('GIT_REPOSITORY_URL', 'https://github.com/zorgch/zorg-code/commit/');
+if (!defined('ZORG_VEREIN_NAME')) define('ZORG_VEREIN_NAME', 'zorg Verein');
+if (!defined('ZORG_VEREIN_STRASSE')) define('ZORG_VEREIN_STRASSE', null);
+if (!defined('ZORG_VEREIN_PLZ')) define('ZORG_VEREIN_PLZ', '9000');
+if (!defined('ZORG_VEREIN_ORT')) define('ZORG_VEREIN_ORT', 'St. Gallen');
+if (!defined('ZORG_VEREIN_LAND')) define('ZORG_VEREIN_LAND', 'Schweiz');
+if (!defined('ZORG_VEREIN_LAND_ISO2')) define('ZORG_VEREIN_LAND_ISO2', 'CH');
+if (!defined('ZORG_VEREIN_KONTO_BANK')) define('ZORG_VEREIN_KONTO_BANK', 'St. Galler Kantonalbank');
+if (!defined('ZORG_VEREIN_KONTO_SWIFT')) define('ZORG_VEREIN_KONTO_SWIFT', 'KBSGCH22');
+if (!defined('ZORG_VEREIN_KONTO_IBAN')) define('ZORG_VEREIN_KONTO_IBAN', 'CH7500781622431172000');
+if (!defined('ZORG_VEREIN_KONTO_IBAN_QRBILL')) define('ZORG_VEREIN_KONTO_IBAN_QRBILL', 'CH7500781622431172000');
+if (!defined('ZORG_VEREIN_KONTO_CURRENCY')) define('ZORG_VEREIN_KONTO_CURRENCY', 'CHF');
+if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', null);
 
 /**
  * Define paths to directories where HTML web resources will be referenced from
@@ -121,6 +145,7 @@ if (!defined('GIT_REPOSITORY_URL')) define('GIT_REPOSITORY_URL', 'https://github
  * @const UTIL_DIR Utilities directory for Frontend-Resources
  * @const JS_DIR JavaScripts directory for Frontend-Resources
  * @const CSS_DIR CSS directory for Frontend-Resources
+ * @const COMPOSER_AUTOLOAD Composer Autoloader for third-party Vendor libraries
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
 if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys'); // No trailing slash /
@@ -136,6 +161,7 @@ if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
 if (!defined('JS_DIR')) define('JS_DIR', '/js/');
 if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
+if (!defined('COMPOSER_AUTOLOAD')) define('COMPOSER_AUTOLOAD', SITE_ROOT . '/../vendor/autoload.php');
 
 /**
  * Define User & Usersystem constants
