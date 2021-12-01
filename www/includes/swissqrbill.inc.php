@@ -84,7 +84,7 @@ class zorgSwissQRBill
 			));
 		$qrBill->setCreditorInformation(
 			QrBill\DataGroup\Element\CreditorInformation::create(
-				(null !== ZORG_VEREIN_KONTO_IBAN_QRBILL ? ZORG_VEREIN_KONTO_IBAN_QRBILL : ZORG_VEREIN_KONTO_IBAN) // This is a classic IBAN. QR-IBANs will not be valid in this minmal setup.
+				(null !== ZORG_VEREIN_KONTO_BESRID && null !== ZORG_VEREIN_KONTO_IBAN_QRBILL ? ZORG_VEREIN_KONTO_IBAN_QRBILL : ZORG_VEREIN_KONTO_IBAN) // Use a classic IBAN. QR-IBANs will only be valid in combination with Payment Reference (BESR-ID + internal ID).
 			));
 
 		/**
