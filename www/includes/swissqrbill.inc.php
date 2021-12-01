@@ -53,7 +53,7 @@ class zorgSwissQRBill
 	 * @since	1.0 `01.12.2021` `IneX` Method added
 	 *
 	 * @uses Sprain\SwissQrBill
-	 * @uses ZORG_VEREIN_NAME, ZORG_VEREIN_STRASSE, ZORG_VEREIN_PLZ, ZORG_VEREIN_ORT, ZORG_VEREIN_LAND_ISO2, ZORG_VEREIN_KONTO_IBAN, ZORG_VEREIN_KONTO_BESRID
+	 * @uses ZORG_VEREIN_NAME, ZORG_VEREIN_STRASSE, ZORG_VEREIN_PLZ, ZORG_VEREIN_ORT, ZORG_VEREIN_LAND_ISO2, ZORG_VEREIN_KONTO_IBAN, ZORG_VEREIN_KONTO_IBAN_QRBILL, ZORG_VEREIN_KONTO_BESRID
 	 * @param	integer|null	$userId				(Optional) If specific to a zorg User: his/her ID (will be used as internal ID in combination with a BESR-ID). Otherwise null.
 	 * @param	string|null		$paymentDescription	(Optional) Human-readable info about what the bill is for. E.g. "Gefälligkeiten"
 	 * @param	float|null		$paymentValue		(Optional) CHF-Amount as float number (e.g. 23.17) with the amount that shall be invoiced. Null if no fixed amount shall be used.
@@ -84,7 +84,7 @@ class zorgSwissQRBill
 			));
 		$qrBill->setCreditorInformation(
 			QrBill\DataGroup\Element\CreditorInformation::create(
-				ZORG_VEREIN_KONTO_IBAN // This is a classic IBAN. QR-IBANs will not be valid in this minmal setup.
+				(null !== ZORG_VEREIN_KONTO_IBAN_QRBILL ? ZORG_VEREIN_KONTO_IBAN_QRBILL : ZORG_VEREIN_KONTO_IBAN) // This is a classic IBAN. QR-IBANs will not be valid in this minmal setup.
 			));
 
 		/**
@@ -96,7 +96,7 @@ class zorgSwissQRBill
 
 		$qrBill->setPaymentAmountInformation(
 			QrBill\DataGroup\Element\PaymentAmountInformation::create(
-				ZORG_VEREIN_KONTO_CURRENCY,
+				(null !== ZORG_VEREIN_KONTO_CURRENCY ? ZORG_VEREIN_KONTO_CURRENCY : 'CHF'),
 				$finalPaymentAmount
 			));
 

@@ -312,7 +312,7 @@
 	});
 	$('#swissqrbill-block').on('click', function(e){
 		var textPrefix = '{swissqrbillcode size="m" user=$user_param betrag=23.00}';
-		var textPlaceholder = 'zorg Verein Mitgliederbeitrag';
+		var textPlaceholder = 'Mitgliederbeitrag ' + new Date().getFullYear();
 		var textSuffix = '{/swissqrbillcode}';
 		e.preventDefault()
 		quill.focus();

@@ -97,6 +97,7 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
  * @const ZORG_VEREIN_KONTO_BANK Bankname des Vereinskontos (z.B. für Swiss QR Bill)
  * @const ZORG_VEREIN_KONTO_SWIFT SWIFT-Identifikation des Vereinskontos (z.B. für Swiss QR Bill)
  * @const ZORG_VEREIN_KONTO_IBAN IBAN-Nummer des Vereinskontos (z.B. für Swiss QR Bill)
+ * @const ZORG_VEREIN_KONTO_IBAN_QRBILL Swiss QR-Bill IBAN-Nummer des Vereinskontos (z.B. für Swiss QR Bill)
  * @const ZORG_VEREIN_KONTO_CURRENCY Akzeptierte Währung des Vereinskontos (z.B. für Swiss QR Bill)
  * @const ZORG_VEREIN_KONTO_BESRID Diese Identifikationsnummer (BESR-ID) wird von der Bank vergeben (nicht bei Post Finance). Wird nur benötigt in Zusammenhang mit Referenznummern auf Rechnungen.
  */
@@ -122,8 +123,9 @@ if (!defined('ZORG_VEREIN_LAND')) define('ZORG_VEREIN_LAND', 'Schweiz');
 if (!defined('ZORG_VEREIN_LAND_ISO2')) define('ZORG_VEREIN_LAND_ISO2', 'CH');
 if (!defined('ZORG_VEREIN_KONTO_BANK')) define('ZORG_VEREIN_KONTO_BANK', 'St. Galler Kantonalbank');
 if (!defined('ZORG_VEREIN_KONTO_SWIFT')) define('ZORG_VEREIN_KONTO_SWIFT', 'KBSGCH22');
-if (!defined('ZORG_VEREIN_KONTO_CURRENCY')) define('ZORG_VEREIN_KONTO_CURRENCY', 'CHF');
 if (!defined('ZORG_VEREIN_KONTO_IBAN')) define('ZORG_VEREIN_KONTO_IBAN', 'CH7500781622431172000');
+if (!defined('ZORG_VEREIN_KONTO_IBAN_QRBILL')) define('ZORG_VEREIN_KONTO_IBAN_QRBILL', 'CH7500781622431172000');
+if (!defined('ZORG_VEREIN_KONTO_CURRENCY')) define('ZORG_VEREIN_KONTO_CURRENCY', 'CHF');
 if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', null);
 
 /**
