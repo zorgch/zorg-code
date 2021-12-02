@@ -465,29 +465,33 @@ function var_request ()
 	 */
 	function smarty_swissqrbillimage($params, $content, &$smarty, &$repeat)
 	{
+		global $user;
+
 		/** Validate Params */
 		if (isset($params['user']) && (int)$params['user'] > 0) $userid = filter_var($params['user'], FILTER_VALIDATE_INT, ['flags' => FILTER_NULL_ON_FAILURE]);
 		if (isset($params['betrag']) && (float)$params['betrag'] > 0) $betrag = filter_var($params['betrag'], FILTER_VALIDATE_FLOAT, ['flags' => FILTER_NULL_ON_FAILURE]);
 		if (isset($content) && !empty($content)) $rechnungszweck = remove_html(sanitize_userinput($content));
 		if (isset($params['size']) && !empty($params['size'])) {
-				$sizeInput = remove_html(sanitize_userinput($params['size']));
-				switch ($sizeInput) {
-					case 's':
-						$imgSize = '25%';
-						break;
+			$sizeInput = remove_html(sanitize_userinput($params['size']));
+		} else {
+			$sizeInput = 'm';
+		}
+		switch ($sizeInput) {
+			case 's':
+				$imgStyle = 'width: 25%;';
+				break;
 
-					case 'm':
-						$imgSize = '50%';
-						break;
+			case 'm':
+				$imgStyle = 'width: 50%;';
+				break;
 
-					case 'l':
-						$imgSize = '100%';
-						break;
+			case 'l':
+				$imgStyle = 'width: 100%;';
+				break;
 
-					default:
-						$imgSize = '50%';
-				}
-			}
+			default:
+				$imgStyle = 'width: 50%;';
+		}
 
 		/** Load the zorg Swiss QR Bill Class */
 		include_once INCLUDES_DIR.'swissqrbill.inc.php';
@@ -497,7 +501,11 @@ function var_request ()
 
 		if (false !== $qrCodeImageString && !empty($qrCodeImageString))
 		{
-			return sprintf('<img title="%s %s %s" style="width: %s;" src="%s">', $userid, $betrag, $rechnungszweck, $imgSize, $qrCodeImageString);
+			$imgContainerStyles = 'padding: 5mm;background-color: white;text-align: center;';
+			$imgTitle = (null !== $rechnungszweck ? $rechnungszweck : null).
+						(null !== $userid ? (null !== $rechnungszweck ? ' / ' : null).$user->id2user($userid) : null).
+						(null !== $betrag ? (null !== $rechnungszweck || null !== $userid ? ': ' : null).ZORG_VEREIN_KONTO_CURRENCY.' '.$betrag : null);
+			return sprintf('<div style="%s"><img %s style="%s" src="%s"></div>', $imgContainerStyles, (!empty($imgTitle) ? 'title="'.$imgTitle.'"' : null), $imgStyle, $qrCodeImageString);
 		}
 	}
 
