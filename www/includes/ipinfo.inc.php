@@ -95,7 +95,7 @@ class zorgUserIPinfos
 			/** Fetch User's IP-detials and resolve it's associated Data */
 			$this->UserIPaddress = $this->getRealIPaddress();
 			$this->UserIPdetailsData = $this->IPInfoClient->getDetails($this->UserIPaddress);
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $this->UserIPaddress, print_r($this->UserIPdetailsData,true)));
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $this->UserIPaddress, print_r($this->UserIPdetailsData,true)));
 		}
 		catch (\Exception $e) {
 			error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
@@ -193,8 +193,8 @@ class zorgUserIPinfos
 		/** If $UserIPdetailsData is empty, use Fallback: St. Gallen, Switzerland (47.426418, 9.376010) */
 		$IPinfoLat = (!empty($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->latitude) ? $this->UserIPdetailsData->latitude : 47.426418);
 		$IPinfoLon = (!empty($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->longitude) ? $this->UserIPdetailsData->longitude : 9.376010);
-
 		$coordinates = ['latitude' => $IPinfoLat, 'longitude' => $IPinfoLon];
+
 		return $coordinates;
 	}
 

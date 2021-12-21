@@ -101,15 +101,15 @@ class Layout extends \MVC\Controller
 		$suncalc->setTimestamp(time()+(3600*round($LatLonCoordinates['longitude']/15.0)+date('I')));
 		$this->sunrise = $suncalc->getSunrise();
 		$this->sunset = $suncalc->getSunset();
-
 		$cur_time = (time()+(3600*round($LatLonCoordinates['longitude']/15.0)+date('I'))-3600);
-		if ($cur_time > strtotime($this->sunrise))
+
+		if ($cur_time > $this->sunrise)
 		{
 			$this->sun = 'up';
 			$this->layouttype = 'day';
 		}
-		elseif ($cur_time > strtotime($this->sunset)
-			|| $cur_time < strtotime($this->sunrise))
+		if ($cur_time > $this->sunset		// 2x IF (not "else if") because
+			|| $cur_time < $this->sunrise)	// Sunset/Night must overwrite Sunrise/Day!
 		{
 			$this->sun = 'down';
 			$this->layouttype = 'night';
