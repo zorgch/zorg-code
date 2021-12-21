@@ -93,8 +93,9 @@ class zorgUserIPinfos
 			$this->IPInfoClient = new IPinfo(IPINFO_API_KEY, $this->IPinfoSettings);
 
 			/** Fetch User's IP-detials and resolve it's associated Data */
-			$this->UserIPdetailsData = $this->IPInfoClient->getDetails();
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, print_r($this->UserIPdetailsData,true)));
+			$this->UserIPaddress = $this->getRealIPaddress();
+			$this->UserIPdetailsData = $this->IPInfoClient->getDetails($this->UserIPaddress);
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $this->UserIPaddress, print_r($this->UserIPdetailsData,true)));
 		}
 		catch (\Exception $e) {
 			error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
@@ -103,11 +104,9 @@ class zorgUserIPinfos
 	}
 
 	/**
-	 * (DEPRECATED) Get the real (external) IP address of the User
+	 * Get the real (external) IP address of the User
 	 *
 	 * @link https://www.benmarshall.me/get-ip-address/
-	 *
-	 * @DEPRECATED Replaced by IPinfoClient::getDetails()
 	 *
 	 * @author IneX
 	 * @version 1.0
