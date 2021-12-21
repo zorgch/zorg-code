@@ -73,7 +73,7 @@ class usersystem
 	var $field_email = 'email';
 	var $field_from_mobile = 'from_mobile';
 	var $field_irc = 'irc_username';
-	var $field_last_ip = 'last_ip';
+	//var $field_last_ip = 'last_ip'; // @DEPRECATED
 	var $field_lastlogin = 'lastlogin';
 	var $field_maxdepth = 'forummaxthread';
 	var $field_menulayout = 'menulayout';
@@ -132,7 +132,7 @@ class usersystem
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 6.0
+	 * @version 6.1
 	 * @since 1.0 method added
 	 * @since 2.0 `20.11.2018` `IneX` code & query optimizations, updated Cookie & Session info taken from config.inc.php
 	 * @since 3.0 `27.11.2018` `IneX` refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
@@ -140,6 +140,7 @@ class usersystem
 	 * @since 4.1 `02.11.2019` `IneX` fixed ENUM("0")-Values from User DB-Record wrongfully set=true instead of =false
 	 * @since 5.0 `09.04.2021` `IneX` reworked Session and Cookie handling
 	 * @since 6.0 `14.05.2021` `IneX` no longer creating a Session by default - only if user is authenticated!
+	 * @since 6.1 `03.12.2021` `IneX` Deprecated to store & retrieve the `last_ip` (User IP address) on the Database
 	 *
 	 * @uses ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW, ZORG_SESSION_LIFETIME, ZORG_COOKIE_SECURE
 	 * @uses usersystem::login(), usersystem::userImage(), timestamp()
@@ -239,7 +240,7 @@ class usersystem
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->currentlogin: %s', __METHOD__, __LINE__, $this->currentlogin));
 				$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
 				if ($this->ausgesperrt_bis > time()) $_geaechtet[] = $this->id;
-				$this->last_ip = $rs[$this->field_last_ip];
+				//$this->last_ip = $rs[$this->field_last_ip]; // @DEPRECATED
 				$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
 				$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
 				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
@@ -273,7 +274,7 @@ class usersystem
 				 */
 				$db->update($this->table_name, ['id', $this->id], [
 					$this->field_activity => timestamp(true),
-					$this->field_last_ip => $_SERVER['REMOTE_ADDR'],
+					//$this->field_last_ip => $_SERVER['REMOTE_ADDR'], // @DEPRECATED
 					$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
 				], __FILE__, __LINE__, __METHOD__);
 			}
@@ -297,6 +298,7 @@ class usersystem
 	 * @since 4.3 `07.04.2021` `IneX` Updated to use modified usersystem::crypt_pw(), use better IP detection and Session handling
 	 * @since 4.4 `13.04.2021` `IneX` Fixed currentlogin & lastlogin timestamps
 	 * @since 5.0 `14.05.2021` `IneX` Added session_id() & session_start() Handling because now only creating a Session if user is authenticated!
+	 * @since 5.1 `03.12.2021` `IneX` Replaced IP detection getRealIPaddress() with new IPinfo Class zorgUserIPinfos()
 	 *
 	 * @uses ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW, ZORG_SESSION_LIFETIME, ZORG_COOKIE_SECURE
 	 * @uses usersystem::crypt_pw(), usersystem::invalidate_session()
@@ -440,7 +442,7 @@ class usersystem
 							$db->update($this->table_name, ['id', $rs['id']], [
 								$this->field_lastlogin => timestamp(true, (int)$rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(true),
-								$this->field_last_ip => getRealIPaddress(),
+								//$this->field_last_ip => getRealIPaddress(), // @DEPRECATED
 							], __FILE__, __LINE__, __METHOD__);
 
 							/**
@@ -992,6 +994,7 @@ class usersystem
  	 * Speichert ein Fehler des Users in der DB ab.
 	 *
 	 * @TODO Refactor this functionality & solve this differently. Needs updateing of usersystem::login()
+	 * @TODO `ip`-field: must be extended to 45 length (ipv6) & should use value from zorgUserIPinfos::getRealIPaddress()
 	 *
 	 * @return void
 	 * @param int $do Aktion
