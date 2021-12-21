@@ -5,7 +5,13 @@
  * @author IneX
  * @package zorg\MVC\Controller
  */
-namespace MVC\Controller;
+namespace MVC;
+
+/**
+ * File includes
+ * @include config.inc.php Include required global site configurations
+ */
+require_once dirname(__FILE__).'/../includes/config.inc.php';
 
 /**
  * Class representing the MVC Controller
@@ -39,9 +45,3 @@ class Controller
 		}
 	}*/
 }
-
-/**
- * Include Controller Files
- * @include sitemap.controller.php Required
- */
-require_once dirname(__FILE__).'/sitemap.controller.php';

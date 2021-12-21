@@ -18,8 +18,8 @@ $sqltracker_numqueries = 0;
  * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false
  * @include	development.config.php	If DEVELOPMENT, load a corresponding config file containing DEV-specific settings. Was already checked to exist at define('DEVELOPMENT', true/false)
  */
-define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( dirname(__FILE__).'/development.config.php') ? true : false ));
-if (DEVELOPMENT) include_once dirname(__FILE__).'/development.config.php';
+if (!defined('DEVELOPMENT')) define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( dirname(__FILE__).'/development.config.php') ? true : false ));
+if (DEVELOPMENT === true) include_once dirname(__FILE__).'/development.config.php';
 
 /**
  * Define preferred Protocol that zorg.ch is running on.
@@ -30,7 +30,7 @@ $isSecure = false;
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
 	$isSecure = true;
 }
-elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') {
+elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') {
 	$isSecure = true;
 }
 if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', ($isSecure ? 'https' : 'http'));
@@ -53,19 +53,6 @@ if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNA
  * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/". IMPORTANT: relative to the config.inc.php File!
  */
 if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'/..');
-
-/**
- * Set a constant for the custom Error Log path
- *
- * @see zorgErrorHandler(), user_error(), trigger_error()
- * @link https://github.com/zorgch/zorg-code/blob/master/www/includes/errlog.inc.php errlog.inc.php
- * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
- * @const ERRORLOG_DIR sets the directory for logging the custom user_errors
- * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
- */
-if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log');
-if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/');
-if (!defined('ERRORLOG_FILEPATH')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE);
 
 /**
  * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
@@ -102,7 +89,7 @@ if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', ' - ' . SITE_HOSTNA
  * @const ZORG_VEREIN_KONTO_BESRID Diese Identifikationsnummer (BESR-ID) wird von der Bank vergeben (nicht bei Post Finance). Wird nur benötigt in Zusammenhang mit Referenznummern auf Rechnungen.
  */
 if (!defined('ZORG_EMAIL')) define('ZORG_EMAIL', 'info@'.SITE_HOSTNAME);
-if (!defined('ZORG_ADMIN_EMAIL')) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN']);
+if (!defined('ZORG_ADMIN_EMAIL') && isset($_SERVER['SERVER_ADMIN'])) define('ZORG_ADMIN_EMAIL', $_SERVER['SERVER_ADMIN']);
 if (!defined('ZORG_VEREIN_EMAIL')) define('ZORG_VEREIN_EMAIL', 'zorg-vorstand@googlegroups.com');
 if (!defined('VORSTAND_USER')) define('VORSTAND_USER', 451);
 if (!defined('BARBARA_HARRIS')) define('BARBARA_HARRIS', 59);
@@ -227,9 +214,18 @@ if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', SITE_ROOT.'/p
 if (!defined('SMARTY_PACKAGES_EXTENSION')) define('SMARTY_PACKAGES_EXTENSION', '.php');
 
 /**
- * Load Error Handling.
- * @include errlog.inc.php 	Errorlogging Class
+ * Set a constant for the custom Error Log path
+ *
+ * @see zorgErrorHandler(), user_error(), trigger_error()
+ * @link https://github.com/zorgch/zorg-code/blob/master/www/includes/errlog.inc.php errlog.inc.php
+ * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
+ * @const ERRORLOG_DIR sets the directory for logging the custom user_errors
+ * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
+ * @include errlog.inc.php Errorlogging Class: Load the zorg Error Handling
  */
+if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log');
+if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/');
+if (!defined('ERRORLOG_FILE')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE);
 require_once INCLUDES_DIR.'errlog.inc.php';
 
 /**
@@ -239,18 +235,29 @@ require_once INCLUDES_DIR.'errlog.inc.php';
 include_once INCLUDES_DIR.'strings.inc.php';
 
 /**
- * Define and include various Notification System-related constants and files.
- * @include notifications.inc.php
+ * Grab the IPinfo API Key.
+ * @include ipinfo_key.inc.php Include a String containing a valid IPinfo.io API Token
+ * @const IPINFO_API_KEY A constant holding the IPinfo API Token, is used to query User information on IP and Country (for zorg Layout)
  */
-include_once INCLUDES_DIR.'notifications.inc.php';
+if (!defined('IPINFO_API_KEY')) define('IPINFO_API_KEY', include APIKEYS_DIR.'/ipinfo/'.(file_exists(APIKEYS_DIR.'/ipinfo/ipinfo_key.inc.local.php') ? 'ipinfo_key.inc.local.php' : 'ipinfo_key.inc.php') );
+
+/**
+ * Define and include the MCV Controllers and initialise Layout related settings.
+ * @include core.model.php MCV Models -> FIXME requires namespace & use cleanup first
+ * @include layout.controller.php MVC Controller for Layout
+ * @include colors.inc.php Required to have various color vars accessible. WARNING: Must be loaded AFTER MVC Layout!
+ */
+//require_once MODELS_DIR.'core.model.php'; // FIXME requires namespace & use cleanup first
+require_once CONTROLLERS_DIR.'layout.controller.php';
+$zorgLayout = new MVC\Controller\Layout();
+include_once INCLUDES_DIR.'colors.inc.php';
 
 /**
  * Grab the NASA API Key.
  * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
  * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
  */
-if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') );
-if (DEVELOPMENT && !empty(NASA_API_KEY)) error_log(sprintf('[DEBUG] <%s:%d> NASA_API_KEY: found', __FILE__, __LINE__));
+if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') );
 
 /**
  * Define various APOD related constants.
@@ -263,6 +270,12 @@ if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', 41);
 if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', SITE_ROOT.'/../data/temp/');
 if (!defined('APOD_SOURCE')) define('APOD_SOURCE', 'https://apod.nasa.gov/apod/');
 if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key='.NASA_API_KEY);
+
+/**
+ * Define and include various Notification System-related constants and files.
+ * @include notifications.inc.php
+ */
+include_once INCLUDES_DIR.'notifications.inc.php';
 
 /**
  * Define and include various Telegram-Bot/Telegram-Messaging related constants and files.
@@ -279,9 +292,3 @@ include_once INCLUDES_DIR.'telegrambot.inc.php';
 define('MAX_ADDLE_GAMES', 1);
 define('ADDLE_BASE_POINTS', 1600);
 define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);
-
-/**
- * Define and include various Layout related constants and files.
- * @include colors.inc.php Required to have various color vars accessible
- */
-include_once INCLUDES_DIR.'colors.inc.php';
