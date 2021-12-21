@@ -136,17 +136,18 @@ else {
 	} else {
 		$res = array( 'state' => '', 'error' => '' );
 	}
-	$show = isset( $_GET['show'] ) ? $_GET['show'] : null;
+	$show = (isset($_GET['show']) ? $_GET['show'] : null);
+	$showPage = (isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 0); // Default page: 0
 	switch ($show)
 	{
 		case 'editAlbum':
 			$model->showAlbumedit($smarty, $album_id);
 			$smarty->display('file:layout/head.tpl');
-			editAlbum($album_id, $doAction, $res['state'], $res['error'], $res['frm']); // FIXME Undefined index: error
+			editAlbum($album_id, $doAction, (isset($res['state']) ? $res['state'] : ''), (isset($res['error']) ? $res['error'] : ''), (isset($res['frm']) ? $res['frm'] : ''));
 			break;
 		case 'albumThumbs':
 			$model->showAlbum($smarty, $album_id);
-			albumThumbs($album_id, (int)$_GET['page']);
+			albumThumbs($album_id, $showPage);
 			break;
 		case 'pic':
 			$model->showPic($smarty, $user, $getPicId, $album_id);
