@@ -2,7 +2,7 @@
 /**
  * @include config.inc.php Include required global site configurations
  */
-require_once dirname(__FILE__).'/config.inc.php';
+//require_once dirname(__FILE__).'/config.inc.php'; // DEACTIVATED BECAUSE RECURSIVE INCLUSION
 
 /**
  * @const NO_STRING_FOUND String for empty / not found references to be replaced

@@ -15,7 +15,7 @@
 /**
  * Load the Swiss QR Bill library
  *
- * @include TELEGRAM_BOT.php Include Telegram Bot Configs
+ * @include COMPOSER_AUTOLOAD Requires the Composer Autoloader Class
  */
 use Sprain\SwissQrBill as QrBill;
 
