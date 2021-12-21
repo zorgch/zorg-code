@@ -466,7 +466,7 @@ function doplay($id, $choose) {
  */
 function play($id=0)
 {
-	global $db, $sun, $user, $smarty, $model;
+	global $db, $zorgLayout, $user, $smarty, $model;
 
 	/** Validate passed $id */
 	if (empty($id) || !$id || !is_numeric($id) || $id <= 0)
@@ -497,7 +497,7 @@ function play($id=0)
 				if($d['player'.$d['nextturn']] == $d['player1']) {
 					$piccolor = 'red';
 				} else {
-					$piccolor = ($sun === 'up' ? BORDERCOLOR : '');
+					$piccolor = ($zorgLayout->layouttype === 'day' ? BORDERCOLOR : '');
 				}
 	$sidebarHtml .= '<table bgcolor="'.$piccolor.'" cellpadding="5" width="150" style="text-align:center;">
 					<tr>
@@ -522,7 +522,7 @@ function play($id=0)
 				if($d['player'.$d['nextturn']] == $d['player2']) {
 					$piccolor = 'red';
 				} else {
-					$piccolor = ($sun === 'up' ? BORDERCOLOR : '');
+					$piccolor = ($zorgLayout->layouttype === 'day' ? BORDERCOLOR : '');
 				}
 	$sidebarHtml .= '<table bgcolor="'.$piccolor.'" cellpadding="5" width="150" style="text-align:center;">
 					<tr>

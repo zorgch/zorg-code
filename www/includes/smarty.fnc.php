@@ -494,7 +494,7 @@ function var_request ()
 		}
 
 		/** Load the zorg Swiss QR Bill Class */
-		include_once INCLUDES_DIR.'swissqrbill.inc.php';
+		require INCLUDES_DIR.'swissqrbill.inc.php';
 
 		$zorgQRCodeBill = new zorgSwissQRBill();
 		$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
@@ -1550,11 +1550,11 @@ function smarty_menuname ($name, &$smarty) {
 								,'rezept_newest' => array(Rezepte::getRezeptNewest(), 'Rezepte', 'Zeigt neustes Rezept an', false)
 								,'categories' => array(Rezepte::getCategories(), 'Rezepte', 'Zeigt Liste von Rezept-Kategorien an', false)
 								,'num_errors' => array($num_errors, 'System', 'Zeigt Anzahl geloggter SQL-Errors an', false)
-								,'sun' => array($sun, 'Layout', 'Zeigt an ob Sonne "up" oder "down" ist', false)
-								,'sunset' => array($sunset, 'Layout', 'Zeit des nächsten SonnenUNTERgangs', false)
-								,'sunrise' => array($sunrise, 'Layout', 'Zeit des nächsten SonnenAUFgangs', false)
-								,'country' => array($country, 'Layout', 'ISO-Code des ermittelten Landes des aktuellen Besuchers', false)
-								,'country_image' => array(IMAGES_DIR."country/flags/$country_code.png", 'Layout', 'Bildpfad zur Länderflagge des ermittelten Landes', false)
+								,'sun' => array($zorgLayout->sun, 'Layout', 'Zeigt an ob Sonne "up" oder "down" ist', false)
+								,'sunset' => array($zorgLayout->sunset, 'Layout', 'Zeit des nächsten SonnenUNTERgangs', false)
+								,'sunrise' => array($zorgLayout->sunrise, 'Layout', 'Zeit des nächsten SonnenAUFgangs', false)
+								,'country' => array($zorgLayout->country, 'Layout', 'ISO-Code des ermittelten Landes des aktuellen Besuchers', false)
+								,'country_image' => array($zorgLayout->country_flagicon, 'Layout', 'Bildpfad zur Länderflagge des ermittelten Landes', false)
 								,'request' => array(var_request(), 'URL Handling', 'associative array:  page = requested page / params = url parameter / url = page+params', false)
 								,'url' => array(getURL(), 'URL Handling', 'Gesamte aktuell aufgerufene URL (inkl. Query-Parameter)', false)
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)

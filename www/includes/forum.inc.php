@@ -37,7 +37,7 @@ require_once dirname(__FILE__).'/config.inc.php';
 require_once INCLUDES_DIR.'smarty.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 require_once INCLUDES_DIR.'util.inc.php';
-require_once INCLUDES_DIR.'sunrise.inc.php';
+//require_once INCLUDES_DIR.'sunrise.inc.php';
 //require_once INCLUDES_DIR.'messagesystem.inc.php';
 
 /**
@@ -308,9 +308,9 @@ class Comment
 	 * @param void $viewkeyword DEPRECATED
 	 * @return String
  	 */
-	static function getHTMLadditional($rs, $himages) {
-
-		global $db, $user, $layouttype;
+	static function getHTMLadditional($rs, $himages)
+	{
+		global $db, $user;
 
 	  // Farbe setzen
 	  $color = NEWCOMMENTCOLOR; // TABLEBACKGROUNDCOLOR;

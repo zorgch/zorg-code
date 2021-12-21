@@ -31,7 +31,7 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'smarty.inc.php';
-require_once INCLUDES_DIR.'sunrise.inc.php';
+//require_once INCLUDES_DIR.'sunrise.inc.php'; @DEPRECATED
 
 /**
  * Include other scripts
