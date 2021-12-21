@@ -2,22 +2,9 @@
 /**
  * Sunrise & Sunset Times
  *
- * This code will give you the sunrise and sunset times for any
- * latitude and longitude in the world. You just need to supply
- * the latitude, longitude and difference from GMT.<br><br>
- * This script includes code translated from the perl module
- * Astro-SunTime-0.01.<br><br>
- * PHP code mattf@mail.com - please use this code in any way you wish
- * and if you want to, let me know how you are using it.<br><br>
- * Made into a class by <bbolli@ewanet.ch>, 2003-12-14
- * 
- * @author Matt <mattf@mail.com>
- * @author Bolli <bbolli@ewanet.ch>
- * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
- * @date 08.05.2004
- * @link http://www.zend.com/codex.php?id=135&single=1
  * @package zorg\Layout
  */
+namespace Layout;
 
 /**
  * File Includes
@@ -26,7 +13,7 @@
  * @include mysql.inc.php
  * @include util.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
+//require_once dirname(__FILE__).'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 include_once INCLUDES_DIR.'util.inc.php';
@@ -40,7 +27,18 @@ include_once INCLUDES_DIR.'util.inc.php';
 /**
  * Astro Sunrise Class
  *
+ * This code will give you the sunrise and sunset times for any
+ * latitude and longitude in the world. You just need to supply
+ * the latitude, longitude and difference from GMT.<br><br>
+ * This script includes code translated from the perl module
+ * Astro-SunTime-0.01.<br><br>
+ * PHP code mattf@mail.com - please use this code in any way you wish
+ * and if you want to, let me know how you are using it.<br><br>
+ * Made into a class by <bbolli@ewanet.ch>, 2003-12-14
+ *
+ * @author Matt <mattf@mail.com>
  * @author Bolli <bbolli@ewanet.ch>
+ * @link http://www.zend.com/codex.php?id=135&single=1
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 14.12.2003
  * @package zorg\Layout
@@ -109,21 +107,21 @@ class Astro_Sunrise
 		'nautical' => -.207912,		// nautical twilight
 		'astronomical' => -.309017	// astronomical twilight
 	);
- 
+
 	/**
 	 * Twilight calculation
 	 *
 	 * @var integer radius used for twilight calculation
 	 */
 	var $R; // radius used for twilight calculation
- 
+
 	/**
 	 * time calculation
 	 *
 	 * @var integer UNIX timestamp of last calculation
 	 */
 	var $last_utc; // UNIX timestamp of last calculation
- 
+
 	/**
 	 * Astro Sunrise Twilight setzen
 	 */
@@ -239,8 +237,11 @@ class Astro_Sunrise
 		return sprintf("@%03d", 1000 * $tm / 86400);
 	}
 
-	function calcSunrise($isRise) {
-
+	/**
+	 * @return string Formatted Hour:Minute indication of next Sunrise/Sunset; or on a special occasion: Mitternachtssonne
+	 */
+	function calcSunrise($isRise)
+	{
 		// multiples of pi
 		$A = 0.5 * M_PI; // Quarter circle
 		$B = 	   M_PI; // Half circle
@@ -260,7 +261,7 @@ class Astro_Sunrise
 		$M += 4.93289 + 3.49066E-4 * sin(2 * $L);
 
 		// Quadrant Determination
-		$M = norm($M, $D);
+		$M = self::norm($M, $D);
 
 		if (($M / $A) - intval($M / $A) == 0)
 			$M += 4.84814E-6;
@@ -294,8 +295,8 @@ class Astro_Sunrise
 		$V = $U + $G; // Wall clock time
 
 		// Quadrant Determination
-		$U = norm($U, $D);
-		$V = norm($V, $D);
+		$U = self::norm($U, $D);
+		$V = self::norm($V, $D);
 
 		// Scale from radians to hours
 		$U *= 24 / $D;
@@ -315,85 +316,26 @@ class Astro_Sunrise
 
 		return sprintf('%02d:%02d', $hour, $min);
 
-	} // function calcSunrise
+	} // END function calcSunrise
 
-} // class Astro_SunTime
-
-function norm($a, $b) { // normalize $a to be in [0, $b)
-	while ($a < 0)
-		$a += $b;
-	while ($a >= $b)
-		$a -= $b;
-	return $a;
-} // function norm
-
-/**
- * Position vom user bestimmen
- * @FIXME move this somewhere else...
- */
-$user_ip = sprintf('%u', ip2long(getRealIPaddress()));
-//$user_ip = sprintf("%u", ip2long($user->last_ip)); --> tut noed! schickt alle in die USA :-(
-if (!empty($user_ip))
-{
-	$sql = 'SELECT 
-				ci.country_code as code, 
-				ci.country as country,
-				ci.country_code2 as image_code,
-				co.lat as lat,
-				co.lon as lon
-			FROM country_ip ci
-			INNER JOIN country_coords co
-				ON co.country_code = ci.country_code
-			WHERE
-				ci.ip_from >= '.$user_ip.' AND ci.ip_to <= '.$user_ip.' 
-	        OR ci.ip_from >= '.$user_ip.' AND ci.ip_to <= '.($user_ip+200000000).'
-	        LIMIT 1'; // little trick to have more often a match
-	$result = $db->query($sql,__FILE__,__LINE__);
-	$rs = $db->fetch($result);
-
-	if ($db->num($result) > 0)
-	{
-		$lat = $rs['lat'];
-		$lon = $rs['lon'];
-		$country = (!empty($rs['country']) ? strtolower($rs['country']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
-		$country_code = (!empty($rs['image_code']) ? strtoupper($rs['image_code']) : 'che'); // Wenn Land nicht ermittelt werden kann, Fallback zu CHE
-		$country_code = (fileExists(IMAGES_DIR.'country/flags/'.$country_code.'.png') ? $country_code : 'che'); // Wenn Flag-Iconfile nicht vorhanden ist, Fallback zu CHE
-		$country_code = strtoupper($country_code); // always use uppercase, because filenamess are in uppercase
-
-		$suncalc = new Astro_Sunrise();
-		$suncalc->setCoords($lat, $lon);
-		$suncalc->setTimezone(round($lon/15.0)+date('I'));
-		$suncalc->setTimestamp(time()+(3600*round($lon/15.0)+date('I')));
-		$sunrise = $suncalc->getSunrise();
-		$sunset = $suncalc->getSunset();
-
-		$cur_time = time()+(3600*round($lon/15.0)+date('I')) - 3600;
-
-		if($cur_time > strtotime($suncalc->getSunrise())) {
-			$sun = 'up';
-			$layouttype = 'day';
-		}
-		if($cur_time > strtotime($suncalc->getSunset()) || $cur_time < strtotime($suncalc->getSunrise())) {
-			$sun = 'down';
-			$layouttype = 'night';
-		}
+	/**
+	 * function norm
+	 *
+	 * normalize $a to be in [0, $b)
+	 *
+	 * @author Bolli <bbolli@ewanet.ch>
+	 * @date 14.12.2003
+	 *
+	 * @param int $a
+	 * @param int $b
+	 * @return int
+	 */
+	private function norm($a, $b) {
+		while ($a < 0)
+			$a += $b;
+		while ($a >= $b)
+			$a -= $b;
+		return $a;
 	}
-	/** No matching DB Record for IP-Range found */
-	else {
-		$country = 'che';
-		$country_code = 'CHE';
-		$sunset = '23:23';
-		$sunrise = '05:23';
-		$sun = 'up';
-		$layouttype = 'day';
-	}
-}
-/** No valid IP of User found */
-else {
-	$country = 'che';
-	$country_code = 'CHE';
-	$sunset = '23:23';
-	$sunrise = '05:23';
-	$sun = (rand(0, 1) ? 'up' : 'down'); // Gamble to choose either one...
-	$layouttype = ($sun === 'up' ? 'day' : 'night');
-}
+
+} // END class Astro_SunTime
