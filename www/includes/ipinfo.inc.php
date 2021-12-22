@@ -60,25 +60,25 @@ class zorgUserIPinfos
 	 *
 	 * Example of retrieved Details for an IP-Address:
 	 *	{
-	 *	'asn': {  'asn': 'AS20001',
-	 *				'domain': 'twcable.com',
-	 *				'name': 'Time Warner Cable Internet LLC',
-	 *				'route': '104.172.0.0/14',
-	 *				'type': 'isp'},
-	 *	'city': 'Los Angeles',
-	 *	'company': {   'domain': 'twcable.com',
-	 *					'name': 'Time Warner Cable Internet LLC',
-	 *					'type': 'isp'},
-	 *	'country': 'US',
-	 *	'country_name': 'United States',
-	 *	'hostname': 'cpe-104-175-221-247.socal.res.rr.com',
-	 *	'ip': '104.175.221.247',
-	 *	'loc': '34.0293,-118.3570',
-	 *	'latitude': '34.0293',
-	 *	'longitude': '-118.3570',
-	 *	'phone': '323',
-	 *	'postal': '90016',
-	 *	'region': 'California'
+	 *		'asn': {     'asn': 'AS20001',
+	 *					 'domain': 'twcable.com',
+	 *					 'name': 'Time Warner Cable Internet LLC',
+	 *					 'route': '104.172.0.0/14',
+	 *					 'type': 'isp' },
+	 *		'city': 'Los Angeles',
+	 *		'company': { 'domain': 'twcable.com',
+	 *					 'name': 'Time Warner Cable Internet LLC',
+	 *					 'type': 'isp'},
+	 *		'country': 'US',
+	 *		'country_name': 'United States',
+	 *		'hostname': 'cpe-104-175-221-247.socal.res.rr.com',
+	 *		'ip': '104.175.221.247',
+	 *		'loc': '34.0293,-118.3570',
+	 *		'latitude': '34.0293',
+	 *		'longitude': '-118.3570',
+	 *		'phone': '323',
+	 *		'postal': '90016',
+	 *		'region': 'California'
 	 *	}
 	 *
 	 * @uses IPINFO_API_KEY
@@ -98,7 +98,29 @@ class zorgUserIPinfos
 			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $this->UserIPaddress, print_r($this->UserIPdetailsData,true)));
 		}
 		catch (\Exception $e) {
-			error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+			/**
+			 * Exceptions usually occur for legit reasons. But still we need to satisfy certain requests / responses
+			 */
+			// HTTP 429 - Quota exceeded
+			if ($e->getMessage() === 'IPinfo request quota exceeded.')
+			{
+				error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+			}
+			// HTTP 400 - Bad request (Referrer limitation)
+			elseif ($e->getMessage() === 'Exception: {"status":400,"reason":"Bad Request"}')
+			{
+				error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+				try {
+					error_log(sprintf('[INFO] <%s:%d> %s', __METHOD__, __LINE__, 'Trying to initialize new IPinfo without API Token Key...'));
+					$this->IPInfoClient = new IPinfo(null, $this->IPinfoSettings); // Fallback without API Token
+				} catch (\Exception $e) {
+					error_log(sprintf('[ERROR] <%s:%d> Persistent IPinfo Error: %s', __METHOD__, __LINE__, $e->getMessage()));
+				}
+			}
+			// Any other exception...
+			else {
+				error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+			}
 			//exit;
 		}
 	}
@@ -114,7 +136,7 @@ class zorgUserIPinfos
 	 * @since 2.0 `03.12.2021` `IneX` function moved from util.inc.php & refactored with more robust code (supports ipv4 + ipv6)
 	 *
 	 * @global object $user (UNUSED) Globales Class-Object mit den User-Methoden & Variablen
-	 * @return string|bool Returns a string containing the Clients real IP address, or false if unknown/missing
+	 * @return string|void Returns a string containing the Clients real IP address, or 'null' to trigger fallback to Server's IP
 	 */
 	private function getRealIPaddress()
 	{
@@ -175,7 +197,7 @@ class zorgUserIPinfos
 	public function getCountryName($localize=null)
 	{
 		/** If $UserIPdetailsData is empty, use Fallback: fixed on Switzerland */
-		return (!empty($this->UserIPdetailsData) || false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country_name : 'Switzerland');
+		return (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country_name : 'Switzerland');
 	}
 
 	/**
@@ -191,8 +213,8 @@ class zorgUserIPinfos
 	public function getCoordinates()
 	{
 		/** If $UserIPdetailsData is empty, use Fallback: St. Gallen, Switzerland (47.426418, 9.376010) */
-		$IPinfoLat = (!empty($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->latitude) ? $this->UserIPdetailsData->latitude : 47.426418);
-		$IPinfoLon = (!empty($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->longitude) ? $this->UserIPdetailsData->longitude : 9.376010);
+		$IPinfoLat = (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->latitude) ? $this->UserIPdetailsData->latitude : 47.426418);
+		$IPinfoLon = (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->longitude) ? $this->UserIPdetailsData->longitude : 9.376010);
 		$coordinates = ['latitude' => $IPinfoLat, 'longitude' => $IPinfoLon];
 
 		return $coordinates;
@@ -206,7 +228,7 @@ class zorgUserIPinfos
 	public function getCountryIso2Code()
 	{
 		/** If $UserIPdetailsData is empty, use Fallback: fixed on Switzerland */
-		return (!empty($this->UserIPdetailsData) || false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country : 'CH');
+		return (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country : 'CH');
 	}
 
 	/**
