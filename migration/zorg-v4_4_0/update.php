@@ -39,7 +39,7 @@ if (!empty($argv[1])) {
 /** Configure Paths */
 $dev_root = __DIR__.'/../../www';
 $prod_root = __DIR__.'/../../../public';
-define('ENV_ROOT', (is_dir() === true ? $prod_root : $dev_root));
+define('ENV_ROOT', (is_dir($prod_root) === true ? $prod_root : $dev_root));
 
 if (isset($_GET['migration']) && $_GET['migration'] === 'start')
 {
