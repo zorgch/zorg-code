@@ -115,10 +115,10 @@ if (empty($doAction))
 				$e = $db->query($sql, __FILE__, __LINE__, 'SELECT comment_id');
 				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
 				$smarty->assign('comments_subscribed', $comments_subscribed);
-	
+
 				// Unread Posts bauen
 				$comments_unread = array();
-				$e = $db->query('SELECT u.comment_id 
+				$e = $db->query('SELECT u.comment_id
 								 FROM comments c, comments_unread u
 								 WHERE c.id=u.comment_id AND c.thread_id='.$thread['thread_id'].' AND u.user_id ='.$user->id,
 								__FILE__, __LINE__, 'SELECT u.comment_id'
@@ -130,7 +130,7 @@ if (empty($doAction))
 			if ($parent_id == 1)
 			{
 				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comment_resource));
+				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comments_resource));
 				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
 			} else {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));

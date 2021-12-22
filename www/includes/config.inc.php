@@ -245,12 +245,10 @@ if (!defined('IPINFO_API_KEY')) define('IPINFO_API_KEY', include APIKEYS_DIR.'/i
  * Define and include the MCV Controllers and initialise Layout related settings.
  * @include core.model.php MCV Models -> FIXME requires namespace & use cleanup first
  * @include layout.controller.php MVC Controller for Layout
- * @include colors.inc.php Required to have various color vars accessible. WARNING: Must be loaded AFTER MVC Layout!
  */
 //require_once MODELS_DIR.'core.model.php'; // FIXME requires namespace & use cleanup first
 require_once CONTROLLERS_DIR.'layout.controller.php';
 $zorgLayout = new MVC\Controller\Layout();
-include_once INCLUDES_DIR.'colors.inc.php';
 
 /**
  * Grab the NASA API Key.

@@ -8,13 +8,10 @@
  * @include smarty.inc.php required
  * @include forum.inc.php required
  * @include usersystem.inc.php required
- * @include sunrise.inc.php required
- * @include colors.inc.php required
  */
-require_once dirname(__FILE__).'/smarty.inc.php';
+require_once INCLUDES_DIR.'/smarty.inc.php';
 require_once INCLUDES_DIR.'forum.inc.php';
-require_once INCLUDES_DIR.'usersystem.inc.php';
-//require_once INCLUDES_DIR.'sunrise.inc.php';
+//require_once INCLUDES_DIR.'usersystem.inc.php'; // DUPLICATE INCLUSION (already in smarty.inc.php)
 
 /**
  * tpl resource - get timestamp
