@@ -151,32 +151,34 @@ class Layout extends \MVC\Controller
 	 */
 	private function setColors()
 	{
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Color Layout: %s', __METHOD__, __LINE__, $this->layouttype));
+
 		/** Background colors */
-		if (!defined('BACKGROUNDCOLOR')) define('BACKGROUNDCOLOR', ($this->layouttype = 'day' ? '#F2F2F2' : '#141414'));
-		if (!defined('TABLEBACKGROUNDCOLOR')) define('TABLEBACKGROUNDCOLOR', ($this->layouttype = 'day' ? '#DDDDDD' : '#242424'));
-		if (!defined('BORDERCOLOR')) define('BORDERCOLOR', ($this->layouttype = 'day' ? '#CCCCCC' : '#CBBA79'));
-		if (!defined('HEADERBACKGROUNDCOLOR')) define('HEADERBACKGROUNDCOLOR', ($this->layouttype = 'day' ? '#FFFFFF' : '#000000'));
+		if (!defined('BACKGROUNDCOLOR')) define('BACKGROUNDCOLOR', ($this->layouttype === 'day' ? '#F2F2F2' : '#141414'));
+		if (!defined('TABLEBACKGROUNDCOLOR')) define('TABLEBACKGROUNDCOLOR', ($this->layouttype === 'day' ? '#DDDDDD' : '#242424'));
+		if (!defined('BORDERCOLOR')) define('BORDERCOLOR', ($this->layouttype === 'day' ? '#CCCCCC' : '#CBBA79'));
+		if (!defined('HEADERBACKGROUNDCOLOR')) define('HEADERBACKGROUNDCOLOR', ($this->layouttype === 'day' ? '#FFFFFF' : '#000000'));
 
 		/** Forum */
-		if (!defined('NEWCOMMENTCOLOR')) define('NEWCOMMENTCOLOR', ($this->layouttype = 'day' ? '#8D9FE5' : '#72601A'));
-		if (!defined('OWNCOMMENTCOLOR')) define('OWNCOMMENTCOLOR', ($this->layouttype = 'day' ? '#9FE58D' : '#601A72'));
-		if (!defined('FAVCOMMENTCOLOR')) define('FAVCOMMENTCOLOR', ($this->layouttype = 'day' ? '#E58D9F' : '#A2601A'));
-		if (!defined('IGNORECOMMENTCOLOR')) define('IGNORECOMMENTCOLOR', ($this->layouttype = 'day' ? '#E55842' : '#C91B12'));
+		if (!defined('NEWCOMMENTCOLOR')) define('NEWCOMMENTCOLOR', ($this->layouttype === 'day' ? '#8D9FE5' : '#72601A'));
+		if (!defined('OWNCOMMENTCOLOR')) define('OWNCOMMENTCOLOR', ($this->layouttype === 'day' ? '#9FE58D' : '#601A72'));
+		if (!defined('FAVCOMMENTCOLOR')) define('FAVCOMMENTCOLOR', ($this->layouttype === 'day' ? '#E58D9F' : '#A2601A'));
+		if (!defined('IGNORECOMMENTCOLOR')) define('IGNORECOMMENTCOLOR', ($this->layouttype === 'day' ? '#E55842' : '#C91B12'));
 
 		/** Text colors */
-		if (!defined('FONTCOLOR')) define('FONTCOLOR', ($this->layouttype = 'day' ? '#000000' : '#FFFFFF'));
-		if (!defined('LINKCOLOR')) define('LINKCOLOR', ($this->layouttype = 'day' ? '#344586' : '#CBBA79'));
+		if (!defined('FONTCOLOR')) define('FONTCOLOR', ($this->layouttype === 'day' ? '#000000' : '#FFFFFF'));
+		if (!defined('LINKCOLOR')) define('LINKCOLOR', ($this->layouttype === 'day' ? '#344586' : '#CBBA79'));
 
 		/** Menu Colors */
-		if (!defined('MENUCOLOR1')) define('MENUCOLOR1', ($this->layouttype = 'day' ? '#BDCFF5' : '#42300A'));
-		if (!defined('MENUCOLOR2')) define('MENUCOLOR2', ($this->layouttype = 'day' ? '#9DAFD5' : '#62502A'));
+		if (!defined('MENUCOLOR1')) define('MENUCOLOR1', ($this->layouttype === 'day' ? '#BDCFF5' : '#42300A'));
+		if (!defined('MENUCOLOR2')) define('MENUCOLOR2', ($this->layouttype === 'day' ? '#9DAFD5' : '#62502A'));
 
 		/** Form Inputs */
-		if (!defined('IFC')) define('IFC', ($this->layouttype = 'day' ? '#000000' : '#FFFFFF'));
-		if (!defined('IBG')) define('IBG', ($this->layouttype = 'day' ? '#FFFFFF' : '#000000'));
+		if (!defined('IFC')) define('IFC', ($this->layouttype === 'day' ? '#000000' : '#FFFFFF'));
+		if (!defined('IBG')) define('IBG', ($this->layouttype === 'day' ? '#FFFFFF' : '#000000'));
 
 		/** Table Colors */
-		if (!defined('TABLEBGCOLOR')) define('TABLEBGCOLOR', ($this->layouttype = 'day' ? '#E5E5E5' : '#141414'));
+		if (!defined('TABLEBGCOLOR')) define('TABLEBGCOLOR', ($this->layouttype === 'day' ? '#E5E5E5' : '#141414'));
 
 		/** hunting z  */
 		if (!defined('HZ_BG_COLOR')) define('HZ_BG_COLOR', '#C8C8C8');
