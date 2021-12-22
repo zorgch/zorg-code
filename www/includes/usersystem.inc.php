@@ -883,11 +883,12 @@ class usersystem
 	 *
 	 * Gibt Online Users als HTML aus
 	 *
-	 * @version 2.2
+	 * @version 2.3
 	 * @since 1.0 Method added
 	 * @since 2.0 `IneX` Code optimizations
 	 * @since 2.1 `17.04.2020` `IneX` SQL Slow-Query optimization
 	 * @since 2.2 `10.04.2021` `IneX` Code optimizations (store $db->num instead of calling it in loop)
+	 * @since 2.3 `22.12.2021` `IneX` Code optimizations (implode instead of custom count)
 	 *
 	 * @TODO HTML can be returned using new function usersystem::userpage_link()
 	 *
@@ -901,8 +902,7 @@ class usersystem
 		global $db;
 
 		$html = '';
-		$count = 0;
-		$sql = 'SELECT id, username, clan_tag, activity FROM user
+		$sql = 'SELECT id, username, clan_tag FROM user
 				WHERE activity > (NOW() - '.USER_TIMEOUT.') ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$num_online = $db->num($result);
@@ -913,11 +913,10 @@ class usersystem
 				$full_username = (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username'];
 				if ($pic == FALSE)
 				{
-					$html .= sprintf('<a href="/profil.php?user_id=%s">%s</a>', (string)$rs['id'], $full_username);
-					if(($count+1) < $num_online) $html .= ', ';
+					$userList[] = sprintf('<a href="/profil.php?user_id=%s">%s</a>', (string)$rs['id'], $full_username);
 				} else {
 					// @FIXME Change to <div> with flexbox, use Smarty Tpl Partial?
-					$html .= sprint('<table bgcolor="%1$s" border="0"><tr><td>
+					$html .= sprintf('<table bgcolor="%1$s" border="0"><tr><td>
 										<a href="/profil.php?user_id=%2$s">
 											<img border="0" src="%3$s.jpg" title="%4$s">
 										</a>
@@ -926,8 +925,8 @@ class usersystem
 									</td></tr></table><br>',
 							TABLEBACKGROUNDCOLOR, (string)$rs['id'], USER_IMGPATH_PUBLIC.$rs['id'], $full_username);
 				}
-				$count++;
 			}
+			if ($pic == FALSE) $html = implode(', ', $userList);
 		}
 		return $html;
 	}
