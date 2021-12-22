@@ -7,37 +7,40 @@
  * AJAX Request validation
  */
 //if(!isset($_POST['action']) || empty($_POST['action']) || $_POST['action'] != 'userlist')
-if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'userlist')
+if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] !== 'userlist')
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	die('Invalid or missing POST-Parameter');
 }
+$usernameMention = filter_var(trim($_GET['mention']), FILTER_SANITIZE_STRING);
 
 /**
  * FILE INCLUDES
  */
-require_once dirname(__FILE__).'/../../includes/config.inc.php';
-require_once INCLUDES_DIR.'mysql.inc.php';
+//require_once dirname(__FILE__).'/../../includes/config.inc.php'; // OBSOLETE
+require_once dirname(__FILE__).'/../../includes/mysql.inc.php';
 
 /**
  * Get records from database
  */
 header('Content-type:application/json;charset=utf-8');
-try {
-	$sql = 'SELECT id, username FROM user WHERE username LIKE "'.$_GET['mention'].'%" ORDER BY CHAR_LENGTH(username) ASC, username ASC LIMIT 0,6';
+if (false !== $usernameMention)
+{
+	$sql = 'SELECT id, username FROM user WHERE username LIKE "'.$usernameMention.'%" ORDER BY CHAR_LENGTH(username) ASC, username ASC LIMIT 0,6';
 	$result = $db->query($sql, __FILE__, __LINE__);
 	while ($rs = $db->fetch($result))
 	{
 	   $users[] = [
 	   	'userid' => $rs['id'],
 	   	'username' => $rs['username']//,
-	   	//'userpic' => $_SERVER['SERVER_NAME'].'/data/userimages/'.$rs['id'].'.jpg' // too slow :(
+	   	//'userpic' => USER_IMGPATH_PUBLIC.$rs['id'].'.jpg' // too slow :(
 	   ];
 	}
 	http_response_code(200); // Set response code 200 (OK)
 	echo json_encode($users);
 }
-catch(Exception $e) {
-	http_response_code(500); // Set response code 500 (internal server error)
-	echo json_encode($e);
+/** Invalid Input */
+else {
+	http_response_code(400); // Set response code 500 (internal server error)
+	die('Invalid GET-Parameter');
 }

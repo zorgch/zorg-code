@@ -8,13 +8,10 @@
  * @include smarty.inc.php required
  * @include forum.inc.php required
  * @include usersystem.inc.php required
- * @include sunrise.inc.php required
- * @include colors.inc.php required
  */
-require_once dirname(__FILE__).'/smarty.inc.php';
+require_once INCLUDES_DIR.'/smarty.inc.php';
 require_once INCLUDES_DIR.'forum.inc.php';
-require_once INCLUDES_DIR.'usersystem.inc.php';
-require_once INCLUDES_DIR.'sunrise.inc.php';
+//require_once INCLUDES_DIR.'usersystem.inc.php'; // DUPLICATE INCLUSION (already in smarty.inc.php)
 
 /**
  * tpl resource - get timestamp
@@ -27,7 +24,7 @@ function smartyresource_comments_get_timestamp($tpl_name, &$tpl_timestamp, &$sma
 {
   /** comments werden nie automatisch kompiliert. immer nur manuell. */
   global $compile_comments;
-  
+
   $tpl_timestamp = 0;
   return true;
 }
@@ -64,7 +61,7 @@ function smartyresource_comments_get_trusted($tpl_name, &$smarty_obj) {
  * @since 1.0 function added
  */
 function smartyresource_comments_get_thread ($id, $board) {
-	//if(!is_numeric($id)) echo '$id is not numeric!'; 
+	//if(!is_numeric($id)) echo '$id is not numeric!';
 	if ($board == 'f') {
 		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> smartyresource_comments_get_thread(): %s', __METHOD__, __LINE__, $board));
 		return smartyresource_comments_get_commenttree($id, true);
@@ -80,9 +77,9 @@ function smartyresource_comments_get_thread ($id, $board) {
  * Aufbau comments-resource:
  * - ID  z.B. comments:12345
  * -> holt comment 12345
- * 
+ *
  * BOARD - ID  z.B. comments:b-123
- * -> holt thread 123 aus dem board b 
+ * -> holt thread 123 aus dem board b
  * boards können mit dem einzelnen character (aus table) angegeben werden.
  *
  * @author [z]biko
@@ -133,7 +130,7 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
  */
 function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 	global $db, $smarty;
-	
+
 	$html = '<table class="border" width="100%" itemscope itemtype="http://schema.org/BreadcrumbList">
 				<tr><td class="small">';
 
@@ -158,7 +155,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 
 	$html .= '</td></tr></table>';
 
-	$html .= 
+	$html .=
 		'<table bgcolor="{$color.background}" class="border forum" style="table-layout:fixed;" width="100%">'
 			.'<tr>'
 				.'<td align="left" bgcolor="{$color.background}" valign="top"><nobr>'
@@ -186,9 +183,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  * @since 3.2 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
  * @TODO ganzes HTML in ein Smarty TPL auslagern
- * @TODO "$layouttype" is DEPRECATED!
  *
- * @var $layouttype
  * @see smartyresource_comments_get_navigation(), smartyresource_comments_get_childposts()
  * @see Comment::getLinkThread(), Comment::formatPost(), Comment::getNumChildposts()
  * @param integer $id Comment-ID
@@ -196,11 +191,10 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @global string $layouttype [DEPRECATED] Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
  * @return string
  */
 function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
-	global $db, $user, $smarty, $layouttype;
+	global $db, $user, $smarty;
 
 	$sql = 'SELECT
 				comments.*,
@@ -224,7 +218,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 				'<table class="forum"'.($is_thread ? 'itemid="{$smarty.const.SITE_URL}{comment_get_link board='.$rs['board'].' thread_id='.$rs['thread_id'].'}" itemscope itemtype="http://schema.org/DiscussionForumPosting"' : 'itemprop="articleSection" itemscope itemtype="http://schema.org/Comment"').'>'
 			 	.'<tr>';
 
-			$html .= 
+			$html .=
 				'{foreach from=$hdepth item=it key=k}'.
 					'{if is_array($hdepth) && $k == (sizeof($hdepth) - 1)}';
 						if($rs['numchildposts'] > 0) {
@@ -234,14 +228,14 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 						    	.'</td>'
 					    	;
 					  	} else {
-					  		$html .= 
+					  		$html .=
 					  			'{if $it == "space"}'.
 					  				'<td class="threading end"></td>'.
 					  			'{else}'.
 					  				'<td class="threading vertline"><span class="threading split"></span></td>'.
 					  			'{/if}';
 					  	}
-			$html .= 
+			$html .=
 					'{else}'.
 						'<td class="threading {$it}"></td>'.
 					'{/if}'.
@@ -274,7 +268,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			}
 
 			$html .= '<!--googleoff: all-->';
-			$html .= 
+			$html .=
 				' <a href="#top">- nach oben -</a> '
 				.'</td><td class="forum comment meta" style="width: 15%; text-align: right; white-space: nowrap;">'
 			;
@@ -331,7 +325,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			$html .= smartyresource_comments_get_childposts($rs['id'], $rs['board']);
 		$html .= '{/if}';
 
-		return $html;		
+		return $html;
 }
 
 /**
@@ -344,9 +338,6 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  * @since 2.2 `04.12.2020` `IneX` Fix error in compiled template "Warning: count(): Parameter must be an array or an object that implements Countable"
  *
- * @TODO "$layouttype" is DEPRECATED!
- *
- * @var $layouttype
  * @var $color
  * @uses Comment::getNumChildposts()
  * @uses smarty_comment_colorfade()
@@ -355,11 +346,10 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @global string $layouttype [DEPRECATED] Globaler String mit dem Sonnenstand - für Day und Night-Layout. Werte: 'day' oder 'night'.
  * @return string
  */
 function smartyresource_comments_get_childposts ($parent_id, $board) {
-	global $db, $user, $smarty, $layouttype;
+	global $db, $user, $smarty;
 
 	/** Validate passed parameters */
 	if(empty($parent_id) || !is_numeric($parent_id) || is_array($parent_id) || $parent_id < 0) {
@@ -396,7 +386,7 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 			 '<table class="forum">'
 			 .'<tr>';
 
-			$html .= 
+			$html .=
 				'{foreach from=$hdepth item=it}'.
 					'<td class="threading {$it}"></td>'.
 				'{/foreach}';
@@ -408,7 +398,7 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 					.'<a class="threading switch expand" href="{get_changed_url change="parent_id='.$parent_id.'"}"></a>'
 				.'</td>'
 				.'<td align="left" class="border forum">'
-				
+
 			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$color.newcomment}" class="forum">'
 			 .'<tr>'
 				 .'<td bgcolor="{$color.newcomment}" valign="top">'
@@ -416,13 +406,13 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 						 .' <font size="4">Additional posts</font></a>'
 						 .' {if $user->id!=0}<a href="/profil.php?do=view">(du hast Forumanzeigeschwelle <b>{$user->maxdepth}</b> eingestellt)</a>{/if}'
 			 .'</td></tr></table>'
-			 
+
 				.'</td></tr></table>'
 			;
 
 			$html .= '{comment_remove_depth depth=$hdepth}';
 
-	$html .= '{/if}';	
+	$html .= '{/if}';
 
 	return $html;
 }

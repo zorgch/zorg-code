@@ -15,9 +15,11 @@
 
 /**
  * File includes
- * @include core.controller.php Required
+ * @include config.inc.php Include required global site configurations
  */
-require_once dirname(__FILE__).'/controller/core.controller.php';
+require_once dirname(__FILE__).'/includes/config.inc.php';
+require_once MODELS_DIR.'core.model.php';
+require_once CONTROLLERS_DIR.'sitemap.controller.php';
 
 /** [DEBUG] Start execution time measurement (total) */
 if (DEVELOPMENT === true) $timerStart = microtime(true);

@@ -199,8 +199,9 @@ function updateUnreadComments()
 	let unreadsContainer = document.getElementById('unreads');
 	if (typeof unreadsContainer !== 'undefined' && unreadsContainer != null)
 	{
+		let unreadsForUser = parseInt(unreadsContainer.dataset.userid);
 		var xhr = new XMLHttpRequest();
-		xhr.open('GET', '/js/ajax/get-unreadcomments.php');
+		xhr.open('GET', '/js/ajax/get-unreadcomments.php?user='+unreadsForUser);
 		xhr.onload = function() {
 			//console.info(xhr.responseText);
 			if (xhr.status === 200)

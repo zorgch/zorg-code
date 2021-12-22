@@ -23,9 +23,9 @@ $model = new MVC\Books();
  * Validate Passed Parameters
  */
 /** GET */
-if (isset($_GET['book_id']) && is_numeric($_GET['book_id']) && $_GET['book_id'] > 0) $book_id = (int)$_GET['book_id'];
-if (isset($_GET['do']) && is_string($_GET['do'])) $action = (string)$_GET['do'];
-$user_id = (isset($_GET['user']) && is_numeric($_GET['user']) ? (int)$_GET['user'] : $user->id);
+$book_id =  (isset($_GET['book_id']) && is_numeric($_GET['book_id']) && $_GET['book_id'] > 0 ? (int)$_GET['book_id'] : null);
+$action = (isset($_GET['do']) && is_string($_GET['do']) ? (string)$_GET['do'] : null);
+$user_id = (isset($_GET['user']) && is_numeric($_GET['user']) ? (int)$_GET['user'] : ($user->is_loggedin() ? $user->id : null));
 /** POST */
 $postAction = (isset($_POST['do']) && is_string($_POST['do']) ? (string)$_POST['do'] : null);
 
@@ -281,10 +281,10 @@ if (!isset($action) || empty($action))
 	$htmlOutput .= '</td></tr></table><br>';
 
 	/** Ists ein angemeldeter User? */
+	$sidebarHtml = '';
 	if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 	{
 		/** Eingabe Screen für neue Kategorie */
-		$sidebarHtml = null;
 		$sidebarHtml .= '<h2>Neue Kategorie</h2>'
 			.'<form action="'.$_SERVER['PHP_SELF'].'" method="post" enctype="multipart/form-data">'
 			.'<input type="hidden" name="do" value="insert_titel">'

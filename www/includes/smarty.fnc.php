@@ -32,28 +32,15 @@ include_once INCLUDES_DIR.'rezepte.inc.php';
  *
  * Arrays to be used in Smarty Templates
  */
-$color = array(
-	'background'		=> BACKGROUNDCOLOR,
-	'tablebackground'	=> TABLEBACKGROUNDCOLOR,
-	'tableborder'		=> TABLEBORDERC,
-	'border'			=> BORDERCOLOR,
-	'font' 				=> FONTCOLOR,
-	'header'			=> HEADERBACKGROUNDCOLOR,
-	'link'				=> LINKCOLOR,
-	'newcomment'		=> NEWCOMMENTCOLOR,
-	'owncomment'		=> OWNCOMMENTCOLOR,
-	'menu1'				=> MENUCOLOR1,
-	'menu2'				=> MENUCOLOR2
-);
-
 function var_request ()
 {
-   return array("page" => $_SERVER['PHP_SELF'],
-               "params" => $_SERVER['QUERY_STRING'],
-               "url" => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'],
-               "tpl" => isset($_GET['tpl'])?$_GET['tpl']:'',
-               "_tpl" => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:''),
-               "_word" => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:''));
+   return [ 'page' => $_SERVER['PHP_SELF']
+           ,'params' => $_SERVER['QUERY_STRING']
+           ,'url' => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']
+           ,'tpl' => isset($_GET['tpl'])?$_GET['tpl']:''
+           ,'_tpl' => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:'')
+           ,'_word' => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:'')
+		];
 }
 
 
@@ -494,7 +481,7 @@ function var_request ()
 		}
 
 		/** Load the zorg Swiss QR Bill Class */
-		include_once INCLUDES_DIR.'swissqrbill.inc.php';
+		require INCLUDES_DIR.'swissqrbill.inc.php';
 
 		$zorgQRCodeBill = new zorgSwissQRBill();
 		$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
@@ -1543,18 +1530,18 @@ function smarty_menuname ($name, &$smarty) {
      * @var array
      */
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
-								 'color' => array($color, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
+								 'color' => array(SMARTY_COLORS, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
 								,'event_newest' => array(Events::getEventNewest(), 'Events', 'Zeigt neusten Event an', false)
 								,'nextevents' => array(Events::getNext(), 'Events', 'Zeigt nächsten kommenden Event an', false)
 								,'eventyears' => array(Events::getYears(), 'Events', 'Zeigt alle Jahre an, in denen Events erfasst sind', false)
 								,'rezept_newest' => array(Rezepte::getRezeptNewest(), 'Rezepte', 'Zeigt neustes Rezept an', false)
 								,'categories' => array(Rezepte::getCategories(), 'Rezepte', 'Zeigt Liste von Rezept-Kategorien an', false)
 								,'num_errors' => array($num_errors, 'System', 'Zeigt Anzahl geloggter SQL-Errors an', false)
-								,'sun' => array($sun, 'Layout', 'Zeigt an ob Sonne "up" oder "down" ist', false)
-								,'sunset' => array($sunset, 'Layout', 'Zeit des nächsten SonnenUNTERgangs', false)
-								,'sunrise' => array($sunrise, 'Layout', 'Zeit des nächsten SonnenAUFgangs', false)
-								,'country' => array($country, 'Layout', 'ISO-Code des ermittelten Landes des aktuellen Besuchers', false)
-								,'country_image' => array(IMAGES_DIR."country/flags/$country_code.png", 'Layout', 'Bildpfad zur Länderflagge des ermittelten Landes', false)
+								,'sun' => array($zorgLayout->sun, 'Layout', 'Zeigt an ob Sonne "up" oder "down" ist', false)
+								,'sunset' => array($zorgLayout->sunset, 'Layout', 'Zeit des nächsten SonnenUNTERgangs', false)
+								,'sunrise' => array($zorgLayout->sunrise, 'Layout', 'Zeit des nächsten SonnenAUFgangs', false)
+								,'country' => array($zorgLayout->country, 'Layout', 'ISO-Code des ermittelten Landes des aktuellen Besuchers', false)
+								,'country_image' => array($zorgLayout->country_flagicon, 'Layout', 'Bildpfad zur Länderflagge des ermittelten Landes', false)
 								,'request' => array(var_request(), 'URL Handling', 'associative array:  page = requested page / params = url parameter / url = page+params', false)
 								,'url' => array(getURL(), 'URL Handling', 'Gesamte aktuell aufgerufene URL (inkl. Query-Parameter)', false)
 								,'self' => array($_SERVER['PHP_SELF'], 'URL Handling', 'Self = Aktuelle Seiten-URL', false)

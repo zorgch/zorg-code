@@ -426,7 +426,7 @@ class Bugtracker
 		if(in_array('assigned', $show) || in_array('unassigned', $show)) {
 			$sql .= " AND (1=2";
 
-			if($user->id > 0 && in_array('assigned', $show)) {
+			if($user->is_loggedin() && in_array('assigned', $show)) {
 				$sql .= " OR bugs.assignedto_id <> 0";
 				if(in_array('own', $show) || in_array('notown', $show)) {
 					$sql .=
@@ -444,7 +444,7 @@ class Bugtracker
 			;
 		}
 
-		if($user->id > 0 && (in_array('new', $show) || in_array('old', $show))) {
+		if($user->is_loggedin() && (in_array('new', $show) || in_array('old', $show))) {
 			$sql .=
 				" AND (1=2"
 				.(in_array('new', $show)  ? " OR UNIX_TIMESTAMP(bugs.reported_date) > ".$user->lastlogin : "")

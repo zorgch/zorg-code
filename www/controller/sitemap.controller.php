@@ -9,15 +9,17 @@ namespace MVC\Controller;
 
 /**
  * File includes
+ * @include core.controller.php Required MCV Controller Base-Class
  * @include core.model.php Required
  */
-require_once dirname(__FILE__).'/../models/core.model.php';
-use MVC; // Fix namespace reference compatibility for MVC Model
+require_once CONTROLLERS_DIR.'core.controller.php';
+//require_once MODELS_DIR.'core.model.php';
+//use MVC; // Fix namespace reference compatibility for MVC Model
 
 /**
  * Class representing the MVC Controller
  */
-class Sitemap extends Controller
+class Sitemap extends \MVC\Controller
 {
 	/**
 	 * @var integer $sitemapCacheTime Overall Cache lifetime for the Sitemap Template
@@ -62,7 +64,7 @@ class Sitemap extends Controller
 		$this->sitemapCacheTime = $cacheTime;
 
 		/** Initialise MVC Model */
-		$model = new MVC\Sitemap();
+		$model = new \MVC\Model\Sitemap();
 
 		/** Fetch Sitemap Contents from MVC Model */
 		$this->apodPages = $this->process_apods($model->load_apods());

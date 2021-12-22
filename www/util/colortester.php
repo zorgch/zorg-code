@@ -6,7 +6,7 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/../includes/colors.inc.php';
+require_once dirname(__FILE__).'/../includes/config.inc.php';
 require_once INCLUDES_DIR.'forum.inc.php';
 require_once INCLUDES_DIR.'smarty.inc.php';
 
@@ -15,16 +15,16 @@ echo '<html><body text="#FFFFFF">';
 echo(
 	'<table height="100%" width="400">'
 	.'<tr>'
-	
+
 	.'<td bgcolor="'.NEWCOMMENTCOLOR.'">'
 	.'NEWCOMMENTCOLOR ('.NEWCOMMENTCOLOR.')</td>'
-	
+
 	.'<td bgcolor="'.OWNCOMMENTCOLOR.'">'
 	.'OWNCOMMENTCOLOR ('.OWNCOMMENTCOLOR.')</td>'
-	
+
 	.'<td bgcolor="'.TABLEBACKGROUNDCOLOR.'">'
 	.'TABLEBACKGROUNDCOLOR ('.TABLEBACKGROUNDCOLOR.')</td>'
-	
+
 	.'</tr>'
 );
 

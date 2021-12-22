@@ -13,8 +13,8 @@
  * @include mysql_login.inc.local.php Include MySQL Database login information file
  * @include config.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
-require_once INCLUDES_DIR.( file_exists( INCLUDES_DIR.'mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') ;
+//require_once dirname(__FILE__).'/config.inc.php';
+require_once dirname(__FILE__).( file_exists( dirname(__FILE__).'/mysql_login.inc.local.php') ? '/mysql_login.inc.local.php' : '/mysql_login.inc.php') ;
 
 /**
  * MySQL Database Connection Class
@@ -31,52 +31,25 @@ class dbconn
 	var $query_track = array();
 
 	/**
-	 * dbconn constructor.
+	 * MySQL DB Verbindungsaufbau
 	 *
-	 * @version 1.0
-	 * @since 1.0 `03.11.2019` `kassiopaia` method added
+	 * @version 4.0
+	 * @since 3.0 `10.11.2017` `IneX` method code optimized
+	 * @since 4.0 `03.11.2019` `kassiopaia` method renamed from dbconn() (PHP 7.x compatibility)
 	 *
-	 * @param $database
+	 * @param $database MYSQL_DBNAME
 	 * @throws Exception
 	 */
 	public function __construct($database) {
 		try {
 			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // PHP7.x ready
+			/** MySQL: can't connect to server */
 			if(!$this->conn)
-				header('Location: '.SITE_URL.'/error_static.html');
-			//die("MySQL: can't connect to server");
-			if(!@mysqli_select_db($this->conn, $database)) // PHP7.x ready
+				header('Location: /error_static.html?cause=dbconn');
+			/** MySQL: can't find or load database */
+			if(!@mysqli_select_db($this->conn, $database))
 				die($this->msg());
-			mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
-		}
-		catch (Exception $e) {
-			throw $e;
-		}
-	}
-
-	/**
-	 * MySQL DB Verbindungsaufbau
-	 *
-	 * @version 3.0
-	 * @since 3.0 `10.11.2017` `IneX` method code optimized
-	 *
-	 * @TODO kassiopaia: mysql_select_charset() & $this->conn() müssen noch => php7.x ready gemacht werden?
-	 *
-	 * @param string MYSQL_DBNAME
-	 */
-	function dbconn($database) {
-		//$this->dbname = $dbname;
-		//db: ersetzt durch pconnect: $this->conn = @mysql_connect($this->host,$this->dbuser,$this->dbpass);
-		try {
-			$this->conn = mysql_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // DEPRECATED - PHP5 only
-			//$this->conn = @mysqli_connect( MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS, $database); // PHP7.x ready
-			if(!$this->conn)
-				header('Location: '.SITE_URL.'/error_static.html');
-				//die("MySQL: can't connect to server");
-			if(!@mysql_select_db($database, $this->conn)) // DEPRECATED - PHP5 only
-				die($this->msg());
-			mysql_set_charset('utf8mb4', $this->conn); // DEPRECATED - PHP5 only
-			//mysqli_set_charset($this->conn, 'utf8mb4'); // PHP7.x ready
+			mysqli_set_charset($this->conn, 'utf8mb4');
 		}
 		catch (Exception $e) {
 			throw $e;
@@ -94,14 +67,17 @@ class dbconn
 	 * @param $sql string SQL
 	 * @param $file string Filename
 	 * @param $line int Linenumber
+	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return object|integer Query-Result-Resource or Primary-Key of INSERT
 	*/
 	function query($sql, $file='', $line=0, $funktion='') {
 		global $user;
 
+		/** Anzahl SQL-Queries (hoch-)zählen */
 		$this->noquerys++;
 
-		if ($user && isset($user->sql_tracker)) {
+		/** Query Infos in den SQL Query Tracker speichern */
+		if (is_object($user) && isset($user->sql_tracker)) {
 			$this->noquerytracks++;
 			$qfile = $file;
 			$qline = $line;
@@ -114,6 +90,7 @@ class dbconn
 			}
 		}
 
+		/** DB-Query ausführen */
 		try {
 			$result = mysqli_query($this->conn, $sql);
 			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
@@ -130,7 +107,8 @@ class dbconn
 				return $result;
 			}
 		} catch (MySQLException $e) {
-			user_error($e->getMessage(), E_USER_ERROR);
+			//user_error($e->getMessage(), E_USER_ERROR);
+			die($e->getMessage());
 		}
 	}
 
@@ -283,7 +261,8 @@ class dbconn
 		if (!is_array($values))
 		{
 			error_log(sprintf('[ERROR] <%s:%d> db->insert() Wrong Parameter type: %s', __METHOD__, __LINE__, $values));
-			user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
+			//user_error('Wrong Parameter type '.$values.' in db->insert()', E_USER_ERROR);
+			die('Wrong Parameter type '.$values.' in db->insert()');
 		}
 
 		/** Prepare INSERT-Statement */
@@ -291,9 +270,9 @@ class dbconn
 		$insertValues = '("'.implode('","', $values).'")';
 		$insertValues = str_replace('"NOW()"', 'NOW()', $insertValues); // Fix "NOW()" => NOW() without quotes
 		$insertValues = str_replace('"NULL"', 'NULL', $insertValues); // Fix "NULL" => NULL without quotes
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Clean $insertValues: %s', __METHOD__, __LINE__, $insertValues));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Clean $insertValues: %s', __METHOD__, __LINE__, $insertValues));
 		$sql = sprintf('INSERT INTO `%s` %s VALUES %s', $table, $insertKeys, $insertValues);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s', __METHOD__, __LINE__, $sql));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s', __METHOD__, __LINE__, $sql));
 		return $this->query($sql, $file, $line, $funktion);
 	}
 
@@ -350,14 +329,14 @@ class dbconn
 				$conditions[$id[$i]] = $id[$i+1]; // map $id[0] => $id[1], $id[2] => $id[3],... to $conditions-Array
 				$i++;
 			}
-			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $conditions[ %s ]', __METHOD__, __LINE__, print_r($conditions,true)));
+			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $conditions[ %s ]', __METHOD__, __LINE__, print_r($conditions,true)));
 			foreach ($conditions as $field => $value) {
 				$sql .= $field.'='.(is_numeric($value) ? $value : '"'.$value.'"');
 				end($conditions); // @link https://stackoverflow.com/a/8780881/5750030
 				if ($field !== key($conditions)) $sql .= ' OR ';  // Add Separator if not last Array-Iteration
 			}
 		}
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $sql: %s', __METHOD__, __LINE__, $sql));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $sql: %s', __METHOD__, __LINE__, $sql));
 		return $this->query($sql, $file, $line, $funktion);
 		//return mysql_affected_rows();
 	}

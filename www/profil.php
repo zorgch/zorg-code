@@ -341,7 +341,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 				</fieldset>';
 			/** reCAPTCHA v2 form */
 			echo '<fieldset>';
-			echo '<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$reCaptchaApiKeys['key'].'" data-theme="'.($sun === 'up' ? 'light' : 'dark').'"></div>
+			echo '<div style="display:inline-block;" class="g-recaptcha" data-sitekey="'.$reCaptchaApiKeys['key'].'" data-theme="'.($zorgLayout->layouttype === 'day' ? 'light' : 'dark').'"></div>
 	            	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl='.$reCaptchaLang.'"></script>
 	            </fieldset>';
 			/** abschickäää */

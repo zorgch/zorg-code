@@ -8,11 +8,11 @@
  * File includes
  * @include config.inc.php
  * @include mysql.inc.php
- * @include activities.inc.php
+ * @include activities.inc.php Not needed here
  */
 require_once dirname(__FILE__).'/config.inc.php';
 include_once INCLUDES_DIR.'mysql.inc.php';
-include_once INCLUDES_DIR.'activities.inc.php';
+//include_once INCLUDES_DIR.'activities.inc.php';
 
 /**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
@@ -250,10 +250,11 @@ function check_email($email) {
 /**
  * Gibt einen random Quote zurück
  *
+ * @TODO Move this Method to the Quotes-Class
+ *
  * @author keep3r
  * @version 1.0
  * @since 1.0 `22.03.2004` function added
- * @TODO Move this Method to the Quotes-Class
  */
 function quote(){
 	global $db;
@@ -277,10 +278,11 @@ function quote(){
 /**
  * Setzt einmal am Tag einen Quote in die DB daily_quote
  *
+ * @TODO Move this Method to the Quotes-Class
+ *
  * @author keep3r
  * @version 1.0
  * @since 1.0 `22.03.2004` function added
- * @TODO Move this Method to the Quotes-Class
  */
 function set_daily_quote()
 {
@@ -1192,22 +1194,4 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 
 	/** Check if $filepath was hashed - and return it. In case $file_to_compare_hash was also hashed, return false (otherwise a matching Hash would have been true already) */
 	return (!empty($file_hash) && $file_hash != null && empty($file_to_compare_hash) ? $file_hash : false);
-}
-
-/**
- * Get the real (external) IP address
- *
- * @link https://stackoverflow.com/a/23111577/5750030
- *
- * @author IneX
- * @version 1.0
- * @since 1.0 `29.09.2019` `IneX` function added
- *
- * @return string|null Returns the real IP address, or null
- */
-function getRealIPaddress()
-{
-	if ($_SERVER['REMOTE_ADDR'] === '::1' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1') $public_ip = trim(shell_exec('dig +short myip.opendns.com @resolver1.opendns.com'));
-	else $public_ip = $_SERVER['REMOTE_ADDR'];
-	return (isset($public_ip) && !empty($public_ip) ? $public_ip : null);
 }
