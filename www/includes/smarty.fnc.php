@@ -32,28 +32,15 @@ include_once INCLUDES_DIR.'rezepte.inc.php';
  *
  * Arrays to be used in Smarty Templates
  */
-$color = array(
-	'background'		=> BACKGROUNDCOLOR,
-	'tablebackground'	=> TABLEBACKGROUNDCOLOR,
-	'tableborder'		=> TABLEBORDERC,
-	'border'			=> BORDERCOLOR,
-	'font' 				=> FONTCOLOR,
-	'header'			=> HEADERBACKGROUNDCOLOR,
-	'link'				=> LINKCOLOR,
-	'newcomment'		=> NEWCOMMENTCOLOR,
-	'owncomment'		=> OWNCOMMENTCOLOR,
-	'menu1'				=> MENUCOLOR1,
-	'menu2'				=> MENUCOLOR2
-);
-
 function var_request ()
 {
-   return array("page" => $_SERVER['PHP_SELF'],
-               "params" => $_SERVER['QUERY_STRING'],
-               "url" => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'],
-               "tpl" => isset($_GET['tpl'])?$_GET['tpl']:'',
-               "_tpl" => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:''),
-               "_word" => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:''));
+   return [ 'page' => $_SERVER['PHP_SELF']
+           ,'params' => $_SERVER['QUERY_STRING']
+           ,'url' => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']
+           ,'tpl' => isset($_GET['tpl'])?$_GET['tpl']:''
+           ,'_tpl' => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:'')
+           ,'_word' => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:'')
+		];
 }
 
 
@@ -1543,7 +1530,7 @@ function smarty_menuname ($name, &$smarty) {
      * @var array
      */
     $zorg_php_vars = array( //Format: [Variable-Name] => array ([Werte] | [Kategorie] | [Beschreibung] | [Members only true/false])
-								 'color' => array($color, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
+								 'color' => array(SMARTY_COLORS, 'Layout', 'Array mit allen Standardfarben (wechselt zwischen Tag und Nacht)', false)
 								,'event_newest' => array(Events::getEventNewest(), 'Events', 'Zeigt neusten Event an', false)
 								,'nextevents' => array(Events::getNext(), 'Events', 'Zeigt nächsten kommenden Event an', false)
 								,'eventyears' => array(Events::getYears(), 'Events', 'Zeigt alle Jahre an, in denen Events erfasst sind', false)

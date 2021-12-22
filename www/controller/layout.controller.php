@@ -190,5 +190,25 @@ class Layout extends \MVC\Controller
 		if (!defined('HIGHLITECOLOR')) define('HIGHLITECOLOR', '#FF0000');
 		if (!defined('TABLEBORDERC')) define('TABLEBORDERC', BORDERCOLOR);
 		if (!defined('FORUMWIDTH')) define('FORUMWIDTH', '100%');
+
+		/**
+		 * Promote some zorg Colors for Smarty
+		 *
+		 * Allows using these color vars and color HEX-values within Smarty / Smarty Templates.
+		 */
+		if (!defined('SMARTY_COLORS'))
+			define('SMARTY_COLORS', [
+					'background'		=> BACKGROUNDCOLOR
+					,'tablebackground'	=> TABLEBACKGROUNDCOLOR
+					,'tableborder'		=> TABLEBORDERC
+					,'border'			=> BORDERCOLOR
+					,'font' 			=> FONTCOLOR
+					,'header'			=> HEADERBACKGROUNDCOLOR
+					,'link'				=> LINKCOLOR
+					,'newcomment'		=> NEWCOMMENTCOLOR
+					,'owncomment'		=> OWNCOMMENTCOLOR
+					,'menu1'			=> MENUCOLOR1
+					,'menu2'			=> MENUCOLOR2
+			]);
 	}
 }

@@ -227,6 +227,7 @@ if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', '.log');
 if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlog/');
 if (!defined('ERRORLOG_FILE')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE);
 require_once INCLUDES_DIR.'errlog.inc.php';
+//set_error_handler('zorgErrorHandler');
 
 /**
  * Define and include various Placeholder-Strings related constants and files.
