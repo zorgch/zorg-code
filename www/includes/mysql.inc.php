@@ -43,16 +43,25 @@ class dbconn
 	public function __construct($database) {
 		try {
 			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // PHP7.x ready
+
 			/** MySQL: can't connect to server */
-			if(!$this->conn)
+			if (!$this->conn)
+			{
 				header('Location: /error_static.html?cause=dbconn');
+				exit;
+			}
+
 			/** MySQL: can't find or load database */
-			if(!@mysqli_select_db($this->conn, $database))
+			if (!@mysqli_select_db($this->conn, $database))
+			{
 				die($this->msg());
+			}
+
 			mysqli_set_charset($this->conn, 'utf8mb4');
 		}
 		catch (Exception $e) {
 			throw $e;
+			exit;
 		}
 	}
 

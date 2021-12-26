@@ -10,14 +10,16 @@ namespace MVC\Controller;
 /**
  * File includes
  * @include core.controller.php Required MCV Controller Base-Class
+ * @include usersystem.inc.php Includes the Usersystem Class and Methods
+ * @include util.inc.php Includes the Helper Utilities Class and Methods
  * @include sunrise.inc.php Required to calculate Sunrise & Sunset Times
  * @include ipinfo.inc.php Required to retrieve User Geolocation data (Country)
- * @include util.inc.php Includes the Helper Utilities Class and Methods
  */
 require_once CONTROLLERS_DIR.'core.controller.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'sunrise.inc.php';
 require_once INCLUDES_DIR.'ipinfo.inc.php';
-require_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Class representing the MVC Controller
@@ -42,7 +44,7 @@ class Layout extends \MVC\Controller
 	 * @var string $country_flagicon Public accessible path to Country Flag Icon file
 	 * @var string $sunset Time in hh:mm of next sunset
 	 * @var string $sunrise Time in hh:mm of next sunrise
-	 * @var string $sun Current Sun state: up / down
+	 * @var string $sun Current Sun state: up / down. Default: up
 	 * @var string $layouttype Layout to use (based on $sun): night / day. Default: day
 	 */
 	private $userLocationClass;
@@ -51,7 +53,7 @@ class Layout extends \MVC\Controller
 	public $country_flagicon;
 	public $sunset;
 	public $sunrise;
-	public $sun;
+	public $sun = 'up';
 	public $layouttype = 'day';
 
 	/**
