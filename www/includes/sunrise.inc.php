@@ -8,21 +8,7 @@ namespace Layout;
 
 /**
  * File Includes
- * @include config.inc.php -> notifications already included within config.inc.php
- * @include usersystem.inc.php
- * @include mysql.inc.php
- * @include util.inc.php
  */
-//require_once dirname(__FILE__).'/config.inc.php';
-require_once INCLUDES_DIR.'mysql.inc.php';
-require_once INCLUDES_DIR.'usersystem.inc.php';
-include_once INCLUDES_DIR.'util.inc.php';
-
-/**
- * Globals
- */
-//global $suncalc, $cur_time, $sun, $sunset, $sunrise, $country, $country_code, $layouttype;
-
 
 /**
  * Astro Sunrise Class
@@ -42,16 +28,6 @@ include_once INCLUDES_DIR.'util.inc.php';
  * @version $Id: sunrise.inc.php 208 2004-05-08 17:12:27Z bb $
  * @date 14.12.2003
  * @package zorg\Layout
- *
- * @var array $user
- * @var integer $suncalc
- * @var integer $cur_time
- * @var string $sun
- * @var string $sunset
- * @var string $sunrise
- * @var string $country
- * @var string $country_code
- * @var integer $layouttype
  */
 class Astro_Sunrise
 {

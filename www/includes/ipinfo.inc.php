@@ -31,8 +31,9 @@ if ( file_exists(COMPOSER_AUTOLOAD) ) require_once COMPOSER_AUTOLOAD;
  *
  * @author		IneX
  * @package		zorg\Utils\IPinfo
- * @version		1.0
+ * @version		1.5
  * @since		1.0 `03.12.2021` `IneX` Initial integration
+ * @since		1.5 `25.12.2021` `IneX` Added $_SESSION Caching to greatly reduce number of requests to IPinfo.io
  */
 class zorgUserIPinfos
 {
@@ -42,6 +43,11 @@ class zorgUserIPinfos
 	 * @const CACHE_MAXSIZE If the cache's max size is reached, cache values will be invalidated, starting with the oldest cached value. Default maximum cache size: 4096 bytes
 	 * @const CACHE_TTL Time to live (TTL) of the cache means, that values will be cached for the specified duration. Default TTL is 24 hours (in seconds)
 	 * @var bool $CacheDisabled It's possible to disable the cache by passing a "cache_disabled" key. By default it's disabled on DEVELOPMENT only.
+	 * @var string $fallback_last_ip Placeholder String for $_SESSION['last_ip'] when IP was not resolvable
+	 * @var string $fallback_country Fallback ISO2-Country
+	 * @var string $fallback_country_name Fallback Country Name
+	 * @var float $fallback_latitude Fallback location latitude St. Gallen, Switzerland (47.426418, 9.376010)
+	 * @var float $fallback_longitude Fallback location longitude St. Gallen, Switzerland (47.426418, 9.376010)
 	 * @var array $IPinfoSettings Static setting values to configure the IPinfo requests
 	 * @var object $IPinfoClient IPinfo Object
 	 * @var string $UserIPaddress Stores the IP Address of the User
@@ -50,6 +56,11 @@ class zorgUserIPinfos
 	private const CACHE_MAXSIZE = 4096; // Multiples of 2 are recommended to increase efficiency
 	private const CACHE_TTL = 86400; // In seconds. Default: 24 hours = 24*60*60 = 86400
 	private static $CacheDisabled = (DEVELOPMENT === true ? true : false);
+	private $fallback_last_ip = 'PRIV_OR_RES_RANGE';
+	private $fallback_country = 'CH';
+	private $fallback_country_name = 'Switzerland';
+	private $fallback_latitude = 47.426418;
+	private $fallback_longitude = 9.376010;
 	private $IPinfoSettings;
 	private $IPinfoClient;
 	private $UserIPaddress;
@@ -85,43 +96,92 @@ class zorgUserIPinfos
 	 */
 	public function __construct()
 	{
-		try {
-			/** Configure & instantiate the IPinfo Client */
-			$this->IPinfoSettings = [ 'cache_disabled' => self::$CacheDisabled
-									 ,'cache_maxsize' => self::CACHE_MAXSIZE
-									 ,'cache_ttl' => self::CACHE_TTL ];
-			$this->IPInfoClient = new IPinfo(IPINFO_API_KEY, $this->IPinfoSettings);
+		/**
+		 * Fetch User's IP-details and resolve it's associated Data
+		 * NOTE: Could be empty (null) when IP like 127.0.0.1 / ::1!
+		 */
+		$this->UserIPaddress = $this->getRealIPaddress();
 
-			/** Fetch User's IP-detials and resolve it's associated Data */
-			$this->UserIPaddress = $this->getRealIPaddress();
-			$this->UserIPdetailsData = $this->IPInfoClient->getDetails($this->UserIPaddress);
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $this->UserIPaddress, print_r($this->UserIPdetailsData,true)));
-		}
-		catch (\Exception $e) {
-			/**
-			 * Exceptions usually occur for legit reasons. But still we need to satisfy certain requests / responses
-			 */
-			// HTTP 429 - Quota exceeded
-			if ($e->getMessage() === 'IPinfo request quota exceeded.')
-			{
-				error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
-			}
-			// HTTP 400 - Bad request (Referrer limitation)
-			elseif ($e->getMessage() === 'Exception: {"status":400,"reason":"Bad Request"}')
-			{
-				error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
-				try {
-					error_log(sprintf('[INFO] <%s:%d> %s', __METHOD__, __LINE__, 'Trying to initialize new IPinfo without API Token Key...'));
-					$this->IPInfoClient = new IPinfo(null, $this->IPinfoSettings); // Fallback without API Token
-				} catch (\Exception $e) {
-					error_log(sprintf('[ERROR] <%s:%d> Persistent IPinfo Error: %s', __METHOD__, __LINE__, $e->getMessage()));
+		/** Usersession "Caching" check (to not trigger another IPinfo.io request, if not needed) */
+		$weHazDatazAlready = $this->getDataFromSession((!empty($this->UserIPaddress) ? $this->UserIPaddress : $this->fallback_last_ip));
+
+		/** Cache? No no no... */
+		if ($weHazDatazAlready !== true)
+		{
+			try {
+				/** Configure & instantiate the IPinfo Client */
+				$this->IPinfoSettings = [ 'cache_disabled' => self::$CacheDisabled
+									 	,'cache_maxsize' => self::CACHE_MAXSIZE
+									 	,'cache_ttl' => self::CACHE_TTL ];
+				$this->IPInfoClient = new IPinfo(IPINFO_API_KEY, $this->IPinfoSettings);
+				$this->UserIPdetailsData = $this->IPInfoClient->getDetails($this->UserIPaddress);
+
+				/** Make sure IPinfo reply is not bogon (e.g. 127.0.0.1 = bogon / missing data) */
+				if (!isset($this->UserIPdetailsData->bogon) || $this->UserIPdetailsData->bogon !== 1)
+				{
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $this->UserIPaddress, print_r((array)$this->UserIPdetailsData,true)));
+
+					/** Store IP Data Values to Usersession to reduce additional hits to IPinfo.io */
+					$this->storeUserIPToSession();
+					$this->storeUserIPDetailsToSession();
+				} else {
+					throw new Exception('Bogus IP address.');
 				}
 			}
-			// Any other exception...
-			else {
-				error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+			catch (\Exception $e) {
+				/**
+				 * Exceptions usually occur for legit reasons. But still we need to satisfy certain requests / responses
+				 */
+				switch ($e->getMessage())
+				{
+					/** HTTP 429 - Quota exceeded */
+					case 'IPinfo request quota exceeded.':
+						error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+						break;
+
+					/** HTTP 400 - Bad request (Referrer limitation) */
+					case 'Exception: {"status":400,"reason":"Bad Request"}':
+						error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+						try {
+							error_log(sprintf('[INFO] <%s:%d> %s', __METHOD__, __LINE__, 'Trying to initialize new IPinfo without API Token Key...'));
+							$this->IPInfoClient = new IPinfo(null, $this->IPinfoSettings); // Fallback without API Token
+						} catch (\Exception $e) {
+							error_log(sprintf('[ERROR] <%s:%d> Persistent IPinfo Error: %s', __METHOD__, __LINE__, $e->getMessage($this->UserIPdetailsData)));
+						}
+						break;
+
+					/** Invalid IP address (not resolvable on IPinfo.io) */
+					case 'Bogus IP address.':
+						error_log(sprintf('[ERROR] <%s:%d> %s %s %s', __METHOD__, __LINE__, $e->getMessage(), "\n", print_r((array)$this->UserIPdetailsData,true)));
+						break;
+
+					/** Any other exception... */
+					default:
+						error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
+				}
+
+				/**
+				 * Even with Exception, store IP Data Values to Usersession
+				 * in order to further reduce additional hits to IPinfo.io
+				 */
+				$this->storeUserIPToSession();
+				/** Build manual UserIPDetails Object using Fallback values */
+				if (empty($this->UserIPdetailsData))
+				{
+					$this->UserIPdetailsData = (object)[
+														'country' => $this->fallback_country
+														,'country_name' => $this->fallback_country_name
+														,'loc' => sprintf('%d,%d', $this->fallback_latitude, $this->fallback_longitude)
+														,'latitude' => $this->fallback_latitude
+														,'longitude' => $this->fallback_longitude
+													];
+				}
+				$this->storeUserIPDetailsToSession();
+
+				//exit;
 			}
-			//exit;
+		} elseif (DEVELOPMENT === true) {
+			error_log(sprintf('[DEBUG] <%s:%d> IPinfo getDataFromSession(%s): SESSION CACHE HIT!', __METHOD__, __LINE__, $this->UserIPaddress));
 		}
 	}
 
@@ -131,7 +191,7 @@ class zorgUserIPinfos
 	 * @link https://www.benmarshall.me/get-ip-address/
 	 *
 	 * @author IneX
-	 * @version 1.0
+	 * @version 2.0
 	 * @since 1.0 `29.09.2019` `IneX` function added
 	 * @since 2.0 `03.12.2021` `IneX` function moved from util.inc.php & refactored with more robust code (supports ipv4 + ipv6)
 	 *
@@ -140,13 +200,6 @@ class zorgUserIPinfos
 	 */
 	private function getRealIPaddress()
 	{
-		//global $user;
-
-		/* @link https://stackoverflow.com/a/23111577/5750030 DEPRECATED
-		if ($_SERVER['REMOTE_ADDR'] === '::1' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1') $public_ip = trim(shell_exec('dig +short myip.opendns.com @resolver1.opendns.com'));
-		else $public_ip = $_SERVER['REMOTE_ADDR'];
-		return (isset($public_ip) && !empty($public_ip) ? $public_ip : null);*/
-
 		foreach(['HTTP_CLIENT_IP'
 				,'HTTP_X_FORWARDED_FOR'
 				,'HTTP_X_FORWARDED'
@@ -162,22 +215,18 @@ class zorgUserIPinfos
 				{
 					$ip_address = trim($ip_address);
 
-					if ($ip_address !== '::1' && $ip_address !== '127.0.0.1')
+					/**
+					 * Filters explained:
+					 * - FILTER_FLAG_NO_PRIV_RANGE: no private IPv4 ranges like 10.0.0.0, 172.16.0.0 & 192.168.0.0/16
+					 * - FILTER_FLAG_NO_RES_RANGE: no private IPv4/IPv6 like: 127.0.0.0, ::1, etc.
+					 */
+					if (false !== filter_var($ip_address, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE]))
 					{
-						if (false !== filter_var($ip_address, FILTER_VALIDATE_IP,
-											 	['flags' => FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE, FILTER_NULL_ON_FAILURE]
-												)
-						) {
-						// On successful validation
-							return $ip_address; // Can also return NULL because of FILTER_NULL_ON_FAILURE
-						}
-						// On filter error (false)
-						else {
-							return null;
-						}
+						/** On successful validation */
+						return $ip_address;
 					}
-					// On local IP = error
 					else {
+						/** On filter error (false) */
 						return null;
 					}
 				}
@@ -196,8 +245,8 @@ class zorgUserIPinfos
 	 */
 	public function getCountryName($localize=null)
 	{
-		/** If $UserIPdetailsData is empty, use Fallback: fixed on Switzerland */
-		return (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country_name : 'Switzerland');
+		/** If $UserIPdetailsData is empty, use Fallback */
+		return (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country_name : $this->fallback_country_name);
 	}
 
 	/**
@@ -212,9 +261,9 @@ class zorgUserIPinfos
 	 */
 	public function getCoordinates()
 	{
-		/** If $UserIPdetailsData is empty, use Fallback: St. Gallen, Switzerland (47.426418, 9.376010) */
-		$IPinfoLat = (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->latitude) ? $this->UserIPdetailsData->latitude : 47.426418);
-		$IPinfoLon = (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->longitude) ? $this->UserIPdetailsData->longitude : 9.376010);
+		/** If $UserIPdetailsData is empty, use Fallback */
+		$IPinfoLat = (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->latitude) ? $this->UserIPdetailsData->latitude : $this->fallback_latitude);
+		$IPinfoLon = (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData->longitude) ? $this->UserIPdetailsData->longitude : $this->fallback_longitude);
 		$coordinates = ['latitude' => $IPinfoLat, 'longitude' => $IPinfoLon];
 
 		return $coordinates;
@@ -227,8 +276,8 @@ class zorgUserIPinfos
 	 */
 	public function getCountryIso2Code()
 	{
-		/** If $UserIPdetailsData is empty, use Fallback: fixed on Switzerland */
-		return (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country : 'CH');
+		/** If $UserIPdetailsData is empty, use Fallback */
+		return (is_object($this->UserIPdetailsData) && false !== $this->UserIPdetailsData ? $this->UserIPdetailsData->country : $this->fallback_country);
 	}
 
 	/**
@@ -249,5 +298,78 @@ class zorgUserIPinfos
 		$iso3CountryCode = (array_key_exists($countryIso2Code, $mappingListIso2toIso3) ? $mappingListIso2toIso3[$countryIso2Code] : false);
 
 		return $iso3CountryCode;
+	}
+
+	/**
+	 * Store the User's IP to the Usersession
+	 *
+	 * Adds the following values:
+	 * - $_SESSION['last_ip']
+	 *
+	 * @param string The IP address to store to $_SESSION
+	 * @return void
+	 */
+	private function storeUserIPToSession()
+	{
+		/** Push Data to $_SESSION */
+		$_SESSION['last_ip'] = (!empty($this->UserIPaddress) ? $this->UserIPaddress : $this->fallback_last_ip);
+	}
+
+	/**
+	 * Store the User's IP-Location Details to the Usersession
+	 *
+	 * Adds the following values:
+	 * - $_SESSION['UserIPdetailsData']
+	 *
+	 * @return void
+	 */
+	private function storeUserIPDetailsToSession()
+	{
+		/** Convert IPinfo User Details Object to Array */
+		$UserIPdetailsDataToStore = (array)$this->UserIPdetailsData;
+
+		/** Push Data to $_SESSION */
+		$_SESSION['UserIPdetailsData'] = $UserIPdetailsDataToStore;
+	}
+
+	/**
+	 * Check for Data already stored in User's Session
+	 *
+	 * @param string The User's current IP address, serving as comparison if $_SESSION data is up-to-date
+	 * @return bool Returns true if $_SESSION data was re-used, or false if $_SESSION data is outdated
+	 */
+	private function getDataFromSession($ip_to_compare)
+	{
+		/** Check if a last_ip entry is in $_SESSION (even if $this->fallback_last_ip) */
+		if (isset($_SESSION['last_ip']))
+		{
+			/** Data is up to date (IP has not changed) */
+			if ($_SESSION['last_ip'] === $ip_to_compare)
+			{
+				/** UserIPdetailsData */
+				if (isset($_SESSION['UserIPdetailsData']) && is_array($_SESSION['UserIPdetailsData']))
+				{
+					/**
+					* Convert Array from Session to IPinfo User Details Object
+					* first cast the array to stdClass, then change the class name
+					*/
+					/* $className = 'UserIPdetailsData';
+					$objData = serialize((object)$_SESSION['UserIPdetailsData']);
+					$convertedObjectToClass = str_replace(
+						'O:8:"stdClass"',
+						'O:'.strlen($className).':"'.$className.'"',
+						$objData
+					);
+					unset($objData);
+					$this->UserIPdetailsData = unserialize($convertedObjectToClass);
+					*/
+					$this->UserIPdetailsData = (object)$_SESSION['UserIPdetailsData'];
+
+					return true;
+				}
+			}
+		}
+		/** If IP has changed, or UserIPdetails missing, return false */
+		return false;
 	}
 }
