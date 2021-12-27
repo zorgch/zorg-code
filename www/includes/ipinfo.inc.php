@@ -159,6 +159,25 @@ class zorgUserIPinfos
 					default:
 						error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
 				}
+
+				/**
+				 * Even with Exception, store IP Data Values to Usersession
+				 * in order to further reduce additional hits to IPinfo.io
+				 */
+				$this->storeUserIPToSession();
+				/** Build manual UserIPDetails Object using Fallback values */
+				if (empty($this->UserIPdetailsData))
+				{
+					$this->UserIPdetailsData = (object)[
+														'country' => $this->fallback_country
+														,'country_name' => $this->fallback_country_name
+														,'loc' => sprintf('%d,%d', $this->fallback_latitude, $this->fallback_longitude)
+														,'latitude' => $this->fallback_latitude
+														,'longitude' => $this->fallback_longitude
+													];
+				}
+				$this->storeUserIPDetailsToSession();
+
 				//exit;
 			}
 		} elseif (DEVELOPMENT === true) {
