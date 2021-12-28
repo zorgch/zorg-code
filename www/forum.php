@@ -29,13 +29,13 @@ $model = new MVC\Forum();
 /**
  * Validate passed Parameters
  */
-$doAction = (isset($_GET['layout']) && !empty($_GET['layout']) && is_string($_GET['layout']) ? sanitize_userinput($_GET['layout']) : null);
-$searchKeyword = (isset($_GET['keyword']) && !empty($_GET['keyword']) && is_string($_GET['keyword']) ? sanitize_userinput($_GET['keyword']) : null);
-$commentId = (isset($_GET['id']) && !empty($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0 ? sanitize_userinput($_GET['id']) : null);
-$threadId = (isset($_GET['thread_id']) && !empty($_GET['thread_id']) && is_numeric($_GET['thread_id']) && $_GET['thread_id'] > 0 ? sanitize_userinput($_GET['thread_id']) : null);
-$commentParentId = (isset($_GET['parent_id']) && !empty($_GET['parent_id']) && is_numeric($_GET['parent_id']) && $_GET['parent_id'] > 0 ? sanitize_userinput($_GET['parent_id']) : null);
-$sortBy = (isset($_GET['sortby']) && !empty($_GET['sortby']) && is_string($_GET['sortby']) ? sanitize_userinput($_GET['sortby']) : null);
-$errorMessage = (isset($_GET['error']) && !empty($_GET['error']) ? sanitize_userinput($_GET['error']) : null);
+$doAction = (isset($_GET['layout']) ? filter_var(trim($_GET['layout']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
+$searchKeyword = (isset($_GET['keyword']) ? filter_var(trim($_GET['keyword']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
+$commentId = (isset($_GET['id']) ? filter_var(trim($_GET['id']), FILTER_VALIDATE_INT, ['flags' => FILTER_SANITIZE_NUMBER_INT | FILTER_NULL_ON_FAILURE]) : null);
+$threadId = (isset($_GET['thread_id']) ? filter_var(trim($_GET['thread_id']), FILTER_VALIDATE_INT, ['flags' => FILTER_SANITIZE_NUMBER_INT | FILTER_NULL_ON_FAILURE]) : null);
+$commentParentId = (isset($_GET['parent_id']) ? filter_var(trim($_GET['parent_id']), FILTER_VALIDATE_INT, ['flags' => FILTER_SANITIZE_NUMBER_INT | FILTER_NULL_ON_FAILURE]) : null);
+$sortBy = (isset($_GET['sortby']) ? filter_var(trim($_GET['sortby']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
+$errorMessage = (isset($_GET['error']) ? filter_var(trim($_GET['error']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
 
 /**
  * Forum-Übersicht/-Threads ausgeben
@@ -76,12 +76,13 @@ if (empty($doAction))
 		}
 
 	/**
-	 * Thread ausgeben
+	 * Comments und Threads ausgeben
 	 */
 	} else {
 		$outputContent = '';
+		$no_form = false; // Commentform is: true=hidden / false=shown
 		$rsparent = Comment::getRecordset($showCommentId);
-		$parent_id = $rsparent['parent_id'];
+		$parent_id = (int)$rsparent['parent_id'];
 		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$showCommentId, __FILE__, __LINE__, 'SELECT * FROM comments'));
 
 		/** Forum / Commenting Error anzeigen */
@@ -91,24 +92,40 @@ if (empty($doAction))
 			$outputContent .= $smarty->fetch('file:layout/elements/block_error.tpl');
 		}
 
-		/** Thread not found */
-		if (!$thread)
+		/** Comment not found */
+		if (false === $thread || empty($thread))
 		{
 			$no_form = true;
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-thread_id', 'commenting')]);
 			$model->threadNotFound($smarty);
 			http_response_code(404); // Set response code 404 (not found)
-		} else {
+		}
+		/** Comment found & fetched from DB */
+		else {
 			/** damit man die älteren kompilierten comments löschen kann (speicherplatz sparen) */
 			Thread::setLastSeen($thread['board'], $thread['thread_id']);
 
 			$model->showThread($smarty, $thread['thread_id'], $thread['text']);
 
-			/** Bei eingeloggten Usern... */
+			/** Comment is the Thread-Comment */
+			if ($parent_id === 1)
+			{
+				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comments_resource));
+				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
+			}
+			/** Comment is a regular (Sub-)Comment */
+			else {
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));
+				$smarty->assign('comments_top_additional', 1);
+				$outputContent .= $smarty->fetch('comments:'.$showCommentId);
+			}
+
+			/** Zusätzliche Features & Output nur bei eingeloggten Usern... */
 			if ($user->is_loggedin())
 			{
 				/** Subscribed_Comments Array bauen */
-				$comments_subscribed = array();
+				$comments_subscribed = []; // Könnte leer bleiben wenn 0=Subscribed...
 				$sql = 'SELECT comment_id
 						FROM comments_subscriptions
 						WHERE board="'.$thread['board'].'" AND user_id='.$user->id;
@@ -116,8 +133,8 @@ if (empty($doAction))
 				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
 				$smarty->assign('comments_subscribed', $comments_subscribed);
 
-				// Unread Posts bauen
-				$comments_unread = array();
+				/** Unread Posts bauen */
+				$comments_unread = []; // Könnte leer bleiben wenn 0=Unreads...
 				$e = $db->query('SELECT u.comment_id
 								 FROM comments c, comments_unread u
 								 WHERE c.id=u.comment_id AND c.thread_id='.$thread['thread_id'].' AND u.user_id ='.$user->id,
@@ -125,26 +142,15 @@ if (empty($doAction))
 							);
 				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
 				$smarty->assign('comments_unread', $comments_unread);
-			}
 
-			if ($parent_id == 1)
-			{
-				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comments_resource));
-				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
-			} else {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));
-				$smarty->assign('comments_top_additional', 1);
-				$outputContent .= $smarty->fetch('comments:'.$showCommentId);
-			}
-
-			/** Commentform zum posten printen */
-			if ($user->is_loggedin() && !$no_form)
-			{
-				$smarty->assign('board', 'f');
-				$smarty->assign('thread_id', Comment::getThreadid('f', $showCommentId));
-				$smarty->assign('parent_id', $showCommentId);
-				$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
+				/** Commentform zum posten printen */
+				if ($no_form === false)
+				{
+					$smarty->assign('board', 'f');
+					$smarty->assign('thread_id', Comment::getThreadid('f', $showCommentId));
+					$smarty->assign('parent_id', $showCommentId);
+					$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
+				}
 			}
 		}
 
@@ -191,7 +197,7 @@ elseif($doAction === 'edit' && $user->is_loggedin())
 	$rs = Comment::getRecordset($commentId);
 
 	/** Check if $user->id is Comment-Owner */
-	if($user->id == $rs['user_id']) {
+	if($user->id === (int)$rs['user_id']) {
 		echo Forum::getFormEdit($commentId);
 	} else {
 		http_response_code(403); // Set response code 403 (Forbidden)
