@@ -42,7 +42,7 @@ class dbconn
 	 */
 	public function __construct($database) {
 		try {
-			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS); // PHP7.x ready
+			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS);
 
 			/** MySQL: can't connect to server */
 			if (!$this->conn)
@@ -131,8 +131,8 @@ class dbconn
 	 */
 	function msg($sql='',$file='',$line='',$funktion='')
 	{
-		$num = mysqli_errno($this->conn); // PHP7.x ready
-		$msg = mysqli_error($this->conn); // PHP7.x ready
+		$num = mysqli_errno($this->conn);
+		$msg = mysqli_error($this->conn);
 		$ausg = "<table cellpadding='5' align='center' cellspacing='0' bgcolor='#FFFFFF' width='800' style='font-family: verdana; font-size:12px; color:black;'>
 		<tr><td align='center' width='800' colspan='2'
 		style='border-bottom-style:solid; border-bottom-color:#000000; border-bottom-width:1px;'>
@@ -180,7 +180,7 @@ class dbconn
 						(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '' ),
 						$funktion
 					);
-		@mysqli_query($sql,$this->conn); // PHP7.x ready
+		@mysqli_query($sql,$this->conn);
 	}
 
 	/**
@@ -189,28 +189,28 @@ class dbconn
 	 * @TODO add 2nd param for MYSQLI_ASSOC feature? See e.g. /js/ajax/get-userpic.php
 	 *
 	 * @return array
-	 * @param $result object SQL-Resultat
+	 * @param $result array|null|false SQL-Resultat
 	 */
 	function fetch($result) {
 		global $sql; // notwendig??
-		return @mysqli_fetch_array($result); // PHP7.x ready
+		return @mysqli_fetch_array($result);
 	}
 
 	/**
 	 * gibt die letzte Autoincrement ID zurück.
-	 * @return int
+	 * @return int|string Returns an Integer (can also be '0') or number as a String if greater than max. int value
 	 */
 	function lastid() {
-		return @mysqli_insert_id($this->conn); // PHP7.x ready
+		return @mysqli_insert_id($this->conn);
 	}
 
 	/**
 	 * Gibt die Anzahl betroffener Datensätze zurück.
 	 * @return int numrows
-	 * @param $result object SQL-Resultat
+	 * @param $result int|string Returns an Integer of the number of fetched rows. Returns 0 if unbuffered. String if rows greater than PHP_INT_MAX.
 	 */
 	function num($result,$errorchk=TRUE) {
-		return @mysqli_num_rows($result); // PHP7.x ready
+		return @mysqli_num_rows($result);
 	}
 
 	/**
@@ -220,7 +220,7 @@ class dbconn
 	 * @param $rownum int Rownumber
 	 */
 	function seek($result,$rownum) {
-		return @mysqli_data_seek($result, $rownum); // PHP7.x ready
+		return @mysqli_data_seek($result, $rownum);
 	}
 
 	/**
@@ -229,7 +229,7 @@ class dbconn
 	 * @param $result object SQL-Resultat
 	 */
 	function numfields($result) {
-		return @mysqli_field_count($this->conn); // PHP7.x ready
+		return @mysqli_field_count($this->conn);
 	}
 
 	/**
@@ -238,13 +238,13 @@ class dbconn
 	 */
 	function tables() {
 		//$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
-		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME); // PHP7.x ready
+		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME);
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
-			@mysqli_data_seek($tables,$i); // PHP7.x ready
-			$f = mysql_fetch_array($tables); // PHP7.x ready
-			$tab[$i] = $f[0]; // PHP7.x ready
+			@mysqli_data_seek($tables,$i);
+			$f = mysql_fetch_array($tables);
+			$tab[$i] = $f[0];
 		}
 		return $tab;
 	}
