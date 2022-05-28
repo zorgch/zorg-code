@@ -184,10 +184,6 @@ class usersystem
 			}
 		}
 
-		require_once CONTROLLERS_DIR.'layout.controller.php';
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new MVC\Controller\Layout()', __FILE__, __LINE__));
-		$zorgLayout = new MVC\Controller\Layout();
-
 		/**
 		 * User Session konfigurieren.
 		 * Wenn bereits usersystem::login() erfolgreich triggered wurde,

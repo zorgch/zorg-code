@@ -282,8 +282,6 @@ define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);
  * @include layout.controller.php MVC Controller for Layout
  */
 //require_once MODELS_DIR.'core.model.php'; // FIXME requires namespace & use cleanup first
-// require_once CONTROLLERS_DIR.'layout.controller.php';
-// if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new MVC\Controller\Layout()', __FILE__, __LINE__));
-// $zorgLayout = new MVC\Controller\Layout();
-require_once INCLUDES_DIR.'mysql.inc.php';
-require_once INCLUDES_DIR.'usersystem.inc.php';
+require_once CONTROLLERS_DIR.'layout.controller.php';
+if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new MVC\Controller\Layout()', __FILE__, __LINE__));
+$zorgLayout = new MVC\Controller\Layout();
