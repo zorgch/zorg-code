@@ -13,13 +13,13 @@ namespace MVC\Controller;
  * @include usersystem.inc.php Includes the Usersystem Class and Methods
  * @include util.inc.php Includes the Helper Utilities Class and Methods
  * @include sunrise.inc.php Required to calculate Sunrise & Sunset Times
- * @include ipinfo.inc.php Required to retrieve User Geolocation data (Country)
+ * @include geo2ip.inc.php Required to retrieve User Geolocation data (IP, Country, Latitude/Longitude, Timezone)
  */
 require_once CONTROLLERS_DIR.'core.controller.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'sunrise.inc.php';
-require_once INCLUDES_DIR.'ipinfo.inc.php';
+require_once INCLUDES_DIR.'geo2ip.inc.php';
 
 /**
  * Class representing the MVC Controller
@@ -38,7 +38,7 @@ class Layout extends \MVC\Controller
 	private const COUNTRY_FLAGICONS_DIR_PUBLIC = IMAGES_DIR.'country/flags';
 
 	/**
-	 * @var object $userLocationClass zorgUserIPinfos() Object containing User's location infos
+	 * @var object $userLocationClass IP2Geolocation() Object containing User's IP-Geolocation infos
 	 * @var string $country Country code, like "che"
 	 * @var string $country_code Country code, like "CHE"
 	 * @var string $country_flagicon Public accessible path to Country Flag Icon file
@@ -66,11 +66,12 @@ class Layout extends \MVC\Controller
 	{
 		try {
 			/** Position vom user bestimmen */
-			$this->userLocationClass = new \Utils\zorgUserIPinfos();
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new \Utils\IP2Geolocation()', __FILE__, __LINE__));
+			$this->userLocationClass = new \Utils\User\IP2Geolocation();
 
 			/** Assign user location vars */
 			$this->country = $this->userLocationClass->getCountryName();
-			$this->country_code = $this->userLocationClass->getCountryIso3Code($this->userLocationClass->getCountryIso2Code());
+			$this->country_code = \convertToCountryIso3($this->userLocationClass->getGeoCountryIso2Code());
 			$this->setSunriseSunsetDayNight($this->userLocationClass->getCoordinates());
 			$this->setCountryFlagicon($this->country_code);
 
@@ -86,15 +87,15 @@ class Layout extends \MVC\Controller
 	/**
 	 * Sunrise, Sunset, Day & Night
 	 *
-	 * @uses zorgUserIPinfos(), Astro_Sunrise()
+	 * @uses \Utils\User\IP2Geolocation(), Astro_Sunrise()
 	 * @param array $LatLonCoordinates Array containing a latitude + longitude element
 	 */
 	private function setSunriseSunsetDayNight($LatLonCoordinates)
 	{
 		/** Validate Param */
 		if (!is_array($LatLonCoordinates)
-				|| !isset($LatLonCoordinates[0]) || !isset($LatLonCoordinates[1])
-				|| !is_float($LatLonCoordinates[0]) || !is_float($LatLonCoordinates[1]))
+				|| !isset($LatLonCoordinates['latitude']) || !isset($LatLonCoordinates['longitude'])
+				|| !is_float($LatLonCoordinates['latitude']) || !is_float($LatLonCoordinates['longitude']))
 		{
 			/* Fallback: St. Gallen, Switzerland (47.426418, 9.376010) */
 			$LatLonCoordinates = ['latitude' => 47.426418, 'longitude' => 9.376010];
@@ -102,13 +103,14 @@ class Layout extends \MVC\Controller
 
 		$suncalc = new \Layout\Astro_Sunrise();
 		$suncalc->setCoords($LatLonCoordinates['latitude'], $LatLonCoordinates['longitude']);
-		$suncalc->setTimezone(round($LatLonCoordinates['longitude']/15.0)+date('I'));
-		$suncalc->setTimestamp(time()+(3600*round($LatLonCoordinates['longitude']/15.0)+date('I')));
+		$timezoneOffset = round($LatLonCoordinates['longitude']/15.0+date('I')); // time zones at every 15° (earth has 360° = 24 perfect time zones). + Summer/Winter-Time offset.
+		$suncalc->setTimezone($timezoneOffset);
+		$suncalc->setTimestamp(time()+(3600*$timezoneOffset));
 		$this->sunrise = $suncalc->getSunrise();
 		$this->sunset = $suncalc->getSunset();
 		$sunrise_timestamp = strtotime($this->sunrise); // Converts hh:mm time to a UNIX timestamp
 		$sunset_timestamp = strtotime($this->sunset); // Converts hh:mm time to a UNIX timestamp
-		$cur_timestamp = (time()+(3600*round($LatLonCoordinates['longitude']/15.0)+date('I'))-3600);
+		$cur_timestamp = (time()+(3600*$timezoneOffset)-3600);
 
 		if ($cur_timestamp > $sunrise_timestamp)
 		{
