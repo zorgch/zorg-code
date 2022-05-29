@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de">{if $sun == 'up' || $smarty.get.sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}
 {assign var=dev value=false}
 {assign_array var=president value="array('userid'=>117,'value'=>'president','label'=>'Präsidentensache')"}
 {assign_array var=actuary value="array('userid'=>11,'value'=>'actuary','label'=>'Aktuarssache')"}
@@ -19,6 +19,9 @@
 	<script src="{$smarty.const.JS_DIR}jquery-3.5.1.min.js"></script>
 	<script src="{$smarty.const.CSS_DIR}shoelace/shoelace.min.js"></script>
 	<script src="{$smarty.const.JS_DIR}nanobar.min.js"></script>
+	<!-- HighlightJS - Code syntax highlighting (required for Quill) -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.0/build/styles/default.min.css">
+	<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.0/build/highlight.min.js"></script>
 	<!-- Quill - Rich Text Editor: https://quilljs.com/ -->
 	<link rel="stylesheet" href="{$smarty.const.JS_DIR}quill-richtexteditor/quill.snow.css" />
 	<script src="{$smarty.const.JS_DIR}quill-richtexteditor/quill.min.js"></script>
