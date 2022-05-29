@@ -230,28 +230,6 @@ require_once INCLUDES_DIR.'errlog.inc.php';
 //set_error_handler('zorgErrorHandler');
 
 /**
- * Define and include various Placeholder-Strings related constants and files.
- * @include strings.inc.php
- */
-include_once INCLUDES_DIR.'strings.inc.php';
-
-/**
- * Grab the IPinfo API Key.
- * @include ipinfo_key.inc.php Include a String containing a valid IPinfo.io API Token
- * @const IPINFO_API_KEY A constant holding the IPinfo API Token, is used to query User information on IP and Country (for zorg Layout)
- */
-if (!defined('IPINFO_API_KEY')) define('IPINFO_API_KEY', include APIKEYS_DIR.'/ipinfo/'.(file_exists(APIKEYS_DIR.'/ipinfo/ipinfo_key.inc.local.php') ? 'ipinfo_key.inc.local.php' : 'ipinfo_key.inc.php') );
-
-/**
- * Define and include the MCV Controllers and initialise Layout related settings.
- * @include core.model.php MCV Models -> FIXME requires namespace & use cleanup first
- * @include layout.controller.php MVC Controller for Layout
- */
-//require_once MODELS_DIR.'core.model.php'; // FIXME requires namespace & use cleanup first
-require_once CONTROLLERS_DIR.'layout.controller.php';
-$zorgLayout = new MVC\Controller\Layout();
-
-/**
  * Grab the NASA API Key.
  * @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
  * @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
@@ -269,6 +247,12 @@ if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', 41);
 if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', SITE_ROOT.'/../data/temp/');
 if (!defined('APOD_SOURCE')) define('APOD_SOURCE', 'https://apod.nasa.gov/apod/');
 if (!defined('APOD_API')) define('APOD_API', 'https://api.nasa.gov/planetary/apod?api_key='.NASA_API_KEY);
+
+/**
+ * Define and include various Placeholder-Strings related constants and files.
+ * @include strings.inc.php
+ */
+include_once INCLUDES_DIR.'strings.inc.php';
 
 /**
  * Define and include various Notification System-related constants and files.
@@ -291,3 +275,13 @@ include_once INCLUDES_DIR.'telegrambot.inc.php';
 define('MAX_ADDLE_GAMES', 1);
 define('ADDLE_BASE_POINTS', 1600);
 define('ADDLE_MAX_POINTS_TRANSFERABLE', 32);
+
+/**
+ * Define and include the MCV Controllers and initialise Layout related settings.
+ * @include core.model.php MCV Models -> FIXME requires namespace & use cleanup first
+ * @include layout.controller.php MVC Controller for Layout
+ */
+//require_once MODELS_DIR.'core.model.php'; // FIXME requires namespace & use cleanup first
+require_once CONTROLLERS_DIR.'layout.controller.php';
+if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new MVC\Controller\Layout()', __FILE__, __LINE__));
+$zorgLayout = new MVC\Controller\Layout();
