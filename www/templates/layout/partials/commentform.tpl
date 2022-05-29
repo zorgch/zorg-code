@@ -36,6 +36,9 @@
   {/section}
   {assign var="allstrings" value=$allstrings-1}{*Korrektur weil array() bei 0 beginnt (max=9), nicht bei 1 (max=10)*}
   {*Randomizer*}{rand min=0 max=$allstrings assign="zeigen"}
+<!-- HighlightJS - Code syntax highlighting (required for Quill) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.0/build/styles/default.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.0/build/highlight.min.js"></script>
 <!-- Quill - Rich Text Editor: https://quilljs.com/ -->
 <link rel="stylesheet" href="/js/quill-richtexteditor/quill.snow.css" />
 <link rel="stylesheet" href="/js/quill-richtexteditor/quill-emoji.css">

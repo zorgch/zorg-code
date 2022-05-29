@@ -39,8 +39,6 @@
 		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v={$currversion}&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
 		<script src="{$smarty.const.JS_DIR}zorg.js?v={$currversion}"></script>
 		<script src="{$smarty.const.JS_DIR}ie11cssproperties.min.js"></script>
-		<script src="{$smarty.const.JS_DIR}highlight-js/highlight.pack.js"></script>
-		<link class="codestyle" rel="stylesheet" href="{$smarty.const.JS_DIR}highlight-js/styles/github-gist.css">
 		{*<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fileicon.min.css">*}
 
 		<!-- Webfonts -->
@@ -88,7 +86,7 @@
 			<div class="announcements">
 				{foreach from=$nextevents item=nextevent}<span class="event">
 					<a href="/smarty.php?tpl=158&event_id={$nextevent.id}">
-					<span class="name">{$nextevent.name}</span> | 
+					<span class="name">{$nextevent.name}</span> |
 					{if $nextevent.startdate|date_format:"%d%e%Y" != $nextevent.enddate|date_format:"%d%e%Y"}
 						{$nextevent.startdate|date_format:"%d %b"}-{$nextevent.enddate|date_format:"%d %b"}
 					{else}

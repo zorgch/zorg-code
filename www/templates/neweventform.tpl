@@ -64,38 +64,38 @@
 		<form action="/actions/events.php" method="post">
 			<input name="url" type="hidden" value="{$url|base64encode}">
 			<input name="action" type="hidden" value="new">
-			
+
 			<tr><td colspan="2"><b>Neuen Event eintragen:</b></td></tr>
-			
+
 			<tr>
 			<td align="left">Name</td>
 			<td align="left" colspan="4"><input name="name" type="text" class="text" value=""></td>
 			</tr>
-			
+
 			<tr>
 			<td align="left">Location</td>
 			<td align="left" colspan="4">
 			<input maxlength="90" name="location" size="30" type="text" class="text" value="">
 			</td>
 			</tr>
-			
+
 			<tr>
 			<td align="left">Link:</td>
 			<td align="left" colspan=4><input class="text" name="link" size="30" maxlength="100" type="text" value="http://"></td>
 			</tr>
-			
+
 			<tr>
 			<td align="left">Review (url):</td>
 			<td align="left" colspan=4><input class="text" name="review_url" size="30" maxlength="100" type="text" value="http://"></td>
 			</tr>
-			
+
 			<tr>
 			<td align="left">Gallery:</td>
 			<td align="left" colspan=4>
 			<select class="text" name="gallery_id" size="1">{html_options options=$galleries selected=0}</select>
 			</td>
 			</tr>
-			
+
 			<tr>
 			<td align="left">Start</td>
 			<td align="left">
@@ -105,7 +105,7 @@
 			uhr
 			</td>
 			</tr>
-			
+
 			<tr>
 			<td align="left">End</td>
 			<td align="left">
@@ -115,13 +115,13 @@
 			uhr
 			</td>
 			</tr>
-			
+
 			<tr><td align="left" valign="top">Beschreibung:</td>
 			<td align="left" colspan=4><textarea name="description" cols=70 rows=8></textarea></td>
 			</tr>
-					
+
 			<tr><td align="left" colspan="2"><input type="submit" value="eintragen" class="button" size=60></td></tr>
-		
+
 		</form>
 	</table>
 	<table class="border" width="100%">
@@ -183,13 +183,16 @@ uhr
 <tr><td align="left" valign="top">Beschreibung:</td>
 <td align="left" colspan=4><textarea name="description" cols=70 rows=8></textarea></td>
 </tr>
-		
+
 <tr><td align="left" colspan="2"><input type="submit" value="eintragen" class="button" size=60></td></tr>
 
 </form>
 </table>
 </div>
-
+<!-- HighlightJS - Code syntax highlighting (required for Quill) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.0/build/styles/default.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.0/build/highlight.min.js"></script>
+<!-- Quill - Rich Text Editor: https://quilljs.com/ -->
 <script src="/js/quill-richtexteditor/quill.min.js"></script>
 <script src="/js/quill-richtexteditor/fuse.min.js"></script>
 <script src="/js/quill-richtexteditor/quill-emoji.js"></script>
