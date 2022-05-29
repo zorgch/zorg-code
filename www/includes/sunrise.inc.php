@@ -214,6 +214,7 @@ class Astro_Sunrise
 	}
 
 	/**
+	 * @param bool $isRise If true = calculate Sunrise time (its currently night)
 	 * @return string Formatted Hour:Minute indication of next Sunrise/Sunset; or on a special occasion: Mitternachtssonne
 	 */
 	function calcSunrise($isRise)
@@ -290,7 +291,7 @@ class Astro_Sunrise
 		$hour	= intval($V);
 		$min	= intval(($V - $hour) * 60 + 0.5);
 
-		return sprintf('%02d:%02d', $hour, $min);
+		return sprintf('%d:%02d', $hour, $min); // Fomat: 'h:mm'
 
 	} // END function calcSunrise
 
