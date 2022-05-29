@@ -38,7 +38,6 @@ class Layout extends \MVC\Controller
 	private const COUNTRY_FLAGICONS_DIR_PUBLIC = IMAGES_DIR.'country/flags';
 
 	/**
-	 * @var object $userLocationClass IP2Geolocation() Object containing User's IP-Geolocation infos
 	 * @var string $country Country code, like "che"
 	 * @var string $country_code Country code, like "CHE"
 	 * @var string $country_flagicon Public accessible path to Country Flag Icon file
@@ -47,7 +46,6 @@ class Layout extends \MVC\Controller
 	 * @var string $sun Current Sun state: up / down. Default: up
 	 * @var string $layouttype Layout to use (based on $sun): night / day. Default: day
 	 */
-	private $userLocationClass;
 	public $country;
 	public $country_code;
 	public $country_flagicon;
@@ -64,24 +62,18 @@ class Layout extends \MVC\Controller
 	 */
 	public function __construct()
 	{
-		try {
-			/** Position vom user bestimmen */
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new \Utils\IP2Geolocation()', __FILE__, __LINE__));
-			$this->userLocationClass = new \Utils\User\IP2Geolocation();
+		/** Position vom user bestimmen */
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new \Utils\IP2Geolocation()', __FILE__, __LINE__));
+		$userLocationData = new \Utils\User\IP2Geolocation();
 
-			/** Assign user location vars */
-			$this->country = $this->userLocationClass->getCountryName();
-			$this->country_code = \convertToCountryIso3($this->userLocationClass->getGeoCountryIso2Code());
-			$this->setSunriseSunsetDayNight($this->userLocationClass->getCoordinates());
-			$this->setCountryFlagicon($this->country_code);
+		/** Assign user location vars */
+		$this->country = $userLocationData->getCountryName();
+		$this->country_code = \convertToCountryIso3($userLocationData->getGeoCountryIso2Code());
+		$this->setSunriseSunsetDayNight($userLocationData->getCoordinates());
+		$this->setCountryFlagicon($this->country_code);
 
-			/** Set the Colors of zorg */
-			$this->setColors();
-		}
-		catch (\Exception $e) {
-			error_log(sprintf('[ERROR] <%s:%d> %s', __METHOD__, __LINE__, $e->getMessage()));
-			exit;
-		}
+		/** Set the Colors of zorg */
+		$this->setColors();
 	}
 
 	/**
@@ -95,22 +87,22 @@ class Layout extends \MVC\Controller
 		/** Validate Param */
 		if (!is_array($LatLonCoordinates)
 				|| !isset($LatLonCoordinates['latitude']) || !isset($LatLonCoordinates['longitude'])
-				|| !is_float($LatLonCoordinates['latitude']) || !is_float($LatLonCoordinates['longitude']))
+				|| !is_numeric($LatLonCoordinates['latitude']) || !is_numeric($LatLonCoordinates['longitude']))
 		{
-			/* Fallback: St. Gallen, Switzerland (47.426418, 9.376010) */
-			$LatLonCoordinates = ['latitude' => 47.426418, 'longitude' => 9.376010];
+			/* Fallback: St. Gallen, Switzerland (int)47.426418, (int)9.376010 */
+			$LatLonCoordinates = ['latitude' => 47, 'longitude' => 9];
 		}
 
 		$suncalc = new \Layout\Astro_Sunrise();
-		$suncalc->setCoords($LatLonCoordinates['latitude'], $LatLonCoordinates['longitude']);
+		$suncalc->setCoords((int)$LatLonCoordinates['latitude'], (int)$LatLonCoordinates['longitude']);
 		$timezoneOffset = round($LatLonCoordinates['longitude']/15.0+date('I')); // time zones at every 15° (earth has 360° = 24 perfect time zones). + Summer/Winter-Time offset.
-		$suncalc->setTimezone($timezoneOffset);
-		$suncalc->setTimestamp(time()+(3600*$timezoneOffset));
+		$suncalc->setTimezone((int)$timezoneOffset);
+		$suncalc->setTimestamp((int)(time()+(3600*$timezoneOffset)));
 		$this->sunrise = $suncalc->getSunrise();
 		$this->sunset = $suncalc->getSunset();
 		$sunrise_timestamp = strtotime($this->sunrise); // Converts hh:mm time to a UNIX timestamp
 		$sunset_timestamp = strtotime($this->sunset); // Converts hh:mm time to a UNIX timestamp
-		$cur_timestamp = (time()+(3600*$timezoneOffset)-3600);
+		$cur_timestamp = (int)(time()+(3600*$timezoneOffset)-3600);
 
 		if ($cur_timestamp > $sunrise_timestamp)
 		{

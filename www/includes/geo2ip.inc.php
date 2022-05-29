@@ -40,13 +40,13 @@ class IP2Geolocation
 	 * @var string $UserIPaddress Stores the IP Address of the User
 	 * @var array $UserIPdetailsData User IP location information
 	 */
-	private $fallback_last_ip = 'PRIV_OR_RES_RANGE';
-	private $fallback_country = 'CH';
-	private $fallback_country_name = 'Switzerland (fallback)';
-	private $fallback_latitude = 47.426418;
-	private $fallback_longitude = 9.376010;
-	private $UserIPaddress;
-	private $UserIPdetailsData;
+	private string $fallback_last_ip = 'PRIV_OR_RES_RANGE';
+	private string $fallback_country = 'CH';
+	private string $fallback_country_name = 'Switzerland (fallback)';
+	private float $fallback_latitude = 47.426418;
+	private float $fallback_longitude = 9.376010;
+	private string $UserIPaddress;
+	private array $UserIPdetailsData;
 
 	/**
 	 * Class Constructor
@@ -78,8 +78,7 @@ class IP2Geolocation
 			 * Store IP Data Values to Usersession
 			 */
 			$this->storeUserIPToSession($this->UserIPaddress);
-			if (empty($this->UserIPdetailsData)) $this->setMaxmindIPDetails();
-			$this->storeUserIPDetailsToSession($this->UserIPdetailsData);
+			$this->setMaxmindIPDetails();
 		} elseif (DEVELOPMENT === true) {
 			error_log(sprintf('[DEBUG] <%s:%d> getDataFromSession(%s): SESSION CACHE HIT!', __METHOD__, __LINE__, $this->UserIPaddress));
 		}
@@ -196,10 +195,11 @@ class IP2Geolocation
 			 'ip' => (isset($_SERVER['MMDB_ADDR']) && !empty($_SERVER['MMDB_ADDR']) ? $_SERVER['MMDB_ADDR'] : null)
 			,'country' => (isset($_SERVER['COUNTRY_CODE']) && !empty($_SERVER['COUNTRY_CODE']) ? $_SERVER['COUNTRY_CODE'] : $this->fallback_country)
 			,'country_name' => (isset($_SERVER['COUNTRY_NAME']) && !empty($_SERVER['COUNTRY_NAME']) ? $_SERVER['COUNTRY_NAME'] : $this->fallback_country_name)
-			,'latitude' => $latitude
-			,'longitude' => $longitude
+			,'latitude' => (float)$latitude
+			,'longitude' => (float)$longitude
 			,'loc' => sprintf('%F,%F', $latitude, $longitude)
 		];
+		$this->storeUserIPDetailsToSession($this->UserIPdetailsData);
 	}
 
 	/**
@@ -217,6 +217,7 @@ class IP2Geolocation
 			/** Data is up to date (IP has not changed) */
 			if (isset($_SESSION['UserIPdetailsData']) && is_array($_SESSION['UserIPdetailsData']))
 			{
+				$this->UserIPdetailsData = $_SESSION['UserIPdetailsData'];
 				$this->storeUserIPDetailsToSession($_SESSION['UserIPdetailsData']);
 				return true;
 			}
@@ -282,9 +283,9 @@ class IP2Geolocation
 	public function getCoordinates()
 	{
 		/** If $UserIPdetailsData is empty, use Fallback */
-		$IPlatitude = (is_array($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData['latitude']) ? $this->UserIPdetailsData['latitude'] : $this->fallback_latitude);
-		$IPlongitude = (is_array($this->UserIPdetailsData) && false !== $this->UserIPdetailsData && !empty($this->UserIPdetailsData['longitude']) ? $this->UserIPdetailsData['longitude'] : $this->fallback_longitude);
-		$coordinates = ['latitude' => $IPlatitude, 'longitude' => $IPlongitude];
+		$IPlatitude = (is_array($this->UserIPdetailsData) && !empty($this->UserIPdetailsData['latitude']) ? $this->UserIPdetailsData['latitude'] : $this->fallback_latitude);
+		$IPlongitude = (is_array($this->UserIPdetailsData) && !empty($this->UserIPdetailsData['longitude']) ? $this->UserIPdetailsData['longitude'] : $this->fallback_longitude);
+		$coordinates = ['latitude' => (float)$IPlatitude, 'longitude' => (float)$IPlongitude];
 
 		return $coordinates;
 	}
