@@ -1,0 +1,12 @@
+Preferred-Languages: en, de
+Policy: https://github.com/zorgch/zorg-code#am-zorg-coding-mitwirken
+Contact: https://zorg.ch/bugtracker.php
+Contact: https://zorg.ch/forum.php
+Contact: https://zorg.ch/page/vereinsvorstand
+Contact: https://www.twitter.com/ZorgCH
+Acknowledgments: https://zorg.ch/page/impressum
+Canonical: https://zorg.ch/.well-known/security.txt
+Canonical: https://zooomclan.org/.well-known/security.txt
+
+Hiring: https://zorg.ch/profil.php?do=anmeldung#newuser
+Expires: 2023-12-23T23:23:23.000Z
