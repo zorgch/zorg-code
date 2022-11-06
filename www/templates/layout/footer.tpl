@@ -1,5 +1,5 @@
 		{include file='file:layout/sidebar.tpl'}
-		
+
 		<!--googleoff: all-->
 		<footer class="footer">
 			<hr class="shadow">
@@ -9,7 +9,8 @@
 			{if $code_info.version != ''}<section class="flex-one-column small">
 				<a href="{$smarty.const.GIT_REPOSITORY_URL}{$code_info.last_commit}" target="_blank">{$code_info.version}#{$code_info.last_commit}</a>&nbsp;(changed {$code_info.last_update|datename})
 			</section>{/if}
-			{if $tplroot.id != ''}<section class="flex-two-column">
+			{if $tplroot.id > 0}
+			<section class="flex-two-column">
 				<div class="icon">
 					{*<object data="{$smarty.const.IMAGES_DIR}icons/codefile-black.svg#night"></object>*}
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 125" x="0px" y="0px"><title>codefile-black.svg</title><path d="M84.32,30a2,2,0,0,0-.57-1.4L61.09,5.51a2,2,0,0,0-1.43-.6h-33a11,11,0,0,0-11,11V84.09a11,11,0,0,0,11,11H73.32a11,11,0,0,0,11-11ZM61.51,11.65,78.49,29h-15a2,2,0,0,1-2-2ZM73.32,91.09H26.68a7,7,0,0,1-7-7V15.91a7,7,0,0,1,7-7H57.51V27a6,6,0,0,0,6,6H80.32v51.1A7,7,0,0,1,73.32,91.09Z"/><path d="M52.95,44.52a2,2,0,0,0-2.32,1.62l-5.19,29a2,2,0,0,0,3.94.71l5.19-29A2,2,0,0,0,52.95,44.52Z"/><path d="M64.15,50.92A2,2,0,1,0,61,53.4L67,61l-6,7.6a2,2,0,0,0,3.14,2.48l7-8.84a2,2,0,0,0,0-2.48Z"/><path d="M38.66,50.59a2,2,0,0,0-2.81.33l-7,8.84a2,2,0,0,0,0,2.48l7,8.84A2,2,0,0,0,39,68.6L33,61l6-7.6A2,2,0,0,0,38.66,50.59Z"/></svg>
@@ -30,7 +31,8 @@
 						{if $tplroot.write_rights <= $user->typ || $tplroot.owner == $user->id}<li>{edit_link tpl=$tplroot.id}[edit]{/edit_link}</li>{/if}
 					</ul>
 				</div>
-			</section>{/if}
+			</section>
+			{/if}
 			<section class="flex-two-column">
 				<div class="icon">
 					{*<object data="{$smarty.const.IMAGES_DIR}icons/dashboard-black.svg"></object>*}
@@ -41,8 +43,8 @@
 						<li><span style="font-weight: lighter;">Parsetime</span>&nbsp;{$parsetime}s</li>
 						<li><span style="font-weight: lighter;">Rendertime</span>&nbsp;{'stop'|rendertime:true|round:2}s</li>
 					</ul>
-					{if $tplroot.id != '' || $smarty.session.noquerys > 0}<ul>
-						{if $tplroot.id != ''}<li>Size {$tplroot.size}&nbsp;bytes</li>{/if}
+					{if $tplroot.id > 0 || $smarty.session.noquerys > 0}<ul>
+						{if $tplroot.id > 0}<li>Size {$tplroot.size}&nbsp;bytes</li>{/if}
 						{if $smarty.session.noquerys > 0}<li>{if $user->sql_tracker}<a href="/page/sql-query-tracker">{/if}{$smarty.session.noquerys}&nbsp;SQL&nbsp;queries{if $user->sql_tracker}</a>{/if}</li>{/if}
 					</ul>{/if}
 				</div>
@@ -66,6 +68,7 @@
 					<li><a href="{$smarty.const.GIT_REPOSITORY_URL}"><i class="emoji github"></i> <span class="hide-mobile">zorg-code</span></a></li>
 				</ul>
 			</section>
+			{if $tplroot.id > 0}
 			<section class="flex-one-column">
 				<ul>
 					<li class="uppercase"><a href="/page/impressum">Impressum</a></li>
@@ -73,6 +76,7 @@
 					<li class="uppercase"><a href="/page/verein">zorg Verein</a></li>
 				</ul>
 			</section>
+			{/if}
 		</footer>
 	<script>const layout = '{$daytime}';</script>
 	{*if $tplroot.page_title == 'Home' && !$smarty.get.tpleditor}<!-- Redirect Mobile Devices, kudos to http://detectmobilebrowsers.com/ -->

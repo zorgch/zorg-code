@@ -313,7 +313,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			 * (default, oder bi Errors)
 			 */
 			echo '<form action="?do=anmeldung#newuser" method="post" style="font-size: 0.65rem">';
-			echo '<h1 id="newuser">Neuen zorg User erstellen</h1>';
+			echo '<h1 id="newuser">Neuen User erstellen</h1>';
 			if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
 			//if ($smarty->getTemplateVars('error') != null) $smarty->display('file:layout/elements/block_error.tpl'); // Smarty 3.x
 			/** username eingeben */

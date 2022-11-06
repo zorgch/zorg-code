@@ -22,7 +22,7 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Define various Asteroid related constants (for Spaceweather)
- * NeoWs (Near Earth Object Web Service) is a RESTful web service for near earth Asteroid information. Data-set: All the data is from the NASA JPL Asteroid team (http://neo.jpl.nasa.gov/). 
+ * NeoWs (Near Earth Object Web Service) is a RESTful web service for near earth Asteroid information. Data-set: All the data is from the NASA JPL Asteroid team (http://neo.jpl.nasa.gov/).
  * @const SPACEWEATHER_SOURCE (DEPRECATED) Source-URL von wo die Daten f�r das Spaceweather abgefragt werden
  * @const NEO_API NASA Space Weather Database Of Notifications, Knowledge, Information (DONKI) API-URL von wo das aktuelle Spaceweather mit dem NASA_API_KEY geholt werden kann
  */
@@ -64,48 +64,48 @@ function get_spaceweather()
 	$file = @file($source);
 	if($file) {
 		$html_source = join("",$file);
-		
+
 		//haupt chind
 		$html = str_replace("\n","",(strip_tags($html_source)));
 		$html = preg_replace("/\s+/i"," ",$html);
-		
+
 		//fuer PHAs
 		$html_table = str_replace("\n","",(strip_tags($html_source,"<table> <th> <tr> <td>")));
 		$html_table = preg_replace("/\s+/i"," ",$html_table);
-		
+
 		//Solar Wind
 		$pattern = "(Solar\sWind\sspeed:\s(\d+\.\d+)\skm\/s\sdensity:\s(\d+\.\d+)\sprotons\/cm3)";
 		preg_match_all($pattern,$html,$out);
-	
+
 		$space['solarwind_speed'] = $out[1][0];
 		$space['solarwind_density'] = $out[2][0];
-	
+
 		//Solar Flares
 		$pattern = "(X-ray\sSolar\sFlares\s6-hr\smax:\s(\w\d)\s(\d+)\sUT\s(.....)\s24-hr:\s(\w\d)\s(\d+)\sUT\s(.....)\sexplanation)";
 		preg_match_all($pattern,$html,$out);
-		
+
 		$space['solarflares_6hr_typ'] = $out[1][0];
 		$space['solarflares_6hr_time'] = $out[2][0];
 		$space['solarflares_6hr_date'] = $out[3][0];
-		
+
 		$space['solarflares_24hr_typ'] = $out[4][0];
 		$space['solarflares_24hr_time'] = $out[5][0];
 		$space['solarflares_24hr_date'] = $out[6][0];
-		
+
 		//Sunspot Number
 		$pattern = "(Sunspot\sNumber:\s(\d+))";
 		preg_match_all($pattern,$html,$out);
-		
+
 		$space['sunspot_number'] = $out[1][0];
-		
+
 		//Magnetfeld
 		$pattern = "(Interplanetary\sMag\.\sField\sBtotal:\s(\d+\.\d+)\snT\sBz:\s(\d+\.\d+)\snT\s(.....)\sexplanation)";
 		preg_match_all($pattern,$html,$out);
-	
+
 		$space['magnetfield_btotal'] = $out[1][0];
 		$space['magnet_bz_value'] = $out[2][0];
 		$space['magnet_z_unit'] = $out[3][0];
-		
+
 		//solarflars
 		$pattern = "(FLARE\s0-24\shr\s24-48\shr\sCLASS\s(\w)\s(\d+)%\s(\d+)%\sCLASS\s(\w)\s(\d+)%\s(\w+)%\s)";
 		preg_match_all($pattern,$html,$out);
@@ -114,39 +114,39 @@ function get_spaceweather()
 		$space['solarflares_percent_48hr_'.$out[1][0].'_percent'] = $out[3][0];
 		$space['solarflares_percent_24hr_'.$out[4][0].'_percent'] = $out[5][0];
 		$space['solarflares_percent_48hr_'.$out[4][0].'_percent'] = $out[6][0];
-		
+
 		//magnetsturm mid
 		$pattern = "(Mid-latitudes\s0-24\shr\s24-48\shr\sACTIVE\s(\d+)%\s(\d+)%\sMINOR\s(\d+)%\s(\d+)%\sSEVERE\s(\d+)%\s(\d+)%\sHigh\slatitudes)";
 		preg_match_all($pattern,$html,$out);
-		
+
 		$space['magstorm_mid_active_24hr'] = $out[1][0];
 		$space['magstorm_mid_active_48hr'] = $out[2][0];
 		$space['magstorm_mid_minor_24hr'] = $out[3][0];
 		$space['magstorm_mid_minor_48hr'] = $out[4][0];
 		$space['magstorm_mid_severe_24hr'] = $out[5][0];
 		$space['magstorm_mid_severe_48hr'] = $out[6][0];
-	
+
 		//magnetsturm max
 		$pattern = "(High\slatitudes\s0-24\shr\s24-48\shr\sACTIVE\s(\d+)%\s(\d+)%\sMINOR\s(\d+)%\s(\d+)%\sSEVERE\s(\d+)%\s(\d+)%\s)";
 		preg_match_all($pattern,$html,$out);
-		
+
 		$space['magstorm_high_active_24hr'] = $out[1][0];
 		$space['magstorm_high_active_48hr'] = $out[2][0];
 		$space['magstorm_high_minor_24hr'] = $out[3][0];
 		$space['magstorm_high_minor_48hr'] = $out[4][0];
 		$space['magstorm_high_severe_24hr'] = $out[5][0];
 		$space['magstorm_high_severe_48hr'] = $out[6][0];
-		
+
 		//PHAs today
 		$pattern = "(\sthere\swere\s(\d+)\sknown\sPotentially\sHazardous\sAsteroids\s)";
 		preg_match_all($pattern,$html,$out);
-		
+
 		$space['PHA'] = $out[1][0];
-		
+
 		//PHAs im detail
 		$PHAs = substr($html_table,strpos($html_table,"Earth-asteroid encounters <table"));
 		$PHAs = substr($PHAs,0,strpos($PHAs,"</table>"));
-	
+
 		$pa = @explode("</td>",$PHAs);
 		$anz = @count($pa) - 2;
 		if($anz) {
@@ -159,14 +159,14 @@ function get_spaceweather()
 				if($x == 4) {
 					$x = 0;
 					$inn++;
-				}	
+				}
 			}
-			
+
 			//write space Phas
 			foreach($pha as $key => $value) {
 				$ps = array();
 				foreach($value as $kk => $vv) {
-					$ps[] = trim($vv);	
+					$ps[] = trim($vv);
 				}
 				$sql = "
 				REPLACE into spaceweather_pha
@@ -176,7 +176,7 @@ function get_spaceweather()
 				$db->query($sql,__LINE__,__FILE__,__FUNCTION__);
 			}
 		}
-		
+
 		//write spaceweather
 		foreach($space as $key => $val) {
 			$sql = "
@@ -185,7 +185,7 @@ function get_spaceweather()
 			VALUES
 				('$key','$val',now())";
 			$db->query($sql,__LINE__,__FILE__);
-		}	
+		}
 	}
 }
 
@@ -227,10 +227,11 @@ function spaceweather_ticker() {
 	$add['magstorm_high_severe_48hr'][0] = 0;
 	$add['PHA'][0] = "Potenziell gef&auml;hrliche Asteroiden";
 
-	try {
-		$sql = 'SELECT * FROM spaceweather';
-		$result = $db->query($sql,__LINE__,__FILE__,__FUNCTION__);
-		while($rs = $db->fetch($result)) {
+	$sql = 'SELECT * FROM spaceweather';
+	$query = $db->query($sql,__LINE__,__FILE__,__FUNCTION__);
+	if ($db->num($query) > 0)
+	{
+		while($rs = $db->fetch($query)) {
 			if(empty($rs['wert']) || $rs['wert'] === '') {
 				$rs['wert'] = 'unbekannt';
 			}
@@ -243,9 +244,7 @@ function spaceweather_ticker() {
 
 		shuffle($sw); // Randomize Speachweather infos
 		return $sw;
-	}
-	catch(Exception $e) {
-		user_error($e->getMessage(), E_USER_NOTICE);
-		return $e->getMessage();
+	} else {
+		return null;
 	}
 }
