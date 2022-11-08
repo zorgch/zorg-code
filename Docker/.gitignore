@@ -1,0 +1,2 @@
+# Ignore changes within the Docker database volume
+/mysql*/**/*
