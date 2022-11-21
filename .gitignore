@@ -5,6 +5,7 @@
 *apis_key.inc.php
 *.log
 /vendor
+.env
 
 # ...and DON'T ignore these things
 !.github/

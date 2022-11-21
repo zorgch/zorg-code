@@ -12,12 +12,27 @@ $parsetime_start = microtime(true);
 $sqltracker_numqueries = 0;
 
 /**
+ * Set a constant for the Site's Web Root.
+ * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/". IMPORTANT: relative to the config.inc.php File!
+ */
+if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'/..');
+
+/**
  * Environment-specific configurations: can be set in the Apache config using
  *    SetEnv environment 'development'
  *
+ * @const COMPOSER_AUTOLOAD Composer Autoloader for third-party Vendor libraries
  * @const	DEVELOPMENT				Contains either 'true' or 'false' (boolean) - Default: false
  * @include	development.config.php	If DEVELOPMENT, load a corresponding config file containing DEV-specific settings. Was already checked to exist at define('DEVELOPMENT', true/false)
  */
+if (file_exists(SITE_ROOT.'/../vendor/autoload.php'))
+{
+    if (!defined('COMPOSER_AUTOLOAD')) define('COMPOSER_AUTOLOAD', SITE_ROOT.'/../vendor/autoload.php');
+    require_once COMPOSER_AUTOLOAD;
+
+    /** Load PHP dotENV library*/
+    $dotenv = Dotenv\Dotenv::createImmutable(SITE_ROOT)->load();
+}
 if (!defined('DEVELOPMENT')) define('DEVELOPMENT', ( (isset($_SERVER['environment']) && $_SERVER['environment'] === 'development') || file_exists( dirname(__FILE__).'/development.config.php') ? true : false ));
 if (DEVELOPMENT === true) include_once dirname(__FILE__).'/development.config.php';
 
@@ -48,11 +63,6 @@ if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']);
  */
 if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME);
 
-/**
- * Set a constant for the Site's Web Root.
- * @const SITE_ROOT Set the Site Root WITHOUT a trailing slash "/". IMPORTANT: relative to the config.inc.php File!
- */
-if (!defined('SITE_ROOT')) define('SITE_ROOT', rtrim(dirname(__FILE__), '/\\').'/..');
 
 /**
  * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page.
@@ -132,7 +142,6 @@ if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', nul
  * @const UTIL_DIR Utilities directory for Frontend-Resources
  * @const JS_DIR JavaScripts directory for Frontend-Resources
  * @const CSS_DIR CSS directory for Frontend-Resources
- * @const COMPOSER_AUTOLOAD Composer Autoloader for third-party Vendor libraries
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
 if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys'); // No trailing slash /
@@ -148,7 +157,6 @@ if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
 if (!defined('JS_DIR')) define('JS_DIR', '/js/');
 if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
-if (!defined('COMPOSER_AUTOLOAD')) define('COMPOSER_AUTOLOAD', SITE_ROOT . '/../vendor/autoload.php');
 
 /**
  * Define User & Usersystem constants

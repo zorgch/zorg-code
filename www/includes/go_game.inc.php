@@ -19,43 +19,48 @@
 require_once dirname(__FILE__).'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 
-/**
- * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.
- * @const LINKRADIUS 		Etwas kleiner, damit es einen Zwischenraum gibt
- * @const FIELDSIZE			Weitere globale Variablen fürs GO
- * @const LINEWIDTH			Weitere globale Variablen fürs GO
- * @const STARDOTWIDTH		Weitere globale Variablen fürs GO
- * @const STONEBIGWIDTH		Weitere globale Variablen fürs GO
- * @const LASTSTONEWIDTH	Weitere globale Variablen fürs GO
- * @const GOIMGPATH			Weitere globale Variablen fürs GO
- * @const LINE				Weitere globale Variablen fürs GO
- * @const STARDOT			Weitere globale Variablen fürs GO
- * @const BLACKSTONE		Weitere globale Variablen fürs GO
- * @const WHITESTONE		Weitere globale Variablen fürs GO
- * @const BLACKSTONESEMI	Weitere globale Variablen fürs GO
- * @const WHITESTONESEMI	Weitere globale Variablen fürs GO
- * @const BLACKSTONEBIG		Weitere globale Variablen fürs GO
- * @const WHITESTONEBIG		Weitere globale Variablen fürs GO
- * @const LASTSTONE			Weitere globale Variablen fürs GO
- */
-define('OFFSET_PIC', 250);
-define('LINKRADIUS', 15);
-define('FIELDSIZE', 40);
-define('LINEWIDTH', 2);
-define('STARDOTWIDTH', 10);
-define('STONEBIGWIDTH', 190);
-define('LASTSTONEWIDTH', 10);
-define('GOIMGPATH', PHP_IMAGES_DIR.'go/');
-define('LINE', imagecreatefrompng(GOIMGPATH.'go_line.png'));
-define('STARDOT', imagecreatefrompng(GOIMGPATH.'go_stardot.png'));
-define('BLACKSTONE', imagecreatefrompng(GOIMGPATH.'go_black.png'));
-define('WHITESTONE', imagecreatefrompng(GOIMGPATH.'go_white.png'));
-define('BLACKSTONESEMI', imagecreatefrompng(GOIMGPATH.'go_black_semi.png'));
-define('WHITESTONESEMI', imagecreatefrompng(GOIMGPATH.'go_white_semi.png'));
-define('BLACKSTONEBIG', imagecreatefrompng(GOIMGPATH.'go_pl2.png'));
-define('WHITESTONEBIG', imagecreatefrompng(GOIMGPATH.'go_pl1.png'));
-define('LASTSTONE', imagecreatefrompng(GOIMGPATH.'go_last.png'));
-
+try { // Catch missing GD image library
+	/**
+	 * @const OFFSET_PIC 		Anzahl pixel, um welche das board nach unten gerückt wird, um den userpics platz zu machen.
+	 * @const LINKRADIUS 		Etwas kleiner, damit es einen Zwischenraum gibt
+	 * @const FIELDSIZE			Weitere globale Variablen fürs GO
+	 * @const LINEWIDTH			Weitere globale Variablen fürs GO
+	 * @const STARDOTWIDTH		Weitere globale Variablen fürs GO
+	 * @const STONEBIGWIDTH		Weitere globale Variablen fürs GO
+	 * @const LASTSTONEWIDTH	Weitere globale Variablen fürs GO
+	 * @const GOIMGPATH			Weitere globale Variablen fürs GO
+	 * @const LINE				Weitere globale Variablen fürs GO
+	 * @const STARDOT			Weitere globale Variablen fürs GO
+	 * @const BLACKSTONE		Weitere globale Variablen fürs GO
+	 * @const WHITESTONE		Weitere globale Variablen fürs GO
+	 * @const BLACKSTONESEMI	Weitere globale Variablen fürs GO
+	 * @const WHITESTONESEMI	Weitere globale Variablen fürs GO
+	 * @const BLACKSTONEBIG		Weitere globale Variablen fürs GO
+	 * @const WHITESTONEBIG		Weitere globale Variablen fürs GO
+	 * @const LASTSTONE			Weitere globale Variablen fürs GO
+	 */
+	define('OFFSET_PIC', 250);
+	define('LINKRADIUS', 15);
+	define('FIELDSIZE', 40);
+	define('LINEWIDTH', 2);
+	define('STARDOTWIDTH', 10);
+	define('STONEBIGWIDTH', 190);
+	define('LASTSTONEWIDTH', 10);
+	define('GOIMGPATH', PHP_IMAGES_DIR.'go/');
+	define('LINE', imagecreatefrompng(GOIMGPATH.'go_line.png'));
+	define('STARDOT', imagecreatefrompng(GOIMGPATH.'go_stardot.png'));
+	define('BLACKSTONE', imagecreatefrompng(GOIMGPATH.'go_black.png'));
+	define('WHITESTONE', imagecreatefrompng(GOIMGPATH.'go_white.png'));
+	define('BLACKSTONESEMI', imagecreatefrompng(GOIMGPATH.'go_black_semi.png'));
+	define('WHITESTONESEMI', imagecreatefrompng(GOIMGPATH.'go_white_semi.png'));
+	define('BLACKSTONEBIG', imagecreatefrompng(GOIMGPATH.'go_pl2.png'));
+	define('WHITESTONEBIG', imagecreatefrompng(GOIMGPATH.'go_pl1.png'));
+	define('LASTSTONE', imagecreatefrompng(GOIMGPATH.'go_last.png'));
+}
+catch (\Error $ex) { // Continue code execution, even when GD image library is missing
+	//echo $ex->getMessage();
+  $smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $ex->getMessage()]);
+}
 
 /**
  * Alle laufenden GO Spiele
@@ -70,7 +75,7 @@ function go_running_games ()
     global $db, $user;
     $e = $db->query(
 		    'SELECT count(*) anz
-		      FROM go_games g 
+		      FROM go_games g
 		      WHERE g.nextturn='.$user->id.' AND g.state="running"',
 		    __FILE__, __LINE__
 		    );
@@ -93,7 +98,7 @@ function go_open_games ()
     $e = $db->query(
 		    'SELECT count(*) anz
 		      FROM go_games g
-		      WHERE g.pl2='.$user->id.' AND g.state="open"', 
+		      WHERE g.pl2='.$user->id.' AND g.state="open"',
 		    __FILE__, __LINE__
 		    );
     $d = $db->fetch($e);
@@ -109,7 +114,7 @@ function go_open_games ()
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $gid ID des GO-Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -134,7 +139,7 @@ function go_close_game ($gid)
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $gid ID des GO-Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -158,7 +163,7 @@ function go_decline_game ($gid) {
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $gid ID des GO-Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -182,7 +187,7 @@ function go_accept_game ($gid) {
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $opponent ID des Gegners
  * @param integer $size Board-Grösse
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -191,7 +196,7 @@ function go_accept_game ($gid) {
  */
 function go_new_game ($opponent, $size, $handicap) {
 	global $db, $user;
-	
+
 	if (!$user->id) user_error( t('error-newgame-not-logged-in'), E_USER_ERROR);
 
         $e = $db->query("SELECT u.id
@@ -218,7 +223,7 @@ function go_new_game ($opponent, $size, $handicap) {
 function go_luck($gameid)
 {
     global $db, $user;
-    
+
     if (!$user->id) user_error( t('error-newgame-not-logged-in'), E_USER_ERROR);
 
     $game = readGame($gameid);
@@ -227,13 +232,13 @@ function go_luck($gameid)
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
 		return;
     }
-    
+
     if ($user->id != $game['pl1'] && $user->id != $game['pl2'])
     {
 		user_error("Not your game!");
 		return;
     }
-    
+
     if ($user->id == $game['pl1'])
     {
 		$e = $db->query("UPDATE go_games
@@ -241,19 +246,19 @@ function go_luck($gameid)
 				 WHERE pl1luck=0
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
-		
+
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl2'], "hat ".$user->id2user($game['pl2'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');
-		
+
     } else {
 		$e = $db->query("UPDATE go_games
 				 SET pl2luck=1
 				 WHERE pl2luck=0
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
-		
+
 		// Activity Eintrag auslösen
-		Activities::addActivity($user->id, $game['pl1'], "hat ".$user->id2user($game['pl1'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');	
+		Activities::addActivity($user->id, $game['pl1'], "hat ".$user->id2user($game['pl1'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');
     }
 }
 
@@ -261,23 +266,23 @@ function go_luck($gameid)
 function go_thank($gameid)
 {
     global $db, $user;
-    
+
     if (!$user->id) user_error( t('error-newgame-not-logged-in'), E_USER_ERROR);
 
     $game = readGame($gameid);
-    
+
     if (!$game)
     {
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
 		return;
     }
-    
+
     if ($user->id != $game['pl1'] && $user->id != $game['pl2'])
     {
 		user_error("Not your game!");
 		return;
     }
-    
+
     if ($user->id == $game['pl1'])
     {
 		$e = $db->query("UPDATE go_games
@@ -285,10 +290,10 @@ function go_thank($gameid)
 				 WHERE pl1thank=0
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
-		
+
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl2'], "hat sich bei ".$user->id2user($game['pl2'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
-		
+
     }
     else {
 		$e = $db->query("UPDATE go_games
@@ -296,10 +301,10 @@ function go_thank($gameid)
 				 WHERE pl2thank=0
 				   AND id='".$gameid."'",
 				 __FILE__, __LINE__);
-		
+
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl1'], "hat sich bei ".$user->id2user($game['pl1'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
-		
+
     }
 }
 
@@ -315,41 +320,41 @@ function go_count_game($gameid){
 
     function go_finish_game($gameid){
     global $db, $user;
-    
+
     $game = readGame($gameid);
     $size = $game['size'];
     $wholesdone = array();
     $game['pl1points'] = 0;
     $game['pl2points'] = 0;
-    
+
     for ($which = 0; $which < $size * $size; $which++){
 	if ($game['board'][$which] == 1 || $game['board'][$which] == 2 || in_array($which, $wholesdone)) continue;
 	$area = get_area($which, $game);
-	
+
 	$neighbours = get_neighbourstones_of_area($game, $area);
-	
+
 	$differentowners = array();
 	for ($k = 0; $k < count($neighbours); $k++)
 	    if (!in_array($game['board'][$neighbours[$k]], $differentowners))
 	        $differentowners[] = $game['board'][$neighbours[$k]];
-	
+
 	if (count($differentowners) == 1){
 	    if ($differentowners[0] == 1) $game['pl1points'] += count($area);
 	    else $game['pl2points'] += count($area);
 	}
-	
+
 	for ($k = 0; $k < count($area); $k++)
 	    if (!in_array($area[$k], $wholesdone))
 	        $wholesdone[] = $area[$k];
     }
-    
+
     $game['pl1points'] -= $game['pl1lost'];
     $game['pl2points'] -= $game['pl2lost'];
     $game['pl1points'] += get_komi($size);
-    
+
     if ($game['pl1points'] > $game['pl2points']) $game['winner'] = $game['pl1'];
     else $game['winner'] = $game['pl2'];
-    
+
     $e = $db->query("UPDATE go_games
 		      SET state='finished', pl1points='".$game['pl1points'].
 			"', pl2points='".$game['pl2points'].
@@ -375,7 +380,7 @@ function get_komi($size){
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $x ...
  * @param integer $y ...
  * @param integer $gameid ID des GO-Spiels
@@ -386,63 +391,63 @@ function get_komi($size){
 function go_move($which, $gameid)
 {
 	global $db, $user;
-    
+
     $game=readGame($gameid);
-    
+
     if (!$game)
     {
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
 		return;
     }
-    
+
     if ($game['state'] != 'running')
     {
 		user_error( t('invalid-gamestate', 'go', 'running'), E_USER_NOTICE);
 		return;
     }
-    
+
     if ($game['nextturn'] != $user->id)
     {
 		user_error( t('error-game-notyourturn'), E_USER_NOTICE);
 		return;
     }
-    
+
     $size = $game['size'];
     $y = floor($which / $size);
     $x = $which - $y*$size;
-    
+
     if ($which < 0 || $which >= $size * $size)
     {
 		user_error( t('invalid-coordinates', 'go', [ $which, $x, $y ]), E_USER_WARNING);
 		return;
     }
-    
+
     if ($game['board'][$which] == 1 || $game['board'][$which] == 2)
     {
 		user_error("Feld $which (x=$x, y=$y) ist bereits von einem anderen Stein belegt!");
 		return;
     }
-    
+
     $hit_area = check_hit($which, $game);
-    
+
     if (count($hit_area) == 0 && check_suicide($which, $game))
     {
 		user_error( t('suicide-prevention', 'go'), E_USER_NOTICE);
 		return;
     }
-    
+
     if ($game['ko_sit'] == $which && count($hit_area) == 1)
     {
 		user_error( t('ko-situation', 'go'), E_USER_NOTICE);
 		return;
     }
-    
+
     $game['ko_sit'] = -1;
-    
+
     for ($k = 0; $k < $size * $size; $k++) { if ($game['board'][$k] > 2) $game['board'][$k] = 0; }
-    
+
     //eraseStones($game);
-    
+
     $hit_area = check_hit($which, $game);
     if (count($hit_area) > 0)
     {
@@ -450,54 +455,54 @@ function go_move($which, $gameid)
 			if ($game['nextturn'] == $game['pl1']) $game['pl2lost'] += count($hit_area);
 			else $game['pl1lost'] += count($hit_area);
 	}
-    
+
     if (count($hit_area) == 1) $game['ko_sit'] = $hit_area[0];
-        
+
     $game['board'][$which] = $game['pl1'] == $game['nextturn'] ? 1 : 2;
-    
+
     $game['last2'] = $game['last1'];
     $game['last1'] = $which;
-    
+
     writeGame($game);
  }
- 
- 
- 
+
+
+
  function go_skip($gameid)
  {
     global $user, $db;
     $game=readGame($gameid);
-    
+
     if (!$game)
     {
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
 		return;
     }
-    
+
     if ($game['state'] != 'running')
     {
 		user_error( t('invalid-gamestate', 'go', 'running'), E_USER_NOTICE);
 		return;
     }
-    
+
     if ($game['nextturn'] != $user->id)
     {
 		user_error(t('error-game-notyourturn'), E_USER_NOTICE);
 		return;
     }
-    
+
     $game['ko_sit'] = -1;
     for ($k = 0; $k < $game['size'] * $game['size']; $k++) if ($game['board'][$k] > 2) $game['board'][$k] = 0;
-    
+
     if ($game['last1'] == -1)
     {
 		go_count_game($gameid);
 		return;
     }
-    
+
     $game['last2'] = $game['last1'];
     $game['last1'] = -1;
-    
+
     writeGame($game);
 }
 
@@ -508,7 +513,7 @@ function go_move($which, $gameid)
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $gameid ID des GO-Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -518,18 +523,18 @@ function go_move($which, $gameid)
 function nextstone_map($gameid)
 {
     global $db, $user;
-	    
+
     $ret = '<map name="moves">';
-    
+
     $game = readGame($gameid);
     $ko_sit = $game['ko_sit'];
         $size = $game['size'];
-    
+
     if ($game['state'] == 'running' || $game['state'] == 'finished')
       for ($i = 0; $i < $size; $i++) for ($j = 0; $j < $size; $j++){
-	
+
 	$which = $i + $j*$size;
-	
+
 	if ($game['board'][$which] == 1 || $game['board'][$which] == 2){
 	    $area = get_area($which, $game);
 	    $freedoms = get_freedoms($game, $area);
@@ -537,7 +542,7 @@ function nextstone_map($gameid)
 	    $islink = false;
 	}
 	else if ($user->id == $game['nextturn'] && $game['state'] == 'running'){
-	    
+
 	    $countHit = count(check_hit($which, $game));
 	    if ($countHit > 0){
 			if ($ko_sit == $which && $countHit == 1){
@@ -561,18 +566,18 @@ function nextstone_map($gameid)
 	    }
 	}
 	else continue;
-    
+
     $ret .= '<area shape="rect" coords="'.(($i+1)*FIELDSIZE-LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE-LINKRADIUS)
                                  .','.(($i+1)*FIELDSIZE+LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE+LINKRADIUS).'" ';
     if ($islink) $ret .= 'href="/actions/go_game.php?tpl=699&action=move&move='.$which.'&game='.$gameid.'"';
 		$ret .= 'alt="'.$msg.'"'.'title="'.$msg.'">';
     }
-    
+
     if ($game['state'] == 'counting' && $game['nextturn'] == $user->id)
       for ($i = 0; $i < $size; $i++) for ($j = 0; $j < $size; $j++){
-	
+
 	$which = $i + $j*$size;
-	
+
 	if ($game['board'][$which] == 1 || $game['board'][$which] == 2){
 	    $area = get_area($which, $game);
 	    if (count($area) == 1) $msg = 'Zu den Gefangenen mit dir!';
@@ -584,79 +589,79 @@ function nextstone_map($gameid)
 	    else $msg = 'Diese '.count($area).' Steine doch nicht als tot betrachten.';
 	}
 	else continue;
-	
+
 	$ret.= '<area shape="rect" coords="'.(($i+1)*FIELDSIZE-LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE-LINKRADIUS)
 	                                .','.(($i+1)*FIELDSIZE+LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE+LINKRADIUS).'" ';
         $ret .= 'href="/actions/go_game.php?tpl=699&action=count&move='.$which.'&game='.$gameid.'"';
 	$ret .= 'alt="'.$msg.'"'.'title="'.$msg.'">';
     }
-    
+
     $ret .= '</map>';
     return $ret;
 }
 
 function check_hit($which, $game)
 {
-    
+
     $opponentcolor = $game['nextturn'] == $game['pl1'] ? 2 : 1;
     $neighbours = get_neighbours($which, $game, array($opponentcolor));
     $hit_areas = array();
-    
+
     for ($i = 0; $i < count($neighbours); $i++){
-	
+
 	$area = get_area($neighbours[$i], $game);
 	$freedoms = get_freedoms($game, $area);
 	if (count($freedoms) == 1) for ($k = 0; $k < count($area); $k++) $hit_area[] = $area[$k];
     }
- 
+
     return $hit_area;
 }
 
 function check_suicide($which, $game)
 {
-    
+
     $mycolor = $game['nextturn'] == $game['pl1'] ? 1 : 2;
     $neighbours = get_neighbours($which, $game, array($mycolor));
-    
+
     $checksuicide = true;
     for ($i = 0; $i < count($neighbours); $i++){
-	
+
 	$freedoms = get_freedoms($game, get_area($neighbours[$i], $game));
 	if (count($freedoms) > 1) $checksuicide = false;
     }
     if (count(get_neighbours($which, $game, array(0, 3, 4))) == 0 && $checksuicide) return true;
- 
+
     return false;
 }
 
 function get_freedoms($game, $area)
-{    
+{
     $freedoms = array();
-    
+
     for ($i = 0; $i < count($area); $i++){
-	
+
 	$wholes = get_neighbours($area[$i], $game, array(0, 3, 4));
 	for ($k = 0; $k < count($wholes); $k++) if (!in_array($wholes[$k], $freedoms)) $freedoms[] = $wholes[$k];
     }
-    
+
     return $freedoms;
 }
 
 function get_neighbourstones_of_area($game, $area)
-{    
+{
     $neighbours = array();
     for ($i = 0; $i < count($area); $i++){
 	$wholes = get_neighbours($area[$i], $game, array(1, 2));
 	for ($k = 0; $k < count($wholes); $k++) if (!in_array($wholes[$k], $neighbours)) $neighbours[] = $wholes[$k];
     }
-    
+
     return $neighbours;
 }
 
 function get_area($which, $game)
-{    
+{
     $stonesdone = array();
-    
+
     $mycolor = $game['board'][$which];
     $mycolors = array();
     if ($mycolor == 0){
@@ -665,22 +670,22 @@ function get_area($which, $game)
 	$mycolors[] = 4;
     }
     else $mycolors[] = $mycolor;
-    
+
     $stonesdone = get_area_rec($which, $game, $mycolors, $stonesdone);
-    
+
     return $stonesdone;
 }
 
 function get_area_rec($which, $game, $mycolors, $stonesdone)
 {
     if (in_array($which, $stonesdone)) return;
-    
+
     $stonesdone[] = $which;
-    
+
     $neighbours = get_neighbours($which, $game, $mycolors);
-    
+
     for ($i = 0; $i < count($neighbours); $i++){
-	
+
 	$updatestones = get_area_rec($neighbours[$i], $game, $mycolors, $stonesdone);
 	if(is_array($updatestones)) {
 	for ($k = 0; $k < count($updatestones); $k++)
@@ -693,23 +698,23 @@ function get_area_rec($which, $game, $mycolors, $stonesdone)
 
 function get_neighbours($which, $game, $items)
 {
-   
+
     $neighbours = array();
     $size = $game['size'];
     $y = floor($which/$size);
     $x = $which - $y*$size;
-    
+
     if (field_equals($x-1, $y, $game, $items) == 1) $neighbours[] = $which-1;
     if (field_equals($x+1, $y, $game, $items) == 1) $neighbours[] = $which+1;
     if (field_equals($x, $y-1, $game, $items) == 1) $neighbours[] = $which-$size;
     if (field_equals($x, $y+1, $game, $items) == 1) $neighbours[] = $which+$size;
-        
+
     return $neighbours;
 }
 
 
 function field_equals($x, $y, $game, $items){
-    
+
     $size = $game['size'];
     if ($x < 0 || $y < 0 || $x >= $size || $y >= $size) return -1;
     if (in_array($game['board'][$x + $y*$size], $items)) return 1;
@@ -724,7 +729,7 @@ function field_equals($x, $y, $game, $items){
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $gameid ID des GO-Spiels
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -805,7 +810,7 @@ function writeGame($game)
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param integer $size Groesse des Feldes in "Kreuzungen"
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -831,7 +836,7 @@ function writeGame($game)
  * @date nn.nn.nnnn
  * @version 1.0
  * @since 1.0
- * 
+ *
  * @param image $im Das zu bemalende Bild
  * @param integer $size Groesse des Feldes in "Kreuzungen"
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -855,7 +860,7 @@ function draw_grid(&$im, $size)
 
 
 function draw_stardots(&$im, $size)
-{    
+{
     $coords = array();
     if ($size == 9)
     {
@@ -886,9 +891,9 @@ function draw_stardots(&$im, $size)
 		$coords[] = 15 + 15 * $size;
     }
     else return;
-    
+
     $offset = -STARDOTWIDTH / 2 - 1; // musste um -1 korrigieren, damits richtig aussieht. k.A. warum...
-    
+
     for ($i = 0; $i < count($coords); $i++)
     {
 		$y = floor($coords[$i] / $size);
@@ -903,7 +908,7 @@ function draw_stardots(&$im, $size)
   * @author [z]domi
   * @version 1.0
   * @since 1.0
-  * 
+  *
   * @param image &$im Das zu bemalende Bild
   * @param integer $x X-Koordinate auf dem Spielfeld
   * @param integer $y Y-Koordinate auf dem Spielfeld
@@ -930,25 +935,25 @@ function draw_stardots(&$im, $size)
 function draw_go_last(&$im, $size, $which)
 {
 	if ($which < 0) return;
-    
+
     $y = floor($which / $size);
     $x = $which - $size * $y;
-    
+
     $offset = -LASTSTONEWIDTH / 2 - 1;
-    imagecopy($im, LASTSTONE, $offset + ($x+1) * FIELDSIZE, $offset + OFFSET_PIC + ($y+1) * FIELDSIZE, 0, 0, imagesx(LASTSTONE), imagesy(LASTSTONE));  
+    imagecopy($im, LASTSTONE, $offset + ($x+1) * FIELDSIZE, $offset + OFFSET_PIC + ($y+1) * FIELDSIZE, 0, 0, imagesx(LASTSTONE), imagesy(LASTSTONE));
 }
 
 
 function draw_go_players(&$im, $game)
-{ 
+{
     $spacing = 7;
-    
+
     if (!$game || !$im) return;
-    
+
     $radius = floor(STONEBIGWIDTH / 2);
     $center1 = $spacing + $radius;
     $center2 = imagesx($im) - $center1;
-    
+
     imagecopy($im, WHITESTONEBIG, $center1 - $radius, $center1 - $radius, 0, 0, imagesx(WHITESTONEBIG), imagesy(WHITESTONEBIG));
     imagecopy($im, BLACKSTONEBIG, $center2 - $radius, $center1 - $radius, 0, 0, imagesx(BLACKSTONEBIG), imagesy(BLACKSTONEBIG));
 
@@ -958,18 +963,18 @@ function draw_go_players(&$im, $game)
     //if ($game['pl2luck'] == 0) imagerotate($im_pl2, 180, 0);
     imagecopy($im, $im_pl1, $center1 - imagesx($im_pl1)/2, $center1 - imagesy($im_pl1)/2, 0, 0, imagesx($im_pl1), imagesy($im_pl1));
     imagecopy($im, $im_pl2, $center2 - imagesx($im_pl2)/2, $center1 - imagesy($im_pl2)/2, 0, 0, imagesx($im_pl2), imagesy($im_pl2));
-    
+
     $white = imagecolorallocate($im, 255, 255, 255);
-    $black = imagecolorallocate($im, 0, 0, 0);    
+    $black = imagecolorallocate($im, 0, 0, 0);
     if ($game['handicap'] != 0) imagestring($im, 3, $center1 - $radius*2/5, $center1 + imagesy($im_pl1)/2 + 3, 'Handicap: '.$game['handicap'], $black);
-    
+
     if ($game['state'] == 'finished')
     {
 		imagestring($im, 5, $center1 - 10, $center1 - imagesy($im_pl1)/2 - 26, $game['pl1points'], $black);
 		imagestring($im, 5, $center2 - 10, $center1 - imagesy($im_pl1)/2 - 26, $game['pl2points'], $white);
     }
-    
-    
+
+
     imagecopy($im, BLACKSTONESEMI, $center1 - imagesx(BLACKSTONE)/2, $center1 + $radius + $spacing, 0, 0, imagesx(BLACKSTONE), imagesy(BLACKSTONE));
     imagecopy($im, WHITESTONESEMI, $center2 - imagesx(WHITESTONE)/2, $center1 + $radius + $spacing, 0, 0, imagesx(WHITESTONE), imagesy(WHITESTONE));
 
@@ -980,13 +985,13 @@ function draw_go_players(&$im, $game)
 }
 
 function get_userpic($user_id)
-{    
+{
     $image = imagecreatefromjpeg(USER_IMGPATH.$user_id.'.jpg');
-    
+
     $w = imagesx($image);
     $h = imagesy($image);
     $max_side = STONEBIGWIDTH * 2 / 3;
-    
+
     if ($h > $w)
     {
 		$w_new = $w * $max_side / $h;
@@ -996,19 +1001,19 @@ function get_userpic($user_id)
 		$w_new = $max_side;
 		$h_new = $h * $max_side / $w;
     }
-    
+
     $img_scaled = imagecreatetruecolor($w_new, $h_new);
     imagecopyresampled($img_scaled, $image, 0, 0, 0, 0, $w_new, $h_new, $w, $h);
-    
+
     return $img_scaled;
 }
 
 
 function go_count($which, $gameid){
     global $db, $user;
-    
+
     $game=readGame($gameid);
-    
+
     if (!$game)
     {
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
@@ -1036,16 +1041,16 @@ function go_count($which, $gameid){
 		user_error( t('invalid-coordinates', 'go', [ $which, $x, $y ]), E_USER_WARNING);
 		return;
     }
-    
+
     if ($game['board'][$which] == 0)
     {
 		user_error( t('invalid-field', 'go', [ $which, $x, $y ]), E_USER_WARNING);
         return;
     }
-    
+
     $area = get_area($which, $game);
     $oldone = $game['board'][$which];
-    
+
     if ($oldone == 1) $newone = 3;
     else if ($oldone == 2) $newone = 4;
     else if ($oldone == 3) $newone = 1;
@@ -1054,9 +1059,9 @@ function go_count($which, $gameid){
   		user_error(t('invalid-datastate', 'go', $oldone), E_USER_NOTICE);
   		return;
     }
-    
+
     for ($k = 0; $k < count($area); $k++) $game['board'][$area[$k]] = $newone;
-    	    
+
     $game['countchanged'] = 1;
         writeGameCount($game);
  }
@@ -1064,9 +1069,9 @@ function go_count($which, $gameid){
  function go_count_propose($gameid)
  {
      global $db, $user;
-    
+
     $game=readGame($gameid);
-    
+
     if (!$game){
 	user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
 	return;
@@ -1093,7 +1098,7 @@ function go_count_accept($gameid)
 	global $db, $user;
 
     $game=readGame($gameid);
-    
+
     if (!$game)
     {
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
@@ -1112,18 +1117,18 @@ function go_count_accept($gameid)
 		return;
     }
 
-    go_finish_game($gameid);   
+    go_finish_game($gameid);
 }
 
 
 function writeGameCount($game)
 {
     global $db, $user;
-    
+
     if ($game)
     {
 		$game['data'] = implode("", $game['board']);
-			
+
 		$e = $db->query("UPDATE go_games
 			 SET data='".$game['data']."', nextturn='".$game['nextturn'].
 			"', countchanged='".$game['countchanged']."'
@@ -1131,5 +1136,5 @@ function writeGameCount($game)
 			__FILE__, __LINE__);
 
     }
-    
+
 }
