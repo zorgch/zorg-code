@@ -481,11 +481,10 @@ function var_request ()
 		}
 
 		/** Load the zorg Swiss QR Bill Class */
-		require INCLUDES_DIR.'swissqrbill.inc.php';
-
+		require_once INCLUDES_DIR.'swissqrbill.inc.php';
 		$zorgQRCodeBill = new zorgSwissQRBill();
-		$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
 
+		$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
 		if (false !== $qrCodeImageString && !empty($qrCodeImageString))
 		{
 			$imgContainerStyles = 'padding: 5mm;background-color: white;text-align: center;';

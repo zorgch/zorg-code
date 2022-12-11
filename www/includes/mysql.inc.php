@@ -13,7 +13,7 @@
  * @include mysql_login.inc.local.php Include MySQL Database login information file
  * @include config.inc.php
  */
-//require_once dirname(__FILE__).'/config.inc.php';
+require_once dirname(__FILE__).'/config.inc.php';
 require_once dirname(__FILE__).( file_exists( dirname(__FILE__).'/mysql_login.inc.local.php') ? '/mysql_login.inc.local.php' : '/mysql_login.inc.php') ;
 
 /**
