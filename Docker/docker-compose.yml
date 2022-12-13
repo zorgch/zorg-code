@@ -10,6 +10,8 @@ services:
         restart: unless-stopped
         environment:
             - APACHE_DOCUMENT_ROOT=${APACHE_WEBROOT:-/var/www}
+            - APACHE_RUN_USER=${APACHE_USER:-www-data}
+            - APACHE_RUN_GROUP=${APACHE_GROUP:-www-data}
         hostname: webserver
         domainname: ${DOMAINNAME}
         networks:
@@ -29,14 +31,16 @@ services:
             - ./Docker/ssl:/etc/apache2/ssl
             - ./Docker/apache2/000-default.conf:/etc/apache2/sites-available/000-default.conf
             - ./Docker/apache2/ssl-default.conf:/etc/apache2/sites-available/default-ssl.conf
-            - ./.git:${APACHE_WEBROOT:?err}/.git
+            - web-root-git-sync:${APACHE_WEBROOT:?err}/.git:nocopy
             - ./cron:${APACHE_WEBROOT:?err}/cron
+            #- web-root-data-sync:${APACHE_WEBROOT:?err}/data:nocopy
             - ./data:${APACHE_WEBROOT:?err}/data
             - ./irclogs:${APACHE_WEBROOT:?err}/irclogs
             - ./keys:${APACHE_WEBROOT:?err}/keys
             - ./migration:${APACHE_WEBROOT:?err}/migration
             - ./scripts:${APACHE_WEBROOT:?err}/scripts
-            - ./vendor:${APACHE_WEBROOT:?err}/vendor
+            - web-root-vendor-sync:${APACHE_WEBROOT:?err}/vendor:nocopy
+            #- web-root-www-sync:${APACHE_WEBROOT:?err}/html:nocopy
             - ./www:${APACHE_WEBROOT:?err}/html
         entrypoint: ["/bin/sh","-c"]
         command:
@@ -79,7 +83,7 @@ services:
             timeout: 3s
             retries: 5
         volumes:
-            - ${MYSQL_LOCAL_DATABASE_PATH:-./Docker/mysql57}:/var/lib/mysql
+            - db-mysql-sync:/var/lib/mysql:nocopy
         command: [mysqld, --default-authentication-plugin=mysql_native_password, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --innodb_monitor_enable=all, --max-connections=1001, --explicit_defaults_for_timestamp]
 
     db-manager:
@@ -100,3 +104,14 @@ services:
         ports:
             - ${PHPMYADMIN_PORT:-8080}:80
 
+volumes:
+    web-root-git-sync:
+        external: true
+    web-root-data-sync:
+        external: true
+    web-root-vendor-sync:
+        external: true
+    web-root-www-sync:
+        external: true
+    db-mysql-sync:
+        external: true
