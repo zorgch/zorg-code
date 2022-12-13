@@ -1107,19 +1107,23 @@ function cURLfetchJSON($url)
 /**
  * Test if a File exists on the Server
  *
- * @TODO add check for string ending in '/' then validate if dir exists
- *
  * @author IneX
- * @version 1.1
+ * @version 1.2
  * @since 1.0 `06.08.2018` `IneX` function added
  * @since 1.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
+ * @since 1.2 `12.12.2022` `IneX` added check for string ending in '/' then validate if dir exists
  *
  * @param string $filepath 	The filepath to validate
  * @return string|boolean	Returns the passed $filepath if it exists, or false if not found
  */
 function fileExists($filepath)
 {
-	return (is_file($filepath) !== false ? $filepath : false);
+	/** $filepath is Directory */
+	if (mb_substr($filepath, -1) === '/') $status = is_dir($filepath);
+	/** $filepath is File */
+	else $status = is_file($filepath);
+
+	return ($status !== false ? $filepath : false);
 }
 
 
