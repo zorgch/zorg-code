@@ -1223,7 +1223,7 @@ function smarty_peter ($params, &$smarty) {
 		$smarty->assign("users_on_pic", Gallery::getUsersOnPic($params['picID']));
 	}
 	function smarty_get_randomalbumpic($params) {
-		return getAlbumLinkRandomThumb($params['album_id']);
+		return getAlbumLinkRandomThumb($params['album_id'], $params['show_title'], $params['image_quality']);
 	}
 		/**
 		 * Smarty Function "top_pics"
@@ -1649,7 +1649,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'commentingsystem' => [ 'smarty_commentingsystem', 'commentingsystem', 'Commenting', 'forum, comments', false, false ]
 								,'random_pic' => [ 'getRandomThumb', 'random_pic', 'Gallery', '{random_pic}  displays a random thumb out of the gallery', false, false ]
 								,'daily_pic' => [ 'getDailyThumb', 'daily_pic', 'Gallery', '{daily_pic}   displays the pic of the day', false, false ]
-								,'random_albumpic' => [ 'smarty_get_randomalbumpic', 'random_albumpic', 'Gallery', 'gallery', false, false ]
+								,'random_albumpic' => [ 'smarty_get_randomalbumpic', 'random_albumpic', 'Gallery', 'Gets a random Pic of a specific Gallery Album.<br>Parameters supported: <code>abum_id=[1-9]</code>, <code>show_title=[true/false*]</code>, <code>image_quality=[normal*|high]</code> (* Defaults)', false, false ]
 								,'top_pics' => [ 'smarty_top_pics', 'top_pics', 'Gallery', 'gallery', false, false ]
 								,'user_pics' => [ 'smarty_user_pics', 'user_pics', 'Gallery', 'gallery', false, false ]
 								,'assign_users_on_pic' => [ 'smarty_assign_users_on_pic', 'assign_users_on_pic', 'Gallery', 'gallery', false, false ]
