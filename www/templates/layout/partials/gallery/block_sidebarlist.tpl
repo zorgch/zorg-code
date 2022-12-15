@@ -1,6 +1,6 @@
 {if $user->typ >= 2}
-<div class="center hide-mobile">[&nbsp;<a href="/gallery.php?show=editAlbumV2">add new Album</a>&nbsp;]</div>
-<h3><i>-- Leere Galleries --</i></h3>
+<div class="center">[&nbsp;<a href="/gallery.php?show=editAlbumV2">add new Album</a>&nbsp;]</div>
+<h3><i>Leere Galleries</i></h3>
 {foreach from=$galleriesEmptyIdList key=index item=gallery}
 	<p>«<a href="{$self}?show=editAlbumV2&albID={$gallery.id}">{$gallery.name}</a>»<br><small>{$gallery.created|datename}</small></p>
 {foreachelse}

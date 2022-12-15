@@ -54,10 +54,11 @@
 		}
 		.dz-preview {
 			{/literal}{if $daytime == 'night'}filter: invert(100%);{/if}{literal}
-			border: solid 1px lightgray;
-			border-radius: 20px;
+			/*border: solid 1px lightgray; -> sieht doof aus
+			border-radius: 20px;*/
 			z-index: 2;
 		}
+		.dz-preview.dz-image-preview { background: transparent !important; }
 		.dz-image img {
 			object-fit: cover;
 			width: 100%;
@@ -96,7 +97,13 @@
 		}
 		/* Mobile */
 		@media (max-width: 805px) {
-			.dz-image { width: 280px !important; }
+			.dz-image {
+				width: 280px !important;
+				height: 280px !important;
+			}
+			.dz-remove {
+				font-size: 1.5em !important;
+			}
 		}
 
 		/** Draggable zone */
@@ -119,7 +126,7 @@
 	<header class="text-center">
 		<h1>zorg Gallery Maker</h1>
 		<p class="text-secondary text-small">Lad ems Pics ufe doooo</p>
-		<a class="text-small" href="{$smarty.const.SITE_URL}/gallery.php">↩ back to zorg</a>
+		<a class="text-small" href="{$smarty.const.SITE_URL}/gallery.php{if $album_id > 0}?show=albumThumbs&albID={$album_id}{/if}">↩ back to zorg</a>
 		<hr>
 		{if $error.title <> ''}{include file="file:layout/elements/block_error.tpl"}{/if}
 	</header>
@@ -175,14 +182,14 @@
 						<input type="file" id="add-dems-pix" name="dropzone-pic" class="button-primary mar-xs">
 					</div>
 				</form>
-				<small id="dropzone-hint" class="hint"><strong>PNG</strong> or <strong>JPEG</strong> images of <strong>max. 3 MB each</strong>.</small>
+				<small id="dropzone-hint" class="hint"><strong>PNG</strong> or <strong>JPEG</strong> images of <strong>max. 4 MB each</strong>.</small>
 			</div>
 		</div>
 		<div class="row row-between row-flush">
-			<div class="col-2 offset-4 text-center">
+			<div class="col-12 col-md-6 col-lg-2 order-2 order-md-1 offset-lg-4 text-center">
 				<button type="button" id="upload-pics" class="button-block button-lg button-success" disabled {if $daytime == 'night'}style="filter: invert(100%);"{/if}><i class="fa fa-upload"></i> Upload</button>
 			</div>
-			<div class="col offset-0 pad-y-xs">
+			<div class="col-12 col-md-6 col-lg-6 order-1 order-md-2 offset-0 pad-y-xs">
 				<!-- label class="pad-xs"><input type="checkbox" name="add-activity" id="add-activity" value="true"> Share as new Activity</label -->
 				<span class="switch switch-primary">
 				  <input type="checkbox" id="activity-switch" name="add-activity" value="true" checked disabled>
@@ -216,10 +223,11 @@
 	 * Dropzone
 	 */
 	const uploaded_pic_ids = [];
+	const jpegception = ['jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2'];
 	Dropzone.options.dropEmsPixDoooo = {
 		 maxFiles: null
 		,filesizeBase: 1000
-		,maxFilesize: 3 // MB
+		,maxFilesize: 4 // MB
 		,acceptedFiles: 'image/png,image/jpg,image/jpeg'
 		,preventDuplicates: true
 		,autoProcessQueue: false
@@ -227,7 +235,7 @@
 		,parallelUploads: 1
 		,addRemoveLinks: true
 		,fixOrientation: true
-		,thumbnailMethod: 'crop'
+		,thumbnailMethod: 'contain'
 		,thumbnailWidth: 120
 		,paramName: 'dropzone-pic' // Form File Name-ID param for upload transfer (multiple files = paramName[] Array)
 		,dictDefaultMessage: '+ add pics'
@@ -236,13 +244,15 @@
 		,dictDuplicateFile: 'Meh vom Gliiche goht doch nöd!'
 		,dictRemoveFile: '🗑 remove'
 		,renameFile: function(file) { // Invoked before file is uploaded to server to rename it
-			return 'pic.'+file.name.split('.').pop();
+			var extension = file.name.split('.').pop().toLowerCase();
+			if (jpegception.indexOf(extension) >= 0) { extension = 'jpg'; } // Harmonize 'jpeg'-type extensions to 'jpg'
+			return 'pic.'+extension;
 		}
-		/*,accept: function(file, done) { // Rules to verify files before accepting them
-			if (file.name == "gallery_pic.jpg") {
-				done("Naha, you don't.");
-			} else { done(); }
-		}*/
+		//,accept: function(file, done) { // Rules to verify files before accepting them
+			// if (file.name == "gallery_pic.jpg") {
+			// 	done("Naha, you don't.");
+			// } else { done(); }
+		//}
 		,init: function() {
 			mimsDropzone = this;
 			this.on('removedfile', function(file){
@@ -254,31 +264,40 @@
 					enableElementProp(upload_button, false);
 				}
 			});
-			this.on('addedfile', function(file){
+			this.on('addedfile', function(file, errorMessage, xhr){
 				showElementCSS(gallery_select_status, false);
 				showElementCSS(upload_status, false);
 
-				/* Remove the "Remove"-link on Serverfiles */
-				if (dropzone_serverfiles) {
-					file.previewElement.removeChild(file.previewElement.lastChild);
-				}
-
-				/* Duplicate check & discard: */
+				/* Duplicate check & discard */
 				if (this.files.length >= 0) {
 					var i, len, pre;
 					for (i=0, len=this.files.length; i<len-1; i++) {
 						if (this.files[i].name == file.name) {
-							alert("DUPLICATE: «" + file.name + "» → not added")
 							this.files.length = this.files.length-1;
+							upload_status.removeClass(info+' '+success).addClass(error).html('DUPLICATE: «'+file.name+'» → not added!');
+							showElementCSS(upload_status, true);
+							//alert("DUPLICATE: «" + file.name + "» → not added")
 							return (pre = file.previewElement) != null ? pre.parentNode.removeChild(file.previewElement) : void 0;
-						} else {
-							console.info(file);
 						}
 					}
-					enableElementProp(notification_switch, true);
-					upload_button.html('<i class="fa fa-upload"></i> Upload');
-					enableElementProp(upload_button, true);
-					console.log("All files have been accepted");
+				}
+
+				/* Remove the "Remove"-link on Serverfiles */
+				if (dropzone_serverfiles) {
+					file.previewElement.removeChild(file.previewElement.lastChild);
+				} else {
+				/* Enable Upload of Accepted files */
+					console.log(file);
+					if (this.getAcceptedFiles().length >= 0) {
+						enableElementProp(notification_switch, true);
+						upload_button.html('<i class="fa fa-upload"></i> Upload');
+						enableElementProp(upload_button, true);
+						console.log('Added Files: '+this.getAddedFiles().length);
+					} else {
+						/* There were errors with added Files */
+						upload_status.removeClass(info+' '+success).addClass(error).html('Pic(s) could NOT be added: '+errorMessage);
+						showElementCSS(upload_status, true);
+					}
 				}
 			});
 			this.on('processing', function(file){ // Called when a file gets processed
@@ -297,26 +316,24 @@
 					//imageDropzone.removeFile(file);
 					console.log('Transfer completed. Queued Files: '+this.getQueuedFiles().length);
 					for (i=0; i<this.getQueuedFiles().length; i++) {
-						//this.processFile(myDropzone.getAcceptedFiles()[i]);
 						this.processQueue(); // Continue releasing the Kraken...
 					}
 				}
 			});
 			this.on('success', function(file, responseText){
 				console.info('[success] Gallery Pic: '+file.name);
-				//var new_pic_id = Number(responseText);
 				uploaded_pic_ids.push(Number(responseText));
 				file.previewElement.removeChild(file.previewElement.lastChild); // Remove the "Remove"-link on the uploaded File
 				if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length === 0){
 					if (uploaded_pic_ids.length > 0) {
-						upload_status.removeClass(error).addClass(success).html(uploaded_pic_ids.length+' Pics successfully added! → <a href="'+gallery_deeplink + gallery_id+'" target="_blank">Luegsch dooo</a>');
+						upload_status.removeClass(info+' '+error).addClass(success).html(uploaded_pic_ids.length+' Pics successfully added! → <a href="'+gallery_deeplink + gallery_id+'" target="_blank">Luegsch dooo</a>');
 						upload_button.html('<i class="fa fa-check"></i> done');
 
 						/* Notification - if enabled */
 						if (notification_switch.is(':checked')) AJAXpostActivity(encodeURIComponent(sprintf(notification_text, uploaded_pic_ids.length, gallery_deeplink, gallery_id, gallery_name)));
 					} else {
 						console.warn('AJAX successfull but array data incomplete: ' + uploaded_pic_ids.length);
-						upload_status.removeClass(success).addClass(error).html('Invalid response from Server received.');
+						upload_status.removeClass(info+' '+success).addClass(error).html('Invalid response from Server received.');
 						upload_button.html('<i class="fa fa-upload"></i> Upload');
 					}
 					showElementCSS(upload_status, true);
@@ -327,7 +344,7 @@
 				/* this.removeFile(file); */
 				console.error('[error:'+message+'] Gallery Pic: '+file.name);
 				if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length === 0){
-					upload_status.removeClass(success).addClass(error).html('Error uploading Pic(s).');
+					upload_status.removeClass(info+' '+success).addClass(error).html('Error uploading Pic(s).');
 					showElementCSS(upload_status, true);
 					enableElementProp(notification_switch, true);
 					upload_button.html('<i class="fa fa-upload"></i> Upload');
@@ -347,7 +364,10 @@
 	function showElementCSS(elem, show) {
 		if (typeof elem !== 'undefined') {
 			if (!show) { elem.addClass('hidden'); }
-			else { elem.removeClass('hidden'); }
+			else {
+				elem.removeClass('hidden');
+				$('html,body').animate({scrollTop: elem.offset().top},'fast'); // Scroll to element
+			}
 		} else {
 			console.warn('Cannot add Class to ' + elem + ': undefined');
 		}
@@ -440,7 +460,7 @@
 						console.info('No Pics found - empty Gallery maybe.');
 					}
 					dropzone_serverfiles = false; // Disable
-					upload_status.addClass(info).html((data.length > 0 ? data.length+' Pics der ' : '')+'<a href="'+gallery_deeplink + gallery_id+'" target="_blank">Gallery</a> erfolgreich geladen');
+					upload_status.removeClass(error+' '+success).addClass(info).html((data.length > 0 ? data.length+' Pics der ' : '')+'<a href="'+gallery_deeplink + gallery_id+'" target="_blank">Gallery</a> erfolgreich geladen');
 					showElementCSS(upload_status, true);
 					showElementCSS(upload_section, true);
 				},
@@ -486,11 +506,11 @@
 					url.searchParams.set('album_id', gallery_id);// Update URL with Parameter
 					window.history.pushState(null, null, url);
 					dropzone_heading.text('Bilder auswählen für «' + gallery_name + '»');
-					gallery_select_status.removeClass(error).addClass(success).html('Neue Gallery mit id #' + gallery_id + ' erfolgreich erstellt!');
+					gallery_select_status.removeClass(info+' '+error).addClass(success).html('Neue Gallery mit id #' + gallery_id + ' erfolgreich erstellt!');
 					showElementCSS(upload_section, true);
 				} else {
 					console.warn('AJAX successfull but data not a valid Integer: ' + data);
-					gallery_select_status.removeClass(success).addClass(error).html('Neue Gallery konnte nicht erstellt werden - probiers nachememe <a href="{/literal}{$self}{literal}?album_name='+encodeURIComponent(name_input.val())+'">Page reload</a> nomel.');
+					gallery_select_status.removeClass(info+' '+success).addClass(error).html('Neue Gallery konnte nicht erstellt werden - probiers nachememe <a href="{/literal}{$self}{literal}?album_name='+encodeURIComponent(name_input.val())+'">Page reload</a> nomel.');
 					enableElementProp(name_input, true);
 					enableElementProp(add_gallery_button, true);
 					enableElementProp(dropdown_list, true);
@@ -500,7 +520,7 @@
 			},
 			error: function(data) {
 				console.error('Error while '+action+' Gallery: '+gallery_name);
-				gallery_select_status.removeClass(success).addClass(error).html('Neue Gallery konnte nicht erstellt werden - probiers nachememe <a href="{/literal}{$self}{literal}?album_name='+encodeURIComponent(name_input.val())+'">Page reload</a> nomel.');
+				gallery_select_status.removeClass(info+' '+success).addClass(error).html('Neue Gallery konnte nicht erstellt werden - probiers nachememe <a href="{/literal}{$self}{literal}?album_name='+encodeURIComponent(name_input.val())+'">Page reload</a> nomel.');
 				enableElementProp(name_input, true);
 				enableElementProp(add_gallery_button, true);
 				enableElementProp(dropdown_list, true);
@@ -546,7 +566,6 @@
 	const upload_status = $('#upload-status');
 	const upload_button = $('#upload-pics');
 	const notification_switch = $('#activity-switch');
-	//const notification_text = `hat * Pics zur Gallery «<a href="${gallery_deeplink}${gallery_id}">${gallery_name}</a>» hinzugefügt.`; -> undefined undefind
 	const notification_text = 'hat $ Pics zur Gallery «<a href="$$">$</a>» hinzugefügt.';
 	const success = 'alert-success';
 	const info = 'alert-info';
@@ -646,7 +665,7 @@
 					mimsDropzone.processQueue(); // Release the Kraken...
 				} else {
 					console.warn('No Files to upload added in Dropzone!');
-					upload_status.removeClass(success).addClass(error).text('Kei (neui) Bilder zum ufelade?!');
+					upload_status.removeClass(info+' '+success).addClass(error).text('Kei (neui) Bilder zum ufelade?!');
 					showElementCSS(upload_status, true);
 					enableElementProp(notification_switch, true);
 					$(this).removeClass('button-loader');
