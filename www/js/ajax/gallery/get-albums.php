@@ -30,7 +30,7 @@ if ($action === 'list')
 
 	if (!$showall) $sql = 'SELECT id, name, created FROM gallery_albums WHERE id NOT IN (SELECT album FROM gallery_pics)';
 	//else $sql = 'SELECT g.id, g.name, g.created, COUNT(p.id) num_pics FROM gallery_albums g INNER JOIN gallery_pics p ON p.album = g.id WHERE g.id != 41 GROUP BY g.id ORDER BY g.name ASC';
-	else $sql = 'SELECT g.id id, g.name name, g.created created, (SELECT COUNT(*) FROM gallery_pics p WHERE p.album=g.id) as num_pics FROM gallery_albums g WHERE g.id != 41 ORDER BY g.name ASC';
+	else $sql = 'SELECT g.id id, g.name name, g.created created, (SELECT COUNT(*) FROM gallery_pics p WHERE p.album=g.id) as num_pics FROM gallery_albums g WHERE g.id != 41 ORDER BY num_pics=0 DESC, g.name ASC';
 	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM gallery_albums');
 	$numresult = $db->num($result);
 	if ($numresult > 0)
