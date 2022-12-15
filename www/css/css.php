@@ -965,6 +965,69 @@ select:disabled, select[aria-disabled=true] {
 }
 select:disabled:hover, select[aria-disabled=true] { border-color: var(--border-input-disabled, graytext); }
 
+/** Benoten Radiobuttons */
+.voteform { counter-reset: css-counter 0; }
+.voteform > span {
+	font-size: 1.25em;
+	padding-right: 1em;
+}
+.scorevalue { /* Label */
+	font-size: 1rem;
+	line-height: 1.1;
+	display: grid;
+	grid-template-columns: 1em auto;
+	gap: 0.5em;
+}
+.scorevalue > input[type="radio"] { /* Radio */
+	filter: none;
+	-webkit-appearance: none;
+	appearance: none;
+	background-color: transparent;/* For iOS < 15 to remove gradient background */
+	margin: 0;/* Not removed via appearance */
+	font: inherit;
+	color: currentcolor;
+	width: 0.8em;
+	height: 0.8em;
+	border: 0.05em solid transparent;
+	border-radius: 50%;
+	/*transform: translateY(-0.075em);*/
+	display: grid;
+	place-content: center;
+	counter-increment: css-counter 1;
+}
+.scorevalue > input[type="radio"]::before {
+	/*content: "";*/
+	content: counter(css-counter) " ";
+  	float: left;
+  	margin: 5px;
+  	padding: 8px 10px;
+  	font-size: 0.7em;
+  	color: var(--color-font-primary);
+  	text-align: center;
+	border: solid 1px #ccc;
+	border-radius: 50%;
+  	border: 1px;
+  	cursor: pointer;
+	transition: 120ms transform ease-in-out;
+	/*width: 0.65em;
+	height: 0.65em;*/
+	/*transform: scale(0);*/
+	/*box-shadow: inset 1em 1em var(--color-link-primary);*/
+	/*background-color: CanvasText;*//* Windows High Contrast Mode */
+}
+.scorevalue > input[type="radio"]:checked::before {
+	transform: scale(1);
+}
+.scorevalue > input[type="radio"]:hover, .scorevalue > input[type="radio"]:focus {
+	border: 0.05em solid var(--color-link-primary);
+	border-radius: 50%;
+	/* outline: max(1px, 0.1em) solid currentColor;
+	outline-offset: max(1px, 0.1em); */
+}
+.scorevalue:focus-within {
+	color: var(--color-link-primary);
+}
+
 /** No left/right Padding inside Tables, because 100% => over-stretches */
 td > textarea, td > input, td > input[type=text], td > input[type=password], td > input[type=search], td > input[type=number], td > input[type=date],
 form > input[type=text], form > input[type=password], form > input[type=search], form > input[type=number], form > input[type=date] {
@@ -996,6 +1059,9 @@ input, textarea, button, select, label, a {
 	#schickenaaab {
 		width: 95%; /** Fix 100% overflow */
 	}
+
+	/** Benoten Radiobuttons (Mobile) */
+	.voteform > span { font-size: 0.75em; }
 
 	/**
 	 * Fix responsive Google reCaptcha

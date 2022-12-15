@@ -48,29 +48,30 @@ class Quotes
 			if (Quotes::hasVoted($user->id, $rs['id'])) $html .= '<small>(Note: '.round(Quotes::getScore($rs['id']), 1).')</small>';
 			if (!Quotes::hasVoted($user->id, $rs['id']))
 			{
-				$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" style="display: flex;">'
+				$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" class="voteform" style="display: flex;">'
 							.'<input name="action" type="hidden" value="benoten">'
 							.'<input name="quote_id" type="hidden" value="'.$rs['id'].'">'
 							.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+							.'<span>Benoten:</span>'
 							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="1">'
-								.'1</label>'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="1"></label>'
+								//.'1</label>'
 							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="2">'
-								.'2</label>'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="2"></label>'
+								//.'2</label>'
 							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="3">'
-								.'3</label>'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="3"></label>'
+								//.'3</label>'
 							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="4">'
-								.'4</label>'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="4"></label>'
+								//.'4</label>'
 							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="5">'
-								.'5</label>'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="5"></label>'
+								//.'5</label>'
 							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="6">'
-								.'6</label>'
-							.'<input class="button" type="submit" value="benoten">'
+								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="6"></label>'
+								//.'6</label>'
+							//.'<input class="button" type="submit" value="benoten">'
 						.'</form>';
 			}
 		}
@@ -203,15 +204,15 @@ class Quotes
 			// Quote in die daily tabelle tun
 			$sql = "REPLACE INTO periodic (name, id, date) VALUES ('daily_quote', ".$rs['id'].", NOW())";
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			
+
 			/** Send new Daily Quote as Telegram Message */
 			$telegram->send->message('group', sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', $rs['text'], $user->id2user($rs['user_id'], TRUE)), ['disable_notification' => 'true']);
-			
+
 			return true;
 		}
 		catch (Exception $e) {
 			user_error($e->getMessage(), E_USER_ERROR);
-			
+
 			return false;
 		}
 	}

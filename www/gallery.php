@@ -126,6 +126,7 @@ else {
 				/*case 'markieren':
 					doMark($getPicId);
 					break;*/
+
 			}
 		} else {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', $doAction)]);
@@ -145,6 +146,9 @@ else {
 			$smarty->display('file:layout/head.tpl');
 			editAlbum($album_id, $doAction, (isset($res['state']) ? $res['state'] : ''), (isset($res['error']) ? $res['error'] : ''), (isset($res['frm']) ? $res['frm'] : ''));
 			break;
+		case 'editAlbumV2':
+			header('Location: /gallery_maker.php'.($getAlbId > 0 ? '?album_id='.$getAlbId : ''));
+			exit;
 		case 'albumThumbs':
 			$model->showAlbum($smarty, $album_id);
 			albumThumbs($album_id, $showPage);
@@ -156,8 +160,9 @@ else {
 			break;
 		default:
 			$model->showOverview($smarty);
+			galleryOverview($res['state'], $res['error']);
 			$smarty->display('file:layout/head.tpl');
-			echo galleryOverview($res['state'], $res['error']);
+			$smarty->display('file:layout/partials/gallery/overview.tpl');
 	}
 
 }

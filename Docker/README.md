@@ -4,21 +4,50 @@
 ## Docker configs
 Edit the file: `.env.docker`
 
-## Build the Docker container
+## Using docker-sync
+`docker-sync` greatly improves the performance of synced volumes from the local file system to Docker, giving a nearly live-performance for read/write operations.
+
+### On macOS
+(The following steps are copied from [this online documentation](https://reece.tech/posts/osx-docker-performance/))
+
+#### Install docker-sync
+
+```
+gem install --user-install docker-sync
+brew install fswatch
+brew install unison
+brew install eugenmayer/dockersync/unox
+```
+
+#### Configuring docker-sync
+Docker sync requires a valid configuration file (docker-sync.yaml), the below file creates a named volume for Docker called osx-sync and mounts the local macOS directory.
+
+Add `docker-sync` to your $PATH using `nano ~/.zshrc`
+
+```
+if which ruby >/dev/null && which gem >/dev/null; then
+  PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
+```
+
+Now run `source ~/.zshrc` to apply the $PATH settings.
+
+## Build the Docker container and docker-sync
 Start container with all services.
 
 * in "detached mode" - without interative log in the Shell
 
 ```
 cd /path/to/zorg-code/
+docker-sync start -c ./Docker/docker-sync.yml
 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up -d
 ```
-
 
 * or with an interactive log in the Shell
 
 ```
 cd /path/to/zorg-code/
+docker-sync-stack start -c ./Docker/docker-sync.yml
 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up
 ```
 
@@ -27,6 +56,11 @@ docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-f
 ```
 MYSQL_LOCAL_DATABASE_PATH=/path/to/my/mysql57 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up -d
 ```
+
+#### Fix possible "Tablespace missing"-errors
+To fix the MySQL-Error 1812 `Tablespace is missing for table zooomclan . <table-name>` try the following command per affected `<table-name>`:
+
+```ALTER TABLE zooomclan.<table-name> IMPORT TABLESPACE```
 
 
 Usage
@@ -53,6 +87,10 @@ Find IP of a container service (can also be seen in the network details)
 
 `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' SERVICENAME`
 
+Inspect all running Docker services
+
+`docker ps`
+
 Inspect all container service details
 
 `docker container inspect SERVICENAME`
@@ -72,3 +110,12 @@ Execute a shell command on a container service
 Enter into interactive shell mode for a container service
 
 `docker exec -it SERVICENAME sh`
+
+#### docker-sync inspection
+!! Refresh docker-sync after updating the `docker-compose.yml`-file
+
+`docker-sync clean`
+
+Inspect running docker-sync services:
+
+`docker volume ls | grep -sync`

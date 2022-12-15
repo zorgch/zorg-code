@@ -142,6 +142,7 @@ if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', nul
  * @const UTIL_DIR Utilities directory for Frontend-Resources
  * @const JS_DIR JavaScripts directory for Frontend-Resources
  * @const CSS_DIR CSS directory for Frontend-Resources
+ * @const GALLERY_UPLOAD_DIR Path to the Upload directory for new Galleries / Gallery Pics on the Server
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', SITE_ROOT . '/includes/');
 if (!defined('APIKEYS_DIR')) define('APIKEYS_DIR', SITE_ROOT . '/../keys'); // No trailing slash /
@@ -157,6 +158,7 @@ if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', '/scripts/');
 if (!defined('UTIL_DIR')) define('UTIL_DIR', '/util/');
 if (!defined('JS_DIR')) define('JS_DIR', '/js/');
 if (!defined('CSS_DIR')) define('CSS_DIR', '/css/');
+if (!defined('GALLERY_UPLOAD_DIR')) define('GALLERY_UPLOAD_DIR', SITE_ROOT . '/../data/upload/new-galleries/');
 
 /**
  * Define User & Usersystem constants
@@ -236,6 +238,16 @@ if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', SITE_ROOT . '/../data/errlo
 if (!defined('ERRORLOG_FILE')) define('ERRORLOG_FILE', ERRORLOG_DIR . date('Y-m-d') . ERRORLOG_FILETYPE);
 require_once INCLUDES_DIR.'errlog.inc.php';
 //set_error_handler('zorgErrorHandler');
+
+/**
+ * Define various Gallery related constants.
+ * @const MAX_PIC_SIZE The maximum width & height for pictures
+ * @const MAX_THUMBNAIL_SIZE The maximum width & height for pic thumbnails
+ * @const THUMBPAGE The image size for Thumbnail pictures
+ */
+if (!defined('MAX_PIC_SIZE')) define('MAX_PIC_SIZE', ['width'=>800, 'height'=>800]);
+if (!defined('MAX_THUMBNAIL_SIZE')) define('MAX_THUMBNAIL_SIZE', ['width'=>150, 'height'=>150]);
+if (!defined('THUMBPAGE')) define('THUMBPAGE', ['width'=>4, 'height'=>3, 'padding'=>10]);
 
 /**
  * Grab the NASA API Key.
