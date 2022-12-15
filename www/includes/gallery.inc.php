@@ -293,15 +293,19 @@ function pic ($id)
 
 	if (isset($_GET['editFotoTitle']) && $_GET['editFotoTitle'] && $user->typ >= USER_MEMBER) {
 		echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
-			echo 'Foto-Titel: <input name="frm[name]" size="30" class="text" value="'.$cur['name'].'"> ';
-			echo '<input type="submit" value=" OK " class="button">';
+			echo '<fieldset style="display: flex;white-space: nowrap;align-items: center; margin: 0;">';
+			echo '<input type="text" name="frm[name]" class="text" style="flex: 1.5;" value="'.$cur['name'].'" placeholder="Gib ems Fötli Name!"> ';
+			echo '<input type="submit" style="flex: 0.5;" value=" OK " class="button">';
 			echo '&nbsp;<a class="small" href="?show=pic&picID='.$id.'">cancel</a>';
+			echo '</fieldset>';
 		echo "</form>";
 	} else {
 		if (!$cur['name'] && $user->typ >= USER_MEMBER) {
 			echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
-				echo 'Foto-Titel: <input name="frm[name]" size="30" class="text">';
-				echo '<input type="submit" value=" OK " class="button">';
+				echo '<fieldset style="display: flex;white-space: nowrap;align-items: center; margin: 0;">';
+				echo '<input type="text" name="frm[name]" class="text" style="flex: 1.5;" placeholder="Gib ems Fötli Name!">';
+				echo '<input type="submit" style="flex: 0.5;" value=" OK " class="button">';
+				echo '</fieldset>';
 			echo "</form>";
 		} elseif ($cur['name']) {
 			echo '<h1>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small"><a href="?editFotoTitle=1&'.url_params().'">[edit]</a></span>' : '').'</h1>';
@@ -348,27 +352,28 @@ function pic ($id)
 			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
 			echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
 		} else {
-			echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" style="display: flex;">'
+			echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" class="voteform" style="display: flex;">'
 					.'<input name="picID" type="hidden" value="'.$cur['id'].'">'
+					.'<span>Benoten:</span>'
 					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="1">'
-						.'1</label>'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="1"></label>'
+						//.'1</label>'
 					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="2">'
-						.'2</label>'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="2"></label>'
+						//.'2</label>'
 					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="3">'
-						.'3</label>'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="3"></label>'
+						//.'3</label>'
 					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="4">'
-						.'4</label>'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="4"></label>'
+						//.'4</label>'
 					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="5">'
-						.'5</label>'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="5"></label>'
+						//.'5</label>'
 					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="6">'
-						.'6</label>'
-					.'<input class="button" type="submit" value="benoten">'
+						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="6"></label>'
+						//.'6</label>'
+					//.'<input class="button" type="submit" value="benoten">'
 				.'</form>';
 		}
 	} else {
@@ -407,11 +412,11 @@ function pic ($id)
 			printf('
 			<form action="%1$s" method="post" onsubmit="return markAsMypic()">
 				<input type="hidden" name="picID" value="%2$s" />
-				<input type="image" name="mypic" src="%3$s" alt="Bild als MyPic markieren" title="Bild markieren?" style="width: 100%%;max-width: 100%%;" />
+				<input type="image" name="mypic" src="%3$s" alt="Klicken um als MyPic zu markieren" title="Dich auf dem Bild markieren?" style="width: 100%%;max-width: 100%%;" />
 			</form>'
-					,'?do=mypic&amp;'.url_params()
-					,$id
-					,imgsrcPic($id)
+				,'?do=mypic&amp;'.url_params()
+				,$id
+				,imgsrcPic($id)
 			);
 		// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
 		} else {
