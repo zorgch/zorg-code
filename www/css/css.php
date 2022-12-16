@@ -1111,6 +1111,44 @@ dialog[open] {
 }
 
 
+/**
+ * Gallery and Gallery Pics
+ */
+.gallerythumbs {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	align-content: stretch;
+}
+.thumbcontainer {
+	flex: 1 0 auto;
+	margin: 10px;
+	display: inline-block;
+}
+.demspic {
+	width: 100%;
+	max-width: 100%;
+	border: none;
+}
+.pictitle {
+	position: relative;
+	top: -50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+@media screen and (max-width: 767px) {
+	.gallerythumbs {
+		display: flex;
+		flex-wrap: nowrap;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: stretch;
+		align-content: stretch;
+	}
+}
+
 /** The following styles are for older browsers when using the polyfill. These aren’t necessary for Chrome/Firefox. */
 dialog {
 	display: none;

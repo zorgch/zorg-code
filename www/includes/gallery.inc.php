@@ -144,9 +144,10 @@ function galleryOverview ($state="", $error="")
 /**
  * Album Thumbnails anzeigen
  *
- * @version 1.5
+ * @version 2.0
  * @since 1.0 function added
  * @since 1.5 moved pagination to new Sidebar, output it via $smarty
+ * @since 2.0 `16.12.2022` `IneX` lazy-loaded responsive Gallery Album Thumbs Overview
  *
  * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
  * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
@@ -157,7 +158,7 @@ function galleryOverview ($state="", $error="")
 function albumThumbs ($id, $page=0) {
 	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user, $smarty;
 
-	if (!$id || !is_numeric($id))
+	if (!is_numeric($id) || $id <= 0)
 	{
 		user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
 		exit;
@@ -177,42 +178,32 @@ function albumThumbs ($id, $page=0) {
 						LEFT JOIN events e ON e.gallery_id=g.id
 						WHERE g.id='.$id, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
-		$htmlOutput .= '<table width="80%" align="center"><tr><td align="center" class="bottom_border">'
-			.'<h1>'.($d['eventname'] ? $d['eventname'] : $d['name']).($user->typ == USER_MEMBER ? ' <span class="small">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit</a>]</span>' : '').'</h1>'
-			.'</td></tr></table><br><br>';
+		$htmlOutput .= '<h1 class="bottom_border center">'.($d['eventname'] ? $d['eventname'] : $d['name']).'</h1>';
+		if ($user->typ == USER_MEMBER) $htmlOutput .= '<p class="small center">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit name</a>] [<a href="?show=editAlbumV2&albID='.$id.'">add pics</a>]</p>';
 
 		$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' ORDER BY p.id LIMIT '.($page*$pagepics).', '.$pagepics, __FILE__, __LINE__, __FUNCTION__);
-		$htmlOutput .= '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">';
+		$htmlOutput .= '<div class="gallerythumbs">';
 		$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
 		$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
-		$rows = 0;
+		$rows = 1;
 		while ($d = $db->fetch($e))
 		{
 			$comments = Thread::getNumPosts('i', $d['id']);
 			$unread = Thread::getNumUnread('i', $d['id']);
 
-			if ($rows==0) $htmlOutput .= '<tr>';
-			$htmlOutput .= '<td class="border" cellpadding="'.$THUMBPAGE['padding'].'" height="'.$hgt.'", width="'.$wdt.'" style="text-align:center" valign="middle">'
-							.'<a href="?show=pic&picID='.$d['id'].'">'.($d['name']?$d['name'].'<br>':'').'<img border="0" src="'.imgsrcThum($d['id']).'" style="width: 100%;max-width: 100%;">';
+			$preload = ($rows <= 4 ? ' rel="preload" as="image"' : '');
+			$htmlOutput .= '<div class="thumbcontainer"><a href="?show=pic&picID='.$d['id'].'">';
+				$htmlOutput .= (isset($d['name']) && !empty($d['name']) ? '<div class="pictitle">'.$d['name'].'</div>' : '');
+				$htmlOutput .= '<img class="demspic" src="'.imgsrcThum($d['id']).'" loading="lazy"'.$preload.'>';
+				if ($comments) {
+					$htmlOutput .= '<small>'.$comments.' Comment'.($comments > 1 ? 's' : '').'</small>';
+					if (!empty($unread)) $htmlOutput .= ' <small>('.$unread.' unread)</small>';
+				}
+			$htmlOutput .= '</a></div>';
 
-			if ($comments) {
-				$htmlOutput .= "<br>$comments Comments ";
-				if ($unread) $htmlOutput .= "<br>($unread unread) ";
-			}
-
-			$htmlOutput .= '</a></td>';
-			if (++$rows == $THUMBPAGE['width']) {
-				$rows = 0;
-				$htmlOutput .= '</tr>';
-			}
+			$rows++;
 		}
-
-		for ($i=$rows; $i<$THUMBPAGE['width']; $i++)
-		{
-			$htmlOutput .= '<td>&nbsp;</td>';
-		}
-		if ($rows) $htmlOutput .= '</tr>';
-		$htmlOutput .= '</table>';
+		$htmlOutput .= '</div>';
 
 		/** Pagination */
 		$paginationHtml = '<h3>Seiten</h3><font size="4">';
@@ -308,7 +299,7 @@ function pic ($id)
 				echo '</fieldset>';
 			echo "</form>";
 		} elseif ($cur['name']) {
-			echo '<h1>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small"><a href="?editFotoTitle=1&'.url_params().'">[edit]</a></span>' : '').'</h1>';
+			echo '<h1>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small">[<a href="?editFotoTitle=1&'.url_params().'">edit</a>]</span>' : '').'</h1>';
 		}
 	}
 
@@ -482,42 +473,24 @@ function pic ($id)
 // ====================================================
 function getScore($pic_id) {
 	global $db;
-
-	$sql =
-		"SELECT AVG(score) as score"
-		." FROM gallery_pics_votes"
-		." WHERE pic_id = ".$pic_id
-	;
+	$sql = 'SELECT AVG(score) as score FROM gallery_pics_votes WHERE pic_id='.$pic_id;
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result, __FILE__, __LINE__, __FUNCTION__);
-
 	return round($rs['score'], 1);
 }
 
 function getNumVotes($pic_id) {
 	global $db;
-
-	$sql =
-		"SELECT pic_id
-		FROM gallery_pics_votes
-		WHERE pic_id = ".$pic_id
-	;
+	$sql = 'SELECT pic_id FROM gallery_pics_votes WHERE pic_id='.$pic_id;
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-
-	return $db->num($result, __FILE__, __LINE__, __FUNCTION__);
+	return $db->num($result);
 }
 
 function hasVoted($user_id, $pic_id) {
 	global $db;
-
-	$sql =
-		"SELECT *"
-		." FROM gallery_pics_votes"
-		." WHERE pic_id = '".$pic_id."' AND user_id =".$user_id
-	;
+	$sql = 'SELECT * FROM gallery_pics_votes WHERE pic_id='.$pic_id.' AND user_id='.$user_id;
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-
-	return $db->num($result, __FILE__, __LINE__, __FUNCTION__);
+	return $db->num($result);
 }
 // ====================================================
 // |                 END Pic Rating
@@ -529,18 +502,16 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 {
 	global $db;
 
-	if (!$frm) $frm = array();
+	if (!isset($frm) || empty($frm)) $frm = array();
 
-	if ($id) {
-		$e = $db->query("SELECT * FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+	if (is_numeric($id) && $id > 0) {
+		$e = $db->query('SELECT * FROM gallery_albums WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
 		$frm = mysqli_fetch_array($e);
-
 		echo '<h2>Album #'.$id.' bearbeiten</h2>';
-	}else {
+	} else {
 		echo '<h2>Neues Album erstellen</h2>';
 		$id = 0;
 	}
-
 
 	if ($done == "editAlbum" || $done == "delAlbum") {
 		$editError = $error;
@@ -553,141 +524,42 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	if ($editState) echo "<font color='green'><b>$editState</b></font><br><br>"; // FIXME Undefined variable: editState
 	if ($editError) echo "<font color='red'><b>$editError</b></font><br><br>"; // FIXME Undefined variable: editError
 
-	echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookleftarrow; go to Album</a><br><br>';
+	if ($id > 0) echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookrightarrow; go to Album</a><br><br>';
 	?>
-	<table class="border" cellspacing="3">
-	<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=editAlbum" method="post">
-		<tr>
-		<td align="left">ID: </td>
-		<td align="left"><?php echo $id?>
-		</tr>
-		<tr>
-		<td align="left">Name: </td>
-		<td align="left"><input type="text" class="text" size="50" name="frm['name']" value="<?php echo $frm['name']?>"></td><?php /* FIXME Trying to access array offset on value of type null*/ ?>
-		</tr>
-		<tr>
-		<td colspan='2' align="center">
-			<br>
-			<input class="button" type="submit" value="   OK   ">
-			<br><br>
-		</td>
-		</tr>
+	<table class="border" cellspacing="3"><tr><td>
+	<form action="<?php echo $_SERVER['PHP_SELF'] ?>?show=editAlbum&albID=<?php echo $id ?>&do=editAlbum" method="post">
+		<fieldset style="display: flex;flex-flow: wrap;white-space: nowrap;align-items: center; margin: 0;">
+			<label for="name" style="width: 100%;">Name:</label>
+			<input type="text" id="name" name="frm['name']" class="text" style="flex: 1.5;" placeholder="Album Name..." value="<?php echo (isset($frm['name']) || !empty($frm['name']) ? $frm['name'] : '') ?>">
+			<input type="submit" class="button" style="flex: 0.5;" value="<?php echo ($id > 0 ? '   OK   ' :  '   add   ') ?>">
+		</fieldset>
 	</form>
-	</table>
-	<br>
+	</td></tr></table>
 
+	<br><br>
 
 	<?php
-	if ($id)
+	if ($id > 0)
 	{ ?>
 		<table class="border"><tr><td>
 		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
-		Album l&ouml;schen: <br>(Gib <i>OK</i> ins Feld ein, um zu best&auml;tigen)<br><br>
-			<input class="text" name="del" value="" size="4"> &nbsp;
-			<input type="submit" class="button" value="   l&ouml;schen   ">
+			<fieldset style="display: flex;flex-flow: wrap;white-space: nowrap;align-items: center; margin: 0;">
+				<label for="del" style="width: 100%;">Album l&ouml;schen: <br>(Gib «<i>OK</i>» ins Feld ein, um zu best&auml;tigen)</label>
+				<input type="text" id="del" name="del" class="text" style="flex: 2;" value="" placeholder="Hier bestätigen...">
+				<input type="submit" class="button"  style="flex: 0.5;" value="   l&ouml;schen   ">
+			</fieldset>
 		</form>
 		</td></tr></table>
 		<br>
 		<?php
 
-		echo '<h2>Picture Upload</h2>';
+		echo '<h3>Picture Upload</h3>';
 
 		if ($uploadState) echo "<font color='green'><b>$uploadState</b></font><br><br>";
 		if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br><br>";
-		?>
-
-		<table class="border"><tr><td>
-		<form action="<?php echo $_SERVER['PHP_SELF']?>?show=editAlbum&albID=<?php echo $id?>&do=mkUploadDir" method="post">
-		Upload-Ordner erstellen (in /data/gallery/upload/):<br><br>
-		<input type="text" class="text" name="frm[folder]" value="<?php echo $frm['folder']?>"> &nbsp; &nbsp;<?php /* FIXME Trying to access array offset on value of type null */ ?>
-		<input type="submit" class="button" value="   erstellen   ">
-		</form>
-		</td></tr></table>
-		<br>
-
-		<?php
-		$d = opendir(UPDIR);
-		$fileoptions = array();
-		$i = 0;
-		while (false !== ($f = readdir($d))) {
-		if (is_dir(UPDIR.$f) && $f!="." && $f!="..") {
-			$f .= "/";
-			$anz = countFiles(UPDIR.$f);
-			if ($anz == -1) {
-			$count = "keine Rechte";
-			}elseif ($anz == 0) {
-			$count = "leerer Ordner";
-			}else{
-			$sub = opendir(UPDIR.$f);
-			$cpics = 0;
-			$cfiles = 0;
-			while (false !== ($subf = readdir($sub))) {
-				if (isPic(UPDIR.$f.$subf)) {
-				$cpics++;
-				}elseif (is_file(UPDIR.$f.$subf)) {
-				$cfiles++;
-				}
-			}
-			if (!$cfiles) {
-				$count = $cpics." Bilder";
-			}else{
-				$count = $cpics." Bilder, ".$cfiles." andereFiles";
-			}
-			closedir($sub);
-			}
-			$fileoptions[$i++] = '<option value="'.$f.'">'.$f.' &nbsp; ('.$count.')</option>';
-		}
-		}
-		closedir($d);
-		sort($fileoptions);
-
-		?>
-
-		<table class="border"><tr><td>
-		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delUploadDir"'?> method="post">
-		Upload-Ordner l&ouml;schen:<br><br>
-		<select size="1" class="text" name="frm[folder]">
-			<?php
-			for ($i=0; $i<sizeof($fileoptions); $i++) {
-				echo $fileoptions[$i];
-			}
-			?>
-		</select> &nbsp; &nbsp;
-		<input type="submit" class="button" value="   l&ouml;schen   ">
-		</form>
-		</td></tr>
-		<tr><td style="text-align:right">
-		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
-		</td></tr></table>
-		<br>
-
-		<table class="border"><tr><td align="left" width="450">
-		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=upload"'?> method="post" enctype="multipart/form-data">
-		Lade die Pics (<b>.jpg oder .gif</b>) per FTP in ein Upload-Ordner. Achte darauf, dass du den Pics die
-		Rechte 0664 gibst.
-		(<?php echo '<a target="_new" href="'.FTP_UPDIR.'">'.FTP_UPDIR.'</a>'?>). <br><br>
-		W&auml;hle den Ordner hier aus, um die Pics zu indizieren: <br><br>
-		<input type="checkbox" checked name="frm[delPics]" value="1">
-		Erfolgreich indizierte Bilder aus Upload-Ordner l&ouml;schen<br>
-		<input type="checkbox" name="frm[delFiles]" value="1">
-		nicht indizierte Files aus Upload-Ordner l&ouml;schen
-		<br><br>
-		<select size="1" class="text" name="frm[folder]">
-			<?php
-			for ($i=0; $i<sizeof($fileoptions); $i++) {
-			echo $fileoptions[$i];
-			}
-			?>
-		</select> &nbsp; &nbsp;
-		<input class="button" type="submit" value="   upload   "><br>
-		</form>
-		</td></tr>
-		<tr><td style="text-align:right">
-		<a <?php echo 'href="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'"'?>>--> Refresh Ordnerliste</a>
-		</td></tr></table>
-		<br>
-		<?php
 	}
+
+	echo '&rarr; benutze den neuen <a href="'.$_SERVER['PHP_SELF'].'?show=editAlbumV2'.(isset($id) && $id > 0 ? '&album_id='.$id : '').'">Gallery Maker v2</a>!';
 }
 
 
@@ -1604,12 +1476,13 @@ function getAlbumLinkRandomThumb($album_id, $showAlbumName=false, $HQimage='norm
 	$rs = $db->fetch($result);
 	$file = ($HQimage === 'high' ? imgsrcPic($rs['id']) : imgsrcThum($rs['id']));
 
-	$html =
-		'<a href="/gallery.php?show=albumThumbs&albID='.$album_id.'" class="center">'
-		.($showAlbumName === true ? '<h3>'.remove_html($rs['albumname']).'</h3>' : '')
-		.'<img border="0" src="'.$file.'" itemprop="image" style="width: 100%;max-width: 100%;">'
-		.(!empty($rs['name']) ? '<p>'.text_width(remove_html($rs['name']), 80, '...').'<p>' : '')
-		.'</a>'
+	$html = '<div><a href="/gallery.php?show=albumThumbs&albID='.$album_id.'" class="center">'
+			.($showAlbumName === true ? '<h3>'.remove_html($rs['albumname']).'</h3>' : '')
+			.'</a>'
+			.'<a href="/gallery.php?show=pic&picID='.$rs['id'].'" class="center">'
+			.'<img border="0" src="'.$file.'" itemprop="image" style="max-width: 100%;" load="lazy">'
+			.(!empty($rs['name']) ? '<p>'.text_width(remove_html($rs['name']), 80, '...').'<p>' : '')
+			.'</a></div>'
 	;
 
 	return $html;
