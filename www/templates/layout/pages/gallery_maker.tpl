@@ -12,7 +12,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	{include file="file:layout/partials/head/favicons.tpl"}
 	<link rel="stylesheet" href="{$smarty.const.CSS_DIR}shoelace/shoelace.min.css">
-	{if $user->typ >= $usertyp->member}
+	{if $user->typ >= $usertyp.member}
 	<script src="https://kit.fontawesome.com/e9effb9c00.js" crossorigin="anonymous"></script>{*if !$dev}<link href="{$smarty.const.CSS_DIR}fontawesome.min.css" rel="stylesheet">{/if*}
 	<script src="{$smarty.const.JS_DIR}jquery-3.5.1.min.js"></script>
 	<script src="{$smarty.const.CSS_DIR}shoelace/shoelace.min.js"></script>
@@ -174,15 +174,16 @@
 				<div id="upload-status" class="alert hidden"></div>
 			</div>
 			<div class="col">
+				{assign var=max_file_size_mb value=5}
 				<form id="drop-ems-pix-doooo" class="dropzone" method="post" enctype="multipart/form-data" action="/js/ajax/gallery/add-albumpic.php?action=add">
 					<input type="hidden" name="album_id" id="album_id" value="{if $album_id > 0}{$album_id}{/if}">
-					<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
+					<input type="hidden" name="MAX_FILE_SIZE" value="{$max_file_size_mb*1000*1000}" />
 					<div class="dz-message" data-dz-message>+ add pics</div>
 					<div class="fallback">
 						<input type="file" id="add-dems-pix" name="dropzone-pic" class="button-primary mar-xs">
 					</div>
 				</form>
-				<small id="dropzone-hint" class="hint"><strong>PNG</strong> or <strong>JPEG</strong> images of <strong>max. 4 MB each</strong>.</small>
+				<small id="dropzone-hint" class="hint"><strong>PNG</strong> or <strong>JPEG</strong> images of <strong>max. {$max_file_size_mb} MB each</strong>.</small>
 			</div>
 		</div>
 		<div class="row row-between row-flush">
@@ -221,20 +222,23 @@
 
 	/**
 	 * Dropzone
+	 * Config docu: https://docs.dropzone.dev/configuration/basics/configuration-options
 	 */
 	const uploaded_pic_ids = [];
 	const jpegception = ['jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2'];
 	Dropzone.options.dropEmsPixDoooo = {
 		 maxFiles: null
 		,filesizeBase: 1000
-		,maxFilesize: 4 // MB
-		,acceptedFiles: 'image/png,image/jpg,image/jpeg'
+		,maxFilesize: {/literal}{$max_file_size_mb}{literal} // MB
+		,acceptedFiles: 'image/png,image/jpg,image/jpeg,image/gif'
 		,preventDuplicates: true
 		,autoProcessQueue: false
 		,uploadMultiple: false
 		,parallelUploads: 1
 		,addRemoveLinks: true
 		,fixOrientation: true
+		,resizeQuality: 0.9 // 1.0 does not meet maxFilesize
+		,resizeWidth: 1920
 		,thumbnailMethod: 'contain'
 		,thumbnailWidth: 120
 		,paramName: 'dropzone-pic' // Form File Name-ID param for upload transfer (multiple files = paramName[] Array)
