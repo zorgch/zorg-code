@@ -187,8 +187,8 @@ function albumThumbs ($id, $page=0) {
 		$htmlOutput .= '<div class="gallerythumbs">';
 		while ($pic = $db->fetch($e))
 		{
-			$comments = Thread::getNumPosts('i', $d['id']);
-			$unread = Thread::getNumUnread('i', $d['id']);
+			$comments = Thread::getNumPosts('i', $pic['id']);
+			$unread = Thread::getNumUnread('i', $pic['id']);
 
 			$preload = ($rows <= 4 ? ' rel="preload" as="image"' : '');
 			$htmlOutput .= '<div class="thumbcontainer"><a href="?show=pic&picID='.$pic['id'].'">';
