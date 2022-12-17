@@ -14,8 +14,8 @@
 		<meta name="twitter:title" content="{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}">
 		<meta property="og:title" content="{$tplroot.page_title}{$smarty.const.PAGETITLE_SUFFIX}">
 		{if $smarty.const.TWITTER_NAME != ''}
-			<meta name="twitter:site" content="{$smarty.const.TWITTER_NAME}">
-			<meta name="twitter:creator" content="{$smarty.const.TWITTER_NAME}">
+		<meta name="twitter:site" content="{$smarty.const.TWITTER_NAME}">
+		<meta name="twitter:creator" content="{$smarty.const.TWITTER_NAME}">
 		{/if}
 		<meta property="og:site_name" content="{$smarty.const.SITE_HOSTNAME}">
 		<meta property="og:url" content="{$smarty.const.SITE_URL}{$smarty.server.REQUEST_URI}">
@@ -36,14 +36,22 @@
 		<link rel="canonical" href="{$smarty.const.SITE_URL}{$tplroot.page_link}" />
 		{/if}
 		{include file="file:layout/partials/head/favicons.tpl"}
-		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v={$currversion}&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" >
-		<script src="{$smarty.const.JS_DIR}zorg.js?v={$currversion}"></script>
+		<script src="{$smarty.const.JS_DIR}zorg.js?v={$currversion}" prefetch as="script"></script>
 		<script src="{$smarty.const.JS_DIR}ie11cssproperties.min.js"></script>
+		{* Additional custom Scripts *}
+		{if $tplroot.additional_scripts neq ''}
+		{foreach from=$tplroot.additional_scripts item=scriptpath}<script src="{$scriptpath}"></script>{/foreach}
+		{/if}
+		<link rel="stylesheet" type="text/css" href="{$smarty.const.CSS_DIR}css.php?v={$currversion}&layout={$daytime}{if $tplroot.sidebar_tpl || $sidebarHtml <> ''}&sidebar=true{/if}" prefetch as="style">
 		{*<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fileicon.min.css">*}
+		{* Additional custom Stylesheets *}
+		{if $tplroot.additional_stylesheets neq ''}
+		{foreach from=$tplroot.additional_stylesheets item=stylesheetpath}<link rel="stylesheet" href="{$stylesheetpath}">{/foreach}
+		{/if}
 
 		<!-- Webfonts -->
-		<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fonts/segoe-ui.css">
-		<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fonts/iosevka-web.css">
+		<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fonts/segoe-ui.css" as="font">
+		<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fonts/iosevka-web.css" as="font">
 
 		<!-- RSS Feeds -->
 		<link rel="alternate" type="application/rss+xml" title="RSS{$smarty.const.PAGETITLE_SUFFIX}" href="{$smarty.const.RSS_URL}&type=forum" />

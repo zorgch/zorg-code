@@ -11,7 +11,7 @@ namespace MVC;
  * File includes
  * @include main.inc.php Required
  */
-require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
 require_once INCLUDES_DIR.'main.inc.php';
 
 /**
@@ -26,6 +26,8 @@ class Model
 	 * @var string $page_image
 	 * @var array $menus
 	 * @var integer $sidebar
+	 * @var array $scripts Used to add additional JavaScript-files to the HTML Head
+	 * @var array $stylesheets Used to add additional CSS Stylesheet-files to the HTML Head
 	 */
 	//public $model;
 	public $page_title;
@@ -43,6 +45,8 @@ class Model
 		$this->page_image = null;
 		$this->menus = null;
 		$this->sidebar = null;
+		$this->scripts = null;
+		$this->stylesheets = null;
 		//$this->load();
 	}
 
@@ -94,6 +98,8 @@ class Model
 									,'meta_description' => $this->meta_description
 									,'menus' => $this->menus
 									,'sidebar' => $this->sidebar
+									,'additional_scripts' => $this->scripts
+									,'additional_stylesheets' => $this->stylesheets
 								 ]);
 	}
 }

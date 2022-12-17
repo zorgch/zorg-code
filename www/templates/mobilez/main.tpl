@@ -27,11 +27,9 @@
 	<link rel="stylesheet" href="/css/mobilez/mobilez.css">
 	<script src="/js/mobilez/jquery-1.10.1.min.js"></script>{*<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>*}
 	<script src="/js/mobilez/jquery.mobile-1.4.5.min.js"></script>
-	<script src="/js/date-format.js"></script>
+	<script src="/js/mobilez/date-format.js"></script>
+	<script src="/js/mobilez/dropzone.jquery.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?v=3"></script>
-	<script src="/js/dropzone.js"></script>
-	{*<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAk_e3Hsarp179fjto5QNxSJpoYKH7Xfx0&signed_in=true&callback=initMap" async defer></script>*}
-	{*<script src="/js/mobilez/eagllus-html5_notification/jquery.html5_notification.js"></script>
 	<script src="/js/mobilez/browsernotifications.js"></script>*}
 	<script>{literal}
 	$(document).bind("pageinit", function(){
@@ -42,10 +40,10 @@
 	    	$(".ui-content.background").removeClass("blur-filter");
 	    	document.body.style.overflow = "visible"; // Enable page scrolling
 	    });
-	    
+
 	    // Patch to prevent overwriting <title></title>
 	    $(":jqmData(role='page')").attr('data-title', document.title);
-	    
+
 	    // Patch to prevent scrolling to bottom on Input-Field focus
 	    $('#message').click(function(e){
 		    $.mobile.silentScroll(0)
@@ -64,22 +62,22 @@
 		{assign var='btnIconOptions' value='ui-btn-b ui-nodisc-icon'}
 	{/if}
 	<div data-role="page" id="{assign var='pageId' value='mobilezorg-main'}{$pageId}">
-	
+
 		<div data-role="header" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
 			<h1 style="display: none;">Mobile [z]</h1>
 			{include file='file:mobilez/menu.tpl'}
 		</div>
-		
+
 		<div id="main" role="main" class="ui-content background {$sun}">
 			 {include file='file:mobilez/messages.tpl'}
 		</div>
- 
+
 		{if $user->typ > 0}<div data-role="footer" data-theme="{$layout}" data-position="fixed" data-fullscreen="true">
 				{include file='file:mobilez/chat_input.tpl'}
 		</div>{/if}
-		
+
 		{if $user->typ == 0}{include file='file:mobilez/login.tpl'}{/if}
-		
+
 		{if $errors || isset($smarty.get.error_msg)}<div data-role="popup" id="popupError" data-theme="{$layout}" class="popupError">
 			{if $smarty.get.error_msg <> ''}
 				<p>{$smarty.get.error_msg}</p>
@@ -92,7 +90,7 @@
 				{/foreach}
 			{/if}
 		</div>{/if}
-		
+
 	</div>
 </body>
 <script>
@@ -141,7 +139,7 @@ $(document).bind("pageinit", function(){
 	    var w = $(this).width();
 	    var h = $(this).height();
 	    var scale = null;
-	    if (w >= h) { if (w > max_width) { scale = 1 / (w / max_width); } } 
+	    if (w >= h) { if (w > max_width) { scale = 1 / (w / max_width); } }
 	    else { if (h > max_height) { scale = 1 / (h / max_height); } }
 	    if (scale) {
 	        $(this).width(w * scale);
