@@ -30,8 +30,6 @@
 	<script src="/js/mobilez/date-format.js"></script>
 	<script src="/js/mobilez/dropzone.jquery.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?v=3"></script>
-	{*<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAk_e3Hsarp179fjto5QNxSJpoYKH7Xfx0&signed_in=true&callback=initMap" async defer></script>*}
-	{*<script src="/js/mobilez/eagllus-html5_notification/jquery.html5_notification.js"></script>
 	<script src="/js/mobilez/browsernotifications.js"></script>*}
 	<script>{literal}
 	$(document).bind("pageinit", function(){
