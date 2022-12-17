@@ -20,9 +20,7 @@
 	<!-- DropzoneJS -->
 	{if !$dev}<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
 	<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css">
-	{else}
-	<!-- <script src="{$smarty.const.JS_DIR}dropzone.js"></script> -->
-	<script src="{$smarty.const.JS_DIR}dropzone/dropzone.min.js"></script>
+	{else}<script src="{$smarty.const.JS_DIR}dropzone/dropzone.min.js"></script>
 	<link rel="stylesheet" href="{$smarty.const.JS_DIR}dropzone/dropzone.min.css">{/if}
 	<style>{literal}
 		/** Nanobar */
