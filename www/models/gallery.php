@@ -84,6 +84,7 @@ class Gallery extends Model
 		}
 		$this->page_link = '?show=pic&picID='.$pic_id;
 		if($user->is_loggedin()) $this->page_image = SITE_URL.imgsrcPic($pic_id);
+		$this->scripts[] = JS_DIR.'hammer.min.js';
 
 		$this->assign_model_to_smarty($smarty);
 	}
