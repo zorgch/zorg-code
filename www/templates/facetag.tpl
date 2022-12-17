@@ -91,7 +91,7 @@
 		  document.getElementById('userid').value = userid;
 		  document.getElementById('save_btn').disabled = false;
 		}
-		
+
 		// AJAX POST Action for the Form Submit
 		save_btn.onclick = function(){
 			this.disabled = true;
@@ -99,7 +99,7 @@
 			username_input.blur();
 			saveUser(userid_input.value);
 		};
-		
+
 		function saveUser(id) {
 			console.log(pic_id);
 			console.log(userid_input.value);
@@ -107,7 +107,7 @@
 	            picid: Number(pic_id),
 	            userid: Number(userid_input.value)
 	        };
-	        
+
 	        console.log(params);
 	        var xhr = new XMLHttpRequest();
 	        xhr.onreadystatechange = function ()
@@ -134,11 +134,11 @@
 			/*xhr.onload = function(){
 	            // On Success
 	        };*/
-	        xhr.open('POST', '/js/ajax/set-userfaceid.php?action=set', false);
+	        xhr.open('POST', '/js/ajax/gallery/set-userfaceid.php?action=set', false);
 	        xhr.setRequestHeader('Content-Type', 'application/json');
 	        xhr.send(JSON.stringify(params)); // Make sure to stringify
 		};
-		
+
 		function getNewPic() {
 		  var xhr = new XMLHttpRequest();
 		  xhr.onreadystatechange = function ()
@@ -154,11 +154,11 @@
 		      }
 		    }
 		  };
-		  xhr.open('GET', '/js/ajax/get-userpic.php?action=getpic&index=', true);
+		  xhr.open('GET', '/js/ajax/gallery/get-userpic.php?action=getpic&index=', true);
 		  xhr.setRequestHeader('Content-Type', 'application/json');
 		  xhr.send();
 		}
-		
+
 		function reloadPic(picData) {
 			console.log(picData);
 			pic_id = picData[0]['pic_id'];
@@ -197,4 +197,4 @@
 	{else}
 		<h3 style="color:red;">ERROR: Kein Bild oder es konnte nicht geladen werden</h3>
 	{/if}
-{/section} 
+{/section}
