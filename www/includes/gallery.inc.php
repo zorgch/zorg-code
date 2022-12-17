@@ -168,33 +168,32 @@ function albumThumbs ($id, $page=0) {
 	$e = $db->query('SELECT count(id) anz FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' GROUP BY album', __FILE__, __LINE__, __FUNCTION__);
 	$d = mysqli_fetch_array($e);
 	$anz = $d['anz'];
+	$htmlOutput = null;
+	$sidebarHtml = null;
 
 	if (!empty($d) && $d['anz'] > 0)
 	{
-		$htmlOutput = null;
-
-		$e = $db->query('SELECT g.*, e.name eventname
-						FROM gallery_albums g
-						LEFT JOIN events e ON e.gallery_id=g.id
-						WHERE g.id='.$id, __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query(sprintf('SELECT g.id, g.name, IF(e.enddate != "0000-00-00 00:00:00" AND g.created IS NULL, e.enddate, g.created) created, e.id eventid, e.name eventname, GROUP_CONCAT(eu.user_id SEPARATOR ",") beenthere_users
+								 FROM gallery_albums g LEFT JOIN events e ON e.gallery_id=g.id LEFT JOIN events_to_user eu ON eu.event_id=e.id
+								 WHERE g.id=%d GROUP BY g.id, e.enddate, e.id, e.name', $id), __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
-		$htmlOutput .= '<h1 class="bottom_border center">'.($d['eventname'] ? $d['eventname'] : $d['name']).'</h1>';
+		$htmlOutput .= '<h1 class="bottom_border center">'.($d['eventname'] ? $d['eventname'] : $d['name']).(!empty($d['eventid']) ? ' <a href="/?tpl=158&event_id='.$d['eventid'].'">📅</a>' : '').'</h1>';
 		if ($user->typ == USER_MEMBER) $htmlOutput .= '<p class="small center">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit name</a>] [<a href="?show=editAlbumV2&albID='.$id.'">add pics</a>]</p>';
 
 		$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' ORDER BY p.id LIMIT '.($page*$pagepics).', '.$pagepics, __FILE__, __LINE__, __FUNCTION__);
-		$htmlOutput .= '<div class="gallerythumbs">';
 		$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
 		$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
 		$rows = 1;
-		while ($d = $db->fetch($e))
+		$htmlOutput .= '<div class="gallerythumbs">';
+		while ($pic = $db->fetch($e))
 		{
 			$comments = Thread::getNumPosts('i', $d['id']);
 			$unread = Thread::getNumUnread('i', $d['id']);
 
 			$preload = ($rows <= 4 ? ' rel="preload" as="image"' : '');
-			$htmlOutput .= '<div class="thumbcontainer"><a href="?show=pic&picID='.$d['id'].'">';
-				$htmlOutput .= (isset($d['name']) && !empty($d['name']) ? '<div class="pictitle">'.$d['name'].'</div>' : '');
-				$htmlOutput .= '<img class="demspic" src="'.imgsrcThum($d['id']).'" loading="lazy"'.$preload.'>';
+			$htmlOutput .= '<div class="thumbcontainer"><a href="?show=pic&picID='.$pic['id'].'">';
+				$htmlOutput .= (isset($pic['name']) && !empty($pic['name']) ? '<div class="pictitle">'.$pic['name'].'</div>' : '');
+				$htmlOutput .= '<img class="demspic" src="'.imgsrcThum($pic['id']).'" loading="lazy"'.$preload.'>';
 				if ($comments) {
 					$htmlOutput .= '<small>'.$comments.' Comment'.($comments > 1 ? 's' : '').'</small>';
 					if (!empty($unread)) $htmlOutput .= ' <small>('.$unread.' unread)</small>';
@@ -206,12 +205,27 @@ function albumThumbs ($id, $page=0) {
 		$htmlOutput .= '</div>';
 
 		/** Pagination */
-		$paginationHtml = '<h3>Seiten</h3><font size="4">';
+		$sidebarHtml .= '<h3>Seiten</h3><font size="4">';
 		for ($i=0; $i<$anz/$pagepics; $i++)
 		{
-			$paginationHtml .= ($page==$i ? '<b>['.($i+1).']</b>' : '<a href="?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a>').' &nbsp; ';
+			$sidebarHtml .= ($page==$i ? '<b>['.($i+1).']</b>' : '<a href="?show=albumThumbs&albID='.$id.'&page='.$i.'">'.($i+1).'</a>').' &nbsp; ';
 		}
-		$paginationHtml .= '</font>';
+		$sidebarHtml .= '</font>';
+
+		/**
+		 * Album Sidebar
+		 */
+		/** Users who have attended */
+		if (!empty($d['beenthere_users']))
+		{
+			// TODO Should be combined with manually added "MyPic"-markings
+			$usersidlist = explode(',', $d['beenthere_users']);
+			$sidebarHtml .= '<h3>In diesem Album</h3>';
+			foreach ($usersidlist as $i => $attended_userid) {
+				$sidebarHtml .= $user->userprofile_link($attended_userid, ['username'=>true, 'clantag'=>true, 'pic'=>false, 'link'=>true]);
+				if ($i != array_key_last($usersidlist)) $sidebarHtml .= ' ';
+			}
+		}
 	}
 
 	/** Invalid / not found Album-ID */
@@ -219,7 +233,7 @@ function albumThumbs ($id, $page=0) {
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('error-invalid-album', 'gallery')]);
 	}
 
-	if (!empty($paginationHtml)) $smarty->assign('sidebarHtml', $paginationHtml);
+	if (!empty($sidebarHtml)) $smarty->assign('sidebarHtml', $sidebarHtml);
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
 }
@@ -376,12 +390,12 @@ function pic ($id)
 	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0">';//.$cur['picsize'].'>';
 
 	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
-	if ($last) echo '<a href="?show=pic&picID='.$last['id'].'">previous</a>';
+	if ($last) echo '<a id="prevpiclink" href="?show=pic&picID='.$last['id'].'">previous</a>';
 	else echo '&lt;- last';
 	echo '</td><td style="text-align:center"><a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">overview</a></td>';
 	echo '<td style="text-align:right" width="30%">';
 	if ($next) {
-		echo '<a href="?show=pic&picID='.$next['id'].'">next</a>';
+		echo '<a id="nextpiclink" href="?show=pic&picID='.$next['id'].'">next</a>';
 	} else {
 		echo 'next';
 	}
@@ -403,7 +417,7 @@ function pic ($id)
 			printf('
 			<form action="%1$s" method="post" onsubmit="return markAsMypic()">
 				<input type="hidden" name="picID" value="%2$s" />
-				<input type="image" name="mypic" src="%3$s" alt="Klicken um als MyPic zu markieren" title="Dich auf dem Bild markieren?" style="width: 100%%;max-width: 100%%;" />
+				<input type="image" id="thatpic" name="mypic" src="%3$s" alt="Klicken um als MyPic zu markieren" title="Dich auf dem Bild markieren?" style="width: 100%%;max-width: 100%%;" />
 			</form>'
 				,'?do=mypic&amp;'.url_params()
 				,$id
@@ -411,7 +425,7 @@ function pic ($id)
 			);
 		// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
 		} else {
-			echo '<img border="0" src="'. imgsrcPic($id). '" style="width: 100%;max-width: 100%;">';
+			echo '<img id="thatpic" src="'. imgsrcPic($id). '" style="border: none;width: 100%;max-width: 100%;">';
 		}
 
 	/** APOD Special: statt Pic ein Video embedden */
@@ -419,13 +433,13 @@ function pic ($id)
 		switch ($cur['extension'])
 			{
 				case 'youtube':
-					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" allow="autoplay; encrypted-media" allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
+					echo '<iframe id="thatpic" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" allow="autoplay; encrypted-media" allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
 					break;
 				case 'vimeo':
-					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
+					echo '<iframe id="thatpic" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="width: 800px;height: 450px;max-width: 100%;"></iframe>';
 					break;
 				case 'website':
-					echo '<iframe src="'.$cur['picsize'].'" frameborder="0" scrolling="0" importance="low" style="overflow:hidden;" style="width: 800px;height: 800px;max-width: 100%;"></iframe>';
+					echo '<iframe id="thatpic" src="'.$cur['picsize'].'" frameborder="0" scrolling="0" importance="low" style="overflow:hidden;" style="width: 800px;height: 800px;max-width: 100%;"></iframe>';
 					break;
 			}
 	}
@@ -465,6 +479,22 @@ function pic ($id)
 		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
 		.'</form></td></tr></table>';
 	}
+
+	/**
+	 * Mobile Touch Swipe - next/prev Pic
+	 */
+	echo '<script>// HammerJS
+		document.onreadystatechange = function(){
+			if (document.readyState === "complete") {
+		  		const prevPicLink = document.querySelector("a#prevpiclink");
+		  		const nextPicLink = document.querySelector("a#nextpiclink");
+		  		const swipeableEl = document.querySelector("#thatpic");
+		  		var swipe = new Hammer(swipeableEl);
+		  		if (typeof prevPicLink !== "undefined") { swipe.on("swiperight panright", function(){ window.location.href = prevPicLink.getAttribute("href") }) };
+		  		if (typeof nextPicLink !== "undefined") { swipe.on("swipeleft panleft", function(){ window.location.href = nextPicLink.getAttribute("href") }) };
+			}
+		}
+		</script>';
 }
 
 
