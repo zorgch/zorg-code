@@ -120,13 +120,13 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 
 			if($_GET['id'] == $rs['id']) {
 				if($_GET['query']) {
-					$result_chk = $db->query(stripslashes(base64_urldecode($_GET['query'])));
+					$result_chk = $db->query(stripslashes(base64url_decode($_GET['query'])));
 					if(!$result_chk) {
 						$check = mysqli_error($db->conn);
 					} else {
 						$check = "Keine Fehler: ".$db->num($result_chk)." Rows";
 					}
-					$rs['query'] = stripslashes(base64_urldecode($_GET['query']));
+					$rs['query'] = stripslashes(base64url_decode($_GET['query']));
 				}
 
 				$html .= "

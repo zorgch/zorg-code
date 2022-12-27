@@ -100,7 +100,7 @@ class Bugtracker
 			if($rs['assignedto_id'] == 0) {
 				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			}
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -113,7 +113,7 @@ class Bugtracker
 			if($rs['assignedto_id'] == 0 OR $rs['assignedto_id'] > 0) {
 				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			}
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -132,7 +132,7 @@ class Bugtracker
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -142,7 +142,7 @@ class Bugtracker
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => 'NULL', 'assigned_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -164,7 +164,7 @@ class Bugtracker
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -188,7 +188,7 @@ class Bugtracker
 																,'code_commit' => $bugCommit
 															], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -210,7 +210,7 @@ class Bugtracker
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 
@@ -223,7 +223,7 @@ class Bugtracker
 			/** Add new Category to DB */
 			$newBugId = $db->insert('bugtracker_categories', [ 'title' => $categoryTitle ], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.base64_urldecode($_GET['url']));
+			header('Location: '.base64url_decode($_GET['url']));
 			exit;
 		}
 	}
@@ -270,7 +270,7 @@ class Bugtracker
 				'<form action="/bug/'.$rs['id'].'" method="get">'
 				.'<input name="action" type="hidden" value="edit">'
 				.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
-				.'<input name="url" type="hidden" value="'.base64_urlencode(getChangedURL('action=')).'">'
+				.'<input name="url" type="hidden" value="'.base64url_encode(getChangedURL('action=')).'">'
 			;
 		}
 
@@ -570,7 +570,7 @@ class Bugtracker
 		{
 			$html .= '<form action="/bug/'.$rs['id'].'" method="GET">'
 						.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
-						.'<input name="url" type="hidden" value="'.base64_urlencode('/bug/'.$rs['id']).'">'
+						.'<input name="url" type="hidden" value="'.base64url_encode('/bug/'.$rs['id']).'">'
 						.'<fieldset style="display: flex;align-items: center;">'
 							.'<label style="white-space: nowrap;">Bug&nbsp;</label>'
 								.'<select name="action" size="1">';

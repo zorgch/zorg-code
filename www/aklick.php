@@ -39,7 +39,7 @@ if ($user->is_loggedin())
 		}
 
 		if($_SESSION['query']) {
-			$old_query = base64_urldecode($_SESSION['query']);
+			$old_query = base64url_decode($_SESSION['query']);
 		}
 
 		$aklick = strip_tags($_POST['afick']);
@@ -80,7 +80,7 @@ if ($user->is_loggedin())
 			$afick_am .= $am[0];
 		}
 		$old_query .= $afick_am."</td></tr>";
-		$_SESSION['query'] = base64_urlencode($old_query);
+		$_SESSION['query'] = base64url_encode($old_query);
 
 		if($_POST['afick'] == "" && !$_POST['edit_wort'] && !$_POST['new_wort']) {
 			$_SESSION['query'] = "";
@@ -189,7 +189,7 @@ if ($user->is_loggedin())
 
 	if($_SESSION['query']) {
 		echo "<table>";
-		echo base64_urldecode($_SESSION['query']);
+		echo base64url_decode($_SESSION['query']);
 		echo "</table>";
 	}
 }

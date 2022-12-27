@@ -14,12 +14,12 @@ if (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) && $_GET['tplupd'] !==
 
 if (!isset($_GET['location']) || empty($_GET['location']))
 {
-	if ($_GET['tplupd'] == 'new') $_GET['location'] = base64_urlencode('/');
-	else $_GET['location'] = base64_urlencode('/tpl/'.$_GET['tplupd']);
+	if ($_GET['tplupd'] == 'new') $_GET['location'] = base64url_encode('/');
+	else $_GET['location'] = base64url_encode('/tpl/'.$_GET['tplupd']);
 }
 
 unset($_GET['tpleditor']);
 unset($_GET['tplupd']);
 
-header('Location: '.base64_urldecode($_GET['location']));
+header('Location: '.base64url_decode($_GET['location']));
 exit;

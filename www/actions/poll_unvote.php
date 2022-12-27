@@ -26,5 +26,5 @@ if ($d['state'] === 'closed' || !$polls->user_has_vote_permission($d['type']))
 	unset($_GET['poll']);
 }
 
-header('Location: '.base64_urldecode($_GET['redirect']));
+header('Location: '.base64url_decode($_GET['redirect']));
 exit;

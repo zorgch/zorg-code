@@ -34,7 +34,7 @@ if (true === $user->is_loggedin())
 							,NOW()
 						)';
 			$rezeptId = $db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64_urldecode($_POST['url']).'&rezept_id='.$rezeptId);
+			header('Location: '.base64url_decode($_POST['url']).'&rezept_id='.$rezeptId);
 			exit;
 		break;
 
@@ -53,7 +53,7 @@ if (true === $user->is_loggedin())
 						,description = "'.$_POST['description'].'"
 					WHERE id = '.(int)$_POST['id']; // TODO align by changing in Tpl & here to "rezept_id"
 			$db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64_urldecode($_POST['url']).'&rezept_id='.$_POST['id']);
+			header('Location: '.base64url_decode($_POST['url']).'&rezept_id='.$_POST['id']);
 			exit;
 		break;
 
@@ -61,7 +61,7 @@ if (true === $user->is_loggedin())
 		case 'newcategory':
 			$sql = 'INSERT INTO rezepte_categories SET title = "'.$_POST['new_category'].'"';
 			$db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64_urldecode($_POST['url']));
+			header('Location: '.base64url_decode($_POST['url']));
 			exit;
 		break;
 
@@ -77,7 +77,7 @@ if (true === $user->is_loggedin())
 						)';
 				$db->query($sql, __FILE__, __LINE__);
 			}
-			header('Location: '.base64_urldecode($_POST['url']));
+			header('Location: '.base64url_decode($_POST['url']));
 		break;
 	}
 }

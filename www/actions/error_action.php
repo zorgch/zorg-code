@@ -15,7 +15,7 @@ if(count($_POST) > 0)
 	/** Show Query details */
 	if($_POST['query'])
 	{
-		header('Location: /tpl/'.$_GET['tpl'].'&id='.$_GET['id'].'&query='.base64_urlencode($_POST['query']));
+		header('Location: /tpl/'.$_GET['tpl'].'&id='.$_GET['id'].'&query='.base64url_encode($_POST['query']));
 		die();
 	}
 

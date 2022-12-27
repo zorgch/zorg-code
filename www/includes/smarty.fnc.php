@@ -566,7 +566,7 @@ function var_request ()
 
 		$vars = $smarty->get_template_vars();
 
-		return '<a href="/?tpleditor=1&tplupd=new&location='.base64_urlencode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
+		return '<a href="/?tpleditor=1&tplupd=new&location='.base64url_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
 	}
 	function smarty_edit_link ($params, $content, &$smarty, &$repeat) {
 

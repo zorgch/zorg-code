@@ -30,7 +30,7 @@ if ($poll !== null && $vote !== null)
 		user_error('Invalid Poll/Vote "'.$poll.' / '.$vote.'"', E_USER_ERROR);
 	}
 
-	header('Location: '.base64_urldecode($_GET['redirect']));
+	header('Location: '.base64url_decode($_GET['redirect']));
 	exit;
 
 } else {
