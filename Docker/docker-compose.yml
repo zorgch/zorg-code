@@ -10,8 +10,8 @@ services:
         restart: unless-stopped
         environment:
             - APACHE_DOCUMENT_ROOT=${APACHE_WEBROOT:-/var/www}
-            - APACHE_RUN_USER=${APACHE_USER:-www-data}
-            - APACHE_RUN_GROUP=${APACHE_GROUP:-www-data}
+            #- APACHE_RUN_USER=${APACHE_USER:-www-data} Causes issues with Session-Handling in /tmp
+            #- APACHE_RUN_GROUP=${APACHE_GROUP:-www-data} And causes issues with reading from ../.git
         hostname: webserver
         domainname: ${DOMAINNAME}
         networks:
@@ -33,15 +33,15 @@ services:
             - ./Docker/apache2/ssl-default.conf:/etc/apache2/sites-available/default-ssl.conf
             - web-root-git-sync:${APACHE_WEBROOT:?err}/.git:nocopy
             - ./cron:${APACHE_WEBROOT:?err}/cron
-            #- web-root-data-sync:${APACHE_WEBROOT:?err}/data:nocopy
             - ./data:${APACHE_WEBROOT:?err}/data
+            #- web-root-data-sync:${APACHE_WEBROOT:?err}/data:nocopy Issue with modified Files not being synced
             - ./irclogs:${APACHE_WEBROOT:?err}/irclogs
             - ./keys:${APACHE_WEBROOT:?err}/keys
             - ./migration:${APACHE_WEBROOT:?err}/migration
             - ./scripts:${APACHE_WEBROOT:?err}/scripts
             - web-root-vendor-sync:${APACHE_WEBROOT:?err}/vendor:nocopy
-            #- web-root-www-sync:${APACHE_WEBROOT:?err}/html:nocopy
             - ./www:${APACHE_WEBROOT:?err}/html
+            #- web-root-www-sync:${APACHE_WEBROOT:?err}/html:nocopy Issue with modified Files not being synced
         entrypoint: ["/bin/sh","-c"]
         command:
             - |
@@ -49,12 +49,14 @@ services:
                 a2enmod ssl
                 a2ensite default-ssl
                 a2enmod rewrite
+                cp "${PHP_INI_DIR:?/usr/local/etc/php}/php.ini-development" "${PHP_INI_DIR:?/usr/local/etc/php}/php.ini"
                 curl -sSLf \
                    -o /usr/local/bin/install-php-extensions \
                    https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions && \
                 chmod +x /usr/local/bin/install-php-extensions && \
-                install-php-extensions mysqli pdo_mysql gd xdebug
+                install-php-extensions mysqli pdo_mysql xdebug gd exif
                 apt-get -y update && apt-get -y install git
+                service apache2 restart
                 exec /usr/sbin/apache2ctl -D FOREGROUND
                # Additional install-php-extensions: intl, mbstring, gettext, curl, json, zip, exif
 
