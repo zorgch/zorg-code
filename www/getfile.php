@@ -12,8 +12,8 @@
  * @since 1.3 Minor code improvements, added FIXME, updated comments
  * @version 1.3
  *
- * @FIXME Refactore code according to gallery.readpic.php version 2.0
- * 
+ * @FIXME Refactor code according to gallery.readpic.php version 2.0
+ *
  * @link http://zorg.ch/files/1/Bild1.png
  * @param integer	$_GET['user']	user-id from db
  * @param string	$_GET['file']	filename
@@ -29,25 +29,25 @@ require_once dirname(__FILE__).'/includes/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 
 /** Look for & validate user-id and file-name in URL-Params */
-if ($_GET['user'] && $_GET['file'])
+if ((isset($_GET['user']) && !empty($_GET['user']) && is_numeric($_GET['user']) && $_GET['user'] > 0) &&
+	(isset($_GET['file']) && !empty($_GET['file'])))
 {
-	if (is_numeric($_GET['user']))
-	{
-		$e = $db->query('SELECT * FROM files WHERE user=' . $_GET['user'] . ' AND name="' . addslashes($_GET['file']) .'"', __FILE__, __LINE__, 'SELECT files by user');
-		$d = $db->fetch($e);
-	}
+	$e = $db->query('SELECT * FROM files WHERE user=' . (int)$_GET['user'] . ' AND name="' . addslashes($_GET['file']) .'"', __FILE__, __LINE__, 'SELECT files by user');
+	$d = $db->fetch($e);
 
 /** ...else check & validate for file-id in URL-Params */
-} else {
-	if (is_numeric($_GET['id']))
+} elseif (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0)
 	{
-		$e = $db->query('SELECT * FROM files WHERE id=' . $_GET['id'], __FILE__, __LINE__, 'SELECT files by id');
+		$e = $db->query('SELECT * FROM files WHERE id=' . (int)$_GET['id'], __FILE__, __LINE__, 'SELECT files by id');
 		$d = $db->fetch($e);
 	}
+} else {
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	exit('Invalid or missing GET-Parameter');
 }
 
 /** Proceed only if the DB-Query returned a result... */
-if ($d)
+if ($d !== false && $db->num($e) > 0)
 {
 	$lastmod = filemtime( FILES_DIR . $d['user'] . DIRECTORY_SEPARATOR . $d['name']);
 
@@ -65,7 +65,6 @@ if ($d)
 
 /** Otherwise return a HTTP 404 "Not found" error & exit */
 } else {
-	header('HTTP/1.1 404 Not Found'); // set HTTP response header
-	echo t('error-file-notfound');
-	die; // Make sure to quit, due to error
+	http_response_code(404); // set HTTP response code 404 (Not Found)
+	exit((string)t('error-file-notfound')); // Make sure to quit, due to error
 }

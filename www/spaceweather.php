@@ -23,25 +23,35 @@ $model = new MVC\Spaceweather();
 $sql = 'SELECT * FROM spaceweather';
 $result = $db->query($sql,__LINE__,__FILE__);
 
-while($rs = $db->fetch($result)) {
-	$sw[$rs['name']] = ( $rs['wert'] != '' ? $rs['wert'] == '' : 'unbekannt' );
+if ($db->num($result) > 0)
+{
+    while($rs = $db->fetch($result)) {
+	    $sw[$rs['name']] = ( $rs['wert'] != '' ? $rs['wert'] == '' : 'unbekannt' );
+    }
+} else {
+    $sw = [];
 }
 
 /** Get Asteroids */
 $sql = 'SELECT *, UNIX_TIMESTAMP(datum) as datum FROM spaceweather_pha WHERE MONTH(datum) = MONTH(now()) AND YEAR(datum) = YEAR(now())';
 $result = $db->query($sql,__LINE__,__FILE__);
-while($rs = $db->fetch($result)) {
-	$ao[$rs['asteroid']] = [ 'date' => ( $rs['datum'] != '' ? date("M d.",$rs['datum']) : 'n/a' )
-							,'distance' => ( $rs['distance'] != '' ? $rs['distance'] : 'n/a' )
-							,'mag' => ( $rs['mag'] != '' ? round($rs['mag']) : 'n/a' )
-						   ];
+if ($db->num($result) > 0)
+{
+    while($rs = $db->fetch($result)) {
+	    $ao[$rs['asteroid']] = [ 'date' => ( $rs['datum'] != '' ? date("M d.",$rs['datum']) : 'n/a' )
+							    ,'distance' => ( $rs['distance'] != '' ? $rs['distance'] : 'n/a' )
+							    ,'mag' => ( $rs['mag'] != '' ? round($rs['mag']) : 'n/a' )
+						       ];
+    }
+} else {
+    $ao = [];
 }
 
 /** Assign Smarty Variables */
 //$smarty->assign('tplroot', array('page_title' => 'Spacewetter'));
 $model->showOverview($smarty);
-$smarty->assign('solarflares_6hr_time', ( $sw['solarflares_6hr_time'] != 'unbekannt' ? date("H:i",strtotime($sw['solarflares_6hr_time'])) : 'n/a') );
-$smarty->assign('solarflares_24hr_time', ( $sw['solarflares_24hr_time'] != 'unbekannt' ? date("H:i",strtotime($sw['solarflares_24hr_time'])) : 'n/a') );
+$smarty->assign('solarflares_6hr_time', ( isset($sw['solarflares_6hr_time']) && $sw['solarflares_6hr_time'] != 'unbekannt' ? date("H:i",strtotime($sw['solarflares_6hr_time'])) : 'n/a') );
+$smarty->assign('solarflares_24hr_time', ( isset($sw['solarflares_24hr_time']) && $sw['solarflares_24hr_time'] != 'unbekannt' ? date("H:i",strtotime($sw['solarflares_24hr_time'])) : 'n/a') );
 $smarty->assign('spawe', $sw);
 $smarty->assign('asteroids', $ao);
 

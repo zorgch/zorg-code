@@ -450,10 +450,13 @@ class Telegram
 				}
 
 				/** Assign key=>value pairs for $messageType Optional Parameters */
-				foreach ((array) $_telegramMessageModels[$messageType]['optional'] as $optionalParameter)
+				if (isset($_telegramMessageModels[$messageType]['optional']))
 				{
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> array_push to $data Array for key=>value pair "%s"', __METHOD__, __LINE__, $optionalParameter));
-					if (!empty($parameters[$optionalParameter])) $data[$optionalParameter] = $parameters[$optionalParameter];
+					foreach ((array) $_telegramMessageModels[$messageType]['optional'] as $optionalParameter)
+					{
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> array_push to $data Array for key=>value pair "%s"', __METHOD__, __LINE__, $optionalParameter));
+						if (!empty($parameters[$optionalParameter])) $data[$optionalParameter] = $parameters[$optionalParameter];
+					}
 				}
 
 				/** Return Data-Array with key:value pairs assigned */
