@@ -242,7 +242,7 @@ class usersystem
 				$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
 				if ($this->ausgesperrt_bis > time()) $_geaechtet[] = $this->id;
 				//$this->last_ip = $rs[$this->field_last_ip]; // @DEPRECATED
-				$this->last_ip = $_SESSION[$this->sessionkey_last_ip];
+				$this->last_ip = (isset($_SESSION[$this->sessionkey_last_ip]) && !empty($_SESSION[$this->sessionkey_last_ip]) ? $_SESSION[$this->sessionkey_last_ip] : null);
 				$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
 				$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
 				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
@@ -454,7 +454,7 @@ class usersystem
 							 * ...to have __construct() assign all additional User values
 							 * ...needed to work for whole page
 							 */
-							$loginRedirectUrl = (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF'].(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
+							$loginRedirectUrl = (isset($_POST['redirect']) ? base64url_decode($_POST['redirect']) : $_SERVER['PHP_SELF'].(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
 							header('Location: '.$loginRedirectUrl);
 							exit;
@@ -519,8 +519,8 @@ class usersystem
 		header('Clear-Site-Data: "cookies"');
 
 		/** Redirect user back to last page */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logout: redirect url => %s', __METHOD__, __LINE__, (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF'])));
-		header('Location: '. (isset($_POST['redirect']) ? base64_decode($_POST['redirect']) : $_SERVER['PHP_SELF']) );
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logout: redirect url => %s', __METHOD__, __LINE__, (isset($_POST['redirect']) ? base64url_decode($_POST['redirect']) : $_SERVER['PHP_SELF'])));
+		header('Location: '. (isset($_POST['redirect']) ? base64url_decode($_POST['redirect']) : $_SERVER['PHP_SELF']) );
 		exit;
 	}
 

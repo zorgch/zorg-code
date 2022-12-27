@@ -12,13 +12,13 @@ if (true === $user->is_loggedin())
 {
 	/** Validate passed Parameters */
 	$doAction = (isset($_POST['action']) && is_string($_POST['action']) ? (string)$_POST['action'] : null);
-	
+
 	switch ($doAction)
 	{
 		/** Neues Rezept hinzufügen */
 		case 'new':
 			// TODO Change to $db->insert()
-			$sql = 'INSERT INTO rezepte 
+			$sql = 'INSERT INTO rezepte
 						(category_id, title, zutaten, anz_personen, prep_time, cook_time, difficulty, description, ersteller_id, erstellt_date)
 					VALUES
 						(
@@ -34,10 +34,10 @@ if (true === $user->is_loggedin())
 							,NOW()
 						)';
 			$rezeptId = $db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64_decode($_POST['url']).'&rezept_id='.$rezeptId);
+			header('Location: '.base64_urldecode($_POST['url']).'&rezept_id='.$rezeptId);
 			exit;
 		break;
-	
+
 		/** Rezept aktualisieren */
 		case 'edit':
 			// TODO Change to $db->update()
@@ -53,23 +53,23 @@ if (true === $user->is_loggedin())
 						,description = "'.$_POST['description'].'"
 					WHERE id = '.(int)$_POST['id']; // TODO align by changing in Tpl & here to "rezept_id"
 			$db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64_decode($_POST['url']).'&rezept_id='.$_POST['id']);
+			header('Location: '.base64_urldecode($_POST['url']).'&rezept_id='.$_POST['id']);
 			exit;
 		break;
-	
+
 		/** Neue Rezepte-Kategorie hinzufügen */
 		case 'newcategory':
 			$sql = 'INSERT INTO rezepte_categories SET title = "'.$_POST['new_category'].'"';
 			$db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64_decode($_POST['url']));
+			header('Location: '.base64_urldecode($_POST['url']));
 			exit;
 		break;
-	
+
 		/** Ein Rezept bewerten */
 		case 'benoten':
 			if (isset($_POST['score']) && is_numeric($_POST['score']) && (int)$_POST['score'] >= 1 && (int)$_POST['score'] < 6)
 			{
-				$sql = 'REPLACE INTO rezepte_votes (rezept_id, user_id, score) 
+				$sql = 'REPLACE INTO rezepte_votes (rezept_id, user_id, score)
 						VALUES (
 							 '.$_POST['rezept_id'].'
 							,'.$user->id.'
@@ -77,7 +77,7 @@ if (true === $user->is_loggedin())
 						)';
 				$db->query($sql, __FILE__, __LINE__);
 			}
-			header('Location: '.base64_decode($_POST['url']));
+			header('Location: '.base64_urldecode($_POST['url']));
 		break;
 	}
 }

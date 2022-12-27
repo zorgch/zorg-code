@@ -83,7 +83,7 @@ class Polls
 
 				if ($poll['myvote'] == $pollAnswer['id']) {
 					if ($poll['myvote'] && $poll['state']=='open' && $user_has_vote_permission) {
-						//$old_url = base64_encode("$_SERVER[PHP_SELF]?".url_params());
+						//$old_url = base64_urlencode("$_SERVER[PHP_SELF]?".url_params());
 						$pollAnswersArray[$pollAnswer['id']]['unvote_url'] = '/actions/poll_unvote.php?poll='.$poll['id'].'&redirect='.getURL();
 					}
 				}
@@ -94,7 +94,7 @@ class Polls
 			/** Poll Voting: add Vote-Form if user_has_vote_permission() */
 			if ($user_has_vote_permission && !$poll['myvote'] && $poll['state']=="open")
 			{
-				$redirect_url = base64_encode($_SERVER['PHP_SELF'].'?'.url_params());
+				$redirect_url = base64url_encode($_SERVER['PHP_SELF'].'?'.url_params());
 				$action = '/actions/poll_vote.php?redirect='.$redirect_url;
 				$smarty->assign('form_action', $action);
 				$smarty->assign('form_url', $redirect_url);

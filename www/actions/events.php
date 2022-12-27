@@ -14,8 +14,8 @@ require_once INCLUDES_DIR.'events.inc.php';
 
 /** Validate $_GET & $_POST variables */
 $error = NULL;
-if (isset($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_POST['url'])); // preg_replace = entfernt $error Param
-if (isset($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_decode($_GET['url'])); // preg_replace = entfernt $error Param
+if (isset($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_urldecode($_POST['url'])); // preg_replace = entfernt $error Param
+if (isset($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_urldecode($_GET['url'])); // preg_replace = entfernt $error Param
 if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/events'; // /events = Events page, tpl=158 (Fallback)
 
 /** Validate & escape event fields for new or edit an event */
@@ -42,10 +42,10 @@ switch (true)
 	/** Add new Event */
 	case ((isset($_POST['action']) && $_POST['action'] === 'new')):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Event: %s', __FILE__, __LINE__, $eventName));
-		$sql = 'INSERT INTO 
+		$sql = 'INSERT INTO
 					events
-						(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url) 
-					VALUES 
+						(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url)
+					VALUES
 						(
 							 "'.$eventName.'"
 							,"'.$eventLocation.'"
@@ -59,7 +59,7 @@ switch (true)
 							,"'.$eventReviewlink.'"
 						)';
 		$idNewEvent = $db->query($sql, __FILE__, __LINE__, 'INSERT INTO events');
-		
+
 		/** Error */
 		if (empty($idNewEvent))
 		{
@@ -79,8 +79,8 @@ switch (true)
 	case ((isset($_POST['action']) && $_POST['action'] === 'edit')):
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Update Event: %d "%s"', __FILE__, __LINE__, $eventId, $eventName));
 
-		$sql = 'UPDATE events 
-			 	SET 
+		$sql = 'UPDATE events
+			 	SET
 					name = "'.$eventName.'"
 					, location = "'.$eventLocation.'"
 					, link = "'.$eventLink.'"
