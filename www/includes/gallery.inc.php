@@ -58,13 +58,14 @@ $THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
  * @version 1.0
  * @since 1.0 function added
  *
- * @uses ZENSUR
  * @param string $state Aktueller Status des Albums, z.B. wenn es gerade bearbeitet wird
  * @param string $error (Fehler-)Meldung, welche auf der Gallery-Seite angezeigt werden soll
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
  * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
+ * @uses USER_MEMBER, ZENSUR
  * @return string HTML-Code der Gallery-Seite
  */
 function galleryOverview ($state="", $error="")
@@ -149,11 +150,15 @@ function galleryOverview ($state="", $error="")
  * @since 1.5 moved pagination to new Sidebar, output it via $smarty
  * @since 2.0 `16.12.2022` `IneX` lazy-loaded responsive Gallery Album Thumbs Overview
  *
+ * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
+ * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
+ * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
  * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
  * @uses ZENSUR
- * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
- * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
+ * @uses user_error(), self::imgsrcThum(), Thread::getNumPosts(), Thread::getNumUnread()
  */
 function albumThumbs ($id, $page=0) {
 	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user, $smarty;
@@ -244,19 +249,21 @@ function albumThumbs ($id, $page=0) {
  *
  * @author [z]biko
  * @author IneX
- * @date 21.10.2013
- * @version 2.1
+ * @version 2.4
  * @since 1.0 `21.10.2013` `[z]biko` function added
- * @since 2.0 `IneX` APOD Special: statt Pic ein Video embedden
+ * @since 2.0 `01.10.2019` `IneX` APOD Special: statt Pic ein Video embedden
  * @since 2.1 `01.10.2019` `IneX` responsive scaling `img` and <iframe> tags
  * @since 2.2 `04.12.2020` `IneX` fixed fallback to show Album Name on Pic
  * @since 2.3 `04.12.2020` `IneX` switched file_exists() to is_file() and fixed PHP notice for undefined exif data
+ * @since 2.4 `24.12.2022` `IneX` improved Pic detail view layout and functionality
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
- * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
- * @uses ZENSUR
+ * @uses USER_USER, USER_MEMBER, APOD_GALLERY_ID, ZENSUR
+ * @uses text_width(), remove_html(), url_params(), datename()
  */
 function pic ($id)
 {
@@ -286,16 +293,18 @@ function pic ($id)
 					 GROUP BY album, eventname', __FILE__, __LINE__, __FUNCTION__);
 	$d = mysqli_fetch_array($e);
 	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE['height']));
-	echo '<br><table width="80%" align="center"><tr>
-	<td align="center" class="bottom_border"><h3>'
-	.($d['eventname'] ? $d['eventname'] : $d['name'])
-	.'</h3></div></td></tr></table><br><br>';
+	echo '<a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">';
+	echo '<h2 class="bottom_border center">'.($d['eventname'] ? $d['eventname'] : $d['name']).'</h2>';
+	echo '</a>';
 
 	if ($cur['zensur'] && $user->typ != USER_MEMBER) {
 		echo '<b><font color="red">Access denied for this picture</font></b><br><br>';
 		return;
 	}
 
+	/**
+	 * Pic Title
+	 */
 	if (isset($_GET['editFotoTitle']) && $_GET['editFotoTitle'] && $user->typ >= USER_MEMBER) {
 		echo '<form method="post" action="?do=editFotoTitle&'.url_params().'">';
 			echo '<fieldset style="display: flex;white-space: nowrap;align-items: center; margin: 0;">';
@@ -313,92 +322,68 @@ function pic ($id)
 				echo '</fieldset>';
 			echo "</form>";
 		} elseif ($cur['name']) {
-			echo '<h1>'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small">[<a href="?editFotoTitle=1&'.url_params().'">edit</a>]</span>' : '').'</h1>';
+			echo '<h3 class="center">'.$cur['name'].($user->typ >= USER_MEMBER ? ' <span class="small">[<a href="?editFotoTitle=1&'.url_params().'">edit</a>]</span>' : '').'</h3><br>';
 		}
 	}
-
 	$pic_filepath = picPath($cur['album'], $id, '.jpg');
+	$pic_title = (!empty($cur['name']) ? text_width(remove_html($cur['name']), 250, '', false, true) : pathinfo($pic_filepath, PATHINFO_FILENAME));
 
-	if (is_file($pic_filepath) !== false)
+	/**
+	 * PIC SCORE FORMULAR
+	 */
+	if ($user->typ >= USER_USER && !hasVoted($user->id, $cur['id'])) {
+		echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" class="voteform">'
+			.'<input name="picID" type="hidden" value="'.$cur['id'].'">'
+			.'<span class="scoreinfo">Benoten:</span>'
+			.'<label class="scorevalue" title="Vote: 6 Sternli">
+				<input type="radio" name="score" onClick="document.f_benoten.submit();this.setAttribute(\'disabled\', \'disabled\');" value="6"></label>'
+			.'<label class="scorevalue" title="Vote: 5 Sternli">
+				<input type="radio" name="score" onClick="document.f_benoten.submit();this.setAttribute(\'disabled\', \'disabled\');" value="5"></label>'
+			.'<label class="scorevalue" title="Vote: 4 Sternli">
+				<input type="radio" name="score" onClick="document.f_benoten.submit();this.setAttribute(\'disabled\', \'disabled\');" value="4"></label>'
+			.'<label class="scorevalue" title="Vote: 3 Sternli">
+				<input type="radio" name="score" onClick="document.f_benoten.submit();this.setAttribute(\'disabled\', \'disabled\');" value="3"></label>'
+			.'<label class="scorevalue" title="Vote: 2 Sternli">
+				<input type="radio" name="score" onClick="document.f_benoten.submit();this.setAttribute(\'disabled\', \'disabled\');" value="2"></label>'
+			.'<label class="scorevalue" title="Vote: 1 Sternli">
+				<input type="radio" name="score" onClick="document.f_benoten.submit();this.setAttribute(\'disabled\', \'disabled\');" value="1"></label>'
+		.'</form>';
+	} else {
+		$anz_votes = getNumVotes($cur['id']);
+		$votes = $anz_votes.' Vote'.(($anz_votes > 1) || ($anz_votes == 0) ? 's' : null );
+		echo '<p class="center">Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
+	}
+
+	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0">';//.$cur['picsize'].'>';
+
+	echo '<tr style="font-size: 20px;"><td class="strong align-left" width="30%"">';
+	if ($last) echo '<a id="prevpiclink" href="?show=pic&picID='.$last['id'].'">⏴ previous</a>';
+	echo '</td><td class="center light small">';
+	/** Bild Zensur-Info */
+	if ($cur['zensur'] === '1') echo '<span class="small" title="Bild ist ZENSIERT">🫥</span>';
+	/** Bild Datum (Desktop Viewports) */
+	if (!$user->from_mobile && is_file($pic_filepath) !== false)
 	{
 		/** APOD Special: use pic_added from database, instead of filemtime */
 		if ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
-			$pic_date = '<p>Bild von '.datename($cur['timestamp']).'</p>';
+			$pic_date = 'Bild von '.datename($cur['timestamp']);
 		}
 		/** Regular zorg Pics */
 		else {
 			/** Check for EXIF data */
 			$exif_data = exif_read_data($pic_filepath, 1, true);
 			if ($exif_data !== false && isset($exif_data['FILE.FileDateTime'])) {
-				$pic_date = '<p>Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']).'</p>';
+				$pic_date = 'Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']);
 			}
 			/** Fallback: Datum aus dem filemtime() des Files */
 			else {
-				$pic_date = '<p>Bild Upload von '.datename(filemtime($pic_filepath)).'</p>';
+				$pic_date = 'Bild Upload von '.datename(filemtime($pic_filepath));
 			}
 		}
 		echo $pic_date;
 	}
-
-	// Image Rotating... deaktiviert weil doRotatePic()-Script das Bild nicht dreht.
-	/*if ($user->typ == USER_MEMBER) {
-		echo "<form method='post' action='$_SERVER['PHP_SELF']?do=doRotatePic&".url_params()."'><p>";
-			echo "<input type='radio' class='text' name='rotatedir' value='left' checked /> 90&deg; links&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-			echo "<input type='radio' class='text' name='rotatedir' value='right' /> 90&deg; rechts&nbsp;&nbsp;";
-			echo "<input type='submit' class='button' name='rotatebutton' value='Bild drehen' /></p>";
-		echo "</form>";
-	}*/
-
-
-	## PIC SCORE FORMULAR ##
-	if ($user->typ >= USER_USER) {
-		if (hasVoted($user->id, $cur['id'])) {
-			$anz_votes = getNumVotes($cur['id']);
-			$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-			echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
-		} else {
-			echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" class="voteform" style="display: flex;">'
-					.'<input name="picID" type="hidden" value="'.$cur['id'].'">'
-					.'<span>Benoten:</span>'
-					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="1"></label>'
-						//.'1</label>'
-					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="2"></label>'
-						//.'2</label>'
-					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="3"></label>'
-						//.'3</label>'
-					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="4"></label>'
-						//.'4</label>'
-					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="5"></label>'
-						//.'5</label>'
-					.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-						.'<input type="radio" name="score" onClick="document.f_benoten.submit();" value="6"></label>'
-						//.'6</label>'
-					//.'<input class="button" type="submit" value="benoten">'
-				.'</form>';
-		}
-	} else {
-		$anz_votes = getNumVotes($cur['id']);
-		$votes = (($anz_votes > 1) || ($anz_votes == 0)) ? $anz_votes." Votes" : $anz_votes." Vote";
-		echo '<p>Bild Note: '.getScore($cur['id']).' <small>('.$votes.')</small></p>';
-	}
-
-	echo '<div align="center"><table border="0" cellspacing="0" cellpadding="0">';//.$cur['picsize'].'>';
-
-	echo '<tr style="font-size: 20px; font-weight: bold;"><td align="left" width="30%">';
-	if ($last) echo '<a id="prevpiclink" href="?show=pic&picID='.$last['id'].'">previous</a>';
-	else echo '&lt;- last';
-	echo '</td><td style="text-align:center"><a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">overview</a></td>';
-	echo '<td style="text-align:right" width="30%">';
-	if ($next) {
-		echo '<a id="nextpiclink" href="?show=pic&picID='.$next['id'].'">next</a>';
-	} else {
-		echo 'next';
-	}
+	echo '</td><td class="strong align-right" width="30%">';
+	if ($next) echo '<a id="nextpiclink" href="?show=pic&picID='.$next['id'].'">next ⏵</a>';
 	echo '</td></tr>';
 	/* die DIVs machen mich verrückt... damn
 	echo '<tr><td colspan="3"><div style="position:static; width:800; height:600;"><div name="thepic" style="position:absolute;"><img border="0" src="'. imgsrcPic($id). '"></div>';
@@ -409,23 +394,26 @@ function pic ($id)
 	echo '<tr><td colspan="3">';
 
 	/** Normale Pic Anzeige (wenn nicht APOD UND Pic-Extension nicht mit '.' anfängt...) */
-	if ($cur['album'] != APOD_GALLERY_ID || mb_substr($cur['extension'],0,1,'utf-8') == '.')
+	if ($cur['album'] != APOD_GALLERY_ID || mb_substr($cur['extension'],0,1,'UTF-8') === '.')
 	{
-		// Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen...
-		if ($user->typ == USER_MEMBER && !checkUserToPic($user->id, $id))
-		{ // NOTE: %% = needed to prevent printf() stripping e.g. '100%' into '100'
+		$pic_downloadname = sprintf('%s.%s', $pic_title, $cur['extension']);
+		/** Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen... */
+		if ($user->typ >= USER_USER && !checkUserToPic($user->id, $id))
+		{
+			// NOTE: %% = needed to prevent printf() stripping e.g. '100%' into '100'
 			printf('
 			<form action="%1$s" method="post" onsubmit="return markAsMypic()">
 				<input type="hidden" name="picID" value="%2$s" />
-				<input type="image" id="thatpic" name="mypic" src="%3$s" alt="Klicken um als MyPic zu markieren" title="Dich auf dem Bild markieren?" style="width: 100%%;max-width: 100%%;" />
+				<input type="image" id="thatpic" name="mypic" src="%3$s" alt="Klicken um als MyPic zu markieren" title="Dich auf dem Bild markieren?" style="width: 100%%;max-width: 100%%;%4$s" />
 			</form>'
 				,'?do=mypic&amp;'.url_params()
 				,$id
 				,imgsrcPic($id)
+				,($cur['zensur'] === '1' ? 'filter: blur(0.1rem);' : '')
 			);
-		// ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte)
+		/** ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte) */
 		} else {
-			echo '<img id="thatpic" src="'. imgsrcPic($id). '" style="border: none;width: 100%;max-width: 100%;">';
+			echo '<img id="thatpic" name="'.$pic_downloadname.'" src="'. imgsrcPic($id). '" style="border: none;width: 100%;max-width: 100%;">';
 		}
 
 	/** APOD Special: statt Pic ein Video embedden */
@@ -443,8 +431,31 @@ function pic ($id)
 					break;
 			}
 	}
-
 	echo '</td></tr>';
+
+	/** Bild Datum (Mobile Viewports) */
+	if ($user->from_mobile != false && is_file($pic_filepath) !== false)
+	{
+		echo '<tr><td colspan="3" class="align-right padding-bottom-s small light">';
+		/** APOD Special: use pic_added from database, instead of filemtime */
+		if ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
+			$pic_date = 'Bild von '.datename($cur['timestamp']);
+		}
+		/** Regular zorg Pics */
+		else {
+			/** Check for EXIF data */
+			$exif_data = exif_read_data($pic_filepath, 1, true);
+			if ($exif_data !== false && isset($exif_data['FILE.FileDateTime'])) {
+				$pic_date = 'Bild erstellt am '.date('d. F Y H:i', $exif_data['FILE.FileDateTime']);
+			}
+			/** Fallback: Datum aus dem filemtime() des Files */
+			else {
+				$pic_date = 'Bild Upload von '.datename(filemtime($pic_filepath));
+			}
+		}
+		echo $pic_date;
+		echo '</td></tr>';
+	}
 
 	/*echo '<tr><td clspan="3">';
 	getUsersOnPic($cur['id']);  // MyPic Markierungen laden
@@ -462,39 +473,55 @@ function pic ($id)
 
 	echo '</td></tr></table></div>';
 
-	if ($user->typ == USER_MEMBER) { // member
-		echo '<table align="center" class="border" cellspacing="0" cellpadding="10"><tr><td valign="top"><br>';
-		if ($cur['zensur']) {
-			echo '<font color="red">Bild ist zensiert</font>';
-			$val = "Zensur aufheben";
-		}else{
-			echo '<font color="green">Bild ist nicht zensiert</font>';
-			$val = "zensieren";
-		}
-		echo '</td><td valign="top"><br><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
-		.'<input type="submit" class="button" value="'.$val.'"></form></td>';
+	/**
+	 * Bild Actions (rotate, Zensieren, usw.)
+	 *
+	 * @TODO Image Rotating...
+	 * @FIXME deaktiviert weil doRotatePic()-Script das Bild nicht dreht.
+	 */
+	if ($user->typ >= USER_MEMBER) { // member
+		echo '<table align="center" class="border margin-top-l" cellspacing="0" cellpadding="10">';
+			echo '<tr>';
 
-		echo '<td valign="top" style="text-align:right" width="250"><br>'
-		.'<form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
-		.'<input type="submit" class="button" value="l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
-		.'</form></td></tr></table>';
+			/** Delete Pic */
+			echo '<td><form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
+					.'<input type="submit" class="button danger" value="Pic l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
+				.'</form></td>';
+
+			/** Pic Zensieren/Zensur aufheben */
+			echo '<td><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
+					.'<input type="submit" class="button secondary" value="'.($cur['zensur'] === '1' ? 'Zensur AUFHEBEN' : 'Bild ZENSIEREN').'">'
+				.'</form></td>';
+
+			echo '</tr>';
+		echo '</table>';
 	}
+	/*if ($user->typ == USER_MEMBER) {
+		echo "<form method='post' action='$_SERVER['PHP_SELF']?do=doRotatePic&".url_params()."'><p>";
+			echo "<input type='radio' class='text' name='rotatedir' value='left' checked /> 90&deg; links&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+			echo "<input type='radio' class='text' name='rotatedir' value='right' /> 90&deg; rechts&nbsp;&nbsp;";
+			echo "<input type='submit' class='button' name='rotatebutton' value='Bild drehen' /></p>";
+		echo "</form>";
+	}*/
 
 	/**
 	 * Mobile Touch Swipe - next/prev Pic
 	 */
-	echo '<script>// HammerJS
-		document.onreadystatechange = function(){
-			if (document.readyState === "complete") {
-		  		const prevPicLink = document.querySelector("a#prevpiclink");
-		  		const nextPicLink = document.querySelector("a#nextpiclink");
-		  		const swipeableEl = document.querySelector("#thatpic");
-		  		var swipe = new Hammer(swipeableEl);
-		  		if (typeof prevPicLink !== "undefined") { swipe.on("swiperight panright", function(){ window.location.href = prevPicLink.getAttribute("href") }) };
-		  		if (typeof nextPicLink !== "undefined") { swipe.on("swipeleft panleft", function(){ window.location.href = nextPicLink.getAttribute("href") }) };
+	if ($user->from_mobile != false)
+	{
+		echo '<script>// HammerJS
+			document.onreadystatechange = function(){
+				if (document.readyState === "complete") {
+					const prevPicLink = document.querySelector("a#prevpiclink");
+					const nextPicLink = document.querySelector("a#nextpiclink");
+					const swipeableEl = document.querySelector("#thatpic");
+					var swipe = new Hammer(swipeableEl);
+					if (typeof prevPicLink !== "undefined") { swipe.on("swiperight", function(){ window.location.href = prevPicLink.getAttribute("href") }) };
+					if (typeof nextPicLink !== "undefined") { swipe.on("swipeleft", function(){ window.location.href = nextPicLink.getAttribute("href") }) };
+				}
 			}
-		}
-		</script>';
+			</script>';
+	}
 }
 
 
@@ -521,6 +548,43 @@ function hasVoted($user_id, $pic_id) {
 	$sql = 'SELECT * FROM gallery_pics_votes WHERE pic_id='.$pic_id.' AND user_id='.$user_id;
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	return $db->num($result);
+}
+/**
+ * Bild benoten
+ *
+ * Benotet ein Bild mit einer vom User gewählten Score (1-5)
+ *
+ * @author IneX
+ * @version 1.0
+ * @since 1.0 `IneX` function added
+ *
+ * @param integer $pic_id ID des betroffenen Bildes
+ * @param integer $score Bewertung (1-5) welche der User dem Bild gegeben hat
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @global object $db Globales Class-Object mit den User-Methoden & Variablen
+ */
+function doBenoten($pic_id, $score) {
+	global $db, $user;
+
+	if (empty($pic_id) || $pic_id <= 0) user_error("Fehlender Parameter <i>pic_id</i>", E_USER_ERROR);
+	if (empty($score) || $score <= 0) user_error("Fehlender Parameter <i>score</i>", E_USER_ERROR);
+	if (!hasVoted($user->id, $pic_id))
+	{
+		$sql = 'REPLACE INTO gallery_pics_votes (pic_id, user_id, score) VALUES ('.$pic_id.', '.$user->id.', '.$score.')';
+
+		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		//header("Location: ".base64_urldecode($_POST['url']));
+		//return array('state'=>"Pic $pic_id benotet");
+
+		// Activity Eintrag auslösen (ausser bei der Bärbel)
+		$sternli = '';
+		for ($s=0;$s<$score;$s++){$sternli .= '★';} // Sternli mache
+		if ($user->id != BARBARA_HARRIS) {
+			Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i');
+		}
+		return true;
+	}
+	return false;
 }
 // ====================================================
 // |                 END Pic Rating
@@ -963,47 +1027,6 @@ function getUserPics($userid, $limit=1)
 /*====================================================
 *|                    END MyPic
 *====================================================*/
-
-
-
-/**
- * Bild benoten
- *
- * Benotet ein Bild mit einer vom User gewählten Score (1-5)
- *
- * @author IneX
- * @version 1.0
- * @since 1.0 `IneX` function added
- *
- * @param integer $pic_id ID des betroffenen Bildes
- * @param integer $score Bewertung (1-5) welche der User dem Bild gegeben hat
- * @global object $db Globales Class-Object mit allen MySQL-Methoden
- * @global object $db Globales Class-Object mit den User-Methoden & Variablen
- */
-function doBenoten($pic_id, $score) {
-	global $db, $user;
-
-	if (!$pic_id) user_error("Fehlender Parameter <i>pic_id</i>", E_USER_ERROR);
-	if (!$score) user_error("Fehlender Parameter <i>score</i>", E_USER_ERROR);
-
-	$sql = "
-		REPLACE INTO gallery_pics_votes (pic_id, user_id, score)"
-		." VALUES ("
-		.$pic_id.', '
-		.$user->id.', '
-		.$score
-		.")"
-	;
-
-	$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-	//header("Location: ".base64_decode($_POST['url']));
-	//return array('state'=>"Pic $pic_id benotet");
-
-	// Activity Eintrag auslösen (ausser bei der Bärbel)
-	$sternli = '';
-	for ($s=0;$s<$score;$s++){$sternli .= '*';} // Sternli mache
-	if ($user_id != BARBARA_HARRIS) { Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
-}
 
 
 function doDelPic ($id) {

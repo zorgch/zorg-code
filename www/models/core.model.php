@@ -36,6 +36,8 @@ class Model
 	public $page_image;
 	public $menus;
 	public $sidebar;
+	public $scripts;
+	public $stylesheets;
 
 	public function __construct($smarty)
 	{
@@ -43,10 +45,10 @@ class Model
 		$this->page_link = null;
 		$this->meta_description = null;
 		$this->page_image = null;
-		$this->menus = null;
+		$this->menus = (array)null;
 		$this->sidebar = null;
-		$this->scripts = null;
-		$this->stylesheets = null;
+		$this->scripts = (array)null;
+		$this->stylesheets = (array)null;
 		//$this->load();
 	}
 

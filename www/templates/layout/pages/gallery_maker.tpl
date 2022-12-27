@@ -189,7 +189,6 @@
 				<button type="button" id="upload-pics" class="button-block button-lg button-success" disabled {if $daytime == 'night'}style="filter: invert(100%);"{/if}><i class="fa fa-upload"></i> Upload</button>
 			</div>
 			<div class="col-12 col-md-6 col-lg-6 order-1 order-md-2 offset-0 pad-y-xs">
-				<!-- label class="pad-xs"><input type="checkbox" name="add-activity" id="add-activity" value="true"> Share as new Activity</label -->
 				<span class="switch switch-primary">
 				  <input type="checkbox" id="activity-switch" name="add-activity" value="true" checked disabled>
 				  <label for="activity-switch">Als neue Aktivität teilen</label>
@@ -535,8 +534,9 @@
 	function AJAXpostActivity(text) {
 		if (notification_switch.is(':checked'))
 		{
-			var action = 'post';
-			var datastream = nonce_token.serialize() + '&' + 'activity='+text;
+			const action = 'post';
+			const type = 'i';
+			var datastream = nonce_token.serialize() + '&' + 'activity='+text + '&' + 'type='+type;
 			$.ajax({
 				url: '/js/ajax/activities/add-activity.php?action='+action,
 				type: 'POST',
