@@ -16,7 +16,7 @@ if ($user->is_loggedin())
 	if (isset($_POST['do']) && $_POST['do'] === 'new') $doAction = 'add';
 	elseif (isset($_GET['do']) && $_GET['do'] === 'old' && isset($_GET['artikel_id']) && is_numeric($_GET['artikel_id'])) $doAction = 'archive';
 
-	if (isset($_POST['url']) && is_string($_POST['url'])) $redirectUrl = base64_decode($_POST['url']);
+	if (isset($_POST['url']) && is_string($_POST['url'])) $redirectUrl = base64_urldecode($_POST['url']);
 	else $redirectUrl = '/tpl/190'; // Tauschbörse TPL-ID
 
 	switch($doAction)

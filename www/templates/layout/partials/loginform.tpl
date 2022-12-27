@@ -6,7 +6,7 @@
 </form>
 {else}
 	{if $smarty.get.showlogin == 'true'}
-<form name="loginform" id="loginform" class="login" action="{$url|base64decode}" method="post">
+<form name="loginform" id="loginform" class="login" action="{$url|base64decodeurl}" method="post">
 	<input type="hidden" name="do" value="login">
 	<input type="hidden" name="redirect" value="{$url}">
 	<!-- Prevent autofocus of "username" on mobile devices --><input type="text" autofocus="autofocus" style="display:none">
@@ -33,7 +33,7 @@
 <link rel="stylesheet" type="text/css" href="{$smarty.const.JS_DIR}dialog-polyfill/dialog-polyfill.css">
 <script src="{$smarty.const.JS_DIR}dialog-polyfill/dialog-polyfill.js"></script>
 <dialog id="login-popup">
-	<form name="loginform" id="loginform" class="login" action="{$url|base64decode}" method="post">
+	<form name="loginform" id="loginform" class="login" action="{$url|base64decodeurl}" method="post">
 		<!--h4 class="modal-header">Auf zorg einloggen</h4-->
 		<input type="hidden" name="do" value="login">
 		<input type="hidden" name="redirect" value="{$url}">

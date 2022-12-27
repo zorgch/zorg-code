@@ -453,7 +453,7 @@ class stl {
 			$db->query($sql,__FILE__,__LINE__,__METHOD__);
 
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
+			header('Location: '.base64_urldecode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
 			exit;
 		}
 	}
@@ -874,7 +874,7 @@ class stl {
 			}
 
 			$this->data['overview'] .= '
-				<form action="'.base64_decode(getURL()).'" method="post">
+				<form action="'.base64_urldecode(getURL()).'" method="post">
 					<table>
 					<tr><td align="center" colspan="2">
 						<h3>Neues Spiel starten</h3>
@@ -959,7 +959,7 @@ class stl {
 			}
 		}
 		if($go === true) {
-			header('Location: '.base64_decode(getURL(false)));
+			header('Location: '.base64_urldecode(getURL(false)));
 			exit;
 		}
 	}
@@ -1065,11 +1065,11 @@ class stl {
 		}
 		if(!isset($msg)) {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
+			header('Location: '.base64_urldecode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
 			exit;
 		} else {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&msg=$msg&".session_name()."=".session_id());
-			header('Location: '.base64_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg);
+			header('Location: '.base64_urldecode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg);
 			exit;
 		}
 	}

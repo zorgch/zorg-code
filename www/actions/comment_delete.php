@@ -9,7 +9,7 @@ if($_POST['id'] == '') {
 	echo 'Fehler: $_POST[id] ist leer.';
 	exit;
 }
-	
+
 $rs = Comment::getRecordset($_POST['id']);
 if($rs == false) {
 	echo 'Post '.$_POST['id'].' existiert nicht';
@@ -29,7 +29,7 @@ if($numchildren > 0) {
 
 
 // Actions --------------------------------------------------------------------
-			
+
 // Brauchts nicht mehr wegen InnoDB-Relation
 // Delete read post-records
 //$sql = "delete from comments_unread where comment_id = ".$_POST['id'];
@@ -48,11 +48,11 @@ Thread::adjustThreadRecord($rs['board'], $rs['thread_id']);
 
 
 // last post setzen todo: müsste nicht _immer_ passieren
-$sql = 
+$sql =
 	"UPDATE comments_threads ct"
 	." SET last_comment_id = (SELECT MAX(id) from comments c WHERE thread_id = ".$rs['thread_id']." AND c.board = ct.board)"
 	." WHERE thread_id = ".$rs['thread_id'];
-$db->query($sql, __FILE__, __LINE__);  	
+$db->query($sql, __FILE__, __LINE__);
 
 
 // parent neu kompilieren
@@ -61,5 +61,5 @@ if($rs['board'] != 'f' || $rs['parent_id'] > 1) {
 }
 
 // todo: wenns ein thread war, redirecten auf die Übersicht oder Startseite
-header("Location: ".base64_decode($_POST['url']));	  
+header("Location: ".base64_urldecode($_POST['url']));
 exit;

@@ -18,22 +18,22 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 		if(!isset($_SESSION['error_order'])) {
 			$_SESSION['error_num'] = $num;
 			$_SESSION['error_order'] = $order;
-			$_SESSION['error_oby'] = $oby;	
+			$_SESSION['error_oby'] = $oby;
 		}
 
 		if($_GET['o']) {
 			if($_SESSION['error_order'] == $_GET['o']) {
 				$_SESSION['error_oby'] = 1 ? $_SESSION['error_oby'] == 0 : 0;
 				$_SESSION['error_order'] = $_GET['o'];
-				
+
 			} else {
 				$_SESSION['error_order'] = $_GET['o'];
 			}
-		} 
+		}
 
 		$order_by = array('','u.username', 's.page', 's.file', 's.date', 's.referer');
 		$by = array('DESC','ASC');
-		$sql = 'SELECT 
+		$sql = 'SELECT
 					COALESCE(u.username,"ausgeloggt") AS username,
 					COALESCE(u.last_ip,"ausgeloggt") AS host,
 					s.page,
@@ -45,7 +45,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 					s.referrer,
 					s.id,
 					s.s_date AS datum
-				FROM 
+				FROM
 					(SELECT
 			            s.page AS page,
 			            s.file AS file,
@@ -56,14 +56,14 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 			            s.referer AS referrer,
 			            s.id AS id,
 			            UNIX_TIMESTAMP(s.date) AS s_date,
-			            s.user_id AS s_user_id 
-			        FROM 
-			            sql_error s 
-			        WHERE 
-			            s.status = 1 
-			        ORDER BY '.$order_by[$_SESSION['error_order']].' '.$by[$_SESSION['error_oby']].' 
+			            s.user_id AS s_user_id
+			        FROM
+			            sql_error s
+			        WHERE
+			            s.status = 1
+			        ORDER BY '.$order_by[$_SESSION['error_order']].' '.$by[$_SESSION['error_oby']].'
 			        LIMIT '.$_SESSION['error_num'].') s
-				LEFT JOIN user u ON u.id = s.s_user_id 
+				LEFT JOIN user u ON u.id = s.s_user_id
 				WHERE 1 = 1';
 		$result = $db->query($sql,__FILE__,__LINE__);
 		$html = '';
@@ -71,12 +71,12 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 		{
 			$html .= "
 			<script language='javascript'>
-			function selectAll() {  
-			for(i=0; i < (".$num_errors."); i++)  
+			function selectAll() {
+			for(i=0; i < (".$num_errors."); i++)
 			document.error_form.elements[i].checked = !document.error_form.elements[i].checked;
 			}
 			</script>
-			<form action='/actions/error_action.php?tpl=$_GET[tpl]' name='error_form' method='post'>";	
+			<form action='/actions/error_action.php?tpl=$_GET[tpl]' name='error_form' method='post'>";
 		}
 
 		$html .= "
@@ -91,19 +91,19 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=4'>Datum</a></b></td>
 			";
 			if(!$_GET['id']) $html .= '<td align="right" class="hide-mobile"><b>del</b></td>';
-		
+
 		$html .= "</tr>";
 		$i = 0;
 		while($rs = $db->fetch($result)) {
-			
-			if(($i % 2) == 0) {	
-				$add = " bgcolor=".TABLEBACKGROUNDCOLOR." "; 
-			} else { 
-				$add = " bgcolor=".BACKGROUNDCOLOR." "; 
+
+			if(($i % 2) == 0) {
+				$add = " bgcolor=".TABLEBACKGROUNDCOLOR." ";
+			} else {
+				$add = " bgcolor=".BACKGROUNDCOLOR." ";
 			}
-			
+
 			$i++;
-			
+
 			$html .= '
 				<tr '.$add.'>
 					<td align="left"><small>'.$rs['username'].'</small></td>
@@ -113,22 +113,22 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 					<td align="left" class="hide-mobile"><small>'.$rs['line'].'</small></td>
 					<td align="left"><small><a href="'.$_SERVER['PHP_SELF'].'?tpl='.$_GET['tpl'].'&id='.$rs['id'].'">'.substr($rs['query'],0,23).'...</a></small></td>
 					<td align="left"><small>'.datename($rs['datum']).'</small></td>';
-			
+
 				if(!$_GET['id']) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';
-	
+
 			$html .= '</tr>';
-			
+
 			if($_GET['id'] == $rs['id']) {
 				if($_GET['query']) {
-					$result_chk = $db->query(stripslashes(base64_decode($_GET['query'])));
+					$result_chk = $db->query(stripslashes(base64_urldecode($_GET['query'])));
 					if(!$result_chk) {
 						$check = mysqli_error($db->conn);
 					} else {
 						$check = "Keine Fehler: ".$db->num($result_chk)." Rows";
 					}
-					$rs['query'] = stripslashes(base64_decode($_GET['query']));
+					$rs['query'] = stripslashes(base64_urldecode($_GET['query']));
 				}
-				
+
 				$html .= "
 				<tr>
 					<td align='left' colspan='7'>
@@ -170,7 +170,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 				</tr>";
 			}
 		}
-		
+
 		if(!$_GET['id']) {
 			$html .= '
 			<tr>
@@ -179,14 +179,14 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 				<td align="right" colspan="4" class="hide-mobile"><input type="submit" class="button" value="schliessen"><input type="button" onClick="selectAll();" class="button" value="Alle"></td>
 			</tr>';
 		}
-		
+
 		$html .= '</tr></table>';
-		
+
 		if(!$_GET['id']) { $html .= '</form>';}
-	
+
 	} else {
 		$html = '<b>Keine offenen SQL-Errors</b>';
 	}
-	
+
 	return $html;
 }

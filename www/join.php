@@ -18,7 +18,7 @@ require_once MODELS_DIR.'core.model.php';
  */
 $model = new MVC\Join();
 
-if($_POST['submit'] && $user->is_loggedin())
+if($user->is_loggedin() && isset($_POST['submit']) && count($_POST) >= 14)
 {
 	$content = "Es gibt keine korrekten Antworten.\n"
 				."Die Zukunft haengt von den Entscheidungen ab, die Sie und ich in den naechsten Stunde, in der naechsten Woche, im naechsten "
@@ -31,7 +31,7 @@ if($_POST['submit'] && $user->is_loggedin())
 	//$rs = $db->fetch($result);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $content: %s', 'join.php', __LINE__, $content));
 	$sql = "INSERT into joinus (user_id, f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14, datum) VALUES
-		(".$_SESSION['user_id'].", '$_POST[f1]', '$_POST[f2]', '$_POST[f3]', '$_POST[f4]', '$_POST[f5]', 
+		(".$_SESSION['user_id'].", '$_POST[f1]', '$_POST[f2]', '$_POST[f3]', '$_POST[f4]', '$_POST[f5]',
 		'$_POST[f6]', '$_POST[f7]', '$_POST[f8]', '$_POST[f9]', '$_POST[f10]', '$_POST[f11]', '$_POST[f12]',
 		 '$_POST[f13]', '$_POST[f14]', now())";
 	$insert = $db->query($sql,__FILE__,__LINE__);

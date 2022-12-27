@@ -17,7 +17,7 @@ if(isset($_GET['do']) && $_GET['do'] == 'subscribe')
 			VALUES("'.$_GET['board'].'", '.$_GET['comment_id'].', '.$user->id.')';
 	$db->query($sql, __FILE__, __LINE__, 'Commenting subscribe');
 
-	header("Location: ".base64_decode($_GET['url']));
+	header("Location: ".base64_urldecode($_GET['url']));
 	exit;
 }
 
@@ -28,6 +28,6 @@ if(isset($_GET['do']) && $_GET['do'] == 'unsubscribe')
 			WHERE board = "'.$_GET['board'].'" AND comment_id = '.$_GET['comment_id'].' AND user_id = '.$user->id;
 	$db->query($sql, __FILE__, __LINE__, 'Commenting unsubscribe');
 
-	header("Location: ".base64_decode($_GET['url']));
+	header("Location: ".base64_urldecode($_GET['url']));
 	exit;
 }

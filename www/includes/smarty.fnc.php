@@ -566,7 +566,7 @@ function var_request ()
 
 		$vars = $smarty->get_template_vars();
 
-		return '<a href="/?tpleditor=1&tplupd=new&location='.base64_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
+		return '<a href="/?tpleditor=1&tplupd=new&location='.base64_urlencode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
 	}
 	function smarty_edit_link ($params, $content, &$smarty, &$repeat) {
 
@@ -1570,7 +1570,9 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_quantity' => array('quantity', 'Variablen', '{$anz|quantity:Zug:Züge}', false)
 								,'smarty_number_quotes' => array('number_quotes', 'Variablen', 'Registriert für Smarty den Modifier number_quotes() aus PHP', false)
 								,'htmlentities' => array('htmlentities', 'Variablen', 'Registriert für Smarty den Modifier htmlentities() aus PHP', false)
+								,'base64url_decode' => ['base64decodeurl', 'URL Handling', 'Dekodiert die spezielle URL-safe base64 Strings für {$url} Variablen; Beispiel: {$url|base64encodeurl}', false]
 								,'base64_decode' => array('base64decode', 'Variablen', 'Registriert für Smarty den Modifier base64_decode() aus PHP', false)
+								,'base64url_encode' => array('base64encodeurl', 'URL Handling', 'Spezielle URL-safe base64_decode() für {$url} Variablen; Beispiel: {$url|base64encodeurl}', false)
 								,'base64_encode' => array('base64encode', 'Variablen', 'Registriert für Smarty den Modifier base64_encode() aus PHP', false)
 								,'smarty_concat' => array('concat', 'Variablen', 'Registriert für Smarty den Modifier concat() aus PHP', false)
 								,'smarty_ltrim' => array('ltrim', 'Variablen', 'Registriert für Smarty den Modifiert ltrim() aus PHP', false)

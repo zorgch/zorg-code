@@ -18,18 +18,18 @@ class Quotes
 	{
 		global $db, $user;
 
-		if(isset($_POST['action']) && $_POST['action'] == 'benoten' && isset($_POST['score']) && is_numeric($_POST['score']))
+		if(isset($_POST['action']) && $_POST['action'] == 'benoten' &&
+			isset($_POST['quote_id']) && !empty($_POST['quote_id']) && $_POST['quote_id'] > 0 &&
+			isset($_POST['score']) && is_numeric($_POST['score']) && $_POST['score'] > 0)
 		{
-		  	$sql =
-		  		"REPLACE INTO quotes_votes (quote_id, user_id, score) "
-		  		." VALUES ("
-		  		.$_POST['quote_id']
-		  		.', '.$user->id
-		  		.', '.$_POST['score']
-		  		.")"
-		  	;
-		  	$db->query($sql, __FILE__, __LINE__, __METHOD__);
-			header("Location: ".base64_decode($_POST['url']));
+			$quote_id = $_POST['quote_id'];
+			$votescore = $_POST['score'];
+			if (!Quotes::hasVoted($user->id, $quote_id))
+			{
+				$sql = 'REPLACE INTO quotes_votes (quote_id, user_id, score) VALUES ('.$quote_id.', '.$user->id.', '.$votescore.')';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			}
+			header('Location: '.base64url_decode($_POST['url']));
 		}
 	}
 
@@ -37,46 +37,40 @@ class Quotes
 	{
 		global $user;
 
+		$site = (isset($_POST['site']) && !empty($_POST['site']) && $_POST['site'] > 0 ? $_POST['site'] : 0);
 		$html = '<div class="quote">'
 					.'<blockquote><i>'.nl2br(htmlentities($rs["text"])).'</i>'
 					.' - '.$user->id2user($rs['user_id'], 0)
 					.($user->is_loggedin() ? ($user->id === (int)$rs['user_id'] ? ' <a href="'.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site).'">[delete]</a>' : '') : '')
 					.'</blockquote>';
 
-		if ($user->is_loggedin())
+		if ($user->is_loggedin() && !Quotes::hasVoted($user->id, $rs['id']))
 		{
-			if (Quotes::hasVoted($user->id, $rs['id'])) $html .= '<small>(Note: '.round(Quotes::getScore($rs['id']), 1).')</small>';
-			if (!Quotes::hasVoted($user->id, $rs['id']))
-			{
-				$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" class="voteform" style="display: flex;">'
-							.'<input name="action" type="hidden" value="benoten">'
-							.'<input name="quote_id" type="hidden" value="'.$rs['id'].'">'
-							.'<input name="url" type="hidden" value="'.base64_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
-							.'<span>Benoten:</span>'
-							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="1"></label>'
-								//.'1</label>'
-							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="2"></label>'
-								//.'2</label>'
-							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="3"></label>'
-								//.'3</label>'
-							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="4"></label>'
-								//.'4</label>'
-							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="5"></label>'
-								//.'5</label>'
-							.'<label class="scorevalue" style="display: flex;margin-right: 1em;">'
-								.'<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();" value="6"></label>'
-								//.'6</label>'
-							//.'<input class="button" type="submit" value="benoten">'
-						.'</form>';
-			}
+			$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" class="voteform left">'
+						.'<input name="action" type="hidden" value="benoten">'
+						.'<input name="quote_id" type="hidden" value="'.$rs['id'].'">'
+						.'<input name="url" type="hidden" value="'.base64url_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+						.'<span class="scoreinfo">Benoten:</span>'
+						.'<label class="scorevalue">
+							<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();this.setAttribute(\'disabled\', \'disabled\');" value="6"></label>'
+						.'<label class="scorevalue">
+							<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();this.setAttribute(\'disabled\', \'disabled\');" value="5"></label>'
+						.'<label class="scorevalue">
+							<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();this.setAttribute(\'disabled\', \'disabled\');" value="4"></label>'
+						.'<label class="scorevalue">
+							<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();this.setAttribute(\'disabled\', \'disabled\');" value="3"></label>'
+						.'<label class="scorevalue">
+							<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();this.setAttribute(\'disabled\', \'disabled\');" value="2"></label>'
+						.'<label class="scorevalue">
+							<input type="radio" name="score" onClick="document.quotevoteform'.$rs['id'].'.submit();this.setAttribute(\'disabled\', \'disabled\');" value="1"></label>'
+					.'</form>';
 		}
-
+		else {
+			$totalvotescore = round(Quotes::getScore($rs['id']), 1);
+			if ($totalvotescore > 0) $html .= '<small>(Note: '.$totalvotescore.')</small>';//+ Anzahl Votes: getNumVotes()
+		}
 		$html .= '</div>';
+
 		return $html;
 	}
 

@@ -803,11 +803,13 @@ function gmt_diff($date) {
  *
  * @deprecated
  * @TODO Funktion entfernen, wird via JavaScript erledigt
+ * @link http://detectmobilebrowsers.com
  * @link https://deviceatlas.com/blog/mobile-browser-user-agent-strings
  * @author IneX
- * @version 2.0
- * @since 1.0 `23.04.2009` function added
- * @since 2.0 `19.07.2018` Array foreach-loop replaced with faster array_filter-search, updated identifiers
+ * @version 2.1
+ * @since 1.0 `23.04.2009` `Inex` function added
+ * @since 2.0 `19.07.2018` `Inex` Array foreach-loop replaced with faster array_filter-search, updated identifiers
+ * @since 2.1 `27.12.2022` `Inex` Added additional identifiers, particularly for Tablet Devices
  *
  * @see usersystem::usersystem()
  * @param string $userAgent
@@ -854,6 +856,10 @@ function isMobileClient($userAgent)
 								,'iemobile'
 								,'windows phone'
 								,'mobile safari'
+								,'mitsu'
+								,'ipad' // Tablet
+								,'playbook' // Tablet
+								,'silk' // Tablet
 						);
 	return array_filter($_mobileClients, function($match) use ($userAgent) {
 		return ( strpos($userAgent, $match) !== false);

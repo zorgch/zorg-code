@@ -207,9 +207,10 @@ function newgame($player) {
  * Listet alle offenen Addle Spiele auf
  *
  * @author [z]bert
- * @version 2.0
- * @since 1.0 function added
- * @since 2.0 `07.11.2018` code and sql-query optimizations
+ * @version 2.1
+ * @since 1.0 `bert` function added
+ * @since 2.0 `07.11.2018` `IneX` code and sql-query optimizations
+ * @since 2.1 `25.12.2022` `IneX` fixes Undefined property & Undefined variable notices
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -218,50 +219,59 @@ function games()
 {
 	global $db, $user;
 
+	$i = 1;
+	$out = null;
 	echo '<h2>Laufende Spiele</h2>';
-
+	/** Eingeloggte User */
 	if ($user->is_loggedin())
 	{
 		$e = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=1) OR (player2='.$user->id.' AND nextturn=2)) AND finish=0', __FILE__, __LINE__, __FUNCTION__);
-	} else {
-		$e = $db->query('SELECT * FROM addle WHERE finish=0', __FILE__, __LINE__, __FUNCTION__);
-	}
-	$num = $db->num($e);
-
-	if (!empty($num) && $num !== false && $num > 0)
-	{
-		$i = 1;
-		while ($d = $db->fetch($e)) {
-			/** Eingeloggte User */
-			if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
-
-			/** Nicht eingeloggte User */
-			else printf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
-			if ($i < $num) echo ', ';
-			$i++;
-		}
-	} else {
-		echo '<b>Keine laufenden Addle Spiele</b>';
-	}
-
-	if ($user->is_loggedin())
-	{
-		$e = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=2) OR (player2='.$user->id.' AND nextturn=1)) AND finish=0', __FILE__, __LINE__, __FUNCTION__);
 		$num = $db->num($e);
+		if (!empty($num) && $num !== false && $num > 0)
+		{
+			while ($d = $db->fetch($e))
+			{
+				if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
+				else printf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
+				if ($i < $num) echo ', ';
+				$i++;
+			}
+		} else {
+			echo '<b>Keine laufenden Addle Spiele</b>';
+		}
+
+		/** Meine Laufenden Spiele */
+		$s = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=2) OR (player2='.$user->id.' AND nextturn=1)) AND finish=0', __FILE__, __LINE__, __FUNCTION__);
+		$num = $db->num($s);
 		if (!empty($num) || $num > 0)
 		{
 			echo '<h2>Warten auf deinen Gegner</h2>';
 			$i = 1;
-			while ($d = $db->fetch($e)) {
-				if ($d['player1'] != $user->id) {
-						$otherpl = $d['player1'];
+			while ($m = $db->fetch($s)) {
+				if ($m['player1'] != $user->id) {
+						$otherpl = $m['player1'];
 				} else {
-						$otherpl = $d['player2'];
+						$otherpl = $m['player2'];
 				}
-				printf('<a href="?show=play&id=%1$d">Game #%1$d - <b>%2$s</b></a>', $d['id'], $user->id2user($otherpl, true));
+				printf('<a href="?show=play&id=%1$d">Game #%1$d - <b>%2$s</b></a>', $m['id'], $user->id2user($otherpl, true));
 				if ($i < $num) $out .= ', ';
 				$i++;
 			}
+		}
+	}
+	/** Nicht eingeloggte User */
+	else {
+		$e = $db->query('SELECT * FROM addle WHERE finish=0', __FILE__, __LINE__, __FUNCTION__);
+		$num = $db->num($e);
+		if (!empty($num) && $num !== false && $num > 0)
+		{
+			while ($d = $db->fetch($e)) {
+				printf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
+				if ($i < $num) echo ', ';
+				$i++;
+			}
+		} else {
+			echo '<b>Keine laufenden Addle Spiele</b>';
 		}
 	}
 }
@@ -832,10 +842,10 @@ if ($user->is_loggedin())
 {
 */
 	/** Validate GET-Parameters */
-	if (!empty($_GET['id'])) $game_id = sanitize_userinput($_GET['id']);
-	if (!empty($_GET['do'])) $addle_action = sanitize_userinput($_GET['do']);
-	if (!empty($_GET['choose'])) $addle_choose = sanitize_userinput($_GET['choose']);
-	if (!empty($_GET['show'])) $show_page = sanitize_userinput($_GET['show']);
+	if (isset($_GET['id']) && !empty($_GET['id'])) $game_id = sanitize_userinput($_GET['id']);
+	if (isset($_GET['do']) && !empty($_GET['do'])) $addle_action = sanitize_userinput($_GET['do']);
+	if (isset($_GET['choose']) && !empty($_GET['choose'])) $addle_choose = sanitize_userinput($_GET['choose']);
+	$show_page = (isset($_GET['show']) && !empty($_GET['show']) ? sanitize_userinput($_GET['show']) : 'overview');
 
 	/** Addle Actions */
 	if ($user->is_loggedin() && !empty($addle_action))

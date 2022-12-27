@@ -38,8 +38,17 @@ if(!isset($_POST['activity']) || empty($_POST['activity']))
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	die('Invalid or missing POST-Parameter');
 } else {
-	//$activity_text = filter_var(json_decode($_POST['activity']), FILTER_SANITIZE_SPECIAL_CHARS);
 	$activity_text = htmlspecialchars_decode($_POST['activity'], ENT_COMPAT | ENT_SUBSTITUTE);
+	if (!isset($_POST['type']) || empty($_POST['type']) || strlen($_POST['type']) <= 0) {
+		$activity_type = 0;
+	} else {
+		$activity_type = mb_strtolower(htmlspecialchars_decode($_POST['type'], ENT_COMPAT | ENT_SUBSTITUTE), 'UTF-8');
+	}
+	if (!isset($_POST['touser']) || empty($_POST['touser']) || !is_numeric($_POST['touser']) || $_POST['touser'] <= 0) {
+		$activity_for_user = 0;
+	} else {
+		$activity_for_user = htmlspecialchars_decode($_POST['touser'], ENT_COMPAT | ENT_SUBSTITUTE);
+	}
 }
 
 /**
@@ -47,10 +56,10 @@ if(!isset($_POST['activity']) || empty($_POST['activity']))
  */
 require_once __DIR__.'/../../../includes/activities.inc.php';
 
-if (isset($user->id) && !empty($user->id) && $action === 'post' && !empty($activity_text))
+if (isset($user->id) && !empty($user->id) && isset($activity_type) && !empty($activity_text))
 {
 	/** Add Activity */
-	$successful = Activities::addActivity($user->id, 0, $activity_text);
+	$successful = Activities::addActivity($user->id, $activity_for_user, $activity_text, $activity_type);
 	if ($successful !== false)
 	{
 		http_response_code(200); // Set response code 200 (OK)
