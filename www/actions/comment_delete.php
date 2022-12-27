@@ -61,5 +61,5 @@ if($rs['board'] != 'f' || $rs['parent_id'] > 1) {
 }
 
 // todo: wenns ein thread war, redirecten auf die Übersicht oder Startseite
-header("Location: ".base64_urldecode($_POST['url']));
+header("Location: ".base64url_decode($_POST['url']));
 exit;

@@ -1182,7 +1182,7 @@ class Forum {
 	    .$start_form
 	  	.'<a name="reply"></a>'
 	    .'<input type="hidden" name="action" value="new">'
-	  	.'<input type="hidden" name="url" value="'.base64_urlencode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
+	  	.'<input type="hidden" name="url" value="'.base64url_encode($_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']).'">'
 	  	.'<input type="hidden" name="board" value="'.$board.'">'
 	  	.'<input type="hidden" name="thread_id" value="'.$thread_id.'">'
 	    .'<table width="400" class="border" align="center">'

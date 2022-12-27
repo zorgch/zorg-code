@@ -115,7 +115,7 @@ class Messagesystem
 				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
 			}
 
-			$headerLocation = ( !empty($_POST['url']) ? base64_urldecode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful', SITE_URL, $user->id) );
+			$headerLocation = ( !empty($_POST['url']) ? base64url_decode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful', SITE_URL, $user->id) );
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> header() Location: %s', __METHOD__, __LINE__, $headerLocation));
 			header('Location: ' . $headerLocation);
 		}
@@ -142,8 +142,8 @@ class Messagesystem
 				}
 			}
 
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User back to Page: %s', __METHOD__, __LINE__, base64_urldecode($_POST['url'])));
-			header("Location: ".base64_urldecode($_POST['url']));
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User back to Page: %s', __METHOD__, __LINE__, base64url_decode($_POST['url'])));
+			header("Location: ".base64url_decode($_POST['url']));
 			//exit;
 		}
 
@@ -165,7 +165,7 @@ class Messagesystem
 				}
 			}
 
-			header("Location: ".base64_urldecode($_POST['url']));
+			header("Location: ".base64url_decode($_POST['url']));
 			//exit;
 		}
 
@@ -185,7 +185,7 @@ class Messagesystem
 				}
 			}
 
-			header("Location: ".base64_urldecode($_POST['url']));
+			header("Location: ".base64url_decode($_POST['url']));
 			//exit;
 		}
 	}
@@ -316,7 +316,7 @@ class Messagesystem
 		global $user, $smarty;
 
 		$smarty->assign('form_action', '/user/'.$user->id);
-		$smarty->assign('form_url', base64_urlencode('/user/'.$user->id.'&delete=done'));
+		$smarty->assign('form_url', base64url_encode('/user/'.$user->id.'&delete=done'));
 		$smarty->assign('message_id', $id);
 
 		return $smarty->fetch('file:layout/partials/messages/messages_delete.tpl');
@@ -347,7 +347,7 @@ class Messagesystem
 	{
 		global $user, $smarty;
 
-		$smarty->assign('form_action', base64_urldecode(getURL()));
+		$smarty->assign('form_action', base64url_decode(getURL()));
 		$smarty->assign('form_url', getURL());
 		$smarty->assign('subject', $subject);
 		$smarty->assign('text', $text);
@@ -394,9 +394,9 @@ class Messagesystem
 		if (empty($orderby) || !in_array( $orderby, ['date','from_user_id','subject'], true)) $orderby = 'date';
 		if (empty($sortby) || !in_array( $sortby, ['asc','desc'], true)) $sortby = 'DESC';
 
-		$smarty->assign('form_action', base64_urldecode(getURL()));
+		$smarty->assign('form_action', base64url_decode(getURL()));
 		$smarty->assign('form_url', getURL());
-		//$smarty->assign('newmsg_url', base64_urldecode(getURL()).'?newmsg');
+		//$smarty->assign('newmsg_url', base64url_decode(getURL()).'?newmsg');
 		$smarty->assign('box', $box);
 		$smarty->assign('current_page', $page);
 		$smarty->assign('sort_order', $sortby);

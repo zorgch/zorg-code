@@ -14,8 +14,8 @@ require_once INCLUDES_DIR.'events.inc.php';
 
 /** Validate $_GET & $_POST variables */
 $error = NULL;
-if (isset($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_urldecode($_POST['url'])); // preg_replace = entfernt $error Param
-if (isset($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64_urldecode($_GET['url'])); // preg_replace = entfernt $error Param
+if (isset($_POST['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64url_decode($_POST['url'])); // preg_replace = entfernt $error Param
+if (isset($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/', '$1', base64url_decode($_GET['url'])); // preg_replace = entfernt $error Param
 if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/events'; // /events = Events page, tpl=158 (Fallback)
 
 /** Validate & escape event fields for new or edit an event */

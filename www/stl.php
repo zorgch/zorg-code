@@ -64,11 +64,11 @@ if ($user->is_loggedin())
 			if($db->num($result)) {
 				$rs = $db->fetch($result);
 				//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=".$rs['game_id']."&".session_name()."=".session_id());
-				header('Location: '.base64_urldecode(getURL(false)).'?do=game&game_id='.$rs['game_id']);
+				header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$rs['game_id']);
 				exit;
 			} else {
 				//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=overview&".session_name()."=".session_id());
-				header('Location: '.base64_urldecode(getURL(false)).'?do=overview');
+				header('Location: '.base64url_decode(getURL(false)).'?do=overview');
 				exit;
 			}
 		}
@@ -93,7 +93,7 @@ if ($user->is_loggedin())
 			$sql = 'UPDATE stl SET status = 0 WHERE game_id = '.$game_id;
 			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64_urldecode(getURL(false)).'?do=game&game_id='.$game_id);
+			header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$game_id);
 			exit;
 		} else {
 			$smarty->display('file:layout/head.tpl');

@@ -83,7 +83,7 @@ class Polls
 
 				if ($poll['myvote'] == $pollAnswer['id']) {
 					if ($poll['myvote'] && $poll['state']=='open' && $user_has_vote_permission) {
-						//$old_url = base64_urlencode("$_SERVER[PHP_SELF]?".url_params());
+						//$old_url = base64url_encode("$_SERVER[PHP_SELF]?".url_params());
 						$pollAnswersArray[$pollAnswer['id']]['unvote_url'] = '/actions/poll_unvote.php?poll='.$poll['id'].'&redirect='.getURL();
 					}
 				}

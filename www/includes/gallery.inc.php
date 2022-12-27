@@ -573,7 +573,7 @@ function doBenoten($pic_id, $score) {
 		$sql = 'REPLACE INTO gallery_pics_votes (pic_id, user_id, score) VALUES ('.$pic_id.', '.$user->id.', '.$score.')';
 
 		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-		//header("Location: ".base64_urldecode($_POST['url']));
+		//header("Location: ".base64url_decode($_POST['url']));
 		//return array('state'=>"Pic $pic_id benotet");
 
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
