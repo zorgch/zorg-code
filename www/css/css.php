@@ -142,7 +142,7 @@ body {
 			font-size: 0.4rem;
 		}
 		header > .infos .solarstate .event { margin-right: 5px; }
-		header > .onlineuser { font-size: 0.4rem; }
+		header > .onlineuser { font-size: 0.4rem; text-align: right; }
 		header > .notifications { font-size: 0.4rem; }
 	.navigation { font-size: 0.5rem; }
 		div.menu { overflow-x: auto; }

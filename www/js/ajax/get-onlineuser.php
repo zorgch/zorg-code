@@ -4,15 +4,22 @@
  *
  * @package zorg\Usersystem
  */
+
 /**
  * AJAX Request validation
  */
+if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+	/** The request is not an AJAX request */
+	http_response_code(405); // Set response code 405 (Method Not Allowed)
+	exit('Request not allowed');
+ }
 if(!isset($_GET['style']) || empty($_GET['style']) || false === filter_var(trim($_GET['style']), FILTER_SANITIZE_STRING))
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	die('Invalid or missing GET-Parameter');
+	exit('Invalid or missing GET-Parameter');
+} else {
+	$onlineUserListstyle = filter_var(trim($_GET['style']), FILTER_SANITIZE_STRING);
 }
-$onlineUserListstyle = filter_var(trim($_GET['style']), FILTER_SANITIZE_STRING);
 
 /**
  * Get online user HTML
@@ -21,16 +28,17 @@ switch ($onlineUserListstyle)
 {
 	case 'image':
 		/** Requires usersystem.inc.php */
-		require_once INCLUDES_DIR.'usersystem.inc.php';
+		require_once __DIR__.'/../../includes/usersystem.inc.php';
 		$onlineUserHtml = $user->online_users(true);
 
 		if (!empty($onlineUserHtml))
 		{
 			http_response_code(200); // Set response code 200 (OK)
 			header('Content-type: text/html; charset=utf-8');
-			echo $onlineUserHtml;
+			exit($onlineUserHtml);
 		} else {
 			http_response_code(204); // Set response code 204 (OK but no Content)
+			exit;
 		}
 		break;
 
@@ -55,15 +63,16 @@ switch ($onlineUserListstyle)
 			}
 			http_response_code(200); // Set response code 200 (OK)
 			header('Content-type: text/html; charset=utf-8');
-			echo implode(', ', $onlineUsersArr);
+			exit(implode(', ', $onlineUsersArr));
 		}
 		/** No logged-in user seems to be online... */
 		else {
 			http_response_code(204); // Set response code 204 (OK but no Content)
+			exit;
 		}
 		break;
 
 	default:
 		http_response_code(400); // Set response code 400 (Bad Request)
-		die('Invalid GET-Parameter');
+		exit('Invalid GET-Parameter');
 }

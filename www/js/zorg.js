@@ -162,6 +162,7 @@ function updateOnlineuser(elementId, displayFormat)
 		var oldOnlineUserHtml = domElement.innerHTML;
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', '/js/ajax/get-onlineuser.php?style='+displayFormat);
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		xhr.onload = function() {
 			//console.info(xhr.responseText);
 			if (xhr.status === 200 || xhr.status === 204)
@@ -202,6 +203,7 @@ function updateUnreadComments()
 		let unreadsForUser = parseInt(unreadsContainer.dataset.userid);
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', '/js/ajax/get-unreadcomments.php?user='+unreadsForUser);
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		xhr.onload = function() {
 			//console.info(xhr.responseText);
 			if (xhr.status === 200)

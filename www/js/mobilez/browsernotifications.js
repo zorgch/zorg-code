@@ -1,6 +1,6 @@
 var backgroundActiveCheck = 60000/4; // Refresh period, interval is passed in Miliseconds
 var newNotificationCheck = 10000; // Refresh period, interval is passed in Miliseconds
-var debugMode = true; // ON = true | OFF = false
+var debugMode = false; // ON = true | OFF = false
 
 function notificationsRefresh(notify) {
 		notify = typeof notify !== "undefined" ? notify : true; // if not otherwise specified, notify = true
@@ -89,7 +89,8 @@ $(document).ready(function(){
 });
 
 // Initialize the html5Notification Plugin with custom options
-$.html5Notification.init({
+// FIXME Disabled due to "Undefined $.html5Notification.init"
+/* $.html5Notification.init({
 	display_message: true,
 	message: {
 		supported_browser: "Your browser does support the Notification API.",
@@ -101,6 +102,5 @@ $.html5Notification.init({
 		container: $("body").find("#Content"),
 		browser_support: $('<div class="DismissMessage AlertMessage" />')
 	}
-})
+}); */
 if (debugMode) console.log("container: " + $("#Content").length);
-;

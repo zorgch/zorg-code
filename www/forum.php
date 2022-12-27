@@ -107,20 +107,6 @@ if (empty($doAction))
 
 			$model->showThread($smarty, $thread['thread_id'], $thread['text']);
 
-			/** Comment is the Thread-Comment */
-			if ($parent_id === 1)
-			{
-				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comments_resource));
-				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
-			}
-			/** Comment is a regular (Sub-)Comment */
-			else {
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));
-				$smarty->assign('comments_top_additional', 1);
-				$outputContent .= $smarty->fetch('comments:'.$showCommentId);
-			}
-
 			/** Zusätzliche Features & Output nur bei eingeloggten Usern... */
 			if ($user->is_loggedin())
 			{
@@ -142,15 +128,29 @@ if (empty($doAction))
 							);
 				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
 				$smarty->assign('comments_unread', $comments_unread);
+			}
 
-				/** Commentform zum posten printen */
-				if ($no_form === false)
-				{
-					$smarty->assign('board', 'f');
-					$smarty->assign('thread_id', Comment::getThreadid('f', $showCommentId));
-					$smarty->assign('parent_id', $showCommentId);
-					$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
-				}
+			/** Comment is the Thread-Comment */
+			if ($parent_id === 1)
+			{
+				$comments_resource = ($showCommentId === $thread['thread_id'] ? $thread['board'].'-'.$showCommentId : $showCommentId);
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: %s', __FILE__, __LINE__, $parent_id, $comments_resource));
+				$outputContent .= $smarty->fetch('comments:'.$comments_resource);
+			}
+			/** Comment is a regular (Sub-)Comment */
+			else {
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $parent_id == %d: id=%d', __FILE__, __LINE__, $parent_id, $showCommentId));
+				$smarty->assign('comments_top_additional', 1);
+				$outputContent .= $smarty->fetch('comments:'.$showCommentId);
+			}
+
+			/** Commentform zum posten printen (bei eingeloggten Usern) */
+			if ($user->is_loggedin() && $no_form === false)
+			{
+				$smarty->assign('board', 'f');
+				$smarty->assign('thread_id', Comment::getThreadid('f', $showCommentId));
+				$smarty->assign('parent_id', $showCommentId);
+				$outputContent .= $smarty->fetch('file:layout/partials/commentform.tpl');
 			}
 		}
 

@@ -362,7 +362,7 @@ function pic ($id)
 	/** Bild Zensur-Info */
 	if ($cur['zensur'] === '1') echo '<span class="small" title="Bild ist ZENSIERT">🫥</span>';
 	/** Bild Datum (Desktop Viewports) */
-	if (!$user->from_mobile && is_file($pic_filepath) !== false)
+	if ((!isset($user->from_mobile) || false === $user->from_mobile) && is_file($pic_filepath) !== false)
 	{
 		/** APOD Special: use pic_added from database, instead of filemtime */
 		if ($cur['album'] == APOD_GALLERY_ID && !empty($cur['timestamp'])) {
@@ -434,7 +434,7 @@ function pic ($id)
 	echo '</td></tr>';
 
 	/** Bild Datum (Mobile Viewports) */
-	if ($user->from_mobile != false && is_file($pic_filepath) !== false)
+	if (isset($user->from_mobile) && $user->from_mobile != false && is_file($pic_filepath) !== false)
 	{
 		echo '<tr><td colspan="3" class="align-right padding-bottom-s small light">';
 		/** APOD Special: use pic_added from database, instead of filemtime */
@@ -507,7 +507,7 @@ function pic ($id)
 	/**
 	 * Mobile Touch Swipe - next/prev Pic
 	 */
-	if ($user->from_mobile != false)
+	if (isset($user->from_mobile) && $user->from_mobile != false)
 	{
 		echo '<script>// HammerJS
 			document.onreadystatechange = function(){

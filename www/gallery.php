@@ -66,7 +66,7 @@ else {
 		$doAction = (string)$_GET['do'];
 		/** Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User,
 			deshalb müssen wirs vorziehen... */
-		if ($user->is_loggedin() && isset($_POST['picID']) && !empty($_POST['picID']) && $_POST['picID'] > 0)
+		if ($user->is_loggedin() && ($doAction === 'benoten' || $doAction === 'mypic') && isset($_POST['picID']) && !empty($_POST['picID']) && $_POST['picID'] > 0)
 		{
 			switch ($doAction)
 			{
@@ -83,12 +83,12 @@ else {
 					}
 					break;
 			}
-		} else {
+		} elseif (!$user->is_loggedin() && !empty($doAction)) {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', [$doAction])]);
 		}
 
 		/** Ab hier kommt nur noch Zeugs dass Member & Schöne machen dürfen */
-		if ($user->typ >= USER_MEMBER)
+		if ($user->typ >= USER_MEMBER && (!empty($doAction) && $doAction != 'benoten' && $doAction != 'mypic'))
 		{
 			switch ($doAction)
 			{
@@ -128,9 +128,8 @@ else {
 				/*case 'markieren':
 					doMark($getPicId);
 					break;*/
-
 			}
-		} else {
+		} elseif ($user->typ < USER_MEMBER && !empty($doAction)) {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('permissions-insufficient', 'gallery', [$doAction])]);
 		}
 

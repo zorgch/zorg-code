@@ -242,25 +242,25 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 				'{/foreach}';
 
 			$html .=
-			 '<td align="left" class="border forum">'
-			 .'{if $user->id!=0 && in_array('.$rs['id'].', $comments_unread)}'
-			 	.'{assign var=comment_color value=$color.newcomment}'
-			 	.'{comment_mark_read comment_id="'.$rs['id'].'" user_id=$user->id}'
-			 .'{elseif $user->id == '.$rs['user_id'].'}'
-			  .'{assign var=comment_color value=$color.owncomment}'
-			 .'{else}'
-			 	.'{assign var=comment_color value=$color.background}'
-			 .'{/if}'
-			 .'{capture assign="sizeof_hdepth"}{sizeof array=$hdepth}{/capture}'
-			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}" style="table-layout:fixed;" width="100%">'
-			 .'<tr class="tiny">'
-				.'<td class="forum comment meta left" style="width: {if $user->from_mobile}85%{else}70%{/if};">'
-				.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
-				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? ' itemprop="url"' : '').'>'
-				.'#'.$rs['id']
-				.'</a>'
-				.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
-				.'</span> @ <meta itemprop="datePublished" content="{'.$rs['date'].'|date_format:"%Y-%m-%d"}">{datename date='.$rs['date'].'}'
+			'<td align="left" class="border forum">'
+				.'{if $user->id>0 && in_array('.$rs['id'].', $comments_unread)}'
+					.'{assign var=comment_color value=$color.newcomment}'
+					.'{comment_mark_read comment_id="'.$rs['id'].'" user_id=$user->id}'
+				.'{elseif $user->id == '.$rs['user_id'].'}'
+					.'{assign var=comment_color value=$color.owncomment}'
+				.'{else}'
+					.'{assign var=comment_color value=$color.background}'
+				.'{/if}'
+				.'{capture assign="sizeof_hdepth"}{sizeof array=$hdepth}{/capture}'
+				.'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}" style="table-layout:fixed;" width="100%">'
+				.'<tr class="tiny">'
+					.'<td class="forum comment meta left" style="width: {if $user->from_mobile}85%{else}70%{/if};">'
+						.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
+						.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? ' itemprop="url"' : '').'>'
+						.'#'.$rs['id']
+						.'</a>'
+						.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
+						.'</span> @ <meta itemprop="datePublished" content="{'.$rs['date'].'|date_format:"%Y-%m-%d"}">{datename date='.$rs['date'].'}'
 			;
 
 			if($rs['date_edited'] > 0) {
@@ -268,12 +268,10 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			}
 
 			$html .= '<!--googleoff: all-->';
-			$html .=
-				' <a href="#top" class="dont-wrap">- {if $user->from_mobile}top{else}nach oben{/if} -</a> '
-				.'</td><td class="forum comment meta dont-wrap align-right hide-mobile" style="width: 15%;">'
-			;
+			$html .= '<a href="#top" class="dont-wrap">{if $user->from_mobile} - top -{else} - nach oben -{/if}</a>';
+			$html .= '</td><td class="forum comment meta dont-wrap align-right hide-mobile" style="width: 15%;">';
 
-			// Subscribe / Unsubscribe
+			/** Subscribe / Unsubscribe */
 			$html .= '{if $user->id > 0}'
 						.'{if in_array('.$rs['id'].', $comments_subscribed)}
 							<a href="/actions/commenting.php'
@@ -287,18 +285,24 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 						{/if}
 					{/if}';
 
+			/** Edit Comment */
 			$html .= '{if $user->id == '.$rs['user_id'].'}'
-				  		.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={$request.url|base64encodeurl}">[edit]</a> '
-				  	.'{/if}
-				  	  {if $user->id != 0}'
-				  		.'</td><td class="forum comment meta right align-right" style="width: 15%;">'
-					  		.'<label for="replyfor-'.$rs['id'].'" class="dont-wrap" style="margin-right: 2px;">'
-						  		.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" value="'.$rs['id'].'" '
-						  		.'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked" {/if} /><span class="hide-mobile">&nbsp;reply</span></label>'
-				  	.'{/if}';
-			$html .= '<!--googleon: all-->';
-			$html .= '</td></tr><tr>';
+						.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={$request.url|base64encodeurl}">[edit]</a> '
+					.'{/if}';
 
+			/** Reply-to Comment */
+			$html .= '{if $user->id > 0}'
+						.'</td><td class="forum comment meta right align-right" style="width: 15%;">'
+							.'<label for="replyfor-'.$rs['id'].'" class="dont-wrap" style="margin-right: 2px;">'
+								.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" value="'.$rs['id'].'"'
+								.'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked"{/if}'
+								.'/><span class="hide-mobile">&nbsp;reply</span>'
+							.'</label>'
+					.'{/if}';
+			$html .= '<!--googleon: all-->';
+			$html .= '</td></tr>';
+
+			$html .= '<tr>';
 			($is_thread ? $html .= '<span itemprop="headline" content="'.remove_html(Comment::getLinkThread($rs['board'], $rs['thread_id'])).'"></span>' : '');
 			$html .= '<td class="forum comment" colspan="3" itemprop="'.($is_thread ? 'articleBody' : 'text').'">';
 			if (!$rs['error']) {
