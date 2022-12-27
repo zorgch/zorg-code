@@ -253,8 +253,8 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			 .'{/if}'
 			 .'{capture assign="sizeof_hdepth"}{sizeof array=$hdepth}{/capture}'
 			 .'<table bgcolor="{comment_colorfade depth=$sizeof_hdepth color=$comment_color}" style="table-layout:fixed;" width="100%">'
-			 .'<tr style="font-size: x-small;">'
-				.'<td class="forum comment meta left" style="width: 70%;">'
+			 .'<tr class="tiny">'
+				.'<td class="forum comment meta left" style="width: {if $user->from_mobile}85%{else}70%{/if};">'
 				.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
 				.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? ' itemprop="url"' : '').'>'
 				.'#'.$rs['id']
@@ -269,8 +269,8 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 			$html .= '<!--googleoff: all-->';
 			$html .=
-				' <a href="#top">- nach oben -</a> '
-				.'</td><td class="forum comment meta" style="width: 15%; text-align: right; white-space: nowrap;">'
+				' <a href="#top" class="dont-wrap">- {if $user->from_mobile}top{else}nach oben{/if} -</a> '
+				.'</td><td class="forum comment meta dont-wrap align-right hide-mobile" style="width: 15%;">'
 			;
 
 			// Subscribe / Unsubscribe
@@ -280,19 +280,19 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 							.'?do=unsubscribe'
 							.'&board='.$rs['board']
 							.'&comment_id='.$rs['id']
-							.'&url={base64_encode text=$request.url}'
+							.'&url={$request.url|base64encodeurl}'
 							.'">[unsubscribe]</a>
 						{else}
-							<a class="hide-mobile" href="/actions/commenting.php?do=subscribe&board='.$rs['board'].'&comment_id='.$rs['id'].'&url={base64_encode text=$request.url}">[subscribe]</a>
+							<a href="/actions/commenting.php?do=subscribe&board='.$rs['board'].'&comment_id='.$rs['id'].'&url={$request.url|base64encodeurl}">[subscribe]</a>
 						{/if}
 					{/if}';
 
 			$html .= '{if $user->id == '.$rs['user_id'].'}'
-				  		.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={base64_encode text=$request.url}">[edit]</a> '
+				  		.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={$request.url|base64encodeurl}">[edit]</a> '
 				  	.'{/if}
 				  	  {if $user->id != 0}'
-				  		.'</td><td class="forum comment meta right" style="width: 15%; text-align: right;">'
-					  		.'<label for="replyfor-'.$rs['id'].'" style="white-space: nowrap;margin-right: 2px;">'
+				  		.'</td><td class="forum comment meta right align-right" style="width: 15%;">'
+					  		.'<label for="replyfor-'.$rs['id'].'" class="dont-wrap" style="margin-right: 2px;">'
 						  		.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" value="'.$rs['id'].'" '
 						  		.'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked" {/if} /><span class="hide-mobile">&nbsp;reply</span></label>'
 				  	.'{/if}';
