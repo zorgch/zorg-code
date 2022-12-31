@@ -7,9 +7,11 @@
  */
 /**
  * File Includes
- * @include zorg Master Include File
+ * @include config.inc.php Global Configs
+ * @include main.inc.php Layout Stuff
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';
 
 /**
  * Parse URL-Routes & Query Parameters
@@ -86,6 +88,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 	$smarty->assign('feeddesc', SITE_HOSTNAME . ' RSS Feed');
 	$smarty->assign('feedlang', 'de-DE');
 	$smarty->assign('feeddate', date('D, d M Y H:i:s').' GMT');
+	$feedURLbase = $_ENV['URLPATH_RSS'];
 
 	switch ($_GET['type'])
 	{
@@ -99,7 +102,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 				{
 					/** RSS Feed für einen einzelnen Thread */
 					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($_GET['board'], $_GET['thread_id']) . PAGETITLE_SUFFIX) );
-					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board'] . '&amp;amp;thread_id=' . $_GET['thread_id']);
+					$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board'] . '&amp;amp;thread_id=' . $_GET['thread_id']);
 					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null), $_GET['thread_id']));
 
 				/** keine thread_id vorhanden */
@@ -109,7 +112,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 					 * @TODO Fix "unknown feed" (broken RSS-feed) für Gallery-Comments: ?layout=rss&type=forum&board=i
 					 */
 					$smarty->assign('feedtitle', remove_html(Forum::getBoardTitle($_GET['board']) . PAGETITLE_SUFFIX) );
-					$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board']);
+					$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board']);
 					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
 				}
 
@@ -117,7 +120,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 			} else {
 				/** genereller Forum RSS Feed */
 				$smarty->assign('feedtitle', 'Forum RSS' . PAGETITLE_SUFFIX);
-				$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=forum');
+				$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum');
 				$smarty->assign('feeditems', Forum::printRSS(null, (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
 			}
 			break;
@@ -125,7 +128,7 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 		/** Activities RSS */
 		case 'activities':
 			$smarty->assign('feedtitle', remove_html('Activities' . PAGETITLE_SUFFIX));
-			$smarty->assign('feedlink', RSS_URL . '&amp;amp;type=activities');
+			$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=activities');
 			$smarty->assign('feeditems', Activities::getActivitiesRSS(25));
 			break;
 	}

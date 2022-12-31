@@ -762,6 +762,72 @@ class stl {
 							</b>
 							</td>';
 						}
+
+						/* FIXME
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 697
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 710
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 711
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 712
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 723
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 724
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 737
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 738
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 650
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 659
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 671
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 686
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 697
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 710
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 711
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 712
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 723
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 724
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 737
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 738
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 650
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 659
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 671
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 686
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 697
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 710
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 711
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 712
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 723
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 724
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 737
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 738
+						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
+						*/
 					}
 				}
 				$this->data['game'] .= "</tr>";

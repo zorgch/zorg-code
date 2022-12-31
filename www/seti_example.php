@@ -10,7 +10,8 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';
 require_once INCLUDES_DIR.'setistats.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -26,16 +27,16 @@ if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 	 * Initialise SETI Stats Class-Object
 	 */
 	$seti = new SetiStats();
-	$seti->setEmail('keep3r@seti.zooomclan.org');
+	$seti->setEmail($_ENV['SETI_EMAIL']);
 	$seti->Init();
-	
+
 	print '<html>'
 		 .'<head>'
 		 .'<title>setistats</title>'
 		 .'</head>'
 		 .'<body>';
 	?>
-	
+
 	UserEmail:              <?php echo $seti->email                               ?><br>
 	ServerUrl1:             <?php echo $seti->server1                             ?><br>
 	ServerUrl2:             <?php echo $seti->server2                             ?><br>
@@ -56,7 +57,7 @@ if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 	ResultsPerWeek:         <?php echo $seti->AverageResultsPerWeek()             ?><br>
 	ResultsPerMonth:        <?php echo $seti->AverageResultsPerMonth()            ?><br>
 	RegistrationClass:      <?php echo $seti->viewStats('RegistrationClass')      ?><br>
-	ResultInterval:         <?php echo $seti->ResultInt()					      ?><br>			  
+	ResultInterval:         <?php echo $seti->ResultInt()					      ?><br>
 	<?php						  echo $seti->ResultInterval['days'].' Days '
 										.$seti->ResultInterval['hours'].' Hours '
 										.$seti->ResultInterval['minutes'].' Minutes '
@@ -69,6 +70,6 @@ if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 else {
 	http_response_code(403); // Set response code 403 (access denied) and exit.
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Access denied', 'message' => 'Hier dürfen nur Member was machen. Tschau.']);
-	$smarty->display('file:layout/head.tpl');	
+	$smarty->display('file:layout/head.tpl');
 	$smarty->display('file:layout/footer.tpl');
 }

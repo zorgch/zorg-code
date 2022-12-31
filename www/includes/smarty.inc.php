@@ -17,7 +17,7 @@
  * @include usersystem.inc.php Include
  * @include comments.res.php Include
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once SMARTY_DIR.'Smarty.class.php';
 include_once INCLUDES_DIR.'usersystem.inc.php';
 include_once INCLUDES_DIR.'comments.res.php';
@@ -84,7 +84,7 @@ function hasTplAccess ($group, $owner, $userid, $usertyp)
 	/** member und schöne */
 	if ($group == USER_MEMBER)
 	{
-		if ($usertyp == USER_MEMBER) 
+		if ($usertyp == USER_MEMBER)
 		{
 			return true;
 		} else {
@@ -164,7 +164,7 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
  * @param object $smarty Pass by reference: Smarty Class-object
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
- * @return bool Returns true/false depening on if a successful execution was possible, or not 
+ * @return bool Returns true/false depening on if a successful execution was possible, or not
  */
 function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
 {
@@ -247,7 +247,7 @@ function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
  * @param object $smarty Pass by reference: Smarty Class-object
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global array $_tpl_stack Globales Array mit allen Template-Variablen
- * @return bool Returns true/false depening on if a successful execution was possible, or not 
+ * @return bool Returns true/false depening on if a successful execution was possible, or not
  */
 function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 {
@@ -255,8 +255,8 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 
 	if (!empty($tpl_name) && is_numeric($tpl_name))
 	{
-		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, 
-						 UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights, 
+		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user,
+						 UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
 						 write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE id='.$tpl_name, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
 	} else {
@@ -556,8 +556,8 @@ function startSmarty()
 	$smarty->template_dir = SMARTY_TEMPLATES_HTML;
 	$smarty->compile_dir = SMARTY_COMPILE;
 	$smarty->cache_dir = SMARTY_CACHE;
-	$smarty->trusted_dir = array(SMARTY_TRUSTED_DIRS);
-	$smarty->secure_dir = array(SMARTY_TEMPLATES_HTML);
+	$smarty->trusted_dir = SMARTY_TRUSTED_DIRS;
+	$smarty->secure_dir = SMARTY_TEMPLATES_HTML;
 
 		// don't execute {php} tag
 		$smarty->php_handling = SMARTY_PHP_QUOTE;

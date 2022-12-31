@@ -1,33 +1,28 @@
 <?php
 /**
  * Spaceweather V2
+ *
  * @package zorg\Spaceweather
  *
  * @TODO Work in Progress! Finish implementing new NASA APIs...
  */
+
 /**
  * File includes
  * @include config.inc.php
  * @include mysql.inc.php 	MySQL-DB Connection and Functions
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
-
-/**
-* Grab the NASA API Key
-* @include nasaapis_key.inc.php Include a String containing a valid NASA API Key
-* @const NASA_API_KEY A constant holding the NASA API Key, can be used optionally (!) for requests to NASA's APIs such as the APOD
-*/
-//if (!defined('NASA_API_KEY')) define('NASA_API_KEY', include_once APIKEYS_DIR.'/nasa/'.(file_exists(APIKEYS_DIR.'/nasa/nasaapis_key.inc.local.php') ? 'nasaapis_key.inc.local.php' : 'nasaapis_key.inc.php') );
 
 /**
  * Define various Asteroid related constants (for Spaceweather)
  * NeoWs (Near Earth Object Web Service) is a RESTful web service for near earth Asteroid information. Data-set: All the data is from the NASA JPL Asteroid team (http://neo.jpl.nasa.gov/).
- * @const SPACEWEATHER_SOURCE (DEPRECATED) Source-URL von wo die Daten f�r das Spaceweather abgefragt werden
+ * @const SPACEWEATHER_SOURCE (DEPRECATED) Source-URL von wo die Daten für das Spaceweather abgefragt werden
  * @const NEO_API NASA Space Weather Database Of Notifications, Knowledge, Information (DONKI) API-URL von wo das aktuelle Spaceweather mit dem NASA_API_KEY geholt werden kann
  */
-define('SPACEWEATHER_SOURCE', 'http://www.spaceweather.com/');
-define('NEO_API', 'https://api.nasa.gov/neo/rest/v1/stats?api_key='.NASA_API_KEY);
+define('SPACEWEATHER_SOURCE', (isset($_ENV['SPACEWEATHER_SOURCE']) ? $_ENV['SPACEWEATHER_SOURCE'] : null));
+define('NEO_API', (isset($_ENV['NASA_NEO_API']) ? $_ENV['NASA_NEO_API'] : null));
 
 /**
  * Define various Spaceweather related constants
@@ -44,17 +39,17 @@ define('NEO_API', 'https://api.nasa.gov/neo/rest/v1/stats?api_key='.NASA_API_KEY
  * @const DONKI_API_WSA	WSA+EnlilSimulation	https://api.nasa.gov/DONKI/WSAEnlilSimulations?startDate=2016-01-06&endDate=2016-01-06&api_key=DEMO_KEY
  * @const DONKI_API_Notifications	Notifications	https://api.nasa.gov/DONKI/notifications?startDate=2014-05-01&endDate=2014-05-08&type=all&api_key=DEMO_KEY
  */
-define('DONKI_API_CME', 'https://api.nasa.gov/DONKI/CME?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_CMEA', 'https://api.nasa.gov/DONKI/CMEAnalysis?startDate=2016-09-01&endDate=2016-09-30&mostAccurateOnly=true&speed=500&halfAngle=30&catalog=ALL&api_key='.NASA_API_KEY);
-define('DONKI_API_GST', 'https://api.nasa.gov/DONKI/GST?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_IPS', 'https://api.nasa.gov/DONKI/IPS?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&location=LOCATION&catalog=CATALOG&api_key='.NASA_API_KEY);
-define('DONKI_API_FLR', 'https://api.nasa.gov/DONKI/FLR?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_SEP', 'https://api.nasa.gov/DONKI/SEP?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_MPC', 'https://api.nasa.gov/DONKI/MPC?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_RBE', 'https://api.nasa.gov/DONKI/RBE?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_HSS', 'https://api.nasa.gov/DONKI/HSS?startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&api_key='.NASA_API_KEY);
-define('DONKI_API_WSA', 'https://api.nasa.gov/DONKI/WSAEnlilSimulations?startDate=2016-01-06&endDate=2016-01-06&api_key='.NASA_API_KEY);
-define('DONKI_API_Notifications', 'https://api.nasa.gov/DONKI/notifications?startDate=2014-05-01&endDate=2014-05-08&type=all&api_key='.NASA_API_KEY);
+define('DONKI_API_CME', (isset($_ENV['NASA_DONKI_API_CME']) ? $_ENV['NASA_DONKI_API_CME'] : null));
+define('DONKI_API_CMEA', (isset($_ENV['NASA_DONKI_API_CMEA']) ? $_ENV['NASA_DONKI_API_CMEA'] : null));
+define('DONKI_API_GST', (isset($_ENV['NASA_DONKI_API_GST']) ? $_ENV['NASA_DONKI_API_GST'] : null));
+define('DONKI_API_IPS', (isset($_ENV['NASA_DONKI_API_IPS']) ? $_ENV['NASA_DONKI_API_IPS'] : null));
+define('DONKI_API_FLR', (isset($_ENV['NASA_DONKI_API_FLR']) ? $_ENV['NASA_DONKI_API_FLR'] : null));
+define('DONKI_API_SEP', (isset($_ENV['NASA_DONKI_API_SEP']) ? $_ENV['NASA_DONKI_API_SEP'] : null));
+define('DONKI_API_MPC', (isset($_ENV['NASA_DONKI_API_MPC']) ? $_ENV['NASA_DONKI_API_MPC'] : null));
+define('DONKI_API_RBE', (isset($_ENV['NASA_DONKI_API_RBE']) ? $_ENV['NASA_DONKI_API_RBE'] : null));
+define('DONKI_API_HSS', (isset($_ENV['NASA_DONKI_API_HSS']) ? $_ENV['NASA_DONKI_API_HSS'] : null));
+define('DONKI_API_WSA', (isset($_ENV['NASA_DONKI_API_WSA']) ? $_ENV['NASA_DONKI_API_WSA'] : null));
+define('DONKI_API_Notifications', (isset($_ENV['NASA_DONKI_API_Notifications']) ? $_ENV['NASA_DONKI_API_Notifications'] : null));
 
 
 function get_spaceweather()
