@@ -6,6 +6,12 @@
  */
 
 /**
+ * FILE INCLUDES
+ * @include config.inc.php Required at top! (e.g. for ENV vars, and to validate 'nonce' in $_SESSION)
+ */
+require_once __DIR__.'/../../includes/config.inc.php';
+
+/**
  * AJAX Request validation
  */
 if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
@@ -28,7 +34,7 @@ switch ($onlineUserListstyle)
 {
 	case 'image':
 		/** Requires usersystem.inc.php */
-		require_once __DIR__.'/../../includes/usersystem.inc.php';
+		require_once INCLUDES_DIR.'usersystem.inc.php';
 		$onlineUserHtml = $user->online_users(true);
 
 		if (!empty($onlineUserHtml))
@@ -50,8 +56,8 @@ switch ($onlineUserListstyle)
 		 * checks for any online users (updating the corresponding frontend)
 		 */
 		/** Requires mysql.inc.php */
-		require_once dirname(__FILE__).'/../../includes/mysql.inc.php';
-		$sql = 'SELECT id, username, clan_tag FROM user WHERE activity > (NOW()-200) ORDER by activity DESC';
+		require_once INCLUDES_DIR.'mysql.inc.php';
+		$sql = 'SELECT id, username, clan_tag FROM user WHERE activity > (NOW()-'.USER_TIMEOUT.') ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM user');
 		/** Check if at least 1 user is online */
 		$num_online = (false !== $result && !empty($result) ? (int)$db->num($result) : 0);

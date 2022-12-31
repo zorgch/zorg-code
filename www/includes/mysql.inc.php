@@ -8,13 +8,13 @@
  *
  * @package zorg\Database
  */
+
 /**
  * File includes
+ * @include config.inc.php REQUIRED for $_ENV vars to be available
  * @include mysql_login.inc.local.php Include MySQL Database login information file
- * @include config.inc.php
  */
-//require_once __DIR__.'/config.inc.php'; --> causes Error in async AJAX-Requests (get-onlineuser)
-require_once __DIR__.( file_exists( dirname(__FILE__).'/mysql_login.inc.local.php') ? '/mysql_login.inc.local.php' : '/mysql_login.inc.php') ;
+require_once __DIR__.'/config.inc.php';
 
 /**
  * MySQL Database Connection Class
@@ -33,16 +33,17 @@ class dbconn
 	/**
 	 * MySQL DB Verbindungsaufbau
 	 *
-	 * @version 4.0
+	 * @version 5.0
 	 * @since 3.0 `10.11.2017` `IneX` method code optimized
 	 * @since 4.0 `03.11.2019` `kassiopaia` method renamed from dbconn() (PHP 7.x compatibility)
+	 * @since 5.0 `28.12.2022` `IneX` method relies now on $_ENV vars from .env file (mysql_login.inc.php is no longer needed)
 	 *
-	 * @param $database MYSQL_DBNAME
+	 * @uses $_ENV
 	 * @throws Exception
 	 */
-	public function __construct($database) {
+	public function __construct() {
 		try {
-			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS);
+			$this->conn = mysqli_connect($_ENV['MYSQL_HOST'], $_ENV['MYSQL_USER'], $_ENV['MYSQL_PASSWORD']);
 
 			/** MySQL: can't connect to server */
 			if (!$this->conn)
@@ -52,7 +53,7 @@ class dbconn
 			}
 
 			/** MySQL: can't find or load database */
-			if (!@mysqli_select_db($this->conn, $database))
+			if (!@mysqli_select_db($this->conn, $_ENV['MYSQL_DATABASE']))
 			{
 				die($this->msg());
 			}
@@ -237,8 +238,7 @@ class dbconn
 	 * @return array
 	 */
 	function tables() {
-		//$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
-		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME);
+		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . $_ENV['MYSQL_DATABASE']);
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
@@ -352,4 +352,4 @@ class dbconn
 }
 
 /** Grad eine Verbindung bauen, damit sie includet ist... */
-$db = new dbconn(MYSQL_DBNAME);
+$db = new dbconn();

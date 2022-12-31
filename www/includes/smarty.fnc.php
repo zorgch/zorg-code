@@ -8,7 +8,8 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 include_once INCLUDES_DIR.'addle.inc.php';
 include_once INCLUDES_DIR.'apod.inc.php';
 include_once INCLUDES_DIR.'bugtracker.inc.php';
@@ -26,6 +27,12 @@ include_once INCLUDES_DIR.'error.inc.php';
 include_once INCLUDES_DIR.'peter.inc.php';
 include_once INCLUDES_DIR.'rezepte.inc.php';
 
+/**
+ * Define and include the MCV Controllers and initialise Layout related settings.
+ */
+require_once CONTROLLERS_DIR.'layout.controller.php';
+if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new MVC\Controller\Layout()', __FILE__, __LINE__));
+$zorgLayout = new MVC\Controller\Layout();
 
 /**
  * Arrays for Smarty

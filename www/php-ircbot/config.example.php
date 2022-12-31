@@ -1,6 +1,6 @@
 <?php
-require_once ROOT_DIR . (file_exists(ROOT_DIR.'/../includes/mysql_login.inc.local.php') ? '/../includes/mysql_login.inc.local.php' : '/../includes/mysql_login.inc.php') ;
-include(ROOT_DIR.'/../includes/util.inc.php');
+require ROOT_DIR.'/../includes/config.inc.php';
+include ROOT_DIR.'/../includes/util.inc.php';
 
 return array(
     'server'   		=> '',
@@ -17,10 +17,10 @@ return array(
     'log_file'       => '/data/errlog/php_ircbot-log_',
     'timezone'		 => 'Europe/Zurich',
     'quit_message'	 => '',
-    'db_server'		 => MYSQL_HOST,
-    'db_name'		 => MYSQL_DBNAME,
-    'db_user'		 => MYSQL_DBUSER,
-    'db_pass'		 => MYSQL_DBPASS,
+    'db_server'		 => $_ENV['MYSQL_HOST'],
+    'db_name'		 => $_ENV['MYSQL_DATABASE'],
+    'db_user'		 => $_ENV['MYSQL_USER'],
+    'db_pass'		 => $_ENV['MYSQL_PASSWORD'],
     'commands'       => array(
         'Command\Say'     	=> array(),
         'Command\Joke'    	=> array(),

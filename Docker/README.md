@@ -4,13 +4,13 @@
 ## Docker configs
 Edit the file: `.env.docker`
 
-## Using docker-sync
+### Using docker-sync
 `docker-sync` greatly improves the performance of synced volumes from the local file system to Docker, giving a nearly live-performance for read/write operations.
 
-### On macOS
+#### Setup on macOS
 (The following steps are copied from [this online documentation](https://reece.tech/posts/osx-docker-performance/))
 
-#### Install docker-sync
+##### Install docker-sync
 
 ```
 gem install --user-install docker-sync
@@ -51,8 +51,38 @@ docker-sync-stack start -c ./Docker/docker-sync.yml
 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up
 ```
 
-### Using a pre-existing local database
+## Usage
+---
+### Service configurations
+#### MySQL connection config
+The MySQL database host name is `zorg-db` and needs be added to the PHP environment config file `/www/.env`.
 
+#### sendmail SMTP config
+Edit the msmtprc config file in the `./Docker/sendmail/` directory and replace the following placeholders with real values:
+* SMTP_HOST => mail.mymailserver.com
+* SMTP_EMAIL => myemail@mymailserver.com
+* SMTP_PASSWORD => password for your SMTP_EMAIL account
+
+Further details on the sendmail / msmtprc integration can be found here: [Send email on testing docker container with php and sendmail](https://stackoverflow.com/a/63977888/5750030)
+
+### Show the website
+[http://localhost/](http://localhost/)
+
+…or with a hosts entry pointing to `127.0.0.1` and SSL: [https://zorg.local/](https://zorg.local/)
+
+### Use PHPMyAdmin to manage the database
+[http://localhost:8080/](http://localhost:8080/)
+
+…or with a hosts entry pointing to `127.0.0.1`: [http://zorg.local:8080/](http://zorg.local:8080/)
+
+* **Server**: use the Docker's `zorg-db`-service hostname or IP-address
+* **Username**: use the defined `MYSQL_USER`-environment value
+* **Password**: use the defined `MYSQL_PASSWORD`-environment value
+
+#### Using a pre-existing local database
+The best way is to import an SQL-dump using the phpmysql Docker service at [http://localhost:8080/](http://localhost:8080/).
+
+Alternatively the path to a local database folder can be provided by overriding the ENV var `MYSQL_LOCAL_DATABASE_PATH`:
 ```
 MYSQL_LOCAL_DATABASE_PATH=/path/to/my/mysql57 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up -d
 ```
@@ -63,26 +93,7 @@ To fix the MySQL-Error 1812 `Tablespace is missing for table zooomclan . <table-
 ```ALTER TABLE zooomclan.<table-name> IMPORT TABLESPACE```
 
 
-Usage
----
-#### MySQL connection config
-Add the Docker's `zorg-db`-service IP-address to the file: `/www/.env`
-
-#### Show the website
-[http://localhost/](http://localhost/)
-
-…or with a hosts entry pointing to `127.0.0.1` and SSL: [https://zorg.local/]
-
-#### Use PHPMyAdmin to manage the database
-[http://localhost:8080/](http://localhost:8080/)
-
-…or with a hosts entry pointing to `127.0.0.1`: [http://zorg.local:8080/]
-
-* **Server**: use the Docker's `zorg-db`-service IP-address
-* **Username**: use the defined `MYSQL_USER`-environment value
-* **Password**: use the defined `MYSQL_PASSWORD`-environment value
-
-#### Docker services inspection
+## Docker services inspection
 Find IP of a container service (can also be seen in the network details)
 
 `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' SERVICENAME`
@@ -111,7 +122,7 @@ Enter into interactive shell mode for a container service
 
 `docker exec -it SERVICENAME sh`
 
-#### docker-sync inspection
+### docker-sync inspection
 !! Refresh docker-sync after updating the `docker-compose.yml`-file
 
 `docker-sync clean`
@@ -119,3 +130,8 @@ Enter into interactive shell mode for a container service
 Inspect running docker-sync services:
 
 `docker volume ls | grep -sync`
+
+### sendmail Logfile
+Inspect the logfile for sendmail / msmtprc:
+
+`docker exec -it zorg-web cat /var/log/sendmail.log`

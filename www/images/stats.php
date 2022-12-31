@@ -25,7 +25,7 @@ $h = (isset($_GET['h']) && is_numeric($_GET['h']) && (int)$_GET['h'] > 100 ? (in
  * File includes
  * @include config.inc.php
  */
-require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once __DIR__.'/../includes/main.inc.php';
 require_once INCLUDES_DIR.'graph.inc.php';
 
 /**

@@ -6,6 +6,12 @@
  */
 
 /**
+ * FILE INCLUDES
+ * @include config.inc.php Required at top! (e.g. for ENV vars, and to validate 'nonce' in $_SESSION)
+ */
+require_once __DIR__.'/../../includes/config.inc.php';
+
+/**
  * AJAX Request validation
  */
 if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
@@ -16,7 +22,7 @@ if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQ
 if(!isset($_GET['user']) || empty($_GET['user']) || false === filter_var(trim($_GET['user']), FILTER_SANITIZE_NUMBER_INT))
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	die('Invalid or missing GET-Parameter');
+	exit('Invalid or missing GET-Parameter');
 }
 $user_id = (int)filter_var(trim($_GET['user']), FILTER_SANITIZE_NUMBER_INT);
 
@@ -31,7 +37,7 @@ $user_id = (int)filter_var(trim($_GET['user']), FILTER_SANITIZE_NUMBER_INT);
 if (!empty($user_id) && $user_id > 0)
 {
 	/** Requires mysql.inc.php */
-	require_once __DIR__.'/../../includes/mysql.inc.php';
+	require_once INCLUDES_DIR.'mysql.inc.php';
 	/** Unread Comments are only valid while a User is online... for minimum external exposure. */
 	$sql = 'SELECT COUNT(*) AS numunread FROM comments_unread WHERE user_id='.$user_id;
 	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'SELECT FROM comments_unread'));
