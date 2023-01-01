@@ -256,9 +256,8 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 		if (fileExists(INCLUDES_DIR.'g-recaptcha-src/autoload.php'))
 		{
 			require_once INCLUDES_DIR.'g-recaptcha-src/autoload.php';
-			$reCaptchaApiKeysFile = require_once APIKEYS_DIR.'/google/googlerecaptchaapi_key.inc.php';
-			$reCaptchaApiKeys = (DEVELOPMENT ? $reCaptchaApiKeysFile['DEVELOPMENT'] : $reCaptchaApiKeysFile['PRODUCTION']);
-			$reCaptchaLang = 'de-CH'; // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
+			$reCaptchaApiKeys = ['key' => $_ENV['GOOGLE_RECAPTCHA_KEY'],'secret' => $_ENV['GOOGLE_RECAPTCHA_SECRET']];
+			$reCaptchaLang = $_ENV['GOOGLE_RECAPTCHA_LOCALE'];
 			try {
 				$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
 			} catch(Exception $e) {

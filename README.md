@@ -12,19 +12,23 @@
   - [Pull-Request mit Code-Änderungen erstellen](#pull-request-mit-code-änderungen-erstellen)
   - [Deployments](#deployments)
 - [Initiales Server-Setup](#initiales-setup-repo-einmalig-auf-den-server-runterladen)
+- [Services- und API Integrationen](#services-und-api-integrationen)
 
 # zorg Code standalone lokal einrichten
 ## Voraussetzungen
-Lokal muss ein Apache-Webserver mit [**PHP**](#php) sowie [**MySQL**](#mysql) vorhanden sein.
-Am einfachsten geht das mittels [MAMP (macOS)][1], [WAMP (Windows)][2] und [LAMP (Linux)][3].
 
-Zukünftig geplant ist ein Docker Container, aber der [[z]keep3r][6] macht nicht fürschi damit...
+### Docker Container
+Rundum sorglos Paket: siehe separates [zorg on Docker how-to](Docker/README.md) im `/Docker`-dir.
 
-### PHP
+### Apache-PHP-MySQL Stack
+Was auch geht ist lokal mittels einem Apache-Webserver mit [**PHP**](#php) sowie [**MySQL**](#mysql).
+Am effizientesten direkt mittels [MAMP (macOS)][1], [WAMP (Windows)][2] und [LAMP (Linux)][3].
+
+#### PHP
 * [Current][14]: **PHP 7.4.x**
 * für <= [zorg Code 4.0.1][16]: PHP 5.6.37
 
-### MySQL
+#### MySQL
 * Current: **MySQL 5.7.x**
 * für <= [zorg Code 4.0.1][16]: MySQL 5.6
 
@@ -49,8 +53,6 @@ Am einfachsten und mit eingebauten Git ist die Arbeit/Bezug des zorg Codes mit e
 
 \* *Um in das zorg Code Repository comitten zu können muss Du mindestens die gleiche E-Mailadresse, wie verlinkt in deinem GitHub-Account, verwenden!*
 
-### Docker Container
-WIP [[z]keep3r][6],
 
 ## Clone des zorg Codes
 Am einfachsten klickst Du auf der GitHub Repository-Seite einfach oben rechts auf den grünen "Clone or download"-button – oder Du ziehst Dir den neusten Release von [hier][16] und verschiebst alle Files lokal in das gewünschte Webroot vom Apache.
@@ -72,24 +74,29 @@ Das `/data/`-Verzeichnis ist unverzichtbar für zorg.ch, aber unterliegt nicht d
 
 ```
 /zorg-code/ <-- Cloned Git-Repo
+  .env <-- von .env.example adaptieren
+  Docker/ <-- Cloned
   www/ <-- Cloned
   cron/ <-- Cloned
-  keys/ <-- Cloned
   migration/ <-- Cloned
   scripts/ <-- Cloned
-  data/ <-- this+ff CREATE!
-      errlog/
-      files/
-      gallery/
-          41/
-      hz_maps/
-      smartylib/
-          cache/
-          templates_c/
-      tauschboerse/
-      temp/
-      upload/
-      userimages/
+  .composer.json
+  .composer.lock
+  vendor/ <-- via composer install
+  data/ <-- Cloned > all Pathes can be configured/changed in .env
+      errlog/       <-- CREATE!
+      files/        <-- CREATE!
+      gallery/      <-- CREATE!
+          41/       <-- APOD Gallery ID
+      hz_maps/      <-- Cloned
+      smartylib/    <-- CREATE!
+          cache/    <-- CREATE!
+          templates_c/ <-- CREATE!
+      tauschboerse/    <-- CREATE!
+      temp/         <-- CREATE!
+      upload/       <-- CREATE!
+          new-galleries/   <-- CREATE!
+      userimages/          <-- CREATE!
 ```
 
 ### Berechtigungen richtig setzen
@@ -394,9 +401,9 @@ class MeineKlasse
 function MeineFunktion($user_id, $params=null)
 {
   global $db, $user;
-  
+
   $code = '...';
-  
+
   /** Kurzer inline Kommentar */
   if ($code === '...') echo 'Yarak';
 }
@@ -440,6 +447,47 @@ Jetzt noch apache2 konfigurieren mit den notwendigen Konfigurationsdateien:
   $ apachectl configtest
 
 **That's it** - zorg.ch sollte nun laufen & ausgeliefert werden.
+
+# Services- und API Integrationen
+
+# API Keys
+Im `.env` können diverse API Keys verschiedener Services eingetragen werden, welche die zorg-code Plattform braucht um Daten zu aggregieren oder an externe APIs zu pushen.
+
+* [Google APIs](#google-apis)
+  + [reCaptcha](#google-recaptcha)
+  + [Google Maps](#google-maps)
+* [NASA API](#nasa-api)
+* [Telegram Bot API](#telegram-bot-api)
+* [Twitter API](#twitter-api)
+
+## Google APIs
+
+### Google reCaptcha
+Das [Google reCaptcha](https://www.google.com/recaptcha/intro/v3.html) wird in der User Registration benötigt, um Bots am Erstellen von Fake Usern abzuhalten.
+
+### Google Maps
+z.B. für [Google Maps API](https://developers.google.com/maps/documentation) Abfragen
+
+## NASA API
+Die [NASA API](https://api.nasa.gov) wird benötigt um folgende Daten zu aggregieren:
+* [APOD](https://api.nasa.gov/#apod) - Astronomy Picture of the Day
+* Spaceweather APIs:
+  + [Near Earth Objects](https://api.nasa.gov/#NeoWS)
+  + [Space Weather Database DONKI](https://api.nasa.gov/#DONKI)
+
+#### Demo
+* Request: [https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY]
+* Result
+```
+{"date":"2020-04-18","explanation":"It was just another day on aerosol Earth. For August 23, 2018, the identification and distribution of aerosols in the Earth's atmosphere is shown in this dramatic, planet-wide digital visualization. Produced in real time, the Goddard Earth Observing System Forward Processing (GEOS FP) model relies on a combination of Earth-observing satellite and ground-based data to calculate the presence of types of aerosols, tiny solid particles and liquid droplets, as they circulate above the entire planet. This August 23rd model shows black carbon particles in red from combustion processes, like smoke from the fires in the United States and Canada, spreading across large stretches of North America and Africa. Sea salt aerosols are in blue, swirling above threatening typhoons near South Korea and Japan, and the hurricane looming near Hawaii. Dust shown in purple hues is blowing over African and Asian deserts. The location of cities and towns can be found from the concentrations of lights based on satellite image data of the Earth at night.   Celebrate: Earth Day at Home","hdurl":"https://apod.nasa.gov/apod/image/2004/atmosphere_geo5_2018235_eq2400.jpg","media_type":"image","service_version":"v1","title":"Just Another Day on Aerosol Earth","url":"https://apod.nasa.gov/apod/image/2004/atmosphere_geo5_2018235_eq1200.jpg"}
+```
+
+## Telegram Bot API
+Dank der [Telegram Bot API](https://core.telegram.org/bots) - und einem custom Bot - lassen sich diverse Messages an Telegram User oder Gruppen pushen.
+
+## Twitter API
+Mit der [Twitter API](https://developer.twitter.com/en/docs/tweets/post-and-engage/overview) lassen sich Daten mittels eine [Twitter App ID](https://developer.twitter.com/en/apps) an einen Twitter-Account pushen oder aggregieren. z.B. Für das Absetzen von neuen Tweets.
+
 
 [1]: https://www.mamp.info/ "MAMP for macOS"
 [2]: https://www.wampserver.com/ "WAMP for Windows"

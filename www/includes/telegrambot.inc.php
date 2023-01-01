@@ -16,14 +16,15 @@
  * @package		zorg
  * @subpackage	Messagesystem
  */
+
 /**
 * Load up the Telegram Bot
+*
+* @include config.inc.php
 * @const TELEGRAM_BOT Name of the Telegram Bot to use (Attention: use same name for the bot's config file!)
-* @include TELEGRAM_BOT.php Include Telegram Bot Configs
 */
-if (!defined('TELEGRAM_BOT') && file_exists(APIKEYS_DIR.'/telegram_bot/zthearchitect_bot.php') ) define('TELEGRAM_BOT', 'zthearchitect_bot');
-elseif (!defined('TELEGRAM_BOT')) define('TELEGRAM_BOT', 'zbarbaraharris_bot');
-if ( file_exists(APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php') ) require_once APIKEYS_DIR.'/telegram_bot/'.TELEGRAM_BOT.'.php' ;
+require_once __DIR__.'/config.inc.php';
+if (!defined('TELEGRAM_BOT') && isset($_ENV['TELEGRAM_BOT'])) define('TELEGRAM_BOT', $_ENV['TELEGRAM_BOT']);
 
 /**
  * Telegram Messaging Class
@@ -48,36 +49,46 @@ class Telegram
 	* @const TELEGRAM_BOT_DISABLE_WEB_PAGE_PREVIEW Specifies whether link previews for links in the message should be enabled or disabled
 	* @const TELEGRAM_BOT_DISABLE_NOTIFICATION Specifies whether the Bot's messages should be silent or regular notifications
 	*/
-	const PARSE_MODE = 'html';
-	const DISABLE_WEB_PAGE_PREVIEW = 'false';
-	const DISABLE_NOTIFICATION = 'false';
+	const PARSE_MODE = 'html'; // TODO Replace with $_ENV['TELEGRAM_PARSE_MODE']
+	const DISABLE_WEB_PAGE_PREVIEW = 'false'; // TODO Replace with $_ENV['TELEGRAM_DISABLE_WEBPAGE_PREVIEW']
+	const DISABLE_NOTIFICATION = 'false'; // TODO Replace with $_ENV['TELEGRAM_DISABLE_NOTIFICATION']
 
 	/**
 	 * Send a Message via Telegram Messenger
 	 * Schickt eine Notification an die Telegram Chats von Usern
 	 *
 	 * @author	IneX
-	 * @date	17.03.2018
-	 * @version	4.0
-	 * @since	1.0
+	 * @version	4.1
+	 * @since	1.0 `17.03.2018` `IneX` Method added
+	 * @since	4.1 `29.12.2022` `IneX` Updated to use $_ENV for $botconfigs, instead of including keys/botname_bot.php
 	 *
 	 * @TODO implement this with TelegramBot\TelegramBotManager\BotManager?
 	 *
 	 * @link https://core.telegram.org/bots/api
-	 * @var $botconfigs Array mit aktuellen Telegram-Bot Settings
 	 * @uses usersystem::userHasTelegram()
-	 * @uses Telegram::formatText()
-	 * @uses Telegram::validateData()
+	 * @uses Telegram::formatText(), Telegram::validateData()
 	 * @param	integer|string	$userScope		Scope to whom to send the message to: User = User-ID integer, Group = 'group' string.
 	 * @param	string			$messageType	Type of Message to be sent (e.g. 'sendMessage', 'sendPhoto', 'sendLocation',...)
 	 * @param	array			$content		Array mit Content welcher an die Telegram Chats geschickt wird
 	 * @global	object			$user			Globales Class-Object mit den User-Methoden & Variablen
-	 * @global	array			$botconfigs		Array mit allen Telegram Bot-Configs
 	 * @return	boolean							Returns true or false
 	 */
 	public function send($userScope, $messageType, $content)
 	{
-		global $user, $botconfigs;
+		global $user;
+
+		/** Parse $_ENV vars into $botconfigs */
+		$botconfigs = [  'api_key' => $_ENV['TELEGRAM_BOT_API_KEY']
+						,'my_secret' => $_ENV['TELEGRAM_BOT_API_AUTH_PASSWORD']
+						,'valid_ips' => (array)$_ENV['TELEGRAM_BOT_API_IPWHITELIST']
+						,'admins' => (array)$_ENV['TELEGRAM_BOT_API_USERWHITELIST']
+						,'ssl_certificate' => $_ENV['TELEGRAM_BOT_API_SSLCERT_PATH']
+						,'chat_id' =>  $_ENV['TELEGRAM_BOT_API_CHAT']
+						,'logging_dirroot' => $_ENV['TELEGRAM_BOT_API_FILES_DIR']
+						,'files_dirroot' => $_ENV['TELEGRAM_BOT_API_LOG_DIR']
+						,'TELEGRAM_API_URI' => $_ENV['TELEGRAM_BOT_API_CHAT']
+						,'TELEGRAM_GROUPCHAT_ID' => $_ENV['TELEGRAM_BOT_API_CHAT']
+					];
 
 		/** First of all: make sure the Telegram Bot-Configs exist */
 		if (isset($botconfigs) && is_array($botconfigs))
@@ -95,7 +106,7 @@ class Telegram
 				/** GROUP: If $userScope = 'group': get the Telegram Groupchat-ID */
 				case 'group':
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for Group Telegram Chat-ID...', __METHOD__, __LINE__));
-					$telegramChatId = TELEGRAM_GROUPCHAT_ID;
+					$telegramChatId = $botconfigs['TELEGRAM_GROUPCHAT_ID'];
 					break;
 
 				/** DEFAULT: stop execution */
@@ -118,7 +129,7 @@ class Telegram
 					/** Validate & compose the Parameter-Query for the API Call */
 					$data = $this->validateData($messageType, $parameters);
 					$telegramAPIcallParameters = http_build_query($data);
-					$telegramAPIcall = TELEGRAM_API_URI . "/$messageType?" . $telegramAPIcallParameters;
+					$telegramAPIcall = $botconfigs['TELEGRAM_API_URI'].$messageType.'?'.$telegramAPIcallParameters;
 
 					/**
 					 * Sending the Telegram message
@@ -183,7 +194,7 @@ class Telegram
 	 * @link https://core.telegram.org/bots/api#html-style
 	 * @see usersystem::id2user()
 	 * @param	integer	$userid	User-ID (numeric String) dessen Telegram User mentioned werden soll
-	 * @global	object	$db 	Globales Class-Object mit allen MySQL-Methoden
+	 * @global	object	$db	Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user	Globales Class-Object mit den User-Methoden & Variablen
 	 * @return	string			Returns HTML href-link formatted as Telegram readable User-IDs mention
 	 */
@@ -297,7 +308,7 @@ class Telegram
 	 *
 	 * Check for valid parameters and returns Array with key:value pairs assigned
 	 * This function is related (but no depending!) to the following MySQL-table:
-	 * 		- Table: messages_telegram_queue
+	 *		- Table: messages_telegram_queue
 	 *			- Column: :method
 	 *			- Column: :content
 	 *			- Column: :content_additional
@@ -317,6 +328,8 @@ class Telegram
 	 * @link https://core.telegram.org/bots/api#sendvoice
 	 * @link https://core.telegram.org/bots/api#sendlocation
 	 * @link https://core.telegram.org/bots/api#sendpoll
+	 *
+	 * @uses self::PARSE_MODE, self::DISABLE_WEB_PAGE_PREVIEW, self::DISABLE_NOTIFICATION
 	 * @param	string	$messageType	A valid Telegram Message Type, see Telegram Bot API docu
 	 * @param	array	$parameters		A Multidimensional Array containing the key:value parameter-pairs that should be passed to the Message Type Model
 	 * @return	array|boolean			Returns an Array (or "false" on error...) with key:value pairs assigned for the specified Message Type
@@ -330,8 +343,8 @@ class Telegram
 										 'optional' => [ 'parse_mode', 'disable_web_page_preview', 'disable_notification', 'reply_to_message_id', 'reply_markup' ]
 										]
 				,'sendMessage'		=>	[
-				 						 'required' => [ 'text' ]
-				 						]
+										 'required' => [ 'text' ]
+										]
 
 				,'sendPhoto'		=>	[
 										 'required' => [ 'photo' ],
@@ -420,7 +433,7 @@ class Telegram
 				 *
 				 * Example:
 				 *	$data = [
-				 *   	'chat_id' => $chatId,
+				 *  	'chat_id' => $chatId,
 				 *		'parse_mode' => $telegramParseMode,
 				 *		'text' => $notificationText,
 				 *	];
@@ -436,9 +449,9 @@ class Telegram
 					error_log(sprintf('[WARN] <%s:%d> Value "%s" is required but was not passed!', __METHOD__, __LINE__, 'chat_id'));
 					return false;
 				}
-				$data['parse_mode'] = ( isset($parameters['parse_mode']) ? $parameters['parse_mode'] : self::PARSE_MODE );
-				$data['disable_web_page_preview'] = ( isset($parameters['disable_web_page_preview']) ? $parameters['disable_web_page_preview'] : self::DISABLE_WEB_PAGE_PREVIEW );
-				$data['disable_notification'] = ( isset($parameters['disable_notification']) ? $parameters['disable_notification'] : self::DISABLE_NOTIFICATION );
+				$data['parse_mode'] = ( isset($parameters['parse_mode']) ? $parameters['parse_mode'] : self::PARSE_MODE ); // TODO Replace with $_ENV['TELEGRAM_PARSE_MODE']
+				$data['disable_web_page_preview'] = ( isset($parameters['disable_web_page_preview']) ? $parameters['disable_web_page_preview'] : self::DISABLE_WEB_PAGE_PREVIEW ); // TODO Replace with $_ENV['TELEGRAM_DISABLE_WEBPAGE_PREVIEW']
+				$data['disable_notification'] = ( isset($parameters['disable_notification']) ? $parameters['disable_notification'] : self::DISABLE_NOTIFICATION ); // TODO Replace with $_ENV['TELEGRAM_DISABLE_NOTIFICATION']
 				if ( isset($parameters['reply_to_message_id']) ) $data['reply_to_message_id'] = $parameters['reply_to_message_id'];
 				if ( isset($parameters['reply_markup']) ) $data['reply_markup'] = $parameters['reply_markup'];
 
