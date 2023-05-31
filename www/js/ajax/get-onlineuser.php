@@ -63,13 +63,17 @@ switch ($onlineUserListstyle)
 		$num_online = (false !== $result && !empty($result) ? (int)$db->num($result) : 0);
 		if (false !== $num_online && !empty($num_online))
 		{
-			while ($rs = $db->fetch($result))
-			{
-				$onlineUsersArr[] = sprintf('<a href="/profil.php?user_id=%s">%s</a>', (string)$rs['id'], (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username']);
+			while ($rs = $db->fetch($result)) {
+				$onlineUser = [
+					 'id' => (string) $rs['id']
+					,'username' => (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '') . $rs['username']
+				];
+				$onlineUsersArr[] = $onlineUser;
 			}
 			http_response_code(200); // Set response code 200 (OK)
-			header('Content-type: text/html; charset=utf-8');
-			exit(implode(', ', $onlineUsersArr));
+			header('Content-Type: application/json; charset=utf-8');
+			echo json_encode( ['data' => $onlineUsersArr] );
+			exit();
 		}
 		/** No logged-in user seems to be online... */
 		else {

@@ -175,7 +175,7 @@ if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', (isset($_ENV[
  * @const USER_IMGSIZE_LARGE	Grösse in Pixel der normalen Userpics
  * @const USER_IMGSIZE_SMALL	Grösse in Pixel der Userpic-Thumbnails
  * @const USER_IMGPATH_DEFAULT	Filename des Standard-Userpic im USER_IMGPATH
- * @const USER_TIMEOUT	Session Timeout für eingeloggte User
+ * @const USER_TIMEOUT	Session Timeout für eingeloggte User, in Sekunden. Default: 60 (1 Minute)
  * @const USER_OLD_AFTER	Zeit bis ein User als "alt" gilt -> 3 Monate
  * @const DEFAULT_MAXDEPTH	Standard Setting für die Anzeigetiefe von Comments in Forum-Threads
  */
@@ -198,7 +198,7 @@ if (!defined('USER_IMGEXTENSION')) define('USER_IMGEXTENSION', (isset($_ENV['USE
 if (!defined('USER_IMGSIZE_LARGE')) define('USER_IMGSIZE_LARGE', (isset($_ENV['USERIMAGE_SIZE_LARGE']) ? (int)$_ENV['USERIMAGE_SIZE_LARGE'] : null));
 if (!defined('USER_IMGSIZE_SMALL')) define('USER_IMGSIZE_SMALL', (isset($_ENV['USERIMAGE_SIZE_SMALL']) ? (int)$_ENV['USERIMAGE_SIZE_SMALL'] : null));
 if (!defined('USER_IMGPATH_DEFAULT')) define('USER_IMGPATH_DEFAULT', (isset($_ENV['USERIMAGE_DEFAULT']) ? $_ENV['USERIMAGE_DEFAULT'] : null));
-if (!defined('USER_TIMEOUT')) define('USER_TIMEOUT', (isset($_ENV['USER_TIMEOUT']) ? (int)$_ENV['USER_TIMEOUT'] : null));
+if (!defined('USER_TIMEOUT')) define('USER_TIMEOUT', (isset($_ENV['USER_TIMEOUT']) ? (int)$_ENV['USER_TIMEOUT'] : 60));
 if (!defined('USER_OLD_AFTER')) define('USER_OLD_AFTER', (isset($_ENV['USER_OLD_AFTER']) ? (int)$_ENV['USER_OLD_AFTER'] : null));
 if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', (isset($_ENV['FORUM_DEFAULT_MAXDEPTH']) ? (int)$_ENV['FORUM_DEFAULT_MAXDEPTH'] : 7));
 

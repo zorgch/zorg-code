@@ -154,28 +154,73 @@ function markAsMypic()
 // Aktuelle Onlineuser dynamisch aktualisieren
 // @author IneX
 // @date 27.08.2019
-function updateOnlineuser(elementId, displayFormat)
-{
+function updateOnlineuser(elementId, displayFormat) {
 	var domElement = document.getElementById(elementId);
-	if (typeof domElement !== 'undefined' && domElement != null)
-	{
+	if (typeof domElement !== 'undefined' && domElement != null) {
 		var oldOnlineUserHtml = domElement.innerHTML;
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', '/js/ajax/get-onlineuser.php?style='+displayFormat);
 		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		xhr.onload = function() {
 			//console.info(xhr.responseText);
-			if (xhr.status === 200 || xhr.status === 204)
-			{
+			if (xhr.status === 200 || xhr.status === 204) {
 				// On Success
-				domElement.innerHTML = xhr.responseText;
-				if (typeof domElement.firstChild !== 'undefined' && domElement.firstChild != null)
-				{
-					if (xhr.responseText.length > oldOnlineUserHtml.length) domElement.firstChild.classList.add('blink');
-					else domElement.firstChild.classList.remove('blink');
+				if (xhr.responseText) {
+					var jsonResponse = JSON.parse(xhr.responseText);
+
+					// Check if there ist at least 1 online user
+					if (jsonResponse.data.length > 0) {
+						var links = [];
+
+						// Clear the existing content of the domElement
+						while (domElement.firstChild) {
+							domElement.removeChild(domElement.firstChild);
+						}
+
+						// Iterate over the data array from the JSON response
+						jsonResponse.data.forEach(function(user) {
+							// Create an anchor element for the user profile link
+							var link = document.createElement('a');
+							link.href = '/profil.php?user_id=' + user.id;
+							link.textContent = user.username;
+							link.classList.add('blink');
+
+							links.push(link.outerHTML);
+						});
+
+						// Create a comma-separated string of the links
+						var linksString = links.join(', ');
+					}
+				} else {
+					//
+					var linksString = '&nbsp;';
 				}
-			}
-			else {
+
+				// Set the innerHTML of domElement to the linksString
+				domElement.innerHTML = linksString;
+
+				// Remove the 'blink' class of users that are already online
+				var userLinks = Array.from(domElement.querySelectorAll('a'));
+				// Create a temporary DOM element for oldOnlineUserHtml
+				var tempElement = document.createElement('div');
+				tempElement.innerHTML = oldOnlineUserHtml;
+
+				userLinks.forEach(function (userLink) {
+					var linkUsername = userLink.textContent;
+
+					// Check if the username exists in the oldOnlineUserHtml DOM element
+					var usernameExists = Array.from(tempElement.querySelectorAll('a')).some(function (oldUserLink) {
+						return oldUserLink.textContent === linkUsername;
+					});
+
+					if (usernameExists) {
+						userLink.classList.remove('blink');
+					}
+
+					// Remove the temporary DOM element
+					tempElement.remove();
+				});
+			} else {
 				// On Error
 				console.error(xhr.status + ' ' + xhr.responseText);
 			}
