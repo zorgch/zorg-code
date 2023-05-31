@@ -21,7 +21,7 @@ require_once dirname(__FILE__).'/main.inc.php';
  * @param string $str
  * @return string
  */
-function html_syntax_check ($str) {	
+function html_syntax_check ($str) {
 	$res = array();
 	$err = "";
 	$pos = 0;
@@ -53,7 +53,7 @@ function html_syntax_check ($str) {
 		$tags = array();
 		$stack = array();
 		$anz = preg_match_all('/< *\w+( +\w( *= *(\w*|"[^"]*"|\'[^\']*\'))?)*>/', $str, $tags, PREG_OFFSET_CAPTURE);
-	
+
 		$tags = $tags[0];
 		for ($i=0; $i<$anz; $i++) {
 			$pos = $tags[$i][1];
@@ -80,12 +80,12 @@ function html_syntax_check ($str) {
 					$t = substr($t, 1, -1);
 					$t = rtrim(ltrim($t));
 
-					if (sizeof($stack) == 0) {$err = "&Ouml;ffnendes Tag für &lt;/$t&gt; fehlt"; break;}
+					if (sizeof($stack) == 0) {$err = "&Ouml;ffnendes Tag fÃ¼r &lt;/$t&gt; fehlt"; break;}
 
 					$last = array_pop($stack);
 
 					if ($last[0] != $t) {
-					$err = "Schliessendes Tag für &lt;$last[0]&gt; fehlt"; 
+					$err = "Schliessendes Tag fÃ¼r &lt;$last[0]&gt; fehlt";
 					$pos = $last[1];
 					break;
 					}
@@ -95,7 +95,7 @@ function html_syntax_check ($str) {
 		if (!$err) {
 			if (sizeof($stack) > 0) {
 				$last = array_pop($stack);
-				$err = "Schliessendes Tag für &lt;$last[0]&gt; fehlt";
+				$err = "Schliessendes Tag fÃ¼r &lt;$last[0]&gt; fehlt";
 				$pos = $last[1];
 			}else{
 				return "";
@@ -103,7 +103,7 @@ function html_syntax_check ($str) {
 		}
 	}
 
-	$err .= " in der Nähe von: <br />";
+	$err .= " in der NÃ¤he von: <br />";
 	if (strlen($str)-$pos < 70) return $err . htmlspecialchars(substr($str, $pos));
 	else return $err . htmlspecialchars(substr($str, $pos, 70));
 }
@@ -129,7 +129,7 @@ function tpleditor_unlock ($id) {
 
 /**
  * Set access lock on currently edited Template
- * Prüft Zugriffsberechtigung und falls gegeben, lockt das Template. Fehler wird in $error gespeichert
+ * PrÃ¼ft Zugriffsberechtigung und falls gegeben, lockt das Template. Fehler wird in $error gespeichert
  *
  * @author [z]biko
  * @version 1.1
@@ -148,7 +148,7 @@ function tpleditor_access_lock ($id, &$error)
 	{
 		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
-	
+
 		if ($d && !tpl_permission($d['write_rights'], $d['owner'])) {
 			$error = 'Access denied';
 			return false;

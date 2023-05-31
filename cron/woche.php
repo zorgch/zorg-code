@@ -30,10 +30,10 @@ if (isset($wwwroot) && file_exists($wwwroot.'/includes/config.inc.php'))
 	//include_once( INCLUDES_DIR.'forum.inc.php');
 	error_log(sprintf('[%s] [NOTICE] <%s> Files included', date('d.m.Y H:i:s',time()), __FILE__));
 
-	/** Unread_comments älter als 30 Tage löschen */
+	/** Unread_comments Ã¤lter als 30 Tage lÃ¶schen */
 	$sql = 'DELETE FROM comments_unread
-			USING comments, comments_unread 
-			WHERE comments.id = comments_unread.comment_id 
+			USING comments, comments_unread
+			WHERE comments.id = comments_unread.comment_id
 			AND comments.date < (DATE(NOW())-INTERVAL 30 DAY)';
 	$result = $db->query($sql, __FILE__, __LINE__, 'DELETE FROM comments_unread');
 	$numDeletedComments = $db->num($result);
