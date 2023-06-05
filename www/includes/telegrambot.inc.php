@@ -84,9 +84,9 @@ class Telegram
 						,'admins' => (array)$_ENV['TELEGRAM_BOT_API_USERWHITELIST']
 						,'ssl_certificate' => $_ENV['TELEGRAM_BOT_API_SSLCERT_PATH']
 						,'chat_id' =>  $_ENV['TELEGRAM_BOT_API_CHAT']
-						,'logging_dirroot' => $_ENV['TELEGRAM_BOT_API_FILES_DIR']
-						,'files_dirroot' => $_ENV['TELEGRAM_BOT_API_LOG_DIR']
-						,'TELEGRAM_API_URI' => $_ENV['TELEGRAM_BOT_API_CHAT']
+						,'logging_dirroot' => $_ENV['TELEGRAM_BOT_API_LOG_DIR']
+						,'files_dirroot' => $_ENV['TELEGRAM_BOT_API_FILES_DIR']
+						,'TELEGRAM_API_URI' => $_ENV['TELEGRAM_BOT_API']
 						,'TELEGRAM_GROUPCHAT_ID' => $_ENV['TELEGRAM_BOT_API_CHAT']
 					];
 
