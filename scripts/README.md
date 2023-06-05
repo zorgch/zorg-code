@@ -22,3 +22,7 @@ Diese Scripts sind zur Server-side Erledigung von unterschiedlichen Tasks oder B
 	    <expavg_time>1587103090.34215</expavg_time>
 	</team>
   ```
+
+## Frets on zorg
+- `fretsonfire/frezsonzorg.py` - Processes stats uploaded using «[Frets on Fire](https://fretsonfire.sourceforge.net)»
+- It's used by the `frets_upload.php` PHP script (so no need to run the Python script manually)
