@@ -8,13 +8,13 @@
  *
  * @package zorg\Database
  */
+
 /**
  * File includes
+ * @include config.inc.php REQUIRED for $_ENV vars to be available
  * @include mysql_login.inc.local.php Include MySQL Database login information file
- * @include config.inc.php
  */
-//require_once __DIR__.'/config.inc.php'; --> causes Error in async AJAX-Requests (get-onlineuser)
-require_once __DIR__.( file_exists( dirname(__FILE__).'/mysql_login.inc.local.php') ? '/mysql_login.inc.local.php' : '/mysql_login.inc.php') ;
+require_once __DIR__.'/config.inc.php';
 
 /**
  * MySQL Database Connection Class
@@ -27,22 +27,26 @@ class dbconn
 	var $noquerys = 0;
 	var $noquerytracks = 0;
 	var $nolog = 0;
-	var $display_error = 1;
-	var $query_track = array();
+	var $display_error = (DEVELOPMENT === true ? 1 : 0);
+	var $query_track = [];
 
 	/**
 	 * MySQL DB Verbindungsaufbau
 	 *
-	 * @version 4.0
+	 * @version 5.0
 	 * @since 3.0 `10.11.2017` `IneX` method code optimized
 	 * @since 4.0 `03.11.2019` `kassiopaia` method renamed from dbconn() (PHP 7.x compatibility)
+	 * @since 5.0 `28.12.2022` `IneX` method relies now on $_ENV vars from .env file (mysql_login.inc.php is no longer needed)
 	 *
-	 * @param $database MYSQL_DBNAME
+	 * @uses $_ENV
 	 * @throws Exception
 	 */
-	public function __construct($database) {
+	public function __construct() {
 		try {
-			$this->conn = mysqli_connect(MYSQL_HOST, MYSQL_DBUSER, MYSQL_DBPASS);
+			$this->conn = mysqli_connect($_ENV['MYSQL_HOST'], $_ENV['MYSQL_USER'], $_ENV['MYSQL_PASSWORD']);
+
+			/** Enable mysqli Exception handling */
+			mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 			/** MySQL: can't connect to server */
 			if (!$this->conn)
@@ -52,7 +56,7 @@ class dbconn
 			}
 
 			/** MySQL: can't find or load database */
-			if (!@mysqli_select_db($this->conn, $database))
+			if (!@mysqli_select_db($this->conn, $_ENV['MYSQL_DATABASE']))
 			{
 				die($this->msg());
 			}
@@ -68,18 +72,21 @@ class dbconn
 	/**
 	 * Führt ein SQL-Query aus
 	 *
-	 * @version 2.1
+	 * @version 3.0
 	 * @since 1.0 method added
 	 * @since 2.0 `06.11.2018` `IneX` added mysql_affected_rows()-result for UPDATE-queries
 	 * @since 2.1 `07.08.2019` `IneX` changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
+	 * @since 3.0 `02.06.2023` `IneX` added support for mysqli prepared statements, helps mitigating SQL Injection risks (CWE-89)
 	 *
-	 * @param $sql string SQL
-	 * @param $file string Filename
-	 * @param $line int Linenumber
+	 * @param $sql string SQL-Query. Als Prepared Statement wird auch $params benötigt!
+	 * @param $file string (Optional) Dateiname in welcher SQL-Query abgesetzt wurde
+	 * @param $line int (Optional) Linenumber in der Datei welche SQL-Query abgesetzt hat
+	 * @param $funktion string (Optional) Name der Funktion aus welcher SQL-Query abgesetzt wurde
+	 * @param $params array (Optional) Parameter für Prepared SQL Statement
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return object|integer Query-Result-Resource or Primary-Key of INSERT
 	*/
-	function query($sql, $file='', $line=0, $funktion='') {
+	function query($sql, $file='', $line=0, $funktion='', $params=[]) {
 		global $user;
 
 		/** Anzahl SQL-Queries (hoch-)zählen */
@@ -99,24 +106,89 @@ class dbconn
 			}
 		}
 
-		/** DB-Query ausführen */
 		try {
-			$result = mysqli_query($this->conn, $sql);
-			$sql_query_type = strtolower(substr($sql,0,6)); // first 6 chars of $sql = e.g. INSERT or UPDATE
-			if ($sql_query_type === 'insert') {
-				$sql_insert_id = mysqli_insert_id($this->conn);
-				return (is_numeric($sql_insert_id) && $sql_insert_id !== 0 ? $sql_insert_id : ($sql_insert_id !== false ? true : false));
-			} elseif ($sql_query_type === 'update' || $sql_query_type === 'delete') {
-				$sql_affected_rows = mysqli_affected_rows($this->conn);
-				return (is_numeric($sql_affected_rows) && $sql_affected_rows !== 0 ? $sql_affected_rows : ($sql_affected_rows !== false ? true : false));
-			} elseif ($result === false && $this->display_error == 1) {
-				/** Display MySQL-Error with context */
-				die($this->msg($sql,$file,$line,$funktion));
-			} else {
-				return $result;
+			$stmt = mysqli_prepare($this->conn, $sql);
+			if ($stmt === false) throw new mysqli_sql_exception(mysqli_error($this->conn));
+
+			/** Prepared Statement that needs binded $params */
+			if (mysqli_stmt_param_count($stmt) > 0)
+			{
+				if (!empty($params))
+				{
+					$paramTypes = '';
+					$bindParams = [$stmt, &$paramTypes];
+					$paramCount = count($params);
+					for ($i=0; $i<$paramCount; $i++)
+					{
+						switch (true)
+						{
+							case is_bool($params[$i]):
+								$params[$i] = ($params[$i] ? 1 : 0); // 0 for FALSE, 1 for TRUE
+								$paramTypes .= 'i';
+								break;
+							case is_int($params[$i]):
+								$paramTypes .= 'i';
+								break;
+							case is_float($params[$i]):
+								$paramTypes .= 'd';
+								break;
+							case is_null($params[$i]) || $params[$i] === '':
+								$paramTypes .= 's';
+								break;
+							case is_string($params[$i]):
+								$paramTypes .= 's';
+								break;
+							case is_resource($params[$i]):
+								$paramTypes .= 'b'; // 'b' for BLOB type
+								break;
+							default:
+								/** Handle unsupported or unknown types */
+								$params[$i] = (string)$params[$i];
+								$paramTypes .= 's';
+								break;
+						}
+						$bindParams[] = &$params[$i];
+					}
+					/** The $bindParams Array contains the final $paramTypes, so mysqli_stmt_bind_param can bind the parameters */
+					call_user_func_array('mysqli_stmt_bind_param', $bindParams);
+				}
+				/** Prepared Statement but missing $params */
+				else {
+					throw new mysqli_sql_exception(sprintf('Missing Parameters for Prepared Statement: %s<br>%s', ($needs_bindParams ? 'true' : 'false'), $sql));
+				}
 			}
-		} catch (MySQLException $e) {
-			//user_error($e->getMessage(), E_USER_ERROR);
+
+			/** Execute SQL Prepared Statement */
+			mysqli_stmt_execute($stmt);
+			$result = mysqli_stmt_get_result($stmt);
+
+			/** If the query failed or no rows were returned, display MySQL-Error with some context */
+			if ($result === false && mysqli_num_rows($result) === 0 && mysqli_affected_rows($this->conn) === 0)
+			{
+				if ($this->display_error === 1) {
+					throw new mysqli_sql_exception($this->msg($sql, $file, $line, $funktion));
+				} else {
+					$this->msg($sql, $file, $line, $funktion);
+					throw new mysqli_sql_exception('SQL query error in '.$file.' at line '.$line);
+				}
+			} else {
+				/** Retrieve and return a more valuable information, depending on the SQL-query type */
+				switch (strtolower(substr($sql, 0, 6)))
+				{
+					case 'insert':
+						/** mysqli_insert_id() returns a string representation of the last inserted ID, or 0/false on failure */
+						$sql_insert_id = (int)mysqli_insert_id($this->conn);
+						return $sql_insert_id;
+					case 'select':
+						return $result;
+					default:
+						/** mysqli_affected_rows() returns the number of affected rows as an integer, or -1 on failure */
+						$sql_affected_rows = (int)mysqli_affected_rows($this->conn);
+						return ($sql_affected_rows !== -1 ? $sql_affected_rows : false);
+				}
+			}
+		} catch (mysqli_sql_exception $e) {
+			if (DEVELOPMENT === true) var_dump([$file, $funktion, $line, $sql, $params]);
 			die($e->getMessage());
 		}
 	}
@@ -180,20 +252,25 @@ class dbconn
 						(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '' ),
 						$funktion
 					);
-		@mysqli_query($sql,$this->conn);
+		@mysqli_query($this->conn, $sql);
 	}
 
 	/**
 	 * Fetcht ein SQL-Resultat in ein Array
 	 *
-	 * @TODO add 2nd param for MYSQLI_ASSOC feature? See e.g. /js/ajax/get-userpic.php
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 `02.06.2023` `IneX` Use MYSQLI_ASSOC with mysqli_fetch_array() to fetch result as an associative array
 	 *
-	 * @return array
 	 * @param $result array|null|false SQL-Resultat
+	 * @return array|false Array containing fetched data or false on failure
 	 */
 	function fetch($result) {
 		global $sql; // notwendig??
-		return @mysqli_fetch_array($result);
+		if ($result !== false) {
+			return @mysqli_fetch_array($result, MYSQLI_ASSOC);
+		}
+		return false;
 	}
 
 	/**
@@ -237,8 +314,7 @@ class dbconn
 	 * @return array
 	 */
 	function tables() {
-		//$tables = @mysql_list_tables(MYSQL_DBNAME, $this->conn); // DEPRECATED - PHP5 only
-		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . MYSQL_DBNAME);
+		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . $_ENV['MYSQL_DATABASE']);
 		$num = $this->num($tables);
 		$tab = array();
 		for($i=0;$i<$num;$i++) {
@@ -289,13 +365,13 @@ class dbconn
 	 * Ändert eine Row ein einer DB-Table, ähnlich insert
 	 *
 	 * @author [z]biko
-	 * @version 3.0
+	 * @version 3.1
 	 * @since 1.0 method added
-	 * @since 1.1 `10.11.2017` added 3rd optional parameter $funktion for better logging
-	 * @since 2.0 `20.08.2018` added return as mysql_affected_rows()
-	 * @since 3.0 `05.11.2018` fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
+	 * @since 1.1 `10.11.2017` `IneX` added 3rd optional parameter $funktion for better logging
+	 * @since 2.0 `20.08.2018` `IneX` added return as mysql_affected_rows()
+	 * @since 3.0 `05.11.2018` `IneX` fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
+	 * @since 3.0 `02.06.2023` `IneX` added compatibility with mysqli prepared statements
 	 *
-	 * @FIXME nicht PHP7.x-kompatibel
 	 * @FIXME array($id) soll nicht key,value-Pairs parsen, sondern direkt der Vergleich (z.B. "id>2"), aktuell kann nur auf 1 name & mehrere exakte values geprüft werden: "a=b OR a=c"
 	 * @TODO change all usages of $db->update to pass associative array elements, like 'name'=>'Barbara Harris'.
 	 *
@@ -317,11 +393,23 @@ class dbconn
 		/** Build 'UPDATE a SET b=c, d=e, ...' */
 		$sql = 'UPDATE '.$table.' SET ';
 		foreach ($values as $key => $val) {
-			if ((empty($val) || $val === null || strtolower($val) === 'null') && $val !== 0 && $val !== '0' && $val !== '') $sql .= $key.'=NULL'; // handle NULL
-			elseif (strtolower($val) === 'now()') $sql .= $key.'=NOW()'; // handle NOW()
-			elseif (is_numeric($val) && strlen((string)$val) === 10) $sql .= $key.'='.$val; // handle Timestamps
-			else $sql .= $key.'="'.$val.'"';
-			end($values); // @link https://stackoverflow.com/a/8780881/5750030 Add Separator if not last Array-Iteration
+			if ((empty($val) || $val === null || strtolower($val) === 'null') && $val !== 0 && $val !== '0' && $val !== '') {
+				$sql .= $key.'=?';//'=NULL'; // handle NULL
+				$params[] = null;
+			}
+			elseif (strtolower($val) === 'now()') {
+				$sql .= $key.'=NOW()'; // handle NOW()
+				//$params[] = 'NOW()'; --> string 'NOW()' breaks DateTime column inserts!
+			}
+			elseif (is_numeric($val) && strlen((string)$val) === 10) {
+				$sql .= $key.'=?';//'='.$val; // handle Timestamps
+				$params[] = $val;
+			}
+			else {
+				$sql .= $key.'=?';//'="'.$val.'"';
+				$params[] = $val;
+			}
+			end($values); // Add Separator if not last Array-Iteration (https://stackoverflow.com/a/8780881/5750030)
 			if ($key !== key($values)) $sql .= ', ';
 		}
 
@@ -329,7 +417,8 @@ class dbconn
 		$sql .= ' WHERE ';
 		if (!is_array($id))
 		{
-			$sql .= 'id='.$id;
+			$sql .= 'id=?';//.$id;
+			$params[] = $id;
 		} else {
 			/** Convert array('id',1,'name','Barbara Harris,...) => associative Array key=>value */
 			for ($i=0;$i<count($id);$i++)
@@ -340,16 +429,17 @@ class dbconn
 			}
 			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $conditions[ %s ]', __METHOD__, __LINE__, print_r($conditions,true)));
 			foreach ($conditions as $field => $value) {
-				$sql .= $field.'='.(is_numeric($value) ? $value : '"'.$value.'"');
+				$sql .= $field.'=?';//.(is_numeric($value) ? $value : '"'.$value.'"');
+				$params[] = $value;
 				end($conditions); // @link https://stackoverflow.com/a/8780881/5750030
 				if ($field !== key($conditions)) $sql .= ' OR ';  // Add Separator if not last Array-Iteration
 			}
 		}
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $sql: %s', __METHOD__, __LINE__, $sql));
-		return $this->query($sql, $file, $line, $funktion);
+		return $this->query($sql, $file, $line, $funktion, $params);
 		//return mysql_affected_rows();
 	}
 }
 
 /** Grad eine Verbindung bauen, damit sie includet ist... */
-$db = new dbconn(MYSQL_DBNAME);
+$db = new dbconn();

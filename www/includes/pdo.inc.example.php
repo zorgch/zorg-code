@@ -1,19 +1,19 @@
 <?php // database.class.php
 
-require_once dirname( __FILE__) . '/' . (file_exists( dirname( __FILE__) .'/mysql_login.inc.local.php') ? 'mysql_login.inc.local.php' : 'mysql_login.inc.php') ;
+require_once __DIR__.'/config.inc.php';
 
 class Database
 {
-    private $host   = MYSQL_HOST;
-    private $user   = MYSQL_DBUSER;
-    private $pass   = MYSQL_DBPASS;
-    private $dbname = MYSQL_DBNAME;
-    
+    private $host   = $_ENV['MYSQL_HOST'];
+    private $user   = $_ENV['MYSQL_USER'];
+    private $pass   = $_ENV['MYSQL_PASSWORD'];
+    private $dbname = $_ENV['MYSQL_DATABASE'];
+
     private $dbh;
     private $error;
-    
+
     private $stmt;
-    
+
     public function __construct()
     {
         // Set DSN
@@ -32,12 +32,12 @@ class Database
             $this->error = $e->getMessage();
         }
     }
-    
+
     public function query($query)
     {
         $this->stmt = $this->dbh->prepare($query);
     }
-    
+
     public function bind($param, $value, $type = null)
     {
         if (is_null($type)) {
@@ -57,34 +57,34 @@ class Database
         }
         $this->stmt->bindValue($param, $value, $type);
     }
-    
+
     public function execute()
     {
         return $this->stmt->execute();
     }
-    
+
     public function resultset()
     {
         $this->execute();
         return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
     public function single()
     {
         $this->execute();
         return $this->stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     public function rowCount()
     {
         return $this->stmt->rowCount();
     }
-    
+
     public function lastInsertId()
     {
         return $this->dbh->lastInsertId();
     }
-    
+
     /**
      * Transactions allow multiple changes to a database all in one batch.
      */
@@ -92,17 +92,17 @@ class Database
     {
         return $this->dbh->beginTransaction();
     }
-     
+
     public function endTransaction()
     {
         return $this->dbh->commit();
     }
-    
+
     public function cancelTransaction()
     {
         return $this->dbh->rollBack();
     }
-    
+
     public function debugDumpParams()
     {
         return $this->stmt->debugDumpParams();

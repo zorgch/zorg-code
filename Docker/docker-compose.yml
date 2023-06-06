@@ -10,8 +10,8 @@ services:
         restart: unless-stopped
         environment:
             - APACHE_DOCUMENT_ROOT=${APACHE_WEBROOT:-/var/www}
-            #- APACHE_RUN_USER=${APACHE_USER:-www-data} Causes issues with Session-Handling in /tmp
-            #- APACHE_RUN_GROUP=${APACHE_GROUP:-www-data} And causes issues with reading from ../.git
+            #- APACHE_RUN_USER=${APACHE_USER:-www-data} # Causes issues with Session-Handling in /tmp
+            #- APACHE_RUN_GROUP=${APACHE_GROUP:-www-data} # And causes issues with reading from ../.git
         hostname: webserver
         domainname: ${DOMAINNAME}
         networks:
@@ -31,7 +31,10 @@ services:
             - ./Docker/ssl:/etc/apache2/ssl
             - ./Docker/apache2/000-default.conf:/etc/apache2/sites-available/000-default.conf
             - ./Docker/apache2/ssl-default.conf:/etc/apache2/sites-available/default-ssl.conf
-            - web-root-git-sync:${APACHE_WEBROOT:?err}/.git:nocopy
+            - ./Docker/sendmail/msmtprc:/etc/apache2/sites-available/default-ssl.conf
+            - ./.env:${APACHE_WEBROOT:?err}/.env
+            - ./.git:${APACHE_WEBROOT:?err}/.git
+            #- web-root-git-sync:${APACHE_WEBROOT:?err}/.git:nocopy
             - ./cron:${APACHE_WEBROOT:?err}/cron
             - ./data:${APACHE_WEBROOT:?err}/data
             #- web-root-data-sync:${APACHE_WEBROOT:?err}/data:nocopy Issue with modified Files not being synced
@@ -45,7 +48,6 @@ services:
         entrypoint: ["/bin/sh","-c"]
         command:
             - |
-                echo "Mutex posixsem" >> /etc/apache2/apache2.conf
                 a2enmod ssl
                 a2ensite default-ssl
                 a2enmod rewrite
@@ -55,8 +57,8 @@ services:
                    https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions && \
                 chmod +x /usr/local/bin/install-php-extensions && \
                 install-php-extensions mysqli pdo_mysql xdebug gd exif
-                apt-get -y update && apt-get -y install git
-                service apache2 restart
+                apt-get -y update && apt-get -y install git msmtp mailutils
+                grep -Fx -q 'Mutex posixsem' /etc/apache2/apache2.conf || echo 'Mutex posixsem' >> /etc/apache2/apache2.conf
                 exec /usr/sbin/apache2ctl -D FOREGROUND
                # Additional install-php-extensions: intl, mbstring, gettext, curl, json, zip, exif
 
@@ -70,8 +72,8 @@ services:
             - MYSQL_ALLOW_EMPTY_PASSWORD=yes
             - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD:-dbpass}
             - MYSQL_DATABASE=${MYSQL_DATABASE?-zooomclan}
-            #- MYSQL_USER=${MYSQL_USER:-dbuser}
-            #- MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+            #- MYSQL_USER=${MYSQL_USER-dbuser}
+            #- MYSQL_PASSWORD=${MYSQL_PASSWORD-root}
             #- MYSQL_ROOT_HOST="%" # in some scenarios this revokes Host IP connection restrictions
         networks:
             - frontend
@@ -80,7 +82,7 @@ services:
         expose:
             - 3306
         healthcheck:
-            test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
+            test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER-root} --password='${MYSQL_PASSWORD-root}' --silent --execute "SELECT 1;"
             interval: 10s
             timeout: 3s
             retries: 5
@@ -99,21 +101,21 @@ services:
         environment:
             - PMA_ARBITRARY=1
             #- PMA_HOST=db
-            #- MYSQL_USER={MYSQL_USER:-root} # phpMyAdmin connects using the MySQL credentials env
-            #- MYSQL_PASSWORD=${MYSQL_PASSWORD:-root} # phpMyAdmin connects using the MySQL credentials env
+            #- MYSQL_USER={MYSQL_USER-root} # phpMyAdmin connects using the MySQL credentials env
+            #- MYSQL_PASSWORD=${MYSQL_PASSWORD-root} # phpMyAdmin connects using the MySQL credentials env
         networks:
             - frontend
         ports:
             - ${PHPMYADMIN_PORT:-8080}:80
 
 volumes:
-    web-root-git-sync:
-        external: true
-    web-root-data-sync:
-        external: true
+    #web-root-git-sync:
+        #external: true
+    #web-root-data-sync:
+        #external: true
+    #web-root-www-sync:
+        #external: true
     web-root-vendor-sync:
-        external: true
-    web-root-www-sync:
         external: true
     db-mysql-sync:
         external: true

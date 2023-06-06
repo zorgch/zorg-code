@@ -31,7 +31,7 @@ function smartyresource_comments_get_timestamp($tpl_name, &$tpl_timestamp, &$sma
 
 /**
  * tpl resource - get secure
- * sicherheit des templates $tpl_name überprüfen
+ * sicherheit des templates $tpl_name Ã¼berprÃ¼fen
  *
  * @author [z]biko
  * @version 1.0
@@ -50,7 +50,7 @@ function smartyresource_comments_get_secure($tpl_name, &$smarty_obj) {
  * @since 1.0 function added
  */
 function smartyresource_comments_get_trusted($tpl_name, &$smarty_obj) {
-  // elmatrichüd!
+  // elmatrichÃ¼d!
 }
 
 /**
@@ -80,7 +80,7 @@ function smartyresource_comments_get_thread ($id, $board) {
  *
  * BOARD - ID  z.B. comments:b-123
  * -> holt thread 123 aus dem board b
- * boards können mit dem einzelnen character (aus table) angegeben werden.
+ * boards kÃ¶nnen mit dem einzelnen character (aus table) angegeben werden.
  *
  * @author [z]biko
  * @version 2.1

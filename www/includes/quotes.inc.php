@@ -145,15 +145,26 @@ class Quotes
 		return $db->num($result, __FILE__, __LINE__, __METHOD__);
 	}
 
+	/**
+	 * Check if Quote ID is Daily Quote
+	 *
+	 * @author [z]milamber
+	 * @author IneX
+	 * @version 2.0
+	 * @since 1.0 method added
+	 * @since 2.0 `05.06.2023` `IneX` Removed date=NOW() comparison (not returning a result)
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @param int Quote ID to check
+	 * @return bool True/False
+	 */
 	static function isDailyQuote($id) {
 		global $db;
 
-		$sql =	"SELECT * FROM periodic
-				WHERE date = NOW() AND name = 'daily_quote'";
-
+		$sql =	'SELECT id FROM periodic WHERE date = NOW() AND name = "daily_quote"';
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 
-		return $rs['id'] == $id;
+		return (int)$rs['id'] === (int)$id;
 	}
 
 	/**
@@ -162,10 +173,11 @@ class Quotes
 	 *
 	 * @author [z]milamber
 	 * @author IneX
-	 * @version 2.1
+	 * @version 3.0
 	 * @since 1.0
 	 * @since 2.0 added Telegram Notification for new Daily Quote
 	 * @since 2.1 changed to new Telegram Send-Method
+	 * @since 3.0 `05.06.2023` `IneX` optimized and reduced SQL-query, code refactored
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -175,28 +187,24 @@ class Quotes
 		global $db, $user, $telegram;
 
 		try {
-			// anzahl quotes ermitteln
-			$result = $db->query("SELECT * FROM quotes", __FILE__, __LINE__, __METHOD__);
-			$count = $db->num($result);
+			/** Alle Quotes holen */
+			$quotes = $db->query('SELECT id, COALESCE((SELECT AVG(score) FROM quotes_votes WHERE quote_id=quotes.id GROUP BY quote_id), 0) score, text, user_id
+								  FROM quotes GROUP BY id ORDER BY RAND()', __FILE__, __LINE__, __METHOD__);
 
-			// zufaellige quote-id holen
+			/** Zufällige Quote ID auswählen */
+			$count = $db->num($quotes); // Anzahl Quotes
+			if ($count <= 0) throw new Exception('No Quotes found');
 			$id = rand(0, $count-1); // Zufalls #
 			$id = rand($id, $count-1); // die besten bevorzugen.
 
-			// Quote fetchen
-			$sql = "
-				SELECT quotes.id, avg( score ) score, quotes.text, quotes.user_id
-				FROM `quotes`
-				LEFT JOIN quotes_votes ON ( quote_id = quotes.id )
-				GROUP BY quotes.id
-				ORDER BY score ASC
-				LIMIT ".$id.", 1
-			";
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-			$rs = $db->fetch($result);
+			/** Ausgewählten Quote fetchen */
+			$select_quote = $db->seek($quotes, $id);
+			$rs = $db->fetch($quotes);
 
-			// Quote in die daily tabelle tun
-			$sql = "REPLACE INTO periodic (name, id, date) VALUES ('daily_quote', ".$rs['id'].", NOW())";
+			if (!$rs || count($rs) === 0) throw new Exception('Quote data not fetched');
+
+			/** Quote in die daily tabelle tun */
+			$sql = 'REPLACE INTO periodic (name, id, date) VALUES ("daily_quote", '.$rs['id'].', NOW())';
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 			/** Send new Daily Quote as Telegram Message */
@@ -205,6 +213,7 @@ class Quotes
 			return true;
 		}
 		catch (Exception $e) {
+			if (DEVELOPMENT === true) echo $e->getMessage();
 			user_error($e->getMessage(), E_USER_ERROR);
 
 			return false;

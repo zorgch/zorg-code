@@ -275,7 +275,7 @@ class Notification
 				$empfaengerName = $user->id2user($to_user_id, TRUE);
 				$senderName = $user->id2user($from_user_id, TRUE);
 
-				$header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
+				$header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, SENDMAIL_EMAIL, phpversion() ]);
 
 				$subject = sprintf('=?UTF-8?Q?%s?=', quoted_printable_encode(remove_html(t('email-notification-subject', 'messagesystem', [ $senderName, SITE_HOSTNAME ]), ENT_DISALLOWED, 'UTF-8')));
 

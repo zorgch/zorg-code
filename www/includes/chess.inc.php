@@ -19,26 +19,26 @@ define('CHESS_DWZ_MAX_POINTS_TRANSFERABLE', 32);
 class Chess {
 	function new_game ($white, $black=0) {
 		global $db, $user;
-		
+
 		if (!$black) $black = $user->id;
-		
+
 		$e = $db->query("SELECT * FROM user WHERE id='$white'", __FILE__, __LINE__);
 		$d = $db->fetch($e);
 		if ($d['chess'] && $user->id) {
 			$db->query("UPDATE user SET chess='1' WHERE id='$user->id'", __FILE__, __LINE__);
 			return $db->query(
-				"INSERT INTO chess_games (start_date, white, black, next_turn) 
-				VALUES (NOW(), $white, $black, $white)", 
+				"INSERT INTO chess_games (start_date, white, black, next_turn)
+				VALUES (NOW(), $white, $black, $white)",
 				__FILE__, __LINE__
 			);
 		}else{
 			return 0;
 		}
 	}
-	
+
 	function do_move ($game, $player, $from, $to) {
 		global $db;
-		
+
 		// move notation
 		// rochaden
 		$roch_p = $player=='w' ? 1 : 8;
@@ -46,21 +46,21 @@ class Chess {
 		elseif ($from == 'e'.$roch_p && $to == 'c'.$roch_p) $move = 'o-o-o';
 		// standard move
 		else $move = "$from-$to";
-		
+
 		$e = $db->query("SELECT * FROM chess_games WHERE id='$game'", __FILE__, __LINE__);
 		$g = $db->fetch($e);
-		
+
 		// move
 		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr DESC LIMIT 0, 1", __FILE__, __LINE__);
 		$d = $db->fetch($e);
 		$board = $this->get_board($game);
-		
-		if ($g['state'] == 'running' && $g[$player=='w'?'white':'black']==$g['next_turn'] 
+
+		if ($g['state'] == 'running' && $g[$player=='w'?'white':'black']==$g['next_turn']
 			&& $this->is_move_valid($board, $player, $move, $d[$player=='w' ? 'black' : 'white'])
 		) {
 			$board = $this->move($board, $player, $move);
 			$move = $board['move'];
-			
+
 			// update db
 			if ($player == 'w') {
 				$nr = $db->fetch($db->query("SELECT count(*) anz FROM chess_history WHERE game=$game", __FILE__, __LINE__));
@@ -72,7 +72,7 @@ class Chess {
 			// set lastturn and nextturn
 			$other = $player=='w' ? $g['black'] : $g['white'];
 			$db->query("UPDATE chess_games SET last_turn=NOW(), next_turn=$other WHERE id=$game", __FILE__, __LINE__);
-						
+
 			// set state if game finished
 			if ($move[strlen($move)-1] == '#') {
 				$winner = $player=='w' ? $g['white'] : $g['black'];
@@ -82,22 +82,22 @@ class Chess {
 				$db->query("UPDATE chess_games SET state='patt' WHERE id=$game", __FILE__, __LINE__);
 				$this->update_dwz($game);
 			}
-			
+
 			return true;
 		}else{
 			return false;
-		}		
+		}
 	}
-	
+
 	function do_offer_remis ($game) {
 		global $db;
-		
+
 		$db->query("UPDATE chess_games SET offering_remis='1' WHERE id=$game", __FILE__, __LINE__);
 	}
-	
+
 	function do_remis ($game) {
 		global $db;
-		
+
 		$db->query("UPDATE chess_games SET state='remis' WHERE id=$game", __FILE__, __LINE__);
 		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr DESC LIMIT 0,1", __FILE__, __LINE__);
 		$d = $db->fetch($e);
@@ -108,20 +108,20 @@ class Chess {
 		}
 		$this->update_dwz($game);
 	}
-	
+
 	function aufgabe ($game) {
 		global $user, $db;
 
 // TODO: aufgabe testen
 // TODO: aufgabe testen bei 1. zug
-		
+
 		$e = $db->query(
 			"SELECT g.*, count(h.nr) no_turns
 			FROM chess_games g
 			LEFT JOIN chess_history h ON h.game = g.id
 			WHERE g.id='$game' AND g.next_turn='$user->id' AND g.state='running'
 			GROUP BY g.id
-			LIMIT 0, 1", 
+			LIMIT 0, 1",
 			__FILE__, __LINE__
 		);
 		$g = $db->fetch($e);
@@ -135,16 +135,16 @@ class Chess {
 			user_error("Invalid game '$game'", E_USER_ERROR);
 		}
 	}
-	
+
 	function deny_remis ($game) {
 		global $db;
-		
+
 		$db->query("UPDATE chess_games SET offering_remis='0' WHERE id='$game'", __FILE__, __LINE__);
 	}
 
 	function get_board ($game) {
 		global $db;
-		
+
 		$board = array(
 			'a' => array('', 'wR', 'wP', '-', '-', '-', '-', 'bP', 'bR'),
 			'b' => array('', 'wN', 'wP', '-', '-', '-', '-', 'bP', 'bN'),
@@ -158,8 +158,8 @@ class Chess {
 			'taken' => array('w'=>array(), 'b'=>array()),
 			'history' => array()
 		);
-		
-		
+
+
 		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr ASC", __FILE__, __LINE__);
 		while ($d = $db->fetch($e)) {
 			$board = $this->move($board, 'w', $d['white'], 1);
@@ -168,14 +168,14 @@ class Chess {
 			$board = $this->move($board, 'b', $d['black'], 1);
 			$figure = substr($this->figure($board, substr($d['black'], 3, 2)), 1, 1);
 			if ($d['black'][0] != 'o' && $figure!='P') $d['black'] = $figure.$d['black'];
-			
+
 			$d['nr']++;
 			$board['history'][] = $d;
 		}
-		
+
 		return $board;
 	}
-	
+
 	function move ($board, $player, $move, $no_move_apply=0) {
 		// rochaden
 		if ($player=='w') $roch_p = 1; else $roch_p = 8;
@@ -192,7 +192,7 @@ class Chess {
 			$board['d'][$roch_p] = $player.'R';
 			$board['roch'][$player.'L'] = $board['roch'][$player.'G'] = 0;
 		}else{
-			if ($player=='w' && $move[1]==7 && $move[4]==8 
+			if ($player=='w' && $move[1]==7 && $move[4]==8
 				|| $player=='b' && $move[1]==2 && $move[4]==1
 			) {
 				// Pawn to Queen
@@ -205,19 +205,19 @@ class Chess {
 					array_push($board['taken'][$dst_figure[0]], $dst_figure);
 					if (!$no_move_apply) $move = substr($move,0,2).'x'.substr($move,3,2);
 				}
-				
+
 				// standard move
 				$board[$move[3]][$move[4]] = $board[$move[0]][$move[1]];
-				
-				// verbiete künftige rochade
-				if (in_array(substr($move, 0, 2), array('e1', 'e8'))) 
+
+				// verbiete kÃ¼nftige rochade
+				if (in_array(substr($move, 0, 2), array('e1', 'e8')))
 					$board['roch'][$player.'L'] = $board['roch'][$player.'G'] = 0;
 				if (in_array(substr($move, 0, 2), array('a1', 'a8'))) $board['roch'][$player.'G'] = 0;
 				if (in_array(substr($move, 0, 2), array('h1', 'h8'))) $board['roch'][$player.'L'] = 0;
 			}
 			$board[$move[0]][$move[1]] = '-';
 		}
-		
+
 		// apply check or checkmate to move-string
 		if (!$no_move_apply) {
 			$other = $player=='w' ? 'b' : 'w';
@@ -229,13 +229,13 @@ class Chess {
 				$move .= '=';
 			}
 		}
-		
+
 		$board['move'] = $move;
-		
+
 		return $board;
 	}
-	
-	function is_move_valid ($board, $player, $move, $prev_move) {		
+
+	function is_move_valid ($board, $player, $move, $prev_move) {
 		// rochaden
 		if ($player == 'w') $roch_p = 1; else $roch_p = 8;
 		if ($move == 'o-o') {
@@ -251,14 +251,14 @@ class Chess {
 		}
 		return false;
 	}
-	
+
 	function possible_moves ($board, $player, $pos, $prev_move='', $no_check_check=0) {
 		$x = substr($pos, 0, 1);
 		$y = substr($pos, 1, 1);
 		$figure = $board[$x][$y][1];
-		
+
 		$ret = array();
-		
+
 		if (!$board[$x][$y] || $board[$x][$y] == '-') {
 			// no figure on posistion
 			return array();
@@ -279,12 +279,12 @@ class Chess {
 					// schlagen rechts + en passant
 					$p = $this->inc_y($this->inc_x($pos));
 					$pass_mv = $this->inc_y($p).'-'.$this->dec_y($p);
-					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv))
 						array_push($ret, $p);
 					// schlagen links + en passant
 					$p = $this->inc_y($this->dec_x($pos));
 					$pass_mv = $this->inc_y($p).'-'.$this->dec_y($p);
-					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv))
 						array_push($ret, $p);
 				}else{
 					// standard
@@ -296,12 +296,12 @@ class Chess {
 					// schlagen rechts + en passant
 					$p = $this->dec_y($this->inc_x($pos));
 					$pass_mv = $this->dec_y($p).'-'.$this->inc_y($p);
-					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv))
 						array_push($ret, $p);
 					// schlagen links + en passant
 					$p = $this->dec_y($this->dec_x($pos));
 					$pass_mv = $this->dec_y($p).'-'.$this->inc_y($p);
-					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv)) 
+					if ($p && ($this->player($board, $p)==$other_player || !$this->player($board, $p) && $prev_move==$pass_mv))
 						array_push($ret, $p);
 				}
 			}
@@ -362,28 +362,28 @@ class Chess {
 			if ($figure == 'N') {
 				// knight
 				$p = $this->inc_y($this->dec_x($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->dec_x($this->inc_y($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->inc_x($this->inc_y($pos, 2));
 				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->inc_y($this->inc_x($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->dec_y($this->inc_x($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->inc_x($this->dec_y($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->dec_x($this->dec_y($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 				$p = $this->dec_y($this->dec_x($pos, 2));
-				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player)) 
+				if ($p && (!$this->figure($board, $p) || $this->player($board, $p)!=$player))
 					array_push($ret, $p);
 			}
 
@@ -419,27 +419,27 @@ class Chess {
 					array_push($ret, $p);
 				$p = $this->inc_y($p);
 				$tboard = $this->move($board, $player, "$pos-$p", 1);
-				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p))) 
+				if ($p && $this->player($board, $p)!=$player && ($no_check_check || !$this->is_check($tboard, $player, $p)))
 					array_push($ret, $p);
-					
+
 				// kleine rochade
 				$p = $this->inc_x($pos, 2);
 				$tboard = $this->move($board, $player, 'o-o', 1);
-				if ($board['roch'][$player.'L'] 
-					&& !$this->figure($board, $p) && !$this->figure($board, $this->inc_x($pos)) 
+				if ($board['roch'][$player.'L']
+					&& !$this->figure($board, $p) && !$this->figure($board, $this->inc_x($pos))
 					&& ($no_check_check || !$this->is_check($tboard, $player, $p))
 				) array_push($ret, $p);
-				
+
 				// grosse rochade
 				$p = $this->dec_x($pos, 2);
 				$tboard = $this->move($board, $player, 'o-o-o', 1);
-				if ($board['roch'][$player.'G'] 
-					&& !$this->figure($board, $p) && !$this->figure($board, $this->dec_x($pos)) && !$this->figure($board, $this->dec_x($pos, 2)) 
+				if ($board['roch'][$player.'G']
+					&& !$this->figure($board, $p) && !$this->figure($board, $this->dec_x($pos)) && !$this->figure($board, $this->dec_x($pos, 2))
 					&& ($no_check_check || !$this->is_check($tboard, $player, $p))
 				) array_push($ret, $p);
 			}
-			
-			
+
+
 			// remove moves where player is checked after move
 			$playerking = $this->position_of($board, $player.'K');
 			$rem_one = false;
@@ -458,11 +458,11 @@ class Chess {
 					if ($t[$i]) array_push($ret, $t[$i]);
 				}
 			}
-			
-			return $ret;				
+
+			return $ret;
 		}
 	}
-	
+
 	function is_check ($board, $player, $pos) {
 		$other = $player=='w' ? 'b' : 'w';
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
@@ -474,9 +474,9 @@ class Chess {
 		}
 		return false;
 	}
-	
+
 	function is_checkmate ($board, $player, $pos) {
-		
+
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=0; $j<=8; $j++) {
 				if ($this->player($board, chr($i).$j) == $player) {
@@ -492,7 +492,7 @@ class Chess {
 		if (!$this->is_check($board, $player, $this->position_of($board, $player.'K'))) return false;
 		return true;
 	}
-	
+
 	function is_patt ($board, $player) {
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=1; $j<=8; $j++) {
@@ -503,18 +503,18 @@ class Chess {
 		}
 		return true;
 	}
-	
+
 	function figure ($board, $pos) {
 		if (strlen($pos) !=2 ) return '';
 		elseif ($board[$pos[0]][$pos[1]] == '-') return '';
 		else return $board[$pos[0]][$pos[1]];
 	}
-	
+
 	function player ($board, $pos) {
 		if (strlen($pos) != 2) return '';
 		else return $board[$pos[0]][$pos[1]][0];
 	}
-	
+
 	function position_of ($board, $figure) {
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
 			for ($j=1; $j<=8; $j++) {
@@ -523,7 +523,7 @@ class Chess {
 		}
 		return '';
 	}
-	
+
 	function own_positions ($board, $player) {
 		$ret = array();
 		for ($i=ord('a'); $i<=ord('h'); $i++) {
@@ -533,77 +533,77 @@ class Chess {
 		}
 		return $ret;
 	}
-	
+
 	function inc_x ($pos, $anz=1) {
 		if (!$pos) return 0;
 		if (!$anz) return $pos;
-		
+
 		$row = ord(substr($pos, 0, 1)) + 1;
 		if ($row > ord('h')) return false;
 		else return $this->inc_x(chr($row).substr($pos, 1, 1), $anz-1);
 	}
-	
+
 	function dec_x ($pos, $anz=1) {
 		if (!$pos) return 0;
 		if (!$anz) return $pos;
-		
+
 		$row = ord(substr($pos, 0, 1)) - 1;
 		if ($row < ord('a')) return false;
 		else return $this->dec_x(chr($row).substr($pos, 1, 1), $anz-1);
 	}
-	
+
 	function inc_y ($pos, $anz=1) {
 		if (!$pos) return false;
 		if (!$anz) return $pos;
-		
+
 		$row = substr($pos, 1, 1) + 1;
 		if ($row > 8) return false;
 		else return $this->inc_y(substr($pos, 0, 1).$row, $anz-1);
 	}
-	
+
 	function dec_y ($pos, $anz=1) {
 		if (!$pos) return false;
 		if (!$anz) return $pos;
-		
+
 		$row = substr($pos, 1, 1) - 1;
 		if ($row < 1) return false;
 		else return $this->dec_y(substr($pos, 0, 1).$row, $anz-1);
 	}
-	
+
 	function is_valid_position ($pos) {
 		if (strlen($pos) != 2) return false;
 		if (chr($pos[0]) < chr('a') || chr($pos[0]) > chr('h')) return false;
 		if ($pos[1] < 1 || $pos[1] > 8) return fals;
 		return true;
 	}
-	
-	function simplify_board ($board) {		
+
+	function simplify_board ($board) {
 		$b = array();
 		for ($i=0; $i<8; $i++) $b[] = array();
-		
+
 		for ($i=ord('a'), $n=0; $i<=ord('h'); $i++, $n++) {
 			for ($j=1, $m=7; $j<=8; $j++, $m--) {
 				$b[$m][$n] = $board[chr($i)][$j];
 			}
 		}
 
-		return $b;			
+		return $b;
 	}
-	
+
 	function update_dwz ($game) {
 	   global $db;
-	   	
+
 	   $prev_score_2 = $prev_score_1 = CHESS_DWZ_BASE_POINTS;
-	   
+
 	   $e = $db->query("SELECT * FROM chess_games WHERE id=$game AND state!='running'", __FILE__, __LINE__);
 	   $d = $db->fetch($e);
 	   if (!$d) user_error("Invalid Chess Game-ID", E_USER_ERROR);
-	   
+
 	   if ($d['winner'] == $d['white']) $p1 = 1;
 	   elseif ($d['winner'] == $d['black']) $p1 = 0;
 	   else $p1 = 0.5;
 	   $p2 = 1 - $p1;
-	   
+
 	   $e = $db->query("SELECT * FROM chess_dwz WHERE user=$d[white]", __FILE__, __LINE__);
 	   $d1 = $db->fetch($e);
 	   if ($d1) {
@@ -618,24 +618,24 @@ class Chess {
 	   	$prev_score_2 = $dwz2;
 	   }
 	   else $dwz2 = CHESS_DWZ_BASE_POINTS;
-	   
+
 	   $prob1 = 1 / (pow(10, (($dwz2 - $dwz1) / 400)) + 1) ;
 	   $prob2 = 1 / (pow(10, (($dwz1 - $dwz2) / 400)) + 1) ;
-	   
+
 	   $dif1 = round (CHESS_DWZ_MAX_POINTS_TRANSFERABLE * ($p1 - $prob1));
 	   $dif2 = round (CHESS_DWZ_MAX_POINTS_TRANSFERABLE * ($p2 - $prob2));
-	   
+
 	   $dwz1 += $dif1;
 	   $dwz2 += $dif2;
-	   
+
 	   if ($d1) $db->query("UPDATE chess_dwz SET score=$dwz1, prev_score=$prev_score_1 WHERE user=$d[white]", __FILE__, __LINE__);
 	   else $db->query("INSERT INTO chess_dwz (user, score, prev_score) VALUES ($d[white], $dwz1, $prev_score_1)", __FILE__, __LINE__);
 	   if ($d2) $db->query("UPDATE chess_dwz SET score=$dwz2, prev_score=$prev_score_2 WHERE user=$d[black]", __FILE__, __LINE__);
 	   else $db->query("INSERT INTO chess_dwz (user, score, prev_score) VALUES ($d[black], $dwz2, $prev_score_2)", __FILE__, __LINE__);
-	   
-	   // dwz_dif für game
+
+	   // dwz_dif fÃ¼r game
 	   $db->query("UPDATE chess_games SET dwz_dif=".abs($dif1)." WHERE id=$game AND state!='running'", __FILE__, __LINE__);
-	   
+
 	   // rank update
 	   $e = $db->query("SELECT * FROM chess_dwz ORDER BY score DESC", __FILE__, __LINE__);
 	   $i = 1;
@@ -645,35 +645,35 @@ class Chess {
 	   	if ($upd['score'] != $prev_score) {
 	   		$rank = $i;
 	   	}
-	   	
+
 	   	if ($upd['user'] == $d['white'] || $upd['user'] == $d['black']) {
 	   		$prev_rank = ", prev_rank=$upd[rank]";
 	   	}else{
 	   		$prev_rank = "";
 	   	}
-	   	
+
 	   	$db->query("UPDATE chess_dwz SET rank=$rank $prev_rank WHERE user=$upd[user]", __FILE__, __LINE__);
-	   	
+
 	   	$prev_score = $upd[score];
 	   	++$i;
 	   }
 	}
-	
+
 	function running_games () {
 		global $db, $user;
-		
+
 		$e = $db->query("SELECT count(*) anz FROM chess_games WHERE next_turn='$user->id'", __FILE__, __LINE__);
 		$d = $db->fetch($e);
 		return $d['anz'];
 	}
-	
+
 	function my_games () {
 		global $db, $user;
-		
+
 		if (!$user->id) return array();
-		
+
 		$e = $db->query(
-			"SELECT IF(g.white='$user->id', b.username, w.username) player, IF(g.next_turn='$user->id', 1, 0) my_turn, 
+			"SELECT IF(g.white='$user->id', b.username, w.username) player, IF(g.next_turn='$user->id', 1, 0) my_turn,
 			concat('/?tpl=141&game=', g.id) link
 			FROM chess_games g, user b, user w
 			WHERE (g.black='$user->id' OR g.white='$user->id') AND b.id=g.black AND w.id=g.white
@@ -686,16 +686,16 @@ class Chess {
 		}
 		return $my_games;
 	}
-	
+
 	function positions () {
 		$ret = array();
 		for ($i=0; $i<8; $i++) $ret[] = array();
-		
+
 		for ($i=0; $i<=7; $i++) {
 			for ($j=0; $j<=7; $j++) {
 				$ret[$j][$i] = chr($i+ord('a')).(8-$j);
 			}
 		}
-		return $ret;				
+		return $ret;
 	}
 }

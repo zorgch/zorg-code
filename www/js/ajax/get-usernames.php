@@ -6,7 +6,6 @@
 /**
  * AJAX Request validation
  */
-//if(!isset($_POST['action']) || empty($_POST['action']) || $_POST['action'] != 'userlist')
 if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] !== 'userlist')
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
@@ -17,8 +16,8 @@ $usernameMention = filter_var(trim($_GET['mention']), FILTER_SANITIZE_STRING);
 /**
  * FILE INCLUDES
  */
-//require_once dirname(__FILE__).'/../../includes/config.inc.php'; // OBSOLETE
-require_once dirname(__FILE__).'/../../includes/mysql.inc.php';
+require_once __DIR__.'/../../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Get records from database

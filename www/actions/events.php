@@ -4,12 +4,15 @@
  *
  * @package zorg\Events
  */
+
 /**
  * File includes
+ * @include config.inc.php
  * @include main.inc.php Includes the Main Zorg Configs and Methods
  * @include events.inc.php Includes the Event Class and Methods
  */
-require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'/../includes/main.inc.php';
 require_once INCLUDES_DIR.'events.inc.php';
 
 /** Validate $_GET & $_POST variables */
@@ -133,18 +136,20 @@ switch (true)
 
 		/**
 		 * Load Twitter Class & Grab the Twitter API Keys
+		 *
 		 * @include twitter.class.php Include Twitter API PHP-Class and Methods
-		 * @include twitterapis_key.inc.php Include an Array containing valid Twitter API Keys
 		 * @see Twitter::send()
 		 */
 		require_once INCLUDES_DIR.'twitter-php/twitter.class.php';
-		$twitterApiKeysFile = APIKEYS_DIR.'/twitter/twitterapis_key.inc.php';
-		if (file_exists($twitterApiKeysFile))
+		$twitterApiKey = ['key' => $_ENV['TWITTER_API_KEY']
+						 ,'secret' => $_ENV['TWITTER_API_SECRET']
+						 ,'token' => $_ENV['TWITTER_API_TOKEN']
+						 ,'tokensecret' => $_ENV['TWITTER_API_TOKENSECRET']
+						 ,'callback' => $_ENV['TWITTER_API_CALLBACK_URL']
+						];
+		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Twitter API Keys found: %s', __FILE__, __LINE__, print_r($twitterApiKey, true)));
+		if (!empty($twitterApiKey['key']) && !empty($twitterApiKey['secret']) && !empty($twitterApiKey['token']) && !empty($twitterApiKey['tokensecret']))
 		{
-			$twitterApiKeys = require_once $twitterApiKeysFile;
-			$twitterApiKey = (DEVELOPMENT ? $twitterApiKeys['DEVELOPMENT'] : $twitterApiKeys['PRODUCTION']);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Twitter API Keys found: %s', __FILE__, __LINE__, print_r($twitterApiKeys, true)));
-
 			/** Instantiate new Twitter Class */
 			try {
 				$twitter = new Twitter($twitterApiKey['key'], $twitterApiKey['secret'], $twitterApiKey['token'], $twitterApiKey['tokensecret']);

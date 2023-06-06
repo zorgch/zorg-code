@@ -25,13 +25,18 @@
 	<link rel="icon" type="image/png" href="/images/favicons/favicon-96x96.png" sizes="96x96">
 	<link rel="icon" type="image/png" href="/images/favicons/android-chrome-192x192.png" sizes="192x192">
 	<link rel="stylesheet" href="/css/mobilez/mobilez.css">
-	<script src="/js/mobilez/jquery-1.10.1.min.js"></script>{*<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>*}
+	<script src="/js/mobilez/jquery-1.12.4.min.js"></script>{*<script src="//code.jquery.com/jquery-3.7.0.min.js"></script>*}
 	<script src="/js/mobilez/jquery.mobile-1.4.5.min.js"></script>
 	<script src="/js/mobilez/date-format.js"></script>
 	<script src="/js/mobilez/dropzone.jquery.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?v=3"></script>
 	<script src="/js/mobilez/browsernotifications.js"></script>*}
 	<script>{literal}
+	// Workaround Potential XSS vulnerability in jQuery
+	// https://github.com/zorgch/zorg-code/security/dependabot/3
+	jQuery.htmlPrefilter = function( html ) {
+		return html;
+	};
 	$(document).bind("pageinit", function(){
 		$("div[id*='popup']").on("popupafteropen", function(event, ui) {
 	    	$(".ui-content.background").addClass("blur-filter");

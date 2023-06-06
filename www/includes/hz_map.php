@@ -16,24 +16,24 @@ if (!empty($mapid))
 	$d = $db->fetch($e);
 	if ($d) {
 		$im = draw_map_base($d['width'], $d['height']);
-		
+
 		$e = $db->query(
-				"SELECT *, 
-				CASE type 
-				WHEN 'ubahn' THEN 1 
+				"SELECT *,
+				CASE type
+				WHEN 'ubahn' THEN 1
 				WHEN 'bus' THEN 2
 				WHEN 'taxi' THEN 3
 				WHEN 'black' THEN 4
 				END AS typesort
-				FROM hz_routes 
+				FROM hz_routes
 				WHERE map=".$d['id']."
 				ORDER BY typesort ASC", __FILE__, __LINE__);
 		while ($r = $db->fetch($e)) {
 			draw_route(
-				$im, 
-				$r['type'], 
-				station_pos($d['id'], $r['start']), 
-				station_pos($d['id'], $r['end']), 
+				$im,
+				$r['type'],
+				station_pos($d['id'], $r['start']),
+				station_pos($d['id'], $r['end']),
 				transit_string2array($r['transit'], $d['id'])
 			);
 		}

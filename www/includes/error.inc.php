@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__).'/main.inc.php';
+require_once dirname(__FILE__).'/config.inc.php';
 
 /** Query errors Table for all open errors (status = 1) */
 $sql = $db->fetch($db->query('SELECT count(*) as num_errors FROM sql_error WHERE status = 1', __FILE__, __LINE__, 'SELECT num_errors'));
@@ -8,26 +8,36 @@ $num_errors = $sql['num_errors'];
 /**
  * Get all SQL-Error Entries from the database
  *
- * @version 1.1
+ * @version 1.2
  * @since 1.0 function added
  * @since 1.1 `17.04.2020` `IneX` SQL Slow-Query optimization
+ * @since 1.2 `05.06.2023` `IneX` Code optimisations, removed user.last_ip in SQL query (deprecated since zorgch/zorg-code#54)
  */
-function get_sql_errors($num=23,$order=3,$oby=0) {
+function get_sql_errors($num=23,$order=3,$oby=0)
+{
 	global $db, $num_errors;
-	if($num_errors > 0) {
+
+	/** Sanitize and validate $_GET Parameters */
+	if (isset($_GET['o'])) $orderby_col = (int)strip_tags(filter_var(trim($_GET['o']), FILTER_SANITIZE_NUMBER_INT));
+	if (isset($_GET['id'])) $error_id = (int)strip_tags(filter_var(trim($_GET['id']), FILTER_SANITIZE_NUMBER_INT));
+	if (isset($_GET['tpl'])) $tpl_id = (int)strip_tags(filter_var(trim($_GET['tpl']), FILTER_SANITIZE_NUMBER_INT));
+	if (isset($_GET['query'])) $query = (string)strip_tags(filter_var(trim($_GET['query']), FILTER_SANITIZE_STRING));
+
+	if(isset($num_errors) && $num_errors > 0)
+	{
 		if(!isset($_SESSION['error_order'])) {
 			$_SESSION['error_num'] = $num;
 			$_SESSION['error_order'] = $order;
 			$_SESSION['error_oby'] = $oby;
 		}
 
-		if($_GET['o']) {
-			if($_SESSION['error_order'] == $_GET['o']) {
+		if(isset($orderby_col) && $orderby_col>0) {
+			if($_SESSION['error_order'] == $orderby_col)
+			{
 				$_SESSION['error_oby'] = 1 ? $_SESSION['error_oby'] == 0 : 0;
-				$_SESSION['error_order'] = $_GET['o'];
-
+				$_SESSION['error_order'] = $orderby_col;
 			} else {
-				$_SESSION['error_order'] = $_GET['o'];
+				$_SESSION['error_order'] = $orderby_col;
 			}
 		}
 
@@ -35,7 +45,6 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 		$by = array('DESC','ASC');
 		$sql = 'SELECT
 					COALESCE(u.username,"ausgeloggt") AS username,
-					COALESCE(u.last_ip,"ausgeloggt") AS host,
 					s.page,
 					s.file,
 					s.line,
@@ -67,7 +76,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 				WHERE 1 = 1';
 		$result = $db->query($sql,__FILE__,__LINE__);
 		$html = '';
-		if(!$_GET['id'])
+		if(isset($error_id) && $error_id>0)
 		{
 			$html .= "
 			<script language='javascript'>
@@ -76,26 +85,26 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 			document.error_form.elements[i].checked = !document.error_form.elements[i].checked;
 			}
 			</script>
-			<form action='/actions/error_action.php?tpl=$_GET[tpl]' name='error_form' method='post'>";
+			<form action='/actions/error_action.php?tpl=".$tpl_id."&id=".$error_id."' name='error_form' method='post'>";
 		}
 
 		$html .= "
 		<table class='border'>
 			<tr>
-				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=1'>User</a></b></td>
-				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=2'>Page</a></b></td>
-				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=5'>Referrer</a></b></td>
-				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=3'>File</a></b></td>
+				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=1'>User</a></b></td>
+				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=2'>Page</a></b></td>
+				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=5'>Referrer</a></b></td>
+				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=3'>File</a></b></td>
 				<td align='center' class='hide-mobile'><b><b>Line</b></td>
 				<td align='center'><b>SQL</b></td>
-				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$_GET['tpl']."&o=4'>Datum</a></b></td>
+				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=4'>Datum</a></b></td>
 			";
-			if(!$_GET['id']) $html .= '<td align="right" class="hide-mobile"><b>del</b></td>';
+			if(isset($error_id) && $error_id>0) $html .= '<td align="right" class="hide-mobile"><b>del</b></td>';
 
 		$html .= "</tr>";
 		$i = 0;
-		while($rs = $db->fetch($result)) {
-
+		while($rs = $db->fetch($result))
+		{
 			if(($i % 2) == 0) {
 				$add = " bgcolor=".TABLEBACKGROUNDCOLOR." ";
 			} else {
@@ -111,35 +120,35 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 					<td align="left" class="hide-mobile"><small>'.substr(str_replace('http://'.$_SERVER['SERVER_NAME'],'', $rs['referrer']),0,23).'...</small></td>
 					<td align="left" class="hide-mobile"><small>'.str_replace($_SERVER['DOCUMENT_ROOT'],'',$rs['file']).'</small></td>
 					<td align="left" class="hide-mobile"><small>'.$rs['line'].'</small></td>
-					<td align="left"><small><a href="'.$_SERVER['PHP_SELF'].'?tpl='.$_GET['tpl'].'&id='.$rs['id'].'">'.substr($rs['query'],0,23).'...</a></small></td>
+					<td align="left"><small><a href="'.$_SERVER['PHP_SELF'].'?tpl='.$tpl_id.'&id='.$rs['id'].'">'.substr($rs['query'],0,23).'...</a></small></td>
 					<td align="left"><small>'.datename($rs['datum']).'</small></td>';
 
-				if(!$_GET['id']) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';
+				if(isset($error_id) && $error_id>0) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';
 
 			$html .= '</tr>';
 
-			if($_GET['id'] == $rs['id']) {
-				if($_GET['query']) {
-					$result_chk = $db->query(stripslashes(base64url_decode($_GET['query'])));
+			if(isset($error_id) && $error_id == $rs['id']) {
+				if(isset($query)) {
+					$result_chk = $db->query(stripslashes(base64url_decode($query)));
 					if(!$result_chk) {
 						$check = mysqli_error($db->conn);
 					} else {
 						$check = "Keine Fehler: ".$db->num($result_chk)." Rows";
 					}
-					$rs['query'] = stripslashes(base64url_decode($_GET['query']));
+					$rs['query'] = stripslashes(base64url_decode($query));
 				}
 
 				$html .= "
 				<tr>
 					<td align='left' colspan='7'>
-				<form action='/actions/error_action.php?tpl=".$_GET['tpl']."&id=".$rs['id']."' method='post'>
+				<form action='/actions/error_action.php?tpl=".$tpl_id."&id=".$rs['id']."' method='post'>
 				<table class='border'>
 				<tr>
 					<td align='center' valign='top'><small>".$rs['msg']."</small></td>
 				</tr>
 				<tr>
 					<td align ='left'><small><b><textarea name='query' cols='130' rows='".(substr_count(nl2br($rs['query']),"<br />")+2)."'>".stripslashes(trim($rs['query']))."</textarea></b><br>";
-					if($_GET['query']) {
+					if(isset($query)) {
 						$html .= "<b>$check</b><br>";
 					}
 
@@ -171,7 +180,8 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 			}
 		}
 
-		if(!$_GET['id']) {
+		if(isset($error_id) && $error_id>0)
+		{
 			$html .= '
 			<tr>
 				<td align="left" colspan="2"><input type="text" name="num" class="text" size="5" value="'.$_SESSION['error_num'].'"><small> Anzahl Errors von <b>'.$num_errors.'</b></small></td>
@@ -182,7 +192,7 @@ function get_sql_errors($num=23,$order=3,$oby=0) {
 
 		$html .= '</tr></table>';
 
-		if(!$_GET['id']) { $html .= '</form>';}
+		if(isset($error_id) && $error_id>0) { $html .= '</form>';}
 
 	} else {
 		$html = '<b>Keine offenen SQL-Errors</b>';

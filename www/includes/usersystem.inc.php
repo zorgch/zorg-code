@@ -14,7 +14,7 @@
  * @include mysql.inc.php 		MySQL-DB Connection and Functions
  * @include	activities.inc.php	Activities Functions and Stream
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'activities.inc.php';
@@ -62,6 +62,7 @@ class usersystem
 	/**
 	 * Var to map User Fields
 	 */
+	var $field_userid = 'id';
 	var $field_activities_allow = 'activities_allow';
 	var $field_activity = 'activity';
 	var $field_addle = 'addle';
@@ -165,7 +166,7 @@ class usersystem
 		/**
 		 * User Session (re-)starten
 		 */
-		if (isset($_COOKIE[ZORG_COOKIE_SESSION]) && session_status() === PHP_SESSION_NONE)
+		if (session_status() === PHP_SESSION_NONE && isset($_COOKIE[ZORG_COOKIE_SESSION]))
 		{
 			/** Session init'en */
 			session_start();
@@ -174,10 +175,10 @@ class usersystem
 			/** $_SESSION[user_id] not yet available -> if not on forced Login / Logout try to Autologin */
 			if (!isset($_SESSION['user_id']) && !isset($_POST['username']) && !isset($_POST['logout']))
 			{
+				/** We got Cookies --> Autologin! */
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $_SESSION[user_id] missing & no login/logout...', __METHOD__, __LINE__));
 				if (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 				{
-					/** We got Cookies --> Autologin! */
 					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Autologin-Cookies existieren -> Login-Passthrough', __METHOD__, __LINE__));
 					$this->login($_COOKIE[ZORG_COOKIE_USERID]); // Do NOT send $_COOKIE[ZORG_COOKIE_USERPW] here - because it only contains the PW-Hash!
 				}
@@ -189,16 +190,16 @@ class usersystem
 		 * Wenn bereits usersystem::login() erfolgreich triggered wurde,
 		 * dann wurde nach session_start() die User-ID in die Session geschrieben
 		 */
-		if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) // empty() nur zur Sicherheit, falls user_id zwar gesetzt, aber dennoch leer ist
+		if (session_status() === PHP_SESSION_ACTIVE &&
+			isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && $_SESSION['user_id'] > 0)
 		{
 			/** Query User Infos in der DB */
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Session re-started inkl. $_SESSION[user_id]!', __METHOD__, __LINE__));
-			$sql = 'SELECT *,
-						 UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
-						 UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
-						 UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
-					FROM '.$this->table_name.'
-					WHERE id = '.$_SESSION['user_id'];
+			$sql = 'SELECT *'.
+						',UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.
+						',UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.
+						',UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.
+					' FROM '.$this->table_name.' WHERE id = '.$_SESSION['user_id'];
 			$result = $db->query($sql, __FILE__, __LINE__);
 			$rs = $db->fetch($result);
 
@@ -275,9 +276,8 @@ class usersystem
 				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
 				 */
 				$db->update($this->table_name, ['id', $this->id], [
-					$this->field_activity => timestamp(true),
-					//$this->field_last_ip => $_SERVER['REMOTE_ADDR'], // @DEPRECATED
-					$this->field_from_mobile => ($this->from_mobile === false ? '' : $this->from_mobile), // because 'ENUM'-fieldtype
+					 $this->field_activity => timestamp(true)
+					,$this->field_from_mobile => ($this->from_mobile === false ? '' : (string)$this->from_mobile), // because 'ENUM'-fieldtype
 				], __FILE__, __LINE__, __METHOD__);
 			}
 		}
@@ -369,18 +369,8 @@ class usersystem
 			if (isset($crypted_pw) && !empty($crypted_pw))
 			{
 				/** Erstell SQL-Query auf Basis User+Passworthash-Kombi */
-				$sql = sprintf('SELECT
-									 id,
-									 %1$s,
-									 UNIX_TIMESTAMP(%2$s) %2$s,
-									 UNIX_TIMESTAMP(%3$s) %3$s,
-									 UNIX_TIMESTAMP(%4$s) %4$s
-								FROM
-									 %5$s
-								WHERE
-									 %6$s = "%7$s"
-									 AND %8$s = "%9$s"
-								LIMIT 0,1',
+				$sql = sprintf('SELECT %10$s, %1$s, UNIX_TIMESTAMP(%2$s) %2$s, UNIX_TIMESTAMP(%3$s) %3$s, UNIX_TIMESTAMP(%4$s) %4$s FROM %5$s'.
+								' WHERE %6$s = "%7$s" AND %8$s = "%9$s" LIMIT 0,1',
 								$this->field_user_active,
 								$this->field_ausgesperrt_bis,
 								$this->field_currentlogin,
@@ -389,7 +379,8 @@ class usersystem
 								$this->field_username,
 								$username,
 								$this->field_userpw,
-								$crypted_pw
+								$crypted_pw,
+								$this->field_userid
 						);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->query($sql) => %s', __METHOD__, __LINE__, print_r($sql,true)));
 				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -423,13 +414,46 @@ class usersystem
 								 * @link http://php.net/manual/de/function.setcookie.php
 								 * @link http://php.net/manual/de/function.setcookie.php#73107
 								 */
-								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Enabling & setting Cookies. Use cookies: %s', __METHOD__, __LINE__, ($user_wants_cookies ? 'true' : 'false')));
-								if (session_status() === PHP_SESSION_NONE) session_set_cookie_params(['lifetime' => 60*60*24*7, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
-								setcookie(ZORG_COOKIE_SESSION, session_id(), ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
-								setcookie(ZORG_COOKIE_USERID, $username, ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
-								setcookie(ZORG_COOKIE_USERPW, $crypted_pw, ['expires' => ZORG_COOKIE_EXPIRATION, 'path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]);
-							} else {
-								/** No Cookies wanted - Session/Login will expire on Browser close */
+								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use cookies: %s | Session state: %d', __METHOD__, __LINE__, ($user_wants_cookies ? 'true --> enabling & setting Cookies' : 'false'), session_status()));
+								if (session_status() === PHP_SESSION_NONE)
+								{
+									session_set_cookie_params([
+										 'lifetime' => (isset($_ENV['COOKIE_EXPIRATION']) ? $_ENV['COOKIE_EXPIRATION'] : 60*60*24*7)
+										,'path' => ZORG_COOKIE_PATH
+										,'domain' => ZORG_COOKIE_DOMAIN
+										,'secure' => ZORG_COOKIE_SECURE
+										,'httponly' => COOKIE_HTTPONLY
+										,'samesite' => ZORG_COOKIE_SAMESITE
+									]);
+									setcookie(ZORG_COOKIE_SESSION, session_id(), [
+										 'expires' => ZORG_COOKIE_EXPIRATION
+										,'path' => ZORG_COOKIE_PATH
+										,'domain' => ZORG_COOKIE_DOMAIN
+										,'secure' => ZORG_COOKIE_SECURE
+										,'httponly' => COOKIE_HTTPONLY
+										,'samesite' => ZORG_COOKIE_SAMESITE
+									]);
+									setcookie(ZORG_COOKIE_USERID, $username, [
+										 'expires' => ZORG_COOKIE_EXPIRATION
+										 ,'path' => ZORG_COOKIE_PATH
+										 ,'domain' => ZORG_COOKIE_DOMAIN
+										 ,'secure' => ZORG_COOKIE_SECURE
+										 ,'httponly' => COOKIE_HTTPONLY
+										 ,'samesite' => ZORG_COOKIE_SAMESITE
+									 ]);
+									setcookie(ZORG_COOKIE_USERPW, $crypted_pw, [
+										 'expires' => ZORG_COOKIE_EXPIRATION
+										 ,'path' => ZORG_COOKIE_PATH
+										 ,'domain' => ZORG_COOKIE_DOMAIN
+										 ,'secure' => ZORG_COOKIE_SECURE
+										 ,'httponly' => COOKIE_HTTPONLY
+										 ,'samesite' => ZORG_COOKIE_SAMESITE
+									 ]);
+								}
+							}
+
+							/** No Cookies wanted - Session/Login will expire on Browser close */
+							else {
 								if (session_status() === PHP_SESSION_NONE) session_set_cookie_params(['path' => ZORG_COOKIE_PATH, 'domain' => ZORG_COOKIE_DOMAIN, 'secure' => ZORG_COOKIE_SECURE, 'httponly' => true, 'samesite' => ZORG_COOKIE_SAMESITE]); // DISABLED: 'lifetime' => ZORG_SESSION_LIFETIME,
 							}
 
@@ -592,20 +616,14 @@ class usersystem
 	 * @param boolean $zorg Zorg-Layout
 	 * @param boolean $zooomclan Zooomclan-Layout
 	 */
-	function set_page_style($user_id, $zorg=TRUE, $zooomclan=FALSE) {
+	function set_page_style($user_id, $zorg=TRUE, $zooomclan=FALSE)
+	{
 		global $db, $zorg, $zooomclan;
 
-		if ($zorg == true) {
-			$sql = "UPDATE ".$this->table_name."
-					set ".$this->field_zorger." = 1
-					WHERE id = '".$user_id."'";
-					$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		} elseif ($zooomclan == true) {
-			$sql = "UPDATE ".$this->table_name."
-					set ".$this->field_zorger." = 0
-					WHERE id = '".$user_id."'";
-					$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		}
+		if ($zorg == true) $sql = sprintf('UPDATE %s SET %s="%s" WHERE id=%d', $this->table_name, $this->field_zorger, "1", $user_id);
+		elseif ($zooomclan == true) $sql = sprintf('UPDATE %s SET %s="%s" WHERE id=%d', $this->table_name, $this->field_zorger, "0", $user_id);
+
+		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 	}
 
 	/**
@@ -623,7 +641,7 @@ class usersystem
 	 *
 	 * @uses usersystem::password_gen()
 	 * @uses usersystem::crypt_pw()
-	 * @uses ZORG_EMAIL
+	 * @uses SITE_HOSTNAME, SENDMAIL_EMAIL
 	 * @param string $email E-Mailadresse für deren User das PW geändert werden soll
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return string Error-Message
@@ -664,7 +682,7 @@ class usersystem
 				if ($result !== false)
 				{
 					/** 5. versende email mit neuem passwort */
-					$mail_header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, ZORG_EMAIL, phpversion() ]);
+					$mail_header = t('email-notification-header', 'messagesystem', [ SITE_HOSTNAME, SENDMAIL_EMAIL, phpversion() ]);
 					$mail_subject = sprintf('=?UTF-8?Q?%s?=', quoted_printable_encode(remove_html(t('message-newpass-subject', 'user'), ENT_DISALLOWED, 'UTF-8')));
 					$mail_body = t('message-newpass', 'user', [$rs['username'], $new_pass]);
 					$new_pass_mail_status = mail($email, $mail_subject, $mail_body, $mail_header);
@@ -699,8 +717,8 @@ class usersystem
 	 * @since 2.0 replaced messages with Translation-String solution t()
 	 * @since 3.0 `04.12.2018` removed IMAP-code, code & query optimizations
 	 *
-	 * @uses usersystem::crypt_pw()
-	 * @uses t()
+	 * @uses usersystem::crypt_pw(), t()
+	 * @uses SITE_URL, SENDMAIL_EMAIL
 	 * @param string $username Benutzername
 	 * @param string $pw Passwort
 	 * @param string $pw2 Passwortwiederholung
@@ -748,7 +766,7 @@ class usersystem
 							$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 							/** email versenden */
-							$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.ZORG_EMAIL."\n");
+							$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.SENDMAIL_EMAIL."\n");
 							if ($sendNewaccountConfirmation !== true)
 							{
 								error_log(sprintf('[NOTICE] <%s:%d> Account confirmation e-mail could NOT be sent', __FILE__, __LINE__));
@@ -2233,7 +2251,7 @@ if (isset($_POST['logout']))
  */
 if (isset($_POST['do']) && $_POST['do'] === 'login')
 {
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form)', 'LOGIN mit Login-Formular', __LINE__));
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form): %s', 'LOGIN mit Login-Formular', __LINE__, print_r($_POST, true)));
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
 		$login_username = (string)$_POST['username'];

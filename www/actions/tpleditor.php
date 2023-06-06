@@ -91,7 +91,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
 
-				/** Activity Eintrag auslösen */
+				/** Activity Eintrag auslÃ¶sen */
 				Activities::addActivity($user->id, 0, t('activity-newpage', 'tpl', [ $updated_tplid, $frm['title'] ]), 't');
 			}
 			/** Template has not been added */
@@ -227,7 +227,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		$frm['tpl'] = stripslashes(stripslashes($frm['tpl']));
 		$frm['title'] = stripslashes(stripslashes($frm['title']));
 		$frm['packages'] = stripslashes(stripslashes($frm['packages']));
-		/** @FIXME aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. ([z]biko) */
+		/** @FIXME aus irgend einem grund ist stripslashes() 2x nÃ¶tig. sonst wird nur ein teil der slashes entfernt. wÃ¼sste gern wieso. ([z]biko) */
 
 		/** Pass $error to error-log */
 		error_log($error);

@@ -6,6 +6,12 @@
  */
 
 /**
+ * FILE INCLUDES
+ * @include config.inc.php Required at top! (e.g. for ENV vars, and to validate 'nonce' in $_SESSION)
+ */
+require_once __DIR__.'/../../includes/config.inc.php';
+
+/**
  * AJAX Request validation
  */
 if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
@@ -28,7 +34,7 @@ switch ($onlineUserListstyle)
 {
 	case 'image':
 		/** Requires usersystem.inc.php */
-		require_once __DIR__.'/../../includes/usersystem.inc.php';
+		require_once INCLUDES_DIR.'usersystem.inc.php';
 		$onlineUserHtml = $user->online_users(true);
 
 		if (!empty($onlineUserHtml))
@@ -50,20 +56,24 @@ switch ($onlineUserListstyle)
 		 * checks for any online users (updating the corresponding frontend)
 		 */
 		/** Requires mysql.inc.php */
-		require_once dirname(__FILE__).'/../../includes/mysql.inc.php';
-		$sql = 'SELECT id, username, clan_tag FROM user WHERE activity > (NOW()-200) ORDER by activity DESC';
+		require_once INCLUDES_DIR.'mysql.inc.php';
+		$sql = 'SELECT id, username, clan_tag FROM user WHERE activity > (NOW()-'.USER_TIMEOUT.') ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM user');
 		/** Check if at least 1 user is online */
 		$num_online = (false !== $result && !empty($result) ? (int)$db->num($result) : 0);
 		if (false !== $num_online && !empty($num_online))
 		{
-			while ($rs = $db->fetch($result))
-			{
-				$onlineUsersArr[] = sprintf('<a href="/profil.php?user_id=%s">%s</a>', (string)$rs['id'], (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '').$rs['username']);
+			while ($rs = $db->fetch($result)) {
+				$onlineUser = [
+					 'id' => (string) $rs['id']
+					,'username' => (!empty($rs['clan_tag']) ? $rs['clan_tag'] : '') . $rs['username']
+				];
+				$onlineUsersArr[] = $onlineUser;
 			}
 			http_response_code(200); // Set response code 200 (OK)
-			header('Content-type: text/html; charset=utf-8');
-			exit(implode(', ', $onlineUsersArr));
+			header('Content-Type: application/json; charset=utf-8');
+			echo json_encode( ['data' => $onlineUsersArr] );
+			exit();
 		}
 		/** No logged-in user seems to be online... */
 		else {

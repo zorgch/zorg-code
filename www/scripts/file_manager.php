@@ -43,12 +43,12 @@ if ($_POST['formid'] == "filemanager") {
 				chmod(USERPATH.$filename, 0664);
 				$db->query("INSERT INTO files (user, upload_date, name, size, mime)
 					VALUES ($user->id, NOW(), '$filename', '".$_FILES['file']['size']."', '".$_FILES['file']['type']."')", __FILE__, __LINE__);
-				$state = "File hinzugefügt. <br />";
+				$state = "File hinzugefÃ¼gt. <br />";
 			}else{
 				$error = "Datei-Indizierung fehlgeschlagen. <br />";
 			}
 		}else{
-			$error = "Maximale Disc Quota überschritten. <br />";
+			$error = "Maximale Disc Quota Ã¼berschritten. <br />";
 		}
 	}else{
 		$error = "Datei-Upload fehlgeschlagen. <br />";
@@ -62,15 +62,15 @@ if ($_GET['fm_del']) {
 		if (file_exists(USERPATH.$d['name'])) {
 			if (unlink(USERPATH.$d['name'])) {
 				$db->query("DELETE FROM files WHERE id=$_GET[fm_del] AND user=$user->id", __FILE__, __LINE__);
-				$state = "File '$d[name]' gelöscht.<br />";
+				$state = "File '$d[name]' gelÃ¶scht.<br />";
 			}else{
-				$error = "File '$d[name]' konnte nicht gelöscht werden. <br />";
+				$error = "File '$d[name]' konnte nicht gelÃ¶scht werden. <br />";
 			}
 		}else{
 			$error = "File '$d[name]' existiert nicht. <br />";
 		}
 	}else{
-		$error = "File existiert nicht oder gehört einem anderen User. <br />";
+		$error = "File existiert nicht oder gehÃ¶rt einem anderen User. <br />";
 	}
 }
 

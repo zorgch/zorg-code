@@ -1,8 +1,10 @@
 <?php
 /**
- * zorg Verein Mailing Manager
+ * Gallery Maker and Pic Uploader
  *
- * @package zorg\Verein\Mailer
+ * @package zorg\Gallery\Gallery Maker
+*/
+
 /**
  * File includes
  * @include main.inc.php

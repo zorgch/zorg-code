@@ -5,28 +5,23 @@ options:
     verbose: true
 syncs:
 # sync_strategy: see https://docker-sync.readthedocs.io/en/latest/getting-started/configuration.html#sync-strategy
-    zorg-web-root-git-sync:
-        src: './.git'
-        sync_strategy: 'unison'
-        # sync_host_ip: 'auto'
-        # sync_host_port: 10872
-        sync_excludes: [ ]
-    zorg-web-root-data-sync:
-        src: './data'
-        sync_strategy: 'unison'
-        sync_excludes: [ ]
+    #zorg-web-root-git-sync:
+        #src: './.git'
+        #sync_strategy: 'unison'
+    #zorg-web-root-data-sync:
+        #src: './data'
+        #sync_strategy: 'unison'
+        #sync_excludes: [ ]
     zorg-web-root-vendor-sync:
         src: './vendor'
         sync_strategy: 'unison'
         # sync_host_ip: 'auto'
         # sync_host_port: 10873
         sync_excludes: [ ]
-    zorg-web-root-www-sync:
-        src: './www'
-        sync_strategy: 'unison'
-        # sync_host_ip: 'auto'
-        # sync_host_port: 10874
-        sync_excludes: [ ]
+    #zorg-web-root-www-sync:
+        #src: './www'
+        #sync_strategy: 'unison'
+        #sync_excludes: [ ]
     zorg-db-mysql-sync:
         src: './Docker/mysql57'
         sync_strategy: 'unison'

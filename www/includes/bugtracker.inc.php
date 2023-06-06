@@ -38,11 +38,12 @@ class Bugtracker
 	 *
 	 * @author [z]milamber
 	 * @author IneX
-	 * @version 3.1
+	 * @version 3.2
 	 * @since 1.0 `[z]milamber` function added
 	 * @since 2.0 `IneX` various code optimizations, I don't remember all of them
 	 * @since 3.0 `26.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
 	 * @since 3.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries
+	 * @since 3.2 `02.06.2023` `IneX` Fixes SQL Injection Risks (CWE-89), Open Redirect Risks (CWE-601)
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -53,8 +54,10 @@ class Bugtracker
 	{
 		global $db, $user, $notification;
 
+		$sanitizedReturnURL = parse_url(base64url_decode($_GET['url']), PHP_URL_PATH);
+
 		/** Add new Bug */
-		if(isset($_GET['action']) && $_GET['action'] === 'new')
+		if (isset($_GET['action']) && $_GET['action'] === 'new')
 		{
 			/** Validate & escape fields */
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
@@ -63,7 +66,7 @@ class Bugtracker
 			$bugDescription = ( !empty($_GET['description']) ? escape_text($_GET['description'], '<br>') : '' );
 
 			/** Add new Bug to DB */
-			$newBugId = $db->insert('bugtracker_bugs', [
+			$newBugId = (int)$db->insert('bugtracker_bugs', [
 											 'category_id' => $bugCategory
 											,'reporter_id' => $user->id
 											,'priority' => $bugPriority
@@ -87,40 +90,40 @@ class Bugtracker
 				}
 			}
 
-			header('Location: /bug/'.$newBugId);
+			header('Location: /bug/'.urlencode($newBugId));
 			exit;
 		}
 
 		/** Assign Bug */
-		elseif ( isset($_GET['action']) && $_GET['action'] === 'assign')
+		elseif (isset($_GET['action']) && $_GET['action'] === 'assign')
 		{
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 
 			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0) {
 				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			}
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
 		/** Bug klauen */
 		elseif (isset($_GET['action']) &&  $_GET['action'] === 'klauen')
 		{
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 
 			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0 OR $rs['assignedto_id'] > 0) {
 				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			}
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
 		/** Bug erneut öffnen */
 		elseif (isset($_GET['action']) && $_GET['action'] === 'reopen')
 		{
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NULL', 'denied_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
 
 			$rs = Bugtracker::getBugRS($bugId);
@@ -132,24 +135,24 @@ class Bugtracker
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
 		/** Bug wieder freigeben (unassign) */
 		elseif (isset($_GET['action']) && $_GET['action'] === 'resign')
 		{
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => 'NULL', 'assigned_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
 		/** Bug als gelöst markieren */
 		elseif (isset($_GET['action']) && $_GET['action'] === 'resolve')
 		{
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			$rs = Bugtracker::getBugRS($bugId);
 
@@ -164,7 +167,7 @@ class Bugtracker
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
@@ -172,7 +175,7 @@ class Bugtracker
 		elseif (isset($_GET['action']) && $_GET['action'] == 'edit')
 		{
 			/** Validate & escape fields */
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
 			$bugPriority = ( isset($_GET['priority']) && is_numeric($_GET['priority']) && $_GET['priority'] >= 0 ? $_GET['priority'] : user_error('Bugtracker: invalid Priority "' . $_GET['priority'] . '"', E_USER_WARNING) );
 			$bugTitle = ( isset($_GET['title']) && !empty($_GET['title']) ? sanitize_userinput($_GET['title']) : user_error('Bugtracker: invalid Title "' . $_GET['title'] . '"', E_USER_WARNING) );
@@ -188,14 +191,14 @@ class Bugtracker
 																,'code_commit' => $bugCommit
 															], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
 		/** Bug ablehnen */
 		elseif (isset($_GET['action']) && $_GET['action'] == 'deny')
 		{
-			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? $_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
+			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
 			$rs = Bugtracker::getBugRS($bugId);
 
@@ -210,7 +213,7 @@ class Bugtracker
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 
@@ -223,7 +226,7 @@ class Bugtracker
 			/** Add new Category to DB */
 			$newBugId = $db->insert('bugtracker_categories', [ 'title' => $categoryTitle ], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.base64url_decode($_GET['url']));
+			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
 		}
 	}
@@ -363,8 +366,9 @@ class Bugtracker
 	 * Return a Bug's DB-Recordset
 	 *
 	 * @author [z]milamber
-	 * @version 1.0
+	 * @version 1.1
 	 * @since 1.0 method added
+	 * @since 1.1 `02.06.2023` `IneX` Fixes SQL Injection (CWE-89)
 	 *
 	 * @param int $bug_id Bug-ID to fetch as record from DB
 	 * @return array
@@ -373,8 +377,8 @@ class Bugtracker
 	{
 		global $db;
 
-		$sql = 'SELECT * FROM bugtracker_bugs WHERE id ='.$bug_id;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT * FROM bugtracker_bugs WHERE id = ?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$bug_id]);
 		return $db->fetch($result);
 	}
 
@@ -606,14 +610,13 @@ class Bugtracker
 	{
 		global $db, $user;
 
-		if ($user->typ >= USER_MEMBER) {
-			$sql =
-					"SELECT count(*) as num FROM bugtracker_bugs"
-					." WHERE assignedto_id = ".$user->id
-					." AND resolved_date = 0 AND denied_date = 0"
-			;
-			$result = $db->query($sql, __FILE__, __LINE__);
-		  $rs = $db->fetch($result);
+		if ($user->typ >= USER_MEMBER)
+		{
+			$sql = 'SELECT count(*) as num FROM bugtracker_bugs
+					 WHERE assignedto_id = ?
+					 AND resolved_date = 0 AND denied_date = 0';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id]);
+			$rs = $db->fetch($result);
 
 			return $rs['num'];
 		}

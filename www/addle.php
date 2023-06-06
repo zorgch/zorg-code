@@ -18,7 +18,8 @@
  * @include addle.inc.php required
  * @include core.model.php required
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';
 require_once INCLUDES_DIR.'addle.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -841,10 +842,11 @@ function archiv() {
 if ($user->is_loggedin())
 {
 */
-	/** Validate GET-Parameters */
-	if (isset($_GET['id']) && !empty($_GET['id'])) $game_id = sanitize_userinput($_GET['id']);
+	/** Validate POST and GET-Parameters */
+	if (isset($_POST['id']) && !empty($_POST['id']) && $_POST['id'] > 0) $vs_user_id = (int)sanitize_userinput($_POST['id']);
+	if (isset($_GET['id']) && !empty($_GET['id'])) $game_id = (int)sanitize_userinput($_GET['id']);
 	if (isset($_GET['do']) && !empty($_GET['do'])) $addle_action = sanitize_userinput($_GET['do']);
-	if (isset($_GET['choose']) && !empty($_GET['choose'])) $addle_choose = sanitize_userinput($_GET['choose']);
+	if (isset($_GET['choose']) && is_numeric($_GET['choose'])) $addle_choose = (int)sanitize_userinput($_GET['choose']);
 	$show_page = (isset($_GET['show']) && !empty($_GET['show']) ? sanitize_userinput($_GET['show']) : 'overview');
 
 	/** Addle Actions */
@@ -852,7 +854,7 @@ if ($user->is_loggedin())
 	{
 		switch ($addle_action)
 		{
-			case 'new': newgame($_POST['id']); break;
+			case 'new': newgame($vs_user_id); break;
 			case 'play': doplay($game_id, $addle_choose); break;
 		}
 	}

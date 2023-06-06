@@ -7,7 +7,7 @@
 /**
  * @const NO_STRING_FOUND String for empty / not found references to be replaced
  */
-if (!defined('NO_STRING_FOUND')) define('NO_STRING_FOUND', 'Reference not found in String list');
+if (!defined('NO_STRING_FOUND')) define('NO_STRING_FOUND', (isset($_ENV['STRING_NOT_FOUND']) ? $_ENV['STRING_NOT_FOUND'] : null));
 
 /**
  * Import an Array with strings and make it globally available
@@ -53,11 +53,11 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	{
 		/** Check if any of the $values is empty */
 		foreach ($values as $key=>$value) {
-			if (empty($value)) error_log(sprintf('[WARN] strings.inc.php: Value %s for string "%s" was passed but is empty!', $key+1, $reference));
+			if (empty($value)) error_log(sprintf('[WARN] <%s:%d> Value %s for string "%s" was passed but is empty!', __FILE__, __LINE__, $key+1, $reference));
 		}
 		$values_count = count($values);
 	} elseif (isset($values) && $values == '') {
-		error_log('[WARN] strings.inc.php: a value was passed but it is empty!');
+		error_log(sprintf('[WARN] <%s:%d> A value was passed but it is empty!', __FILE__, __LINE__));
 	}
 
 
@@ -68,7 +68,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	{
 		/** Check if the number of $values matches the sprintf-placeholders */
 		$sprintf_count = substr_count($found_string, '%');
-		if ($values_count != $sprintf_count) error_log(sprintf('[NOTICE] strings.inc.php: possible mismatch between values (num: %d) & sprintf (num: %d) for string "%s"', $values_count, $sprintf_count, $found_string));
+		if ($values_count != $sprintf_count) error_log(sprintf('[NOTICE] <%s:%d> Possible mismatch between values (num: %d) & sprintf (num: %d) for string "%s"', __FILE__, __LINE__, $values_count, $sprintf_count, $found_string));
 
 		/**
 		 * Replace & return - or return only - a matched string
@@ -77,7 +77,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 		$string = ( !empty($values) && $values_count > 0 ? vsprintf($found_string, $values) : $found_string );
 	}
 	else {
-		$string = sprintf('[WARN] %s: %s in %s', NO_STRING_FOUND, $reference, $context);
+		$string = sprintf('[WARN] <%s:%d> %s: %s in %s', __FILE__, __LINE__, NO_STRING_FOUND, $reference, $context);
 		error_log($string);
 	}
 
@@ -123,19 +123,19 @@ function findReferenceInArray($context, $reference)
 				{
 					return $found_string;
 				} else {
-					error_log('[WARN] Reference text is empty or invalid');
+					error_log(sprintf('[WARN] <%s:%d> Reference text is empty or invalid', __FILE__, __LINE__));
 					return false;
 				}
 			} else {
-				error_log('[WARN] Reference not found in $strings: ' . $context);
+				error_log(sprintf('[WARN] <%s:%d> Reference not found in $strings: %s', __FILE__, __LINE__, $context));
 				return false;
 			}
 		} else {
-			error_log('[WARN] Topic not found in $strings: ' . $context);
+			error_log(sprintf('[WARN] <%s:%d> Topic not found in $strings: %s', __FILE__, __LINE__, $context));
 			return false;
 		}
 	}  else {
-		error_log('[WARN] Strings Array could not be loaded');
+		error_log(sprintf('[WARN] <%s:%d> Strings Array could not be loaded', __FILE__, __LINE__));
 		return false;
 	}
 }

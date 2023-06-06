@@ -6,80 +6,81 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';
 include_once INCLUDES_DIR.'util.inc.php';
 
 /** Hunting Z-Maps special Constants */
-define("MAPIMGPATH", PHP_IMAGES_DIR.'hz/');
-define("HZMAPS_DIR", FILES_DIR.'../hz_maps/');
+define("MAPIMGPATH", (isset($_ENV['HZ_MAPS_IMAGES_DIR']) ? $_ENV['HZ_MAPS_IMAGES_DIR'] : null));
+define("HZMAPS_DIR", (isset($_ENV['HZ_MAPS_DIR']) ? $_ENV['HZ_MAPS_DIR'] : null));
 
 
 function create_map ($mapfile, &$map_config, &$error, &$img_map) {
 	global $user, $map_stations, $map_routes;
-	$imgfile = HZMAPS_DIR.$user->id.'.gif';
-	
+	$imgfile = HZMAPS_DIR.$user->id.(isset($_ENV['HZ_MAPS_EXTENSION']) ? $_ENV['HZ_MAPS_EXTENSION'] : '.gif');
+
 	$cfg = read_config($mapfile);
 	if ($err = check_config ($cfg)) {
 		$error = $err;
 	}
-	
+
 	$im = draw_map_base($cfg['map']['width'], $cfg['map']['height']);
-	
-	foreach ($map_routes['ubahn'] as $it) 
+
+	foreach ($map_routes['ubahn'] as $it)
 		draw_route(
-			$im, 
-			"ubahn", 
-			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']), 
+			$im,
+			"ubahn",
+			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']),
 			array($map_stations[$it['end']]['x'], $map_stations[$it['end']]['y']),
 			$it['transit'],
 			$_GET['station_checker']
 		);
-	foreach ($map_routes['bus'] as $it) 
+	foreach ($map_routes['bus'] as $it)
 		draw_route(
-			$im, 
-			"bus", 
-			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']), 
+			$im,
+			"bus",
+			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']),
 			array($map_stations[$it['end']]['x'], $map_stations[$it['end']]['y']),
 			$it['transit'],
 			$_GET['station_checker']
 		);
-	foreach ($map_routes['taxi'] as $it) 
+	foreach ($map_routes['taxi'] as $it)
 		draw_route(
-			$im, 
-			"taxi", 
-			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']), 
+			$im,
+			"taxi",
+			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']),
 			array($map_stations[$it['end']]['x'], $map_stations[$it['end']]['y']),
 			$it['transit'],
 			$_GET['station_checker']
 		);
-		
+
 	foreach ($map_routes['black'] as $it)
 		draw_route(
-			$im, 
-			"black", 
-			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']), 
+			$im,
+			"black",
+			array($map_stations[$it['start']]['x'], $map_stations[$it['start']]['y']),
 			array($map_stations[$it['end']]['x'], $map_stations[$it['end']]['y']),
 			$it['transit'],
 			$_GET['station_checker']
 		);
-	
+
 	unset($_GET['station_checker']);
-		
+
 	foreach ($cfg['aims'] as $it) draw_aim($im, $map_stations[$it['station']]['x'], $map_stations[$it['station']]['y'], $it['score']);
 	$img_map;
-	
+
 	foreach ($cfg['stations'] as $it) {
 		draw_station($im, $it['id'], $it['x'], $it['y'], $it['bus'], $it['ubahn']);
-		
+
 		$img_map .= '<area shape="rect" coords="'.($it['x']-20).','
 	      .($it['y']-15).','.($it['x']+20).','.($it['y']+15).'" '.
 			'href="/?'.url_params().'&station_checker='.$it['id'].'" />'
 		;
 	}
-	
-	
+
+
 	$map_config = $cfg['map'];
-	
+
 	imagegif($im, $imgfile);
 	return $imgfile;
 }
@@ -87,7 +88,7 @@ function create_map ($mapfile, &$map_config, &$error, &$img_map) {
 
 function save_map ($mapfile) {
 	global $db, $user;
-	
+
 	$cfg = read_config($mapfile);
 	if ($err = check_config($cfg)) {
 		return $err;
@@ -119,9 +120,9 @@ function save_map ($mapfile) {
 
 function change_map_state ($map, $state) {
 	global $db, $user;
-	
+
 	if (!in_array($state, array("active", "inactive"))) user_error("Invalid map state '$state'", E_USER_ERROR);
-	
+
 	$e = $db->query("SELECT * FROM hz_maps WHERE id=$map", __FILE__, __LINE__);
 	$d = $db->fetch($e);
 	if ($d['user'] == $user->id) {
@@ -136,7 +137,7 @@ function change_map_state ($map, $state) {
 
 function station_pos ($map, $id) {
 	global $db;
-	
+
 	$e = $db->query("SELECT * FROM hz_stations WHERE map='$map' AND id='$id'", __FILE__, __LINE__);
 	$d = $db->fetch($e);
 	if ($d) {
@@ -163,16 +164,16 @@ function transit_string2array ($transit, $map) {
 			}
 		}
 	}
-	
+
 	return $ret;
 }
 
 function read_config ($mapfile) {
 	global $map_stations, $map_routes;
-	
+
 	if (!isset($map_stations)) $map_stations = array();
 	if (!isset($map_routes)) $map_routes = array("taxi"=>array(), "bus"=>array(), "ubahn"=>array(), "black"=>array());
-	
+
 	$ret = array("map"=>array(), "stations"=>array(), "routes"=>array(), "aims"=>array());
 	$section = "";
 	$config = file($mapfile);
@@ -200,7 +201,7 @@ function read_config ($mapfile) {
 					$entry['y'] = trim($_entry[2]);
 					$entry['ubahn'] = trim($_entry[3]);
 					$entry['bus'] = trim($_entry[4]);
-					
+
 					$ret['stations'][] = $entry;
 					$map_stations[$entry['id']] = $entry;
 				}
@@ -222,7 +223,7 @@ function read_config ($mapfile) {
 							$ent['transit'][] = trim($b[0]);
 						}
 					}
-					
+
 					$ret['routes'][] = $ent;
 					$map_routes[$ent['type']][] = $ent;
 					$map_stations[$ent['start']]["has_$ent[type]"] = 1;
@@ -242,12 +243,12 @@ function read_config ($mapfile) {
 
 function check_config ($cfg) {
 	global $db, $map_stations;
-	
+
 	if (!$cfg['map']['name']) return "Missing 'name' in section [MAP]";
 	$e = $db->query("SELECT * FROM hz_maps WHERE name='".$cfg['map']['name']."'", __FILE__, __LINE__);
 	$d = $db->fetch($e);
 	if ($d) return ("Es gibt schon eine Map mit diesem Namen. Bitte einen anderen Namen wählen.");
-	
+
 	if (!$cfg['map']['width']) return "Missing 'width' in section [MAP]";
 	if (!is_numeric($cfg['map']['width']) || $cfg['map']['width']>5000 || $cfg['map']['width']<200) return "'width' in section [Map] must be between 200 and 5000.";
 	if (!$cfg['map']['height']) return "Missing 'height' in section [MAP]";
@@ -258,9 +259,9 @@ function check_config ($cfg) {
 	foreach ($cfg['map'] as $key=>$val) {
 		if (!in_array($key, $valid_map_keys)) return "Invalid option '$key' in section [MAP].";
 	}
-	
+
 	$station_ids = array();
-	
+
 	foreach ($map_stations as $it) {
 		if (!is_numeric($it['id']) || $it['id']<1 || $it['id']>999) return "Invalid Station id: '$it[id]' (must be between 1 and 999)";
 		if (in_array($it['id'], $station_ids)) return "Dublicate Station id: $it[id]";
@@ -273,16 +274,16 @@ function check_config ($cfg) {
 		if ($it['bus'] && !$it['has_bus']) return "Station $it[id]: Bus Route required.";
 		if ($it['ubahn'] && !$it['has_ubahn']) return "Station $it[id]: Underground Route required.";
 	}
-	
+
 	foreach ($cfg['routes'] as $it) {
 		if (!$map_stations[$it['start']]['id']) return "$it[type]-Route $it[start] - $it[end]: Start Station doesn't exist.";
-		if ($it['type'] != "taxi" && $it['type'] != "black" && !$map_stations[$it['start']][$it['type']]) 
+		if ($it['type'] != "taxi" && $it['type'] != "black" && !$map_stations[$it['start']][$it['type']])
 			return "$it[type]-Route $it[start] - $it[end]: Start Station doesn't support $it[type]-Routes.";
 		if (!$map_stations[$it['end']]['id']) return "$it[type]-Route $it[start] - $it[end]: End Station doesn't exist.";
-		if ($it['type'] != "taxi" && $it['type'] != "black" && !$map_stations[$it['end']][$it['type']]) 
+		if ($it['type'] != "taxi" && $it['type'] != "black" && !$map_stations[$it['end']][$it['type']])
 			return "$it[type]-Route $it[start] - $it[end]: End Station doesn't support $it[type]-Routes.";
 		if ($it['start'] == $it['end']) return "$it[type]-Route $it[start] - $it[end]: Start and End Station must not be the same.";
-		foreach ($it['transit'] as $tr) {				
+		foreach ($it['transit'] as $tr) {
 			if (is_array($tr)) {
 				if (!is_numeric($tr[0]) || $tr[0]<1 || $tr[0]>5000) return "$it[type]-Route $it[start] - $it[end]: Points (x) must be between 1 and 5000).";
 				if (!is_numeric($tr[1]) || $tr[1]<1 || $tr[1]>5000) return "$it[type]-Route $it[start] - $it[end]: Points (y) must be between 1 and 5000).";
@@ -292,7 +293,7 @@ function check_config ($cfg) {
 			}
 		}
 	}
-	
+
 	$aim_ids = array();
 	foreach ($cfg['aims'] as $it) {
 		if (in_array($it['station'], $aim_ids)) return "Duplicate aims on station '$it[station]'.";
@@ -300,37 +301,37 @@ function check_config ($cfg) {
 		if ($it['score'] < 1 || $it['score'] > 999) return "Aim on station '$it[station]': Invalid score (must be between 1 and 999).";
 		$aim_ids[] = $it['station'];
 	}
-	
+
 	return 0;
 }
 
 function draw_map_base ($x, $y) {
 	$im = @ImageCreate ($x,$y);
 	if (!$im) return array("error"=>__LINE__);
-	
+
 	$bg = htmlcolor2array(HZ_BG_COLOR);
-	$background_color = ImageColorAllocate ($im, $bg['r'], $bg['g'], $bg['b']);		
-	
+	$background_color = ImageColorAllocate ($im, $bg['r'], $bg['g'], $bg['b']);
+
 	define("COLOR_TAXI", imagecolorallocate($im, 255,255,0));
 	define("COLOR_UBAHN", imagecolorallocate($im, 255,0,0));
 	define("COLOR_BUS", imagecolorallocate($im, 0,200,0));
 	define("COLOR_BLACK", imagecolorallocate($im, 0,0,0));
 	define("COLOR_BORDER", imagecolorallocate($im, 0,0,0));
 	define("COLOR_TEXT", imagecolorallocate($im, 0,0,0));
-	
+
 	define("STATION_TAXI", imagecreatefromgif(MAPIMGPATH."station_taxi.gif"));
 	define("STATION_TAXI_BUS", imagecreatefromgif(MAPIMGPATH."station_taxi_bus.gif"));
 	define("STATION_UBAHN_TAXI", imagecreatefromgif(MAPIMGPATH."station_ubahn_taxi.gif"));
 	define("STATION_UBAHN_TAXI_BUS", imagecreatefromgif(MAPIMGPATH."station_ubahn_taxi_bus.gif"));
-	
+
 	define("ROUTE_UBAHN", imagecreatefromgif(MAPIMGPATH."route_ubahn.gif"));
 	define("ROUTE_BUS", imagecreatefromgif(MAPIMGPATH."route_bus.gif"));
 	define("ROUTE_TAXI", imagecreatefromgif(MAPIMGPATH."route_taxi.gif"));
 	define("ROUTE_BLACK", imagecreatefromgif(MAPIMGPATH."route_black.gif"));
-	
+
 	define("AIM", imagecreatefromgif(MAPIMGPATH."aim.gif"));
 	define("AIM_CAUGHT", imagecreatefromgif(MAPIMGPATH."aim_caught.gif"));
-	
+
 	define("PLAYER_1", imagecreatefromgif(MAPIMGPATH."player_1.gif"));
 	define("PLAYER_2", imagecreatefromgif(MAPIMGPATH."player_2.gif"));
 	define("PLAYER_3", imagecreatefromgif(MAPIMGPATH."player_3.gif"));
@@ -342,24 +343,24 @@ function draw_map_base ($x, $y) {
 	define("PLAYER_Z", imagecreatefromgif(MAPIMGPATH."player_z.gif"));
 	define("PLAYER_Z_SEEN", imagecreatefromgif(MAPIMGPATH."player_z_seen.gif"));
 	define("PLAYER_ME", imagecreatefromgif(MAPIMGPATH."player_me.gif"));
-	
+
 	define("SENTINEL", imagecreatefromgif(MAPIMGPATH."sentinel.gif"));
-	
+
 	imagerectangle($im, 0, 0, $x-1, $y-1, COLOR_BORDER);
-	
+
 	return $im;
 }
 
-function draw_station (&$im, $id, $x, $y, $bus, $ubahn) {		
+function draw_station (&$im, $id, $x, $y, $bus, $ubahn) {
 	if ($bus && $ubahn) $type = STATION_UBAHN_TAXI_BUS;
 	elseif ($bus) $type = STATION_TAXI_BUS;
 	elseif ($ubahn) $type = STATION_UBAHN_TAXI;
 	else $type = STATION_TAXI;
-	
+
 	if (floor($id / 100)) $str_x = $x-10;		// 3-stellig
 	elseif (floor($id / 10)) $str_x = $x-6;	// 2-stellig
 	else $str_x = $x-2;								// 1-stellig
-	
+
 	imagecopy($im, $type, $x-15,$y-10, 0,0, 30, 20);
 	ImageString ($im, 3, $str_x,$y-7, $id, COLOR_TEXT);
 }
@@ -367,11 +368,11 @@ function draw_station (&$im, $id, $x, $y, $bus, $ubahn) {
 function draw_aim (&$im, $x, $y, $score, $not_caught = true) {
 	if ($not_caught) $pic = AIM;
 	else $pic = AIM_CAUGHT;
-	
+
 	if (floor($score / 100)) $str_x = $x-8;		// 3-stellig
 	elseif (floor($score / 10)) $str_x = $x-5;	// 2-stellig
 	else $str_x = $x-2;								// 1-stellig
-	
+
 	imagecopy($im, $pic, $x-20, $y-25, 0,0, 40,40);
 	imagestring($im, 2, $str_x, $y-23, $score, COLOR_TEXT);
 }
@@ -389,7 +390,7 @@ function draw_player (&$im, $x, $y, $type) {
 		case 'z': $pic = PLAYER_Z; break;
 		default: user_error("Invalid player type '$type'", E_USER_ERROR);
 	}
-	
+
 	imagecopy($im, $pic, $x+5, $y-23, 0, 0, 30,40);
 }
 
@@ -400,7 +401,7 @@ function draw_player_me (&$im, $x, $y) {
 function draw_z_seen (&$im, $x, $y, $final=0) {
 	if ($final) $pic = PLAYER_Z;
 	else $pic = PLAYER_Z_SEEN;
-	
+
 	imagecopy($im, $pic, $x-35, $y-23, 0,0, 30,40);
 }
 
@@ -411,21 +412,21 @@ function draw_sentinel (&$im, $x, $y) {
 
 function draw_route (&$im, $type, $start, $end, $transit = array(), $station_checker=0) {
 	global $map_stations, $map_routes;
-	
+
 	if ($station_checker) {
 		$s = $station_checker;
 		$station_checker = array($map_stations[$s]['x'], $map_stations[$s]['y']);
 	}
-	
+
 	if ($station_checker && ($start==$station_checker || $end==$station_checker) || !$station_checker) {
 		switch ($type) {
-			case "ubahn": 
+			case "ubahn":
 				imagesetbrush($im, ROUTE_UBAHN);
 				break;
-			case "bus": 
+			case "bus":
 				imagesetbrush($im, ROUTE_BUS);
 				break;
-			case "taxi": 
+			case "taxi":
 				imagesetbrush($im, ROUTE_TAXI);
 				break;
 			case "black":
@@ -433,7 +434,7 @@ function draw_route (&$im, $type, $start, $end, $transit = array(), $station_che
 				break;
 			default: user_error("Invalid route type", E_USER_ERROR);
 		}
-		
+
 		for ($i=0; $i<sizeof($transit); $i++) {
 			if (!is_array($transit[$i])) {
 				$station = $map_stations[$transit[$i]];
@@ -442,7 +443,7 @@ function draw_route (&$im, $type, $start, $end, $transit = array(), $station_che
 				$transit[$i][1] = $station['y'];
 			}
 		}
-		
+
 		if (sizeof($transit)) {
 			imageline($im, $start[0], $start[1], $transit[0][0], $transit[0][1], IMG_COLOR_BRUSHED);
 			for ($i=0; $i<sizeof($transit)-1; $i++) {

@@ -13,7 +13,7 @@ Image Functions
  * @param int $dest_h int Height
 */
 function thumbnail($img,$dest,$dest_w,$dest_h) {
-	
+
 	$img_src = imagecreatefromjpeg($img);
 	$img_dest = imagecreate($dest_h,$dest_w);
 	imagecopyresized($img_dest,$img_src,0,0,0,0,$dest_h,$dest_w,imagesx($img_src),imagesy($img_src));
@@ -27,7 +27,7 @@ MISC
 =================================================================================*/
 
 /**
- * Gibt die Korrekte Breite (Seitenverhältnis) eines Bildes zurück
+ * Gibt die Korrekte Breite (SeitenverhÃ¤ltnis) eines Bildes zurÃ¼ck
  *
  * @return int
  * @param $string filename string Filename
@@ -38,13 +38,13 @@ function getthumbnailheight ($filename, $targetwidth) {
    $targetheight = $targetwidth * ($size[0] / $size[1]);
    return $targetheight;
 }
-         
+
 /**
- * Gibt die Korrekte Höhe (Seitenverhältnis) eines Bildes zurück
+ * Gibt die Korrekte HÃ¶he (SeitenverhÃ¤ltnis) eines Bildes zurÃ¼ck
  *
  * @return int
  * @param string $filename string Filename
- * @param int $targetheight int Zielhöhe
+ * @param int $targetheight int ZielhÃ¶he
  */
 function getthumbnailwidth ($filename, $targetheight) {
    $size = getimagesize($filename);

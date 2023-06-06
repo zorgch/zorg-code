@@ -45,7 +45,7 @@ if ($user->is_loggedin())
 		if ($game_id > 0)
 		{
 			/** Action */
-			if($_GET['shoot']) $stl->shoot();
+			if($_GET['shoot']) $stl->shoot(); // FIXME PHP Notice:  Undefined index: shoot in /srv/zorg.ch/www/public/stl.php on line 48
 
 			/** Layout */
 			//printStlPageHeader();
