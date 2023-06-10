@@ -19,27 +19,21 @@
 /**
  * File includes
  * @include main.inc.php 		Main Functions
- * @include activities.inc.php 	(DEPRECATED) Activities Functions and Stream
- * @include messagesystem.inc.php (DEPRECATED) Messagesystem einbinden für Funktionen die Benachrichtigungen absetzen
- * @include usersystem.inc.php 	(DEPRECATED) Usersystem einbinden für alle Benutzerbezogenen Funktionen (z.B. UserID -> Username umwandeln)
- * @include util.inc.php		(DEPRECATED) Utilities einbinden für Handling diverser Spezialfunktionen (z.B. URLs erzeugen)
- * @include forum.inc.php		(DEPRECATED) Forum einbinden für Handling der Commenting Funktionalität einzelner Hunting z Spiele
- * @include strings.inc.php		(DEPRECATED) Strings die im Zorg Code benutzt werden
  */
 require_once dirname(__FILE__).'/main.inc.php';
 
 /**
- * @const IMGPATH			Pfad zu den Bildern fürs Hunting Z
- * @const MAX_HZ_GAMES		In sovielen Hz-Spielen kann ein Spieler maximal gleichzeitig teilnehmen
- * @const TURN_TIME			So lange haben Spieler Zeit für ihren Spielzug
- * @const TURN_COUNT		Nach so vielen Zügen gibts neues Geld
- * @const TURN_ADD_MONEY	So viel Geld gibts nach TURN_COUNT Spielzügen
+ * @const URLPATH_HZ_IMAGES	Pfad zu den Bildern fürs Hunting Z
+ * @const HZ_MAX_GAMES		In sovielen Hz-Spielen kann ein Spieler maximal gleichzeitig teilnehmen
+ * @const HZ_TURN_TIME		So lange haben Spieler Zeit für ihren Spielzug
+ * @const HZ_TURN_COUNT		Nach so vielen Zügen gibts neues Geld
+ * @const HZ_TURN_ADD_MONEY	So viel Geld gibts nach TURN_COUNT Spielzügen
  */
-define('IMGPATH', '/images/hz/');
-define('MAX_HZ_GAMES', 5);
-define('TURN_TIME', 60*60*24*3);
-define('TURN_COUNT', 4);
-define('TURN_ADD_MONEY', 10);
+if (!defined('URLPATH_HZ_IMAGES')) define('URLPATH_HZ_IMAGES', (isset($_ENV['URLPATH_HZ_IMAGES']) ? $_ENV['URLPATH_HZ_IMAGES'] : null));
+if (!defined('HZ_MAX_GAMES')) define('HZ_MAX_GAMES', (isset($_ENV['HZ_MAX_GAMES']) ? (int)$_ENV['HZ_MAX_GAMES'] : 5));
+if (!defined('HZ_TURN_TIME')) define('HZ_TURN_TIME', (isset($_ENV['HZ_TURN_TIME']) ? (int)$_ENV['HZ_TURN_TIME'] : 60*60*24*3));
+if (!defined('HZ_TURN_COUNT')) define('HZ_TURN_COUNT', (isset($_ENV['HZ_TURN_COUNT']) ? (int)$_ENV['HZ_TURN_COUNT'] : 4));
+if (!defined('HZ_TURN_ADD_MONEY')) define('HZ_TURN_ADD_MONEY', (isset($_ENV['HZ_TURN_ADD_MONEY']) ? (int)$_ENV['HZ_TURN_ADD_MONEY'] : 10));
 
 /**
  * Hunting z Spiel löschen
@@ -93,7 +87,7 @@ function start_new_game ($map) {
 	));
 
 	/** too many games open already */
-	if (isset($own_games['anz']) && $own_games['anz'] >= MAX_HZ_GAMES) {
+	if (isset($own_games['anz']) && $own_games['anz'] >= HZ_MAX_GAMES) {
 		user_error(t('error-game-max-limit-reached'), E_USER_ERROR);
 	}
 	/** user can still open new games */
@@ -406,7 +400,7 @@ function hz_turn_passing()
 					 JOIN hz_players p
 					  ON p.game=g.id
 					 WHERE g.state="running"
-					  AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(g.turndate) > '.TURN_TIME.'
+					  AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(g.turndate) > '.HZ_TURN_TIME.'
 					  AND if(g.nextturn="z" && p.type="z"
 						OR g.nextturn="players" && p.type!="z" && p.turndone="0", "1", "0") = "1"',
 					__FILE__, __LINE__, __FUNCTION__);
@@ -495,12 +489,12 @@ function turn_finalize ($game, $uid=null)
 		elseif ($d['nextturn'] === 'players' && $d['totalplayers'] === $turndone['num'] && $d['finished'] === 'false')
 		{
 			$query = $db->query('UPDATE hz_games SET
-								 round=(round+1), nextturn="z", turndate=NOW(), turncount=(turncount+1)%'.TURN_COUNT.'
+								 round=(round+1), nextturn="z", turndate=NOW(), turncount=(turncount+1)%'.HZ_TURN_COUNT.'
 								 WHERE id='.$game, __FILE__, __LINE__, __FUNCTION__);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> update(hz_games(%s)): game=%d | nextturn=z | turndate=%s', __FUNCTION__, __LINE__, $query, $game, timestamp(true)));
 
 			/** add money and reset 'turndone' */
-			if ($d['turncount']+1 == TURN_COUNT) $add = TURN_ADD_MONEY;
+			if ($d['turncount']+1 == HZ_TURN_COUNT) $add = HZ_TURN_ADD_MONEY;
 			else $add = 0;
 
 			$db->query('UPDATE hz_players SET turndone="0", money=money+'.$add.' WHERE game='.$game, __FILE__, __LINE__, __FUNCTION__);

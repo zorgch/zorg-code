@@ -31,7 +31,7 @@ if (!isset($gameid) && $user->is_loggedin())
 if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 {
 	/** general assigns */
-	$smarty->assign('imgpath', IMGPATH);
+	$smarty->assign('imgpath', URLPATH_HZ_IMAGES);
 	$smarty->assign('link_taxi', 'game='.$gameid.'&ticket=taxi');
 	$smarty->assign('link_bus', 'game='.$gameid.'&ticket=bus');
 	$smarty->assign('link_ubahn', 'game='.$gameid.'&ticket=ubahn');
@@ -44,7 +44,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 	if (isset($_GET['ticket']) && is_string($_GET['ticket']))
 	{
 		$smarty->assign("ticket_choosen", 1);
-		$smarty->assign("ticket_img", IMGPATH.'ticket_'.$_GET['ticket'].'.gif');
+		$smarty->assign("ticket_img", URLPATH_HZ_IMAGES.'ticket_'.$_GET['ticket'].'.gif');
 		switch ((string)$_GET['ticket']) {
 			case 'taxi': $ticket_text = "das Taxi"; break;
 			case 'bus': $ticket_text = "den Bus"; break;
@@ -68,7 +68,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 						if(me.user IS NULL || hzg.state!="running", "0", "1") i_play,
 						if(hzg.nextturn="z" && me.type="z" || hzg.nextturn="players" && me.type!="z" && me.turndone="0", "0", "1") myturndone,
 						if(hzg.nextturn="z" && me.type="z" || hzg.nextturn="players" && me.type!="z" && me.turndone="0",
-							'.TURN_COUNT.'-hzg.turncount, '.TURN_COUNT.'-hzg.turncount-1) turns_to_money,
+							'.HZ_TURN_COUNT.'-hzg.turncount, '.HZ_TURN_COUNT.'-hzg.turncount-1) turns_to_money,
 						max(catcher.user) catcher
 					FROM user u, hz_maps m, hz_games hzg
 						LEFT JOIN hz_players me ON (me.user='.($user->is_loggedin() ? $user->id : 'null').' AND me.game=hzg.id)
@@ -145,7 +145,7 @@ if (isset($gameid) && !is_bool($gameid) && $gameid >= 1)
 		);
 		$players = array();
 		while ($pl = $db->fetch($pl_query)) {
-			$pl['img'] = IMGPATH.'player_'.$pl['type'].'.gif';
+			$pl['img'] = URLPATH_HZ_IMAGES.'player_'.$pl['type'].'.gif';
 			$players[] = $pl;
 		}
 		$smarty->assign("players", $players);

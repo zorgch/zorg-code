@@ -53,7 +53,7 @@ if ($user->is_loggedin())
 										  AND me.type="z"
 										  AND me.user='.$user->id,
 										__FILE__, __LINE__, 'new_game_possible'));
-	$smarty->assign("new_game_possible", $own_games['anz']<=MAX_HZ_GAMES ? 1 : 0);
+	$smarty->assign("new_game_possible", $own_games['anz']<=HZ_MAX_GAMES ? 1 : 0);
 
 	$e = $db->query("SELECT * FROM hz_maps
 					  WHERE state='active'
