@@ -307,10 +307,11 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj)
  *
  * @author [z]biko
  * @author IneX
- * @version 2.1
+ * @version 2.2
  * @since 1.0 function added
  * @since 2.0 `19.06.2019` `IneX` Updated to process Packages from tpl_packages > packages relationship instead of a Field-String
  * @since 2.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
+ * @since 2.2 `10.06.2023` `IneX` fixes risk of malicious code execution through File Inclusion (CWE-98)
  *
  * @TODO sollte das besser als Smarty PREfilter gelöst werden? https://www.smarty.net/docsv2/en/advanced.features.prefilters.tpl (IneX)
  *
@@ -326,40 +327,48 @@ function load_packages($tpl_id, &$smarty)
 	global $db;
 
 	/** Validate function parameters  */
-	if (empty($tpl_id) || is_array($tpl_id) || !is_numeric($tpl_id)) return false;
+	$tpl = filter_var($tpl_id, FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>'1']]);
 
-	/** Retrieve packages link to $tpl_id from database */
-	$packagesQuery = 'SELECT pkg.name as name FROM packages pkg INNER JOIN tpl_packages tplp ON pkg.id = tplp.package_id WHERE tplp.tpl_id='.$tpl_id;
-	$packagesFound = $db->query($packagesQuery, __FILE__, __LINE__, __FUNCTION__);
-	$numPackagesFound = $db->num($packagesFound);
-	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Found %d packages for template #%d', __FUNCTION__, __LINE__, $numPackagesFound, $tpl_id));
-
-	/** 1 or more Packages found */
-	if ($numPackagesFound > 0)
+	if (!empty($tpl))
 	{
-		while ($package = $db->fetch($packagesFound))
+		/** Retrieve packages link to $tpl_id from database */
+		$packagesQuery = 'SELECT pkg.name as name FROM packages pkg INNER JOIN tpl_packages tplp ON pkg.id = tplp.package_id WHERE tplp.tpl_id=?';
+		$packagesFound = $db->query($packagesQuery, __FILE__, __LINE__, __FUNCTION__, $tpl);
+		$numPackagesFound = (int)$db->num($packagesFound);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Found %d packages for template #%d', __FUNCTION__, __LINE__, $numPackagesFound, $tpl));
+
+		/** 1 or more Packages found */
+		if ($numPackagesFound > 0)
 		{
-			/** Check if $package matches a PHP-File (Package) */
-			$package_filepath = SMARTY_PACKAGES_DIR.$package['name'].SMARTY_PACKAGES_EXTENSION;
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading package "%s" from %s', __FUNCTION__, __LINE__, $package['name'], $package_filepath));
-			if (is_file($package_filepath) !== false)
+			$packages = $db->fetch($packagesFound);
+			foreach ($packages as $package)
 			{
-				require_once $package_filepath;
-				return true;
-			}
-			/** Package-File NOT FOUND */
-			else {
-				error_log(sprintf('[WARN] <%s:%d> Package "%s" not found for template %s (#%d).', __FUNCTION__, __LINE__, $package_filepath, $package['name'], $tpl_id));
-				trigger_error(t('error-package-missing', 'tpl', $package['name']), E_USER_WARNING);
-				return false;
+				/** Check if $package matches a PHP-File (Package) */
+				$package_file = basename($package['name']); // Remove any directory traversal characters
+				$package_filepath = SMARTY_PACKAGES_DIR.$package_file.SMARTY_PACKAGES_EXTENSION;
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading package "%s" from %s', __FUNCTION__, __LINE__, $package_file, $package_filepath));
+				if (is_file($package_filepath) !== false)
+				{
+					require_once $package_filepath;
+					return true;
+				}
+				/** Package-File NOT FOUND */
+				else {
+					error_log(sprintf('[WARN] <%s:%d> Package "%s" not found for template %s (#%d).', __FUNCTION__, __LINE__, $package_filepath, $package_file, $tpl_id));
+					trigger_error(t('error-package-missing', 'tpl', $package_file), E_USER_WARNING);
+					return false;
+				}
 			}
 		}
-	}
-	/** 0 Packages found (but this is no error) */
-	elseif ($numPackagesFound === 0)
-	{
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no packages associated', __FUNCTION__, __LINE__, $tpl_id));
-		return true;
+		/** 0 Packages found (but this is no error) */
+		elseif ($numPackagesFound === 0)
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no packages associated', __FUNCTION__, __LINE__, $tpl));
+			return true;
+		}
+	} else {
+		/** $tpl_id was not valid */
+		return false;
 	}
 }
 
