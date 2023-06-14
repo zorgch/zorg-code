@@ -1,37 +1,51 @@
 <?php
+header('Content-type:application/json;charset=utf-8');
+
 /**
  * AJAX Request validation
  */
-if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] != 'userfiles')
+if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] !== 'userfiles')
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	die('Invalid or missing POST-Parameter');
+	echo json_encode(['error' => 'Invalid or missing POST-Parameter']);
+	exit();
 }
+$user_id = filter_input(INPUT_GET, 'userid', FILTER_VALIDATE_INT);
+$search_for = filter_input(INPUT_GET, 'mention', FILTER_SANITIZE_SPECIAL_CHARS);
 
-/**
- * FILE INCLUDES
- */
-require_once __DIR__.'/../../includes/config.inc.php';
-require_once INCLUDES_DIR.'mysql.inc.php';
+if (!empty($user_id) && !empty($search_for))
+{
+	/**
+ 	* FILE INCLUDES
+ 	*/
+	require_once __DIR__.'/../../includes/config.inc.php';
 
-/**
- * Get records from database
- */
-header('Content-type:application/json;charset=utf-8');
-try {
-	$sql = 'SELECT name, mime FROM files WHERE user='.$_GET['userid'].' AND name LIKE "%'.$_GET['mention'].'%" ORDER BY upload_date DESC LIMIT 0,6';
-	$result = $db->query($sql, __FILE__, __LINE__);
-	while ($rs = $db->fetch($result))
+	/**
+ 	* Get records from database
+ 	*/
+	$sql = 'SELECT name, mime FROM files WHERE user=? AND name LIKE CONCAT("%", ?, "%") ORDER BY upload_date DESC LIMIT 0,6';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT', [$user_id, $search_for]);
+	if ($result !== false)
 	{
-	   $images[] = [
-	   	'fileName' => $rs['name'],
-	   	'fileType' => $rs['mime']
-	   ];
+		while ($rs = $db->fetch($result))
+		{
+			$images[] = [
+				'fileName' => $rs['name'],
+				'fileType' => $rs['mime']
+			];
+		}
+		http_response_code(200); // Set response code 200 (OK)
+		echo json_encode($images);
+		exit();
+	} else {
+		http_response_code(204); // Set response code 204 (No Content) and exit.
+		exit();
 	}
-	http_response_code(200); // Set response code 200 (OK)
-	echo json_encode($images);
-}
-catch(Exception $e) {
-	http_response_code(500); // Set response code 500 (internal server error)
-	echo json_encode($e);
+} elseif (!empty($user_id) && empty($search_for)) {
+	http_response_code(204); // Set response code 204 (No Content) and exit.
+	exit();
+} else {
+	http_response_code(400); // Set response code 400 (bad request) and exit.
+	echo json_encode(['error' => 'Invalid or missing GET-Parameter']);
+	exit();
 }
