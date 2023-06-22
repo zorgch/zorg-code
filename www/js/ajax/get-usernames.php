@@ -9,15 +9,10 @@
 if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] !== 'userlist')
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	die('Invalid or missing POST-Parameter');
+	echo json_encode(['error' => 'Invalid or missing POST-Parameter']);
+	exit();
 }
 $usernameMention = filter_var(trim($_GET['mention']), FILTER_SANITIZE_STRING);
-
-/**
- * FILE INCLUDES
- */
-require_once __DIR__.'/../../includes/config.inc.php';
-require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
  * Get records from database
@@ -25,8 +20,14 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 header('Content-type:application/json;charset=utf-8');
 if (false !== $usernameMention)
 {
-	$sql = 'SELECT id, username FROM user WHERE username LIKE "'.$usernameMention.'%" ORDER BY CHAR_LENGTH(username) ASC, username ASC LIMIT 0,6';
-	$result = $db->query($sql, __FILE__, __LINE__);
+	/**
+	 * FILE INCLUDES
+	 */
+	require_once __DIR__.'/../../includes/config.inc.php';
+	require_once INCLUDES_DIR.'mysql.inc.php';
+
+	$sql = 'SELECT id, username FROM user WHERE username LIKE CONCAT(?, "%") ORDER BY CHAR_LENGTH(username) ASC, username ASC LIMIT 0,6';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT', [$usernameMention]);
 	while ($rs = $db->fetch($result))
 	{
 	   $users[] = [
@@ -37,9 +38,11 @@ if (false !== $usernameMention)
 	}
 	http_response_code(200); // Set response code 200 (OK)
 	echo json_encode($users);
+	exit();
 }
 /** Invalid Input */
 else {
 	http_response_code(400); // Set response code 500 (internal server error)
-	die('Invalid GET-Parameter');
+	echo json_encode(['error' => 'Invalid GET-Parameter']);
+	exit();
 }

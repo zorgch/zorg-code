@@ -609,29 +609,20 @@ class Comment
 
 
 		if($rs['rights'] < USER_SPECIAL) {
-			$sql =
-				"
-				REPLACE INTO comments_unread (user_id, comment_id)
-					SELECT
-						id,
-						".$comment_id."
-
-
+			$sql = "REPLACE INTO comments_unread (user_id, comment_id)
+					SELECT id, ".$comment_id."
 					FROM user
-
-					WHERE user.usertype >= ".$rs['rights']."
+					WHERE user.usertype >= ?
 					AND (UNIX_TIMESTAMP(lastlogin)+".USER_OLD_AFTER.") > UNIX_TIMESTAMP(NOW())
-					AND forum_boards_unread LIKE '%".$rs['board']."%'
-					"
+					AND forum_boards_unread LIKE CONCAT('%', ?, '%')"
 					/*AND ISNULL(
 						SELECT tignore.thread_id, tignore.user_id
 						FROM comments_threads_ignore tignore
 						WHERE tignore.thread_id = ".$rs['thread_id']."
 						AND tignore.user_id = user.id
 						)*/
-
 			;
-			$data = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			$data = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$rs['rights'], $rs['board']]));
 		} else {
 			$sql =
 				"
@@ -1380,9 +1371,10 @@ class Forum {
 	 *
 	 * @TODO implement $keyword highlighting in ouput via $smarty->display()
 	 *
-	 * @version 1.1
+	 * @version 2.1
 	 * @since 1.0 Method added
 	 * @since 2.0 `07.03.2020` `IneX` Code optimizations
+	 * @since 2.1 `14.06.2023` `IneX` SQL-Query optimizations
 	 *
 	 * @param string $keyword Search-Text for LIKE %...% search
 	 * @return void
@@ -1393,9 +1385,9 @@ class Forum {
 
 		$sql = 'SELECT id, text, UNIX_TIMESTAMP(date) as date
 				FROM comments
-				WHERE text LIKE "%'.$keyword.'%"
+				WHERE text LIKE CONCAT("%", ?, "%")
 				ORDER by date DESC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$keyword]);
 		$num = $db->num($result);
 		if ($num > 0)
 		{

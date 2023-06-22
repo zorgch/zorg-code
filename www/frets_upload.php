@@ -12,7 +12,7 @@
 require_once dirname(__FILE__).'/includes/config.inc.php';
 
 /** fetch GET Data */
-$scores_frets = isset($_GET['scores']) ? htmlspecialchars(preg_match('/^[a-fA-F0-9]+$/', $_GET['scores']) ? $_GET['scores'] : '', ENT_QUOTES, 'UTF-8') : '';
+$scores_frets = isset($_GET['scores']) ? htmlspecialchars((preg_match('/^[a-fA-F0-9]+$/', $_GET['scores']) ? $_GET['scores'] : ''), ENT_QUOTES, 'UTF-8') : '';
 $songName = isset($_GET['songName']) ? htmlspecialchars($_GET['songName'], ENT_QUOTES, 'UTF-8') : '';
 $songHash = isset($_GET['songHash']) ? htmlspecialchars($_GET['songHash'], ENT_QUOTES, 'UTF-8') : '';
 
@@ -21,7 +21,8 @@ $songHash = isset($_GET['songHash']) ? htmlspecialchars($_GET['songHash'], ENT_Q
 
 if (!empty($scores_frets))
 {
-	$output = shell_exec('python ../scripts/fretsonfire/fretsonzorg.py '.$scores_frets);
+	$sanitized_scores_frets = escapeshellarg($scores_frets); // Mitigates risk of command injection (CWE-78)
+	$output = shell_exec('python ../scripts/fretsonfire/fretsonzorg.py '.$sanitized_scores_frets);
 	if (!$output)
 	{
 		http_response_code(500); // Set response code 500 (Internal Server Error) and exit.

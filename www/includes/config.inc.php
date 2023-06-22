@@ -29,10 +29,53 @@ if (file_exists(COMPOSER_AUTOLOAD))
 	try {
 		$dotenv = Dotenv\Dotenv::createImmutable(APP_ROOT);
 		$dotenv->load();
+        /** Variable validations: required variables */
 		$dotenv->required(['MYSQL_HOST', 'MYSQL_DATABASE', 'MYSQL_USER'])->notEmpty();
 		$dotenv->required(['HOSTNAME', 'HTTP_PROTOCOL', 'SITE_FQDN'])->notEmpty();
 		$dotenv->required(['LOCALE'])->allowedRegexValues('([[:lower:]]{2}_[[:upper:]]{2})');
 		$dotenv->required(['TIMEZONE'])->allowedRegexValues('([a-zA-Z0-9]+([\/|+-][a-zA-Z0-9_]+)?(\/[a-zA-Z0-9_]+)?)');
+        /** Variable validations: Integers */
+        $dotenv->ifPresent('USER_TIMEOUT')->isInteger();
+        $dotenv->ifPresent('USER_OLD_AFTER')->isInteger();
+        $dotenv->ifPresent('USERIMAGE_SIZE_LARGE')->isInteger();
+        $dotenv->ifPresent('USERIMAGE_SIZE_SMALL')->isInteger();
+        $dotenv->ifPresent('ADDLE_MAX_GAMES')->isInteger();
+        $dotenv->ifPresent('ADDLE_BASE_POINTS')->isInteger();
+        $dotenv->ifPresent('ADDLE_MAX_POINTS_TRANSFERABLE')->isInteger();
+        $dotenv->ifPresent('APOD_GALLERY_ID')->isInteger();
+        $dotenv->ifPresent('CHESS_DWZ_BASE_POINTS')->isInteger();
+        $dotenv->ifPresent('CHESS_DWZ_MAX_POINTS_TRANSFERABLE')->isInteger();
+        $dotenv->ifPresent('FORUM_DEFAULT_MAXDEPTH')->isInteger();
+        $dotenv->ifPresent('FORUM_THREAD_CLEARCACHE_AFTER')->isInteger();
+        $dotenv->ifPresent('GO_OFFSET_PIC')->isInteger();
+        $dotenv->ifPresent('GO_LINKRADIUS')->isInteger();
+        $dotenv->ifPresent('GO_FIELDSIZE')->isInteger();
+        $dotenv->ifPresent('GO_LINEWIDTH')->isInteger();
+        $dotenv->ifPresent('GO_STARDOTWIDTH')->isInteger();
+        $dotenv->ifPresent('GO_STONEBIGWIDTH')->isInteger();
+        $dotenv->ifPresent('GO_LASTSTONEWIDTH')->isInteger();
+        $dotenv->ifPresent('HZ_MAX_GAMES')->isInteger();
+        $dotenv->ifPresent('HZ_TURN_TIME')->isInteger();
+        $dotenv->ifPresent('HZ_TURN_COUNT')->isInteger();
+        $dotenv->ifPresent('HZ_TURN_ADD_MONEY')->isInteger();
+        $dotenv->ifPresent('SESSION_LIFETIME')->isInteger();
+        $dotenv->ifPresent('COOKIE_EXPIRATION')->isInteger();
+        $dotenv->ifPresent('SMARTY_DEFAULT_TPL_ID')->isInteger();
+        $dotenv->ifPresent('VORSTAND_USER')->isInteger();
+        $dotenv->ifPresent('BARBARA_HARRIS')->isInteger();
+        $dotenv->ifPresent('ROSENVERKAEUFER')->isInteger();
+        $dotenv->ifPresent('THE_ARCHITECT')->isInteger();
+        $dotenv->ifPresent('ANFICKER_USER_ID')->isInteger();
+        $dotenv->ifPresent('ZORG_VEREIN_PLZ')->isInteger();
+        /** Variable validations: Booleans */
+        $dotenv->ifPresent('TELEGRAM_DISABLE_WEBPAGE_PREVIEW')->isBoolean();
+        $dotenv->ifPresent('TELEGRAM_DISABLE_NOTIFICATION')->isBoolean();
+        $dotenv->ifPresent('USER_USE_CURRENT_LOGIN')->isBoolean();
+        $dotenv->ifPresent('USER_USE_REGISTRATION_CODE')->isBoolean();
+        $dotenv->ifPresent('USER_USE_ONLINE_LIST')->isBoolean();
+        $dotenv->ifPresent('USERIMAGE_ENABLED')->isBoolean();
+        $dotenv->ifPresent('ENABLE_COOKIES')->isBoolean();
+        $dotenv->ifPresent('COOKIE_HTTPONLY')->isBoolean();
 	} catch (Exception $e) {
 		exit(sprintf('[ERROR] <%s:%d> %s', __FILE__, __LINE__, $e->getMessage()));
 	}
@@ -236,7 +279,7 @@ if (!defined('THUMBPAGE')) define('THUMBPAGE', (isset($_ENV['GALLERY_THUMBPAGE']
  * @const APOD_API NASA APOD API-URL von wo das tägliche APOD-Bild mit dem NASA_API_KEY geholt werden kann, mittels ?apod_date=yyyy-mm-dd kann ein spezifisches APOD geholt werden
  */
 if (!defined('NASA_API_KEY') && isset($_ENV['NASA_API_KEY'])) define('NASA_API_KEY', $_ENV['NASA_API_KEY']);
-if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', (isset($_ENV['APOD_GALLERY_ID']) ? $_ENV['APOD_GALLERY_ID'] : null));
+if (!defined('APOD_GALLERY_ID')) define('APOD_GALLERY_ID', (isset($_ENV['APOD_GALLERY_ID']) ? (int)$_ENV['APOD_GALLERY_ID'] : null));
 if (!defined('APOD_TEMP_IMGPATH')) define('APOD_TEMP_IMGPATH', (isset($_ENV['APOD_TEMP_IMAGE_DIR']) ? $_ENV['APOD_TEMP_IMAGE_DIR'] : null));
 if (!defined('APOD_SOURCE')) define('APOD_SOURCE', (isset($_ENV['NASA_APOD_SOURCE']) ? $_ENV['NASA_APOD_SOURCE'] : null));
 if (!defined('APOD_API')) define('APOD_API', (isset($_ENV['NASA_APOD_API']) ? $_ENV['NASA_APOD_API'] : null));

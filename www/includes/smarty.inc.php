@@ -237,11 +237,12 @@ function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
  *
  * @author [z]biko
  * @author IneX
- * @version 2.0
+ * @version 2.1
  * @since 1.0 function added
  * @since 2.0 `19.06.2019` `IneX` Updated to fetch Packages new via tpl_packages > packages relationship and Comments from Tpl-Setting
+ * @since 2.1 `14.06.2023` `IneX` SQL-Query optimizations
  *
- * @see load_packages()
+ * @uses load_packages()
  * @param string $tpl_name Smarty Template Name
  * @param string $tpl_timestamp Pass by reference: Timestamp des aktuellen Smarty Templates
  * @param object $smarty Pass by reference: Smarty Class-object
@@ -257,7 +258,8 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 	{
 		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user,
 						 UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-						 write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE id='.$tpl_name, __FILE__, __LINE__, __FUNCTION__);
+						 write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE id=?'
+						 , __FILE__, __LINE__, __FUNCTION__, [$tpl_name]);
 		$d = $db->fetch($e);
 	} else {
 		return false;
@@ -266,7 +268,7 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 	/** Check if recompile of template is necessary */
 	if ($d['force_compile']) {
 		$tpl_timestamp = 9999999999;
-		$db->query('UPDATE templates SET force_compile="0" WHERE id='.$tpl_name, __FILE__, __LINE__, __FUNCTION__);
+		$db->query('UPDATE templates SET force_compile="0" WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$tpl_name]);
 	}elseif ($d) {
 		$tpl_timestamp = $d['last_update'];
 	}else{
@@ -307,10 +309,11 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj)
  *
  * @author [z]biko
  * @author IneX
- * @version 2.1
+ * @version 2.2
  * @since 1.0 function added
  * @since 2.0 `19.06.2019` `IneX` Updated to process Packages from tpl_packages > packages relationship instead of a Field-String
  * @since 2.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
+ * @since 2.2 `10.06.2023` `IneX` fixes risk of malicious code execution through File Inclusion (CWE-98)
  *
  * @TODO sollte das besser als Smarty PREfilter gelöst werden? https://www.smarty.net/docsv2/en/advanced.features.prefilters.tpl (IneX)
  *
@@ -326,40 +329,47 @@ function load_packages($tpl_id, &$smarty)
 	global $db;
 
 	/** Validate function parameters  */
-	if (empty($tpl_id) || is_array($tpl_id) || !is_numeric($tpl_id)) return false;
+	$tpl = (int)filter_var($tpl_id, FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>1]]);
 
-	/** Retrieve packages link to $tpl_id from database */
-	$packagesQuery = 'SELECT pkg.name as name FROM packages pkg INNER JOIN tpl_packages tplp ON pkg.id = tplp.package_id WHERE tplp.tpl_id='.$tpl_id;
-	$packagesFound = $db->query($packagesQuery, __FILE__, __LINE__, __FUNCTION__);
-	$numPackagesFound = $db->num($packagesFound);
-	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Found %d packages for template #%d', __FUNCTION__, __LINE__, $numPackagesFound, $tpl_id));
-
-	/** 1 or more Packages found */
-	if ($numPackagesFound > 0)
+	if (!empty($tpl))
 	{
-		while ($package = $db->fetch($packagesFound))
+		/** Retrieve packages link to $tpl_id from database */
+		$packagesQuery = 'SELECT pkg.name as name FROM packages pkg INNER JOIN tpl_packages tplp ON pkg.id = tplp.package_id WHERE tplp.tpl_id=?';
+		$packagesFound = $db->query($packagesQuery, __FILE__, __LINE__, __FUNCTION__, [$tpl]);
+		$numPackagesFound = (int)$db->num($packagesFound);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Found %d packages for template #%d', __FUNCTION__, __LINE__, $numPackagesFound, $tpl));
+
+		/** 1 or more Packages found */
+		if ($numPackagesFound > 0)
 		{
-			/** Check if $package matches a PHP-File (Package) */
-			$package_filepath = SMARTY_PACKAGES_DIR.$package['name'].SMARTY_PACKAGES_EXTENSION;
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading package "%s" from %s', __FUNCTION__, __LINE__, $package['name'], $package_filepath));
-			if (is_file($package_filepath) !== false)
+			while ($packages = $db->fetch($packagesFound))
 			{
-				require_once $package_filepath;
-				return true;
-			}
-			/** Package-File NOT FOUND */
-			else {
-				error_log(sprintf('[WARN] <%s:%d> Package "%s" not found for template %s (#%d).', __FUNCTION__, __LINE__, $package_filepath, $package['name'], $tpl_id));
-				trigger_error(t('error-package-missing', 'tpl', $package['name']), E_USER_WARNING);
-				return false;
+				/** Check if $package matches a PHP-File (Package) */
+				$package_file = basename($packages['name']); // Remove any directory traversal characters
+				$package_filepath = SMARTY_PACKAGES_DIR.$package_file.SMARTY_PACKAGES_EXTENSION;
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading package "%s" from %s', __FUNCTION__, __LINE__, $package_file, $package_filepath));
+				if (is_file($package_filepath) !== false)
+				{
+					require_once $package_filepath;
+					return true;
+				}
+				/** Package-File NOT FOUND */
+				else {
+					error_log(sprintf('[WARN] <%s:%d> Package "%s" not found for template %s (#%d).', __FUNCTION__, __LINE__, $package_filepath, $package_file, $tpl_id));
+					trigger_error(t('error-package-missing', 'tpl', $package_file), E_USER_WARNING);
+					return false;
+				}
 			}
 		}
-	}
-	/** 0 Packages found (but this is no error) */
-	elseif ($numPackagesFound === 0)
-	{
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no packages associated', __FUNCTION__, __LINE__, $tpl_id));
-		return true;
+		/** 0 Packages found (but this is no error) */
+		elseif ($numPackagesFound === 0)
+		{
+			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no packages associated', __FUNCTION__, __LINE__, $tpl));
+			return true;
+		}
+	} else {
+		/** $tpl_id was not valid */
+		return false;
 	}
 }
 
@@ -450,9 +460,9 @@ function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty)
   $d = $db->fetch($e);
 
   if ($d) {
-     smartyresource_tpl_get_template($d['id'], $tpl_source, $smarty);
+	 smartyresource_tpl_get_template($d['id'], $tpl_source, $smarty);
   }else{
-     $tpl_source = '<table class="border"><tr><td>{error msg="[<b>Error:</b> tpl '.$tpl_name.' existiert nicht.]"}</td></tr></table>';
+	 $tpl_source = '<table class="border"><tr><td>{error msg="[<b>Error:</b> tpl '.$tpl_name.' existiert nicht.]"}</td></tr></table>';
   }
 
   return true;
@@ -615,112 +625,112 @@ function startSmarty()
  */
 class ZorgSmarty extends Smarty
 {
-    /**
-     * OWN BY BIKO
-     * Templates that can be called recursive
-     * used in function $this->_smarty_include
-     *
-     * @var string-array
-     */
-    var $recur_allowed_tpls = array();
+	/**
+	 * OWN BY BIKO
+	 * Templates that can be called recursive
+	 * used in function $this->_smarty_include
+	 *
+	 * @var string-array
+	 */
+	var $recur_allowed_tpls = array();
 
-    /**
-     * OWN BY BIKO
-     * Template that is called if a recursion was detected
-     * used in function $this->_smarty_include
-     *
-     * @var string
-     */
-    var $recur_handler = "";
+	/**
+	 * OWN BY BIKO
+	 * Template that is called if a recursion was detected
+	 * used in function $this->_smarty_include
+	 *
+	 * @var string
+	 */
+	var $recur_handler = "";
 
-    /**
-     * The class constructor.
-     */
-    /*private function __construct(){
-	    //parent::__construct();
-	    $smarty_compiler = new ZorgSmarty_Compiler;
-    }*/
+	/**
+	 * The class constructor.
+	 */
+	/*private function __construct(){
+		//parent::__construct();
+		$smarty_compiler = new ZorgSmarty_Compiler;
+	}*/
 
 	/** OWN BY BIKO **************************************************************************************
-     * compile a template manualy.
-     *
-     * @param string $template: Ressource, die kompiliert werden soll
-     * @param string &$errormsg: Da wird die Fehlermeldung (falls es eine gibt) hingeschrieben
-     * @return boolean
-     */
-     public function compile ($template, &$errors) {
-        //$this->_redirect_fatal_error = true;
-        global $_manual_compiler_active, $_manual_compiler_errors, $smarty;
+	 * compile a template manualy.
+	 *
+	 * @param string $template: Ressource, die kompiliert werden soll
+	 * @param string &$errormsg: Da wird die Fehlermeldung (falls es eine gibt) hingeschrieben
+	 * @return boolean
+	 */
+	 public function compile ($template, &$errors) {
+		//$this->_redirect_fatal_error = true;
+		global $_manual_compiler_active, $_manual_compiler_errors, $smarty;
 
-        $old_force_compile = $this->force_compile;
+		$old_force_compile = $this->force_compile;
 
-        $this->force_compile = true;
+		$this->force_compile = true;
 
-        $_manual_compiler_active = 1;
+		$_manual_compiler_active = 1;
 
-        $result = $this->fetch($template);
+		$result = $this->fetch($template);
 
-        if (sizeof($_manual_compiler_errors)) {
-           $errors = $_manual_compiler_errors;
-           $ret = false;
-        }else{
-           	$ret = true;
-        }
+		if (sizeof($_manual_compiler_errors)) {
+		   $errors = $_manual_compiler_errors;
+		   $ret = false;
+		}else{
+		   	$ret = true;
+		}
 
-        $_manual_compiler_errors = array();
-        $_manual_compiler_active = 0;
-        $this->force_compile = $old_force_compile;
+		$_manual_compiler_errors = array();
+		$_manual_compiler_active = 0;
+		$this->force_compile = $old_force_compile;
 
-        return $ret;
-     }
-
-
-    /**
-     * compile the template
-     *
-     * @param string $resource_name
-     * @param string $compile_path
-     * @return boolean
-     */
-    public function _compile_resource($resource_name, $compile_path)
-    {
-
-        $_params = array('resource_name' => $resource_name);
-        if (!$this->_fetch_resource_info($_params)) {
-            return false;
-        }
-
-        $_source_content = $_params['source_content'];
-        $_cache_include    = substr($compile_path, 0, -4).'.inc';
-
-        if ($this->_compile_source($resource_name, $_source_content, $_compiled_content, $_cache_include)) {
-            // if a _cache_serial was set, we also have to write an include-file:
-            if ($this->_cache_include_info) {
-                require_once SMARTY_CORE_DIR . 'core.write_compiled_include.php';
-                smarty_core_write_compiled_include(array_merge($this->_cache_include_info, array('compiled_content'=>$_compiled_content, 'resource_name'=>$resource_name)),  $this);
-            }
-
-            $_params = array('compile_path'=>$compile_path, 'compiled_content' => $_compiled_content);
-            require_once SMARTY_CORE_DIR . 'core.write_compiled_resource.php';
-            smarty_core_write_compiled_resource($_params, $this);
-
-            return true;
-        } else {
+		return $ret;
+	 }
 
 
-        	// OWN BY BIKO -----------------
-	    	  // weil wenn ein manual compile error passiert eine leere error msg kommt.
-	    	  global $_manual_compiler_active;
-	    	  if ($_manual_compiler_active) return false;
-	    	// END OWN -------------
+	/**
+	 * compile the template
+	 *
+	 * @param string $resource_name
+	 * @param string $compile_path
+	 * @return boolean
+	 */
+	public function _compile_resource($resource_name, $compile_path)
+	{
+
+		$_params = array('resource_name' => $resource_name);
+		if (!$this->_fetch_resource_info($_params)) {
+			return false;
+		}
+
+		$_source_content = $_params['source_content'];
+		$_cache_include	= substr($compile_path, 0, -4).'.inc';
+
+		if ($this->_compile_source($resource_name, $_source_content, $_compiled_content, $_cache_include)) {
+			// if a _cache_serial was set, we also have to write an include-file:
+			if ($this->_cache_include_info) {
+				require_once SMARTY_CORE_DIR . 'core.write_compiled_include.php';
+				smarty_core_write_compiled_include(array_merge($this->_cache_include_info, array('compiled_content'=>$_compiled_content, 'resource_name'=>$resource_name)),  $this);
+			}
+
+			$_params = array('compile_path'=>$compile_path, 'compiled_content' => $_compiled_content);
+			require_once SMARTY_CORE_DIR . 'core.write_compiled_resource.php';
+			smarty_core_write_compiled_resource($_params, $this);
+
+			return true;
+		} else {
+
+
+			// OWN BY BIKO -----------------
+			  // weil wenn ein manual compile error passiert eine leere error msg kommt.
+			  global $_manual_compiler_active;
+			  if ($_manual_compiler_active) return false;
+			// END OWN -------------
 
 
 
-            return false;
-        }
+			return false;
+		}
 
-    }
-    /** END OWN BY BIKO **********************************************************************************/
+	}
+	/** END OWN BY BIKO **********************************************************************************/
 }
 
 /**
@@ -734,21 +744,21 @@ class ZorgSmarty extends Smarty
 class ZorgSmarty_Compiler extends Smarty
 {
 	/**
-     * The class constructor.
-     */
-    //private function __construct(){}
+	 * The class constructor.
+	 */
+	//private function __construct(){}
 
 	/**
-     * display Smarty syntax error
-     *
-     * @param string $error_msg
-     * @param integer $error_type
-     * @param string $file
-     * @param integer $line
-     */
-    function _syntax_error($error_msg, $error_type = E_USER_ERROR, $file=null, $line=null)
-    {
-        // OWN BY biko
+	 * display Smarty syntax error
+	 *
+	 * @param string $error_msg
+	 * @param integer $error_type
+	 * @param string $file
+	 * @param integer $line
+	 */
+	function _syntax_error($error_msg, $error_type = E_USER_ERROR, $file=null, $line=null)
+	{
+		// OWN BY biko
 		global $_manual_compiler_active, $_manual_compiler_errors;
 
 		if ($_manual_compiler_active) {
@@ -757,10 +767,10 @@ class ZorgSmarty_Compiler extends Smarty
 			$this->_trigger_fatal_error("smarty syntax error: $error_msg", $this->_current_file, $this->_current_line_no, $file, $line, $error_type);
 		}
 		//original code:
-        //$this->_trigger_fatal_error("syntax error: $error_msg", $this->_current_file, $this->_current_line_no, $file, $line, $error_type);
-    	// END OWN
+		//$this->_trigger_fatal_error("syntax error: $error_msg", $this->_current_file, $this->_current_line_no, $file, $line, $error_type);
+		// END OWN
 
-    }
+	}
 }
 
 if (!isset($smarty)) $smarty = startSmarty();
