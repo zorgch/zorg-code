@@ -10,7 +10,7 @@ require_once INCLUDES_DIR.'hz_game.inc.php';
 
 if (isset($_GET['game']) && is_numeric($_GET['game']) && $_GET['game'] > 0) $gameid = (int)$_GET['game'];
 
-/** wenn kein spiel angegeben: spiel auswählen, wo man am zug ist. */
+/** wenn kein spiel angegeben: spiel auswÃ¤hlen, wo man am zug ist. */
 if (!isset($gameid) && $user->is_loggedin())
 {
 	$e = $db->query('SELECT hzg.id
@@ -22,7 +22,7 @@ if (!isset($gameid) && $user->is_loggedin())
 						AND IF(hzg.nextturn="z" AND p.type="z"
 					    OR hzg.nextturn!="z" AND p.type!="z" AND p.turndone="0", "1", "0") = "1"
 					 ORDER BY hzg.turndate DESC',
-					__FILE__, __LINE__, 'Hz Spiel auswählen');
+					__FILE__, __LINE__, 'Hz Spiel auswÃ¤hlen');
 	$d = $db->fetch($e);
 	$gameid = $avail_tickets['id'];
 }

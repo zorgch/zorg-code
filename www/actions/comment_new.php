@@ -8,19 +8,18 @@
 /**
  * File Includes
  */
-//require_once __DIR__ .'/../includes/main.inc.php';
 require_once dirname(__FILE__).'/../includes/forum.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 require_once INCLUDES_DIR.'util.inc.php';
 
-if(!($user->id > 0) || !is_numeric($user->id))
+if(!is_numeric($user->id) || $user->id <= 0)
 {
 	http_response_code(403); // Set response code 403 (access denied) and exit.
 	user_error('Du bist nicht eingeloggt.', E_USER_WARNING);
 	die();
 }
 
-if($_POST['text'] == '' || empty($_POST['text']) || !isset($_POST['text']))
+if(!isset($_POST['text']) || $_POST['text'] == '' || empty($_POST['text']))
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	user_error('keine leeren Posts erlaubt.', E_USER_WARNING);
@@ -29,7 +28,7 @@ if($_POST['text'] == '' || empty($_POST['text']) || !isset($_POST['text']))
 	$commentText = escape_text($_POST['text']);
 }
 
-if($_POST['parent_id'] == '' || !is_numeric($_POST['parent_id']))
+if(!is_numeric($_POST['parent_id']) || $_POST['parent_id'] == '')
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	user_error('Parent id leer oder ungültig: ' . $_POST['parent_id'], E_USER_WARNING);
@@ -57,6 +56,8 @@ if(isset($_POST['msg_users']) && $_POST['msg_users'] != ' ' && !empty(array_filt
 
 	/** Remove any duplicate User-IDs */
 	$msg_users = array_unique($msg_users);
+} else {
+	$msg_users = NULL;
 }
 
 /** Post new Comment & get Link */

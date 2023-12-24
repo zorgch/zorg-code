@@ -29,7 +29,7 @@ class Stockbroker {
 		global $db;
 
 		if($user_id < 1) {
-			echo '$user_id ist ungültig';
+			echo '$user_id ist ungÃ¼ltig';
 			return false;
 		}
 
@@ -39,11 +39,11 @@ class Stockbroker {
 		}
 
 		if($menge < 1 && !$max) {
-			echo 'Du musst eine Menge grösser als 0 festlegen. ('.$menge.') oder max setzen.';
+			echo 'Du musst eine Menge grÃ¶sser als 0 festlegen. ('.$menge.') oder max setzen.';
 			return false;
 		}
 
-		$symbol = strtoupper($symbol); // müsste eigentlich nicht hier sein, aber um sicher zu gehen...
+		$symbol = strtoupper($symbol); // mÃ¼sste eigentlich nicht hier sein, aber um sicher zu gehen...
 
 		// neuen Preis grabben
 		Stockbroker::updateKurs($symbol);
@@ -52,7 +52,7 @@ class Stockbroker {
 		$kurs = Stockbroker::getKurs($symbol);
 
 		if(!is_numeric($kurs)) {
-			echo 'Konnte keinen Kurs nicht finden für '.$_POST['symbol'];
+			echo 'Konnte keinen Kurs nicht finden fÃ¼r '.$_POST['symbol'];
 			return false;
 		}
 
@@ -242,7 +242,7 @@ class Stockbroker {
 					, $rs['user_id']
 					, '[Stockbroker] Warning: '.$symbol
 					,
-						'<a href="/?tpl=173&symbol='.$symbol.'">Stock Information für '.$symbol.'</a>'
+						'<a href="/?tpl=173&symbol='.$symbol.'">Stock Information fÃ¼r '.$symbol.'</a>'
 						.'<br />'
 						.$symbol.' ist '.$rs['comparison'].' '.$rs['kurs'].' (aktueller Kurs: '.$kurs.')'
 					, $rs['user_id']
@@ -403,7 +403,7 @@ class Stockbroker {
 
 		$result = $db->query($sql, __FILE__, __LINE__);
 
-		$assets['Bargeld'] = 1000; // Anfangsvermögen
+		$assets['Bargeld'] = 1000; // AnfangsvermÃ¶gen
 
 		while($rs = $db->fetch($result)) {
 			if($rs['action'] == 'buy') {
@@ -609,18 +609,18 @@ class Stockbroker {
 		}
 
 		if($menge < 1 && !$max) {
-			echo 'Du musst eine Menge grösser als 0 festlegen. ('.$menge.') oder max setzen.';
+			echo 'Du musst eine Menge grÃ¶sser als 0 festlegen. ('.$menge.') oder max setzen.';
 			return false;
 		}
 
-		$symbol = strtoupper($symbol); // müsste eigentlich nicht hier sein, aber um sicher zu gehen...
+		$symbol = strtoupper($symbol); // mÃ¼sste eigentlich nicht hier sein, aber um sicher zu gehen...
 
 		// neuen Preis grabben
 		Stockbroker::updateKurs($symbol);
 		$kurs = Stockbroker::getKurs($symbol);
 
 		if(!is_numeric($kurs)) {
-			echo 'Konnte keinen Kurs finden für '.$symbol;
+			echo 'Konnte keinen Kurs finden fÃ¼r '.$symbol;
 			return false;
 		}
 
@@ -663,14 +663,14 @@ class Stockbroker {
 		//link machen
 		$source = "http://finance.yahoo.com/q?s=".$symbol;
 		$html = join("",file($source));
-		//unnützi war löschä
+		//unnÃ¼tzi war lÃ¶schÃ¤
 		$html = strip_tags(str_replace("  "," ",$html),"<b> <i>");
 
-		//kurs ermittlä
+		//kurs ermittlÃ¤
 		$pattern = "(Last\sTrade:<b>(\d+\.\d+)<\/b>)";
 		preg_match_all($pattern,$html,$out);
 
-		//checkä öbs klapt hät
+		//checkÃ¤ Ã¶bs klapt hÃ¤t
 		if(isset($out[1][0])) {
 			$kurs = trim($out[1][0]);
 
@@ -716,7 +716,7 @@ class Stockbroker {
 					59
 					, 3
 					, '[Stockbroker] Error: '.$symbol
-					, 'Konnte Kurs nicht grabben für '.$symbol
+					, 'Konnte Kurs nicht grabben fÃ¼r '.$symbol
 					, 3
 				);
 				*/
@@ -729,7 +729,7 @@ class Stockbroker {
 				59
 				, 3
 				, '[Stockbroker] Error: '.$symbol
-				, 'Konnte '.$symbol.' nicht grabben - gelöscht.'
+				, 'Konnte '.$symbol.' nicht grabben - gelÃ¶scht.'
 				, 3
 			);
 			*/

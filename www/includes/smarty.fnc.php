@@ -129,13 +129,14 @@ function var_request ()
 		return $user->ismobile($userid);
 	}
 	function smarty_usergroup ($groupid) {
-	   switch ($groupid) {
-	      case 0: return "Alle"; break;
-	      case 1: return "Normale User"; break;
-	      case 2: return "Member &amp; Sch&ouml;ne"; break;
-	      case 3: return "Nur Besitzer"; break;
-	      default: return "unknown_usergroup";
-	   }
+		$group = (filter_var($groupid, FILTER_VALIDATE_INT) !== false) ? $groupid : -1;
+		switch ($group) {
+			case 0: return "Alle";
+			case 1: return "Normale User";
+			case 2: return "Member &amp; Sch&ouml;ne";
+			case 3: return "Nur Besitzer";
+			default: return "unknown_usergroup";
+		}
 	}
 	function smarty_name ($userid) {
     	global $user;
@@ -1469,36 +1470,33 @@ function smarty_menuname ($name, &$smarty) {
 	{
 		global $_timer_blocks, $_timer_history;
 		switch ($mode) {
-		case 'begin':
-			$_timer_blocks[] =array(microtime(true));
-			break;
+			case 'begin':
+				$_timer_blocks[] =array(microtime(true));
+				break;
 
-		case 'end':
-			$last = array_pop($_timer_blocks);
-			$_start = $last[0];
-			list($a_micro, $a_int) = explode(' ', $_start);
-			list($b_micro, $b_int) = explode(' ', microtime(true));
-			$elapsed = ($b_int - $a_int) + ($b_micro - $a_micro);
-			$_timer_history[] = [ $elapsed ];
-			return $elapsed;
-			break;
+			case 'end':
+				$last = array_pop($_timer_blocks);
+				$_start = $last[0];
+				list($a_micro, $a_int) = explode(' ', $_start);
+				list($b_micro, $b_int) = explode(' ', microtime(true));
+				$elapsed = ($b_int - $a_int) + ($b_micro - $a_micro);
+				$_timer_history[] = [ $elapsed ];
+				return $elapsed;
 
-		case 'list':
-			$o = '';
-			foreach ($_timer_history as $mark) {
-				$o .= $mark[2] . " \n";
+			case 'list':
+				$o = '';
+				foreach ($_timer_history as $mark) {
+					$o .= $mark[2] . " \n";
+				}
+				return $o;
+
+			case 'stop':
+				$result = '';
+				while(!empty($_timer_blocks)) {
+					$result .= smarty_modifier_rendertime('end');
+				}
+				return $result;
 			}
-			return $o;
-			break;
-
-		case 'stop':
-			$result = '';
-			while(!empty($_timer_blocks)) {
-				$result .= smarty_modifier_rendertime('end');
-			}
-			return $result;
-			break;
-		}
 	}
 
 

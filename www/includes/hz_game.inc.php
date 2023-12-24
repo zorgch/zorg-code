@@ -329,17 +329,18 @@ function ticket_map ($game, $ticket='all')
  * @author [z]biko
  * @version 1.0
  * @since 1.0 function added
+ * @since 1.1 `26.06.2023` `IneX` fixes code quality issue "Unreachable code
  *
  * @param string $type Stations-Art um Preis zu berechnen
  * @return Integer des Wertes für die gewählte Stations-Art
  */
 function turn_cost ($type) {
 	switch ($type) {
-		case 'taxi': return 1; break;
-		case 'bus':  return 3; break;
-		case 'ubahn':  return 6; break;
-		case 'black':  return 10; break;
-		case 'sentinel':  return 10; break;
+		case 'taxi': return 1;
+		case 'bus': return 3;
+		case 'ubahn': return 6;
+		case 'black': return 10;
+		case 'sentinel': return 10;
 		default: user_error(t('invalid-turn', 'hz', $type), E_USER_ERROR);
 	}
 }
