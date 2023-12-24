@@ -1,0 +1,26 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 86
+
+# Matches multiple files with brace expansion notation
+# Set default charset
+[*.{php,tpl,js,css,xml,py,json,md}]
+charset = utf-8
+
+# 4 space indentation
+[*.{py,md}]
+indent_style = space
+indent_size = 4
+
+# Tab indentation for everything else
+[*.{php,tpl,js,css,xml,json}]
+indent_style = tab
+indent_size = 4
