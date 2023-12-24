@@ -22,8 +22,8 @@ if (!empty($search_for))
 	/**
  	* Get records from database
  	*/
-	$sql = 'SELECT id, title, read_rights FROM templates WHERE title LIKE "?%" AND read_rights <= 1 ORDER BY CHAR_LENGTH(title) ASC, title ASC LIMIT 0,6';
-	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT', [$search_for]);
+	$sql = 'SELECT id, title, read_rights FROM templates WHERE title LIKE CONCAT(?, "%") AND read_rights <= 1 ORDER BY CHAR_LENGTH(title) ASC, title ASC LIMIT 0,6';
+	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-templates)', [$search_for]);
 	if ($result !== false)
 	{
 		while ($rs = $db->fetch($result))

@@ -24,7 +24,7 @@ if (!empty($user_id) && !empty($search_for))
  	* Get records from database
  	*/
 	$sql = 'SELECT name, mime FROM files WHERE user=? AND name LIKE CONCAT("%", ?, "%") ORDER BY upload_date DESC LIMIT 0,6';
-	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT', [$user_id, $search_for]);
+	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-userfiles)', [$user_id, $search_for]);
 	if ($result !== false)
 	{
 		while ($rs = $db->fetch($result))
