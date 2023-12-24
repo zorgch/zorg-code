@@ -115,8 +115,8 @@ elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) )
 		VORSTAND_USER,
 		'2',
 		'3',
-		'NOW()',
-		'NOW()',
+		date('Y-m-d H:i:s'),
+		date('Y-m-d H:i:s'),
 		$user->id
 	];
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Saving a new Mail Template: %s', __FILE__, __LINE__, $insertTplQuery));
