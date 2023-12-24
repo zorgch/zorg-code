@@ -38,21 +38,15 @@ require_once INCLUDES_DIR.'util.inc.php';
  *
  * @author [z]biko
  * @author IneX
- * @version 4.0
+ * @version 4.1
  * @since 1.0 `01.01.2004` function added
  * @since 2.0 `06.08.2018` function refactored to use NASA APOD API
  * @since 3.0 `09.08.2018` enhanced function so an APOD date can be passed
  * @since 4.0 `14.09.2018` added processing of videos & website links passed from the APOD API
+ * @since 4.1 `26.06.2023` fixes code quality issue "Unreachable code ('cleanup:')"
  *
- * @uses APOD_API
- * @uses APOD_TEMP_IMGPATH
- * @uses APOD_GALLERY_ID
- * @var $MAX_PIC_SIZE
- * @uses cURLfetchJSON()
- * @uses createPic()
- * @uses getYoutubeVideoThumbnail()
- * @uses getVimeoVideoThumbnail()
- * @uses Comment::post()
+ * @uses APOD_API, APOD_TEMP_IMGPATH, APOD_GALLERY_ID, $MAX_PIC_SIZE
+ * @uses cURLfetchJSON(), createPic(), getYoutubeVideoThumbnail(), getVimeoVideoThumbnail(), Comment::post()
  * @param string $apod_date (Optional) A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)
  * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
  * @global	array	$MAX_PIC_SIZE	Globales Array im Scope von gallery.inc.php mit den Image-Width & -Height Grössen für Pics und Thumbnails
@@ -107,8 +101,8 @@ function get_apod($apod_date_input=NULL)
 		if ($new_apod_fileext === 'html') $new_apod_mediatype = 'website';
 
 		/** Check if APOD is not already fetched... */
-		$sql = 'SELECT id, name, extension, pic_added FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' AND DATE(pic_added) = "'.$new_apod_date.'"';
-		$checkTodaysAPOD = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+		$sql = 'SELECT id, name, extension, pic_added FROM gallery_pics WHERE album = ? AND DATE(pic_added) = ?';
+		$checkTodaysAPOD = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__, [APOD_GALLERY_ID, $new_apod_date]));
 		if (empty($checkTodaysAPOD['name']) || strpos($checkTodaysAPOD['name'], $new_apod_title) === false)
 		{
 			/** Save new APOD to the gallery_pics database table */
@@ -137,7 +131,11 @@ function get_apod($apod_date_input=NULL)
 					/** APOD media_type is 'image'... */
 					case 'image':
 						/** Fetch and save the APOD image to APOD_TEMP_IMGPATH */
-						if (!cURLfetchUrl($new_apod_img_small, $new_apod_temp_filepath)) goto cleanup;
+						if (!cURLfetchUrl($new_apod_img_small, $new_apod_temp_filepath))
+						{
+							remove_apod_id_from_db($new_apod_picid);
+							return false;
+						}
 
 						/** Filepfade zum finalen Speicherort des aktuellen APOD-Bildes (Original & Thumbnail) */
 						$new_apod_filepath_pic = picPath(APOD_GALLERY_ID, $new_apod_picid, $new_apod_fileext); // Fix eventual double-slashes in path
@@ -147,18 +145,20 @@ function get_apod($apod_date_input=NULL)
 						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic(): %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic));
 						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic, $MAX_PIC_SIZE['picWidth'], $MAX_PIC_SIZE['picHeight']))
 						{
-							error_log(sprintf('<%s:%d> %s createPic() ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic));
+							error_log(sprintf('[ERROR] <%s:%d> %s createPic() ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic));
 							/** Goto: cleanup */
-							goto cleanup;
+							remove_apod_id_from_db($new_apod_picid);
+							return false;
 						}
 
 						/** Create APOD gallery pic-thumbnail */
 						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
 						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
 						{
-							error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
+							error_log(sprintf('[ERROR] <%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
 							/** Goto: cleanup */
-							goto cleanup;
+							remove_apod_id_from_db($new_apod_picid);
+							return false;
 						}
 
 						/** Regular cleanup: remove temp-file from APOD_TEMP_IMGPATH */
@@ -197,28 +197,37 @@ function get_apod($apod_date_input=NULL)
 						if (empty($media_type) || is_array($media_type))
 						{
 							/** Goto: cleanup */
-							goto cleanup;
+							remove_apod_id_from_db($new_apod_picid);
+							return false;
 
 						} else {
 							/** Get Video-Thumbnail image */
 							$new_apod_img_thumbnail = getVideoThumbnail($media_type, $new_apod_urlparts['filename']);
 							$new_apod_temp_filepath = $new_apod_temp_filepath.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION);
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
-							if (!cURLfetchUrl($new_apod_img_thumbnail, $new_apod_temp_filepath)) goto cleanup;
+							if (!cURLfetchUrl($new_apod_img_thumbnail, $new_apod_temp_filepath))
+							{
+								remove_apod_id_from_db($new_apod_picid);
+								return false;
+							}
 
 							/** Create APOD gallery pic-thumbnail for 'video' */
 							$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, '.'.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION));
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
 							if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
 							{
-								error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
-								goto cleanup;
+								error_log(sprintf('[ERROR] <%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
+								remove_apod_id_from_db($new_apod_picid);
+								return false;
 							}
 
 							/** Update APOD 'video' entry in gallery_pics table */
 							$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $media_type, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
 							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
-							if ($result === 0) goto cleanup;
+							if ($result === 0) {
+								remove_apod_id_from_db($new_apod_picid);
+								return false;
+							}
 						}
 						break;
 
@@ -234,22 +243,27 @@ function get_apod($apod_date_input=NULL)
 						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
 						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
 						{
-							error_log(sprintf('<%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
-							goto cleanup;
+							error_log(sprintf('[ERROR] <%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
+							remove_apod_id_from_db($new_apod_picid);
+							return false;
 						}
 
 						/** Update APOD 'website' entry in gallery_pics table */
 						$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $new_apod_mediatype, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
 						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
-						if ($result === 0) goto cleanup;
+						if ($result === 0) {
+							remove_apod_id_from_db($new_apod_picid);
+							return false;
+						}
 						break;
 
 					/**
-					 * If APOD media_type is unsupported, goto cleanup
+					 * APOD media_type is unsupported, goto cleanup
 					 */
 					default:
-						error_log(sprintf('<%s:%d> APOD has an unsupported media_type: %s', __FUNCTION__, __LINE__, $new_apod_mediatype));
-						goto cleanup;
+						error_log(sprintf('[NOTICE] <%s:%d> APOD has an unsupported media_type: %s', __FUNCTION__, __LINE__, $new_apod_mediatype));
+						remove_apod_id_from_db($new_apod_picid);
+						return false;
 				}
 
 				/**
@@ -260,11 +274,6 @@ function get_apod($apod_date_input=NULL)
 				$new_apod_comment = t('apod-pic-comment', 'apod', [ (!empty($new_apod_img_large) ? $new_apod_img_large : $new_apod_img_small), $new_apod_title, $new_apod_explanation, $new_apod_archive_url, (!empty($new_apod_copyright) ? $new_apod_copyright : $new_apod_archive_url) ]);
 				Comment::post($new_apod_picid, 'i', BARBARA_HARRIS, $new_apod_comment);
 				return true;
-
-				/** Goto cleanup: on createPic=FALSE this goto will Cleanup & DELETE DB-Entry */
-				cleanup:
-					$deleteFromGalleryPics = $db->query('DELETE FROM gallery_pics WHERE id = ' . $new_apod_picid, __FILE__, __LINE__, __FUNCTION__);
-					return false;
 			}
 
 		/** ...APOD is already fetched! */
@@ -282,8 +291,13 @@ function get_apod($apod_date_input=NULL)
 
 
 /**
- * Aktuelleste APOD Bild-ID
+ * Aktuelleste APOD Bild-ID.
  * Holt das aktuellste APOD Bild aus der Datenbank
+ *
+ * @version 2.1
+ * @since 1.0 function added
+ * @since 2.0 function refactored
+ * @since 2.1 SQL uses prepared statement (mitigates possible SQL-Injection vulnerability)
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return array DB-Query Result als Resource (Array)
@@ -292,6 +306,32 @@ function get_apod_id()
 {
 	global $db;
 
-	$sql = 'SELECT * FROM gallery_pics WHERE album = '.APOD_GALLERY_ID.' ORDER by id DESC LIMIT 0,1';
-	return $db->fetch($db->query($sql));
+	$sql = 'SELECT * FROM gallery_pics WHERE album = ? ORDER by id DESC LIMIT 1';
+	return $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__, [APOD_GALLERY_ID]));
+}
+
+
+/**
+ * APOD Pic-ID aus DB entfernen.
+ * Deletes the specified APOD Pic ID from the database and returns false
+ *
+ * @version 1.0 function added
+ *
+ * @param object $db Globales Class-Object mit allen MySQL-Methoden
+ * @param int $apod_picid ID of the APOD pic record to delete
+ * @return bool
+ */
+function remove_apod_id_from_db($apod_picid)
+{
+	global $db;
+
+	/** Validate if $apod_picid is a valid integer and greater than 0 */
+	if (filter_var($apod_picid, FILTER_VALIDATE_INT) && $apod_picid > 0)
+	{
+		$sql = 'DELETE FROM gallery_pics WHERE id = ?';
+		$deleteFromGalleryPics = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$apod_picid]);
+		return $deleteFromGalleryPics;
+	}
+	/** Return false if $apod_picid is invalid */
+	return false;
 }
