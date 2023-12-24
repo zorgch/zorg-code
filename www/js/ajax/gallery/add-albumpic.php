@@ -183,7 +183,7 @@ if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 			($le_thumb === false || isset($le_thumb['error'])))
 		{
 			/** Reset to start over later... */
-			$db->query('DELETE FROM gallery_pics WHERE id='.$new_pic_id, __FILE__, __LINE__, 'DELETE FROM gallery_pics');
+			$db->query('DELETE FROM gallery_pics WHERE id=?', __FILE__, __LINE__, 'DELETE FROM gallery_pics', [$new_pic_id]);
 			@unlink($new_pic_path); // Delete Pic, suppress any errors
 			@unlink($new_thumb_path); // Delete Thumbnail, suppress any errors
 
