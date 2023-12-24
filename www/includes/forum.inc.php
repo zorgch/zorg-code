@@ -235,8 +235,8 @@ class Comment
 			/** Parent zu $comment_id is NOT cached yet... */
 			if (!isset($_cache["$board $comment_id"]))
 			{
-			   $sql = 'SELECT * FROM comments where parent_id = '.$comment_id.' AND board="'.$board.'"';
-			   $_cache["$board $comment_id"] = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			   $sql = 'SELECT * FROM comments where parent_id=? AND board=?';
+			   $_cache["$board $comment_id"] = $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id, $board]));
 			}
 			return $_cache["$board $comment_id"];
 		} else {
@@ -471,12 +471,13 @@ class Comment
 	static function getChildPostsFormFields($id, $parent_id, $comment_id=0, $depth=0) {
 		global $db;
 
-		if($depth < 7) {
+		$html = '';
 
+		if($depth < 7)
+		{
 			if($comment_id == 0) $comment_id = $parent_id;
-
-			$sql = "select * from comments where parent_id =".$comment_id;
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = 'SELECT * FROM comments WHERE parent_id = ?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id]);
 
 			while ($rs = $db->fetch($result)) {
 				if($rs['id'] != $id) {
@@ -491,9 +492,8 @@ class Comment
 
 				$html .= self::getChildPostsFormFields($id, $parent_id, $rs['id'], ($depth+1));
 			}
-
-			return $html;
 		}
+		return $html;
 	}
 
 	/**
@@ -501,14 +501,14 @@ class Comment
 	 *
 	 * WICHTIG! UNBEDINGT SO LASSEN!
 	 *
-	 * @return int
+	 * @param string $board
 	 * @param int $id
-	 * @param int $hiers
+	 * @return int
 	 */
 	static function getThreadid($board, $id) {
 		global $db;
-		$sql = 'SELECT thread_id FROM comments WHERE board="'.$board.'" AND id='.$id;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$sql = 'SELECT thread_id FROM comments WHERE board=? AND id=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$board, $id]));
 		return $rs['thread_id'];
 	}
 
@@ -557,23 +557,12 @@ class Comment
 	}
 
 	/**
-	 * Mark Comment as 'read'
-	 */
-	static function markasread($comment_id, $user_id) {
-		global $db, $user;
-		if(defined('USER_USER') && $user->typ >= USER_USER) {
-			$sql = 'DELETE from comments_unread WHERE user_id = '.$user_id.' AND comment_id='.$comment_id;
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		}
-	}
-
-	/**
-	 * Prüft ob der Comment ein Thread ist
-	 *
+	 * Prüft ob der Comment ein Thread ist.
 	 * Prüft, ob der Comment im therads-table eingetragen ist (= thread start)
 	 *
 	 * @author IneX
-	 * @date 16.03.2008
+	 * @version 1.0
+	 * @since 1.0 `16.03.2008` Method added
 	 * @param string $board
 	 * @param int $id int
 	 * @return boolean
@@ -586,59 +575,85 @@ class Comment
 		return $rs;
 	}
 
-	// Mark as unread for all users.
-	static function markasunread($comment_id) {
-		global $db;
-
-		$sql =
-			"
-			SELECT
-				c.thread_id,
-				c.board,
-				ct.rights
-			FROM comments c
-			LEFT JOIN comments_threads ct
-				ON (ct.board = c.board AND ct.thread_id = c.thread_id)
-			WHERE c.id = ".$comment_id."
-			LIMIT 0, 1
-			"
-		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-
-		if($rs['rights'] == '') $rs['rights'] = 0;
-
-
-		if($rs['rights'] < USER_SPECIAL) {
-			$sql = "REPLACE INTO comments_unread (user_id, comment_id)
-					SELECT id, ".$comment_id."
-					FROM user
-					WHERE user.usertype >= ?
-					AND (UNIX_TIMESTAMP(lastlogin)+".USER_OLD_AFTER.") > UNIX_TIMESTAMP(NOW())
-					AND forum_boards_unread LIKE CONCAT('%', ?, '%')"
-					/*AND ISNULL(
-						SELECT tignore.thread_id, tignore.user_id
-						FROM comments_threads_ignore tignore
-						WHERE tignore.thread_id = ".$rs['thread_id']."
-						AND tignore.user_id = user.id
-						)*/
-			;
-			$data = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$rs['rights'], $rs['board']]));
+	/**
+	 * Mark Comment as 'READ'.
+	 * @author [z]biko
+	 * @version 1.1
+	 * @since 1.0 Method addded
+	 * @since 1.1 `03.12.2023` `IneX` Support with MySQL prepared statements
+	 *
+	 * @param int $commentid
+	 * @param int $user_id
+	 * @return boolean
+	 */
+	static function markasread($comment_id, $user_id)
+	{
+		global $db, $user;
+		if((is_numeric($comment_id) && $comment_id>0) && defined('USER_USER') && $user->typ >= USER_USER)
+		{
+			$sql = 'DELETE from comments_unread WHERE user_id=? AND comment_id=?';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id, $comment_id]);
+			return true;
 		} else {
-			$sql =
-				"
-				REPLACE INTO comments_unread (user_id, comment_id)
-					SELECT
-						user_id
-						, ".$comment_id."
-					FROM comments_threads_rights
-					WHERE board = '".$rs['board']."'
-					AND thread_id = ".$rs['thread_id']."
-				"
-			;
-			$data = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			return false;
 		}
 	}
 
+	/**
+	 * Mark Comment as 'UNREAD' for all users.
+	 * @author [z]biko
+	 * @version 1.1
+	 * @since 1.0 Method addded
+	 * @since 1.1 `03.12.2023` `IneX` Unread comments where broken: added support for MySQL prepared statements
+	 *
+	 * @param int $commentid
+	 * @return boolean
+	 */
+	static function markasunread($comment_id)
+	{
+		global $db;
+
+		/** Validate passed Parameters */
+		if (!is_numeric($comment_id) || $comment_id <= 0) return false;
+
+		$sql = 'SELECT c.thread_id, c.board, ct.rights
+				FROM comments c LEFT JOIN comments_threads ct
+					ON (ct.board=c.board AND ct.thread_id=c.thread_id)
+				WHERE c.id=? LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id]));
+
+		$userights = (!isset($rs['rights']) || empty($rs['rights']) ? 0 : $rs['rights']);
+		$board = $rs['board'];
+		$thread = $rs['thread_id'];
+
+		/** Insert only Unread Commments to Users who are NOT USER_SPECIAL */
+		if($userights < USER_SPECIAL)
+		{
+			$sql = 'REPLACE INTO comments_unread (user_id, comment_id)
+					SELECT id, ? FROM user
+						WHERE user.usertype>=?
+						AND (UNIX_TIMESTAMP(lastlogin)+?) > UNIX_TIMESTAMP(NOW())
+						AND forum_boards_unread LIKE CONCAT("%", ?, "%")'
+						/*AND ISNULL(
+							SELECT tignore.thread_id, tignore.user_id
+							FROM comments_threads_ignore tignore
+							WHERE tignore.thread_id=$thread
+							AND tignore.user_id = user.id
+						)*/
+			;
+			$affectedRows = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id, $userights, USER_OLD_AFTER, $board]);
+		} else {
+			$sql = 'REPLACE INTO comments_unread (user_id, comment_id)
+					SELECT user_id, ? FROM comments_threads_rights
+						WHERE board=? AND thread_id=?';
+			$affectedRows = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id, $board, $thread]);
+		}
+		return ($affectedRows > 0 ? true : false);
+	}
+
+	/**
+	 * In Forum-Search, highlight the searched keyword(s) with a color
+	 */
 	static function highliteKeyword($keyword,$text) {
 	  global $tborderc;
 	  //$keyword = htmlentities($keyword);
@@ -667,7 +682,7 @@ class Comment
 
 		/** Parent-Id = 1 wenn man ein ForumThread postet */
 		$parent_id = ($parent_id <= 0 ? 1 : $parent_id);
-		if($parent_id <= 0 || !is_numeric($parent_id)) user_error(t('invalid-parent_id', 'commenting'), E_USER_ERROR);
+		if(!is_numeric($parent_id) || $parent_id <= 0) user_error(t('invalid-parent_id', 'commenting'), E_USER_ERROR);
 
 		/**
 		 * Falls Thread-Id noch nicht vorhanden, parent-id nehmen
@@ -698,9 +713,10 @@ class Comment
 			 * Falls parent_id = 1, thread_id = id.
 			 * Für Forum->neue Threads.
 			 */
-			$sql = 'UPDATE comments SET thread_id = id
-					WHERE parent_id = 1 AND board = "f" AND id = '.$comment_id;
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = 'UPDATE comments SET thread_id=id
+					WHERE parent_id=? AND board=? AND id=?';
+			$params = [1, "f", $comment_id];
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, $params);
 
 			$rs = self::getRecordset($comment_id);
 			$commentlink = self::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']);
@@ -710,20 +726,16 @@ class Comment
 			if(empty($commentlink) || !$commentlink || is_numeric($commentlink)) user_error(t('invalid-comment_id', 'commenting'), E_USER_ERROR);
 
 			/** Falls neuer Thread, Record in Thread-Tabelle generieren */
-			$sql = sprintf('INSERT IGNORE INTO comments_threads (board, thread_id, comment_id) VALUES ("%s", %d, %d)',
-							$rs['board'], $rs['thread_id'], $rs['id']);
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = 'INSERT IGNORE INTO comments_threads (board, thread_id, comment_id) VALUES (?, ?, ?)';
+			$params = [$rs['board'], $rs['thread_id'], $rs['id']];
 			// TODO use $db->insert('comments_threads', array(key=value)) instead of $db->query()
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, $params);
 
 			/** last post setzen */
 			$sql = 'UPDATE comments_threads
-					SET
-						last_comment_id = '.$rs['id'].'
-						, comment_id = IF(ISNULL(comment_id), '.$rs['id'].', comment_id)
-					WHERE
-						thread_id = '.$rs['thread_id'].'
-						AND board = "'.$board.'"';
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+					SET last_comment_id=?, comment_id=IF(ISNULL(comment_id), ?, comment_id)
+					WHERE thread_id=? AND board=?';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$rs['id'], $rs['id'], $rs['thread_id'], $board]);
 
 			/** Comment-Template kompilieren */
 			$compile_template_result = self::compile_template($rs['thread_id'], $rs['id'], $rs['board']);
@@ -737,10 +749,10 @@ class Comment
 			}
 
 			/** Mark comment as unread for all users */
-			self::markasunread($rs['id']);
+			$markedAsUnread = self::markasunread($rs['id']);
 
 			/** Mark comment as read for poster (current user) */
-			self::markasread($rs['id'], $user_id);
+			$markedReadForPoster = self::markasread($rs['id'], $user_id);
 
 			/**
 			 * Comment Notifications
@@ -781,8 +793,8 @@ class Comment
 			}
 
 			/** 3) Message an alle Subscriber senden */
-			$sql = 'SELECT * FROM comments_subscriptions WHERE comment_id = '.$parent_id.' AND board="'.$board.'"';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = 'SELECT * FROM comments_subscriptions WHERE comment_id=? AND board=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$parent_id, $board]);
 			if($db->num($result) > 0)
 			{
 				$subject = t('message-newcomment-subscribed-subject', 'subscriptions', [ $user->id2user($user_id,true), $parent_id]);
@@ -825,13 +837,13 @@ class Comment
 
 		$sql = 'UPDATE comments
 				SET
-					text="'.$_POST['text'].'"
-					, board="'.$_POST['board'].'"
-					, parent_id='.$_POST['parent_id'].'
-					, thread_id='.$_POST['thread_id'].'
+					text=?
+					, board=?
+					, parent_id=?
+					, thread_id=?
 					, date_edited=NOW()
-				WHERE id = '.$comment_id.' AND board="'.$_POST['board'].'"';
-		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+				WHERE id = ? AND board=?';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$_POST['text'], $_POST['board'], $_POST['parent_id'], $_POST['thread_id'], $comment_id, $_POST['board']]);
 
 		/** Smarty Comment Templates neu Kompilieren */
 		self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
@@ -841,15 +853,15 @@ class Comment
 
 		/** last post setzen */
 		$sql = 'UPDATE comments_threads
-				 SET last_comment_id = (SELECT MAX(id) from comments WHERE thread_id = '.$_POST['thread_id'].' AND board = "'.$_POST['board'].'")
-				 WHERE thread_id = '.$_POST['thread_id'];
-		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+					SET last_comment_id=(SELECT MAX(id) FROM comments WHERE thread_id=? AND board=?)
+				WHERE thread_id=?';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$_POST['thread_id'], $_POST['board'], $_POST['thread_id']]);
 
 		/** Mark comment as unread for all users (again) */
-		self::markasunread($comment_id);
+		$markedAsUnread = self::markasunread($comment_id);
 
 		/** Mark comment as read for this user */
-		self::markasread($comment_id, $user->id);
+		$markedReadForPoster = self::markasread($comment_id, $user->id);
 
 		/** Message an alle gewünschten senden */
 		if(count($_POST['msg_users']) > 0)
@@ -903,12 +915,10 @@ class Forum {
 		global $db, $smarty;
 
 		$e = $db->query(
-			"SELECT c.id, c.board, c.thread_id
-			FROM comments c, comments_threads ct
-			WHERE c.thread_id = ct.thread_id AND ct.last_seen!='0000-00-00'
-				AND unix_timestamp(now())-unix_timestamp(ct.last_seen) > (60*60*24*".THREAD_TPL_TIMEOUT.")",
-			__FILE__, __LINE__
-		);
+			'SELECT c.id, c.board, c.thread_id FROM comments c, comments_threads ct
+			 WHERE c.thread_id = ct.thread_id AND ct.last_seen!="0000-00-00"
+			 AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(ct.last_seen) > (60*60*24*?)',
+			__FILE__, __LINE__, __METHOD__, [THREAD_TPL_TIMEOUT]);
 		$anz = 0;
 		while ($d = $db->fetch($e)) {
 			$anz++;
@@ -1072,9 +1082,9 @@ class Forum {
 		/** Validate passed $board */
 		if (empty($board) || is_numeric($board) || is_array($board)) return false;
 
-		$sql = 'SELECT title FROM comments_boards WHERE board = "'.$board.'" LIMIT 1';
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-		return $rs['title'];
+		$sql = 'SELECT title FROM comments_boards WHERE board=? LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$board]));
+		return (isset($rs['title']) ? $rs['title'] : '');
 	}
 
 
@@ -1299,10 +1309,10 @@ class Forum {
 					, user.username
 				FROM comments
 					LEFT JOIN user on comments.user_id = user.id
-					LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id='.$user->id.')
+					LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id=?)
 				WHERE comments_unread.comment_id IS NOT NULL
 				ORDER by date ASC LIMIT 0,1';
-	  	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+	  	$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id]));
 	  	return Comment::getLink($rs2['board'], $rs2['parent_id'], $rs2['id'], $rs2['thread_id']);
 	}
 
@@ -1312,17 +1322,14 @@ class Forum {
 	 * @param $thread_id int
 	 * @return Array
 	 */
-	static function getLastComment() {
-	  global $db;
-		$sql =
-	  	"SELECT user.clan_tag, user.username, comments.*, UNIX_TIMESTAMP(date) as date"
-	  	." FROM comments"
-	  	." left join user on comments.user_id = user.id"
-	  	." order by date desc Limit 0,1"
-	  ;
-	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-	  $rs = $db->fetch($result);
-	  return $rs;
+	static function getLastComment()
+	{
+		global $db;
+		$sql = 'SELECT user.clan_tag, user.username, comments.*, UNIX_TIMESTAMP(date) as date
+				FROM comments LEFT JOIN user ON comments.user_id=user.id ORDER BY date DESC LIMIT 1';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$rs = $db->fetch($result);
+		return $rs;
 	}
 
 	static function getNavigation($page=1, $pagesize, $numpages) {
@@ -1407,39 +1414,41 @@ class Forum {
 	 * @TODO HTML => Smarty-Template & return with $smarty->fetch()...
 	 * @return String
 	 */
-	static function getLatestComments($num=10, $title = '', $board = '') {
-
+	static function getLatestComments($num=10, $title = '', $board = '')
+	{
 		global $db, $user;
 
-		if (!$num) $num = 10;
-
-		$wboard = ( $board ? 'comments.board="'.$board.'"' : '' );
+		$limit = $num ? $num : 10;
+		$where_board = ( $board ? 'comments.board=?' : '' );
 
 	    //beschränkt auf 365 tage, da sonst unglaublich lahm
-		$sql =
-			'SELECT
-				 comments.*,
-				 IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread,
-				 UNIX_TIMESTAMP(date) as date
-			FROM comments
-			  LEFT JOIN user
-				 ON comments.user_id = user.id
-			  LEFT JOIN comments_threads ct
-				 ON ct.thread_id = comments.thread_id
-				 AND ct.board = comments.board
-			  LEFT JOIN comments_threads_rights ctr
-				 ON ctr.thread_id = comments.thread_id
-				 AND ctr.board = comments.board
-				 AND ctr.user_id = '.$user->id.'
-			  LEFT JOIN comments_unread
-				 ON (comments.id=comments_unread.comment_id
-				 AND comments_unread.user_id = '.$user->id.')
-			WHERE '.( !empty($wboard) ? $wboard.' AND ' : '').'(user.usertype >= ct.rights OR ct.rights='.USER_SPECIAL.' AND ctr.user_id IS NOT NULL)
-			  AND DATEDIFF(now(), date) < 365
-			ORDER BY date desc LIMIT 0,'.$num
-			;
+		$sql ='SELECT
+					comments.*,
+					IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread,
+					UNIX_TIMESTAMP(date) as date
+				FROM comments
+					LEFT JOIN user
+						ON comments.user_id = user.id
+					LEFT JOIN comments_threads ct
+						ON ct.thread_id = comments.thread_id
+						AND ct.board = comments.board
+					LEFT JOIN comments_threads_rights ctr
+						ON ctr.thread_id = comments.thread_id
+						AND ctr.board = comments.board
+						AND ctr.user_id = ?
+					LEFT JOIN comments_unread
+						ON (comments.id=comments_unread.comment_id
+						AND comments_unread.user_id=?)
+				WHERE '.( !empty($where_board) ? $where_board.' AND ' : '')
+					.'(user.usertype >= ct.rights OR ct.rights=? AND ctr.user_id IS NOT NULL)
+					AND DATEDIFF(now(), date) < 365
+				ORDER BY date desc LIMIT ?';
 
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$params = [$user->id, $user->id];
+		if ($board) array_unshift($params, $board);
+		$params[] = USER_SPECIAL;
+		$params[] = $limit;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $params);
 
 		$html .=
 			'<table class="border" width="100%"><tr><td align="center" colspan="4"><b>'
@@ -2419,24 +2428,18 @@ class Thread {
 	 * @return Array
 	 * @param int $thread_id int
  	 */
-	static function getLastUnreadComment($board, $thread_id, $user_id) {
+	static function getLastUnreadComment($board, $thread_id, $user_id)
+	{
 		global $db;
-		$sql =
-			"
-			SELECT
-			comments.*
-			, UNIX_TIMESTAMP(comments.date) as date
-			FROM comments
-			LEFT JOIN comments_unread
-				ON (comments.id = comments_unread.comment_id AND comments_unread.user_id = ".$user_id.")
-			WHERE
-				comments_unread.comment_id is NOT NULL
-				AND comments.thread_id = ".$thread_id."
-				AND comments.board='".$board."'
-			ORDER by date ASC LIMIT 0,1
-			"
-		;
-	  return $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$sql = 'SELECT comments.*, UNIX_TIMESTAMP(comments.date) as date
+				FROM comments LEFT JOIN comments_unread
+					ON (comments.id = comments_unread.comment_id AND comments_unread.user_id=?)
+				WHERE
+					comments_unread.comment_id is NOT NULL
+					AND comments.thread_id=?
+					AND comments.board=?
+				ORDER by date ASC LIMIT 1';
+	  return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id, $thread_id, $board]));
 	}
 
 	/**
@@ -2504,8 +2507,8 @@ class Thread {
 		if (empty($board) || is_numeric($board) || is_bool($board)) return false;
 		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0) return false;
 
-		$sql = 'SELECT id FROM comments WHERE thread_id = '.$thread_id.' AND board="'.$board.'"';
-		return $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$sql = 'SELECT id FROM comments WHERE thread_id=? AND board=?';
+		return $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__, [$thread_id, $board]));
 	}
 
 	/**
@@ -2546,9 +2549,8 @@ class Thread {
 
 		$sql = 'SELECT count(c.id) anz
 				FROM comments c, comments_unread u
-				WHERE c.board = "'.$board.'" AND c.thread_id='.$thread_id.' AND u.comment_id=c.id AND u.user_id='.$user_id
-				;
-		$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+				WHERE c.board=? AND c.thread_id=? AND u.comment_id=c.id AND u.user_id=?';
+		$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$board, $thread_id, $user_id]));
 		return $d['anz'];
 	}
 
@@ -2571,9 +2573,8 @@ class Thread {
 		if (empty($board) || is_numeric($board) || is_array($board)) return false;
 		if (empty($thread_id) || !is_numeric($thread_id) || $thread_id <= 0 || is_array($thread_id)) return false;
 
-		$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date
-				FROM comments where thread_id='.$thread_id.' and board="'.$board.'"';
-		return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$sql = 'SELECT *, UNIX_TIMESTAMP(date) as date FROM comments where thread_id=? and board=?';
+		return $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$thread_id, $board]));
 	}
 
 	/**
@@ -2595,23 +2596,22 @@ class Thread {
 			}
 
 	  $hierdepth = count($depth);
-	  $sql =
-	  	"SELECT"
-	  	." comments.*"
-	  	.", user.clan_tag, user.username"
-	  	.", comments_unread.user_id as isunread"
-	  	.", UNIX_TIMESTAMP(comments.date) as date"
-	  	.", count(c2.id) as numchildposts"
-	  	." FROM comments"
-	    ." LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = '".$_SESSION['user_id']."')"
-	    ." LEFT JOIN user ON comments.user_id = user.id"
-	    ." LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)"
-	  	." WHERE comments.parent_id = $parent_id AND comments.board = '".$board."'"
-	  	." GROUP BY comments.id"
-	  	." ORDER BY comments.id"
-	  ;
+	  $sql = 'SELECT
+				comments.*
+				,user.clan_tag, user.username
+				,comments_unread.user_id as isunread
+				,UNIX_TIMESTAMP(comments.date) as date
+				,count(c2.id) as numchildposts
+			FROM comments
+				LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id=?)
+				LEFT JOIN user ON comments.user_id=user.id
+				LEFT JOIN comments as c2 ON (comments.id=c2.parent_id AND comments.board=c2.board)
+			WHERE comments.parent_id=? AND comments.board=?
+				GROUP BY comments.id
+				ORDER BY comments.id
+			';
 
-	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+	  $result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $parent_id, $board]);
 	  $rcount = 0;
 	  $additional = FALSE; // already posted "Additional Posts" ?
 	  while($rs = $db->fetch($result)) {

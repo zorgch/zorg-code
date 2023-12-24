@@ -46,35 +46,39 @@ function smarty_base64_encode ($params) {
 }
 
 function smarty_comment_extend_depth ($params) {
-	global $smarty;	
-	
+	global $smarty;
+
 	if (isset($params['depth'])) $depth = $params['depth'];
-	else $depth = array();	
-	
-	
+	else $depth = array();
+
+
 	if ($params['childposts'] > $params['rcount']) {
       array_push($depth, "vertline");
     } else {
       array_push($depth, "space");
     }
     $smarty->assign("hdepth", $depth);
-    
+
     return "";
 }
 
 function smarty_comment_remove_depth ($params) {
 	global $smarty;
-	
+
 	$depth = $params['depth'];
-	
+
 	array_pop($depth);
 	$smarty->assign("hdepth", $depth);
-	
+
 	return "";
 }
 
+/**
+ * Mark an unread comment as READ.
+ * return void
+ */
 function smarty_comment_mark_read ($params) {
-	return Comment::markasread($params['comment_id'], $params['user_id']);
+	Comment::markasread($params['comment_id'], $params['user_id']);
 }
 
 function comment_read_permission ($comment_id) {
