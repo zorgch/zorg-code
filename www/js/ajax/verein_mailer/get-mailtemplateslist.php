@@ -25,9 +25,9 @@ try {
 			FROM verein_correspondence corr
 				INNER JOIN templates tpls
 				ON corr.template_id = tpls.id
-			WHERE corr.recipient_id = 451
+			WHERE corr.recipient_id = ?
 			ORDER BY updated DESC';
-	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-mailtemplate)');
+	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-mailtemplate)', [451]);
 	while ($rs = $db->fetch($result))
 	{
 		$templates[] = [
