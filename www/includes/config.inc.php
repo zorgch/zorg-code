@@ -251,8 +251,12 @@ if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', (isset($_ENV['FORUM
  * @const SMARTY_404PAGE_TPL 404 "Page not found" Smarty-Template reference
  */
 if (!defined('SMARTY_DIR')) define('SMARTY_DIR', (isset($_ENV['SMARTY_DIR']) ? $_ENV['SMARTY_DIR'] : null));
-if (!defined('SMARTY_TRUSTED_DIRS')) define('SMARTY_TRUSTED_DIRS', (isset($_ENV['SMARTY_TRUSTED_DIRS']) ? (array)$_ENV['SMARTY_TRUSTED_DIRS'] : null));
-if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML', (isset($_ENV['SMARTY_TEMPLATES_HTML']) ? (array)$_ENV['SMARTY_TEMPLATES_HTML'] : null));
+if (!defined('SMARTY_TRUSTED_DIRS')) {
+    define('SMARTY_TRUSTED_DIRS', isset($_ENV['SMARTY_TRUSTED_DIRS']) ? explode(',', $_ENV['SMARTY_TRUSTED_DIRS']) : []);
+}
+if (!defined('SMARTY_TEMPLATES_HTML')) {
+    define('SMARTY_TEMPLATES_HTML', isset($_ENV['SMARTY_TEMPLATES_HTML']) ? explode(',', $_ENV['SMARTY_TEMPLATES_HTML']) : []);
+}
 if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE', (isset($_ENV['SMARTY_CACHE']) ? $_ENV['SMARTY_CACHE'] : null));
 if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', (isset($_ENV['SMARTY_COMPILE']) ? $_ENV['SMARTY_COMPILE'] : null));
 if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', (isset($_ENV['SMARTY_PACKAGES_DIR']) ? $_ENV['SMARTY_PACKAGES_DIR'] : null));
@@ -264,11 +268,13 @@ if (!defined('SMARTY_404PAGE_TPL')) define('SMARTY_404PAGE_TPL', (isset($_ENV['S
  * Define various Gallery related constants.
  * @const MAX_PIC_SIZE The maximum width & height for pictures
  * @const MAX_THUMBNAIL_SIZE The maximum width & height for pic thumbnails
- * @const THUMBPAGE The image size for Thumbnail pictures
  */
-if (!defined('MAX_PIC_SIZE')) define('MAX_PIC_SIZE', (isset($_ENV['GALLERY_MAX_PIC_SIZE']) ? (array)$_ENV['GALLERY_MAX_PIC_SIZE'] : null));
-if (!defined('MAX_THUMBNAIL_SIZE')) define('MAX_THUMBNAIL_SIZE', (isset($_ENV['GALLERY_MAX_THUMBNAIL_SIZE']) ? (array)$_ENV['GALLERY_MAX_THUMBNAIL_SIZE'] : null));
-if (!defined('THUMBPAGE')) define('THUMBPAGE', (isset($_ENV['GALLERY_THUMBPAGE']) ? (array)$_ENV['GALLERY_THUMBPAGE'] : null));
+if (!defined('MAX_PIC_SIZE')) {
+	define('MAX_PIC_SIZE', (isset($_ENV['GALLERY_MAX_PIC_WIDTH']) && isset($_ENV['GALLERY_MAX_PIC_HEIGHT']) ? ['width' => $_ENV['GALLERY_MAX_PIC_WIDTH'], 'height' => $_ENV['GALLERY_MAX_PIC_HEIGHT']] : ['width' => 800, 'height' => 600]));
+}
+if (!defined('MAX_THUMBNAIL_SIZE')) {
+	define('MAX_THUMBNAIL_SIZE', (isset($_ENV['GALLERY_MAX_THUMB_WIDTH']) && isset($_ENV['GALLERY_MAX_THUMB_HEIGHT']) ? ['width' => $_ENV['GALLERY_MAX_THUMB_WIDTH'], 'height' => $_ENV['GALLERY_MAX_THUMB_HEIGHT']] : ['width' => 150, 'height' => 150]));
+}
 
 /**
  * Define various NASA API and APOD related constants.

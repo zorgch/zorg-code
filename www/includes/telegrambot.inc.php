@@ -78,17 +78,22 @@ class Telegram
 		global $user;
 
 		/** Parse $_ENV vars into $botconfigs */
-		$botconfigs = [  'api_key' => $_ENV['TELEGRAM_BOT_API_KEY']
-						,'my_secret' => $_ENV['TELEGRAM_BOT_API_AUTH_PASSWORD']
-						,'valid_ips' => (array)$_ENV['TELEGRAM_BOT_API_IPWHITELIST']
-						,'admins' => (array)$_ENV['TELEGRAM_BOT_API_USERWHITELIST']
-						,'ssl_certificate' => $_ENV['TELEGRAM_BOT_API_SSLCERT_PATH']
-						,'chat_id' =>  $_ENV['TELEGRAM_BOT_API_CHAT']
-						,'logging_dirroot' => $_ENV['TELEGRAM_BOT_API_LOG_DIR']
-						,'files_dirroot' => $_ENV['TELEGRAM_BOT_API_FILES_DIR']
-						,'TELEGRAM_API_URI' => $_ENV['TELEGRAM_BOT_API']
-						,'TELEGRAM_GROUPCHAT_ID' => $_ENV['TELEGRAM_BOT_API_CHAT']
-					];
+		if (null !== $_ENV['TELEGRAM_BOT_API_KEY'] || null !== $_ENV['TELEGRAM_BOT']) {
+			error_log(sprintf('[WARN] <%s:%d> Missing Telegram Bot Configs!', __METHOD__, __LINE__));
+			return false;
+		} else {
+			$botconfigs = [  'api_key' => $_ENV['TELEGRAM_BOT_API_KEY']
+							,'my_secret' => $_ENV['TELEGRAM_BOT_API_AUTH_PASSWORD']
+							,'valid_ips' => explode(',', $_ENV['TELEGRAM_BOT_API_IPWHITELIST'])
+							,'admins' => explode(',', $_ENV['TELEGRAM_BOT_API_USERWHITELIST'])
+							,'ssl_certificate' => $_ENV['TELEGRAM_BOT_API_SSLCERT_PATH']
+							,'chat_id' =>  $_ENV['TELEGRAM_BOT_API_CHAT']
+							,'logging_dirroot' => $_ENV['TELEGRAM_BOT_API_LOG_DIR']
+							,'files_dirroot' => explode(',', $_ENV['TELEGRAM_BOT_API_FILES_DIR'])
+							,'TELEGRAM_API_URI' => $_ENV['TELEGRAM_BOT_API']
+							,'TELEGRAM_GROUPCHAT_ID' => $_ENV['TELEGRAM_BOT_API_CHAT']
+						];
+		}
 
 		/** First of all: make sure the Telegram Bot-Configs exist */
 		if (isset($botconfigs) && is_array($botconfigs))
