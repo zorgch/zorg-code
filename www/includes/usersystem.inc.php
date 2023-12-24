@@ -1326,7 +1326,7 @@ class usersystem
 		/** Validate passed parameters */
 		$userid = (empty($id) || !is_numeric($id) ? false : (int)$id);
 		$use_clantag = (bool)$clantag;
-		$show_pic = (bool)$pic;
+		//$show_pic = (bool)$pic;
 
 		/** If given User-ID is not valid (not numeric), show a User Error */
 		if (false === $userid) {
@@ -1338,11 +1338,11 @@ class usersystem
 		{
 			if ($use_clantag === true && !isset($_users[$userid]['clan_tag']))
 			{
-				$sql = 'SELECT username, clan_tag FROM user WHERE id='.$userid.' LIMIT 0,1';
+				$sql = 'SELECT username, clan_tag FROM user WHERE id=? LIMIT 1';
 			} else {
-				$sql = 'SELECT username FROM user WHERE id='.$userid.' LIMIT 0,1';
+				$sql = 'SELECT username FROM user WHERE id=? LIMIT 1';
 			}
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$userid]));
 			if (!empty($rs) || $rs !== false || !empty($rs['username']))
 			{
 				/** User $id exists - add record to global $_users-Array */
