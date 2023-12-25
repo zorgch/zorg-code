@@ -16,15 +16,13 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 /**
  * Stockbroker Class
  *
- * @author [z]milamber
- * @date ?
  * @package zorg
  * @subpackage Stockbroker
  * @version 1.0
- * @since 1.0 class added
+ * @since 1.0 `[z]milamber` Class added
  */
-class Stockbroker {
-
+class Stockbroker
+{
 	function buyStock($user_id, $symbol, $menge, $max) {
 		global $db;
 
@@ -222,15 +220,12 @@ class Stockbroker {
 	{
 		global $db, $notification;
 
-		$sql = 'SELECT
-					*
-				FROM
-					stock_warnings
-				WHERE symbol = "'.$symbol.'"';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT * FROM stock_warnings WHERE symbol=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $symbol);
 
 		while($rs = $db->fetch($result))
 		{
+			// FIXME Don't use the bad eval()!!
 			eval("\$warning=".$kurs.$rs['comparison'].$rs['kurs'].';');
 
 			if ($warning)
@@ -794,3 +789,6 @@ class Stockbroker {
 
 	}
 }
+
+/** Initiate Stockbroker class */
+$stockbroker = new Stockbroker();
