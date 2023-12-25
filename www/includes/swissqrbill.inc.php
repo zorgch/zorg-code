@@ -39,7 +39,7 @@ class zorgSwissQRBill
 	 *
 	 * @const STORE_QRCODEIMAGES_DIR Path to directory where generated QR-Code image files (png, svg) can be stored.
 	 */
-	const STORE_QRCODEIMAGES_DIR = PHP_IMAGES_DIR . 'swissqrbill';
+	const STORE_QRCODEIMAGES_DIR = (isset($_ENV['QRCODEIMAGES_DIR']) ? $_ENV['QRCODEIMAGES_DIR'] : __DIR__.'/../images/');
 
 	/**
 	 * Generate QR-Code
