@@ -959,8 +959,8 @@ class usersystem
 
 		$html = '';
 		$sql = 'SELECT id, username, clan_tag FROM user
-				WHERE activity > (NOW() - '.USER_TIMEOUT.') ORDER by activity DESC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				WHERE activity > (?-?) ORDER by activity DESC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [NOW(), USER_TIMEOUT]);
 		$num_online = $db->num($result);
 		if (!empty($num_online) && $num_online !== false)
 		{
@@ -1806,39 +1806,6 @@ class usersystem
 		$smarty->assign('show_profile_link', ($show_link ? 'true' : 'false'));
 
 		return $smarty->fetch('file:layout/partials/profile/userprofile_link.tpl');
-	}
-
-	/**
-	 * User Quote (?)
-	 *
-	 * Gibt ein random Quote zurück.
-	 * Falls mit user_id wird es ein quote dieses users sein<br><br>
-	 *
-	 * @TODO @[z]milamber: Warum ist dies nicht im quotes.inc.php? Und wir brauchen das nicht mal?!</b>
-	 *
-	 * @return string quote
-	 * @param int $user_id User ID
-	 */
-	function quote($user_id) {
-		global $db;
-		if($user_id != '')
-		{
-			$sql = 'SELECT count(*) as anzahl FROM quotes WHERE user_id = '.$user_id;
-			$result = $db->query($sql, __FILE__, __LINE__);
-			$rs = $db->fetch($result);
-			$total = $rs['anzahl'];
-
-			mt_srand((double)microtime()*1000000);
-			$rnd = mt_rand(1, $total);
-			$sql = "SELECT * FROM quotes WHERE user_id = ".$user_id;
-			$result = $db->query($sql, __FILE__, __LINE__);
-
-			for ($i=0;$i<$rnd;$i++){
-				$rs = $db->fetch($result);
-			}
-			$quote = $rs['text'];
-			return $quote;
-		}
 	}
 
 	/**

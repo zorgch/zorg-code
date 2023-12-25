@@ -361,9 +361,11 @@ error_reporting($_ENV['ERROR_REPORTING_LEVELS']);
  * (keep this at the end of the config.inc.php!)
  *
  * @include strings.inc.php Various Placeholder-Strings related constants and files.
+ * @include util.inc.php Various Helper Functions and Code Utilities.
  * @include notifications.inc.php Various Notification System-related constants and files
  * @include telegrambot.inc.php Required to send Telegram-Notifications
  */
 include_once INCLUDES_DIR.'strings.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 include_once INCLUDES_DIR.'notifications.inc.php';
 include_once INCLUDES_DIR.'telegrambot.inc.php';

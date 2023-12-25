@@ -4,13 +4,10 @@
  *
  * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
  *
- * @author		[z]milamber
- * @author		IneX
  * @version		2.0
- * @since		1.0
- * @since		2.0 added Telegram Notification for new Daily Quote
- * @package		zorg
- * @subpackage	Quotes
+ * @since		1.0 `[z]milamber` File and Class added
+ * @since		2.0 `IneX` Extended Class Methods
+ * @package		zorg\Quotes
  */
 class Quotes
 {
@@ -24,7 +21,7 @@ class Quotes
 		{
 			$quote_id = $_POST['quote_id'];
 			$votescore = $_POST['score'];
-			if (!Quotes::hasVoted($user->id, $quote_id))
+			if (!self::hasVoted($user->id, $quote_id))
 			{
 				$sql = 'REPLACE INTO quotes_votes (quote_id, user_id, score) VALUES ('.$quote_id.', '.$user->id.', '.$votescore.')';
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -33,6 +30,11 @@ class Quotes
 		}
 	}
 
+	/**
+	 * Outputs an HTML of an individual Quote Record-Set.
+	 * @param object $rs Fetched SQL-Query Result Record-Set
+	 * @return string
+	 */
 	static function formatQuote($rs)
 	{
 		global $user;
@@ -44,7 +46,7 @@ class Quotes
 					.($user->is_loggedin() ? ($user->id === (int)$rs['user_id'] ? ' <a href="'.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site).'">[delete]</a>' : '') : '')
 					.'</blockquote>';
 
-		if ($user->is_loggedin() && !Quotes::hasVoted($user->id, $rs['id']))
+		if ($user->is_loggedin() && !self::hasVoted($user->id, $rs['id']))
 		{
 			$html .= '<form name="quotevoteform'.$rs['id'].'" method="post" action="/quotes.php" class="voteform left">'
 						.'<input name="action" type="hidden" value="benoten">'
@@ -66,7 +68,7 @@ class Quotes
 					.'</form>';
 		}
 		else {
-			$totalvotescore = round(Quotes::getScore($rs['id']), 1);
+			$totalvotescore = round(self::getScore($rs['id']), 1);
 			if ($totalvotescore > 0) $html .= '<small>(Note: '.$totalvotescore.')</small>';//+ Anzahl Votes: getNumVotes()
 		}
 		$html .= '</div>';
@@ -77,81 +79,153 @@ class Quotes
 	static function getScore($quote_id) {
 		global $db;
 
-		$sql =
-			"SELECT AVG(score) as score"
-			." FROM quotes_votes"
-			." WHERE quote_id = ".$quote_id
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		$rs = $db->fetch($result, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT AVG(score) as score FROM quotes_votes WHERE quote_id=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$quote_id]));
+		$avgscore = floatval($rs['score']);
 
-		return $rs['score'];
+		return $avgscore;
 	}
 
+	/**
+	 * Gibt einen random Quote zurück
+	 *
+	 * @version 2.0
+	 * @since 1.0 `22.03.2004` `keep3r` function added. Original name: quote()
+	 * @since 2.0 `24.12.2023` `Inex` moved function from util.inc.php & renamed
+	 *
+	 * @uses Quotes::formatQuote()
+	 * @param boolean $htmlFormattedResult Whether to rich-format the Quote; or plain text on FALSE
+	 */
+	static function getRandomQuote($htmlFormattedResult=false)
+	{
+		global $db;
 
+		$sql_cnt = 'SELECT COUNT(*) as anzahl FROM quotes';
+		$rs = $db->fetch($db->query($sql_cnt, __FILE__, __LINE__, __METHOD__));
+		$total = intval($rs['anzahl']);
 
+		$rnd = random_int(1, $total);
+		$sql_sel = 'SELECT * FROM quotes WHERE id=?';
+		$result = $db->query($sql_sel, __FILE__, __LINE__, __METHOD__, [$rnd]);
+
+		$quote = ($htmlFormattedResult === true ? self::formatQuote($rs) : $rs['text']);
+		return $quote;
+	}
+
+	/**
+	 * Random User Quote (?).
+	 * Gibt ein random Quote eines Users aus. Durch user_id wird es ein quote dieses users sein<br><br>
+	 *
+	 * @deprecated @[z]milamber: Wir brauchen das nicht?!
+	 *
+	 * @version 2.0
+	 * @since 1.0 `[z]milamber` function added. Original name: usersystem::quote()
+	 * @since 2.0 `25.12.2024` `Inex` moved function from usersystem.inc.php & refactored
+	 *
+	 * @param int $user_id User ID
+	 * @return string Plain-Text Quote
+	 */
+	static function getUserQuote($user_id) {
+		global $db;
+		if(is_numeric($user_id) && $user_id > 0)
+		{
+			$sql_cnt = 'SELECT COUNT(*) as anzahl FROM quotes WHER user_id=?';
+			$rs = $db->fetch($db->query($sql_cnt, __FILE__, __LINE__, __METHOD__));
+			$total = intval($rs['anzahl']);
+
+			$rnd = random_int(1, $total);
+			$sql_sel = 'SELECT text FROM quotes WHERE id=?';
+			$result = $db->query($sql_sel, __FILE__, __LINE__, __METHOD__, [$rnd]);
+
+			$quote = $rs['text'];
+			return $quote;
+		}
+	}
+
+	/**
+	 * Setzt einmal am Tag einen Quote in die DB daily_quote
+	 *
+	 * @deprecated Replaced by Quotes::newDailyQuote() ? To be confirmed...
+	 *
+	 * @version 1.1
+	 * @since 1.0 `22.03.2004` `keep3r` function added
+	 * @since 1.1 `24.12.2023` `IneX` moved function from util.inc.php
+	 *
+	 * @return bool
+	 */
+	static function set_daily_quote()
+	{
+		global $db;
+		$date = date('Y-m-d');
+		$sql = 'SELECT * FROM daily_quote WHERE date = "'.$date.'"';
+		$result = $db->query($sql);
+		$rs = $db->fetch($result);
+
+		if (!$rs) {
+			$quote = self::getRandomQuote();
+			$sql = 'INSERT INTO daily_quote (date, quote) VALUES (?, ?)';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$date, $quote]);
+			return 1;
+		}
+		return 0;
+	}
+
+	/**
+	 * Outputs current Daily Quote in Rich-HTML.
+	 * @version 1.0
+	 * @since 1.0 `22.03.2004` `keep3r` function added
+	 * @return string
+	 */
 	static function getDailyQuote() {
 		global $db;
 
-		//$sql = "SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd"." FROM periodic p, quotes"." WHERE p.name='daily_quote' AND p.id=quotes.id";
-		$sql =
-			"SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(NOW()) upd"
-			." FROM periodic p, quotes"
-			." WHERE p.name='daily_quote' AND p.id=quotes.id";
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(?) upd
+				FROM periodic p, quotes
+				WHERE p.name=? AND p.id=quotes.id';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), 'daily_quote']);
 
 		$rs = $db->fetch($result);
 
-		return Quotes::formatQuote($rs);
+		return self::formatQuote($rs);
 	}
 
 	static function getNumVotes($quote_id) {
 		global $db;
 
-		$sql =
-			"SELECT *"
-			." FROM quotes_votes"
-			." WHERE quote_id = ".$quote_id
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT COUNT(*) as numvotes FROM quotes_votes WHERE quote_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$quote_id]);
+		$rs = $db->fetch($result);
+		$numvotes = (isset($rs['numvotes']) && !empty($rs['numvotes']) ? intval($rs['numvotes']) : 0);
 
-		return $db->num($result, __FILE__, __LINE__, __METHOD__);
+		return $numvotes;
 	}
 
 	static function getScorebyUser($quote_id, $user_id) {
 		global $db;
 
-		$sql =
-			"SELECT score"
-			." FROM quotes_votes"
-			." WHERE quote_id = ".$quote_id." AND user_id =".$user_id
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		$rs = $db->fetch($result, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT score FROM quotes_votes WHERE quote_id=? AND user_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$quote_id, $user_id]);
+		$rs = $db->fetch($result);
+		$score = (isset($rs['score']) && !empty($rs['score']) ? intval($rs['score']) : 0);
 
-		return $rs['score'];
+		return $score;
 	}
 
 	static function hasVoted($user_id, $quote_id) {
 		global $db;
 
-		$sql =
-			"SELECT *"
-			." FROM quotes_votes"
-			." WHERE quote_id = '".$quote_id."' AND user_id =".$user_id
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT COUNT(*) as hasvoted FROM quotes_votes WHERE quote_id=? AND user_id=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$quote_id, $user_id]));
+		$hasvoted = $rs['hasvoted']; // Is either '1' or '0'
 
-		return $db->num($result, __FILE__, __LINE__, __METHOD__);
+		return $hasvoted;
 	}
 
 	/**
 	 * Check if Quote ID is Daily Quote
 	 *
-	 * @author [z]milamber
-	 * @author IneX
 	 * @version 2.0
-	 * @since 1.0 method added
+	 * @since 1.0 `[z]milamber` method added
 	 * @since 2.0 `05.06.2023` `IneX` Removed date=NOW() comparison (not returning a result)
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -161,8 +235,8 @@ class Quotes
 	static function isDailyQuote($id) {
 		global $db;
 
-		$sql =	'SELECT id FROM periodic WHERE date = NOW() AND name = "daily_quote"';
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$sql = 'SELECT id FROM periodic WHERE date=? AND name=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), 'daily_quote']));
 
 		return (int)$rs['id'] === (int)$id;
 	}
@@ -171,12 +245,10 @@ class Quotes
 	 * Quote of the Day
 	 * Generates a new Daily Quote
 	 *
-	 * @author [z]milamber
-	 * @author IneX
 	 * @version 3.0
-	 * @since 1.0
-	 * @since 2.0 added Telegram Notification for new Daily Quote
-	 * @since 2.1 changed to new Telegram Send-Method
+	 * @since 1.0 `[z]milamber` Function added
+	 * @since 2.0 `IneX` added Telegram Notification for new Daily Quote
+	 * @since 2.1 `IneX` changed to new Telegram Send-Method
 	 * @since 3.0 `05.06.2023` `IneX` optimized and reduced SQL-query, code refactored
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -188,8 +260,15 @@ class Quotes
 
 		try {
 			/** Alle Quotes holen */
-			$quotes = $db->query('SELECT id, COALESCE((SELECT AVG(score) FROM quotes_votes WHERE quote_id=quotes.id GROUP BY quote_id), 0) score, text, user_id
-								  FROM quotes GROUP BY id ORDER BY RAND()', __FILE__, __LINE__, __METHOD__);
+			$sql_sel = 'SELECT
+							id
+							,COALESCE((SELECT AVG(score) FROM quotes_votes WHERE quote_id=quotes.id GROUP BY quote_id), 0) score
+							,text
+							,user_id
+						FROM quotes
+							GROUP BY id
+						ORDER BY RAND()';
+			$quotes = $db->query($sql_sel, __FILE__, __LINE__, __METHOD__);
 
 			/** Zufällige Quote ID auswählen */
 			$count = $db->num($quotes); // Anzahl Quotes
@@ -204,8 +283,8 @@ class Quotes
 			if (!$rs || count($rs) === 0) throw new Exception('Quote data not fetched');
 
 			/** Quote in die daily tabelle tun */
-			$sql = 'REPLACE INTO periodic (name, id, date) VALUES ("daily_quote", '.$rs['id'].', NOW())';
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = 'REPLACE INTO periodic (name, id, date) VALUES (?, ?, ?)';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, ['daily_quote', $rs['id'], timestamp(true)]);
 
 			/** Send new Daily Quote as Telegram Message */
 			$telegram->send->message('group', sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', $rs['text'], $user->id2user($rs['user_id'], TRUE)), ['disable_notification' => 'true']);
