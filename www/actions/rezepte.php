@@ -31,7 +31,7 @@ if (true === $user->is_loggedin())
 							,'.(int)$_POST['difficulty'].'
 							,"'.$_POST['description'].'"
 							,'.$user->id.'
-							,NOW()
+							,'.timestamp(true).'
 						)';
 			$rezeptId = $db->query($sql, __FILE__, __LINE__);
 			header('Location: '.base64url_decode($_POST['url']).'&rezept_id='.$rezeptId);

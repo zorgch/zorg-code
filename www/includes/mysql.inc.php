@@ -244,10 +244,10 @@ class dbconn
 		$referer = (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
 
 		$insertSql = 'INSERT INTO sql_error (user_id, ip, page, query, msg, date, file, line, referer, status, function)
-						VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, 1, ?)';
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)';
 		$stmt = mysqli_prepare($this->conn, $insertSql);
 		mysqli_stmt_bind_param($stmt, 'isssssiss',
-								$user_id, $ip, $page, $sql, $msg, $file, $line, $referer, $funktion);
+								$user_id, $ip, $page, $sql, $msg, timestamp(true), $file, $line, $referer, $funktion);
 		mysqli_stmt_execute($stmt);
 	}
 
@@ -350,13 +350,11 @@ class dbconn
 		$sql = sprintf('INSERT INTO `%s` %s VALUES (%s)', $table, $insertKeys, $insertValues);
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s%s', __METHOD__, __LINE__, $sql, print_r($values,true)));
 		foreach ($values as $key => $val) {
-			/* Fix "NOW()" => NOW() without quotes */
 			if (strtolower($val) === 'now()') {
-				$values[$key] = date('Y-m-d H:i:s');
+				$values[$key] = timestamp(true); // Fix "NOW()" => NOW() without quotes
 			}
-			/* Fix "NULL" => NULL without quotes */
 			elseif ($val === null) {
-				$values[$key] = null;
+				$values[$key] = null; // Fix "NULL" => NULL without quotes
 			}
 		}
 		return $this->query($sql, $file, $line, $funktion, array_values($values));
@@ -399,8 +397,8 @@ class dbconn
 				$params[] = null;
 			}
 			elseif (strtolower($val) === 'now()') {
-				$sql .= $key.'=NOW()'; // handle NOW()
-				//$params[] = 'NOW()'; --> string 'NOW()' breaks DateTime column inserts!
+				$sql .= $key.'=?';
+				$params[] = timestamp(true); // handle NOW() --> string 'NOW()' breaks DateTime column inserts!
 			}
 			elseif (is_numeric($val) && strlen((string)$val) === 10) {
 				$sql .= $key.'=?';//'='.$val; // handle Timestamps

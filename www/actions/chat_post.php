@@ -5,7 +5,7 @@ if (!empty($_POST['url']))
 
 	$from_mobile = ($_POST['from_mobile'] != '' || $_POST['from_mobile'] > 0) ? 1 : 0 ;
 	$chat_text = sanitize_userinput($_POST['text']);
-	$newBugId = $db->insert('chat', [ 'user_id' => $user->id, 'date' => 'NOW()', 'from_mobile' => $from_mobile, 'text' => $chat_text ], __FILE__, __LINE__, __METHOD__);
+	$newBugId = $db->insert('chat', [ 'user_id' => $user->id, 'date' => timestamp(true), 'from_mobile' => $from_mobile, 'text' => $chat_text ], __FILE__, __LINE__, __METHOD__);
 
 	header('Location: '.base64url_decode($_POST['url']));
 	exit;

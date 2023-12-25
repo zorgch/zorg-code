@@ -75,8 +75,8 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 											,'allow_comments' => $frm['allow_comments']
 											,'owner' => $user->id
 											,'update_user' => $user->id
-											,'created' => 'NOW()'
-											,'last_update' => 'NOW()'
+											,'created' => timestamp(true)
+											,'last_update' => timestamp(true)
 										  ], __FILE__, __LINE__, 'Add new Template');
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> New Template ID: %s', __FILE__, __LINE__, $frm['id']));
 
@@ -119,7 +119,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 							,'error' => ''
 							,'owner' => $user->id
 							,'update_user' => $user->id
-							,'last_update' => 'NOW()'
+							,'last_update' => timestamp(true)
 						];
 			if ($frm['word']) $templateUpdateParams = array_merge($templateUpdateParams, ['word' => $frm['word']]);
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Update Template SQL-Params: %s', __FILE__, __LINE__, print_r($templateUpdateParams,true)));

@@ -39,7 +39,7 @@ else {
 				 'text' => sanitize_userinput($frm['text'])
 				,'user' => $user->id
 				,'type' => sanitize_userinput($frm['type'])
-				,'date' => 'NOW()'
+				,'date' => timestamp(true)
 			  ], __FILE__, __LINE__, 'INSERT INTO polls');
 			if (false === $newPollId || $newPollId <= 0)
 			{

@@ -26,12 +26,12 @@ set_time_limit(600);
  * File includes
  * @include config.inc.php
  * @include forum.inc.php
- * @include util.inc.php
+ * @include util.inc.php DISABLED is part of config.inc.php
  * @include usersystem.inc.php
  */
 require_once dirname(__FILE__).'/config.inc.php';
 include_once INCLUDES_DIR.'forum.inc.php';
-require_once INCLUDES_DIR.'util.inc.php';
+//require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
@@ -849,7 +849,7 @@ function doMyPic($pic_id, $pic_x, $pic_y) {
 					(pic_id, user_id, pos_x, pos_y, datum)
 				VALUES
 					(?, ?, ?, ?, ?)';
-		$db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$pic_id, $user->id,	$pic_x,	$pic_y, 'NOW()']);
+		$db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$pic_id, $user->id,	$pic_x,	$pic_y, timestamp(true)]);
 
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
 		if ($user->id != 59) {
@@ -1631,22 +1631,24 @@ function setNewDailyPic()
 	global $db, $telegram;
 
 	/** Check if current Daily Pic is still from Today... */
-	$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
-					 FROM periodic p
-					 WHERE p.name="daily_pic"', __FILE__, __LINE__, __FUNCTION__);
+	$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(?) upd
+						FROM periodic p
+						WHERE p.name=?', __FILE__, __LINE__, __FUNCTION__, [timestamp(true), 'daily_pic']);
 	$currdp = $db->fetch($sql);
 
 	/** If current Daily Pic is old - generate a new one: */
 	if (!$currdp || $currdp['upd'] < 0)
 	{
 		/** Randomly select a new Gallery-Pic */
-		$sql = $db->query('SELECT id, (SELECT name FROM gallery_albums WHERE id = album) galleryname FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' AND album<>'.APOD_GALLERY_ID.' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$sql = $db->query('SELECT id, (SELECT name FROM gallery_albums WHERE id=album) galleryname FROM gallery_pics WHERE zensur=? AND id<>? AND album<>? ORDER BY RAND() LIMIT 1',
+						__FILE__, __LINE__, __FUNCTION__, ['0', $currdp['id'], APOD_GALLERY_ID]);
 		$newdp = $db->fetch($sql);
 
 		if (!empty($newdp) || $newdp['id'] > 0)
 		{
 			/** Add the new Daily-Pic into the `periodic` Database-Table */
-			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("daily_pic", '.$newdp['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
+			$db->query('REPLACE INTO periodic (name, id, date) VALUES (?, ?, ?)',
+						__FILE__, __LINE__, __FUNCTION__, ['daily_pic', $newdp['id'], timestamp(true)]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d from album "%s"', __FUNCTION__, __LINE__, $newdp['id'], $newdp['galleryname']));
 
 			/**

@@ -11,7 +11,7 @@ if(!isset($_GET['action']) || empty($_GET['action']) || ( $_GET['action'] != 'sa
 /**
  * FILE INCLUDES
  */
-require_once dirname(__FILE__).'/../../../includes/config.inc.php';
+require_once __DIR__.'/../../../includes/config.inc.php';
 require_once INCLUDES_DIR.'main.inc.php';;
 
 /**
@@ -115,8 +115,8 @@ elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) )
 		VORSTAND_USER,
 		'2',
 		'3',
-		date('Y-m-d H:i:s'),
-		date('Y-m-d H:i:s'),
+		timestamp(true),
+		timestamp(true),
 		$user->id
 	];
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Saving a new Mail Template: %s', __FILE__, __LINE__, $insertTplQuery));

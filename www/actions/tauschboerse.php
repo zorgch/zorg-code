@@ -30,7 +30,7 @@ if ($user->is_loggedin())
 					VALUES (
 						"'.$_POST['art'].'"
 						,'.$user->id.'
-						,NOW()
+						,'.timestamp(true).'
 						,"'.$_POST['bezeichnung'].'"
 						,"'.$_POST['wertvorstellung'].'"
 						,"'.$_POST['zustand'].'"

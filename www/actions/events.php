@@ -58,7 +58,7 @@ switch (true)
 							,"'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
 							,'.$eventGallery.'
 							,'.$user->id.'
-							,NOW()
+							,'.timestamp(true).'
 							,"'.$eventReviewlink.'"
 						)';
 		$idNewEvent = $db->query($sql, __FILE__, __LINE__, 'INSERT INTO events');

@@ -72,7 +72,7 @@ class Bugtracker
 											,'priority' => $bugPriority
 											,'title' => $bugTitle
 											,'description' => $bugDescription
-											,'reported_date' => 'NOW()'
+											,'reported_date' => timestamp(true)
 										  ], __FILE__, __LINE__, __METHOD__);
 
 			/** Activity Eintrag auslösen */
@@ -101,7 +101,7 @@ class Bugtracker
 
 			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0) {
-				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
+				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
 			}
 			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
@@ -114,7 +114,7 @@ class Bugtracker
 
 			$rs = Bugtracker::getBugRS($bugId);
 			if($rs['assignedto_id'] == 0 OR $rs['assignedto_id'] > 0) {
-				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
+				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
 			}
 			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
 			exit;
@@ -153,7 +153,7 @@ class Bugtracker
 		elseif (isset($_GET['action']) && $_GET['action'] === 'resolve')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
-			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
+			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
 			$rs = Bugtracker::getBugRS($bugId);
 
 			/** Activity Eintrag auslösen */
@@ -199,7 +199,7 @@ class Bugtracker
 		elseif (isset($_GET['action']) && $_GET['action'] == 'deny')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
-			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => 'NOW()'], __FILE__, __LINE__, __METHOD__);
+			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
 			$rs = Bugtracker::getBugRS($bugId);
 
 			/** Activity Eintrag auslösen */

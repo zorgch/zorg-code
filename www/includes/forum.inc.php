@@ -632,7 +632,7 @@ class Comment
 			$sql = 'REPLACE INTO comments_unread (user_id, comment_id)
 					SELECT id, ? FROM user
 						WHERE user.usertype>=?
-						AND (UNIX_TIMESTAMP(lastlogin)+?) > UNIX_TIMESTAMP(NOW())
+						AND (UNIX_TIMESTAMP(lastlogin)+?) > UNIX_TIMESTAMP(?)
 						AND forum_boards_unread LIKE CONCAT("%", ?, "%")'
 						/*AND ISNULL(
 							SELECT tignore.thread_id, tignore.user_id
@@ -641,7 +641,7 @@ class Comment
 							AND tignore.user_id = user.id
 						)*/
 			;
-			$affectedRows = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id, $userights, USER_OLD_AFTER, $board]);
+			$affectedRows = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$comment_id, $userights, USER_OLD_AFTER, timestamp(true), $board]);
 		} else {
 			$sql = 'REPLACE INTO comments_unread (user_id, comment_id)
 					SELECT user_id, ? FROM comments_threads_rights
@@ -706,7 +706,7 @@ class Comment
 
 			/** Comment in die DB abspeichern */
 			$comment_error = (isset($comment_error) ? $comment_error : '');
-			$comment_id = $db->insert('comments', ['user_id'=>$user_id, 'parent_id'=>$parent_id, 'thread_id'=>$thread_id, 'text'=>$text, 'date'=>'NOW()', 'board'=>$board, 'error'=>$comment_error], __FILE__, __LINE__, __METHOD__);
+			$comment_id = $db->insert('comments', ['user_id'=>$user_id, 'parent_id'=>$parent_id, 'thread_id'=>$thread_id, 'text'=>$text, 'date'=>timestamp(true), 'board'=>$board, 'error'=>$comment_error], __FILE__, __LINE__, __METHOD__);
 			if(empty($comment_id) || !is_numeric($comment_id) || $comment_id <= 0) user_error(t('invalid-comment_id', 'commenting'), E_USER_ERROR);
 
 			/**
@@ -916,9 +916,9 @@ class Forum {
 
 		$e = $db->query(
 			'SELECT c.id, c.board, c.thread_id FROM comments c, comments_threads ct
-			 WHERE c.thread_id = ct.thread_id AND ct.last_seen!="0000-00-00"
-			 AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(ct.last_seen) > (60*60*24*?)',
-			__FILE__, __LINE__, __METHOD__, [THREAD_TPL_TIMEOUT]);
+			 WHERE c.thread_id=ct.thread_id AND ct.last_seen!=?
+			 AND UNIX_TIMESTAMP(?)-UNIX_TIMESTAMP(ct.last_seen) > (60*60*24*?)',
+			__FILE__, __LINE__, __METHOD__, ["0000-00-00", timestamp(true), THREAD_TPL_TIMEOUT]);
 		$anz = 0;
 		while ($d = $db->fetch($e)) {
 			$anz++;
