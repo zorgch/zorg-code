@@ -598,7 +598,7 @@ function var_request ()
 		if (!$tpl) $tpl = $_GET['tpl'];
 
 		if ($tpl && (!$rights || !$owner)) {
-			$d = $db->fetch($db->query("SELECT * FROM templates WHERE id='$tpl'", __FILE__, __LINE__));
+			$d = $db->fetch($db->query('SELECT * FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$tpl]));
 			$rights = $d['write_rights'];
 			$owner = $d['owner'];
 		}
@@ -618,39 +618,39 @@ function var_request ()
  */
 /** Stockbroker */
 	function stockbroker_assign_stocklist($params, &$smarty) {
-		$smarty->assign("stocklist", Stockbroker::getStocklist($params['anzahl'], $params['page']));
+		global $stockbroker;
+		$smarty->assign("stocklist", $stockbroker->getStocklist($params['anzahl'], $params['page']));
 		//{assign_stocklist anzahl=100 page=$smarty.get.page}
 	}
 	function stockbroker_assign_stock($params, &$smarty) {
-		$smarty->assign("stock", Stockbroker::getSymbol($params['symbol']));
+		global $stockbroker;
+		$smarty->assign("stock", $stockbroker->getSymbol($params['symbol']));
 		//{assign_kurs symbol=$kurs.symbol}
 	}
 	function stockbroker_assign_searchedstocks($params, &$smarty) {
-		$smarty->assign("searchedstocks", Stockbroker::searchstocks($params['search']));
+		global $stockbroker;
+		$smarty->assign("searchedstocks", $stockbroker->searchstocks($params['search']));
 	}
 	function stockbroker_update_kurs($params, &$smarty) {
-		Stockbroker::updateKurs($params['symbol']);
+		global $stockbroker;
+		$stockbroker->updateKurs($params['symbol']);
 	}
 	function stockbroker_getkursbought($params) {
-		global $user;
-		return Stockbroker::getKursBought($user->id, $params['symbol']);
+		global $user, $stockbroker;
+		return $stockbroker->getKursBought($user->id, $params['symbol']);
 	}
 	function stockbroker_getkurs($params) {
-		return Stockbroker::getKurs($params['symbol']);
+		global $stockbroker;
+		return $stockbroker->getKurs($params['symbol']);
 	}
 
 /** Tauschbörse */
 	function smarty_num_new_tauschangebote ($params, &$smarty) {
+		global $db, $user;
 		if (isset($user->lastlogin)) {
 			$result = $db->query(
-				"
-				SELECT COUNT(*) AS num
-				FROM tauschboerse
-				WHERE
-					UNIX_TIMESTAMP(datum) > ".$user->lastlogin."
-				",
-				__FILE__,
-				__LINE__
+				'SELECT COUNT(*) AS num FROM tauschboerse
+				 WHERE UNIX_TIMESTAMP(datum)>?', __FILE__, __LINE__, __FUNCTION__, [$user->lastlogin]
 			);
 			$rs = $db->fetch($result);
 			//$smarty->assign("artikel", $rs);
@@ -660,13 +660,9 @@ function var_request ()
 	function smarty_assign_artikel ($params, &$smarty) {
 		global $db;
 		$result = $db->query(
-			"
-			SELECT *, CONVERT(kommentar USING latin1) kommentar, UNIX_TIMESTAMP(datum) AS datum
-			FROM tauschboerse
-			WHERE id = ".$params['id']."
-			",
-			__FILE__,
-			__LINE__
+			'SELECT *, CONVERT(kommentar USING latin1) kommentar, UNIX_TIMESTAMP(datum) AS datum
+			FROM tauschboerse WHERE id=?',
+			__FILE__, __LINE__, __FUNCTION__, [$params['id']]
 		);
 		$rs = $db->fetch($result);
 		$smarty->assign("artikel", $rs);
@@ -722,7 +718,7 @@ function smarty_peter ($params, &$smarty) {
 
 /** Quotes */
     function smarty_getrandomquote ($params) {
-	   return Quotes::getRandomQuote();
+	   return Quotes::getRandomQuote(true);
 	}
 	function smarty_getdailyquote ($params) {
 		return Quotes::getDailyQuote();
@@ -889,7 +885,7 @@ function smarty_peter ($params, &$smarty) {
 			if (substr($file, 0, 1) == '/') $file = FILES_DIR.$file;
 			if (!file_exists($file)) return '<font color="red"><b>[gettext: File "'.$file.'" not found]</b></font><br />';
 		}elseif ($params['id']) {
-			$e = $db->query('SELECT * FROM files WHERE id='.$params['id'], __FILE__, __LINE__, __FUNCTION__);
+			$e = $db->query('SELECT * FROM files WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$params['id']]);
 			$d = $db->fetch($e);
 			if ($d) {
 				if (substr($d['name'], -4) != '.txt') return '<font color="red"><b>[gettext: Can only read from txt-File]</b></font><br />';
@@ -1077,31 +1073,31 @@ function smarty_peter ($params, &$smarty) {
 		if (!$params['anzahl']) $params['anzahl'] = 5;
 
 		$sql = 'SELECT *, UNIX_TIMESTAMP(last_update) as date
-				FROM templates
-				ORDER BY last_update desc
-				LIMIT 0,'.$params['anzahl'];
-		$result = $db->query($sql, __FILE__, __LINE__);
+				FROM templates ORDER BY last_update desc
+				LIMIT ?';
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$params['anzahl']]);
 
+		$i=0;
 		$html = '<table class="border" width="100%"><tr><td align="center" colspan="3"><b>letzte Änderungen</b></td></tr>';
 		while($rs = $db->fetch($result)) {
-	    $i++;
+	    	$i++;
 
-		$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
+			$color = ($i % 2 == 0) ? BACKGROUNDCOLOR : TABLEBACKGROUNDCOLOR;
 
-	    $html .=
-	      '<tr class="small"><td align="left" bgcolor="'.$color.'">'
-	      .'<a href="/?tpl='.$rs['id'].'">'.stripslashes($rs['title']).' ('.$rs['id'].')'.'</a>'
-	      .'</td><td align="left" bgcolor="'.$color.'" class="small">'
-	      .$user->link_userpage($rs['update_user'])
-	      .'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
-	      .datename($rs['date'])
-	      .'</nobr></td></tr>'
-	    ;
+			$html .=
+			'<tr class="small"><td align="left" bgcolor="'.$color.'">'
+			.'<a href="/?tpl='.$rs['id'].'">'.stripslashes($rs['title']).' ('.$rs['id'].')'.'</a>'
+			.'</td><td align="left" bgcolor="'.$color.'" class="small">'
+			.$user->link_userpage($rs['update_user'])
+			.'</td><td align="left" bgcolor="'.$color.'" class="small"><nobr>'
+			.datename($rs['date'])
+			.'</nobr></td></tr>'
+			;
 
-	  }
-	  $html .= '</table>';
+		}
+		$html .= '</table>';
 
-	  return $html;
+		return $html;
 	}
 
 /**
@@ -1123,15 +1119,15 @@ function smarty_peter ($params, &$smarty) {
 		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id'])
 		{
 			if ($params['tpl']) {
-				$e = $db->query('SELECT * FROM templates WHERE id="'.$params['tpl'].'"', __FILE__, __LINE__, __METHOD__);
+				$e = $db->query('SELECT * FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$params['tpl']]);
 				$d = $db->fetch($e);
 				if (tpl_permission($d['read_rights'], $d['owner']))
 				{
 					return $smarty->fetch('tpl:'.$params['tpl']);
 				}
 			} else {
-				$e = $db->query('SELECT m.* FROM menus m, templates t
-								 WHERE name="'.$params['name'].'" AND t.id = m.tpl_id', __FILE__, __LINE__, __METHOD__);
+				$e = $db->query('SELECT m.* FROM menus m, templates t WHERE name=? AND t.id = m.tpl_id',
+								 __FILE__, __LINE__, __FUNCTION__, [$params['name']]);
 				$d = $db->fetch($e);
 				if ($d && tpl_permission($d['read_rights'], $d['owner']))
 				{
@@ -1177,7 +1173,8 @@ function smarty_peter ($params, &$smarty) {
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> smarty_menuname_exec: "%s" on tpl_id %d', __FUNCTION__, __LINE__, $it, $tpl_id));
 			if (!empty($it)) {
 				/** Check if menu with same name already exists... */
-				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name="'.$it.'"', __FILE__, __LINE__, __FUNCTION__));
+				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name=?',
+								__FILE__, __LINE__, __FUNCTION__, [$it]));
 				//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists Query: %s', __FUNCTION__, __LINE__, print_r($menuExists,true)));
 				if ($menuExists !== false && $menuExists['tpl_id'] === $tpl_id)
 				{
@@ -1188,7 +1185,8 @@ function smarty_peter ($params, &$smarty) {
 				/** Menu mit $name gibt es noch nicht, deshlab erstellen wir es neu */
 				else {
 					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: FALSE (adding new)', __FUNCTION__, __LINE__));
-					$db->query('INSERT INTO menus (tpl_id, name) VALUES ('.$tpl_id.', "'.$it.'")', __FILE__, __LINE__, __FUNCTION__);
+					$db->query('INSERT INTO menus (tpl_id, name) VALUES (?, ?)',
+								__FILE__, __LINE__, __FUNCTION__, [$tpl_id, $it]);
 					//$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => sprintf('Neues Menu "%s" erfolgreich gespeichert', $it), 'message' => 'Du kannst es jetzt im Template-Editor einer Page auswählen.']);
 				}
 			}
@@ -1211,7 +1209,7 @@ function smarty_peter ($params, &$smarty) {
 	{
 		global $db;
 
-		$sql = 'SELECT name, tpl_id as id FROM menus ORDER by name';
+		$sql = 'SELECT name, tpl_id as id FROM menus ORDER BY name';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		if (!empty($result) && $result !== false)
 		{
@@ -1228,7 +1226,7 @@ function smarty_peter ($params, &$smarty) {
  * Gallery
  */
 	function smarty_assign_users_on_pic ($params, &$smarty) {
-		$smarty->assign("users_on_pic", Gallery::getUsersOnPic($params['picID']));
+		$smarty->assign("users_on_pic", getUsersOnPic($params['picID']));
 	}
 	function smarty_get_randomalbumpic($params) {
 		return getAlbumLinkRandomThumb($params['album_id'], $params['show_title'], $params['image_quality']);
@@ -1324,7 +1322,7 @@ function smarty_peter ($params, &$smarty) {
  * ACHTUNG: compiler-funktionen müssen php-code zurückgeben!
  */
 function smarty_menuname ($name, &$smarty) {
-	return "echo smarty_menuname_exec ('$name');";
+	return 'echo smarty_menuname_exec("'.$name.'");';
 }
 
 

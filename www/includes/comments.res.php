@@ -137,7 +137,7 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 	$count = 1;
 	$parent_id = $id;
 	while ($parent_id > $thread_id) {
-		$up_e = $db->query('SELECT * FROM comments WHERE id='.$parent_id, __FILE__, __LINE__, __FUNCTION__);
+		$up_e = $db->query('SELECT * FROM comments WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$parent_id]);
 		$up = $db->fetch($up_e);
 
 		$html .= '<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">';
@@ -196,19 +196,22 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 	global $db, $user, $smarty;
 
+	$params = [];
 	$sql = 'SELECT
 				comments.*,
 				UNIX_TIMESTAMP(comments.date) date,
 				UNIX_TIMESTAMP(comments.date_edited) date_edited,
 				user.clan_tag, user.username,
 				count(c2.id) as numchildposts'
-				.($user->is_loggedin() ? ', IF(ISNULL(cs.comment_id), 0, 1) AS issubscribed' : '').
-			' FROM comments
-			LEFT JOIN user ON (comments.user_id = user.id)
-			LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)'
-			.($user->is_loggedin() ? 'LEFT JOIN comments_subscriptions cs ON (comments.id = cs.id AND comments.board = cs.board AND cs.user_id = '.$user->id.')' : '').
-			' WHERE comments.id = '.$id.' GROUP BY comments.id';
-	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+				.($user->is_loggedin() ? ', IF(ISNULL(cs.comment_id), 0, 1) AS issubscribed' : '').'
+			FROM comments
+				LEFT JOIN user ON (comments.user_id = user.id)
+				LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)'
+			.($user->is_loggedin() ? 'LEFT JOIN comments_subscriptions cs ON (comments.id = cs.id AND comments.board = cs.board AND cs.user_id=?)' : '').'
+			WHERE comments.id=? GROUP BY comments.id';
+	if ($user->is_loggedin()) $params[] = $user->id;
+	$params[] = $id;
+	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__, $params));
 
 	$html = '{if $comments_top_additional == 1}';
 		$html .= smartyresource_comments_get_navigation($rs['id'], $rs['thread_id'], $rs['board']);
@@ -353,7 +356,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
  * @return string
  */
 function smartyresource_comments_get_childposts ($parent_id, $board) {
-	global $db, $user, $smarty;
+	global $db;
 
 	/** Validate passed parameters */
 	if(empty($parent_id) || !is_numeric($parent_id) || is_array($parent_id) || $parent_id < 0) {
@@ -370,11 +373,11 @@ function smartyresource_comments_get_childposts ($parent_id, $board) {
 
 		$html .= '<div id="layer'.$parent_id.'">';
 
-		$sql = 'SELECT comments.* FROM comments WHERE comments.parent_id='.$parent_id.' AND comments.board="'.$board.'" ORDER BY comments.id';
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		$sql = 'SELECT comments.* FROM comments WHERE comments.parent_id=? AND comments.board=? ORDER BY comments.id';
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$parent_id, $board]);
 		$rcount = 0;
 		while($child = $db->fetch($result)) {
-			$depth2 = $depth;
+			//$depth2 = $depth;
 			$rcount++;
 			$html .= '{comment_extend_depth depth=$hdepth childposts='.Comment::getNumChildposts($board, $parent_id).' rcount='.$rcount.'}';
 			$html .= '{include file="comments:'.$child['id'].'" comments_top_additional=0}';
