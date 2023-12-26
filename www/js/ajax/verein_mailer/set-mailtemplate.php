@@ -31,7 +31,7 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 	$update_template_id = (int)$_POST['template_id'];
 	error_log('[INFO] Updating existing Mail Template ' . $update_template_id);
 	$updateTplQuery = 'INSERT INTO templates (id, tpl, title, page_title, last_update, update_user)
-							VALUES (?, ?, ?, ?, NOW(), ?)
+							VALUES (?, ?, ?, ?, ?, ?)
 						ON DUPLICATE KEY UPDATE
 							 id = LAST_INSERT_ID(id)
 							,tpl = VALUES(tpl)
@@ -44,6 +44,7 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 		escape_text($compiledMailTpl),
 		escape_text($_POST['text_mail_subject']),
 		escape_text($_POST['text_mail_subject']),
+		timestamp(true),
 		$user->id
 	];
 	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Update Mail-Template Query: %s', __FILE__, __LINE__, $updateTplQuery));
