@@ -21,7 +21,6 @@ $smarty->assign('mail_param', $_POST['template_id']);
 $smarty->assign('user_param', $user->id);
 $smarty->assign('hash_param', md5($_POST['template_id'] . $user->id) );
 $leMailTemplate = 'email/verein/verein_htmlmail.tpl';
-//$leTemplateInclude = "{include file='file:$leMailTemplate'}";
 $compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);
 
 if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric($_POST['template_id']) )

@@ -353,8 +353,11 @@ class dbconn
 			if (strtolower($val) === 'now()') {
 				$values[$key] = timestamp(true); // Fix "NOW()" => NOW() without quotes
 			}
-			elseif ($val === null) {
+			elseif ($val === null || strtolower($val) === 'null') {
 				$values[$key] = null; // Fix "NULL" => NULL without quotes
+			}
+			else {
+				$values[$key] = $val;
 			}
 		}
 		return $this->query($sql, $file, $line, $funktion, array_values($values));

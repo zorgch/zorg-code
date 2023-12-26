@@ -199,7 +199,7 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
 				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
 				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
-				,(isset($date_to_convert['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
 			));
 			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;

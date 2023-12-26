@@ -310,9 +310,10 @@ class usersystem
 				 * Update last user activity
 				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
 				 */
-				$db->update($this->table_name, ['id', $this->id], [
+				$db->update($this->table_name, ['id', $this->id],
+				[
 					 $this->field_activity => timestamp(true)
-					,$this->field_from_mobile => ($this->from_mobile === false ? '' : (string)$this->from_mobile), // because 'ENUM'-fieldtype
+					,$this->field_from_mobile => (!$this->from_mobile ? null : (string)$this->from_mobile), // because 'ENUM'-fieldtype
 				], __FILE__, __LINE__, __METHOD__);
 			}
 		}
@@ -960,7 +961,7 @@ class usersystem
 		$html = '';
 		$sql = 'SELECT id, username, clan_tag FROM user
 				WHERE activity > (?-?) ORDER by activity DESC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [NOW(), USER_TIMEOUT]);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), USER_TIMEOUT]);
 		$num_online = $db->num($result);
 		if (!empty($num_online) && $num_online !== false)
 		{
@@ -1063,9 +1064,9 @@ class usersystem
 			3 => t('newpass-confirmation', 'user')
 		);
 
-		$sql = 'INSERT into error (user_id, do, ip, date)
-				VALUES ('.$user_id.', "'.$do_array[$do].'","'.$_SESSION[$this->sessionkey_last_ip].'", NOW())';
-		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'INSERT into error (user_id, do, ip, date) VALUES (?, ?, ?, ?)';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__,
+				[$user_id, $do_array[$do], $_SESSION[$this->sessionkey_last_ip], timestamp(true)]);
 	}
 
 	/**
