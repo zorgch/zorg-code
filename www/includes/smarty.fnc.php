@@ -452,25 +452,27 @@ function var_request ()
 	/**
 	 * Verein Mailer - Swiss QR Bill Block
 	 *
-	 * @uses zorgSwissQRBill()
-	 * @uses remove_html(), sanitize_userinput()
-	 *
 	 * @example {swissqrbillcode}Spende an zorg Verein{/swissqrbillcode}
 	 * @example {swissqrbillcode size="s|m|l" user=23 betrag=23.00}zorg Verein Mitgliederbeitrag{/swissqrbillcode}
+	 *
+	 * @version 2.0
+	 * @since 1.0 `01.12.2021` `IneX` Function added
+	 * @since 2.0 `26.12.2024` `IneX` Code optimizations to increase stability & error handling
+	 *
+	 * @uses zorgSwissQRBill(), remove_html(), sanitize_userinput()
+	 * @param array $params Contains defined function params like {swissqrbillcode size="m"...}
+	 * @param string $content Contains the text between {swissqrbillcode}content{/swissqrbillcode}
+	 * @return string
 	 */
 	function smarty_swissqrbillimage($params, $content, &$smarty, &$repeat)
 	{
 		global $user;
 
 		/** Validate Params */
-		if (isset($params['user']) && (int)$params['user'] > 0) $userid = filter_var($params['user'], FILTER_VALIDATE_INT, ['flags' => FILTER_NULL_ON_FAILURE]);
-		if (isset($params['betrag']) && (float)$params['betrag'] > 0) $betrag = filter_var($params['betrag'], FILTER_VALIDATE_FLOAT, ['flags' => FILTER_NULL_ON_FAILURE]);
-		if (isset($content) && !empty($content)) $rechnungszweck = remove_html(sanitize_userinput($content));
-		if (isset($params['size']) && !empty($params['size'])) {
-			$sizeInput = remove_html(sanitize_userinput($params['size']));
-		} else {
-			$sizeInput = 'm';
-		}
+		$userid = (isset($params['user']) && (int)$params['user'] > 0 ? filter_var($params['user'], FILTER_VALIDATE_INT, ['flags' => FILTER_NULL_ON_FAILURE]) : null);
+		$betrag = (isset($params['betrag']) && (float)$params['betrag'] > 0 ? filter_var($params['betrag'], FILTER_VALIDATE_FLOAT, ['flags' => FILTER_NULL_ON_FAILURE]) : null);
+		$rechnungszweck = (isset($content) && !empty($content) ? remove_html(sanitize_userinput($content)) : ZORG_VEREIN_NAME);
+		$sizeInput = (isset($params['size']) && !empty($params['size']) ? remove_html(sanitize_userinput($params['size'])) : 'm');
 		switch ($sizeInput) {
 			case 's':
 				$imgStyle = 'width: 25%;';
@@ -489,17 +491,26 @@ function var_request ()
 		}
 
 		/** Load the zorg Swiss QR Bill Class */
-		require_once INCLUDES_DIR.'swissqrbill.inc.php';
-		$zorgQRCodeBill = new zorgSwissQRBill();
-
-		$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
-		if (false !== $qrCodeImageString && !empty($qrCodeImageString))
+		if (require_once INCLUDES_DIR.'swissqrbill.inc.php')
 		{
-			$imgContainerStyles = 'padding: 5mm;background-color: white;text-align: center;';
-			$imgTitle = (null !== $rechnungszweck ? $rechnungszweck : null).
-						(null !== $userid ? (null !== $rechnungszweck ? ' / ' : null).$user->id2user($userid) : null).
-						(null !== $betrag ? (null !== $rechnungszweck || null !== $userid ? ': ' : null).ZORG_VEREIN_KONTO_CURRENCY.' '.$betrag : null);
-			return sprintf('<div style="%s"><img %s style="%s" src="%s"></div>', $imgContainerStyles, (!empty($imgTitle) ? 'title="'.$imgTitle.'"' : null), $imgStyle, $qrCodeImageString);
+			$zorgQRCodeBill = new zorgSwissQRBill();
+			$qrCodeImageString = $zorgQRCodeBill->generateQRCode($userid, $rechnungszweck, $betrag);
+			if (false !== $qrCodeImageString && !empty($qrCodeImageString))
+			{
+				$imgContainerStyles = 'padding: 5mm;background-color: white;text-align: center;';
+				$imgTitle = (null !== $rechnungszweck ? $rechnungszweck : null).
+							(null !== $userid ? (null !== $rechnungszweck ? ' / ' : null).$user->id2user($userid) : null).
+							(null !== $betrag ? (null !== $rechnungszweck || null !== $userid ? ': ' : null).ZORG_VEREIN_KONTO_CURRENCY.' '.$betrag : null);
+				return sprintf('<div style="%s"><img %s style="%s" src="%s"></div>', $imgContainerStyles, (!empty($imgTitle) ? 'title="'.$imgTitle.'"' : null), $imgStyle, $qrCodeImageString);
+			} else {
+				/** QR-Bill Creation Error */
+				error_log(sprintf('[WARN] <%s:%d> Invalid $zorgQRCodeBill->generateQRCode() using: %d | %s | %c', __METHOD__, __LINE__, $userid, $rechnungszweck, $betrag));
+				return '<span>generateQRCode() Failed</span>';
+			}
+		} else {
+			/** Require Class Error */
+			error_log(sprintf('[ERROR] <%s:%d> Include failed: %s', __METHOD__, __LINE__, INCLUDES_DIR.'swissqrbill.inc.php'));
+			return '<span>Include for generateQRCode() failed</span>';
 		}
 	}
 
