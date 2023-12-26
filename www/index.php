@@ -224,6 +224,13 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 				$_TPLROOT['page_title'] = ($_GET['tplupd'] === 'new' ? 'Neues Template erstellen' : 'Template «'.$_TPLROOT['page_title'].'» bearbeiten');
 				$_TPLROOT['sidebar_tpl'] = null; // Clear an assigned Sidebar
 			}
+			if ( isset($_GET['updated']) || isset($_GET['created']) ) {
+				/** If Template was updated from Tpleditor, show a Success-Message */
+				$successTitle = sprintf('Template %s!', (isset($_GET['created']) ? 'created' : 'updated'));
+				unset($_GET['created']); // Remove Query-Param from URL
+				unset($_GET['updated']); // Remove Query-Param from URL
+				$smarty->assign('error', ['type'=>'success', 'dismissable'=>'true', 'title'=>$successTitle]);
+			}
 		}
 	}
 	/**
