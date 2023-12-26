@@ -1,15 +1,15 @@
 <?php
 global $db, $smarty;
 
-$search = escape_text($_GET['query']);
-	
+$search = sanitize_userinput($_GET['query']);
+
 if (!empty($search))
 {
 	$_GET['tpl'] = 33;
 
 	$found = 0;
 	try {
-		$e = $db->query('SELECT id, title FROM templates WHERE MATCH (title, tpl) AGAINST ("'.$search.'")', __FILE__, __LINE__, 'SELECT FROM templates');
+		$e = $db->query('SELECT id, title FROM templates WHERE MATCH (title, tpl) AGAINST (?)', __FILE__, __LINE__, 'SELECT FROM templates', [$search]);
 		while ($d = $db->fetch($e))
 		{
 			$d['title'] = stripslashes($d['title']);

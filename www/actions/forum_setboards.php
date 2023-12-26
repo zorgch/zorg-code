@@ -22,9 +22,9 @@ if ($user->is_loggedin())
 		{
 			$boards .= $_POST['boards'][$i].',';
 		}*/
-		$boards = escape_text(json_encode($_POST['forum_boards']));
-		$sql = 'UPDATE user SET forum_boards = "'.$boards.'" WHERE id = '.$user->id;
-		$db->query($sql, __FILE__, __LINE__, 'SET forum_boards');
+		$boards = json_encode($_POST['forum_boards']);
+		$sql = 'UPDATE user SET forum_boards=? WHERE id=?';
+		$db->query($sql, __FILE__, __LINE__, 'SET forum_boards', [$boards, $user->id]);
 	}
 
 	header("Location: /forum.php");

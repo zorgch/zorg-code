@@ -50,7 +50,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 	if (empty($error) || !$error)
 	{
 		$frm['id'] = htmlentities($frm['id'], ENT_QUOTES);
-		$frm['tpl'] = escape_text($frm['tpl']);
+		$frm['tpl'] = $frm['tpl'];
 		$frm['title'] = sanitize_userinput($frm['title']);
 		$frm['sidebar_tpl'] = (empty($frm['sidebar_tpl']) ? 'NULL' : htmlentities($frm['sidebar_tpl'], ENT_QUOTES));
 		$frm['page_title'] = htmlentities($frm['page_title'], ENT_NOQUOTES);

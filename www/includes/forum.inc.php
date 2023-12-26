@@ -150,7 +150,7 @@ class Comment
 			} else {
 				$errortext = '';
 				foreach ($error as $value) $errortext .= $value.'<br />';
-				$comments_update_query = $db->update('comments', ['id', $comment_id], ['error' => escape_text($errortext)], __FILE__, __LINE__, __METHOD__);
+				$comments_update_query = $db->update('comments', ['id', $comment_id], ['error' => $errortext], __FILE__, __LINE__, __METHOD__);
 				$smarty->compile($resource, $error);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty->compile ERROR', __METHOD__, __LINE__));
 				return false;
@@ -698,11 +698,8 @@ class Comment
 		/** Nur weitermachen, wenn Rechte stimmen */
 		if (Thread::hasRights($board, $thread_id, $user_id))
 		{
-			/**
-			 * Text escapen
-			 * @FIXME use sanitize_userinput() instead of escape_text? See util.inc.php
-			 */
-			$text = escape_text($text);
+			/** Böse Sachen aus dem Text entfernen */
+			$text = sanitize_userinput($text);
 
 			/** Comment in die DB abspeichern */
 			$comment_error = (isset($comment_error) ? $comment_error : '');
@@ -867,7 +864,7 @@ class Comment
 		if(count($_POST['msg_users']) > 0)
 		{
 			$subject = t('message-commentupdate-subject', 'commenting', $user->id2user($user->id,true));
-			$text = t('message-commentupdate', 'commenting', [ $user->id2user($user->id,true), addslashes(stripslashes($text)), self::getLink($_POST['board'], $_POST['parent_id'], $comment_id, $_POST['thread_id']) ]);
+			$text = t('message-commentupdate', 'commenting', [ $user->id2user($user->id,true), sanitize_userinput($_POST['text']), self::getLink($_POST['board'], $_POST['parent_id'], $comment_id, $_POST['thread_id']) ]);
 			//for ($i=0; $i < count($_POST['msg_users']); $i++) {
 			foreach ($_POST['msg_users'] as $msg_recipient_id)
 			{

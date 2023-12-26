@@ -72,7 +72,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 										communication_type,
 										subject_text,
 										preview_text,
-										"'.escape_text($compiledMailTpl).'" as message_text,
+										"'.sanitize_userinput($compiledMailTpl).'" as message_text,
 										template_id,
 										sender_id,
 										'.$recipient_id.' as recipient_id

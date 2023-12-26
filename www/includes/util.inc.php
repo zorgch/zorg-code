@@ -676,6 +676,8 @@ function remove_html($html, $allowable_tags=NULL)
 /**
  * Escape alle nicht sicheren Zeichen eines Strings
  *
+ * !! DO NOT USE WITH SQL PREPARED STATEMENTS (will add / slashes that may break code)
+ *
  * @author IneX
  * @version 1.0
  * @since 1.0 `27.12.2017` function added

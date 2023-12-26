@@ -41,9 +41,9 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 							,update_user = VALUES(update_user)';
 	$updateTplParams = [
 		$update_template_id,
-		escape_text($compiledMailTpl),
-		escape_text($_POST['text_mail_subject']),
-		escape_text($_POST['text_mail_subject']),
+		$compiledMailTpl,
+		$_POST['text_mail_subject'],
+		$_POST['text_mail_subject'],
 		timestamp(true),
 		$user->id
 	];
@@ -67,9 +67,9 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 						WHERE template_id=?
 						AND recipient_id=?';
 	$updateMailParams = [
-		escape_text($_POST['text_mail_subject']),
-		escape_text($_POST['text_mail_description']),
-		escape_text($_POST['text_mail_message']),
+		$_POST['text_mail_subject'],
+		$_POST['text_mail_description'],
+		$_POST['text_mail_message'],
 		$tplid,
 		VORSTAND_USER
 	];
@@ -108,9 +108,9 @@ elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) )
 						,last_update=?
 						,update_user=?';
 	$params = [
-		escape_text($compiledMailTpl),
-		escape_text($_POST['text_mail_subject']),
-		escape_text($_POST['text_mail_subject']),
+		$compiledMailTpl,
+		$_POST['text_mail_subject'],
+		$_POST['text_mail_subject'],
 		'0',
 		VORSTAND_USER,
 		'2',
@@ -142,9 +142,9 @@ elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) )
 								,recipient_id=?';
 		$params = [
 			'EMAIL',
-			escape_text($_POST['text_mail_subject']),
-			escape_text($_POST['text_mail_description']),
-			escape_text($_POST['text_mail_message']),
+			$_POST['text_mail_subject'],
+			$_POST['text_mail_description'],
+			$_POST['text_mail_message'],
 			$tplid,
 			$user->id,
 			VORSTAND_USER

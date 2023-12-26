@@ -113,7 +113,7 @@ function get_apod($apod_date_input=NULL)
 																 'album'=>APOD_GALLERY_ID
 																,'extension'=>$new_apod_fileext
 																,'pic_added'=>$new_apod_date
-																,'name'=>escape_text($new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : ''))
+																,'name'=>$new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : '')
 															  ], __FILE__, __LINE__, __FUNCTION__);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_picid: %s', __FUNCTION__, __LINE__, $new_apod_picid));
 
