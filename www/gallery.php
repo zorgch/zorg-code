@@ -64,8 +64,7 @@ else {
 	if (!empty($_GET['do']))
 	{
 		$doAction = (string)$_GET['do'];
-		/** Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User,
-			deshalb müssen wirs vorziehen... */
+		/** Das Benoten (und mypic markieren) können nebst Schönen auch die registrierten User, deshalb müssen wirs vorziehen... */
 		if ($user->is_loggedin() && ($doAction === 'benoten' || $doAction === 'mypic') && isset($_POST['picID']) && !empty($_POST['picID']) && $_POST['picID'] > 0)
 		{
 			switch ($doAction)
@@ -96,10 +95,10 @@ else {
 					$res = doEditAlbum($album_id, $_POST['frm']);
 					if (!$album_id) $album_id = $res['id'];
 					break;
-				case 'editAlbumFromEvent':
-					$res = doEditAlbumFromEvent($album_id, $_POST['event']);
-					if (!$album_id) $album_id = $res['id'];
-					break;
+				// case 'editAlbumFromEvent': NOT IMPLEMENTED
+				// 	$res = doEditAlbumFromEvent($album_id, $_POST['event']);
+				// 	if (!$album_id) $album_id = $res['id'];
+				// 	break;
 				case 'delAlbum':
 					$res = doDelAlbum($album_id, $_POST['del']);
 					$_GET['show'] = $res['show'];

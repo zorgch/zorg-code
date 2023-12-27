@@ -39,8 +39,8 @@ if (!empty($user_id) && $user_id > 0)
 	/** Requires mysql.inc.php */
 	require_once INCLUDES_DIR.'mysql.inc.php';
 	/** Unread Comments are only valid while a User is online... for minimum external exposure. */
-	$sql = 'SELECT COUNT(*) AS numunread FROM comments_unread WHERE user_id='.$user_id;
-	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'SELECT FROM comments_unread'));
+	$sql = 'SELECT COUNT(*) AS numunread FROM comments_unread WHERE user_id=?';
+	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-unreadcomments)', [$user_id]));
 	/** Check if at least 1 unread comment */
 	$numUnreadComments = (false !== $rs['numunread'] && !empty($rs['numunread']) ? (int)$rs['numunread'] : 0);
 	if ($numUnreadComments > 0)

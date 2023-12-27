@@ -4,7 +4,7 @@
  *
  * Enthält alle User Funktionen von zorg
  *
- * @author [z]cylander
+ * @since 1.0 `[z]cylander` File added
  * @package zorg\Usersystem
  */
 /**
@@ -28,17 +28,16 @@ require_once INCLUDES_DIR.'activities.inc.php';
  * - 2 = USER_MEMBER [z]member und schöne
  * - 3 = USER_SPECIAL Admins & Coder
  *
- * @author [z]cylander
- * @author IneX
  * @package zorg\Usersystem
- * @version 7.0
- * @since 1.0 class added
- * @since 2.0 additional methods added
- * @since 3.0 code optimizations and new methods
+ * @version 8.0
+ * @since 1.0 `[z]cylander` class added
+ * @since 2.0 `IneX` additional methods added
+ * @since 3.0 `IneX` code optimizations and new methods
  * @since 4.0 `10.12.2018` `IneX` major refactorings & migrated methods from profil.php as part of the usersystem()-class
  * @since 5.0 `26.12.2018` `IneX` Bug #769: 'usertyp'-Spalte entspricht neu einer Usergruppe aus dem Table 'usergroups' (quasi als Foreign-Key)
  * @since 6.0 `10.04.2021` `IneX` Upgrade to new password_hash() & password_verify(), major rework of User Session & Cookies handling
  * @since 7.0 `14.05.2021` `IneX` Deactivated Session ID for all (incl. Guest) Users, only for Authenticated now. Proper z-Session Cookie lifetime handling.
+ * @since 8.0 `23.12.2023` `IneX` Changed Class Properties definitions to modern PHP
  */
 class usersystem
 {
@@ -52,82 +51,118 @@ class usersystem
 	 * @var bool $use_user_picture Jeder User kann ein Bild von sich hochladen
 	 * @var string $table_name DB-Table wo die User-Daten gespeichert sind, wird für die SQL-Queries benötigt
 	 */
-	var $enable_cookies = TRUE;
-	var $use_current_login = TRUE;
-	var $use_registration_code = TRUE;
-	var $use_online_list = TRUE;
-	var $use_user_picture = TRUE;
-	var $table_name = 'user';
+	public $enable_cookies = TRUE;
+	public $use_current_login = TRUE;
+	public $use_registration_code = TRUE;
+	public $use_online_list = TRUE;
+	public $use_user_picture = TRUE;
+	public $table_name = 'user';
 
 	/**
-	 * Var to map User Fields
+	 * User values
 	 */
-	var $field_userid = 'id';
-	var $field_activities_allow = 'activities_allow';
-	var $field_activity = 'activity';
-	var $field_addle = 'addle';
-	var $field_ausgesperrt_bis = 'ausgesperrt_bis';
-	var $field_bild = 'image';
-	var $field_chess = 'chess';
-	var $field_clantag = 'clan_tag';
-	var $field_currentlogin = 'currentlogin';
-	var $field_email = 'email';
-	var $field_from_mobile = 'from_mobile';
-	var $field_irc = 'irc_username';
-	//var $field_last_ip = 'last_ip'; // @DEPRECATED
-	var $sessionkey_last_ip = 'last_ip';
-	var $field_lastlogin = 'lastlogin';
-	var $field_maxdepth = 'forummaxthread';
-	var $field_menulayout = 'menulayout';
-	var $field_mymenu = 'mymenu';
-	var $field_notifications = 'notifications';
-	var $field_regcode = 'regcode';
-	var $field_regdate = 'regdate';
-	var $field_show_comments = 'show_comments';
-	var $field_sql_tracker = 'sql_tracker';
-	var $field_telegram = 'telegram_chat_id';
-	var $field_user_active = 'active';
-	var $field_username = 'username';
-	var $field_userpw = 'userpw';
-	var $field_usertyp = 'usertype';
-	var $field_zorger = 'zorger';
-	var $field_z_gremium = 'z_gremium';
-	var $field_vereinsmitglied = 'vereinsmitglied';
-	var $field_firstname = 'firstname';
-	var $field_lastname = 'lastname';
+	public $id; // Stores the User's ID
+    public $activities_allow; // Speichert ob Aktivitäten erlaubt sind (Boolean)
+    public $activity; // Speichert den Timestamp der letzten Aktivität des Users
+    public $addle; // Speichert ein Boolean ob user addle spielen will
+	public $ausgesperrt_bis; // Speichert bis wann der Benutzer ausgesperrt ist (Timestamp)
+    public $chess; // Speichert ob der Benutzer Schach spielt (Boolean)
+    public $clantag; // Speichert den Clan Tag des Users
+    public $currentlogin; // Speichert den aktuellen login als Timestamp
+    public $email; // Speichert die Benutzer E-Mail Adresse
+    public $firstname; // Speichert den Vornamen des Benutzers
+    public $forum_boards; // Speichert die Forenboards des Benutzers (Array)
+    public $forum_boards_unread; // Speichert die ungelesenen Forenboards des Benutzers (Array)
+    public $from_mobile; // Speichert ob der Benutzer von einem Mobilen Gerät zugreift
+    public $image; // Speichert den Link zum Bild des Benutzer
+    public $irc; // Speichert die IRC-Information des Benutzers
+    public $last_ip; // Speichert die letzte IP-Adresse des Benutzers
+    public $lastlogin; // Speichert den letzen Login als Timestamp
+    public $lastname; // Speichert den Nachnamen des Benutzers
+    public $maxdepth; // Speichert die Forumanzeigeschwelle des Benutzers
+    public $menulayout; // Speichert das präferierte Menu Layout das der User eingestellt hat
+    public $mymenu; // Speichert das individuelle Menü des Benutzers
+    public $notifications; // Speichert die Benachrichtigungen des Benutzers (Array)
+    public $password; // Speichert das User Passwort
+    public $show_comments; // Speichert ob der Benutzer die Comments sehen will (=1) oder nicht (=0)
+    public $sql_tracker; // Speichert ob SQL-Tracking aktiviert ist (Boolean)
+    public $telegram; // Speichert die Telegram-Information des Benutzers
+    public $typ; // Speichert den Benutzer Typ / Rolle
+    public $username; // Speichert den Benutzername (ohne Clan Tag)
+	public $userpw; // Speichert das Passwort des Benutzers
+    public $vereinsmitglied; // Speichert den Vereinsmitglied-Status des User
+    public $z_gremium; // Speichert den Z-Gremium-Status des Benutzers
+    public $zorger; // Speichert ob der User zooomclan.org (retro) oder zorg.ch (modern) sehen will
+
+	/**
+	 * Map User Fields to User DB Table Rows
+	 */
+	protected $field_userid = 'id';
+	protected $field_activities_allow = 'activities_allow';
+	protected $field_activity = 'activity';
+	protected $field_addle = 'addle';
+	protected $field_ausgesperrt_bis = 'ausgesperrt_bis';
+	protected $field_bild = 'image';
+	protected $field_chess = 'chess';
+	protected $field_clantag = 'clan_tag';
+	protected $field_currentlogin = 'currentlogin';
+	protected $field_email = 'email';
+	protected $field_from_mobile = 'from_mobile';
+	protected $field_irc = 'irc_username';
+	//protected $field_last_ip = 'last_ip'; // @DEPRECATED
+	protected $sessionkey_last_ip = 'last_ip';
+	protected $field_lastlogin = 'lastlogin';
+	protected $field_maxdepth = 'forummaxthread';
+	protected $field_menulayout = 'menulayout';
+	protected $field_mymenu = 'mymenu';
+	protected $field_notifications = 'notifications';
+	protected $field_regcode = 'regcode';
+	protected $field_regdate = 'regdate';
+	protected $field_show_comments = 'show_comments';
+	protected $field_sql_tracker = 'sql_tracker';
+	protected $field_telegram = 'telegram_chat_id';
+	protected $field_user_active = 'active';
+	protected $field_username = 'username';
+	protected $field_userpw = 'userpw';
+	protected $field_usertyp = 'usertype';
+	protected $field_zorger = 'zorger';
+	protected $field_z_gremium = 'z_gremium';
+	protected $field_vereinsmitglied = 'vereinsmitglied';
+	protected $field_firstname = 'firstname';
+	protected $field_lastname = 'lastname';
 
 	/**
 	 * Default Userprofile Settings
 	 *
 	 * @used-by usersystem::exec_changeprofile()
 	 */
-	var $default_clan_tag = null; // none
-	var $default_activities_allow = '1'; // enabled
-	var $default_telegram_chat_id = null; // none
-	var $default_irc_username = null; // none
-	var $default_addle = '1'; // enabled
-	var $default_chess = '1'; // enabled
-	var $default_forum_boards = '["b","e","f","o","r","t"]'; // Bugtracker, Events, Forum, Go, Tauschbörse, Templates
-	var $default_forum_boards_unread = '["b","e","f","g","h","i","o","t"]'; // Bugtracker, Events, Forum, Hunting z, Gallery, Tauschbörse, Templates
-	var $default_forummaxthread = 10; // depth: 10
-	var $default_menulayout = ''; // none (String, because ENUM='')
-	var $default_mymenu = null; // none
-	var $default_notifications = '{"bugtracker":{"message":"true","email":"true"},"games":{"email":"true"},"mentions":{"email":"true"},"messagesystem":{"email":"true"},"subscriptions":{"message":"true"}}';
-	var $default_show_comments = '1'; // enabled
-	var $default_sql_tracker = '0'; // disabled
-	var $default_usertype = 0; // nicht-eingeloggt
-	var $default_zorger = '0'; // zorg-Layout
-	var $default_vereinsmitglied = '0'; // kein Mitglied
-	var $default_z_gremium = ''; // no
-	var $default_firstname = null; // none
-	var $default_lastname = null; // none
+	public $default_clan_tag = null; // none
+	public $default_activities_allow = '1'; // enabled
+	public $default_telegram_chat_id = null; // none
+	public $default_irc_username = null; // none
+	public $default_addle = '1'; // enabled
+	public $default_chess = '1'; // enabled
+	public $default_forum_boards = '["b","e","f","o","r","t"]'; // Bugtracker, Events, Forum, Go, Tauschbörse, Templates
+	public $default_forum_boards_unread = '["b","e","f","g","h","i","o","t"]'; // Bugtracker, Events, Forum, Hunting z, Gallery, Tauschbörse, Templates
+	public $default_forummaxthread = 10; // depth: 10
+	public $default_menulayout = ''; // none (String, because ENUM='')
+	public $default_mymenu = null; // none
+	public $default_notifications = '{"bugtracker":{"message":"true","email":"true"},"games":{"email":"true"},"mentions":{"email":"true"},"messagesystem":{"email":"true"},"subscriptions":{"message":"true"}}';
+	public $default_show_comments = '1'; // enabled
+	public $default_sql_tracker = '0'; // disabled
+	public $default_usertype = 0; // nicht-eingeloggt
+	public $default_zorger = '0'; // zorg-Layout
+	public $default_vereinsmitglied = '0'; // kein Mitglied
+	public $default_z_gremium = ''; // no
+	public $default_firstname = null; // none
+	public $default_lastname = null; // none
 
 	/**
 	 * Object Vars
 	 *
 	 * @var string (Optional) Error-Message, see: usersystem::activate_user()
 	 */
-	var $error_message;
+	protected $error_message;
 
 	/**
 	 * Klassen Konstruktor
@@ -275,9 +310,10 @@ class usersystem
 				 * Update last user activity
 				 * @TODO Activity nur updaten wenn vorherige & aktuelle Page-URL (z.B. Referrer vs. ...) nicht identisch sind?
 				 */
-				$db->update($this->table_name, ['id', $this->id], [
+				$db->update($this->table_name, ['id', $this->id],
+				[
 					 $this->field_activity => timestamp(true)
-					,$this->field_from_mobile => ($this->from_mobile === false ? '' : (string)$this->from_mobile), // because 'ENUM'-fieldtype
+					,$this->field_from_mobile => (!$this->from_mobile ? null : (string)$this->from_mobile), // because 'ENUM'-fieldtype
 				], __FILE__, __LINE__, __METHOD__);
 			}
 		}
@@ -924,8 +960,8 @@ class usersystem
 
 		$html = '';
 		$sql = 'SELECT id, username, clan_tag FROM user
-				WHERE activity > (NOW() - '.USER_TIMEOUT.') ORDER by activity DESC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				WHERE activity > (?-?) ORDER by activity DESC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), USER_TIMEOUT]);
 		$num_online = $db->num($result);
 		if (!empty($num_online) && $num_online !== false)
 		{
@@ -1028,9 +1064,9 @@ class usersystem
 			3 => t('newpass-confirmation', 'user')
 		);
 
-		$sql = 'INSERT into error (user_id, do, ip, date)
-				VALUES ('.$user_id.', "'.$do_array[$do].'","'.$_SESSION[$this->sessionkey_last_ip].'", NOW())';
-		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'INSERT into error (user_id, do, ip, date) VALUES (?, ?, ?, ?)';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__,
+				[$user_id, $do_array[$do], $_SESSION[$this->sessionkey_last_ip], timestamp(true)]);
 	}
 
 	/**
@@ -1291,7 +1327,7 @@ class usersystem
 		/** Validate passed parameters */
 		$userid = (empty($id) || !is_numeric($id) ? false : (int)$id);
 		$use_clantag = (bool)$clantag;
-		$show_pic = (bool)$pic;
+		//$show_pic = (bool)$pic;
 
 		/** If given User-ID is not valid (not numeric), show a User Error */
 		if (false === $userid) {
@@ -1303,11 +1339,11 @@ class usersystem
 		{
 			if ($use_clantag === true && !isset($_users[$userid]['clan_tag']))
 			{
-				$sql = 'SELECT username, clan_tag FROM user WHERE id='.$userid.' LIMIT 0,1';
+				$sql = 'SELECT username, clan_tag FROM user WHERE id=? LIMIT 1';
 			} else {
-				$sql = 'SELECT username FROM user WHERE id='.$userid.' LIMIT 0,1';
+				$sql = 'SELECT username FROM user WHERE id=? LIMIT 1';
 			}
-			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$userid]));
 			if (!empty($rs) || $rs !== false || !empty($rs['username']))
 			{
 				/** User $id exists - add record to global $_users-Array */
@@ -1771,39 +1807,6 @@ class usersystem
 		$smarty->assign('show_profile_link', ($show_link ? 'true' : 'false'));
 
 		return $smarty->fetch('file:layout/partials/profile/userprofile_link.tpl');
-	}
-
-	/**
-	 * User Quote (?)
-	 *
-	 * Gibt ein random Quote zurück.
-	 * Falls mit user_id wird es ein quote dieses users sein<br><br>
-	 *
-	 * @TODO @[z]milamber: Warum ist dies nicht im quotes.inc.php? Und wir brauchen das nicht mal?!</b>
-	 *
-	 * @return string quote
-	 * @param int $user_id User ID
-	 */
-	function quote($user_id) {
-		global $db;
-		if($user_id != '')
-		{
-			$sql = 'SELECT count(*) as anzahl FROM quotes WHERE user_id = '.$user_id;
-			$result = $db->query($sql, __FILE__, __LINE__);
-			$rs = $db->fetch($result);
-			$total = $rs['anzahl'];
-
-			mt_srand((double)microtime()*1000000);
-			$rnd = mt_rand(1, $total);
-			$sql = "SELECT * FROM quotes WHERE user_id = ".$user_id;
-			$result = $db->query($sql, __FILE__, __LINE__);
-
-			for ($i=0;$i<$rnd;$i++){
-				$rs = $db->fetch($result);
-			}
-			$quote = $rs['text'];
-			return $quote;
-		}
 	}
 
 	/**

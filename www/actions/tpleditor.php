@@ -41,16 +41,16 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 
 	if (!smarty_brackets_ok($frm['tpl'], $brack_err)) $error .= $brack_err;
 
-	/** @FIXME deaktiviert bis ein besserer syntax checker gebaut ist. (biko)
+	// FIXME deaktiviert bis ein besserer syntax checker gebaut ist. (biko)
 	/*
 	$syntaxerr = smarty_remove_invalid_html($frm['tpl']);
-	if ($syntaxerr) $error .= "<br />HTML Syntax Error: $syntaxerr <br />";
+	if ($syntaxerr) $error .= "<br>HTML Syntax Error: $syntaxerr <br>";
 	*/
 
-	if (!$error)
+	if (empty($error) || !$error)
 	{
 		$frm['id'] = htmlentities($frm['id'], ENT_QUOTES);
-		$frm['tpl'] = escape_text($frm['tpl']);
+		$frm['tpl'] = $frm['tpl'];
 		$frm['title'] = sanitize_userinput($frm['title']);
 		$frm['sidebar_tpl'] = (empty($frm['sidebar_tpl']) ? 'NULL' : htmlentities($frm['sidebar_tpl'], ENT_QUOTES));
 		$frm['page_title'] = htmlentities($frm['page_title'], ENT_NOQUOTES);
@@ -73,10 +73,11 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 											,'write_rights' => $frm['write_rights']
 											,'sidebar_tpl' => $frm['sidebar_tpl']
 											,'allow_comments' => $frm['allow_comments']
+											,'error' => null
 											,'owner' => $user->id
 											,'update_user' => $user->id
-											,'created' => 'NOW()'
-											,'last_update' => 'NOW()'
+											,'created' => timestamp(true)
+											,'last_update' => timestamp(true)
 										  ], __FILE__, __LINE__, 'Add new Template');
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> New Template ID: %s', __FILE__, __LINE__, $frm['id']));
 
@@ -84,10 +85,11 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 			if ($frm['id'] > 0 && $frm['id'] != false)
 			{
 				Thread::setRights('t', $frm['id'], $frm['read_rights']);
-				$db->query('INSERT INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'], __FILE__, __LINE__, 'Copy Template to templates_backup');
+				$db->query('INSERT INTO templates_backup SELECT * FROM templates WHERE id=?', __FILE__, __LINE__, 'Copy Template to templates_backup', [$frm['id']]);
 
 				$updated_tplid = $frm['id'];
 				$return_url = '/?tpl='.$updated_tplid;
+				$return_url .= '&created';
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
 
@@ -104,7 +106,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		 */
 		} elseif ($frm['id'] > 0) {
 			/** Backup current version */
-			$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id='.$frm['id'].' AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup');
+			$db->query('REPLACE INTO templates_backup SELECT * FROM templates WHERE id=? AND UNIX_TIMESTAMP(?)-UNIX_TIMESTAMP(last_update) > (60*60*24*3)', __FILE__, __LINE__, 'REPLACE INTO templates_backup', [$frm['id'], timestamp(true)]);
 
 			/*if ($frm['word']) $set_word = ', word="'.$frm['word'].'"';*/
 			$templateUpdateParams = [
@@ -116,10 +118,10 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 							,'write_rights' => $frm['write_rights']
 							,'sidebar_tpl' => $frm['sidebar_tpl']
 							,'allow_comments' => $frm['allow_comments']
-							,'error' => ''
+							,'error' => null
 							,'owner' => $user->id
 							,'update_user' => $user->id
-							,'last_update' => 'NOW()'
+							,'last_update' => timestamp(true)
 						];
 			if ($frm['word']) $templateUpdateParams = array_merge($templateUpdateParams, ['word' => $frm['word']]);
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Update Template SQL-Params: %s', __FILE__, __LINE__, print_r($templateUpdateParams,true)));
@@ -128,10 +130,10 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d updated', __FILE__, __LINE__, $frm['id']));
 		}
 
-		if (!$error && $frm['id'] > 0)
+		if ((empty($error) || !$error) && $frm['id'] > 0)
 		{
 			/** Menus: remove all links between Template & Menus, relink selected Menus */
-			$db->query('DELETE FROM tpl_menus WHERE tpl_id ='.$frm['id']); // delete all
+			$db->query('DELETE FROM tpl_menus WHERE tpl_id=?', __FILE__, __LINE__, 'DELETE FROM tpl_menus', [$frm['id']]);
 			if (!empty($_POST['frm']['menus']))
 			{
 				$tplmenusInsertData = null;
@@ -145,7 +147,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 			}
 
 			/** Packages: remove all links between Template & Packages, relink selected Packages */
-			$db->query('DELETE FROM tpl_packages WHERE tpl_id ='.$frm['id']); // delete all
+			$db->query('DELETE FROM tpl_packages WHERE tpl_id=?', __FILE__, __LINE__, 'DELETE FROM tpl_packages', [$frm['id']]);
 			if (!empty($_POST['frm']['packages']))
 			{
 				$tplpackagesInsertData = null;
@@ -169,34 +171,38 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 	 * @since 1.0 `[z]biko` procedure added intially
 	 * @since 2.0 `03.01.2019` `IneX` Fixed Bug #768: must also recompile template based on /page/word (not only /tpl/id )
 	 */
-	if (!$error)
+	if (empty($error) || !$error)
 	{
 		/** Compile Templated - TPL-ID based */
 		//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile() $frm: %s', __FILE__, __LINE__, print_r($frm,true)));
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'tpl:'.$frm['id']));
-		if (!$smarty->compile('tpl:'.$frm['id'], $compile_err))
-		{
-			for ($i=0; $i<sizeof($compile_err); $i++) {
-				$error .= "<br />".$compile_err[$i]."<br />";
-			}
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): ERROR (%s)', __FILE__, __LINE__, $error));
-		} else {
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): SUCCESS', __FILE__, __LINE__));
-		}
-
-		/** Compile Templated - TPL-Word based (if applicable) */
-		if (!empty($frm['word']))
-		{
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'word:'.$frm['word']));
-			if (!$smarty->compile('word:'.$frm['word'], $compile_err))
+		try {
+			if (!$smarty->compile('tpl:'.$frm['id'], $compile_err))
 			{
 				for ($i=0; $i<sizeof($compile_err); $i++) {
-					$error .= "<br />".$compile_err[$i]."<br />";
+					$error .= "<br>".$compile_err[$i]."<br>";
 				}
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): ERROR (%s)', __FILE__, __LINE__, $error));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): ERROR (%s)', __FILE__, __LINE__, $error));
 			} else {
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): SUCCESS', __FILE__, __LINE__));
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(tpl): SUCCESS', __FILE__, __LINE__));
 			}
+
+			/** Compile Templated - TPL-Word based (if applicable) */
+			if (!empty($frm['word']))
+			{
+				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(%s)', __FILE__, __LINE__, 'word:'.$frm['word']));
+				if (!$smarty->compile('word:'.$frm['word'], $compile_err))
+				{
+					for ($i=0; $i<sizeof($compile_err); $i++) {
+						$error .= "<br>".$compile_err[$i]."<br>";
+					}
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): ERROR (%s)', __FILE__, __LINE__, $error));
+				} else {
+					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $smarty-compile(word): SUCCESS', __FILE__, __LINE__));
+				}
+			}
+		} catch (Exception $e) {
+			$error .= '<br>Exception in $smarty->compile(): ' . $e->getMessage() . '<br>';
 		}
 
 		/** If compile-error, write it to the template in the DB */
@@ -207,16 +213,16 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 	}
 
 	/** If everything worked well - ie. no Errors... */
-	if (!$error)
+	if (empty($error) || !$error)
 	{
 		/** Unlock Template for editing - only if no $error occurred */
 		tpleditor_unlock($updated_tplid);
 		if (!isset($return_url) || empty($return_url)) $return_url = '/?tpl='.$updated_tplid;
+		$return_url .= '&updated';
 
 		$updated_tplid = null;
 		$enable_tpleditor = null;
 
-		// FIXME http://zorg.local/actions/tpleditor.php?tpl=17&tpleditor=1&tplupd=new => weisse Seite
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> header(Location): %s', __FILE__, __LINE__, $return_url));
 		header('Location: '.$return_url);
 		exit();
@@ -227,7 +233,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		$frm['tpl'] = stripslashes(stripslashes($frm['tpl']));
 		$frm['title'] = stripslashes(stripslashes($frm['title']));
 		$frm['packages'] = stripslashes(stripslashes($frm['packages']));
-		/** @FIXME aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. ([z]biko) */
+		// FIXME aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. ([z]biko)
 
 		/** Pass $error to error-log */
 		error_log($error);

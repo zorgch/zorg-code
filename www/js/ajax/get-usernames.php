@@ -27,7 +27,7 @@ if (false !== $usernameMention)
 	require_once INCLUDES_DIR.'mysql.inc.php';
 
 	$sql = 'SELECT id, username FROM user WHERE username LIKE CONCAT(?, "%") ORDER BY CHAR_LENGTH(username) ASC, username ASC LIMIT 0,6';
-	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT', [$usernameMention]);
+	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-usernames)', [$usernameMention]);
 	while ($rs = $db->fetch($result))
 	{
 	   $users[] = [

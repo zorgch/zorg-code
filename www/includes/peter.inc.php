@@ -69,7 +69,7 @@ class peter
 		{
 			$this->game_id = (int)$game_id;
 			$this->lc = $this->lastcard();
-		}	
+		}
 	}
 
 	/**
@@ -86,7 +86,7 @@ class peter
 
 		/** Login Modus = Rosenverkäufer zufällig einloggen */
 		if($mode === 'login')
-		{	
+		{
 			/** würfeln ;) */
 			$rand = rand(1,100);
 
@@ -96,19 +96,19 @@ class peter
 				/** ...und Rosenverkäufer heute noch nicht online war */
 				$sql = 'SELECT UNIX_TIMESTAMP(lastlogin) as lastlogin
 						FROM user
-						WHERE id = '.ROSENVERKAEUFER.'
-							AND UNIX_TIMESTAMP(lastlogin) < UNIX_TIMESTAMP(CAST(NOW() - INTERVAL 7 DAY AS DATE))';
-				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+						WHERE id=?
+							AND UNIX_TIMESTAMP(lastlogin) < UNIX_TIMESTAMP(CAST(?-INTERVAL 7 DAY AS DATE))';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [ROSENVERKAEUFER, timestamp(true)]);
 
 				if ($db->num($result) !== FALSE)
 				{
 					/** ...Rosenverkäufer einloggen */
 					$sql = 'UPDATE user SET
-								lastlogin = currentlogin,
-								currentlogin = now(),
-								activity = now()
-							WHERE id = '.ROSENVERKAEUFER;
-					$db->query($sql, __FILE__, __LINE__, __METHOD__);
+								currentlogin=?
+								,activity=?
+								,lastlogin=currentlogin
+							WHERE id=?';
+					$db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), timestamp(true), ROSENVERKAEUFER]);
 				} else {
 					/** Return 0 so nothing will happen... */
 					return 0;
@@ -117,11 +117,11 @@ class peter
 		}
 		/** Sonst prüfen ob der Rosenverkäufer eingeloggt ist */
 		else {
-			$sql = 'SELECT UNIX_TIMESTAMP(activity) as act 
-					FROM user 
-					WHERE id = '.ROSENVERKAEUFER.' 
-						AND (UNIX_TIMESTAMP(activity) + '.USER_TIMEOUT.') > UNIX_TIMESTAMP(now())';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = 'SELECT UNIX_TIMESTAMP(activity) as act
+					FROM user
+					WHERE id=?
+						AND (UNIX_TIMESTAMP(activity) + ?) > UNIX_TIMESTAMP(?)';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [ROSENVERKAEUFER, USER_TIMEOUT, timestamp(true)]);
 			$rosen = $db->num($result);
 
 			return $rosen;
@@ -142,8 +142,8 @@ class peter
 		global $db;
 
 		/** DEPRECATED Game selektieren */
-		/*$sql = 'SELECT * 
-				FROM peter_games 
+		/*$sql = 'SELECT *
+				FROM peter_games
 				WHERE game_id = '.$this->game_id;
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);*/
@@ -174,8 +174,8 @@ class peter
 		shuffle($karten);
 
 		/** spieler selektieren */
-		$sql = 'SELECT * 
-				FROM peter_players 
+		$sql = 'SELECT *
+				FROM peter_players
 				WHERE game_id = '.$this->game_id;
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		while($rs = $db->fetch($result)) {
@@ -188,8 +188,8 @@ class peter
 		{
 			$in = ($i % $numPlayers);
 			$uu = $pp[$in];
-			$sql = 'INSERT into peter_cardsets 
-					(game_id, card_id, user_id, status, datum) 
+			$sql = 'INSERT into peter_cardsets
+					(game_id, card_id, user_id, status, datum)
 					VALUES ('.$this->game_id.','.$karten[$i].','.$uu.',"nicht gelegt", NOW())';
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$card[$uu][] = $karten[$i];
@@ -222,9 +222,9 @@ class peter
 		global $db, $notification;
 
 		/** Join ID des aktuellen Spielers ermitteln */
-		$sql = 'SELECT join_id 
+		$sql = 'SELECT join_id
 				FROM peter_players pp
-				WHERE 
+				WHERE
 					pp.user_id = '.$act_player.'
 					AND pp.game_id = '.$this->game_id;
 		$rq = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -286,7 +286,7 @@ class peter
 
 			/** Game aufmachen */
 			$this->peteruuf($players);
-		} 
+		}
 
 		/** Wenn ein Wunsch da ist ;) */
 		if (isset($this->wunschFarbe))
@@ -302,10 +302,10 @@ class peter
 			if (isset($this->lc['value']) && is_numeric($this->lc['value']) && $this->lc['value'] > 0) $this->auto_nextplayer();
 
 			/** Inaktive Spieler übergehen */
-			$sql = 'SELECT game_id, players, next_player, last_activity 
-					FROM peter_games 
-					WHERE 
-						(UNIX_TIMESTAMP(NOW()) - (86400*2)) > UNIX_TIMESTAMP(last_activity) 
+			$sql = 'SELECT game_id, players, next_player, last_activity
+					FROM peter_games
+					WHERE
+						(UNIX_TIMESTAMP(NOW()) - (86400*2)) > UNIX_TIMESTAMP(last_activity)
 						AND status = "lauft"';
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$old_game_id = $this->game_id;
@@ -368,12 +368,12 @@ class peter
 		global $db, $user;
 
 		/** spiel erstellen */
-		$sql = 'INSERT INTO peter_games (players, next_player, status, last_activity) 
+		$sql = 'INSERT INTO peter_games (players, next_player, status, last_activity)
 				VALUES ('.$players.', '.$user->id.', "offen", NOW())';
 		$game_id = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		/** ...und user grad joinen */
-		$sql = 'INSERT INTO peter_players (game_id, join_id, user_id) 
+		$sql = 'INSERT INTO peter_players (game_id, join_id, user_id)
 				VALUES ('.$game_id.', 1, '.$user->id.')';
 		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 	}
@@ -407,7 +407,7 @@ class peter
 						count(*) num_open,
 						game_id
 					FROM peter_games
-					WHERE 
+					WHERE
 						next_player = '.$user->id.'
 						AND status = "lauft"
 					GROUP BY
@@ -438,7 +438,7 @@ class peter
 		$html = '<h3>Offene Spiele</h3>';
 		$sql = 'SELECT * FROM peter_games WHERE status = "offen"';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-		
+
 		if ($db->num($result) > 0)
 		{
 			$html .= "<table>
@@ -459,9 +459,9 @@ class peter
 					".$rs['game_id']."
 					</td><td>";
 
-				$sql = 'SELECT * 
-						FROM peter_players pp 
-						WHERE pp.game_id = '.$rs['game_id'].' 
+				$sql = 'SELECT *
+						FROM peter_players pp
+						WHERE pp.game_id = '.$rs['game_id'].'
 						ORDER by pp.join_id ASC';
 				$resulti = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -521,7 +521,7 @@ class peter
 				FROM peter_players pp
 				LEFT JOIN peter_games pg
 					ON pg.game_id = pp.game_id
-				WHERE 
+				WHERE
 					pg.status = "lauft"
 				GROUP BY pg.game_id';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -548,7 +548,7 @@ class peter
 					SELECT
 						pp.user_id
 					FROM peter_players pp
-					WHERE 
+					WHERE
 						pp.game_id = $rs[game_id]
 					ORDER by pp.join_id ASC";
 					$resulti = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -606,7 +606,7 @@ class peter
 					FROM peter_players pp
 					LEFT JOIN peter_games pg
 						ON pg.game_id = pp.game_id
-					WHERE 
+					WHERE
 						pg.status = "lauft"
 						AND
 						pp.user_id = '.$user_id;
@@ -630,7 +630,7 @@ class peter
 					SELECT
 						pp.user_id
 					FROM peter_players pp
-					WHERE 
+					WHERE
 						pp.game_id = $rs[game_id]
 					ORDER by pp.join_id ASC";
 					$resulti = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -638,7 +638,7 @@ class peter
 						$spieler .= $user->link_userpage($rsi['user_id']).", ";
 					}
 					$col = ($rs['next_player'] == $user_id) ? '#FF0000' : '#'.BACKGROUNDCOLOR;
-					
+
 					$html .= "
 					<tr align='left' bgcolor='$col'>
 						<td>
@@ -677,7 +677,7 @@ class peter
 
 		/** Anzahl bisher gejointe ermitteln */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Peter Game #%d - Players: %d', __METHOD__, __LINE__, $this->game_id, $players));
-		$sql = 'SELECT COUNT(*) as num_players FROM peter_players 
+		$sql = 'SELECT COUNT(*) as num_players FROM peter_players
 				WHERE game_id = '.$this->game_id;
 		$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 		//$num = $db->num($result) + 1;
@@ -688,7 +688,7 @@ class peter
 		/** player eintragen */
 		if ($numJoin <= $players)
 		{
-			$sql = 'REPLACE INTO peter_players (game_id, join_id, user_id) 
+			$sql = 'REPLACE INTO peter_players (game_id, join_id, user_id)
 					VALUES ('.$this->game_id.', '.$numJoin.', '.$user->id.')';
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -730,7 +730,7 @@ class peter
 				FROM peter_cardsets pc
 				LEFT JOIN peter p
 					ON p.card_id = pc.card_id
-				WHERE 
+				WHERE
 					pc.game_id = '.$this->game_id.'
 					AND pc.status = "gelegt"
 				ORDER by pc.datum DESC
@@ -749,7 +749,7 @@ class peter
 					FROM peter_cardsets pc
 					LEFT JOIN peter_spezialregeln p
 						ON p.card_id = pc.card_id
-					WHERE 
+					WHERE
 						pc.game_id = '.$this->game_id.'
 						AND pc.status = "gelegt"
 						AND p.typ = "rosen"
@@ -778,20 +778,20 @@ class peter
 					pp.join_id,
 					pp.user_id,
 					tt.num_cards
-				FROM 
+				FROM
 				(
 					SELECT
 						count(pc.card_id) as num_cards,
 						pc.user_id as user_id
 					FROM peter_cardsets pc
-					WHERE 
+					WHERE
 						pc.game_id = '.$this->game_id.'
 						AND pc.status = "nicht gelegt"
 					GROUP by pc.user_id
 				) as tt
 				LEFT JOIN peter_players pp
 					ON pp.user_id = tt.user_id
-				WHERE 
+				WHERE
 					pp.game_id = '.$this->game_id.'
 				ORDER by join_id ASC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -800,7 +800,7 @@ class peter
 		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'><tr>";
 		while($rs = $db->fetch($result)) {
 			$html .= "<td bgcolor='".TABLEBACKGROUNDCOLOR."'>".$user->id2user($rs['user_id'])." : <b>".$rs['num_cards']."</b> Karten</td>";
-		}	
+		}
 		$html .= "</tr></table>";
 
 		return $html;
@@ -835,13 +835,13 @@ class peter
 			/** Rosenverkäufer ist da */
 			if($rosen === 1 && isset($this->lc['user_id']))
 			{
-				$sql = 'SELECT * 
+				$sql = 'SELECT *
 						FROM peter_cardsets pc
 						LEFT JOIN peter p
 							ON p.card_id = pc.card_id
-						WHERE game_id = '.$this->game_id.' 
-						AND status = "nicht gelegt" 
-						AND col = 2 
+						WHERE game_id = '.$this->game_id.'
+						AND status = "nicht gelegt"
+						AND col = 2
 						AND user_id <> '.$this->lc['user_id'];
 				/** SQL-Query erklärt:
 				 * - game_id 	= aktuelles Spiel
@@ -852,11 +852,11 @@ class peter
 
 			/** Der Rosenverkäufer ist NICHT da */
 			} elseif (isset($this->lc['value'])) {
-				$sql = 'SELECT * 
+				$sql = 'SELECT *
 						FROM peter_cardsets pc
 						LEFT JOIN peter p
 							ON p.card_id = pc.card_id
-						WHERE game_id = '.$this->game_id.' 
+						WHERE game_id = '.$this->game_id.'
 							AND status = "nicht gelegt"
 							AND value > '.$this->lc['value'];
 				/** SQL-Query erklärt:
@@ -874,7 +874,7 @@ class peter
 			if($db->num($result) == FALSE)
 			{
 				/** Letzten Spieler nochmals aktivieren */
-				$sql = 'UPDATE peter_games 
+				$sql = 'UPDATE peter_games
 						SET next_player = '.$this->lc['user_id'].', last_activity = NOW()
 						WHERE game_id = '.$this->game_id;
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -905,7 +905,7 @@ class peter
 								AND DATE((SELECT last_activity FROM peter_games WHERE game_id = 301)) < (NOW() - INTERVAL 7 DAY)'; // Check if last_activity is older than 7 days
 					$next_player = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $next_player: %s', __METHOD__, __LINE__, print_r($next_player,true)));
-	
+
 					/** Prüfen ob der Spieler nicht bereits fertig ist */
 					if(!empty($next_player) && count($next_player) > 0 && $next_player['make'] != 'fertig')
 					{
@@ -960,10 +960,10 @@ class peter
 		$regel_add = ($rosen == 1) ? "AND typ = 'rosen'" : " ";
 
 		/** Prüfen ob bereits eine Karte gelegt wurde */
-		$sql = 'SELECT * 
-				FROM peter_cardsets pc 
+		$sql = 'SELECT *
+				FROM peter_cardsets pc
 				WHERE
-					pc.game_id = '.$this->game_id.' 
+					pc.game_id = '.$this->game_id.'
 					AND pc.status = "gelegt"';
 		$rr = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -971,7 +971,7 @@ class peter
 		if (!$db->num($rr)) $set = 1;
 
 		/** Prüfen ob der User die Karte noch hat */
-		$sql = 'SELECT * 
+		$sql = 'SELECT *
 				FROM peter_cardsets pc
 				WHERE
 					pc.game_id = '.$this->game_id.'
@@ -980,7 +980,7 @@ class peter
 					AND pc.status = "nicht gelegt"';
 		$rr = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		if($db->num($rr))
-		{	
+		{
 			/** Prüfen ob Karte gesetzt werden darf */
 			$sql = 'SELECT *
 					FROM '.$regel_table.'
@@ -1070,10 +1070,10 @@ class peter
 		global $db, $user;
 
 		/** Ermittelt den Letzten Wunsch zu einem game */
-		$sql = 'SELECT pw.wunsch, pw.user_id 
-				FROM peter_wunsche pw 
+		$sql = 'SELECT pw.wunsch, pw.user_id
+				FROM peter_wunsche pw
 				WHERE pw.game_id = '.$this->game_id.'
-				ORDER by datum DESC 
+				ORDER by datum DESC
 				LIMIT 0,1';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$rs = $db->fetch($result);
@@ -1082,7 +1082,7 @@ class peter
 		{
 			/** zuweisungs Array */
 			$a_zw = array('Eichel' => 1, 'Rosen' => 2, 'Schellen' => 3, 'Schilten' => 4);
-	
+
 			/** Daten Array füllen */
 			$data['col_id'] = $a_zw[$rs['wunsch']];
 			$data['col'] = $rs['wunsch'];
@@ -1115,9 +1115,9 @@ class peter
 			/** prüfen ob der zug zulässig ist */
 			if($this->regelcheck($card_id)) {
 				/** Zug ausführen */
-				$sql = 'UPDATE peter_cardsets 
+				$sql = 'UPDATE peter_cardsets
 						SET datum = NOW(), status = "gelegt", spezial = "'.$spezial.'"
-						WHERE 
+						WHERE
 							game_id = '.$this->game_id.'
 							AND card_id = '.$card_id;
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -1129,7 +1129,7 @@ class peter
 					FROM peter_cardsets
 					WHERE card_id = '".$card_id."'
 					";
-				
+
 				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 				$rs = $db->fetch($result);
 				$text = "Ich habe die Karte '".$rs[description]."' gelegt.";
@@ -1137,7 +1137,7 @@ class peter
 				 */
 
 				/** Spieler Table updaten */
-				$sql = 'UPDATE peter_players SET make = "'.$make.'" 
+				$sql = 'UPDATE peter_players SET make = "'.$make.'"
 						WHERE user_id = '.$user->id.' AND game_id = '.$this->game_id;
 				$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -1158,7 +1158,7 @@ class peter
 			 */
 
 			/** Spieler Table updaten */
-			$sql = 'UPDATE peter_players set make = "'.$make.'" 
+			$sql = 'UPDATE peter_players set make = "'.$make.'"
 					WHERE user_id = '.$user->id.' AND game_id = '.$this->game_id;
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
@@ -1168,10 +1168,10 @@ class peter
 			 * Wenn der User noch weitere offen Züge hat, direkt weiterleiten
 			 * Prüfen, ob noch Züge offen sind
 			 */
-			$sqli = 'SELECT game_id 
-					FROM peter_games 
-					WHERE 
-						next_player = '.$user->id.' 
+			$sqli = 'SELECT game_id
+					FROM peter_games
+					WHERE
+						next_player = '.$user->id.'
 						AND status = "lauft"';
 			$resulti = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 			$rsi = $db->fetch($resulti);
@@ -1183,23 +1183,23 @@ class peter
 		}
 
 		/** Prüfen ob Spiel beendet werden soll */
-		$sql = 'SELECT * 
-				FROM peter_cardsets pc 
-				WHERE 
-					pc.game_id = '.$this->game_id.' 
-					AND pc.user_id = '.$user->id.' 
+		$sql = 'SELECT *
+				FROM peter_cardsets pc
+				WHERE
+					pc.game_id = '.$this->game_id.'
+					AND pc.user_id = '.$user->id.'
 					AND pc.status = "nicht gelegt"';
 		$rr = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		/** Wenn das Spiel beendet werden kann */
 		if(!$db->num($rr))
-		{	
+		{
 			/** Spiel beenden */
 			$sql = 'UPDATE peter_games
-					SET status = "geschlossen", winner_id = '.$user->id.' 
+					SET status = "geschlossen", winner_id = '.$user->id.'
 					WHERE game_id = '.$this->game_id;
 			$db->query($sql, __FILE__, __LINE__, __METHOD__);
-		}	
+		}
 	}
 
 	/**
@@ -1212,7 +1212,7 @@ class peter
 		$html = '<h3>Neues Spiel</h3>
 				<form action="'.getURL(false, false).'" method="post" style="display: flex;white-space: nowrap;align-items: center;">
 					<fieldset>
-						<label style="flex: 1;">Für Anzahl Spieler: 
+						<label style="flex: 1;">Für Anzahl Spieler:
 							<input type="number" min="2" max="6" name="players" style="width: 50px;">
 							<br><span class="tiny">mindestens 2, maximal 6</span>
 						</label>
@@ -1239,11 +1239,11 @@ class peter
 		if($rosen === 1 )
 		{
 			/** cardset für den betreffenden user im game selektieren und auf rosen regeln achten */
-			$sql = 'SELECT * 
+			$sql = 'SELECT *
 					FROM peter_cardsets pc
 					LEFT JOIN peter_spezialregeln p
 						ON pc.card_id = p.card_id
-					WHERE 
+					WHERE
 						pc.user_id = '.$user_id.'
 						AND pc.game_id = '.$this->game_id.'
 						AND pc.status = "nicht gelegt"
@@ -1251,11 +1251,11 @@ class peter
 					ORDER by p.value DESC';
 		} else {
 			/** Cardset für den User selektieren (normale regeln) */
-			$sql = 'SELECT * 
+			$sql = 'SELECT *
 					FROM peter_cardsets pc
 					LEFT JOIN peter p
 						ON pc.card_id = p.card_id
-					WHERE 
+					WHERE
 						pc.user_id = '.$user_id.'
 						AND pc.game_id = '.$this->game_id.'
 						AND pc.status = "nicht gelegt"
@@ -1285,31 +1285,31 @@ class peter
 					<tbody>';
 
 		/** Score Query */
-		$sql = "SELECT 
-					gp.user_id, 
-					gp.num_games_played, 
+		$sql = "SELECT
+					gp.user_id,
+					gp.num_games_played,
 					COALESCE(gw.num_games, '0') as num_games
-				FROM 
+				FROM
 				(
-					SELECT 
-						pp.user_id, 
+					SELECT
+						pp.user_id,
 						COUNT(pp.game_id) AS num_games_played
 					FROM peter_players pp
-					LEFT JOIN peter_games pg 
+					LEFT JOIN peter_games pg
 						ON pg.game_id = pp.game_id
-					WHERE 
+					WHERE
 						pg.status = 'geschlossen'
 					GROUP BY pp.user_id
 				) AS gp
 				LEFT JOIN (
-					SELECT 
-						pg.winner_id, 
+					SELECT
+						pg.winner_id,
 						COUNT(pg.game_id) AS num_games
 					FROM peter_games pg
-					WHERE 
+					WHERE
 						pg.status = 'geschlossen'
 					GROUP BY pg.winner_id
-					) AS gw 
+					) AS gw
 					ON gp.user_id = gw.winner_id
 				ORDER BY num_games DESC";
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
@@ -1336,7 +1336,7 @@ class peter
 	 */
 	function wunscher() {
 		global $db;
-	
+
 		$html = "
 		<form action='$_SERVER[PHP_SELF]?game_id=".$this->game_id."' method='post'>
 		<table cellpadding='2' cellspacing='1' bgcolor='".BORDERCOLOR."'>
@@ -1354,7 +1354,7 @@ class peter
 		</td></tr>
 		</table>
 		</form>";
-		
+
 		return $html;
 	}
 
@@ -1458,7 +1458,7 @@ class peter
 						";
 					}
 				}
-		
+
 			}
 		}
 		/** Wenn Spiel beendet wurde */
@@ -1510,7 +1510,7 @@ class peter
 				FROM peter_cardsets pc
 				LEFT JOIN peter p
 					ON p.card_id = pc.card_id
-				WHERE 
+				WHERE
 					pc.game_id = '.$this->game_id.'
 					AND pc.status = "gelegt"
 				ORDER by datum ASC';
@@ -1606,7 +1606,7 @@ class peter
 
 			/** Namen auf die Karten schreiben */
 			imagettftext($add_img,7,0,13,9,$fontc,PHP_IMAGES_DIR.'peter/verdana.ttf',$textToPlot);
-	
+
 			/** w/h vom alten bild ermitteln */
 			$o_width = imagesx($img_input);
 			$o_height = imagesy($img_input);
@@ -1637,7 +1637,7 @@ class peter
 
 			/** bg color verwenden und bg füllen */
 			imagefill($new_img,0,0,$bg);
-		
+
 			/** das alte bild ins neue kopieren */
 			imagecopy($new_img,$img_input,0,0,0,0,$o_width,$o_height);
 

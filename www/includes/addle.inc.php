@@ -201,7 +201,7 @@ function _update_dwz($user_id) {
 	$e = $db->query('SELECT score FROM addle_dwz WHERE user='.$d['player2'], __FILE__, __LINE__, __FUNCTION__);
 	$d2 = $db->fetch($e);
 	if ($d2) {
-		$dwz2 = $d2[score];
+		$dwz2 = $d2['score'];
 		$prev_score_2 = $dwz2;
 	}
 	else $dwz2 = ADDLE_BASE_POINTS;
@@ -336,7 +336,7 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 			$game_data_array[$row*8 + $to_select] = ".";
 			}
 			else $game_data_array[$row + $to_select*8] = ".";
-			$new_data['game_data'] = join($game_data_array, "");
+			$new_data['game_data'] = join($game_data_array, null);
 			$new_data['row'] = $to_select;
 			$new_data['score'] = ($score_self + ord($row_data[$to_select])) - 96;
 
@@ -450,7 +450,7 @@ while($rs = $db->fetch($result)) {
 					nextturn = '.$new_nextturn.',
 					nextrow = "'.$new_data['row'].'",
 					'.$my_score.' = '.$new_data['score'].',
-					date = NOW()';
+					date = '.timestamp(true);
 		if($new_data['row'] != 23) {
 			$sql_add = '';
 		} else {

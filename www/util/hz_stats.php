@@ -30,7 +30,7 @@ while ($g = $db->fetch($ge)) {
 foreach ($user['games'] as $key=>$val) {
 	$user['wins'][$key] = $user['wins'][$key] / $user['games'][$key] * 100;
 	$user['turns'][$key] /= $user['games'][$key];
-	
+
 }
 
 array_multisort($user['turns'], SORT_DESC, SORT_NUMERIC);
@@ -39,7 +39,7 @@ print_array($user);
 
 
 echo '<xmp>';
-echo text_width("User", 11).text_width("Siege", 7)."Durchschnittliche Anz. Züge pro Game\n";
+echo text_width("User", 11).text_width("Siege", 7)."Durchschnittliche Anz. ZÃ¼ge pro Game\n";
 echo "==========================================================\n";
 foreach ($user['turns'] as $key=>$val) {
 	echo text_width($user['mrz'][$key], 11).text_width(round($user['wins'][$key]).'%', 7).round($user['turns'][$key], 2)."\n";

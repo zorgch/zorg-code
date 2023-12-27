@@ -6,6 +6,7 @@
 *.log
 /vendor
 .env
+*.code-workspace
 
 # ...and DON'T ignore these things
 !.github/
@@ -21,4 +22,3 @@
 !/keys
 !/migration
 !/scripts
-Docker/mysql57

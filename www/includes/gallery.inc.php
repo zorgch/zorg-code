@@ -3,49 +3,44 @@
  * Gallery Funktionen
  *
  * Beinhaltet alle Funktionen der Gallery.
+ * @TODO Move LAYOUT FUNCTIONS to Template Engine
+ * @TODO Wasserzeichen(?)
  *
- * @author [z]biko
- * @package zorg\Gallery
- * @version 3.0
- * @since 1.0 File & functions added
+ * @version 3.5
+ * @since 1.0 `[z]biko` File added
  * @since 2.0 Added code documentations, polished & optimized various functions
  * @since 3.0 `09.08.2018` `IneX` Refactored picPath() & createPic(), added APOD specific specials
+ * @since 3.5 `24.12.2023` `IneX` Code optimizations and refactorings
  *
- * @TODO MyPic-Markierung von Bildern
- * @TODO Wasserzeichen(?)
+ * @package zorg\Gallery
  */
+
+/**
+ * Configs
+ *
+ * set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
+ */
+set_time_limit(600);
+
 /**
  * File includes
  * @include config.inc.php
  * @include forum.inc.php
- * @include util.inc.php
+ * @include util.inc.php DISABLED is part of config.inc.php
  * @include usersystem.inc.php
  */
 require_once dirname(__FILE__).'/config.inc.php';
 include_once INCLUDES_DIR.'forum.inc.php';
-require_once INCLUDES_DIR.'util.inc.php';
+//require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
- * @const set_time_limit	Maximale Zeit in Sekunden, welche das Script laufen darf
- * @const FTP_UPDIT			FTP-Serveraddress and Directory-Path to Gallery Upload Dir
- * @const DIR				Path to Gallery directory on the server
- * @const UPDIR				Path to the Upload directory on the server
- * @const ZENSUR			If the User is a Member, he can see censored Pics. Otherwise the SQL-Query addition will filter them out.
- */
-set_time_limit(600);
-define('FTP_UPDIR', 'ftp://zooomclan@zorg.ch/data/gallery/upload/incoming/'); // @DEPRECATED
-define('DIR', $_SERVER['DOCUMENT_ROOT'].'/../data/gallery/'); // @DEPRECATED Replaced with GALLERY_DIR in config.inc.php
-define('UPDIR', $_SERVER['DOCUMENT_ROOT'].'/../data/upload/'); // @DEPRECATED Replaced with GALLERY_UPLOAD_DIR in config.inc.php
-define('ZENSUR', ( $user->typ >= USER_MEMBER ? '' : 'AND p.zensur="0"' ));
-
-/**
  * Globals
- * @var array $MAX_PIC_SIZE	The maximum width & height for pictures
- * @var array $THUMBPAGE		The image size for Thumbnail pictures
+ * @const ZENSUR	SQL-Query addition if the User is a Member (it can see censored Pics), otherwise filter them out.
+ * @const THUMBPAGE	The number of Thumbnail pictures per column and page (rows) when rendering the layout
  */
-$MAX_PIC_SIZE = array('picWidth'=>800, 'picHeight'=>800, 'tnWidth'=>150, 'tnHeight'=>150);
-$THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
+define('ZENSUR', ($user->typ >= USER_MEMBER ? '' : 'AND p.zensur="0"'));
+define('THUMBPAGE', ['cols'=>4, 'rows'=>3, 'padding'=>10]);
 
 
 // ********************************** LAYOUT FUNCTIONS ***************************************************************************
@@ -54,23 +49,21 @@ $THUMBPAGE = array('width'=>4, 'height'=>3, 'padding'=>10);
  *
  * Zeigt die Gallery-Übersicht mit allen Alben
  *
- * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
+ * @version 1.5
+ * @since 1.0 `[z]biko` function added
+ * @since 1.5 `24.12.2023` `IneX` Optimizations and refactorings
  *
+ * @uses USER_MEMBER, ZENSUR
  * @param string $state Aktueller Status des Albums, z.B. wenn es gerade bearbeitet wird
  * @param string $error (Fehler-)Meldung, welche auf der Gallery-Seite angezeigt werden soll
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
- * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
- * @uses USER_MEMBER, ZENSUR
  * @return string HTML-Code der Gallery-Seite
  */
 function galleryOverview ($state="", $error="")
 {
-	global $db, $user, $MAX_PIC_SIZE, $THUMBPAGE, $smarty;
+	global $db, $user, $smarty;
 
 	/** Error Output (function backwards compatibility) */
 	if ((isset($state) || isset($error)) && $user->typ >= USER_MEMBER)
@@ -145,40 +138,38 @@ function galleryOverview ($state="", $error="")
 /**
  * Album Thumbnails anzeigen
  *
- * @version 2.0
+ * @version 2.1
  * @since 1.0 function added
  * @since 1.5 moved pagination to new Sidebar, output it via $smarty
  * @since 2.0 `16.12.2022` `IneX` lazy-loaded responsive Gallery Album Thumbs Overview
+ * @since 2.1 `24.12.2023` `IneX` Optimizations and refactorings
  *
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
  * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
- * @global array $MAX_PIC_SIZE Variable mit den Werten aus $MAX_PIC_SIZE
- * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
- * @uses ZENSUR
+ * @uses THUMBPAGE, ZENSUR
  * @uses user_error(), self::imgsrcThum(), Thread::getNumPosts(), Thread::getNumUnread()
  */
-function albumThumbs ($id, $page=0) {
-	global $db, $THUMBPAGE, $MAX_PIC_SIZE, $user, $smarty;
+function albumThumbs ($id, $page=0)
+{
+	global $db, $user, $smarty;
 
-	if (!is_numeric($id) || $id <= 0)
-	{
-		user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
-		exit;
-	}
+	if (!is_numeric($id) || $id <= 0) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
+	if (!is_numeric($page) || $page < 0) user_error('Missing Parameter <i>page</i>', E_USER_ERROR);
 
-	$pagepics = $THUMBPAGE['width'] * $THUMBPAGE['height'];
+	$pagepics = THUMBPAGE['cols'] * THUMBPAGE['rows'];
 	$e = $db->query('SELECT count(id) anz FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' GROUP BY album', __FILE__, __LINE__, __FUNCTION__);
-	$d = mysqli_fetch_array($e);
+	$d = $db->fetch($e);
 	$anz = $d['anz'];
 	$htmlOutput = null;
 	$sidebarHtml = null;
 
 	if (!empty($d) && $d['anz'] > 0)
 	{
-		$e = $db->query(sprintf('SELECT g.id, g.name, IF(e.enddate != "0000-00-00 00:00:00" AND g.created IS NULL, e.enddate, g.created) created, e.id eventid, e.name eventname, GROUP_CONCAT(eu.user_id SEPARATOR ",") beenthere_users
+		$e = $db->query(sprintf('SELECT
+									g.id, g.name, IF(e.enddate != "0000-00-00 00:00:00" AND g.created IS NULL, e.enddate, g.created) created, e.id eventid, e.name eventname, GROUP_CONCAT(eu.user_id SEPARATOR ",") beenthere_users
 								 FROM gallery_albums g LEFT JOIN events e ON e.gallery_id=g.id LEFT JOIN events_to_user eu ON eu.event_id=e.id
 								 WHERE g.id=%d GROUP BY g.id, e.enddate, e.id, e.name', $id), __FILE__, __LINE__, __FUNCTION__);
 		$d = $db->fetch($e);
@@ -186,8 +177,8 @@ function albumThumbs ($id, $page=0) {
 		if ($user->typ == USER_MEMBER) $htmlOutput .= '<p class="small center">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit name</a>] [<a href="?show=editAlbumV2&albID='.$id.'">add pics</a>]</p>';
 
 		$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$id.' '.ZENSUR.' ORDER BY p.id LIMIT '.($page*$pagepics).', '.$pagepics, __FILE__, __LINE__, __FUNCTION__);
-		$hgt = $MAX_PIC_SIZE['tnHeight'] + 2 * $THUMBPAGE['padding'];
-		$wdt = $MAX_PIC_SIZE['tnWidth'] + 2 * $THUMBPAGE['padding'];
+		// $hgt = MAX_THUMBNAIL_SIZE['height'] + 2 * THUMBPAGE['padding'];
+		// $wdt = MAX_THUMBNAIL_SIZE['width'] + 2 * THUMBPAGE['padding'];
 		$rows = 1;
 		$htmlOutput .= '<div class="gallerythumbs">';
 		while ($pic = $db->fetch($e))
@@ -247,37 +238,33 @@ function albumThumbs ($id, $page=0) {
 /**
  * Bild anzeigen
  *
- * @author [z]biko
- * @author IneX
- * @version 2.4
+ * @version 2.5
  * @since 1.0 `21.10.2013` `[z]biko` function added
  * @since 2.0 `01.10.2019` `IneX` APOD Special: statt Pic ein Video embedden
  * @since 2.1 `01.10.2019` `IneX` responsive scaling `img` and <iframe> tags
  * @since 2.2 `04.12.2020` `IneX` fixed fallback to show Album Name on Pic
  * @since 2.3 `04.12.2020` `IneX` switched file_exists() to is_file() and fixed PHP notice for undefined exif data
  * @since 2.4 `24.12.2022` `IneX` improved Pic detail view layout and functionality
+ * @since 2.5 `24.12.2023` `IneX` Optimizations and refactorings
  *
+ * @uses USER_USER, USER_MEMBER, APOD_GALLERY_ID, THUMBPAGE, ZENSUR
+ * @uses text_width(), remove_html(), url_params(), datename()
  * @param integer $id ID des Albums von welchem die Thumbnails angezeigt werden sollen
  * @param integer $page Aktuelle Seite des Albums, deren Thumbnails angezeigt werden sollen
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
- * @global array $THUMBPAGE Variable mit den Werten aus $THUMBPAGE
- * @uses USER_USER, USER_MEMBER, APOD_GALLERY_ID, ZENSUR
- * @uses text_width(), remove_html(), url_params(), datename()
+ * @return bool
  */
 function pic ($id)
 {
-	global $user, $db, $THUMBPAGE;
+	global $user, $db;
 
-	if (!$id) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
+	if(!is_numeric($id) || $id <= 0) user_error('Missing Parameter <i>id</i>', E_USER_ERROR);
 
-	$e = $db->query('SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+	$sql = 'SELECT *, UNIX_TIMESTAMP(pic_added) as timestamp FROM gallery_pics WHERE id=?';
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$id]);
 	$cur = $db->fetch($e);
-
-	if($cur == false) {
-		echo 'Bild '.$id.' existiert nicht!';
-		exit;
-	}
+	if($cur === false || empty($cur)) user_error('Bild "'.$id.'" existiert nicht!', E_USER_ERROR);
 
 	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
 	$last = mysqli_fetch_array($e);
@@ -292,15 +279,12 @@ function pic ($id)
 					 WHERE p.id<='.$id.' AND p.album='.$cur['album'].' AND a.id='.$cur['album'].' '.ZENSUR.'
 					 GROUP BY album, eventname', __FILE__, __LINE__, __FUNCTION__);
 	$d = mysqli_fetch_array($e);
-	$page = floor($d['anz'] / ($THUMBPAGE['width'] * $THUMBPAGE['height']));
-	echo '<a href="'.$_SERVER['PHP_SELF'].'?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">';
+	$page = floor($d['anz'] / (THUMBPAGE['cols'] * THUMBPAGE['rows']));
+	echo '<a href="/gallery.php?show=albumThumbs&albID='.$cur['album'].'&page='.$page.'">';
 	echo '<h2 class="bottom_border center">'.($d['eventname'] ? $d['eventname'] : $d['name']).'</h2>';
 	echo '</a>';
 
-	if ($cur['zensur'] && $user->typ != USER_MEMBER) {
-		echo '<b><font color="red">Access denied for this picture</font></b><br><br>';
-		return;
-	}
+	if ($cur['zensur'] && $user->typ != USER_MEMBER) user_error('<b><font color="red">Access denied for this picture</font></b><br><br>', E_USER_ERROR);
 
 	/**
 	 * Pic Title
@@ -332,7 +316,7 @@ function pic ($id)
 	 * PIC SCORE FORMULAR
 	 */
 	if ($user->typ >= USER_USER && !hasVoted($user->id, $cur['id'])) {
-		echo '<form name="f_benoten" method="post" action="'.$_SERVER['PHP_SELF'].'?do=benoten&amp;'.url_params().'" class="voteform">'
+		echo '<form name="f_benoten" method="post" action="/gallery.php?do=benoten&amp;'.url_params().'" class="voteform">'
 			.'<input name="picID" type="hidden" value="'.$cur['id'].'">'
 			.'<span class="scoreinfo">Benoten:</span>'
 			.'<label class="scorevalue" title="Vote: 6 Sternli">
@@ -484,12 +468,14 @@ function pic ($id)
 			echo '<tr>';
 
 			/** Delete Pic */
-			echo '<td><form action="'.$_SERVER['PHP_SELF'].'?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
-					.'<input type="submit" class="button danger" value="Pic l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
-				.'</form></td>';
+			if ($user->typ >= USER_SPECIAL) { // admins
+				echo '<td><form action="/gallery.php?do=delPic&show=albumThumbs&albID='.$cur['album'].'" method="post">'
+						.'<input type="submit" class="button danger" value="Pic l&ouml;schen"><input type="hidden" name="picID" value="'.$cur['id'].'">'
+					.'</form></td>';
+			}
 
 			/** Pic Zensieren/Zensur aufheben */
-			echo '<td><form action="'.$_SERVER['PHP_SELF'].'?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
+			echo '<td><form action="/gallery.php?do=zensur&show=pic&picID='.$cur['id'].'" method="post">'
 					.'<input type="submit" class="button secondary" value="'.($cur['zensur'] === '1' ? 'Zensur AUFHEBEN' : 'Bild ZENSIEREN').'">'
 				.'</form></td>';
 
@@ -580,7 +566,7 @@ function doBenoten($pic_id, $score) {
 		$sternli = '';
 		for ($s=0;$s<$score;$s++){$sternli .= '★';} // Sternli mache
 		if ($user->id != BARBARA_HARRIS) {
-			Activities::addActivity($user->id, 0, 'hat <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i');
+			Activities::addActivity($user->id, 0, 'hat <a href="/gallery.php?show=pic&picID='.$pic_id.'">ein Bild</a> mit <b>'.$sternli.'</b> bewertet.<br/><br><a href="/gallery.php?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i');
 		}
 		return true;
 	}
@@ -636,7 +622,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	if ($id > 0)
 	{ ?>
 		<table class="border"><tr><td>
-		<form <?php echo 'action="'.$_SERVER['PHP_SELF'].'?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
+		<form <?php echo 'action="/gallery.php?show=editAlbum&albID='.$id.'&do=delAlbum"'?> method="post">
 			<fieldset style="display: flex;flex-flow: wrap;white-space: nowrap;align-items: center; margin: 0;">
 				<label for="del" style="width: 100%;">Album l&ouml;schen: <br>(Gib «<i>OK</i>» ins Feld ein, um zu best&auml;tigen)</label>
 				<input type="text" id="del" name="del" class="text" style="flex: 2;" value="" placeholder="Hier bestätigen...">
@@ -653,7 +639,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 		if ($uploadError) echo "<font color='red'><b>$uploadError</b></font><br><br>";
 	}
 
-	echo '&rarr; benutze den neuen <a href="'.$_SERVER['PHP_SELF'].'?show=editAlbumV2'.(isset($id) && $id > 0 ? '&album_id='.$id : '').'">Gallery Maker v2</a>!';
+	echo '&rarr; benutze den neuen <a href="/gallery.php?show=editAlbumV2'.(isset($id) && $id > 0 ? '&album_id='.$id : '').'">Gallery Maker v2</a>!';
 }
 
 
@@ -664,7 +650,8 @@ function doEditAlbum ($id, $frm)
 	global $db;
 
 	// function errors
-	if (!is_array($frm)) user_error("Wrong Parameter-type for <i>frm</i>", E_USER_ERROR);
+	if (!is_numeric($id) || $id <= 0) user_error("Invalid Parameter <i>id</i>", E_USER_ERROR);
+	if (!is_array($frm) || (!isset($frm['name']) || empty($frm['name']))) user_error("Wrong Parameter-type for <i>frm</i>", E_USER_ERROR);
 
 	$frm['name'] = htmlspecialchars($frm['name'], ENT_NOQUOTES);
 
@@ -678,22 +665,26 @@ function doEditAlbum ($id, $frm)
 	return array('id'=>$id, 'state'=>"Database updated", 'frm'=>$frm);
 }
 
-
+/**
+ * Create Album Folder and Upload Pics.
+ * @deprecated Replaced with Gallery Maker + add-albumpic.php (AJAX)
+ * @uses GALLERY_DIR, GALLERY_UPLOAD_DIR, MAX_PIC_SIZE, MAX_THUMBNAIL_SIZE
+ */
 function doUpload($id, $frm)
 {
-	global $db, $MAX_PIC_SIZE;
+	global $db;
 
-	if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
-	if (!is_array($frm)) user_error("Wrong Parameter-type <i>frm</i>", E_USER_ERROR);
+	if (!is_numeric($id) || $id <= 0) user_error("Invalid Parameter <i>id</i>", E_USER_ERROR);
+	if (!is_array($frm) || (!isset($frm['name']) || empty($frm['name']))) user_error("Wrong Parameter-type for <i>frm</i>", E_USER_ERROR);
 
-	if (countFiles(UPDIR.$frm[folder]) == 0) return array("error"=>"Gew&auml;hlter Ordner '$frm[folder]' ist leer");
-	if (countFiles(UPDIR.$frm[folder]) == -1) return array('error'=>"Keine Rechte auf den Ordner '$frm[folder]'");
+	if (countFiles(GALLERY_UPLOAD_DIR.$frm['folder']) == 0) return array('error'=>'Gew&auml;hlter Ordner "'.$frm['folder'].'" ist leer');
+	if (countFiles(GALLERY_UPLOAD_DIR.$frm['folder']) == -1) return array('error'=>'Keine Rechte auf den Ordner '.$frm['folder']);
 
-	if (!is_dir(DIR.$id)) mkdir(DIR.$id, 0775); //system("mkdir ".DIR.$id." -m 0775");
-	//system("chmod 0775 ".UPDIR.$frm[folder]);
-	chmod(UPDIR.$frm[folder], 0775);
+	if (!is_dir(GALLERY_DIR.$id)) mkdir(GALLERY_DIR.$id, 0775); //system('mkdir ".GALLERY_DIR.$id." -m 0775");
+	//system("chmod 0775 ".GALLERY_UPLOAD_DIR.$frm[folder]);
+	chmod(GALLERY_UPLOAD_DIR.$frm['folder'], 0775);
 
-	$directory = opendir(UPDIR.$frm[folder]);
+	$directory = opendir(GALLERY_UPLOAD_DIR.$frm['folder']);
 	$notDone = "";
 	$done = "";
 	$error = "";
@@ -703,10 +694,10 @@ function doUpload($id, $frm)
 		// checks
 		if ($file=="." || $file=="..") continue;
 
-		if (!isPic(UPDIR.$frm[folder].$file)) {
+		if (!isPic(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) {
 		$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br>";
-		if ($frm[delFiles]) {
-			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+		if ($frm['delFiles']) {
+			if (!@unlink(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) $error .= '- '.$file.' konnte nicht gel&ouml;scht werden<br>';
 		}
 		continue;
 		}
@@ -715,60 +706,63 @@ function doUpload($id, $frm)
 		$picid = $db->insert("gallery_pics", array("album"=>$id, "extension"=>extension($file)), __FILE__, __LINE__, __FUNCTION__);
 
 		// create pic
-		$t = createPic(UPDIR.$frm[folder].$file, picPath($id, $picid, extension($file)), $MAX_PIC_SIZE[picWidth], $MAX_PIC_SIZE[picHeight]);
-		if ($t[error]) {
-		$db->query("DELETE FROM gallery_pics WHERE id=$picid");
-		$notDone .= "- $file ";
-		if ($frm[delFiles]) {
-			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
-		}
+		$t = createPic(GALLERY_UPLOAD_DIR.$frm['folder'].$file, picPath($id, $picid, extension($file)), MAX_PIC_SIZE['width'], MAX_PIC_SIZE['height']);
+		if ($t['error']) {
+			$sql = 'DELETE FROM gallery_pics WHERE id=?';
+			$db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$picid]);
+			$notDone .= "- $file ";
+			if ($frm['delFiles']) {
+				if (!@unlink(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) $error .= '- '.$file.' konnte nicht gel&ouml;scht werden<br>';
+			}
 
-		$notDone .= "(".$t[error].")<br>";
-		continue;
+			$notDone .= "(".$t['error'].")<br>";
+			continue;
 		}else{
-		$picSize = "width=".$t[width]." height=".$t[height];
+			$picSize = "width=".$t['width']." height=".$t['height'];
 		}
 
 		// create thumbnail
-		$t = createPic(UPDIR.$frm[folder].$file, tnPath($id, $picid, extension($file)), $MAX_PIC_SIZE[tnWidth], $MAX_PIC_SIZE[tnHeight]);
+		$t = createPic(GALLERY_UPLOAD_DIR.$frm['folder'].$file, tnPath($id, $picid, extension($file)), MAX_THUMBNAIL_SIZE['width'], MAX_THUMBNAIL_SIZE['height']);
 		if ($t == -1) {
-		$db->query("DELETE FROM gallery_pics WHERE id=$picid");
-		unlink(picPath($id, $picid, extension($file)));
-		$notDone .= "- $file (keine Rechte) <br>";
-		if ($frm[delFiles]) {
-			if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
-		}
-		continue;
+			$sql = 'DELETE FROM gallery_pics WHERE id=?';
+			$db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$picid]);
+			unlink(picPath($id, $picid, extension($file)));
+			$notDone .= "- $file (keine Rechte) <br>";
+			if ($frm['delFiles']) {
+				if (!@unlink(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+			}
+			continue;
 		}else{
-		$tnSize = "width=".$t[width]." height=".$t[height];
+			$tnSize = "width=".$t['width']." height=".$t['height'];
 		}
 
 		// update sizes in DB
-		$db->query("UPDATE gallery_pics SET tnsize='$tnSize', picsize='$picSize' WHERE id=$picid", __FILE__, __LINE__, __FUNCTION__);
+		$sql_update = 'UPDATE gallery_pics SET tnsize=?, picsize=? WHERE id=?';
+		$db->query($sql_update, __FILE__, __LINE__, __FUNCTION__, [$tnSize, $picSize, $picid]);
 
 		// del uploaded pic, if requested
-		if ($frm[delPics]) {
-		if (!@unlink(UPDIR.$frm[folder].$file)) $error .= "- $file konnte nicht gel&ouml;scht werden<br>";
+		if ($frm['delPics']) {
+			if (!@unlink(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) $error .= '- '.$file.' konnte nicht gel&ouml;scht werden<br>';
 		}
 
-		$done .= "- $file <br>";
+		$done .= "- '.$file.' <br>";
 	}
 	closedir($directory);
 
 	// delete directory if empty
-	if (countFiles(UPDIR.$frm[folder]) == 0) {
-		if (!@rmdir(UPDIR.$frm[folder]))
-		$error .= "- Upload-Ordner ".UPDIR.$frm[folder]." konnte nicht gel&ouml;scht werden <br>";
+	if (countFiles(GALLERY_UPLOAD_DIR.$frm['folder']) == 0) {
+		if (!@rmdir(GALLERY_UPLOAD_DIR.$frm['folder']))
+		$error .= '- Upload-Ordner "'.GALLERY_UPLOAD_DIR.$frm['folder'].'" konnte nicht gel&ouml;scht werden <br>';
 	}
 
-	if ($notDone) $notDone = "Folgende Files konnten nicht indiziert werden:<br>".$notDone;
+	if ($notDone) $notDone = 'Folgende Files konnten nicht indiziert werden:<br>'.$notDone;
 	if ($done) {
-		$done = "Folgende Files wurden indiziert:<br>".$done;
+		$done = 'Folgende Files wurden indiziert:<br>'.$done;
 	}else{
-		$notDone = "Es konnten keine Files indiziert werden! <br><br>".$notDone;
+		$notDone = 'Es konnten keine Files indiziert werden! <br><br>'.$notDone;
 	}
 
-return array('error'=>$notDone."<br>".$error, 'state'=>$done);
+	return array('error'=>$notDone.'<br>'.$error, 'state'=>$done);
 }
 
 
@@ -779,31 +773,45 @@ function doDelAlbum ($id, $del)
 	if (!$id) user_error("Missing Parameter <i>$id</i>", E_USER_ERROR);
 
 	if (strtolower($del) != "ok") {
-		return array('show'=>"editAlbum", 'error'=>"L&ouml;schen wurde nicht best&auml;tigt <br/>Album wurde nicht gel&ouml;scht");
+		return array('show'=>"editAlbum", 'error'=>'L&ouml;schen wurde nicht best&auml;tigt <br/>Album wurde nicht gel&ouml;scht');
 	}
 
 	$db->query("DELETE FROM gallery_pics WHERE album='$id'", __FILE__, __LINE__, __FUNCTION__);
 	$db->query("DELETE FROM gallery_albums WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
 
-	if (!delDir(DIR.$id)) return array('show'=>"", 'error'=>"Verzeichnis <i>".DIR.$id."</i> konnte nicht gel&ouml;scht werden.");
+	if (!delDir(GALLERY_DIR.$id)) return array('show'=>"", 'error'=>'Verzeichnis <i>'.GALLERY_DIR.$id.'</i> konnte nicht gel&ouml;scht werden.');
 
-	return array('show'=>"", 'state'=>"Album wurde gel&ouml;scht");
+	return array('show'=>'', 'state'=>'Album wurde gel&ouml;scht');
 }
 
-
+/**
+ * Ein Bild zensieren / unzensieren.
+ * @param int $picID
+ * @return boolean
+ */
 function doZensur ($picID)
 {
 	global $db;
-	if (!$picID) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
-	$e = $db->query("SELECT zensur FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
-	$d = mysqli_fetch_array($e);
-	if ($d[zensur]) {
-		$db->query("UPDATE gallery_pics SET zensur='0' WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
+	if (!is_numeric($picID) || $picID <= 0) user_error('Invalid <i>picID</i>', E_USER_ERROR);
+
+	$sql_zensur = 'SELECT zensur FROM gallery_pics WHERE id=?';
+	$e = $db->query($sql_zensur, __FILE__, __LINE__, __FUNCTION__, [$picID]);
+	$d = $db->fetch($e);
+	/** Bild ist zensiert: unzensieren */
+	if ($d['zensur']) {
+		$sql_unzensieren = 'UPDATE gallery_pics SET zensur="0" WHERE id=?';
+		$db->query($sql_unzensieren, __FILE__, __LINE__, __FUNCTION__, [$picID]);
 		Thread::setRights('i', $picID, USER_ALLE);
-	}else{
-		$db->query("UPDATE gallery_pics SET zensur='1' WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
-		Thread::setRights('i', $picID, USER_MEMBER);
+		return true;
 	}
+	/** Bild ist unzensiert: zensieren (nur für Member+Admins sichtbar) */
+	else {
+		$sql_zensieren = 'UPDATE gallery_pics SET zensur="1" WHERE id=?';
+		$db->query($sql_zensieren, __FILE__, __LINE__, __FUNCTION__, [$picID]);
+		Thread::setRights('i', $picID, USER_MEMBER);
+		return true;
+	}
+	return false;
 }
 
 
@@ -833,27 +841,20 @@ function doZensur ($picID)
 function doMyPic($pic_id, $pic_x, $pic_y) {
 	global $db, $user;
 
-	if (!$pic_id) user_error("Missing Parameter <i>picID</i>", E_USER_ERROR);
+	if (!is_numeric($pic_id) || $pic_id <= 0) user_error('Invalid <i>pic_id</i>', E_USER_ERROR);
 
 	// Sicherstellen dass nur eingeloggte markieren
 	if ($user->typ >= USER_USER) {
-		$sql =
-			"
-			REPLACE INTO
-				gallery_pics_users
-				(pic_id, user_id, pos_x, pos_y, datum)
-			VALUES (
-				$pic_id,
-				".$user->id.",
-				$pic_x,
-				$pic_y,
-				now()
-			)";
-
-		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		$sql = 'REPLACE INTO gallery_pics_users
+					(pic_id, user_id, pos_x, pos_y, datum)
+				VALUES
+					(?, ?, ?, ?, ?)';
+		$db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$pic_id, $user->id,	$pic_x,	$pic_y, timestamp(true)]);
 
 		// Activity Eintrag auslösen (ausser bei der Bärbel)
-		if ($user->id != 59) { Activities::addActivity($user->id, 0, 'hat sich auf <a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br><a href="'.$_SERVER['PHP_SELF'].'?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'" /></a>', 'i'); }
+		if ($user->id != 59) {
+			Activities::addActivity($user->id, 0, 'hat sich auf <a href="/gallery.php?show=pic&picID='.$pic_id.'">diesem Bild</a> markiert.<br/><br><a href="/gallery.php?show=pic&picID='.$pic_id.'"><img src="'.imgsrcThum($pic_id).'"></a>', 'i');
+		}
 	} else {
 		user_error("Das dörfsch DU nöd - isch nur für igloggti User!", E_USER_ERROR);
 	}
@@ -912,8 +913,11 @@ function checkUserToPic($userID, $picID)
 {
 	global $db;
 
-	$sql = 'SELECT * FROM gallery_pics_users WHERE user_id = '.$userID.' AND pic_id = '.$picID;
-	$result = $db->num($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+	if (!is_numeric($userID) || $userID <= 0) user_error('Invalid <i>userID</i>', E_USER_ERROR);
+	if (!is_numeric($picID) || $picID <= 0) user_error('Invalid <i>picID</i>', E_USER_ERROR);
+
+	$sql = 'SELECT * FROM gallery_pics_users WHERE user_id=? AND pic_id=?';
+	$result = $db->num($db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$userID, $picID]));
 
 	return ($result > 0 ? true : false);
 }
@@ -935,18 +939,16 @@ function checkUserToPic($userID, $picID)
  */
 function getUsersOnPic($pic_id) {
 	global $db, $user;
-	$usersonpic = array();
-	$html = '';
 
-	$sql =
-		"SELECT *
-		FROM gallery_pics_users
-		WHERE pic_id = ".$pic_id
-	;
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	if (!is_numeric($pic_id) || $pic_id <= 0) user_error('Invalid <i>pic_id</i>', E_USER_ERROR);
+
+	$sql = 'SELECT * FROM gallery_pics_users WHERE pic_id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$pic_id]);
+	$usersonpic = array();
+	//$html = '';
 
 	while ($mp = $db->fetch($result)) {
-		array_push($usersonpic, $user->link_userpage($mp[user_id], FALSE));
+		array_push($usersonpic, $user->link_userpage($mp['user_id'], FALSE));
 		/* für DIV basierte positionierung/Ausgabe:
 		$html .= '
 		<div name="'.$user->id2user($mp[user_id], FALSE).'" style="position:absolute; left:'.$mp[pos_x].'; top:'.$mp[pos_y].'; z-index:'.$mp['id'].'">'.$user->id2user($mp[user_id], FALSE).'<div>
@@ -979,6 +981,8 @@ function getUserPics($userid, $limit=1)
 {
 	global $db, $user;
 
+	if (!is_numeric($userid) || $userid <= 0) user_error('Invalid <i>userid</i>', E_USER_ERROR);
+
 	$html_out = null;
 	$i = 1;
 	$table_style = 'border-collapse: collapse; border-width:1px; border-style: solid; border-color: #CBBA79; text-align: center;';
@@ -986,11 +990,13 @@ function getUserPics($userid, $limit=1)
 
 	if ($userid > 0)
 	{
-		$sql = 'SELECT * FROM gallery_pics_users
-				WHERE user_id='.(integer)$userid.'
-				ORDER BY id ASC'
-				.($limit > 0 ? ' LIMIT '.$limit : null); // LIMIT only when LIMIT Parameter given; 0 = all pics
-		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		$params = [$userid];
+		$sql = 'SELECT * FROM gallery_pics_users WHERE user_id=? ORDER BY id ASC';
+		if ($limit > 0) { // LIMIT only when LIMIT Parameter given; 0 = all pics
+			$sql .= ' LIMIT ?';
+			$params[] = $limit;
+		}
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, $params);
 
 		/** Hey, we've got some pics! */
 		if ($db->num($result) > 0)
@@ -1001,7 +1007,7 @@ function getUserPics($userid, $limit=1)
 			while($rs = $db->fetch($result))
 			{
 				$img_id = $rs['pic_id'];
-				$img_name = imgName($img_id);
+				$img_name = picHasTitle($img_id);
 				$file = imgsrcThum($img_id);
 				if ($i == 1) {
 					$html_out .= '<tr>';
@@ -1032,13 +1038,14 @@ function getUserPics($userid, $limit=1)
 function doDelPic ($id) {
 	global $db;
 
-	if (!$id) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
-
-	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+	if (!is_numeric($id) || $id <= 0) user_error("Missing Parameter <i>id</i>", E_USER_ERROR);
+	$sql_select = 'SELECT * FROM gallery_pics WHERE id=?';
+	$e = $db->query($sql_select, __FILE__, __LINE__, __FUNCTION__, [$id]);
 	$d = mysqli_fetch_array($e);
-	if (!@unlink(picPath($d[album], $id, $d[extension]))) return array('error'=>"Bild konnte nicht gel&ouml;scht werden");
-	@unlink(tnPath($d[album], $id, $d[extension]));
-	$db->query("DELETE FROM gallery_pics WHERE id='$id'", __FILE__, __LINE__, __FUNCTION__);
+	if (!@unlink(picPath($d['album'], $id, $d['extension']))) return array('error'=>"Bild konnte nicht gel&ouml;scht werden");
+	@unlink(tnPath($d['album'], $id, $d['extension']));
+	$sql_delete = 'DELETE FROM gallery_pics WHERE id=?';
+	$db->query($sql_delete, __FILE__, __LINE__, __FUNCTION__, [$id]);
 	return array('state'=>"Pic $id gel&ouml;scht");
 }
 
@@ -1048,11 +1055,11 @@ function doDelUploadDir($folder) {
 		return array('error'=>"Ordner ausw?hlen!");
 	}
 
-	if (!file_exists(UPDIR.$folder)) {
+	if (!file_exists(GALLERY_UPLOAD_DIR.$folder)) {
 		return array('error'=>"Ordner '$folder' existiert nicht");
 	}
 
-	if (@delDir(UPDIR.$folder)) {
+	if (@delDir(GALLERY_UPLOAD_DIR.$folder)) {
 		return array('state'=>"Ordner '$folder' wurde gel&ouml;scht");
 	}else{
 		return array('error'=>"Ordner '$folder' konnte nicht gel&ouml;scht werden");
@@ -1068,31 +1075,31 @@ function doMkUploadDir ($frm) {
 		$frm[$key] = htmlspecialchars($frm[$key], ENT_QUOTES);
 	}
 
-	if (!$frm[folder]) return array('frm'=>$frm, 'error'=>"Gib einen Ordner an");
+	if (!$frm['folder']) return array('frm'=>$frm, 'error'=>"Gib einen Ordner an");
 
-	if (file_exists(UPDIR.$frm[folder]))
+	if (file_exists(GALLERY_UPLOAD_DIR.$frm['folder']))
 		return array('frm'=>$frm, 'error'=>"Ordner '$frm[folder]' existiert schon.");
 
-	//system("mkdir ".UPDIR.$frm[folder]." -m 0775");
-	mkdir(UPDIR.$frm[folder], 0775);
-	if (!is_dir(UPDIR.$frm[folder]))
-		return array('frm'=>$frm, 'error'=>"Ordner '$frm[folder]' konnte nicht erstellt werden.");
+	//system("mkdir ".GALLERY_UPLOAD_DIR.$frm[folder]." -m 0775");
+	mkdir(GALLERY_UPLOAD_DIR.$frm['folder'], 0775);
+	if (!is_dir(GALLERY_UPLOAD_DIR.$frm['folder']))
+		return array('frm'=>$frm, 'error'=>'Ordner '.$frm['folder'].' konnte nicht erstellt werden.');
 
-	return array('state'=>"Ordner $frm[folder] wurde erstellt");
+	return array('state'=>'Ordner '.$frm['folder'].' wurde erstellt');
 }
 
 
 function doRotatePic($picID, $direction) {
 	global $db;
-
-	$e = $db->query("SELECT * FROM gallery_pics WHERE id='$picID'", __FILE__, __LINE__, __FUNCTION__);
+	$sql = 'SELECT * FROM gallery_pics WHERE id=?';
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$picID]);
 	$d = mysqli_fetch_array($e);
 
 
-	$origimage = picPath($d[album], $picID, $d[extension]);
-	$origimage_tn = tnPath($d[album], $picID, $d[extension]);
-	$backupimage = DIR.$d[album]."/pic_".$picID."_".time().$d[extension];
-	$backupimage_tn = DIR.$d[album]."/tn_".$picID."_".time().$d[extension];
+	$origimage = picPath($d['album'], $picID, $d['extension']);
+	$origimage_tn = tnPath($d['album'], $picID, $d['extension']);
+	$backupimage = GALLERY_DIR.$d['album']."/pic_".$picID."_".time().$d['extension'];
+	$backupimage_tn = GALLERY_DIR.$d['album']."/tn_".$picID."_".time().$d['extension'];
 
 	switch ($direction) {
 		case 'left':
@@ -1159,8 +1166,8 @@ function doRotatePic($picID, $direction) {
 						break;
 
 					/*case 180:
-						//$imgDest = doImageFlip( $origimage, $backupimage, IMAGE_FLIP_BOTH );
-						if (doImageFlip( $origimage, $backupimage, IMAGE_FLIP_BOTH )) {
+						//$imgDest = doImageFlip( $origimage, $backupimage, 'both' );
+						if (doImageFlip( $origimage, $backupimage, 'both' )) {
 							return array('state'=>"Bild '$newimage' wurde gedreht");
 						}
 						break;*/
@@ -1195,35 +1202,32 @@ function doRotatePic($picID, $direction) {
 // ************************************ FUNCTIONS *********************************************************************************
 
 /**
- * @author [z]deep
- * @author IneX
- * @version 2.0
- * @since 1.0 function added
- * @since 2.0 added support for PNG image file types
+ * Validate if a file-path has a supported Image extension.
+ * @version 3.0
+ * @since 1.0 `[z]deep` function added
+ * @since 2.0 `IneX` added support for PNG image file types
+ * @since 3.0 `22.12.2023` `Inex` PHP function extension() was deprecated, refactored using pathinfo().
+ *
+ * @uses extension()
+ * @param string $file Path to a file
+ * @return boolean Evaluation result (is Picture - or not)
  */
 function isPic($file) {
-	if (!is_file($file)) return 0;
-	if (extension($file) == '.jpg') return 1;
-	if (extension($file) == '.jpeg') return 1;
-	if (extension($file) == '.gif') return 1;
-	if (extension($file) == '.png') return 1;
-	else return 0;
+	if (!is_file($file)) return false;
+	$allowedExtensions = array('.gif', '.jpeg', '.jpe', '.jpg', '.png');
+	if (in_array(extension($file), $allowedExtensions)) return true;
+	else return false;
 }
 
 /**
- * @deprecated Use pathinfo($file, PATHINFO_EXTENSION);
+ * Get a file's extension - or false if it doesn't have one.
+ * @version 2.0
+ * @since 1.0 `[z]deep` function added
+ * @since 2.0 `22.12.2023` `Inex` Refactored and simplified using pathinfo().
  */
 function extension($file) {
-	$found = 0;
-	for ($i=1; $i<strlen($file); $i++) {
-		if (substr($file, -$i, 1) == ".") {
-		$found = 1;
-		break;
-		}
-	}
-
-	if ($found) return strtolower(substr($file, -$i));
-	else return "";
+	$extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+	return !empty($extension) ? '.'.$extension : false;
 }
 
 /**
@@ -1326,7 +1330,7 @@ function imgsrcThum($id) {
 function imgName($id) {
 	global $db;
 
-	$e = $db->query("SELECT id, name FROM gallery_pics WHERE id = $id", __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT id, name FROM gallery_pics WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$id]);
 	$cur = mysqli_fetch_array($e);
 
 	return $cur['name'];
@@ -1365,6 +1369,7 @@ function delDir ($dir) {
  * @since 3.0 major overhaul - added better error handling, added debugging infos
  * @since 4.0 added support for PNG image file types
  *
+ * @uses extension()
  * @FIXME getImageSize() funktioniert nicht mit .gif-Files
  */
 function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
@@ -1379,6 +1384,10 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 		error_log(sprintf('<%s:%d> Source- and Destination-Files have mismatching File Types: %s vs. %s', __FUNCTION__, __LINE__, $srcFile, $dstFile));
 		return false;
 	}
+	if (empty($maxWidth) || empty($maxHeight) || !is_numeric($maxWidth) || !is_numeric($maxHeight)) {
+		error_log(sprintf('<%s:%d> Wrong Max Width/Height: %s x %s', __FUNCTION__, __LINE__, (empty($maxWidth) ? 'null' : $maxWidth), (empty($maxHeight) ? 'null' : $maxHeight) ));
+		return false;
+	}
 
 	$ext = extension($srcFile);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $ext: %s', __FUNCTION__, __LINE__, $ext));
@@ -1388,20 +1397,27 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 	$img_size = getImageSize($srcFile);
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $img_size: %s', __FUNCTION__, __LINE__, print_r($img_size,true)));
 	if (!$img_size) return array('error'=>'keine Rechte');
-	$width = $img_size[0];
-	$height = $img_size[1];
+	$width = (int)$img_size[0];
+    $height = (int)$img_size[1];
 
-	if ($width >= $height && $width > $maxWidth) {
-		$picWidth = $maxWidth;
-		$picHeight = round($height * $picWidth / $width, 0);
-	}elseif ($height > $width && $height > $maxHeight) {
-		$picHeight = $maxHeight;
-		$picWidth = round($width * $picHeight / $height, 0);
-	}else{
-		$picHeight = $height;
-		$picWidth = $width;
+	/** Ensure pic size meets max allowed sizes (or rescale using same aspect-ratio) */
+	$picWidth = $width;
+	$picHeight = $height;
+	if ($width > $maxWidth || $height > $maxHeight) {
+		$ratio = $width / $height;
+		$maxRatio = $maxWidth / $maxHeight;
+
+		if ($ratio > $maxRatio) {
+			// Width is the limiting factor
+			$picWidth = $maxWidth;
+			$picHeight = $picWidth / $ratio;
+		} else {
+			// Height is the limiting factor
+			$picHeight = $maxHeight;
+			$picWidth = $picHeight * $ratio;
+		}
 	}
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $picWidth & $picHeight: %d x %d', __FUNCTION__, __LINE__, $picWidth, $picHeight));
+	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $picWidth=%d x $picHeight=%d', __FUNCTION__, __LINE__, $picWidth, $picHeight));
 
 	/** Create new Pic */
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create new pic', __FUNCTION__, __LINE__));
@@ -1510,9 +1526,6 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 			return false;
 			break;
 	}
-	/*if ($ext == '.jpg') ImageJPEG($dst, $dstFile);
-	elseif ($ext == '.gif') ImageGIF($dst, $dstFile);*/
-	//system("chmod 0664 ".$dstFile);
 	chmod($dstFile, 0664);
 
 	ImageDestroy($src);
@@ -1618,22 +1631,24 @@ function setNewDailyPic()
 	global $db, $telegram;
 
 	/** Check if current Daily Pic is still from Today... */
-	$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(NOW()) upd
-					 FROM periodic p
-					 WHERE p.name="daily_pic"', __FILE__, __LINE__, __FUNCTION__);
+	$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(?) upd
+						FROM periodic p
+						WHERE p.name=?', __FILE__, __LINE__, __FUNCTION__, [timestamp(true), 'daily_pic']);
 	$currdp = $db->fetch($sql);
 
 	/** If current Daily Pic is old - generate a new one: */
 	if (!$currdp || $currdp['upd'] < 0)
 	{
 		/** Randomly select a new Gallery-Pic */
-		$sql = $db->query('SELECT id, (SELECT name FROM gallery_albums WHERE id = album) galleryname FROM gallery_pics WHERE zensur="0" AND id<>'.$currdp['id'].' AND album<>'.APOD_GALLERY_ID.' ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$sql = $db->query('SELECT id, (SELECT name FROM gallery_albums WHERE id=album) galleryname FROM gallery_pics WHERE zensur=? AND id<>? AND album<>? ORDER BY RAND() LIMIT 1',
+						__FILE__, __LINE__, __FUNCTION__, ['0', $currdp['id'], APOD_GALLERY_ID]);
 		$newdp = $db->fetch($sql);
 
 		if (!empty($newdp) || $newdp['id'] > 0)
 		{
 			/** Add the new Daily-Pic into the `periodic` Database-Table */
-			$db->query('REPLACE INTO periodic (name, id, date) VALUES ("daily_pic", '.$newdp['id'].', NOW())', __FILE__, __LINE__, __FUNCTION__);
+			$db->query('REPLACE INTO periodic (name, id, date) VALUES (?, ?, ?)',
+						__FILE__, __LINE__, __FUNCTION__, ['daily_pic', $newdp['id'], timestamp(true)]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d from album "%s"', __FUNCTION__, __LINE__, $newdp['id'], $newdp['galleryname']));
 
 			/**
@@ -1832,7 +1847,7 @@ function formatGalleryThumb($rs)
 
 	/** Comment-Unreads bei Member holen & anzeigen... */
 	if ($user->typ == USER_MEMBER) {
-		if (!$user_id) { $user_id = $user->id; }
+		if (isset($user->id)) $user_id = $user->id;
 		$sql = 'SELECT count(c.id) anz
 				FROM comments c, comments_unread u
 				WHERE c.board = "i" AND c.thread_id='.$rs['id'].' AND u.comment_id=c.id AND u.user_id='.$user_id;
@@ -1877,7 +1892,7 @@ function picHasTitle($picID)
 	global $db;
 
 	if (is_numeric($picID) && $picID > 0) {
-		$e = $db->query('SELECT name FROM gallery_pics WHERE id='.$picID.' LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT name FROM gallery_pics WHERE id=? LIMIT 1', __FILE__, __LINE__, __FUNCTION__, [$picID]);
 		$d = $db->fetch($e);
 	}
 	if ($d) return $d['name'];
@@ -1894,25 +1909,25 @@ function picHasTitle($picID)
  */
 function doImageFlip($imgsrc, $imgout, $type)
 {
-   $width = imagesx($imgsrc);
-   $height = imagesy($imgsrc);
+	$width = imagesx($imgsrc);
+	$height = imagesy($imgsrc);
 
-   $imgdest = imagecreatetruecolor($width, $height);
+	$imgdest = imagecreatetruecolor($width, $height);
 
-   switch( $type )
+	switch( $type )
  	{
  	// mirror wzgl. osi
- 	case IMAGE_FLIP_HORIZONTAL:
+ 	case 'horizontal':
      	for( $y=0 ; $y<$height ; $y++ )
    		imagecopy($imgdest, $imgout, 0, $height-$y-1, 0, $y, $width, 1);
      	break;
 
- 	case IMAGE_FLIP_VERTICAL:
+ 	case 'vertical':
      	for( $x=0 ; $x<$width ; $x++ )
    		imagecopy($imgdest, $imgout, $width-$x-1, 0, $x, 0, 1, $height);
      	break;
 
- 	case IMAGE_FLIP_BOTH:
+ 	case 'both':
      	for( $x=0 ; $x<$width ; $x++ )
    		imagecopy($imgdest, $imgout, $width-$x-1, 0, $x, 0, 1, $height);
 

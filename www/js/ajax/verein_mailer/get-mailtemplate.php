@@ -26,8 +26,9 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 header('Content-type:application/json;charset=utf-8');
 try {
 	//error_log('[DEBUG] Loading Template: ' . $_POST['tpl_id']);
-	$sql = 'SELECT template_id, sender_id, subject_text, preview_text, message_text FROM verein_correspondence WHERE template_id = ' . $_POST['tpl_id'] . ' LIMIT 1';
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$sql = 'SELECT template_id, sender_id, subject_text, preview_text, message_text
+			FROM verein_correspondence WHERE template_id=? LIMIT 1';
+	$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-mailtemplate)', [$_POST['tpl_id']]);
 	while ($rs = $db->fetch($result))
 	{
 		//error_log(sprintf("[DEBUG] Values:\n sender_id: %d, subject: %s, preview: %s, message: %s", $rs['sender_id'], $rs['subject_text'], $rs['preview_text'], $rs['message_text']));

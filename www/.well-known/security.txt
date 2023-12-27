@@ -9,4 +9,4 @@ Canonical: https://zorg.ch/.well-known/security.txt
 Canonical: https://zooomclan.org/.well-known/security.txt
 
 Hiring: https://zorg.ch/profil.php?do=anmeldung#newuser
-Expires: 2023-12-23T23:23:23.000Z
+Expires: 2024-12-23T23:23:23.000Z

@@ -22,7 +22,7 @@ require_once INCLUDES_DIR.'main.inc.php';
  */
 //error_log('[DEBUG] Recipients IDs (as passed): ' . $_POST['hidden_selected_recipients']);
 $recipients = str_replace('"', '', $_POST['hidden_selected_recipients']);
-$recipients = preg_split('/,/', $recipients, null, PREG_SPLIT_NO_EMPTY);
+$recipients = preg_split('/,/', $recipients, 0, PREG_SPLIT_NO_EMPTY);
 $recipients = array_unique($recipients); // Remove duplicates
 sort($recipients);
 //error_log('[DEBUG] Recipients IDs (cleaned up):' . print_r($recipients, TRUE));
@@ -43,8 +43,8 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 	{
 		/** Get Recipient's E-Mail address */
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Processing $recipient_id: %d', __FILE__, __LINE__, $recipient_id));
-		$recipientEmailQuery = 'SELECT email FROM user WHERE id = ' . $recipient_id;
-		$recipientEmailResult = $db->fetch($db->query($recipientEmailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
+		$recipientEmailQuery = 'SELECT email FROM user WHERE id=?';
+		$recipientEmailResult = $db->fetch($db->query($recipientEmailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)', [$recipient_id]));
 		$recipientEmail = trim($recipientEmailResult['email']); // trim() removes any unwanted whitespaces left or right of e-mail, danke duke...
 
 		if (!empty($recipientEmail) && check_email($recipientEmail))
@@ -72,24 +72,23 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 										communication_type,
 										subject_text,
 										preview_text,
-										"'.escape_text($compiledMailTpl).'" as message_text,
+										"'.sanitize_userinput($compiledMailTpl).'" as message_text,
 										template_id,
 										sender_id,
 										'.$recipient_id.' as recipient_id
-								FROM verein_correspondence
-								WHERE template_id = '.$_POST['template_id'].' AND recipient_id = '.VORSTAND_USER;
-			$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)');
+									FROM verein_correspondence
+								WHERE template_id=? AND recipient_id=?';
+			$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)', [$_POST['template_id'], VORSTAND_USER]);
 
 			if ( isset($messageId) && $messageId > 0 )
 			{
 				error_log('[INFO] Sending E-Mail to user ' . $recipient_id);
 
 				/** Query Message Parameters */
-				$readParametersQuery = 	'SELECT
-											subject_text, message_text
+				$readParametersQuery = 	'SELECT subject_text, message_text
 										 FROM verein_correspondence
-										 WHERE id = ' . $messageId;
-				$mailMessage = $db->fetch($db->query($readParametersQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)'));
+										 WHERE id=?';
+				$mailMessage = $db->fetch($db->query($readParametersQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)', [$messageId]));
 				if (empty($mailMessage) || false === $mailMessage) http_response_code(500); // Set response code 500 (internal server error)
 
 				$formatNewline  = "\r\n"; // Line breaks

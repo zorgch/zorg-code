@@ -680,8 +680,8 @@ class Messagesystem
 		 */
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Sending SINGLE Zorg Message "%s" to $owner %d', __METHOD__, __LINE__, $subject, $owner));
 		$sql = sprintf('INSERT INTO messages (from_user_id, owner, subject, text, date, isread, to_users)
-						VALUES (%d, %d, "%s", "%s", NOW(), "%s", "%s")',
-						$from_user_id, $owner, escape_text($subject), escape_text($text), $isread, $to_users);
+						VALUES (%d, %d, "%s", "%s", "%s", "%s", "%s")',
+						$from_user_id, $owner, escape_text($subject), escape_text($text), timestamp(true), $isread, $to_users);
 		$db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		/**

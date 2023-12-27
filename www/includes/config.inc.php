@@ -251,8 +251,12 @@ if (!defined('DEFAULT_MAXDEPTH')) define('DEFAULT_MAXDEPTH', (isset($_ENV['FORUM
  * @const SMARTY_404PAGE_TPL 404 "Page not found" Smarty-Template reference
  */
 if (!defined('SMARTY_DIR')) define('SMARTY_DIR', (isset($_ENV['SMARTY_DIR']) ? $_ENV['SMARTY_DIR'] : null));
-if (!defined('SMARTY_TRUSTED_DIRS')) define('SMARTY_TRUSTED_DIRS', (isset($_ENV['SMARTY_TRUSTED_DIRS']) ? (array)$_ENV['SMARTY_TRUSTED_DIRS'] : null));
-if (!defined('SMARTY_TEMPLATES_HTML')) define('SMARTY_TEMPLATES_HTML', (isset($_ENV['SMARTY_TEMPLATES_HTML']) ? (array)$_ENV['SMARTY_TEMPLATES_HTML'] : null));
+if (!defined('SMARTY_TRUSTED_DIRS')) {
+    define('SMARTY_TRUSTED_DIRS', isset($_ENV['SMARTY_TRUSTED_DIRS']) ? explode(',', $_ENV['SMARTY_TRUSTED_DIRS']) : []);
+}
+if (!defined('SMARTY_TEMPLATES_HTML')) {
+    define('SMARTY_TEMPLATES_HTML', isset($_ENV['SMARTY_TEMPLATES_HTML']) ? explode(',', $_ENV['SMARTY_TEMPLATES_HTML']) : []);
+}
 if (!defined('SMARTY_CACHE')) define('SMARTY_CACHE', (isset($_ENV['SMARTY_CACHE']) ? $_ENV['SMARTY_CACHE'] : null));
 if (!defined('SMARTY_COMPILE')) define('SMARTY_COMPILE', (isset($_ENV['SMARTY_COMPILE']) ? $_ENV['SMARTY_COMPILE'] : null));
 if (!defined('SMARTY_PACKAGES_DIR')) define('SMARTY_PACKAGES_DIR', (isset($_ENV['SMARTY_PACKAGES_DIR']) ? $_ENV['SMARTY_PACKAGES_DIR'] : null));
@@ -264,11 +268,13 @@ if (!defined('SMARTY_404PAGE_TPL')) define('SMARTY_404PAGE_TPL', (isset($_ENV['S
  * Define various Gallery related constants.
  * @const MAX_PIC_SIZE The maximum width & height for pictures
  * @const MAX_THUMBNAIL_SIZE The maximum width & height for pic thumbnails
- * @const THUMBPAGE The image size for Thumbnail pictures
  */
-if (!defined('MAX_PIC_SIZE')) define('MAX_PIC_SIZE', (isset($_ENV['GALLERY_MAX_PIC_SIZE']) ? (array)$_ENV['GALLERY_MAX_PIC_SIZE'] : null));
-if (!defined('MAX_THUMBNAIL_SIZE')) define('MAX_THUMBNAIL_SIZE', (isset($_ENV['GALLERY_MAX_THUMBNAIL_SIZE']) ? (array)$_ENV['GALLERY_MAX_THUMBNAIL_SIZE'] : null));
-if (!defined('THUMBPAGE')) define('THUMBPAGE', (isset($_ENV['GALLERY_THUMBPAGE']) ? (array)$_ENV['GALLERY_THUMBPAGE'] : null));
+if (!defined('MAX_PIC_SIZE')) {
+	define('MAX_PIC_SIZE', (isset($_ENV['GALLERY_MAX_PIC_WIDTH']) && isset($_ENV['GALLERY_MAX_PIC_HEIGHT']) ? ['width' => $_ENV['GALLERY_MAX_PIC_WIDTH'], 'height' => $_ENV['GALLERY_MAX_PIC_HEIGHT']] : ['width' => 800, 'height' => 600]));
+}
+if (!defined('MAX_THUMBNAIL_SIZE')) {
+	define('MAX_THUMBNAIL_SIZE', (isset($_ENV['GALLERY_MAX_THUMB_WIDTH']) && isset($_ENV['GALLERY_MAX_THUMB_HEIGHT']) ? ['width' => $_ENV['GALLERY_MAX_THUMB_WIDTH'], 'height' => $_ENV['GALLERY_MAX_THUMB_HEIGHT']] : ['width' => 150, 'height' => 150]));
+}
 
 /**
  * Define various NASA API and APOD related constants.
@@ -330,7 +336,7 @@ if (!defined('ZORG_VEREIN_KONTO_BANK')) define('ZORG_VEREIN_KONTO_BANK', (isset(
 if (!defined('ZORG_VEREIN_KONTO_SWIFT')) define('ZORG_VEREIN_KONTO_SWIFT', (isset($_ENV['ZORG_VEREIN_KONTO_SWIFT']) ? $_ENV['ZORG_VEREIN_KONTO_SWIFT'] : null));
 if (!defined('ZORG_VEREIN_KONTO_IBAN')) define('ZORG_VEREIN_KONTO_IBAN', (isset($_ENV['ZORG_VEREIN_KONTO_IBAN']) ? $_ENV['ZORG_VEREIN_KONTO_IBAN'] : null));
 if (!defined('ZORG_VEREIN_KONTO_IBAN_QRBILL')) define('ZORG_VEREIN_KONTO_IBAN_QRBILL', (isset($_ENV['ZORG_VEREIN_KONTO_IBAN_QRBILL']) ? $_ENV['ZORG_VEREIN_KONTO_IBAN_QRBILL'] : null));
-if (!defined('ZORG_VEREIN_KONTO_CURRENCY')) define('ZORG_VEREIN_KONTO_CURRENCY', (isset($_ENV['ZORG_VEREIN_KONTO_CURRENCY']) ? $_ENV['ZORG_VEREIN_KONTO_CURRENCY'] : null));
+if (!defined('ZORG_VEREIN_KONTO_CURRENCY')) define('ZORG_VEREIN_KONTO_CURRENCY', (isset($_ENV['ZORG_VEREIN_KONTO_CURRENCY']) ? $_ENV['ZORG_VEREIN_KONTO_CURRENCY'] : 'CHF'));
 if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', (isset($_ENV['ZORG_VEREIN_KONTO_BESRID']) ? $_ENV['ZORG_VEREIN_KONTO_BESRID'] : null));
 
 /**
@@ -341,23 +347,28 @@ if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', (is
  * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
  * @const ERRORLOG_DIR sets the directory for logging the custom user_errors
  * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
- * @include errlog.inc.php Errorlogging Class: Load the zorg Error Handling
+ * @const ERRORLOG_LEVELS sets the verbosity of logging errors, warnings, and notices caused by the application
+ * @const ERRORLOG_DEBUG_SCOPE (Optional) sets a focused scope for DEBUG log entries
+ * @include errlog.inc.php Errorlogging Class: Load the zorg Error and Debug Handling
  */
 if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', (isset($_ENV['ERRORLOG_FILETYPE']) ? $_ENV['ERRORLOG_FILETYPE'] : '.log'));
 if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', (isset($_ENV['ERRORLOG_DIR']) ? $_ENV['ERRORLOG_DIR'] : null));
 if (!defined('ERRORLOG_FILE')) define('ERRORLOG_FILE', ERRORLOG_DIR.date('Y-m-d').ERRORLOG_FILETYPE);
+if (!defined('ERRORLOG_LEVELS')) define('ERRORLOG_LEVELS', (isset($_ENV['ERROR_REPORTING_LEVELS']) ? $_ENV['ERROR_REPORTING_LEVELS'] : null));
+if (!defined('ERRORLOG_DEBUG_SCOPE')) define('ERRORLOG_DEBUG_SCOPE', (isset($_ENV['DEBUG_SCOPE']) ? $_ENV['DEBUG_SCOPE'] : null));
 require_once INCLUDES_DIR.'errlog.inc.php';
 //set_error_handler('zorgErrorHandler');
-error_reporting($_ENV['ERROR_REPORTING_LEVELS']);
 
 /**
  * Include some generic files and functions to make them globally available by default.
  * (keep this at the end of the config.inc.php!)
  *
  * @include strings.inc.php Various Placeholder-Strings related constants and files.
+ * @include util.inc.php Various Helper Functions and Code Utilities.
  * @include notifications.inc.php Various Notification System-related constants and files
  * @include telegrambot.inc.php Required to send Telegram-Notifications
  */
 include_once INCLUDES_DIR.'strings.inc.php';
+include_once INCLUDES_DIR.'util.inc.php';
 include_once INCLUDES_DIR.'notifications.inc.php';
 include_once INCLUDES_DIR.'telegrambot.inc.php';

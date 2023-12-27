@@ -8,9 +8,9 @@
 require_once dirname(__FILE__).'/smarty.inc.php';
 
 /**
- * da php keine pointers kennt, müssen alle MenuTree-objekte mit ihrer id über dieses
+ * da php keine pointers kennt, mÃ¼ssen alle MenuTree-objekte mit ihrer id Ã¼ber dieses
  * array aufgerufen werden! beim erzeugen von objekten werden sie automatisch im array
- * gespeichert. also bitte keine zuweisungen von solchen objekten machen, sondern nur 
+ * gespeichert. also bitte keine zuweisungen von solchen objekten machen, sondern nur
  * die id verwenden.
  */
 $menu_tabs = array();
@@ -35,48 +35,48 @@ class MenuTree {
 	function MenuTree ($id, $parent, $group="all", $tpl="", $link="", $param="")
 	{
 		global $menu_tabs;
-		
+
 		$this->id = $id;
 		$this->subtrees = array();
-		
+
 		if ($group != "member" && $group != "user" && $group != "guest") $group = "all";
 		$this->group = $group;
-		
+
 		$this->parent = $parent;
 		if ($parent >= 0) $menu_tabs[$parent]->subtrees[] = $id;
-		
+
 		if ($tpl) {
 			$this->link = "/?tpl=$tpl";
 		}else{
 			$this->link = $link;
 		}
-		
+
 		if ($param) $this->link .= "&$param";
-		
+
 		$menu_tabs[$id] = $this;
 	}
-	
+
 	function level () {
 		global $menu_tabs;
-		
+
 		if ($this->parent < 0) return 0;
 		else {
 			return $menu_tabs[$this->parent]->level() + 1;
 		}
 	}
-	
+
 	function draw ($depth=1, $height=0, $sel=0) {
 		global $menu_tabs, $user;
-		
+
 		if (!$height) $height = $this->level();
 		if ($height < 1) $height = 1;
-		
-		
+
+
 		$ret = "";
 		if (!sizeof($this->subtrees)) --$depth;
-		
+
 		if ($this->parent >= 0) $ret .= $menu_tabs[$this->parent]->draw($depth+1, $height, $this->id);
-		
+
 		if (sizeof($this->subtrees)) {
 			$ret .= '<div align="center" class="tabs'.$height.$depth.'">';
 			foreach ($this->subtrees as $it) {
@@ -84,8 +84,8 @@ class MenuTree {
 					|| $menu_tabs[$it]->group == "guest" && $_SESSION['user_id'] == ''
 					|| $menu_tabs[$it]->group == "user" && $_SESSION['user_id'] != ''
 					|| $menu_tabs[$it]->group == "member" && $user->typ == USER_MEMBER
-				) { 
-	
+				) {
+
 					if ($sel == $it) {
 						$class = 'class="selected"';
 					}else{
@@ -96,10 +96,10 @@ class MenuTree {
 			}
 			$ret .= '</div>';
 		}
-		
+
 		return $ret;
 	}
-	
+
 	function print_subtrees () {
 		$ret = "subtrees of $this->id / anz: ".sizeof($this->subtrees)." > ";
 		foreach ($this->subtrees as $it) {
@@ -107,18 +107,18 @@ class MenuTree {
 		}
 		return "$ret <br>";
 	}
-	
+
 }
 
 
 /**
  * @author [z]biko
- * @param int $id		kannst irgend eine auswählen, darf aber keine duplikate geben / für tab-auswahl im file nötig / 0 darf nicht verwendet werden.
- * @param str $group	nur angezeigt, wenn recht vorhanden. mögl. werte: [all, user, member, guest], default: all
- * @param str $tpl		[nur wenn url nicht gesetzt] template, das geladen werden soll. 
- * @param str url		[nur wenn tpl nicht gesetzt] url, die geladen werden soll (nur in der untersten stufe nötig
+ * @param int $id		kannst irgend eine auswÃ¤hlen, darf aber keine duplikate geben / fÃ¼r tab-auswahl im file nÃ¶tig / 0 darf nicht verwendet werden.
+ * @param str $group	nur angezeigt, wenn recht vorhanden. mÃ¶gl. werte: [all, user, member, guest], default: all
+ * @param str $tpl		[nur wenn url nicht gesetzt] template, das geladen werden soll.
+ * @param str url		[nur wenn tpl nicht gesetzt] url, die geladen werden soll (nur in der untersten stufe nÃ¶tig
  *
- */ 
+ */
 function smarty_mtab ($params, $content, &$smarty, &$repeat) {
 	global $active_tab, $menu_stack, $menu_tabs;
 

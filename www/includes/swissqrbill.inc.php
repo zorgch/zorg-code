@@ -11,35 +11,37 @@
  * @author		IneX
  * @package		zorg\Verein
  */
-
 /**
  * Load the Swiss QR Bill library
- *
- * @include COMPOSER_AUTOLOAD Requires the Composer Autoloader Class
  */
 use Sprain\SwissQrBill as QrBill;
-
-if ( file_exists(COMPOSER_AUTOLOAD) ) require_once COMPOSER_AUTOLOAD;
-
 
 /**
  * zorg Swiss QR Bill Class
  *
  * In dieser Klasse befinden sich alle Funktionen zum Erstellen und Ausgeben einer Swiss QR Bill QR-Code für den zorg Verein
  *
- * @author		IneX
  * @package		zorg\Verein
- * @version		1.0
+ * @version		2.0
  * @since		1.0 `01.12.2021` `IneX` Initial integration
+ * @since		2.0 `26.12.2024` `IneX` Changed Class Constant to Var, added Constructor method
  */
 class zorgSwissQRBill
 {
 	/**
-	 * Class constants
+	 * Class Vars
 	 *
-	 * @const STORE_QRCODEIMAGES_DIR Path to directory where generated QR-Code image files (png, svg) can be stored.
+	 * @var string $storeQrCodeImagesDir Path to directory for storing QR-Code image files (png, svg)
 	 */
-	const STORE_QRCODEIMAGES_DIR = PHP_IMAGES_DIR . 'swissqrbill';
+	private $storeQrCodeImagesDir;
+
+	/**
+	 * Class constructor
+	 */
+	public function __construct()
+    {
+        $this->storeQrCodeImagesDir = isset($_ENV['QRCODEIMAGES_DIR']) ? $_ENV['QRCODEIMAGES_DIR'] : __DIR__ . '/../images/';
+    }
 
 	/**
 	 * Generate QR-Code
@@ -68,13 +70,13 @@ class zorgSwissQRBill
 		$paymentByUser = (!empty($userId) ? filter_var($userId, FILTER_VALIDATE_INT, ['flags' => FILTER_NULL_ON_FAILURE]) : null);
 		$paymentAmount = (!empty($paymentValue) ? filter_var($paymentValue, FILTER_VALIDATE_FLOAT, ['flags' => FILTER_NULL_ON_FAILURE]) : null);
 
-		// Create a new instance of QrBill, containing default headers with fixed values
+		/** Create a new instance of QrBill, containing default headers with fixed values */
 		$qrBill = QrBill\QrBill::create();
 
 		/**
-		 * Zahlungsempfänger (zorg Verein)
+		 * Zahlungsempfänger (zorg Verein).
+		 * Add creditor information (who will receive the payment and to which bank account?)
 		 */
-		// Add creditor information (who will receive the payment and to which bank account?)
 		$qrBill->setCreditor(
 			QrBill\DataGroup\Element\CombinedAddress::create(
 				ZORG_VEREIN_NAME,
@@ -84,27 +86,28 @@ class zorgSwissQRBill
 			));
 		$qrBill->setCreditorInformation(
 			QrBill\DataGroup\Element\CreditorInformation::create(
-				(null !== ZORG_VEREIN_KONTO_BESRID && null !== ZORG_VEREIN_KONTO_IBAN_QRBILL ? ZORG_VEREIN_KONTO_IBAN_QRBILL : ZORG_VEREIN_KONTO_IBAN) // Use a classic IBAN. QR-IBANs will only be valid in combination with Payment Reference (BESR-ID + internal ID).
+				/** QR-IBANs are only be valid with a Payment Reference (BESR-ID + internal ID) */
+				(!empty(ZORG_VEREIN_KONTO_BESRID) && !empty(ZORG_VEREIN_KONTO_IBAN_QRBILL) ? ZORG_VEREIN_KONTO_IBAN_QRBILL : ZORG_VEREIN_KONTO_IBAN) // Use a classic IBAN.
 			));
 
 		/**
-		 * Rechnungsbetrag
+		 * Rechnungsbetrag.
+		 * Add payment amount information. Note: the currency must be defined.
 		 */
-		// Add payment amount information. Note: the currency must be defined.
 		$finalPaymentAmount = ($paymentAmount > 0 ? $paymentAmount : 0.00);
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Payment Amount: %f', __METHOD__, __LINE__, $finalPaymentAmount));
 
 		$qrBill->setPaymentAmountInformation(
 			QrBill\DataGroup\Element\PaymentAmountInformation::create(
-				(null !== ZORG_VEREIN_KONTO_CURRENCY ? ZORG_VEREIN_KONTO_CURRENCY : 'CHF'),
+				(!empty(ZORG_VEREIN_KONTO_CURRENCY) ? ZORG_VEREIN_KONTO_CURRENCY : 'CHF'),
 				$finalPaymentAmount
 			));
 
 		/**
-		 * Zahlungsreferenz / Identifizierung
+		 * Zahlungsreferenz / Identifizierung.
+		 * Add payment reference
 		 */
-		// Add payment reference
-		if (empty(ZORG_VEREIN_KONTO_BESRID))
+		if (empty(ZORG_VEREIN_KONTO_BESRID) || empty(ZORG_VEREIN_KONTO_IBAN_QRBILL))
 		{
 			// Explicitly define that no reference number will be used by setting TYPE_NON.
 			$qrBill->setPaymentReference(
@@ -115,8 +118,8 @@ class zorgSwissQRBill
 		} else {
 			// This is what you will need to identify incoming payments.
 			$referenceNumber = QrBill\Reference\QrPaymentReferenceGenerator::generate(
-					ZORG_VEREIN_KONTO_BESRID,  // You receive this number from your bank (BESR-ID). Unless your bank is PostFinance, in that case use NULL.
-					(!empty($paymentByUser) ? $paymentByUser : time()) // A number to match the payment with your internal data, e.g. an invoice number
+					ZORG_VEREIN_KONTO_BESRID, // This number is from the bank (BESR-ID). Unless PostFinance, in that case use NULL.
+					(!empty($paymentByUser) ? $paymentByUser : time()) // A number to match the payment with internal data, e.g. an invoice number
 				);
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Reference Number: %s', __METHOD__, __LINE__, $referenceNumber));
 
@@ -128,7 +131,8 @@ class zorgSwissQRBill
 		}
 
 		/**
-		 * Rechnungsinformationen
+		 * Rechnungsinformationen.
+		 * Optionally, add some human-readable information about what the bill is for.
 		 */
 		if (!empty($paymentDescription) || !empty($paymentByUser))
 		{
@@ -137,7 +141,6 @@ class zorgSwissQRBill
 								   (!empty($paymentDescription) ? $paymentDescription : null);
 
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Additional Infotext: %s', __METHOD__, __LINE__, $additionalInfotext));
-			// Optionally, add some human-readable information about what the bill is for.
 			$qrBill->setAdditionalInformation(
 				QrBill\DataGroup\Element\AdditionalInformation::create(
 					$additionalInfotext
@@ -148,19 +151,19 @@ class zorgSwissQRBill
 		/**
 		 * QR-Code ausgeben
 		 */
-		// Time to output something!
 		try {
-			/* // Write the QR code image files...
-			$qrBill->getQrCode()->writeFile(__DIR__ . '/qr.png');
-			$qrBill->getQrCode()->writeFile(__DIR__ . '/qr.svg');*/
+			/** Save the QR code as image files */
+			//PNG: $qrBill->getQrCode()->writeFile($this->storeQrCodeImagesDir . '/qr.png');
+			//SVG: $qrBill->getQrCode()->writeFile($this->storeQrCodeImagesDir . '/qr.svg');
 
+			/** Return the generated Data stream on-the-fly */
 			return $qrBill->getQrCode()->writeDataUri();
 		}
 		catch (Exception $e) {
-			foreach($qrBill->getViolations() as $violation) {
-				print $violation->getMessage()."\n";
-			}
-			exit;
+			//foreach($qrBill->getViolations() as $violation) {
+			//	$exceptionErrors .= $violation->getMessage()."\n";
+			//}
+			return $qrBill->getViolations();
 		}
 	}
 }

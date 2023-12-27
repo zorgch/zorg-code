@@ -7,12 +7,8 @@
 /**
  * File includes
  * @include config.inc.php
- * @include mysql.inc.php
- * @include activities.inc.php Not needed here
  */
 require_once dirname(__FILE__).'/config.inc.php';
-include_once INCLUDES_DIR.'mysql.inc.php';
-//include_once INCLUDES_DIR.'activities.inc.php';
 
 /**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
@@ -203,7 +199,7 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
 				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
 				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
-				,(isset($date_to_convert['year']) ? $date_array_or_timestamp['year'] : date('Y'))
+				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
 			));
 			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
@@ -245,62 +241,6 @@ function emailusername($username) {
  */
 function check_email($email) {
 	return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-}
-
-/**
- * Gibt einen random Quote zurück
- *
- * @TODO Move this Method to the Quotes-Class
- *
- * @author keep3r
- * @version 1.0
- * @since 1.0 `22.03.2004` function added
- */
-function quote(){
-	global $db;
-
-	$sql = "SELECT count(*) as anzahl FROM quotes";
-	$result = $db->query($sql, __FILE__, __LINE__);
-	$rs = $db->fetch($result);
-	$total = $rs['anzahl'];
-
-	mt_srand((double)microtime()*1000000);
-	$rnd = mt_rand(1, $total);
-	$sql = "SELECT * FROM quotes";
-	$result = $db->query($sql);
-
-	for ($i=0;$i<$rnd;$i++){
-		$rs = $db->fetch($result);
-	}
-	return $rs['text'];
-}
-
-/**
- * Setzt einmal am Tag einen Quote in die DB daily_quote
- *
- * @TODO Move this Method to the Quotes-Class
- *
- * @author keep3r
- * @version 1.0
- * @since 1.0 `22.03.2004` function added
- */
-function set_daily_quote()
-{
-	global $db;
-	$date = date('Y-m-d');
-	$sql = 'SELECT * FROM daily_quote WHERE date = "'.$date.'"';
-	$result = $db->query($sql);
-	$rs = $db->fetch($result);
-
-	if (!$rs) {
-		$quote = quote();
-		$sql = 'INSERT INTO daily_quote (date, quote)
-				VALUES ("'.$date.'", '.$quote.')';
-		$db->query($sql,__FILE__, __LINE__, __FUNCTION__);
-		return 1;
-	} else {
-		return 0;
-	}
 }
 
 
@@ -735,6 +675,8 @@ function remove_html($html, $allowable_tags=NULL)
 
 /**
  * Escape alle nicht sicheren Zeichen eines Strings
+ *
+ * !! DO NOT USE WITH SQL PREPARED STATEMENTS (will add / slashes that may break code)
  *
  * @author IneX
  * @version 1.0

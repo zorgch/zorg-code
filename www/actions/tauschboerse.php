@@ -1,8 +1,8 @@
 <?php
 /**
- * Tauschbörse Actions
+ * TauschbÃ¶rse Actions
  *
- * @package zorg\Tauschbörse
+ * @package zorg\TauschbÃ¶rse
  */
 /**
  * File includes
@@ -17,12 +17,12 @@ if ($user->is_loggedin())
 	elseif (isset($_GET['do']) && $_GET['do'] === 'old' && isset($_GET['artikel_id']) && is_numeric($_GET['artikel_id'])) $doAction = 'archive';
 
 	if (isset($_POST['url']) && is_string($_POST['url'])) $redirectUrl = base64url_decode($_POST['url']);
-	else $redirectUrl = '/tpl/190'; // Tauschbörse TPL-ID
+	else $redirectUrl = '/tpl/190'; // TauschbÃ¶rse TPL-ID
 
 	switch($doAction)
 	{
 		/**
-		 * Add new Tauschbörse Angebot
+		 * Add new TauschbÃ¶rse Angebot
 		 */
 		case 'add':
 			$sql = 'INSERT INTO tauschboerse
@@ -30,7 +30,7 @@ if ($user->is_loggedin())
 					VALUES (
 						"'.$_POST['art'].'"
 						,'.$user->id.'
-						,NOW()
+						,'.timestamp(true).'
 						,"'.$_POST['bezeichnung'].'"
 						,"'.$_POST['wertvorstellung'].'"
 						,"'.$_POST['zustand'].'"
@@ -39,7 +39,7 @@ if ($user->is_loggedin())
 					)';
 			$artikelId = $db->query($sql, __FILE__, __LINE__);
 
-			/** Falls ein Bild gewählt wurde. */
+			/** Falls ein Bild gewÃ¤hlt wurde. */
 			if ($_FILES['image']['name'])
 			{
 				if($_FILES['image']['error'] != 0) {
@@ -76,7 +76,7 @@ if ($user->is_loggedin())
 			break;
 
 		/**
-		 * Archive an old Tauschbörse Angebot
+		 * Archive an old TauschbÃ¶rse Angebot
 		 */
 		case 'archive':
 			$artikelId = (int)$_GET['artikel_id'];

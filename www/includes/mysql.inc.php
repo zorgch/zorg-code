@@ -107,13 +107,17 @@ class dbconn
 		}
 
 		try {
-			$stmt = mysqli_prepare($this->conn, $sql);
-			if ($stmt === false) throw new mysqli_sql_exception(mysqli_error($this->conn));
+			/** Check if $params is provided, if not, execute the query directly */
+			if (empty($params)) {
+				$result = mysqli_query($this->conn, $sql);
+				/* Log SQL-Queries not upgraded to Prepared Statements */
+				if (DEVELOPMENT) error_log(sprintf('[DEPRECATED] <%s> Required SQL-Query update for mysqli_prepare(): %s:%d', $funktion, $file, $line));
+			} else {
+				$stmt = mysqli_prepare($this->conn, $sql);
+				if ($stmt === false) throw new mysqli_sql_exception(mysqli_error($this->conn));
 
-			/** Prepared Statement that needs binded $params */
-			if (mysqli_stmt_param_count($stmt) > 0)
-			{
-				if (!empty($params))
+				/** Prepared Statement that needs binded $params */
+				if (mysqli_stmt_param_count($stmt) > 0)
 				{
 					$paramTypes = '';
 					$bindParams = [$stmt, &$paramTypes];
@@ -152,15 +156,10 @@ class dbconn
 					/** The $bindParams Array contains the final $paramTypes, so mysqli_stmt_bind_param can bind the parameters */
 					call_user_func_array('mysqli_stmt_bind_param', $bindParams);
 				}
-				/** Prepared Statement but missing $params */
-				else {
-					throw new mysqli_sql_exception(sprintf('Missing Parameters for Prepared Statement: %s<br>%s', ($needs_bindParams ? 'true' : 'false'), $sql));
-				}
+				/** Execute SQL Prepared Statement */
+				mysqli_stmt_execute($stmt);
+				$result = mysqli_stmt_get_result($stmt);
 			}
-
-			/** Execute SQL Prepared Statement */
-			mysqli_stmt_execute($stmt);
-			$result = mysqli_stmt_get_result($stmt);
 
 			/** If the query failed or no rows were returned, display MySQL-Error with some context */
 			if ($result === false && mysqli_num_rows($result) === 0 && mysqli_affected_rows($this->conn) === 0)
@@ -224,35 +223,32 @@ class dbconn
 	/**
 	 * Speichert SQL-Errors in der DB
 	 *
-	 * @version 1.1
+	 * @version 1.2
 	 * @since 1.0 method added
 	 * @since 1.1 `04.12.2020` `IneX` Fixed PHP Notice undefined index
+	 * @since 1.2 `22.12.2023` `Inex` Updated to insert using MySQLi Prepared Statement
 	 *
+	 * @param string $msg Original SQL-Error
+	 * @param string $sql Original SQL-Query
+	 * @param string $file Original File reference
+	 * @param int $line Original File Line reference
 	 * @return void
-	 * @param $msg string SQL-Error
-	 * @param $sql string SQL-Query
-	 * @param $file string Filename
-	 * @param $line int Linenumber
 	 */
-	function saveerror($msg, $sql, $file='', $line=0, $funktion='') {
+	function saveerror($msg, $sql, $file='', $line=0, $funktion='')
+	{
 		$msg = addslashes($msg);
 		$sql = addslashes($sql);
-		$sql = sprintf('INSERT
-							 into sql_error
-							 (user_id, ip, page, query, msg, date, file, line, referer, status, function)
-						VALUES
-							 (%d, "%s", "%s","%s", "%s", NOW(), "%s", %d, "%s", 1, "%s")',
-						(isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0),
-						(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : ''),
-						(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : ''),
-						$sql,
-						$msg,
-						$file,
-						$line,
-						(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '' ),
-						$funktion
-					);
-		@mysqli_query($this->conn, $sql);
+		$user_id = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0);
+		$ip = (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
+		$page = (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
+		$referer = (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
+
+		$insertSql = 'INSERT INTO sql_error (user_id, ip, page, query, msg, date, file, line, referer, status, function)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)';
+		$stmt = mysqli_prepare($this->conn, $insertSql);
+		mysqli_stmt_bind_param($stmt, 'isssssiss',
+								$user_id, $ip, $page, $sql, $msg, timestamp(true), $file, $line, $referer, $funktion);
+		mysqli_stmt_execute($stmt);
 	}
 
 	/**
@@ -263,11 +259,11 @@ class dbconn
 	 * @since 2.0 `02.06.2023` `IneX` Use MYSQLI_ASSOC with mysqli_fetch_array() to fetch result as an associative array
 	 *
 	 * @param $result array|null|false SQL-Resultat
-	 * @return array|false Array containing fetched data or false on failure
+	 * @return array|boolean Array containing fetched data - or false on failure
 	 */
-	function fetch($result) {
-		global $sql; // notwendig??
-		if ($result !== false) {
+	function fetch($result)
+	{
+		if (!empty($result) && $result !== false) {
 			return @mysqli_fetch_array($result, MYSQLI_ASSOC);
 		}
 		return false;
@@ -283,18 +279,18 @@ class dbconn
 
 	/**
 	 * Gibt die Anzahl betroffener Datensätze zurück.
-	 * @return int numrows
-	 * @param $result int|string Returns an Integer of the number of fetched rows. Returns 0 if unbuffered. String if rows greater than PHP_INT_MAX.
+	 * @param $result A MySQLi Result object
+	 * @return int|string Returns an Integer of the number of fetched rows. Returns 0 if unbuffered. String if rows greater than PHP_INT_MAX.
 	 */
-	function num($result,$errorchk=TRUE) {
+	function num($result) {
 		return @mysqli_num_rows($result);
 	}
 
 	/**
 	 * Setzt den Zeiger auf einen Datensatz.
-	 * @return object
 	 * @param $result object SQL-Resultat
 	 * @param $rownum int Rownumber
+	 * @return object
 	 */
 	function seek($result,$rownum) {
 		return @mysqli_data_seek($result, $rownum);
@@ -314,15 +310,13 @@ class dbconn
 	 * @return array
 	 */
 	function tables() {
-		$tables = @mysqli_list_tables($this->conn, 'SHOW TABLES FROM ' . $_ENV['MYSQL_DATABASE']);
-		$num = $this->num($tables);
-		$tab = array();
-		for($i=0;$i<$num;$i++) {
-			@mysqli_data_seek($tables,$i);
-			$f = mysql_fetch_array($tables);
-			$tab[$i] = $f[0];
+		$query = "SHOW TABLES FROM " . $_ENV['MYSQL_DATABASE'];
+		$result = mysqli_query($this->conn, $query);
+		$tables = array();
+		while ($row = mysqli_fetch_row($result)) {
+			$tables[] = $row[0];
 		}
-		return $tab;
+		return $tables;
 	}
 
 	/**
@@ -352,13 +346,21 @@ class dbconn
 
 		/** Prepare INSERT-Statement */
 		$insertKeys = '(`'.implode('`,`', array_keys($values)).'`)';
-		$insertValues = '("'.implode('","', $values).'")';
-		$insertValues = str_replace('"NOW()"', 'NOW()', $insertValues); // Fix "NOW()" => NOW() without quotes
-		$insertValues = str_replace('"NULL"', 'NULL', $insertValues); // Fix "NULL" => NULL without quotes
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Clean $insertValues: %s', __METHOD__, __LINE__, $insertValues));
-		$sql = sprintf('INSERT INTO `%s` %s VALUES %s', $table, $insertKeys, $insertValues);
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s', __METHOD__, __LINE__, $sql));
-		return $this->query($sql, $file, $line, $funktion);
+		$insertValues = implode(',', array_fill(0, count($values), '?'));
+		$sql = sprintf('INSERT INTO `%s` %s VALUES (%s)', $table, $insertKeys, $insertValues);
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s%s', __METHOD__, __LINE__, $sql, print_r($values,true)));
+		foreach ($values as $key => $val) {
+			if (strtolower($val) === 'now()') {
+				$values[$key] = timestamp(true); // Fix "NOW()" => NOW() without quotes
+			}
+			elseif ($val === null || strtolower($val) === 'null') {
+				$values[$key] = null; // Fix "NULL" => NULL without quotes
+			}
+			else {
+				$values[$key] = $val;
+			}
+		}
+		return $this->query($sql, $file, $line, $funktion, array_values($values));
 	}
 
 	/**
@@ -398,8 +400,8 @@ class dbconn
 				$params[] = null;
 			}
 			elseif (strtolower($val) === 'now()') {
-				$sql .= $key.'=NOW()'; // handle NOW()
-				//$params[] = 'NOW()'; --> string 'NOW()' breaks DateTime column inserts!
+				$sql .= $key.'=?';
+				$params[] = timestamp(true); // handle NOW() --> string 'NOW()' breaks DateTime column inserts!
 			}
 			elseif (is_numeric($val) && strlen((string)$val) === 10) {
 				$sql .= $key.'=?';//'='.$val; // handle Timestamps

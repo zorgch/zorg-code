@@ -19,8 +19,9 @@ require_once INCLUDES_DIR.'mysql.inc.php';
  */
 header('Content-type:application/json;charset=utf-8');
 $_POST = json_decode(file_get_contents('php://input'), true);
-$sql = 'SELECT id, username, vereinsmitglied FROM user WHERE vereinsmitglied IS NOT NULL AND vereinsmitglied = "'.$_POST['member_type'].'" ORDER BY username ASC';
-$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientlist)');
+$sql = 'SELECT id, username, vereinsmitglied FROM user
+		WHERE vereinsmitglied != "0" AND vereinsmitglied=? ORDER BY username ASC';
+$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientlist)', [$_POST['member_type']]);
 if (empty($result) || false === $result)
 {
 	http_response_code(500); // Set response code 500 (internal server error)

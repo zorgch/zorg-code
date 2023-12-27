@@ -4,42 +4,17 @@
 ## Docker configs
 Edit the file: `.env.docker`
 
-### Using docker-sync
-`docker-sync` greatly improves the performance of synced volumes from the local file system to Docker, giving a nearly live-performance for read/write operations.
-
 #### Setup on macOS
 (The following steps are copied from [this online documentation](https://reece.tech/posts/osx-docker-performance/))
+* **Recommendation**: use [OrbStack](https://orbstack.dev/) instead of Docker Desktop for Mac!
 
-##### Install docker-sync
-
-```
-gem install --user-install docker-sync
-brew install fswatch
-brew install unison
-brew install eugenmayer/dockersync/unox
-```
-
-#### Configuring docker-sync
-Docker sync requires a valid configuration file (docker-sync.yaml), the below file creates a named volume for Docker called osx-sync and mounts the local macOS directory.
-
-Add `docker-sync` to your $PATH using `nano ~/.zshrc`
-
-```
-if which ruby >/dev/null && which gem >/dev/null; then
-  PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
-fi
-```
-
-Now run `source ~/.zshrc` to apply the $PATH settings.
-
-## Build the Docker container and docker-sync
+## Build the Docker container & start the services
 Start container with all services.
 
 * in "detached mode" - without interative log in the Shell
 
 ```
 cd /path/to/zorg-code/
-docker-sync start -c ./Docker/docker-sync.yml
 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up -d
 ```
 
@@ -47,7 +22,6 @@ docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-f
 
 ```
 cd /path/to/zorg-code/
-docker-sync-stack start -c ./Docker/docker-sync.yml
 docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up
 ```
 
@@ -122,6 +96,10 @@ Enter into interactive shell mode for a container service
 
 `docker exec -it SERVICENAME sh`
 
+List all Environment Variables for a container service
+
+`docker exec SERVICENAME env`
+
 ### docker-sync inspection
 !! Refresh docker-sync after updating the `docker-compose.yml`-file
 
@@ -135,3 +113,76 @@ Inspect running docker-sync services:
 Inspect the logfile for sendmail / msmtprc:
 
 `docker exec -it zorg-web cat /var/log/sendmail.log`
+
+
+## Archive / Deprecated
+### Using docker-sync (not recommended!)
+`docker-sync` greatly improves the performance of synced volumes from the local file system to Docker, giving a nearly live-performance for read/write operations.
+
+##### Install docker-sync
+
+```
+gem install --user-install docker-sync
+brew install fswatch
+brew install unison
+brew install eugenmayer/dockersync/unox
+```
+
+#### Configuring docker-sync
+Docker sync requires a valid configuration file (docker-sync.yaml), the below file creates a named volume for Docker called osx-sync and mounts the local macOS directory.
+
+Add `docker-sync` to your $PATH using `nano ~/.zshrc`
+
+```
+if which ruby >/dev/null && which gem >/dev/null; then
+  PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
+```
+
+Now run `source ~/.zshrc` to apply the $PATH settings.
+
+##### Add `docker-sync.yml` to `/Docker/` dir
+Here's an example `docker-sync` YAML configuration:
+
+```yaml
+version: "2"
+options:
+    config_path: './../'
+    compose-file-path: './docker-compose.yml'
+    verbose: true
+syncs:
+# sync_strategy: see https://docker-sync.readthedocs.io/en/latest/getting-started/configuration.html#sync-strategy
+    zorg-web-root-git-sync:
+        src: './.git'
+        sync_strategy: 'unison'
+    zorg-web-root-data-sync:
+        src: './data'
+        sync_strategy: 'unison'
+        #sync_excludes: [ ]
+    zorg-web-root-vendor-sync:
+        src: './vendor'
+        sync_strategy: 'unison'
+        # sync_host_ip: 'auto'
+        # sync_host_port: 10873
+        sync_excludes: [ ]
+    zorg-web-root-www-sync:
+        src: './www'
+        sync_strategy: 'unison'
+        sync_excludes: [ ]
+    zorg-db-mysql-sync:
+        src: './Docker/mysql57'
+        sync_strategy: 'unison'
+        sync_excludes: [ ]
+
+```
+
+#### Build the Docker container with docker-sync
+Start container with all services.
+
+* in "detached mode" - without interative log in the Shell
+
+```
+cd /path/to/zorg-code/
+docker-sync start -c ./Docker/docker-sync.yml
+docker compose --project-directory ./ --file ./Docker/docker-compose.yml --env-file ./Docker/.env.docker up -d
+```

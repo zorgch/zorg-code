@@ -11,7 +11,7 @@ if(!isset($_GET['action']) || empty($_GET['action']) || ( $_GET['action'] != 'sa
 /**
  * FILE INCLUDES
  */
-require_once dirname(__FILE__).'/../../../includes/config.inc.php';
+require_once __DIR__.'/../../../includes/config.inc.php';
 require_once INCLUDES_DIR.'main.inc.php';;
 
 /**
@@ -21,7 +21,6 @@ $smarty->assign('mail_param', $_POST['template_id']);
 $smarty->assign('user_param', $user->id);
 $smarty->assign('hash_param', md5($_POST['template_id'] . $user->id) );
 $leMailTemplate = 'email/verein/verein_htmlmail.tpl';
-//$leTemplateInclude = "{include file='file:$leMailTemplate'}";
 $compiledMailTpl = $smarty->fetch('file:' . $leMailTemplate);
 
 if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric($_POST['template_id']) )
@@ -32,14 +31,7 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 	$update_template_id = (int)$_POST['template_id'];
 	error_log('[INFO] Updating existing Mail Template ' . $update_template_id);
 	$updateTplQuery = 'INSERT INTO templates (id, tpl, title, page_title, last_update, update_user)
-						VALUES (
-							 '.$update_template_id.'
-							,"'.escape_text($compiledMailTpl).'"
-							,"'.escape_text($_POST['text_mail_subject']).'"
-							,"'.escape_text($_POST['text_mail_subject']).'"
-							,NOW()
-							,'.$user->id.'
-						)
+							VALUES (?, ?, ?, ?, ?, ?)
 						ON DUPLICATE KEY UPDATE
 							 id = LAST_INSERT_ID(id)
 							,tpl = VALUES(tpl)
@@ -47,8 +39,16 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 							,page_title = VALUES(page_title)
 							,last_update = VALUES(last_update)
 							,update_user = VALUES(update_user)';
+	$updateTplParams = [
+		$update_template_id,
+		$compiledMailTpl,
+		$_POST['text_mail_subject'],
+		$_POST['text_mail_subject'],
+		timestamp(true),
+		$user->id
+	];
 	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Update Mail-Template Query: %s', __FILE__, __LINE__, $updateTplQuery));
-	$tplid = $db->query($updateTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
+	$tplid = $db->query($updateTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)', $updateTplParams);
 	if (empty($tplid) || false === $tplid)
 	{
 		http_response_code(500); // Set response code 500 (internal server error)
@@ -60,13 +60,21 @@ if ( $_GET['action'] === 'update' && !empty($_POST['template_id']) && is_numeric
 	 * Update existing E-Mail message entry
 	 */
 	error_log('[INFO] Updating E-Mail message entry for ' . $tplid);
-	$updateMailQuery = 'UPDATE verein_correspondence SET 
-						 subject_text = "'.escape_text($_POST['text_mail_subject']).'"
-						,preview_text = "'.escape_text($_POST['text_mail_description']).'"
-						,message_text = "'.escape_text($_POST['text_mail_message']).'" 
-						 WHERE template_id = '.$tplid.' AND recipient_id = '.VORSTAND_USER;
+	$updateMailQuery = 'UPDATE verein_correspondence SET
+							subject_text=?
+							,preview_text=?
+							,message_text=?
+						WHERE template_id=?
+						AND recipient_id=?';
+	$updateMailParams = [
+		$_POST['text_mail_subject'],
+		$_POST['text_mail_description'],
+		$_POST['text_mail_message'],
+		$tplid,
+		VORSTAND_USER
+	];
 
-	if ( $db->query($updateMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)') )
+	if ( $db->query($updateMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)', $updateMailParams) )
 	{
 		http_response_code(200); // Set response code 200 (OK)
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SUCCESS Updating E-Mail message entry', __FILE__, __LINE__));
@@ -89,23 +97,35 @@ elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) )
 {
 	error_log('[INFO] Saving a new Mail Template');
 	$insertTplQuery = 'INSERT INTO templates SET
-						 tpl = "'.escape_text($compiledMailTpl).'"
-						,title = "'.escape_text($_POST['text_mail_subject']).'"
-						,page_title = "'.escape_text($_POST['text_mail_subject']).'"
-						,border = "0"
-						,owner = '.VORSTAND_USER.'
-						,read_rights = 2
-						,write_rights = 3
-						,created = NOW()
-						,last_update = NOW()
-						,update_user = '.$user->id;
+						 tpl=?
+						,title=?
+						,page_title=?
+						,border=?
+						,owner=?
+						,read_rights=?
+						,write_rights=?
+						,created=?
+						,last_update=?
+						,update_user=?';
+	$params = [
+		$compiledMailTpl,
+		$_POST['text_mail_subject'],
+		$_POST['text_mail_subject'],
+		'0',
+		VORSTAND_USER,
+		'2',
+		'3',
+		timestamp(true),
+		timestamp(true),
+		$user->id
+	];
 	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Saving a new Mail Template: %s', __FILE__, __LINE__, $insertTplQuery));
-	$tplid = $db->query($insertTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
+	$tplid = $db->query($insertTplQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)', $params);
 
-	if (empty($tplid) || $tplid === 0)
+	if (empty($tplid) || !is_numeric($tplid))
 	{
 		http_response_code(500); // Set response code 500 (internal server error)
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Template could not be created', __FILE__, __LINE__));
+		error_log(sprintf('[ERROR] <%s:%d> Mail Template could not be created', __FILE__, __LINE__));
 		die('Template could not be created');
 	} else {
 		/**
@@ -113,16 +133,28 @@ elseif ( $_GET['action'] === 'save' && isset($_POST['text_mail_subject']) )
 		 */
 		error_log('[INFO] Creating a new E-Mail message entry for ' . $tplid);
 		$insertMailQuery = 'INSERT INTO verein_correspondence SET
-					 communication_type = "EMAIL"
-					,subject_text = "'.escape_text($_POST['text_mail_subject']).'"
-					,preview_text = "'.escape_text($_POST['text_mail_description']).'"
-					,message_text = "'.escape_text($_POST['text_mail_message']).'"
-					,template_id = '.$tplid.'
-					,sender_id = '.$user->id.'
-					,recipient_id = '.VORSTAND_USER;
-		$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)');
-		if (empty($messageId) || false === $messageId) http_response_code(500); // Set response code 500 (internal server error)
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ERROR Creating a new E-Mail message entry', __FILE__, __LINE__));
+								communication_type=?
+								,subject_text=?
+								,preview_text=?
+								,message_text=?
+								,template_id=?
+								,sender_id=?
+								,recipient_id=?';
+		$params = [
+			'EMAIL',
+			$_POST['text_mail_subject'],
+			$_POST['text_mail_description'],
+			$_POST['text_mail_message'],
+			$tplid,
+			$user->id,
+			VORSTAND_USER
+		];
+		$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailtemplate)', $params);
+		if (empty($messageId) || false === $messageId) {
+			http_response_code(500); // Set response code 500 (internal server error)
+			error_log(sprintf('[ERROR] <%s:%d> Failed creating a new E-Mail message entry', __FILE__, __LINE__));
+			die('Template could not be created');
+		}
 
 		http_response_code(200); // Set response code 200 (OK)
 		echo $tplid;

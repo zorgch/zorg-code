@@ -22,11 +22,10 @@ $_POST = json_decode(file_get_contents('php://input'), true);
 try {
 	$sql = 'SELECT recipient_id mail_status, recipient_confirmation read_status, recipient_confirmationdate read_datetime
 			FROM verein_correspondence
-			WHERE template_id = '.$_POST['template_id'].'
-			AND recipient_id = '.$_POST['recipient_id'].'
+			WHERE template_id=? AND recipient_id=?
 			ORDER BY recipient_confirmationdate DESC
-			LIMIT 0,1';
-	$recipientStatus = $db->fetch($db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientstatus)'));
+			LIMIT 1';
+	$recipientStatus = $db->fetch($db->query($sql, __FILE__, __LINE__, 'AJAX.POST(get-recipientstatus)', [$_POST['template_id'], $_POST['recipient_id']]));
 
 	http_response_code(200); // Set response code 200 (OK)
 	if ($recipientStatus) {

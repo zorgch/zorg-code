@@ -11,14 +11,14 @@ global $user, $db, $smarty;
 
 define('MAPFILE', SITE_ROOT.'/../data/hz_maps/'.$user->id.'.txt');
 
-if ($_POST['formid'] == "hz_map") {				
+if ($_POST['formid'] == "hz_map") {
 	if (is_uploaded_file($_FILES['map']['tmp_name'])) {
 		if ($_FILES['map']['type'] != "text/plain") {
-			$error = "Ungültiger Datei-Typ ".$_FILES['map']['type'].". Datei muss eine Text-Datei (text/plain) sein.";
+			$error = "UngÃ¼ltiger Datei-Typ ".$_FILES['map']['type'].". Datei muss eine Text-Datei (text/plain) sein.";
 		}else{
 			if (@move_uploaded_file($_FILES['map']['tmp_name'], MAPFILE)) {
 				chmod(MAPFILE, 0664);
-				
+
 				$error = show_map ();
 			}else{
 				$error = "Datei-Indizierung fehlgeschlagen. <br />";
@@ -43,7 +43,7 @@ $smarty->assign("hz_map_error", $error);
 
 function show_map () {
 	global $smarty;
-	
+
 	$map_config = "";
 	$imgfile = create_map (MAPFILE, $map_config, $error, $img_map);
 	$smarty->assign("hz_new_map", $imgfile);

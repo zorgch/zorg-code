@@ -45,11 +45,11 @@ if((!empty($_GET['mail']) && is_numeric($_GET['mail'])) && (!empty($_GET['user']
 				error_log('[INFO] Updating Read State for template ' . $matchedResult['template_id'] . ' and user ' . $matchedResult['recipient_id']);
 				$updateReadStateQuery = 'UPDATE verein_correspondence
 										 SET
-										 	recipient_confirmation = "TRUE",
-										 	recipient_confirmationdate = NOW()
+										 	 recipient_confirmation=?
+										 	,recipient_confirmationdate=?
 										 WHERE
-										 	id = ' . $matchedResult['id'];
-				$updateReadState = $db->fetch($db->query($updateReadStateQuery, __FILE__, __LINE__, 'verein_mailer.php'));
+										 	id=?';
+				$updateReadState = $db->query($updateReadStateQuery, __FILE__, __LINE__, 'UPDATE verein_correspondence', ['TRUE', timestamp(true), $matchedResult['id']]);
 			}
 
 			/**

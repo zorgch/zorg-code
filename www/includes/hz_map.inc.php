@@ -247,7 +247,7 @@ function check_config ($cfg) {
 	if (!$cfg['map']['name']) return "Missing 'name' in section [MAP]";
 	$e = $db->query("SELECT * FROM hz_maps WHERE name='".$cfg['map']['name']."'", __FILE__, __LINE__);
 	$d = $db->fetch($e);
-	if ($d) return ("Es gibt schon eine Map mit diesem Namen. Bitte einen anderen Namen wählen.");
+	if ($d) return ("Es gibt schon eine Map mit diesem Namen. Bitte einen anderen Namen wÃ¤hlen.");
 
 	if (!$cfg['map']['width']) return "Missing 'width' in section [MAP]";
 	if (!is_numeric($cfg['map']['width']) || $cfg['map']['width']>5000 || $cfg['map']['width']<200) return "'width' in section [Map] must be between 200 and 5000.";
