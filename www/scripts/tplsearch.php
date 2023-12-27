@@ -1,7 +1,7 @@
 <?php
 global $db, $smarty;
 
-$search = sanitize_userinput($_GET['query']);
+$search = htmlspecialchars_decode($_GET['query'], ENT_COMPAT | ENT_SUBSTITUTE);
 
 if (!empty($search))
 {
@@ -9,7 +9,8 @@ if (!empty($search))
 
 	$found = 0;
 	try {
-		$e = $db->query('SELECT id, title FROM templates WHERE MATCH (title, tpl) AGAINST (?)', __FILE__, __LINE__, 'SELECT FROM templates', [$search]);
+		$e = $db->query('SELECT id, title FROM templates WHERE MATCH (title, tpl) AGAINST (?)',
+						__FILE__, __LINE__, 'SELECT FROM templates', [$search]);
 		while ($d = $db->fetch($e))
 		{
 			$d['title'] = stripslashes($d['title']);

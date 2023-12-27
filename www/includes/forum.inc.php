@@ -699,7 +699,8 @@ class Comment
 		if (Thread::hasRights($board, $thread_id, $user_id))
 		{
 			/** Böse Sachen aus dem Text entfernen */
-			$text = sanitize_userinput($text);
+			//$text = sanitize_userinput($text);
+			$text = htmlspecialchars_decode($text, ENT_COMPAT | ENT_SUBSTITUTE);
 
 			/** Comment in die DB abspeichern */
 			$comment_error = (isset($comment_error) ? $comment_error : '');

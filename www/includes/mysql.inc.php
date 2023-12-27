@@ -111,7 +111,7 @@ class dbconn
 			if (empty($params)) {
 				$result = mysqli_query($this->conn, $sql);
 				/* Log SQL-Queries not upgraded to Prepared Statements */
-				if (DEVELOPMENT) error_log(sprintf('[DEPRECATED] <%s> Required SQL-Query update for mysqli_prepare(): %s:%d', $funktion, $file, $line));
+				zorgDebugger::me()->debug('<%s> is no SQL prepared statement, in %s:%d', [$funktion, $file, $line]);
 			} else {
 				$stmt = mysqli_prepare($this->conn, $sql);
 				if ($stmt === false) throw new mysqli_sql_exception(mysqli_error($this->conn));
@@ -187,7 +187,7 @@ class dbconn
 				}
 			}
 		} catch (mysqli_sql_exception $e) {
-			if (DEVELOPMENT === true) var_dump([$file, $funktion, $line, $sql, $params]);
+			zorgDebugger::me()->debug('%s', [$e->getMessage()]);
 			die($e->getMessage());
 		}
 	}
@@ -310,7 +310,7 @@ class dbconn
 	 * @return array
 	 */
 	function tables() {
-		$query = "SHOW TABLES FROM " . $_ENV['MYSQL_DATABASE'];
+		$query = 'SHOW TABLES FROM '.$_ENV['MYSQL_DATABASE'];
 		$result = mysqli_query($this->conn, $query);
 		$tables = array();
 		while ($row = mysqli_fetch_row($result)) {
@@ -348,7 +348,7 @@ class dbconn
 		$insertKeys = '(`'.implode('`,`', array_keys($values)).'`)';
 		$insertValues = implode(',', array_fill(0, count($values), '?'));
 		$sql = sprintf('INSERT INTO `%s` %s VALUES (%s)', $table, $insertKeys, $insertValues);
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->insert() query: %s%s', __METHOD__, __LINE__, $sql, print_r($values,true)));
+		zorgDebugger::me()->debug('$db->insert() SQL: %s%s', [$sql, print_r($values,true)]);
 		foreach ($values as $key => $val) {
 			if (strtolower($val) === 'now()') {
 				$values[$key] = timestamp(true); // Fix "NOW()" => NOW() without quotes
@@ -429,7 +429,6 @@ class dbconn
 				$conditions[$id[$i]] = $id[$i+1]; // map $id[0] => $id[1], $id[2] => $id[3],... to $conditions-Array
 				$i++;
 			}
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $conditions[ %s ]', __METHOD__, __LINE__, print_r($conditions,true)));
 			foreach ($conditions as $field => $value) {
 				$sql .= $field.'=?';//.(is_numeric($value) ? $value : '"'.$value.'"');
 				$params[] = $value;
@@ -437,7 +436,7 @@ class dbconn
 				if ($field !== key($conditions)) $sql .= ' OR ';  // Add Separator if not last Array-Iteration
 			}
 		}
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $db->update() $sql: %s', __METHOD__, __LINE__, $sql));
+		zorgDebugger::me()->debug('$db->update() SQL: %s', [$sql]);
 		return $this->query($sql, $file, $line, $funktion, $params);
 		//return mysql_affected_rows();
 	}

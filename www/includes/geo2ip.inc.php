@@ -79,8 +79,8 @@ class IP2Geolocation
 			 */
 			$this->storeUserIPToSession($this->UserIPaddress);
 			$this->setMaxmindIPDetails();
-		} elseif (DEVELOPMENT === true) {
-			error_log(sprintf('[DEBUG] <%s:%d> getDataFromSession(%s): SESSION CACHE HIT!', __METHOD__, __LINE__, $this->UserIPaddress));
+		} else {
+			\zorgDebugger::me()->debug('getDataFromSession(%s): SESSION CACHE HIT!', [$this->UserIPaddress]);
 		}
 	}
 
@@ -120,7 +120,7 @@ class IP2Geolocation
 				foreach(explode(',', $_SERVER[$ServerVar]) as $ip_address)
 				{
 					/** Validate IP-Address from $_SERVER var */
-					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $ServerVar, $ip_address));
+					\zorgDebugger::me()->debug('%s => %s', [$ServerVar, $ip_address]);
 					$checked_IPaddress = $this->validateIPaddress((string)$ip_address);
 
 					if (!empty($checked_IPaddress) && false !== $checked_IPaddress)
@@ -129,7 +129,7 @@ class IP2Geolocation
 						return $checked_IPaddress;
 					}
 				}
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $ip_address, (empty($checked_IPaddress) ? 'empty' : ($checked_IPaddress === false ? 'false' : $checked_IPaddress))));
+				\zorgDebugger::me()->debug('%s => %s', [$ip_address, (empty($checked_IPaddress) ? 'empty' : ($checked_IPaddress === false ? 'false' : $checked_IPaddress))]);
 			}
 		}
 

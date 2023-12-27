@@ -24,6 +24,7 @@ $smarty->display('file:layout/head.tpl');
 
 
 function PostToHost($host, $path, $referer, $data_to_send) {
+  $res = '';
   $fp = fsockopen($host,80);
   fputs($fp, "POST $path HTTP/1.1\n");
   fputs($fp, "Host: $host\n");
@@ -87,14 +88,14 @@ function rnd_id($total) {
 	return rand (1,$total);
 }
 
-$first = (string)$_POST['first'];
-$last = (string)$_POST['last'];
+$first = (string)htmlspecialchars_decode($_POST['first'], ENT_COMPAT | ENT_SUBSTITUTE);
+$last = (string)htmlspecialchars_decode($_POST['last'], ENT_COMPAT | ENT_SUBSTITUTE);
 $doAction = (string)$_POST['do'];
 
 // pimpern von playerappreciate.com
-if($_POST['do'] == "pimpme"){
+if($doAction === "pimpme"){
 
-	$data = 'First='.sanitize_userinput($first).'&Last='.sanitize_userinput($last).'&Pimpify=Pimpify!';
+	$data = 'First='.$first.'&Last='.$last.'&Pimpify=Pimpify!';
 
 	$x = PostToHost(
               "www.playerappreciate.com",
@@ -116,16 +117,16 @@ if($_POST['do'] == "pimpme"){
 	$total = $rs['anzahl'];
 	$id = rnd_id($total);
 
-	$sql = 'SELECT * FROM pimp WHERE id = '.$id;
-	$result = $db->query($sql);
+	$sql = 'SELECT * FROM pimp WHERE id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM pimp', [$id]);
 	$rs = $db->fetch($result);
 
 	$prefix = $rs['prefix'];
 
 	$id = rnd_id($total);
 
-	$sql = 'SELECT * FROM pimp WHERE id = '.$id;
-	$result = $db->query($sql);
+	$sql = 'SELECT * FROM pimp WHERE id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM pimp', [$id]);
 	$rs = $db->fetch($result);
 
 	$suffix = $rs['suffix'];

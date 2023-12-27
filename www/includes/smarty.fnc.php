@@ -1181,7 +1181,7 @@ function smarty_peter ($params, &$smarty) {
 		}*/
 		foreach ($nameArray as $it)
 		{
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> smarty_menuname_exec: "%s" on tpl_id %d', __FUNCTION__, __LINE__, $it, $tpl_id));
+			zorgDebugger::me()->debug('«%s» on tpl_id %s', [$it, strval($tpl_id)]);
 			if (!empty($it)) {
 				/** Check if menu with same name already exists... */
 				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name=?',
@@ -1189,13 +1189,13 @@ function smarty_peter ($params, &$smarty) {
 				//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists Query: %s', __FUNCTION__, __LINE__, print_r($menuExists,true)));
 				if ($menuExists !== false && $menuExists['tpl_id'] === $tpl_id)
 				{
-					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: TRUE (tpl_id: %d)', __FUNCTION__, __LINE__, $tpl_id));
+					zorgDebugger::me()->debug('$menuExists: TRUE (tpl_id: %d)', [strval($tpl_id)]);
 					//return sprintf('Menuname "%s" existiert schon mit der id#%d und wurde deshalb nicht gespeichert!<br>Bitte anderen Namen verwenden.', $it, $tpl_id);
 				}
 
 				/** Menu mit $name gibt es noch nicht, deshlab erstellen wir es neu */
 				else {
-					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists: FALSE (adding new)', __FUNCTION__, __LINE__));
+					zorgDebugger::me()->debug('$menuExists: FALSE (adding new)');
 					$db->query('INSERT INTO menus (tpl_id, name) VALUES (?, ?)',
 								__FILE__, __LINE__, __FUNCTION__, [$tpl_id, $it]);
 					//$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => sprintf('Neues Menu "%s" erfolgreich gespeichert', $it), 'message' => 'Du kannst es jetzt im Template-Editor einer Page auswählen.']);

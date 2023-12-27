@@ -20,7 +20,6 @@ if (!defined('FATAL')) define('FATAL', E_USER_ERROR);
 if (!defined('ERROR')) define('ERROR', E_USER_WARNING);
 if (!defined('WARNING')) define('WARNING', E_USER_NOTICE);
 
-error_reporting(ERRORLOG_LEVELS);
 //error_reporting(FATAL | ERROR | WARNING);
 //set_error_handler('zorgErrorHandler');
 
@@ -94,6 +93,8 @@ class zorgDebugger
     public function __construct()
     {
         $this->isDevelopmentEnvironment = defined('DEVELOPMENT') && DEVELOPMENT;
+		$this->debug('%s', [$this->isDevelopmentEnvironment ? 'Development Environment' : 'Non-Dev Environment']);
+		$this->debug('SITE_HOSTNAME: %s', [SITE_HOSTNAME]);
     }
 
 	/**
@@ -129,8 +130,8 @@ class zorgDebugger
 			$origin = $this->getOrigin();
 
 			if (is_null(ERRORLOG_DEBUG_SCOPE) ||
-				ERRORLOG_DEBUG_SCOPE === $origin['function'] ||
-				ERRORLOG_DEBUG_SCOPE === basename($origin['file']))
+				in_array($origin['function'], ERRORLOG_DEBUG_SCOPE) ||
+				in_array(basename($origin['file']), ERRORLOG_DEBUG_SCOPE))
 				{
             		$this->log($customLoglevel, $message, $params, $origin);
         	}

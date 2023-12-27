@@ -232,7 +232,7 @@ function spaceweather_ticker() {
 			}
 			if(isset($add[$rs['name']]) && !empty($add[$rs['name']][0]))
 			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $rs[name] exists: %s | value: %s', __FUNCTION__, __LINE__, $add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')));
+				zorgDebugger::me()->debug('$rs[name]=%s exists, value: %s', [$add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')]);
 				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert'].(isset($add[$rs['name']][1]) ? " ".$add[$rs['name']][1] : '') ];
 			}
 		}
