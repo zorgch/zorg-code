@@ -354,8 +354,11 @@ if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', (is
 if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', (isset($_ENV['ERRORLOG_FILETYPE']) ? $_ENV['ERRORLOG_FILETYPE'] : '.log'));
 if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', (isset($_ENV['ERRORLOG_DIR']) ? $_ENV['ERRORLOG_DIR'] : null));
 if (!defined('ERRORLOG_FILE')) define('ERRORLOG_FILE', ERRORLOG_DIR.date('Y-m-d').ERRORLOG_FILETYPE);
-if (!defined('ERRORLOG_LEVELS')) define('ERRORLOG_LEVELS', (isset($_ENV['ERROR_REPORTING_LEVELS']) ? $_ENV['ERROR_REPORTING_LEVELS'] : null));
-if (!defined('ERRORLOG_DEBUG_SCOPE')) define('ERRORLOG_DEBUG_SCOPE', (isset($_ENV['DEBUG_SCOPE']) ? $_ENV['DEBUG_SCOPE'] : null));
+if (!defined('ERRORLOG_LEVELS')) define('ERRORLOG_LEVELS', (isset($_ENV['ERROR_REPORTING_LEVELS']) ? $_ENV['ERROR_REPORTING_LEVELS'] : E_ERROR));
+if (!defined('ERRORLOG_DEBUG_SCOPE')) {
+    define('ERRORLOG_DEBUG_SCOPE', isset($_ENV['DEBUG_SCOPE']) ? explode(',', $_ENV['DEBUG_SCOPE']) : []);
+}
+error_reporting(ERRORLOG_LEVELS);
 require_once INCLUDES_DIR.'errlog.inc.php';
 //set_error_handler('zorgErrorHandler');
 

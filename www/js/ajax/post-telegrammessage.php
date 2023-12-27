@@ -21,7 +21,7 @@ require_once INCLUDES_DIR.'util.inc.php';
  */
 if (isset($_POST['message']) && !empty($_POST['message']))
 {
-	$messageText = sanitize_userinput($_POST['message']);
+	$messageText = $_POST['message'];
 	if (is_array($messageText) || is_numeric($messageText))
 	{
 		http_response_code(400); // Set response code 400 (bad request) and exit.
@@ -34,12 +34,12 @@ if (isset($_POST['message']) && !empty($_POST['message']))
 	}
 } else {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	die(json_encode('Missing POST-Parameter'));	
+	die(json_encode('Missing POST-Parameter'));
 }
 if (isset($_POST['contact']) && !empty($_POST['contact']))
 {
 	$contactName = sanitize_userinput($_POST['contact']);
-	if (is_array($contactName) || is_numeric($contactName))
+	if (!is_numeric($contactName))
 	{
 		http_response_code(400); // Set response code 400 (bad request) and exit.
 		die(json_encode('Invalid POST-Parameter'));
@@ -51,7 +51,7 @@ if (isset($_POST['contact']) && !empty($_POST['contact']))
 	}
 } else {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	die(json_encode('Missing POST-Parameter'));	
+	die(json_encode('Missing POST-Parameter'));
 }
 
 /**

@@ -205,16 +205,16 @@ class usersystem
 		{
 			/** Session init'en */
 			session_start();
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Existing Session restarted', __METHOD__, __LINE__));
+			zorgDebugger::me()->debug('Existing Session restarted');
 
 			/** $_SESSION[user_id] not yet available -> if not on forced Login / Logout try to Autologin */
 			if (!isset($_SESSION['user_id']) && !isset($_POST['username']) && !isset($_POST['logout']))
 			{
 				/** We got Cookies --> Autologin! */
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $_SESSION[user_id] missing & no login/logout...', __METHOD__, __LINE__));
+				zorgDebugger::me()->debug('$_SESSION[user_id] missing & no login/logout...');
 				if (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 				{
-					if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Autologin-Cookies existieren -> Login-Passthrough', __METHOD__, __LINE__));
+					zorgDebugger::me()->debug('Autologin-Cookies existieren -> Login-Passthrough');
 					$this->login($_COOKIE[ZORG_COOKIE_USERID]); // Do NOT send $_COOKIE[ZORG_COOKIE_USERPW] here - because it only contains the PW-Hash!
 				}
 			}
@@ -229,13 +229,13 @@ class usersystem
 			isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && $_SESSION['user_id'] > 0)
 		{
 			/** Query User Infos in der DB */
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Session re-started inkl. $_SESSION[user_id]!', __METHOD__, __LINE__));
-			$sql = 'SELECT *'.
-						',UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.
-						',UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.
-						',UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.
-					' FROM '.$this->table_name.' WHERE id = '.$_SESSION['user_id'];
-			$result = $db->query($sql, __FILE__, __LINE__);
+			zorgDebugger::me()->debug('Session re-started inkl. $_SESSION[user_id]');
+			$sql = 'SELECT *,
+						UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
+						UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
+						UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
+					FROM '.$this->table_name.' WHERE id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$_SESSION['user_id']]);
 			$rs = $db->fetch($result);
 
 			if (!empty($rs) && $rs !== false)
@@ -272,9 +272,7 @@ class usersystem
 				$this->irc = $rs[$this->field_irc];
 				$this->activity = $rs[$this->field_activity];
 				$this->lastlogin = $rs[$this->field_lastlogin];
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->lastlogin: %s', __METHOD__, __LINE__, $this->lastlogin));
 				$this->currentlogin = $rs[$this->field_currentlogin];
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user->currentlogin: %s', __METHOD__, __LINE__, $this->currentlogin));
 				$this->ausgesperrt_bis = $rs[$this->field_ausgesperrt_bis];
 				if ($this->ausgesperrt_bis > time()) $_geaechtet[] = $this->id;
 				//$this->last_ip = $rs[$this->field_last_ip]; // @DEPRECATED
@@ -304,7 +302,10 @@ class usersystem
 				 */
 				$userMobileClientAgent = isMobileClient($_SERVER['HTTP_USER_AGENT']);
 				$this->from_mobile = (!empty($userMobileClientAgent) ? reset($userMobileClientAgent) : false );
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> isMobileClient(): %s => %s', __METHOD__, __LINE__, $_SERVER['HTTP_USER_AGENT'], ( $this->from_mobile ? $this->from_mobile : 'false')));
+
+				zorgDebugger::me()->debug('$user->lastlogin: %s', [strval($this->lastlogin)]);
+				zorgDebugger::me()->debug('$user->currentlogin: %s', [strval($this->currentlogin)]);
+				zorgDebugger::me()->debug('$user->from_mobile: %s => %s', [$_SERVER['HTTP_USER_AGENT'], ($this->from_mobile ? $this->from_mobile : 'false')]);
 
 				/**
 				 * Update last user activity
@@ -1194,17 +1195,17 @@ class usersystem
 		/** Check for cached Gravater */
 		if (is_file($user_imgpath_gravatar) !== false) // TODO use fileExists() method from util.inc.php?
 		{
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage GRAVATAR exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_gravatar));
+			zorgDebugger::me()->debug('userImage GRAVATAR exists/cached: %s', [strval($user_imgpath_gravatar)]);
 			return $user_imgpath_gravatar;
 
 		/** Check for custom Userpic */
 		} elseif (is_file($user_imgpath_custom) !== false) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage ZORG exists/cached: %s', __METHOD__, __LINE__, $user_imgpath_custom));
+			zorgDebugger::me()->debug('userImage ZORG exists/cached: %s', [strval($user_imgpath_custom)]);
 			return $user_imgpath_custom;
 
 		/** Return false if no userpic cached */
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage not cached: querying Gravatar', __METHOD__, __LINE__));
+			zorgDebugger::me()->debug('userImage NOT CACHED: querying Gravatar');
 			return false;
 		}
 	}
@@ -1240,7 +1241,7 @@ class usersystem
 
 		/** If no userpic-file exists, query Gravatar with USER_IMGPATH_DEFAULT as fallback image */
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> userImage not cached for $userid %d', __METHOD__, __LINE__, $userid));
+			zorgDebugger::me()->debug('userImage not cached for $userid: %s', [strval($userid)]);
 			return $this->get_gravatar(
 										 $this->id2useremail($userid)
 										,($large ? USER_IMGSIZE_LARGE : USER_IMGSIZE_SMALL)
@@ -2241,11 +2242,11 @@ static $_geaechtet = array();
 if (isset($_POST['logout']))
 {
 	/** exec the User logout */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User logout', '$_POST[logout]', __LINE__));
+	zorgDebugger::me()->debug('exec User logout');
 	usersystem::logout();
 } else {
 	/** Instantiate a new usersystem Class */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Instantiate a new usersystem Class', 'false === $_POST[logout]', __LINE__));
+	zorgDebugger::me()->debug('Instantiate new usersystem Class');
 	$user = new usersystem();
 }
 
@@ -2254,7 +2255,7 @@ if (isset($_POST['logout']))
  */
 if (isset($_POST['do']) && $_POST['do'] === 'login')
 {
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> exec User login (Form): %s', 'LOGIN mit Login-Formular', __LINE__, print_r($_POST, true)));
+	zorgDebugger::me()->debug('exec User login (Form): %s', [print_r($_POST, true)]);
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
 		$login_username = (string)$_POST['username'];

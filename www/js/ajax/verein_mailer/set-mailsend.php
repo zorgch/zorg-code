@@ -72,13 +72,13 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 										communication_type,
 										subject_text,
 										preview_text,
-										"'.sanitize_userinput($compiledMailTpl).'" as message_text,
+										? as message_text,
 										template_id,
 										sender_id,
-										'.$recipient_id.' as recipient_id
+										? as recipient_id
 									FROM verein_correspondence
 								WHERE template_id=? AND recipient_id=?';
-			$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)', [$_POST['template_id'], VORSTAND_USER]);
+			$messageId = $db->query($insertMailQuery, __FILE__, __LINE__, 'AJAX.POST(set-mailsend)', [$compiledMailTpl, $recipient_id, $_POST['template_id'], VORSTAND_USER]);
 
 			if ( isset($messageId) && $messageId > 0 )
 			{

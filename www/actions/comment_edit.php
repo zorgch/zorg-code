@@ -54,7 +54,7 @@ if(trim($_POST['text']) === '' || empty($_POST['text']) || !isset($_POST['text']
 	header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
 	exit;
 } else {
-	$commentText = escape_text($_POST['text']);
+	$commentText = htmlspecialchars_decode($_POST['text'], ENT_COMPAT | ENT_SUBSTITUTE);
 	$_POST['text'] = $commentText; // required for passing to Comment::update() later...
 }
 if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[text]: OK', __FILE__, __LINE__));

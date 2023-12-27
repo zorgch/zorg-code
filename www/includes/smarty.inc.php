@@ -337,7 +337,7 @@ function load_packages($tpl_id, &$smarty)
 		$packagesQuery = 'SELECT pkg.name as name FROM packages pkg INNER JOIN tpl_packages tplp ON pkg.id = tplp.package_id WHERE tplp.tpl_id=?';
 		$packagesFound = $db->query($packagesQuery, __FILE__, __LINE__, __FUNCTION__, [$tpl]);
 		$numPackagesFound = (int)$db->num($packagesFound);
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Found %d packages for template #%d', __FUNCTION__, __LINE__, $numPackagesFound, $tpl));
+		zorgDebugger::me()->debug('Found %d packages for template «%s»', [$numPackagesFound, strval($tpl)]);
 
 		/** 1 or more Packages found */
 		if ($numPackagesFound > 0)
@@ -347,7 +347,7 @@ function load_packages($tpl_id, &$smarty)
 				/** Check if $package matches a PHP-File (Package) */
 				$package_file = basename($packages['name']); // Remove any directory traversal characters
 				$package_filepath = SMARTY_PACKAGES_DIR.$package_file.SMARTY_PACKAGES_EXTENSION;
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Loading package "%s" from %s', __FUNCTION__, __LINE__, $package_file, $package_filepath));
+				zorgDebugger::me()->debug('Loading package «%s» from %s', [$package_file, $package_filepath]);
 				if (is_file($package_filepath) !== false)
 				{
 					require_once $package_filepath;
@@ -364,7 +364,7 @@ function load_packages($tpl_id, &$smarty)
 		/** 0 Packages found (but this is no error) */
 		elseif ($numPackagesFound === 0)
 		{
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no packages associated', __FUNCTION__, __LINE__, $tpl));
+			zorgDebugger::me()->debug('Template «%s» has no packages associated', [strval($tpl)]);
 			return true;
 		}
 	} else {

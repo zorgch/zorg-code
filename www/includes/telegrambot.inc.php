@@ -78,8 +78,8 @@ class Telegram
 		global $user;
 
 		/** Parse $_ENV vars into $botconfigs */
-		if (null !== $_ENV['TELEGRAM_BOT_API_KEY'] || null !== $_ENV['TELEGRAM_BOT']) {
-			error_log(sprintf('[WARN] <%s:%d> Missing Telegram Bot Configs!', __METHOD__, __LINE__));
+		if (empty($_ENV['TELEGRAM_BOT_API_KEY']) || empty($_ENV['TELEGRAM_BOT'])) {
+			zorgDebugger::me()->warn('Missing Telegram Bot Configs! TELEGRAM_BOT_API_KEY=%s | TELEGRAM_BOT=%s', [$_ENV['TELEGRAM_BOT_API_KEY'],$_ENV['TELEGRAM_BOT']]);
 			return false;
 		} else {
 			$botconfigs = [  'api_key' => $_ENV['TELEGRAM_BOT_API_KEY']
@@ -104,13 +104,13 @@ class Telegram
 			{
 				/** USER: If $userScope = User-ID: get the Telegram Chat-ID */
 				case is_numeric($userScope) && $userScope > 0:
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for User Telegram Chat-ID...', __METHOD__, __LINE__));
+					zorgDebugger::me()->debug('Checking for User Telegram Chat-ID...');
 					$telegramChatId = $user->userHasTelegram($userScope);
 					break;
 
 				/** GROUP: If $userScope = 'group': get the Telegram Groupchat-ID */
 				case 'group':
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking for Group Telegram Chat-ID...', __METHOD__, __LINE__));
+					zorgDebugger::me()->debug('Checking for Group Telegram Chat-ID...');
 					$telegramChatId = $botconfigs['TELEGRAM_GROUPCHAT_ID'];
 					break;
 
@@ -128,7 +128,7 @@ class Telegram
 
 				/** Build API Call */
 				$parameters = array_merge( $content, [ 'chat_id' => $telegramChatId ] );
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Telegram Message $parameters Array:'."\n\r%s", __METHOD__, __LINE__, print_r($parameters, true)));
+				zorgDebugger::me()->debug('Telegram Message $parameters Array: %s', [print_r($parameters, true)]);
 				if (is_array($parameters) && !empty($parameters))
 				{
 					/** Validate & compose the Parameter-Query for the API Call */
@@ -139,8 +139,8 @@ class Telegram
 					/**
 					 * Sending the Telegram message
 					 */
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> using "%s" to Chat "%s"', __METHOD__, __LINE__, $messageType, $telegramChatId));
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> API call: %s', __METHOD__, __LINE__, $telegramAPIcall));
+					zorgDebugger::me()->debug('Using "%s" to Chat "%s"', [$messageType, strval($telegramChatId)]);
+					zorgDebugger::me()->debug('API call: %s', [$telegramAPIcall]);
 					if (!empty($messageType))
 					{
 						/** Create a stream_context for the file_get_contents HTTP request */
@@ -156,11 +156,11 @@ class Telegram
 						 */
 						if (is_array($http_response_header))
 						{
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_get_contents() $http_response_header:'."\n\r%s\n\r".'$httpResponseBody:'."\n\r%s", __METHOD__, __LINE__, print_r($http_response_header, true), $httpResponseBody));
+							zorgDebugger::me()->debug('file_get_contents() $http_response_header: %s | $httpResponseBody: %s', [print_r($http_response_header, true), $httpResponseBody]);
 							preg_match('{HTTP\/\S*\s(\d{3})}', $http_response_header[0], $match);
 							if ($match[1] !== '200')
 							{
-								error_log(sprintf('[ERROR] <%s:%d> Telegram %s failed with HTTP status code %s and response:'."\n\r%s", __METHOD__, __LINE__, $messageType, $match[0], $httpResponseBody));
+								zorgDebugger::me()->error('Telegram %s failed with HTTP status code %s and response: %s', [$messageType, $match[0], $httpResponseBody]);
 								return false;
 							} else {
 								return true;
@@ -170,12 +170,12 @@ class Telegram
 						}
 					}
 				} else {
-					error_log(sprintf('[WARN] <%s:%d> "%s" did not pass validation!', __METHOD__, __LINE__, $messageType));
+					zorgDebugger::me()->warn('«%s» did not pass validation!', [$messageType]);
 					return false;
 				}
 			}
 		} else {
-			error_log( t('invalid-telegram-chatid', 'messagesystem') );
+			zorgDebugger::me()->warn(t('invalid-telegram-chatid', 'messagesystem'));
 			return false;
 		}
 	}
@@ -219,13 +219,13 @@ class Telegram
 					LIMIT 1';
 			$telegramUserIds = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			$telegramUserId = $telegramUserIds['tui'];
-			if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> found Telegram User ID $telegramUserId");
+			zorgDebugger::me()->debug('Found Telegram User ID «%d»', [$telegramUserId]);
 
 			if (!empty($telegramUserId))
 			{
 				$username = $user->id2user($telegramUserId);
 				$link = sprintf('<a href="tg://user?id=%d">%s</a>', $telegramUserId, $username);
-				if (DEVELOPMENT) error_log("[DEBUG] <" . __METHOD__ . "> returns HTML-link: $link");
+				zorgDebugger::me()->debug('Returns HTML-link:', [$link]);
 				return $telegramUserIds['tui'];
 			} else {
 				return false;
@@ -256,7 +256,7 @@ class Telegram
 	 */
 	public function formatText($notificationText)
 	{
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> passed raw string: %s', __METHOD__, __LINE__, $notificationText));
+		zorgDebugger::me()->debug('Passed raw string: %s', [$notificationText]);
 
 		/**
 		 * Strip away all HTML-tags & unix line breaks
@@ -302,8 +302,8 @@ class Telegram
 		 * Decode HTML-Entities
 		 */
 		$notificationText = html_entity_decode($notificationText);
+		zorgDebugger::me()->debug('Processed string: %s', [$notificationText]);
 
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> processed string for return: %s', __METHOD__, __LINE__, $notificationText));
 		return ( !empty($notificationText) ? $notificationText : false );
 	}
 
@@ -412,7 +412,7 @@ class Telegram
 		}
 
 		/** Check if $messageType matches any available $_telegramMessageModels */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> checking array_key_exists in $_telegramMessageModels for "%s"', __METHOD__, __LINE__, $messageType));
+		zorgDebugger::me()->debug('Checking array_key_exists in $_telegramMessageModels for "%s"', [$messageType]);
 		if (isset($_telegramMessageModels[$messageType]))
 		{
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SUCCESS: $messageType "%s" found and is OK', __METHOD__, __LINE__, $messageType));
@@ -425,13 +425,14 @@ class Telegram
 			 *		if ( !array_key_exists($parameters, $value) ) error_log(sprintf('[WARN] '.__METHOD__.': Value %s is required but was not passed!', $key+1));
 			 *	}
 			 */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Checking $parameters for presence of required parameter "%s"', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
+			zorgDebugger::me()->debug('Checking $parameters for presence of required parameter "%s"', [$_telegramMessageModels[$messageType]['required'][0]]);
 			if ( !isset($parameters[$_telegramMessageModels[$messageType]['required'][0]]) )
 			{
 				error_log(sprintf('[WARN] <%s:%d> Value %s is required but was not passed!', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
 				return false;
 			} else {
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> SUCCESS: required parameter "%s" found and is OK', __METHOD__, __LINE__, $_telegramMessageModels[$messageType]['required'][0]));
+				zorgDebugger::me()->debug('SUCCESS: required parameter "%s" found and is OK', [$_telegramMessageModels[$messageType]['required'][0]]);
 
 				/**
 				 * Build the Data-Array with key:value pairs assigned
@@ -443,8 +444,9 @@ class Telegram
 				 *		'text' => $notificationText,
 				 *	];
 				 */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Building $data Array for Function return', __METHOD__, __LINE__));
 				$data = [];
+				zorgDebugger::me()->debug('Building $data Array for Function return');
+
 
 				/** Assign key=>value pairs for Global Parameters */
 				if (!empty($parameters['chat_id']))
@@ -463,7 +465,7 @@ class Telegram
 				/** Assign key=>value pairs for $messageType Required Parameters */
 				foreach ((array) $_telegramMessageModels[$messageType]['required'] as $requiredParameter)
 				{
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> array_push to $data Array for key=>value pair "%s"', __METHOD__, __LINE__, $requiredParameter));
+					zorgDebugger::me()->debug('array_push to $data Array for key=>value pair "%s"', [$requiredParameter]);
 					$data[$requiredParameter] = $this->formatText($parameters[$requiredParameter]);
 				}
 
@@ -472,18 +474,18 @@ class Telegram
 				{
 					foreach ((array) $_telegramMessageModels[$messageType]['optional'] as $optionalParameter)
 					{
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> array_push to $data Array for key=>value pair "%s"', __METHOD__, __LINE__, $optionalParameter));
+						zorgDebugger::me()->debug('array_push to $data Array for key=>value pair "%s"', [$optionalParameter]);
 						if (!empty($parameters[$optionalParameter])) $data[$optionalParameter] = $parameters[$optionalParameter];
 					}
 				}
 
 				/** Return Data-Array with key:value pairs assigned */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Complete $data Array:'."\n\r%s", __METHOD__, __LINE__, print_r($data, true)));
+				zorgDebugger::me()->debug('Complete $data Array: %s', [print_r($data, true)]);
 				return $data;
 			}
 
 		} else {
-			error_log(sprintf('[WARN] <%s:%d> Telegram Message Type "%s" is invalid!', __METHOD__, __LINE__, $messageType));
+			zorgDebugger::me()->warn('Telegram Message Type "%s" is invalid!', [$messageType]);
 			return false;
 		}
 	}
@@ -504,7 +506,7 @@ class send extends Telegram
 	 * Send as regular Chat-Message
 	 */
 	public function message($scope, $text, $parameters=[]) {
-		$this->send( $scope, 'sendMessage', array_merge(['text' => $text], $parameters) );
+		return $this->send( $scope, 'sendMessage', array_merge(['text' => $text], $parameters) );
 	}
 
 	/**
@@ -513,7 +515,7 @@ class send extends Telegram
 	 * Send as Photo
 	 */
 	public function photo($scope, $photo, $caption=NULL, $parameters=[]) {
-		$this->send( $scope, 'sendPhoto', array_merge(['photo' => $photo], ['caption' => $caption], $parameters) );
+		return $this->send( $scope, 'sendPhoto', array_merge(['photo' => $photo], ['caption' => $caption], $parameters) );
 	}
 
 	/**
@@ -523,7 +525,7 @@ class send extends Telegram
 	 * @link https://core.telegram.org/bots/api/#inputmedia
 	 */
 	public function gallery($scope, array $inputMedia, $parameters=[]) {
-		$this->send( $scope, 'sendMediaGroup', array_merge($inputMedia, $parameters) );
+		return $this->send( $scope, 'sendMediaGroup', array_merge($inputMedia, $parameters) );
 	}
 
 	/**
@@ -532,7 +534,7 @@ class send extends Telegram
 	 * Send as File
 	 */
 	public function document($scope, $document, $caption=NULL, $parameters=[]) {
-		$this->send( $scope, 'sendDocument', array_merge(['document' => $document], ['caption' => $caption], $parameters) );
+		return $this->send( $scope, 'sendDocument', array_merge(['document' => $document], ['caption' => $caption], $parameters) );
 	}
 
 	/**
@@ -541,7 +543,7 @@ class send extends Telegram
 	 * Send a Location Ping for a temporary amount of time
 	 */
 	public function location($scope, float $latitude, float $longitude, $live_period=NULL, $parameters=[]) {
-		$this->send( $scope, 'sendLocation', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['live_period' => $live_period], $parameters) );
+		return $this->send( $scope, 'sendLocation', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['live_period' => $live_period], $parameters) );
 	}
 
 	/**
@@ -550,7 +552,7 @@ class send extends Telegram
 	 * Send a static Location info for a certain Place
 	 */
 	public function event($scope, float $latitude, float $longitude, $title, $address, $foursquare_id=NULL, $parameters=[]) {
-		$this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['title' => $title], ['address' => $address], ['foursquare_id' => $foursquare_id], $parameters) );
+		return $this->send( $scope, 'sendVenue', array_merge(['latitude' => $latitude], ['longitude' => $longitude], ['title' => $title], ['address' => $address], ['foursquare_id' => $foursquare_id], $parameters) );
 	}
 
 	/**
@@ -561,7 +563,7 @@ class send extends Telegram
 	 * @TODO Stop Poll on close via chat_id using https://core.telegram.org/bots/api#stoppoll
 	 */
 	public function poll($scope, $question, $options, $is_anonymous=true, $type='regular', $allows_multiple_answers=false, $correct_option_id=null, $parameters=[]) {
-		$this->send( $scope, 'sendPoll', array_merge(
+		return $this->send( $scope, 'sendPoll', array_merge(
 			 ['question' => $question] // 1-300 characters
 			,['options' => $options] // JSON-serialized list of answer options, 2-10 strings 1-100 characters each
 			,['is_anonymous' => ($is_anonymous ? 'true' : 'false')] // (Optional) True, if the poll needs to be anonymous, defaults to True
@@ -577,5 +579,5 @@ class send extends Telegram
  * Instantiating new Telegram Class-Object
  * @TODO Fix this "dirty hack" with instantiated "$telegram->send"-object...
  */
-$telegram = new Telegram();
+//$telegram = new Telegram();
 $telegram->send = new send();

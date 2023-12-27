@@ -25,7 +25,7 @@ if(!isset($_POST['text']) || $_POST['text'] == '' || empty($_POST['text']))
 	user_error('keine leeren Posts erlaubt.', E_USER_WARNING);
 	die();
 } else {
-	$commentText = escape_text($_POST['text']);
+	$commentText = htmlspecialchars_decode($_POST['text'], ENT_COMPAT | ENT_SUBSTITUTE);
 }
 
 if(!is_numeric($_POST['parent_id']) || $_POST['parent_id'] == '')
