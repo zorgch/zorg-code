@@ -63,7 +63,7 @@ class Layout extends \MVC\Controller
 	public function __construct()
 	{
 		/** Position vom user bestimmen */
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new \Utils\IP2Geolocation()', __FILE__, __LINE__));
+		\zorgDebugger::me()->debug('New \Utils\IP2Geolocation()');
 		$userLocationData = new \Utils\User\IP2Geolocation();
 
 		/** Assign user location vars */
@@ -147,7 +147,7 @@ class Layout extends \MVC\Controller
 	 */
 	private function setColors()
 	{
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Color Layout: %s', __METHOD__, __LINE__, $this->layouttype));
+		\zorgDebugger::me()->debug('Color Layout: %s', [$this->layouttype]);
 
 		/** Background colors */
 		if (!defined('BACKGROUNDCOLOR')) define('BACKGROUNDCOLOR', ($this->layouttype === 'day' ? '#F2F2F2' : '#141414'));

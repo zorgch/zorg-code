@@ -25,8 +25,8 @@ if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/events'; //
 if ( isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] >= 0) $eventId = $_POST['id'];
 if ( isset($_POST['name']) && !empty($_POST['name'])) $eventName = sanitize_userinput($_POST['name']);
 if ( !empty($_POST['location'])) $eventLocation = sanitize_userinput($_POST['location']);
-if ( !empty($_POST['link'])) $eventLink = escape_text((filter_var($_POST['link'], FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['link'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['link']:$error='Ungültiger Event-Link'):$_POST['link']));
-if ( !empty($_POST['review_url'])) $eventReviewlink = escape_text((filter_var($_POST['review_url'], FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['review_url'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['review_url']:$error='Ungültige Review-URL'):$_POST['review_url']));
+if ( !empty($_POST['link'])) $eventLink = (filter_var($_POST['link'], FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['link'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['link']:$error='Ungültiger Event-Link'):$_POST['link']);
+if ( !empty($_POST['review_url'])) $eventReviewlink = (filter_var($_POST['review_url'], FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['review_url'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['review_url']:$error='Ungültige Review-URL'):$_POST['review_url']);
 if ( !empty($_POST['description'])) $eventDescription = htmlspecialchars_decode($_POST['description'], ENT_COMPAT | ENT_SUBSTITUTE);
 if ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0) $eventGallery = $_POST['gallery_id'];
 if ( isset($_GET['join']) && is_numeric($_GET['join']) && $_GET['join'] >= 0) $eventJoinId = $_GET['join'];
@@ -38,30 +38,28 @@ switch (true)
 	/** Validation Error */
 	case (!empty($error)):
 		/** If $error break switch() instantly */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Error: %s', __FILE__, __LINE__, $error));
+		zorgDebugger::me()->warn('Validation Error: %s%s', [$error]);
 		break;
 
 
 	/** Add new Event */
 	case ((isset($_POST['action']) && $_POST['action'] === 'new')):
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> New Event: %s', __FILE__, __LINE__, $eventName));
-		$sql = 'INSERT INTO
-					events
-						(name, location, link, description, startdate, enddate, gallery_id, reportedby_id, reportedon_date, review_url)
-					VALUES
-						(
-							 "'.$eventName.'"
-							,"'.$eventLocation.'"
-							,"'.$eventLink.'"
-							,"'.$eventDescription.'"
-							,"'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
-							,"'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
-							,'.$eventGallery.'
-							,'.$user->id.'
-							,'.timestamp(true).'
-							,"'.$eventReviewlink.'"
-						)';
-		$idNewEvent = $db->query($sql, __FILE__, __LINE__, 'INSERT INTO events');
+		zorgDebugger::me()->debug('Adding new Event: %s', [$eventName]);
+		$startdate = sprintf('%s-%s-%s %s:00', $_POST['startYear'], $_POST['startMonth'], $_POST['startDay'], $_POST['startHour']);
+		$enddate = sprintf('%s-%s-%s %s:00', $_POST['endYear'], $_POST['endMonth'], $_POST['endDay'], $_POST['endHour']);
+		$values = [
+			'name' => $eventName,
+			'location' => $eventLocation,
+			'link' => $eventLink,
+			'description' => $eventDescription,
+			'startdate' => $startdate,
+			'enddate' => $enddate,
+			'gallery_id' => $eventGallery,
+			'reportedby_id' => $user->id,
+			'reportedon_date' => timestamp(true),
+			'review_url' => $eventReviewlink
+		];
+		$idNewEvent = $db->insert('events', $values, __FILE__, __LINE__, 'INSERT INTO events');
 
 		/** Error */
 		if (empty($idNewEvent))
@@ -80,21 +78,23 @@ switch (true)
 
 	/** Save updated Event details */
 	case ((isset($_POST['action']) && $_POST['action'] === 'edit')):
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Update Event: %d "%s"', __FILE__, __LINE__, $eventId, $eventName));
+		zorgDebugger::me()->debug('Update existing Event: %d «%s»', [$eventId, $eventName]);
 
+		$newStartdate = sprintf('%s-%s-%s %s:00', $_POST['startYear'], $_POST['startMonth'], $_POST['startDay'], $_POST['startHour']);
+		$newEnddate = sprintf('%s-%s-%s %s:00', $_POST['endYear'], $_POST['endMonth'], $_POST['endDay'], $_POST['endHour']);
 		$sql = 'UPDATE events
 			 	SET
 					name = "'.$eventName.'"
 					, location = "'.$eventLocation.'"
 					, link = "'.$eventLink.'"
 					, description = "'.$eventDescription.'"
-					, startdate = "'.$_POST['startYear'].'-'.$_POST['startMonth'].'-'.$_POST['startDay'].' '.$_POST['startHour'].':00"
-			 		, enddate = "'.$_POST['endYear'].'-'.$_POST['endMonth'].'-'.$_POST['endDay'].' '.$_POST['endHour'].':00"
+					, startdate = "'.$newStartdate.'"
+			 		, enddate = "'.$newEnddate.'"
 			 		, gallery_id = '.$eventGallery.'
 			 		, review_url = "'.$eventReviewlink.'"
 				WHERE id = '.$eventId
 				;
-		if (DEVELOPMENT) error_log($sql);
+		// TODO use $db->update() Method
 		$result = $db->query($sql, __FILE__, __LINE__, 'edit');
 		if ($result === false) $error = 'Error updating Event ID "' . $eventId . '"';
 
@@ -103,16 +103,13 @@ switch (true)
 
 	/** Join User to Event */
 	case (isset($eventJoinId) && is_numeric($eventJoinId)):
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Join Event: %d', __FILE__, __LINE__, $eventJoinId));
+		zorgDebugger::me()->debug('User joins Event: %d', [$eventJoinId]);
 		$redirect_url .= '&event_id='.$eventJoinId;
 
-		$sql = 'INSERT INTO events_to_user VALUES('.$user->id.', '.$eventJoinId.')';
-		if ($db->query($sql,__FILE__, __LINE__) === false)
-		{
+		$insertValues = ['user_id' => $user->id, 'event_id' => $eventJoinId];
+		if ($db->insert('events_to_user', $insertValues, __FILE__, __LINE__) === false) {
 			$error = 'Cannot join Event ID ' . $eventJoinId;
-			break;
 		} else {
-			/** Activity Eintrag auslösen */
 			Activities::addActivity($user->id, 0, 'nimmt an <a href="'.$redirect_url.'">'.Events::getEventName($eventJoinId).'</a> teil.', 'ev');
 		}
 
@@ -121,18 +118,18 @@ switch (true)
 
 	/** Unjoin User from Event */
 	case (isset($eventUnjoinId) && is_numeric($eventUnjoinId)):
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Unjoin Event: %d', __FILE__, __LINE__, $eventUnjoinId));
+		zorgDebugger::me()->debug('User unjoins Event: %d', [$eventUnjoinId]);
 		$redirect_url .= '&event_id='.$eventUnjoinId;
 
-		$sql = 'DELETE FROM events_to_user WHERE user_id = '.$user->id.' AND event_id = '.$eventUnjoinId;
-		if (!$db->query($sql,__FILE__, __LINE__)) $error = 'Cannot unjoin Event ID ' . $eventUnjoinId;
+		$sql = 'DELETE FROM events_to_user WHERE user_id=? AND event_id=?';
+		if (!$db->query($sql,__FILE__, __LINE__, 'Event Unjoin', [$user->id, $eventUnjoinId])) $error = 'Cannot unjoin Event ID ' . $eventUnjoinId;
 
 		break;
 
 
 	/** Post Event to Twitter */
 	case ((isset($_POST['action']) && $_POST['action'] === 'tweet')):
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Tweet Event: %s', __FILE__, __LINE__, $redirect_url));
+		zorgDebugger::me()->debug('Tweet Event: %s', [$redirect_url]);
 
 		/**
 		 * Load Twitter Class & Grab the Twitter API Keys
@@ -194,6 +191,7 @@ switch (true)
 }
 
 /** Redirect request */
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting to %s', __FILE__, __LINE__, $redirect_url.rawurlencode($error)));
-header('Location: ' . $redirect_url . ( !empty($error) ? '&error='.rawurlencode($error) : '') );
+$goToUrl = $redirect_url . ( !empty($error) ? '&error='.rawurlencode($error) : '');
+zorgDebugger::me()->debug('Redirecting to %s', [$goToUrl]);
+header('Location: ' . $goToUrl );
 exit;
