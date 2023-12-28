@@ -32,16 +32,19 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 if ((isset($_GET['user']) && !empty($_GET['user']) && is_numeric($_GET['user']) && $_GET['user'] > 0) &&
 	(isset($_GET['file']) && !empty($_GET['file'])))
 {
-	$e = $db->query('SELECT * FROM files WHERE user=' . (int)$_GET['user'] . ' AND name="' . addslashes($_GET['file']) .'"', __FILE__, __LINE__, 'SELECT files by user');
+	$e = $db->query('SELECT * FROM files WHERE user=? AND name=?',
+					__FILE__, __LINE__, 'SELECT files by user', [(int)$_GET['user'], addslashes($_GET['file'])]);
 	$d = $db->fetch($e);
-
+}
 /** ...else check & validate for file-id in URL-Params */
-} elseif (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0)
-	{
-		$e = $db->query('SELECT * FROM files WHERE id=' . (int)$_GET['id'], __FILE__, __LINE__, 'SELECT files by id');
-		$d = $db->fetch($e);
-	}
-} else {
+elseif (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0)
+{
+	$e = $db->query('SELECT * FROM files WHERE id=?',
+					__FILE__, __LINE__, 'SELECT files by id', [(int)$_GET['id']]);
+	$d = $db->fetch($e);
+}
+/** ...finally: it's an invalid requests, it seems */
+else {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	exit('Invalid or missing GET-Parameter');
 }

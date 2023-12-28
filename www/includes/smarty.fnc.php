@@ -31,7 +31,7 @@ include_once INCLUDES_DIR.'rezepte.inc.php';
  * Define and include the MCV Controllers and initialise Layout related settings.
  */
 require_once CONTROLLERS_DIR.'layout.controller.php';
-if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> new MVC\Controller\Layout()', __FILE__, __LINE__));
+zorgDebugger::me()->debug('New MVC\Controller\Layout()');
 $zorgLayout = new MVC\Controller\Layout();
 
 /**
