@@ -7,12 +7,13 @@
  * @author ?
  * @package zorg\Games\Anficker
  */
+
 /**
  * File Includes
  * @include mysql.inc.php
  * @include usersystem.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 
@@ -56,37 +57,26 @@ class Anficker
 	 */
 	static function addAnfick($user_id, $text, $spresim_trainieren=FALSE) {
 		global $db, $user;
-		
+
 		// nur Anfick speichern, wenn Spresim trainiert werden soll:
 		//if ($spresim_trainieren == TRUE)
 		//{
 			if($text != '' && !empty($user_id))//$user->id2user($user_id)))
 			{
-				$sql = 
-					"INSERT IGNORE
-						INTO anficker_anficks (
-							text,
-							user_id,
-							datum)
-						VALUES (
-							'".$text."',
-							$user_id,
-							now()
-							)
-					";
-				$insert_id = $db->query($sql, __FILE__, __LINE__);
+				$sql = 'INSERT IGNORE INTO anficker_anficks ( text, user_id, datum) VALUES (?, ?, ?)';
+				$insert_id = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$text, $user_id, timestamp(true)]);
 			}
 			//else
 			//{
-				
-				
+
+
 				// Hier sollte was kommen, WENN SPRESIM NICHT TRAINIERT WERDEN SOLL... leider zur Zeit nicht realisierbar, IneX 8.6.09
 				// IDEE: Eine möglich Lösung wäre, ein zusätzliches Flag in der Tabelle "battle_only" oder so... (IneX, 8.6.09)
-				
-				
+
+
 			//}
 		//}
-		
+
 		// DEBUGGING
 		//error_log('[DEBUG] ' . __FILE__ . ':' . __LINE__ . ' mysql_insert_id() = ' . mysql_insert_id());
 		//error_log('[DEBUG] ' . __FILE__ . ':' . __LINE__ . ' Anficker::getId($text) = `' . $text . '`');
@@ -99,7 +89,7 @@ class Anficker
 
 	/**
 	 * Anfick im Anfick-Log ergänzen
-	 * 
+	 *
 	 * @author ?
 	 * @author IneX
 	 * @version 2.0
@@ -113,53 +103,30 @@ class Anficker
 	 */
 	static function logAnfick($anfick_id, $user_id, $anficker_id) {
 		global $db;
-		$sql = 
-			"
-			INSERT INTO 
-				anficker_log (datum, user_id, anficker_id, anfick_id)
-			VALUES(
-				now(),
-				$user_id,
-				$anficker_id,
-				$anfick_id
-			)";
+		$sql = 'INSERT INTO anficker_log (datum, user_id, anficker_id, anfick_id) VALUES (?, ?, ?, ?)';
 		//return $db->query($sql, __FILE__, __LINE__);
-		$db->query($sql, __FILE__, __LINE__);
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), $user_id, $anficker_id, $anfick_id]);
 	}
-	
-	
+
+
 	static function deleteLog($user_id) {
 		global $db;
-		$sql = 
-			"
-			DELETE FROM 
-				anficker_log 
-			WHERE user_id = '".$user_id."'
-			"
-		;
-		return $db->query($sql, __FILE__, __LINE__);
+		$sql = 'DELETE FROM anficker_log WHERE user_id=?';
+		return $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id]);
 	}
-	
-	
+
+
 	static function getId($text) {
 		global $db;
-		$sql = 
-			"
-			SELECT 
-				id
-			FROM
-				anficker_anficks
-			WHERE text = '".$text."'
-			"
-		;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+		$sql = 'SELECT id FROM anficker_anficks WHERE text=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$text]));
 		return $rs['id'];
 	}
-	
-	
+
+
 	/**
 	 * Anfick-Log ausgeben
-	 * 
+	 *
 	 * @author ?
 	 * @author IneX
 	 * @version 2.0
@@ -172,36 +139,22 @@ class Anficker
 	 */
 	static function getLog($user_id) {
 		global $db;
-		
+
 		//Anficker::addRandomAnfick2Log($user_id, ANFICKER_USER_ID);
 		Anficker::logAnfick(Anficker::anfickenMit(), $user_id, ANFICKER_USER_ID);
-		
-		$sql = 
-			"
-			SELECT 
-				anficker_anficks.note
-				, anficker_anficks.id
-				, anficker_log.datum
-				, anficker_anficks.text
-				, anficker_log.anficker_id
-			FROM
-				anficker_log
-			LEFT JOIN anficker_anficks ON (anficker_anficks.id = anficker_log.anfick_id)
-			WHERE anficker_log.user_id = '".$user_id."'
-			ORDER BY anficker_log.id ASC
-			"
-		;
-		
-		$result = $db->query($sql, __FILE__, __LINE__);
-		
+
+		$sql = 'SELECT anficker_anficks.note, anficker_anficks.id, anficker_log.datum, anficker_anficks.text, anficker_log.anficker_id FROM anficker_log
+				LEFT JOIN anficker_anficks ON (anficker_anficks.id = anficker_log.anfick_id) WHERE anficker_log.user_id=? ORDER BY anficker_log.id ASC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id]);
+
 		while($rs = $db->fetch($result)) {
 			$dialog[] = $rs;
 		}
-		
+
 		return $dialog;
 	}
-	
-	
+
+
 	/**
 	 * Anzahl existierender Anficks holen
 	 *
@@ -216,8 +169,10 @@ class Anficker
 	static function getNumAnficks($user_id=null)
 	{
 		global $db;
-		$sql =  'SELECT COUNT(*) AS num, AVG(note) AS note, SUM(votes) AS votes FROM anficker_anficks'.(!empty($user_id) ? ' WHERE user_id='.$user_id : '');
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+		$params = [];
+		$sql =  'SELECT COUNT(*) AS num, AVG(note) AS note, SUM(votes) AS votes FROM anficker_anficks'.(!empty($user_id) ? ' WHERE user_id=?' : '');
+		if (!empty($user_id)) $params[] = $user_id;
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$params]));
 		return $rs;
 	}
 
@@ -238,25 +193,17 @@ class Anficker
 	 */
 	static function addRandomAnfick2Log($user_id) {
 		/*global $db;
-		$sql = 
-			"
-			SELECT 
-				* 
-			FROM
-				anficker_anficks
-			ORDER BY note ASC
-			"
-		;
+		$sql = "SELECT * FROM anficker_anficks ORDER BY note ASC";
 		$result = $db->query($sql, __FILE__, __LINE__);
-		
-		// zufällige id holen	
+
+		// zufällige id holen
 		$rs = Anficker::getNumAnficks();
 		$id = rand(0, $rs['num']-1); // Zufalls #
 		$id = rand($id, $rs['num']-1); // die besten bevorzugen.
 		mysql_data_seek($result, $id);
-		
+
 		$rs = $db->fetch($result);*/
-		
+
 		//return Anficker::logAnfick($rs['id'], $user_id, ANFICKER_USER_ID);
 		Anficker::logAnfick(Anficker::anfickenMit(), $user_id, ANFICKER_USER_ID);
 	}
@@ -295,7 +242,7 @@ class Anficker
 
 	/**
 	 * Anfick-Spruch benoten
-	 * 
+	 *
 	 * @author ?
 	 * @author IneX
 	 * @version 1.1
@@ -307,18 +254,10 @@ class Anficker
 	 */
 	static function vote($anfick_id, $note) {
 		global $db;
-		$sql = 
-			"
-			UPDATE 
-				anficker_anficks
-			SET 
-				note = ((".$note." + note*votes)/(votes+1))
-				, votes = (votes + 1)
-			WHERE id = ".$anfick_id."
-			"
+		$sql = 'UPDATE anficker_anficks SET note=((?+note*votes)/(votes+1)), votes=(votes+1) WHERE id=?'
 		;
 		//return $db->query($sql, __FILE__, __LINE__);
-		$db->query($sql, __FILE__, __LINE__);
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$note, $anfick_id]);
 	}
-	
+
 }

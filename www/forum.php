@@ -18,7 +18,8 @@
  * @include main.inc.php required
  * @include core.model.php required
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
@@ -29,13 +30,13 @@ $model = new MVC\Forum();
 /**
  * Validate passed Parameters
  */
-$doAction = (isset($_GET['layout']) ? filter_var(trim($_GET['layout']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
-$searchKeyword = (isset($_GET['keyword']) ? filter_var(trim($_GET['keyword']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
-$commentId = (isset($_GET['id']) ? filter_var(trim($_GET['id']), FILTER_VALIDATE_INT, ['flags' => FILTER_SANITIZE_NUMBER_INT | FILTER_NULL_ON_FAILURE]) : null);
-$threadId = (isset($_GET['thread_id']) ? filter_var(trim($_GET['thread_id']), FILTER_VALIDATE_INT, ['flags' => FILTER_SANITIZE_NUMBER_INT | FILTER_NULL_ON_FAILURE]) : null);
-$commentParentId = (isset($_GET['parent_id']) ? filter_var(trim($_GET['parent_id']), FILTER_VALIDATE_INT, ['flags' => FILTER_SANITIZE_NUMBER_INT | FILTER_NULL_ON_FAILURE]) : null);
-$sortBy = (isset($_GET['sortby']) ? filter_var(trim($_GET['sortby']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
-$errorMessage = (isset($_GET['error']) ? filter_var(trim($_GET['error']), FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_UNSAFE_RAW | FILTER_NULL_ON_FAILURE]) : null);
+$doAction = filter_input(INPUT_GET, 'layout', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$searchKeyword = filter_input(INPUT_GET, 'keyword', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+$commentId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? null;
+$threadId = (isset($getThreadId) ? $getThreadId : (filter_input(INPUT_GET, 'thread_id', FILTER_VALIDATE_INT) ?? null));
+$commentParentId = filter_input(INPUT_GET, 'parent_id', FILTER_VALIDATE_INT) ?? null;
+$sortBy = filter_input(INPUT_GET, 'sortby', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$errorMessage = filter_input(INPUT_GET, 'error', FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_FLAG_NO_ENCODE_QUOTES]) ?? null;
 
 /**
  * Forum-Übersicht/-Threads ausgeben
@@ -48,7 +49,7 @@ if (empty($doAction))
 	/**
 	 * Forumübersicht ausgeben
 	 */
-	if ($showCommentId <= 1)
+	if (empty($showCommentId))
 	{
 		$parent_id = 1;
 
@@ -82,8 +83,8 @@ if (empty($doAction))
 		$outputContent = '';
 		$no_form = false; // Commentform is: true=hidden / false=shown
 		$rsparent = Comment::getRecordset($showCommentId);
-		$parent_id = (int)$rsparent['parent_id'];
-		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id='.$showCommentId, __FILE__, __LINE__, 'SELECT * FROM comments'));
+		$parent_id = intval($rsparent['parent_id']);
+		$thread = $db->fetch($db->query('SELECT * FROM comments WHERE id=?', __FILE__, __LINE__, 'SELECT * FROM comments', [$showCommentId]));
 
 		/** Forum / Commenting Error anzeigen */
 		if (!empty($errorMessage))
@@ -112,21 +113,18 @@ if (empty($doAction))
 			{
 				/** Subscribed_Comments Array bauen */
 				$comments_subscribed = []; // Könnte leer bleiben wenn 0=Subscribed...
-				$sql = 'SELECT comment_id
-						FROM comments_subscriptions
-						WHERE board="'.$thread['board'].'" AND user_id='.$user->id;
-				$e = $db->query($sql, __FILE__, __LINE__, 'SELECT comment_id');
+				$sql_subs = 'SELECT comment_id FROM comments_subscriptions WHERE board=? AND user_id=?';
+				$e = $db->query($sql_subs, __FILE__, __LINE__, 'SELECT comment_id', [$thread['board'], $user->id]);
 				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
 				$smarty->assign('comments_subscribed', $comments_subscribed);
 
 				/** Unread Posts bauen */
 				$comments_unread = []; // Könnte leer bleiben wenn 0=Unreads...
-				$e = $db->query('SELECT u.comment_id
-								 FROM comments c, comments_unread u
-								 WHERE c.id=u.comment_id AND c.thread_id='.$thread['thread_id'].' AND u.user_id ='.$user->id,
-								__FILE__, __LINE__, 'SELECT u.comment_id'
-							);
-				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
+				$sql_unreads = 'SELECT u.comment_id FROM comments c, comments_unread u WHERE c.id=u.comment_id AND c.thread_id=? AND u.user_id=?';
+				$e = $db->query($sql_unreads, __FILE__, __LINE__, 'SELECT u.comment_id', [$thread['thread_id'], $user->id]);
+				while ($d = $db->fetch($e)) {
+					$comments_unread[] = $d['comment_id'];
+				}
 				$smarty->assign('comments_unread', $comments_unread);
 			}
 

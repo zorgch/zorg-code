@@ -22,7 +22,7 @@
 					{/if}</h3>
 				</th>
 				<th align="right" colspan="{$cols_total-3}">
-					<a href="{get_changed_url change="newmsg=true"}{*$newmsg_url*}"><button class="button primary" name="button_newMessage" style="float:right;">Neue Nachricht</button></a>
+					<a href="{get_changed_url change="do=newmsg"}{*$newmsg_url*}"><button class="button primary" name="button_newMessage" style="float:right;">Neue Nachricht</button></a>
 				</th>
 			</tr>
 			<tr>

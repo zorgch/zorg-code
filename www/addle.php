@@ -177,8 +177,9 @@ function newgame($player) {
 	$row = mt_rand(0,7);
 
 	// db-entry
-	$gameid = $db->query('INSERT INTO addle (date, player1, player2, data, nextrow) VALUES (UNIX_TIMESTAMP(NOW()), '.$player.', '.$user->id.', "'.$board.'", '.$row.')', __FILE__, __LINE__, __FUNCTION__);
-	$db->query('UPDATE user SET addle="1" WHERE id='.$user->id, __FILE__, __LINE__, __FUNCTION__);
+	$gameid = $db->query('INSERT INTO addle (date, player1, player2, data, nextrow) VALUES (UNIX_TIMESTAMP(?), ?, ?, ?, ?)',
+						__FILE__, __LINE__, __FUNCTION__, [timestamp(true), $player, $user->id, $board, $row]);
+	$db->query('UPDATE user SET addle="1" WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$user->id]);
 	/*========================================
 		Addle KI - start
 	========================================*/
@@ -226,7 +227,8 @@ function games()
 	/** Eingeloggte User */
 	if ($user->is_loggedin())
 	{
-		$e = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=1) OR (player2='.$user->id.' AND nextturn=2)) AND finish=0', __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT * FROM addle WHERE ((player1=? AND nextturn=1) OR (player2=? AND nextturn=2)) AND finish=0',
+						__FILE__, __LINE__, __FUNCTION__, [$user->id, $user->id]);
 		$num = $db->num($e);
 		if (!empty($num) && $num !== false && $num > 0)
 		{
@@ -242,7 +244,8 @@ function games()
 		}
 
 		/** Meine Laufenden Spiele */
-		$s = $db->query('SELECT * FROM addle WHERE ((player1='.$user->id.' AND nextturn=2) OR (player2='.$user->id.' AND nextturn=1)) AND finish=0', __FILE__, __LINE__, __FUNCTION__);
+		$s = $db->query('SELECT * FROM addle WHERE ((player1=? AND nextturn=2) OR (player2=? AND nextturn=1)) AND finish=0',
+						__FILE__, __LINE__, __FUNCTION__, [$user->id, $user->id]);
 		$num = $db->num($s);
 		if (!empty($num) || $num > 0)
 		{
@@ -303,8 +306,8 @@ function overview() {
 			<fieldset>
 				<label>Gegen&nbsp;
 				<?php
-					$sql = 'SELECT username, id FROM user WHERE addle="1" AND id <> '.$user->id.' ORDER BY username ASC';
-					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+					$sql = 'SELECT username, id FROM user WHERE addle="1" AND id<>? ORDER BY username ASC';
+					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$user->id]);
 					$numResult = $db->num($result);
 					while($rs = $db->fetch($result)) {
 							$values[] = $rs['id'];
@@ -358,7 +361,7 @@ function doplay($id, $choose) {
 
 	if ($id)
 	{
-		$e = $db->query('SELECT * FROM addle WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT * FROM addle WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$id]);
 		$d = $db->fetch($e);
 		if ($d) { //&& $choose>=0 && $choose<=7) { <- wird schon in der parameter validierung abgefragt
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $d: %s', __METHOD__, __LINE__, print_r($d,true)));
@@ -396,18 +399,8 @@ function doplay($id, $choose) {
 						}
 					}
 					/** db entry zug */
-					$sql = 'UPDATE addle
-							SET
-								date=UNIX_TIMESTAMP(NOW()),
-								score'.$d['nextturn'].'='.$score.',
-								data="'.$data.'",
-								nextturn='.$nextturn.',
-								nextrow='.$choose.',
-								finish='.$finish.',
-								last_pick_data = "'.(ord($act)-96).'",
-								last_pick_row = '.$d['nextrow'].'
-							WHERE id='.$id;
-					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+					$sql = 'UPDATE addle SET date=UNIX_TIMESTAMP(?), score'.$d['nextturn'].'=?, data=?, nextturn=?, nextrow=?, finish=?, last_pick_data=?, last_pick_row=? WHERE id=?';
+					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [timestamp(true), $score, $data, $nextturn, $choose, $finish, ord($act)-96, $d['nextrow'], $id]);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> db entry zug $sql: %s => %s', __METHOD__, __LINE__, ($result?'SUCCESS':'ERROR'),$sql));
 
 					/** Notification */
@@ -485,12 +478,9 @@ function play($id=0)
 		overview();
 		exit;
 	}
-	$sql = 'SELECT a.*, d1.score dwz1, d1.rank dwzr1, d2.score dwz2, d2.rank dwzr2
-			FROM addle a
-			LEFT JOIN addle_dwz d1 ON d1.user=a.player1
-			LEFT JOIN addle_dwz d2 ON d2.user=a.player2
-			WHERE a.id='.$id;
-	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$sql = 'SELECT a.*, d1.score dwz1, d1.rank dwzr1, d2.score dwz2, d2.rank dwzr2 FROM addle a
+			LEFT JOIN addle_dwz d1 ON d1.user=a.player1 LEFT JOIN addle_dwz d2 ON d2.user=a.player2 WHERE a.id=?';
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$id]);
 	if ($db->num($e) !== 1) {
 		http_response_code(404); // Set response code 404 (not found)
 		//user_error(t('error-game-invalid', 'global', [ $id ]), E_USER_ERROR);

@@ -10,12 +10,10 @@
 /**
  * File includes
  * @include	config.inc.php 		Include required global site configurations
- * @include util.inc.php 		Various Helper Functions
  * @include mysql.inc.php 		MySQL-DB Connection and Functions
  * @include	activities.inc.php	Activities Functions and Stream
  */
 require_once __DIR__.'/config.inc.php';
-require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'activities.inc.php';
 
@@ -162,7 +160,7 @@ class usersystem
 	 *
 	 * @var string (Optional) Error-Message, see: usersystem::activate_user()
 	 */
-	protected $error_message;
+	public $error_message;
 
 	/**
 	 * Klassen Konstruktor
@@ -205,16 +203,16 @@ class usersystem
 		{
 			/** Session init'en */
 			session_start();
-			zorgDebugger::me()->debug('Existing Session restarted');
+			zorgDebugger::log()->debug('Existing Session restarted');
 
 			/** $_SESSION[user_id] not yet available -> if not on forced Login / Logout try to Autologin */
 			if (!isset($_SESSION['user_id']) && !isset($_POST['username']) && !isset($_POST['logout']))
 			{
 				/** We got Cookies --> Autologin! */
-				zorgDebugger::me()->debug('$_SESSION[user_id] missing & no login/logout...');
+				zorgDebugger::log()->debug('$_SESSION[user_id] missing & no login/logout...');
 				if (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 				{
-					zorgDebugger::me()->debug('Autologin-Cookies existieren -> Login-Passthrough');
+					zorgDebugger::log()->debug('Autologin-Cookies existieren -> Login-Passthrough');
 					$this->login($_COOKIE[ZORG_COOKIE_USERID]); // Do NOT send $_COOKIE[ZORG_COOKIE_USERPW] here - because it only contains the PW-Hash!
 				}
 			}
@@ -229,7 +227,7 @@ class usersystem
 			isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && $_SESSION['user_id'] > 0)
 		{
 			/** Query User Infos in der DB */
-			zorgDebugger::me()->debug('Session re-started inkl. $_SESSION[user_id]');
+			zorgDebugger::log()->debug('Session re-started inkl. $_SESSION[user_id]');
 			$sql = 'SELECT *,
 						UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
 						UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
@@ -261,7 +259,7 @@ class usersystem
 				 * @var string $zorger hat der user zooomclan.org (retro) gewählt? sonst zorg.ch (modern) anzeigen
 				 * @var string $vereinsmitglied Vereinsmitglied-Status des user
 				 */
-				$this->id = $_SESSION['user_id'];
+				$this->id = intval($_SESSION['user_id']);
 				$this->email = $rs[$this->field_email];
 				$this->username = $rs[$this->field_username];
 				$this->clantag = $rs[$this->field_clantag];
@@ -279,12 +277,12 @@ class usersystem
 				$this->last_ip = (isset($_SESSION[$this->sessionkey_last_ip]) && !empty($_SESSION[$this->sessionkey_last_ip]) ? $_SESSION[$this->sessionkey_last_ip] : null);
 				$this->activities_allow = ($rs[$this->field_activities_allow] === '0' ? false : true);
 				$this->show_comments = ($rs[$this->field_show_comments] === '0' ? false : true);
-				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? $rs[$this->field_notifications] : $this->default_notifications), true); // JSON-Decode to Array
+				$this->notifications = json_decode( (!empty($rs[$this->field_notifications]) ? stripslashes($rs[$this->field_notifications]) : $this->default_notifications), true); // JSON-Decode to Array
 				$this->sql_tracker = ($rs[$this->field_sql_tracker] === '0' ? false : true);
 				$this->addle = ($rs[$this->field_addle] === '0' ? false : true);
 				$this->chess = ($rs[$this->field_chess] === '0' ? false : true);
 				$this->forum_boards = json_decode($rs['forum_boards'], true);//explode(',', $rs['forum_boards']);
-				$this->forum_boards_unread = json_decode($rs['forum_boards_unread'], true);//explode(',', $rs['forum_boards_unread']);
+				$this->forum_boards_unread = json_decode(stripslashes($rs['forum_boards_unread']), true);//explode(',', $rs['forum_boards_unread']);
 				$this->maxdepth = ($rs[$this->field_maxdepth] ? $rs[$this->field_maxdepth] : $this->maxdepth = DEFAULT_MAXDEPTH);
 				$this->menulayout = $rs[$this->field_menulayout];
 				$this->mymenu = $rs[$this->field_mymenu];
@@ -303,9 +301,9 @@ class usersystem
 				$userMobileClientAgent = isMobileClient($_SERVER['HTTP_USER_AGENT']);
 				$this->from_mobile = (!empty($userMobileClientAgent) ? reset($userMobileClientAgent) : false );
 
-				zorgDebugger::me()->debug('$user->lastlogin: %s', [strval($this->lastlogin)]);
-				zorgDebugger::me()->debug('$user->currentlogin: %s', [strval($this->currentlogin)]);
-				zorgDebugger::me()->debug('$user->from_mobile: %s => %s', [$_SERVER['HTTP_USER_AGENT'], ($this->from_mobile ? $this->from_mobile : 'false')]);
+				zorgDebugger::log()->debug('$user->lastlogin: %s', [strval($this->lastlogin)]);
+				zorgDebugger::log()->debug('$user->currentlogin: %s', [strval($this->currentlogin)]);
+				zorgDebugger::log()->debug('$user->from_mobile: %s => %s', [$_SERVER['HTTP_USER_AGENT'], ($this->from_mobile ? $this->from_mobile : 'false')]);
 
 				/**
 				 * Update last user activity
@@ -353,40 +351,41 @@ class usersystem
 	{
 		global $db;
 
-		/** erstellt sql string für User überprüfung */
-		$sql = sprintf('SELECT id, %s FROM %s WHERE %s = "%s" LIMIT 0,1', $this->field_userpw, $this->table_name, $this->field_username, $username);
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$error = null;
+
+		/** erstellt sql string für User überprüfung */
+		$sql = sprintf('SELECT id, %s FROM %s WHERE %s=? LIMIT 1', $this->field_userpw, $this->table_name, $this->field_username);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$username]);
 
 		/**
 		 * Record gefunden (= User existiert).
 		 */
 		if($db->num($result) === 1)
 		{
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> username: found record in DB=>%d', __METHOD__, __LINE__, $db->num($result)));
 			$rs = $db->fetch($result);
+			zorgDebugger::log()->debug('username found in DB: %s', [$rs['id']]);
 
 			/**
 			 * Verifiziert ein übergebenes Passwort (on Login only)
 			 */
 			if (isset($password) && !empty($password) && !isset($_COOKIE[ZORG_COOKIE_USERPW]))
 			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> !empty($password)', __METHOD__, __LINE__));
+				zorgDebugger::log()->debug('empty($password)');
 				$hash_matches_pw = $this->verify_pw($password, $rs['userpw']);
 				if (true === $hash_matches_pw)
 				{
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: Password matches Hash - OK', __METHOD__, __LINE__));
+					zorgDebugger::log()->debug('Password matches Hash - OK');
 					/** But wait: do we have a new Hash? Because usersystem::upgrade_old_pw() was invoked? */
 					if (isset($this->userpw) && !empty($this->userpw))
 					{
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: Ou dang! Password-Fallback using Hash from $this->userpw', __METHOD__, __LINE__));
+						zorgDebugger::log()->debug('Ou dang! Password-Fallback using Hash from $this->userpw');
 						$crypted_pw = $this->userpw;
 					} else {
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: All good, regular Password match is OK', __METHOD__, __LINE__));
+						zorgDebugger::log()->debug('All good, regular Password match is OK');
 						$crypted_pw = $rs['userpw'];
 					}
 				} else {
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login: Password and Hash MISMATCH!', __METHOD__, __LINE__));
+					zorgDebugger::log()->debug('MISMATCH Password and Hash!');
 					$crypted_pw = null;
 					http_response_code(401); // Set response code 401 (unauthorized)
 					$error = t('authentication-failed', 'user');
@@ -406,27 +405,23 @@ class usersystem
 			if (isset($crypted_pw) && !empty($crypted_pw))
 			{
 				/** Erstell SQL-Query auf Basis User+Passworthash-Kombi */
-				$sql = sprintf('SELECT %10$s, %1$s, UNIX_TIMESTAMP(%2$s) %2$s, UNIX_TIMESTAMP(%3$s) %3$s, UNIX_TIMESTAMP(%4$s) %4$s FROM %5$s'.
-								' WHERE %6$s = "%7$s" AND %8$s = "%9$s" LIMIT 0,1',
-								$this->field_user_active,
-								$this->field_ausgesperrt_bis,
-								$this->field_currentlogin,
-								$this->field_lastlogin,
-								$this->table_name,
-								$this->field_username,
-								$username,
-								$this->field_userpw,
-								$crypted_pw,
-								$this->field_userid
+				$sql = sprintf('SELECT %8$s, %1$s, UNIX_TIMESTAMP(%2$s) %2$s, UNIX_TIMESTAMP(%3$s) %3$s, UNIX_TIMESTAMP(%4$s) %4$s FROM %5$s WHERE %6$s=? AND %7$s=? LIMIT 1',
+								$this->field_user_active, // %1$s
+								$this->field_ausgesperrt_bis, // %2$s
+								$this->field_currentlogin, // %3$s
+								$this->field_lastlogin, // %4$s
+								$this->table_name, // %5$s
+								$this->field_username, // %6$s
+								$this->field_userpw, // %7$s
+								$this->field_userid // %8$s
 						);
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->query($sql) => %s', __METHOD__, __LINE__, print_r($sql,true)));
-				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$username, $crypted_pw]);
 
 				/** Record gefunden = User+Password matchen */
 				if($db->num($result) === 1)
 				{
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: password matches=>%d', __METHOD__, __LINE__, $db->num($result)));
 					$rs = $db->fetch($result);
+					zorgDebugger::log()->debug('password matches=>%d', [$db->num($result)]);
 
 					/** überprüfe ob user aktiviert wurde */
 					if($rs[$this->field_user_active] !== null && $rs[$this->field_user_active] !== 0 && $rs[$this->field_user_active] !== '0' && $rs[$this->field_user_active] !== false)
@@ -451,7 +446,7 @@ class usersystem
 								 * @link http://php.net/manual/de/function.setcookie.php
 								 * @link http://php.net/manual/de/function.setcookie.php#73107
 								 */
-								if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use cookies: %s | Session state: %d', __METHOD__, __LINE__, ($user_wants_cookies ? 'true --> enabling & setting Cookies' : 'false'), session_status()));
+								zorgDebugger::log()->debug('Use cookies: %s | Session state: %d', [($user_wants_cookies ? 'true --> enabling & setting Cookies' : 'false'), session_status()]);
 								if (session_status() === PHP_SESSION_NONE)
 								{
 									session_set_cookie_params([
@@ -496,13 +491,13 @@ class usersystem
 
 							/** Fire up a new Session for the authenticated user */
 							if (session_status() === PHP_SESSION_NONE) session_start();
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> NEW Session ID created: %s', __METHOD__, __LINE__, session_id()));
+							zorgDebugger::log()->debug('NEW Session ID created: %s', [session_id()]);
 
 							/** Push User-ID to the Session Superglobal */
 							$_SESSION['user_id'] = intval($rs['id']);
 
 							/** Last Login & current Login updaten */
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Login update(user): %s=>%s | %s=>%s %s', __METHOD__, __LINE__, $this->field_lastlogin, timestamp(true, (int)$rs[$this->field_currentlogin]), $this->field_currentlogin, timestamp(true), print_r($rs,true)));
+							zorgDebugger::log()->debug('Login update(user): %s=>%s | %s=>%s %s', [$this->field_lastlogin, timestamp(true, (int)$rs[$this->field_currentlogin]), $this->field_currentlogin, timestamp(true), print_r($rs,true)]);
 							$db->update($this->table_name, ['id', $rs['id']], [
 								$this->field_lastlogin => timestamp(true, (int)$rs[$this->field_currentlogin]),
 								$this->field_currentlogin => timestamp(true),
@@ -515,8 +510,9 @@ class usersystem
 							 * ...to have __construct() assign all additional User values
 							 * ...needed to work for whole page
 							 */
-							$loginRedirectUrl = (isset($_POST['redirect']) ? base64url_decode($_POST['redirect']) : $_SERVER['PHP_SELF'].(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: redirect url => %s', __METHOD__, __LINE__, $loginRedirectUrl));
+							$redirect = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['redirect']
+							$loginRedirectUrl = (!empty($redirect) ? base64url_decode($redirect) : $_SERVER['PHP_SELF'].(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
+							zorgDebugger::log()->debug('redirect url => %s', [$loginRedirectUrl]);
 							header('Location: '.$loginRedirectUrl);
 							exit;
 
@@ -527,7 +523,6 @@ class usersystem
 						$error = t('account-inactive', 'user');
 					}
 				} else {
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->num($result)=>ERROR (%d records match)', __METHOD__, __LINE__, $db->num($result)));
 					http_response_code(401); // Set response code 401 (unauthorized)
 					if (isset($_COOKIE[ZORG_COOKIE_USERPW]))
 					{
@@ -535,13 +530,13 @@ class usersystem
 						header('Clear-Site-Data: "cookies"'); // Request Client Browser to remove all Cookies
 						$this->invalidate_session();
 						$error = t('invalid-cookie', 'user');
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->num($result)=>ERROR: %s', __METHOD__, __LINE__, $error));
 						//user_error(t('invalid-cookie', 'user'), E_USER_WARNING); // Warnung loggen
 					} else {
 						$this->logerror(1,$rs['id']);
 						$error = t('authentication-failed', 'user'); // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> login: $db->num($result)=>ERROR: %s', __METHOD__, __LINE__, $error));
+
 					}
+					zorgDebugger::log()->debug('$db->num($result)=>ERROR: %s', [$error]);
 				}
 			} else {
 				http_response_code(401); // Set response code 401 (unauthorized)
@@ -551,7 +546,7 @@ class usersystem
 			http_response_code(401); // Set response code 401 (unauthorized)
 			$error = t('authentication-failed', 'user'); // nicht gegen aussen exponieren, dass Useraccount NICHT existiert
 		}
-		if (DEVELOPMENT && !empty($error)) error_log(sprintf('[DEBUG] <%s:%d> Error: %s', __METHOD__, __LINE__, $error));
+		zorgDebugger::log()->debug('Error: %s', [$error]);
 		return $error;
 	}
 
@@ -580,8 +575,10 @@ class usersystem
 		header('Clear-Site-Data: "cookies"');
 
 		/** Redirect user back to last page */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> logout: redirect url => %s', __METHOD__, __LINE__, (isset($_POST['redirect']) ? base64url_decode($_POST['redirect']) : $_SERVER['PHP_SELF'])));
-		header('Location: '. (isset($_POST['redirect']) ? base64url_decode($_POST['redirect']) : $_SERVER['PHP_SELF']) );
+		$redirect = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['redirect']
+		$redirectUrl = (!empty($redirect) ? base64url_decode($redirect) : $_SERVER['PHP_SELF']);
+		zorgDebugger::log()->debug('redirect url => %s', [$redirectUrl]);
+		header('Location: '.$redirectUrl);
 		exit;
 	}
 
@@ -749,27 +746,27 @@ class usersystem
 	 *
 	 * Erstellt einen Neuen Benutzer
 	 *
-	 * @version 3.0
+	 * @version 3.1
 	 * @since 1.0 method added
-	 * @since 2.0 replaced messages with Translation-String solution t()
-	 * @since 3.0 `04.12.2018` removed IMAP-code, code & query optimizations
+	 * @since 2.0 `IneX` replaced messages with Translation-String solution t()
+	 * @since 3.0 `04.12.2018` `IneX` removed IMAP-code, code & query optimizations
+	 * @since 3.1 `03.01.2024` `IneX` code hardenings, excluded Password-Checks
 	 *
 	 * @uses usersystem::crypt_pw(), t()
 	 * @uses SITE_URL, SENDMAIL_EMAIL
 	 * @param string $username Benutzername
-	 * @param string $pw Passwort
-	 * @param string $pw2 Passwortwiederholung
+	 * @param string $crypted_pw Passwort Hash created using password_hash()
 	 * @param string $email E-Mail
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
-	 * @return string error
+	 * @return bool|string True on success, or Error when unsuccessful
 	 */
-	function create_newuser($username, $pw, $pw2, $email) {
+	function create_newuser($username, $crypted_pw, $email) {
 		global $db;
 
-		if($username)
+		if(is_string($username))
 		{
-			$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_username.' = "'.$username.'"';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+			$sql = sprintf('SELECT id FROM %s WHERE %s=?', $this->table_name, $this->field_username);
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$username]);
 
 			/** überprüfe ob user bereits existiert */
 			if(!$db->num($result))
@@ -778,42 +775,30 @@ class usersystem
 				if(check_email($email))
 				{
 					/** überprüfe ob user mit gleicher email nicht bereits existiert */
-					$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_email.' = "'.$email.'"';
-					$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s', __METHOD__, __LINE__, $sql));
+					$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_email.'=?';
+					$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$email]);
 
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->num($result): %d', __METHOD__, __LINE__, $db->num($result)));
 					if($db->num($result) === 0)
 					{
-						/** überprüfe passwort übereinstimmung */
-						if($pw === $pw2)
+						/** erstelle regcode */
+						$key = $this->regcode_gen($username);
+
+						/** user eintragen */
+						$sql = 'INSERT into '.$this->table_name.'
+									('.$this->field_regcode.', '.$this->field_regdate.', '.$this->field_userpw.','.$this->field_username.',
+									'.$this->field_email.', '.$this->field_usertyp.')
+								VALUES (?,?,?,?,?,1)';
+						$db->query($sql, __FILE__, __LINE__, __METHOD__, [$key, timestamp(true), $crypted_pw, $username, $email]);
+
+						/** email versenden */
+						$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.SENDMAIL_EMAIL."\n");
+						if ($sendNewaccountConfirmation !== true)
 						{
-							/** erstelle regcode */
-							$key = $this->regcode_gen($username);
-
-							/** verschlüssle passwort */
-							$crypted_pw = $this->crypt_pw($pw);
-
-							/** user eintragen */
-							$sql = "INSERT into ".$this->table_name."
-								(".$this->field_regcode.", ".$this->field_regdate.",
-								".$this->field_userpw.",".$this->field_username.",
-								".$this->field_email.", ".$this->field_usertyp.")
-								VALUES ('".$key."',NOW(),'".$crypted_pw."','".$username."','".$email."', 1)";
-							$db->query($sql, __FILE__, __LINE__, __METHOD__);
-
-							/** email versenden */
-							$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.SENDMAIL_EMAIL."\n");
-							if ($sendNewaccountConfirmation !== true)
-							{
-								error_log(sprintf('[NOTICE] <%s:%d> Account confirmation e-mail could NOT be sent', __FILE__, __LINE__));
-								$error = t('error-userprofile-update', 'user');
-							} else {
-								//$error = t('account-confirmation', 'user');
-								return true;
-							}
+							error_log(sprintf('[NOTICE] <%s:%d> Account confirmation e-mail could NOT be sent', __FILE__, __LINE__));
+							$error = t('error-userprofile-update', 'user');
 						} else {
-							$error = t('authentication-failed', 'user');
+							//$error = t('account-confirmation', 'user');
+							return true;
 						}
 					} else {
 						$error = t('invalid-email', 'user');
@@ -1195,17 +1180,17 @@ class usersystem
 		/** Check for cached Gravater */
 		if (is_file($user_imgpath_gravatar) !== false) // TODO use fileExists() method from util.inc.php?
 		{
-			zorgDebugger::me()->debug('userImage GRAVATAR exists/cached: %s', [strval($user_imgpath_gravatar)]);
+			zorgDebugger::log()->debug('userImage GRAVATAR exists/cached: %s', [strval($user_imgpath_gravatar)]);
 			return $user_imgpath_gravatar;
 
 		/** Check for custom Userpic */
 		} elseif (is_file($user_imgpath_custom) !== false) {
-			zorgDebugger::me()->debug('userImage ZORG exists/cached: %s', [strval($user_imgpath_custom)]);
+			zorgDebugger::log()->debug('userImage ZORG exists/cached: %s', [strval($user_imgpath_custom)]);
 			return $user_imgpath_custom;
 
 		/** Return false if no userpic cached */
 		} else {
-			zorgDebugger::me()->debug('userImage NOT CACHED: querying Gravatar');
+			zorgDebugger::log()->debug('userImage NOT CACHED: querying Gravatar');
 			return false;
 		}
 	}
@@ -1235,13 +1220,13 @@ class usersystem
 			$user_imgpath = str_replace(USER_IMGPATH, USER_IMGPATH_PUBLIC, $user_imgpath);
 
 			/** Add Thumbnail shortcut, if $large is NOT set */
-			if (empty($large)) $user_imgpath = str_replace(USER_IMGEXTENSION, '_tn' . USER_IMGEXTENSION, $user_imgpath);
+			if ($large !== true) $user_imgpath = str_replace(USER_IMGEXTENSION, '_tn' . USER_IMGEXTENSION, $user_imgpath);
 
 			return $user_imgpath;
 
 		/** If no userpic-file exists, query Gravatar with USER_IMGPATH_DEFAULT as fallback image */
 		} else {
-			zorgDebugger::me()->debug('userImage not cached for $userid: %s', [strval($userid)]);
+			zorgDebugger::log()->debug('userImage not cached for $userid: %s', [strval($userid)]);
 			return $this->get_gravatar(
 										 $this->id2useremail($userid)
 										,($large ? USER_IMGSIZE_LARGE : USER_IMGSIZE_SMALL)
@@ -1389,7 +1374,7 @@ class usersystem
 	function user2id ($username)
 	{
 		global $db;
-		$e = $db->query('SELECT id FROM user WHERE username="'.$username.'" LIMIT 1', __FILE__, __LINE__, __METHOD__);
+		$e = $db->query('SELECT id FROM user WHERE username=? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$username]);
 		$d = $db->fetch($e);
 		return ($d !== false || !empty($d) ? $d['id'] : 0);
 	}
@@ -1427,8 +1412,8 @@ class usersystem
 		if ($displayName) {
 			if (!isset($_users[$id])) {
 				try {
-					$sql = "SELECT clan_tag, username FROM user WHERE id='$id'";
-					$result = $db->query($sql, __FILE__, __LINE__);
+					$sql = "SELECT clan_tag, username FROM user WHERE id=?";
+					$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$id]);
 					while ($rs = $db->fetch($result)) {
 						$_users[$id] = $rs;
 					}
@@ -1834,6 +1819,31 @@ class usersystem
 	}
 
 	/**
+	 * Check if User plays Games.
+	 * Prüft ob der User-ID zum Beispiel Addle oder Schach spielt.
+	 *
+	 * @version 1.0
+	 * @since 1.0 `04.01.2024` `IneX` Method added
+	 *
+	 * @param integer $user_id
+	 * @param string $game_name Name of Game: «addle» or chess. Default: addle
+	 * @return boolean
+	 */
+	function userPlays($game_name='addle', $user_id)
+	{
+		global $db;
+
+		/** Validte parameters */
+		$allowedGames = ['addle', 'chess'];
+		if (!is_string($game_name) || !in_array($game_name, $allowedGames)) return false;
+		if (!is_numeric($user_id) || $user_id <= 0) return false;
+
+		$query = $db->query('SELECT '.implode(',', $allowedGames).' FROM user WHERE id=? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$user_id]);
+		$result = $db->fetch($query);
+		return ( boolval($result[$game_name]) ? true : false );
+	}
+
+	/**
 	 * Get User Telegram Chat-ID
 	 *
 	 * Prüft ob der User-ID einen Telegram Messenger Chat-ID eingetragen hat
@@ -1853,7 +1863,7 @@ class usersystem
 		/** Validte $user_id - valid integer & not empty/null */
 		if (empty($user_id) || $user_id === NULL || $user_id <= 0) return false;
 
-		$query = $db->query('SELECT telegram_chat_id tci FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
+		$query = $db->query('SELECT telegram_chat_id tci FROM user WHERE id=? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$user_id]);
 		$result = $db->fetch($query);
 		return ( $result ? $result['tci'] : false );
 	}
@@ -1981,7 +1991,7 @@ class usersystem
 				}
 
 				/** Prepare SQL-Update "SET row=value"-Array */
-				$sqlUpdateSetValuesArray[$dataKey] = (!is_array($dataValue) ? mysqli_real_escape_string($db->conn, $dataValue) : $dataValue);
+				$sqlUpdateSetValuesArray[$dataKey] = (!is_array($dataValue) ? $dataValue : $dataValue);
 			}
 
 			/**
@@ -2007,14 +2017,14 @@ class usersystem
 			 * Process Form-Checkbox-Array values with JSON conversion
 			 */
 			if (is_array($data_array['notifications']) && count($data_array['notifications']) > 0) {
-				$sqlUpdateSetValuesArray['notifications'] = mysqli_real_escape_string($db->conn, json_encode($data_array['notifications']));
+				$sqlUpdateSetValuesArray['notifications'] = json_encode($data_array['notifications']);
 			} elseif (!isset($data_array['notifications']) || empty($data_array['notifications'])) {
 				$sqlUpdateSetValuesArray['notifications'] = NULL; // no change
 			}
 			if (is_array($data_array['forum_boards_unread']) && count($data_array['forum_boards_unread']) > 0) {
-				$sqlUpdateSetValuesArray['forum_boards_unread'] = mysqli_real_escape_string($db->conn, json_encode($data_array['forum_boards_unread']));
+				$sqlUpdateSetValuesArray['forum_boards_unread'] = json_encode($data_array['forum_boards_unread']);
 			} elseif (!isset($data_array['forum_boards_unread']) || empty($data_array['forum_boards_unread'])) {
-				$sqlUpdateSetValuesArray['forum_boards_unread'] = mysqli_real_escape_string($db->conn, $this->default_forum_boards_unread); // no change
+				$sqlUpdateSetValuesArray['forum_boards_unread'] = $this->default_forum_boards_unread; // no change
 			}
 
 			if (count($sqlUpdateSetValuesArray) > 0)
@@ -2242,11 +2252,11 @@ static $_geaechtet = array();
 if (isset($_POST['logout']))
 {
 	/** exec the User logout */
-	zorgDebugger::me()->debug('exec User logout');
+	zorgDebugger::log()->debug('exec User logout');
 	usersystem::logout();
 } else {
 	/** Instantiate a new usersystem Class */
-	zorgDebugger::me()->debug('Instantiate new usersystem Class');
+	zorgDebugger::log()->debug('Instantiate new usersystem Class');
 	$user = new usersystem();
 }
 
@@ -2255,12 +2265,13 @@ if (isset($_POST['logout']))
  */
 if (isset($_POST['do']) && $_POST['do'] === 'login')
 {
-	zorgDebugger::me()->debug('exec User login (Form): %s', [print_r($_POST, true)]);
+	zorgDebugger::log()->debug('exec User login (Form): %s', [print_r($_POST, true)]);
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
-		$login_username = (string)$_POST['username'];
-		$login_password = (string)$_POST['password'];
-		$auto = (isset($_POST['autologin']) && $_POST['autologin'] === 'cookie' ? true : false); // User wants Autologin on/off?
+		$login_remember = filter_input(INPUT_POST, 'autologin', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? false; // $_POST['autologin']
+		$login_username = filter_input(INPUT_POST, 'username', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['username']
+		$login_password = (string)$_POST['password']; // No sanitization to prevent PW being modified vs. user input
+		$auto = ($login_remember !== false && $login_remember === 'cookie' ? true : false); // User wants Autologin on/off?
 		$login_error = $user->login($login_username, $login_password, $auto);
 	} else {
 		$login_error = t('authentication-empty', 'user');

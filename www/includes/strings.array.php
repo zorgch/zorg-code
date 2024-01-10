@@ -171,6 +171,8 @@ return
 			,'error-package-missing' => 'Package "<strong>%s</strong>" existiert nicht.'
 			,'error-package-loading' => 'Error loading packages for template #%d'
 			,'activity-newpage' =>  'hat die Seite <a href="/tpl/%d">%s</a> erstellt.'
+			,'change-notification-owner' =>  '%s hat dein Template <a href="/tpl/%d">%s</a> bearbeitet.'
+			,'change-notification-owner-subject' => 'Dein Template wurde von %s bearbeitet'
 			,'favorite-page-action' => '[fav]'
 			,'unfavorite-page-action' => '[unfav]'
 		]
@@ -255,6 +257,8 @@ return
 	,'peter' =>
 		[
 			 'waiting-for-num-players' => 'Warten auf %d weitere Mitspieler...'
+			,'activity-newgame' => 'mischelt die Karten für einen <a href="%s/peter.php?game=%d">neuen «Peter» Jass</a>.'
+			,'activity-won' => 'hat <a href="%s/peter.php?game=%d">diese Runde</a> «Peter» für sich entschieden.'
 		]
 	,'poll' =>
 		[
@@ -299,5 +303,18 @@ return
 	,'verein_mailer' =>
 		[
 			 'webview-link' => "Diese E-Mail in all it's glory anschauen dooooo:\n%s/verein_mailer.php?mail=%s&user=%s&hash=%s"
+		]
+	,'wetten' =>
+		[
+			 'activity-neuewette' => '<a href="%s/wetten.php?id=%d">behauptet</a> dass «%s» - stimmst du zu, oder wettest du dagegen?'
+			,'activity-wette-done' => 'hat <a href="%s/wetten.php?id=%d">seine Wette</a> als entschieden markiert. Zeit den Wetteinsatz einzulösen!'
+		]
+	,'rezepte' =>
+		[
+			 'activity-new' => 'hat ein <a href="%s/tpl/129?rezept_id=%d">neues Rezept verraten</a> - lönds eu schmeckä!'
+		]
+	,'books' =>
+		[
+			 'activity-new' => 'hat das <a href="%s/books.php?do=show&book_id=%d">Buch «%s»</a> neu im Regal 👀'
 		]
 ];

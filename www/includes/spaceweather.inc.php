@@ -163,23 +163,15 @@ function get_spaceweather()
 				foreach($value as $kk => $vv) {
 					$ps[] = trim($vv);
 				}
-				$sql = "
-				REPLACE into spaceweather_pha
-					(asteroid,datum,distance,mag)
-				VALUES
-					('".$ps[0]."','".date("Y-m-d",strtotime(str_replace(".","",$ps[1])))."','".$ps[2]."','".$ps[3]."')";
-				$db->query($sql,__LINE__,__FILE__,__FUNCTION__);
+				$sql = 'REPLACE into spaceweather_pha (asteroid,datum,distance,mag) VALUES (?, ?, ?, ?)';
+				$db->query($sql, __LINE__, __FILE__, __FUNCTION__, [$ps[0], date("Y-m-d",strtotime(str_replace(".","",$ps[1]))), $ps[2], $ps[3]]);
 			}
 		}
 
 		//write spaceweather
 		foreach($space as $key => $val) {
-			$sql = "
-			REPLACE into spaceweather
-				(name, wert, datum)
-			VALUES
-				('$key','$val',now())";
-			$db->query($sql,__LINE__,__FILE__);
+			$sql = 'REPLACE into spaceweather (name, wert, datum) VALUES (?, ?, ?)';
+			$db->query($sql, __LINE__, __FILE__, __FUNCTION__, [$key, $val, timestamp(true)]);
 		}
 	}
 }
@@ -232,7 +224,7 @@ function spaceweather_ticker() {
 			}
 			if(isset($add[$rs['name']]) && !empty($add[$rs['name']][0]))
 			{
-				zorgDebugger::me()->debug('$rs[name]=%s exists, value: %s', [$add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')]);
+				zorgDebugger::log()->debug('$rs[name]=%s exists, value: %s', [$add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')]);
 				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert'].(isset($add[$rs['name']][1]) ? " ".$add[$rs['name']][1] : '') ];
 			}
 		}

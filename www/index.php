@@ -48,13 +48,16 @@ if (!empty(key($_GET)))
 
 		/** Route: /event/[year]/[month]/[day]/[event-id|eventname] */
 		case 'event':
-			$_GET['tpl'] = 158; // 158 = Event Template
-			$_GET['event_id'] = $routeValue;
+			$tplId = 158; // 158 = Event Template
+			$_GET['tpl'] = $tplId;
+			$getEventId = (int)$routeValue;
+			$_GET['event_id'] = $getEventId;
 			break;
 
 		/** Route: /word/[pagetitle] */
 		case 'word':
-			$_GET['word'] = $routeValue;
+			$tplWord = $routeValue;
+			$_GET['word'] = $tplWord;
 			break;
 
 		/** Route: /thread/[thread-id] */
@@ -63,47 +66,50 @@ if (!empty(key($_GET)))
 			if (!empty($getThreadId)) {
 				$_GET['thread_id'] = $getThreadId;
 				include('forum.php');
-				die();
+				exit;
 			}
 			break;
 	}
 }
-/**
- * Standardtemplate setzen, wenn tpl oder word nicht oder leer übergeben wurden
- */
-if (isset($_GET['layout']) && $_GET['layout'] != 'rss' && ((!isset($_GET['tpl']) && !isset($_GET['word'])) ||
-	(empty($_GET['tpl']) && empty($_GET['word'])) || ($_GET['tpl'] <= 0 || is_numeric($_GET['word']))))
-	{
-		// If no Templates (yet) in Database, use 0 instead of 23...
-		$_GET['tpl'] = ($db->num($db->query('SELECT id FROM templates WHERE id=23 LIMIT 1', __FILE__, __LINE__)) === 1 ? SMARTY_DEFAULT_TPL : 0);
-	}
 
+/** Input validation and sanitization */
+$tplByName = (isset($tplWord) ? $tplWord : (filter_input(INPUT_GET, 'word', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null)); // $_GET['word']
+$tplById = (isset($tplId) ? $tplId : (filter_input(INPUT_GET, 'tpl', FILTER_VALIDATE_INT) ?? null)); // $_GET['tpl']
+$useLayout = filter_input(INPUT_GET, 'layout', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['layout']
+$feedType = filter_input(INPUT_GET, 'type', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['type']
+$feedCommentsBoard = filter_input(INPUT_GET, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['board']
+$feedCommentsThreadId = filter_input(INPUT_GET, 'thread_id', FILTER_VALIDATE_INT) ?? null; // $_GET['thread_id']
+$eventId = (isset($getEventId) ? $getEventId : (filter_input(INPUT_GET, 'event_id', FILTER_VALIDATE_INT) ?? null)); // $_GET['event_id']
+$tplEditor = filter_input(INPUT_GET, 'tpleditor', FILTER_VALIDATE_BOOLEAN); // $_GET['tpleditor'] === "1"
+$editTpl = (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) ? filter_input(INPUT_GET, 'tplupd', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) : (isset($_GET['tplupd']) && $_GET['tplupd'] === 'new' ? 'new' : null));
+$tplCreated = filter_input(INPUT_GET, 'created', FILTER_VALIDATE_BOOLEAN); // $_GET['created'] === "1"
+$tplUpdated = filter_input(INPUT_GET, 'updated', FILTER_VALIDATE_BOOLEAN); // $_GET['updated'] === "1"
 
 /**
  * RSS Feeds
  * @see Forum::printRSS()
  */
-if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
+if ($useLayout === 'rss' && !empty($feedType))
 {
 	$smarty->assign('feeddesc', SITE_HOSTNAME . ' RSS Feed');
 	$smarty->assign('feedlang', 'de-DE');
 	$smarty->assign('feeddate', date('D, d M Y H:i:s').' GMT');
 	$feedURLbase = $_ENV['URLPATH_RSS'];
 
-	switch ($_GET['type'])
+	switch ($feedType)
 	{
 		/** Forum RSS */
 		case 'forum':
 			/** ...ein board wurde übergeben */
-			if (isset($_GET['board']))
+			if (!empty($feedCommentsBoard))
 			{
 				/** eine thread_id wurde übergeben */
-				if (isset($_GET['thread_id']) && is_numeric($_GET['thread_id']))
+				if (is_numeric($feedCommentsThreadId) && $feedCommentsThreadId > 0)
 				{
 					/** RSS Feed für einen einzelnen Thread */
-					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($_GET['board'], $_GET['thread_id']) . PAGETITLE_SUFFIX) );
-					$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board'] . '&amp;amp;thread_id=' . $_GET['thread_id']);
-					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null), $_GET['thread_id']));
+					$smarty->assign('feedtitle', remove_html(Comment::getLinkThread($feedCommentsBoard, $feedCommentsThreadId) . PAGETITLE_SUFFIX) );
+					$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum&amp;amp;board=' . $feedCommentsBoard . '&amp;amp;thread_id=' . $feedCommentsThreadId);
+					$smarty->assign('feeditems', Forum::printRSS($feedCommentsBoard, (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null), $feedCommentsThreadId));
 
 				/** keine thread_id vorhanden */
 				} else {
@@ -111,9 +117,9 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 					 * RSS Feed für ein ganzes Board
 					 * @TODO Fix "unknown feed" (broken RSS-feed) für Gallery-Comments: ?layout=rss&type=forum&board=i
 					 */
-					$smarty->assign('feedtitle', remove_html(Forum::getBoardTitle($_GET['board']) . PAGETITLE_SUFFIX) );
-					$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum&amp;amp;board=' . $_GET['board']);
-					$smarty->assign('feeditems', Forum::printRSS($_GET['board'], (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
+					$smarty->assign('feedtitle', remove_html(Forum::getBoardTitle($feedCommentsBoard) . PAGETITLE_SUFFIX) );
+					$smarty->assign('feedlink', $feedURLbase . '&amp;amp;type=forum&amp;amp;board=' . $feedCommentsBoard);
+					$smarty->assign('feeditems', Forum::printRSS($feedCommentsBoard, (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0 ? $_SESSION['user_id'] : null)));
 				}
 
 			/** kein board vorhanden */
@@ -144,35 +150,41 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
  * @uses SMARTY_404PAGE_TPL
  */
 } else {
-	/** Fallback for missing Template-ID */
-	if (empty($_GET['word']) && empty($_GET['tpl']))
+	/** Standardtemplate setzen, wenn tpl oder word nicht oder leer übergeben wurden */
+	if ((empty($tplById) && empty($tplByName)) || ($tplById<=0 && !is_string($tplByName)))
 	{
 		// If no Templates (yet) in Database, use 0 instead of 23...
-		$_GET['tpl'] = ($db->num($db->query('SELECT id FROM templates WHERE id=23 LIMIT 1', __FILE__, __LINE__)) === 1 ? SMARTY_DEFAULT_TPL : 0);
+		$defaultTplId = ($db->num($db->query('SELECT id FROM templates WHERE id=23 LIMIT 1', __FILE__, __LINE__)) === 1 ? SMARTY_DEFAULT_TPL : 0);
+		$_GET['tpl'] = $defaultTplId;
+		$tplById = $defaultTplId;
 	}
 
 	/** Load Template data */
-	if ($_GET['tpl'] !== 0)
+	if ($tplById > 0 || is_string($tplByName))
 	{
-		if (isset($_GET['word']) && is_string($_GET['word'])) {
-			$tplWord = (string)strip_tags(filter_var(trim($_GET['word']), FILTER_SANITIZE_STRING));
-			if (false !== $tplWord && !empty($tplWord)) $queryWhere = 'word="'.$tplWord.'"';
-		} else {
-			$tplId = (int)strip_tags(filter_var(trim($_GET['tpl']), FILTER_SANITIZE_NUMBER_INT));
-			if (false !== $tplId && !empty($tplId)) $queryWhere = 'id="'.$tplId.'"';
+		$queryWhere = null;
+		$queryParams = [];
+		if (!empty($tplByName) && is_string($tplByName)) {
+			$queryWhere = 'word=?';
+			$queryParams[] = $tplByName;
+		}
+		else {
+			$queryWhere = 'id=?';
+			$queryParams[] = $tplById;
 		}
 		// FIXME change this to use Smarty:: Function!
-		if (!empty($queryWhere)) $e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
-										UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-										write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$queryWhere, __FILE__, __LINE__, '$_TPLROOT');
+		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user, page_title,
+						UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
+						write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE '.$queryWhere,
+						__FILE__, __LINE__, 'Assign $_TPLROOT', $queryParams);
 
 		/**
 		 * No Template found (404)
 		 */
-		if (empty($queryWhere) || empty($db->num($e)) || $e === false)
+		if ($e === false || empty($db->num($e)))
 		{
-			if (isset($tplId)) $_TPLROOT['id'] = $tplId;
-			if (isset($tplWord)) $_TPLROOT['word'] = $tplWord;
+			if (!empty($tplById)) $_TPLROOT['id'] = $tplById;
+			if (!empty($tplByName)) $_TPLROOT['word'] = $tplByName;
 			$_TPLROOT['page_title'] = sprintf('Page «%s» not found', (isset($_TPLROOT['word']) ? $_TPLROOT['word'] : $_TPLROOT['id']));
 			$_TPLROOT['page_link'] = (isset($_TPLROOT['word']) ? '/page/'.$_TPLROOT['word'] : '/tpl/'.$_TPLROOT['id']);
 			$_TPLROOT['title'] = $_TPLROOT['page_title'];
@@ -198,16 +210,16 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 			if (is_array($tpl_menus)) $_TPLROOT['menus'] = $tpl_menus;
 
 			/** Assign Tpl Id, Template Titles and Template link */
-			if (!empty($_GET['word'])) $_GET['tpl'] = $_TPLROOT['id'];
+			if (!empty($tplByName)) $_GET['tpl'] = $_TPLROOT['id'];
 			if (!empty($_TPLROOT['title']) && $_TPLROOT['title'] !== null) $_TPLROOT['page_title'] = $_TPLROOT['title']; // HTML Page Title
 			if (!empty($_TPLROOT['word']) && $_TPLROOT['word'] !== null) $_TPLROOT['page_link'] = '/page/'.$_TPLROOT['word']; // Canonical URL
 			else $_TPLROOT['page_link'] = '/tpl/'.$_TPLROOT['id'];
 
 			/** Events special... */
-			if ($_TPLROOT['id'] == 158) {
-				if (!empty($_GET['event_id'])) {
-					$_TPLROOT['page_title'] = Events::getEventName($_GET['event_id']);
-					$_TPLROOT['page_link'] = Events::getEventLink($_GET['event_id']);
+			if ($_TPLROOT['id'] === 158) {
+				if (!empty($eventId) && $eventId>0) {
+					$_TPLROOT['page_title'] = Events::getEventName($eventId);
+					$_TPLROOT['page_link'] = Events::getEventLink($eventId);
 				} else {
 					$_TPLROOT['page_link'] = '/events/';
 				}
@@ -220,13 +232,13 @@ if (isset($_GET['layout']) && $_GET['layout'] === 'rss' && isset($_GET['type']))
 			}
 
 			/** Immer zuletzt: Tpleditor special... */
-			if ( isset($_GET['tpleditor']) && $_GET['tpleditor'] == 1) {
-				$_TPLROOT['page_title'] = ($_GET['tplupd'] === 'new' ? 'Neues Template erstellen' : 'Template «'.$_TPLROOT['page_title'].'» bearbeiten');
+			if ($tplEditor === true) {
+				$_TPLROOT['page_title'] = ($editTpl === 'new' ? 'Neues Template erstellen' : 'Template «'.$_TPLROOT['page_title'].'» bearbeiten');
 				$_TPLROOT['sidebar_tpl'] = null; // Clear an assigned Sidebar
 			}
-			if ( isset($_GET['updated']) || isset($_GET['created']) ) {
+			if ($tplCreated === true || $tplUpdated === true) {
 				/** If Template was updated from Tpleditor, show a Success-Message */
-				$successTitle = sprintf('Template %s!', (isset($_GET['created']) ? 'created' : 'updated'));
+				$successTitle = sprintf('Template %s!', ($tplCreated ? 'created' : 'updated'));
 				unset($_GET['created']); // Remove Query-Param from URL
 				unset($_GET['updated']); // Remove Query-Param from URL
 				$smarty->assign('error', ['type'=>'success', 'dismissable'=>'true', 'title'=>$successTitle]);

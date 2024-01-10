@@ -11,7 +11,7 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
@@ -22,12 +22,10 @@ $model = new MVC\Books();
 /**
  * Validate Passed Parameters
  */
-/** GET */
-$book_id =  (isset($_GET['book_id']) && is_numeric($_GET['book_id']) && $_GET['book_id'] > 0 ? (int)$_GET['book_id'] : null);
-$action = (isset($_GET['do']) && is_string($_GET['do']) ? (string)$_GET['do'] : null);
-$user_id = (isset($_GET['user']) && is_numeric($_GET['user']) ? (int)$_GET['user'] : ($user->is_loggedin() ? $user->id : null));
-/** POST */
-$postAction = (isset($_POST['do']) && is_string($_POST['do']) ? (string)$_POST['do'] : null);
+$book_id = filter_input(INPUT_GET, 'book_id', FILTER_VALIDATE_INT) ?? null; // $_GET['book_id']
+$user_id = filter_input(INPUT_GET, 'user', FILTER_VALIDATE_INT) ?? ($user->is_loggedin() ? $user->id : null); // $_GET['user']
+$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
+$postAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['do']
 
 /**************/
 /* Funktionen */
@@ -43,8 +41,8 @@ $postAction = (isset($_POST['do']) && is_string($_POST['do']) ? (string)$_POST['
 function get_title($kat_id)
 {
 	global $db;
-	$sql = 'SELECT typ FROM books_title WHERE id = '.$kat_id;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$sql = 'SELECT typ FROM books_title WHERE id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$kat_id]);
 	$rs = $db->fetch($result);
 
 	return $rs['typ'];
@@ -54,11 +52,24 @@ function get_title($kat_id)
 /* DB Routinen */
 /***************/
 /** Aenderung an Buch in DB speichern */
-if($postAction === 'edit_now' && true === $user->is_loggedin())
+if($postAction === 'edit_now' && $user->is_loggedin())
 {
+	$book_id = filter_input(INPUT_POST, 'book_id', FILTER_VALIDATE_INT) ?? null; // $_POST['book_id']
+	$book_title_id = filter_input(INPUT_POST, 'titel_id', FILTER_VALIDATE_INT) ?? null; // $_POST['titel_id']
+	$title = filter_input(INPUT_POST, 'title', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$autor = filter_input(INPUT_POST, 'autor', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$verlag = filter_input(INPUT_POST, 'verlag', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$isbn = filter_input(INPUT_POST, 'isbn', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$titel_id = filter_input(INPUT_POST, 'titel_id', FILTER_VALIDATE_INT) ?? null;
+	$parent_id = filter_input(INPUT_POST, 'parent_id', FILTER_VALIDATE_INT) ?? null;
+	$jahrgang = filter_input(INPUT_POST, 'jahrgang', FILTER_VALIDATE_INT) ?? null;
+	$preis = filter_input(INPUT_POST, 'preis', FILTER_VALIDATE_FLOAT) ?? null;
+	$seiten = filter_input(INPUT_POST, 'seiten', FILTER_VALIDATE_INT) ?? null;
+	$text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+
 	/** besitzt der user das buch? */
-	$sql = 'SELECT count(*) as anzahl FROM books_holder WHERE book_id = '.(int)$_POST['book_id'].' AND user_id = '.$user->id;
-	$result = $db->query($sql, __FILE__, __LINE__, 'edit_now');
+	$sql = 'SELECT count(*) as anzahl FROM books_holder WHERE book_id=? AND user_id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'edit_now', [$book_id, $user->id]);
 	$rs = $db->fetch($result);
 
 	if ($rs['anzahl'] != 1)
@@ -66,11 +77,11 @@ if($postAction === 'edit_now' && true === $user->is_loggedin())
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => 'au jetzt nonig, tschalphorre']);
 		//exit;
 	} else {
-		$sql = 'SELECT * FROM books_title WHERE id = '.(int)$_POST['titel_id'];
-		$result = $db->query($sql, __FILE__, __LINE__, 'edit_now');
+		$sql = 'SELECT * FROM books_title WHERE id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, 'edit_now', [$book_title_id]);
 		$rs = $db->fetch($result);
 
-		if ($rs['parent_id'] != 0)
+		if (isset($rs['parent_id']) && $rs['parent_id'] > 0)
 		{
 			$titel_id = $rs['parent_id'];
 			$parent_id = $rs['id'];
@@ -79,32 +90,48 @@ if($postAction === 'edit_now' && true === $user->is_loggedin())
 			$parent_id = 0;
 		}
 
-		$sql = 'UPDATE books set title = "'.addslashes(strip_tags((string)$_POST['title'])).'",
-				autor = "'.addslashes(strip_tags((string)$_POST['autor'])).'",
-				verlag = "'.addslashes(strip_tags((string)$_POST['verlag'])).'",
-				isbn = "'.addslashes(strip_tags((string)$_POST['isbn'])).'",
-				titel_id = "'.(string)$titel_id.'",
-				parent_id = '.$parent_id.',
-				jahrgang = '.(int)$_POST['jahrgang'].',
-				preis = "'.(float)$_POST['preis'].'",
-				seiten = "'.(int)$_POST['seiten'].'",
-				text = "'.addslashes(strip_tags((string)$_POST['text'])).'"
-				WHERE id = '.(int)$_POST['book_id'];
-		$db->query($sql, __FILE__, __LINE__, 'edit_now');
+		$sql = 'UPDATE books SET title=?, autor=?, verlag=?, isbn=?, titel_id=?, parent_id=?, jahrgang=?, preis=?, seiten=?, text=? WHERE id=?';
+		$params = [
+			$title,
+			$autor,
+			$verlag,
+			$isbn,
+			$titel_id,
+			$parent_id,
+			$jahrgang,
+			$preis,
+			$seiten,
+			$text,
+			$book_id
+		];
+		$db->query($sql, __FILE__, __LINE__, 'edit_now', $params);
 		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Boook geändert']);
-		$action = "show";
+		$doAction = "show";
 		$book_id = (int)$_POST['book_id'];
 	}
 }
 /** Buch in DB hinzufuegen */
 elseif ($postAction === 'add_now' && $user->is_loggedin())
 {
+	$book_id = filter_input(INPUT_POST, 'book_id', FILTER_VALIDATE_INT) ?? null; // $_POST['book_id']
+	$book_title_id = filter_input(INPUT_POST, 'titel_id', FILTER_VALIDATE_INT) ?? null; // $_POST['titel_id']
+	$title = filter_input(INPUT_POST, 'title', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$autor = filter_input(INPUT_POST, 'autor', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$verlag = filter_input(INPUT_POST, 'verlag', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$isbn = filter_input(INPUT_POST, 'isbn', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$titel_id = filter_input(INPUT_POST, 'titel_id', FILTER_VALIDATE_INT) ?? null;
+	$parent_id = filter_input(INPUT_POST, 'parent_id', FILTER_VALIDATE_INT) ?? null;
+	$jahrgang = filter_input(INPUT_POST, 'jahrgang', FILTER_VALIDATE_INT) ?? null;
+	$preis = filter_input(INPUT_POST, 'preis', FILTER_VALIDATE_FLOAT) ?? null;
+	$seiten = filter_input(INPUT_POST, 'seiten', FILTER_VALIDATE_INT) ?? null;
+	$text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+
 	/** Kategorie und Parent-Kategorie finden */
-	$sql = 'SELECT * FROM books_title WHERE id = '.(int)$_POST['titel_id'];
-	$result = $db->query($sql, __FILE__, __LINE__, 'add_now');
+	$sql = 'SELECT * FROM books_title WHERE id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'add_now', [$book_title_id]);
 	$rs = $db->fetch($result);
 
-	if ($rs['parent_id'] != 0)
+	if (isset($rs['parent_id']) && $rs['parent_id'] > 0)
 	{
 		$titel_id = $rs['parent_id'];
 		$parent_id = $rs['id'];
@@ -114,124 +141,105 @@ elseif ($postAction === 'add_now' && $user->is_loggedin())
 	}
 
 	/** Book adden */
-	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Insert Book $_POST: %s', __FILE__, __LINE__, print_r($_POST, true)));
-	$bookTitle = (isset($_POST['title']) & is_string($_POST['title']) ? addslashes(strip_tags((string)$_POST['title'])) : '');
-	$bookAutor = (isset($_POST['autor']) & is_string($_POST['autor']) ? addslashes(strip_tags((string)$_POST['autor'])) : '');
-	$bookVerlag = (isset($_POST['autor']) & is_string($_POST['autor']) ? addslashes(strip_tags((string)$_POST['autor'])) : '');
-	$bookIsbn = (isset($_POST['isbn']) & is_string($_POST['isbn']) ? addslashes(strip_tags((string)$_POST['isbn'])) : '');
-	$bookJahr = (isset($_POST['jahrgang']) & is_numeric($_POST['jahrgang']) ? (int)$_POST['jahrgang'] : '');
-	$bookPreis = (isset($_POST['preis']) & is_numeric($_POST['preis']) ? (float)$_POST['preis'] : 0);
-	$bookSeiten = (isset($_POST['seiten']) & is_numeric($_POST['seiten']) ? (int)$_POST['seiten'] : '');
-	$bookText = (isset($_POST['text']) & is_string($_POST['text']) ? addslashes(strip_tags((string)$_POST['text'])) : '');
-	$sql = 'INSERT INTO books (
-				title,
-				autor,
-				verlag,
-				isbn,
-				titel_id,
-				parent_id,
-				jahrgang,
-				preis,
-				seiten,
-				text,
-				ersteller
-			) VALUES (
-				 "'.$bookTitle.'"
-				,"'.$bookAutor.'"
-				,"'.$bookVerlag.'"
-				,"'.$bookIsbn.'"
-				,'.$titel_id.'
-				,'.$parent_id.'
-				,'.$bookJahr.'
-				,'.$bookPreis.'
-				,'.$bookSeiten.'
-				,"'.$bookText.'"
-				,'.$user->id.'
-			)';
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Insert Book SQL: %s', __FILE__, __LINE__, $sql));
-	$IdNewBook = $db->query($sql, __FILE__, __LINE__, 'add_now');
+	zorgDebugger::log()->debug('Insert Book $_POST: %s', [print_r($_POST)]);
+	$sql = 'INSERT INTO books (title, autor, verlag, isbn, titel_id, parent_id, jahrgang, preis, seiten, text, ersteller)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	$params = [
+		$title,
+		$autor,
+		$verlag,
+		$isbn,
+		$titel_id,
+		$parent_id,
+		$jahrgang,
+		$preis,
+		$seiten,
+		$text,
+		$user->id
+	];
+	$IdNewBook = $db->query($sql, __FILE__, __LINE__, 'add_now', $params);
 
-	if ($IdNewBook !== false && !is_bool($IdNewBook) && $IdNewBook > 0)
+	if ($IdNewBook !== false && $IdNewBook > 0)
 	{
-		$sql = 'INSERT INTO books_holder(book_id, user_id)
-				VALUES('.$IdNewBook.','.$user->id.')';
-		$db->query($sql, __FILE__, __LINE__, 'Neuer Buchbesitzer');
-
+		$sql = 'INSERT INTO books_holder(book_id, user_id) VALUES(?, ?)';
+		$db->query($sql, __FILE__, __LINE__, 'Neuer Buchbesitzer', [$IdNewBook, $user->id]);
 		$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Boook #'.$IdNewBook.' hinzugefügt']);
 
-		$action = 'show';
+		$doAction = 'show';
 		$book_id = $IdNewBook;
+
+		/** Activity Eintrag auslösen */
+		Activities::addActivity($user->id, 0, t('activity-new', 'books', [ SITE_URL, $book_id, $title ]), 'bo');
 	} else {
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => 'Fehler beim hinzufügen des Buches "'.(string)$_POST['title'].'"']);
-		$action = null;
+		$doAction = null;
 	}
 }
 /** Neue Kategorie in DB einfügen */
-elseif ($postAction === 'insert_titel' && true === $user->is_loggedin())
+elseif ($postAction === 'insert_titel' && $user->is_loggedin())
 {
 	/** Hauptkategorie */
-	if ($_POST['parent_id'] == "new")
+	if ($parent_id === "new")
 	{
-		$sql = 'INSERT INTO books_title (typ) VALUES ("'.(string)$_POST['titel'].'")';
- 		$db->query($sql, __FILE__, __LINE__, 'insert_titel');
+		$sql = 'INSERT INTO books_title (typ) VALUES (?)';
+ 		$db->query($sql, __FILE__, __LINE__, 'insert_titel', [$title]);
 
  	/** Unterkategorie */
- 	} elseif ($_POST['parent_id'] != ""){
-		$sql = 'INSERT INTO books_title (parent_id, typ) VALUES ('.(int)$_POST['parent_id'].',"'.(string)$_POST['titel'].'")';
- 		$db->query($sql, __FILE__, __LINE__, 'insert_titel');
+ 	} elseif (empty($parent_id) || $parent_id){
+		$sql = 'INSERT INTO books_title (parent_id, typ) VALUES (?, ?)';
+ 		$db->query($sql, __FILE__, __LINE__, 'insert_titel', [$parent_id, $title]);
  	}
 
 	$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Kategorie '.(string)$_POST['titel'].' hinzugefügt']);
-	$action = null;
+	$doAction = null;
 }
 /** Besitzer in DB hinzufuegen */
-elseif ($action === 'add_owner' && $user->id > 0)
+elseif ($doAction === 'add_owner' && $user->id > 0)
 {
 	/** Testen ob bereits besitzer */
-	$sql = 'SELECT user_id FROM books_holder where book_id = '.$book_id.' AND user_id = '.$user->id;
-	if ($db->num($db->query($sql, __FILE__, __LINE__, 'add_owner')) == 0)
+	$sql = 'SELECT user_id FROM books_holder WHERE book_id=? AND user_id=?';
+	if ($db->num($db->query($sql, __FILE__, __LINE__, 'add_owner', [$book_id, $user->id])) == 0)
 	{
 		/** Neuen Benutzer hinzufuegen */
-		$sql = 'INSERT INTO books_holder (book_id, user_id) VALUES ('.$book_id.','.$user->id.')';
-		$db->query($sql, __FILE__, __LINE__, 'add_owner');
+		$sql = 'INSERT INTO books_holder (book_id, user_id) VALUES (?, ?)';
+		$db->query($sql, __FILE__, __LINE__, 'add_owner', [$book_id, $user->id]);
 	}
 
-	$action = 'show';
+	$doAction = 'show';
 }
 /** Besitzer in DB loeschen */
-elseif ($action === 'delete_owner' && $user->id > 0)
+elseif ($doAction === 'delete_owner' && $user->id > 0)
 {
+	$sql = 'DELETE FROM books_holder WHERE book_id=? AND user_id=?';
+	$db->query($sql, __FILE__, __LINE__, 'delete_owner', [$book_id, $user->id]);
 
-	$sql = 'DELETE FROM books_holder WHERE book_id = '.$book_id.' AND user_id = '.$user->id;
-	$db->query($sql, __FILE__, __LINE__, 'delete_owner');
-
-	$action = 'show';
+	$doAction = 'show';
 }
 /** Buch in DB loeschen */
-elseif ($action === 'delete_now' && $user->id > 0)
+elseif ($doAction === 'delete_now' && $user->id > 0)
 {
-	$sql = 'SELECT * FROM books WHERE id = '.$book_id;
-	$result = $db->query($sql, __FILE__, __LINE__, 'delete_now');
+	$sql = 'SELECT * FROM books WHERE id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'delete_now', $book_id);
 	$rs = $db->fetch($result);
 
 	/** darf user buch loeschen? */
 	if ($rs['ersteller'] == $user->id)
 	{
-		$sql = 'SELECT count(*) as anzahl FROM books_holder WHERE book_id = '.$book_id;
-		$result2 = $db->query($sql, __FILE__, __LINE__, 'delete_now');
+		$sql = 'SELECT count(*) as anzahl FROM books_holder WHERE book_id=?';
+		$result2 = $db->query($sql, __FILE__, __LINE__, 'delete_now', [$book_id]);
 		$rs2 = $db->fetch($result2);
 
 		/** wenn andere user dieses buch auch besitzen ist l?schen nicht erlaubt */
 		if ($rs2['anzahl'] == 1)
 		{
-			$sql = 'DELETE FROM books WHERE id = '.$book_id;
-			$db->query($sql, __FILE__, __LINE__, 'delete_now');
+			$sql = 'DELETE FROM books WHERE id=?';
+			$db->query($sql, __FILE__, __LINE__, 'delete_now', [$book_id]);
 			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => 'Book gelöscht']);
 		} else {
 			$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'Noch andere Besitzer',
 			'message' => 'Sorry, dieses Book besitzen auch noch andere Leute und kann darum nicht geloescht werden.']);
 		}
-		$action = null;
+		$doAction = null;
 	} else {
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => 'ganz eifach: NEI! du schpehone!']);
 	}
@@ -243,7 +251,7 @@ elseif ($action === 'delete_now' && $user->id > 0)
 $htmlOutput = null;
 
 /** Buecherliste */
-if (!isset($action) || empty($action))
+if (empty($doAction))
 {
 	$htmlOutput .= '<h1>Bücherliste der zorger</h1>';
 
@@ -254,14 +262,14 @@ if (!isset($action) || empty($action))
 		$htmlOutput .= '<h4>'.$rs['typ'].'</h4>';
 
 		$htmlOutput .= '<ul>';
-		$sql = 'SELECT * FROM books_title WHERE parent_id = '.$rs['id'];
-		$result2 = $db->query($sql, __FILE__, __LINE__, 'Bücherliste');
+		$sql = 'SELECT * FROM books_title WHERE parent_id=?';
+		$result2 = $db->query($sql, __FILE__, __LINE__, 'Bücherliste', [$rs['id']]);
 		while ($rs2 = $db->fetch($result2))
 		{
 			$htmlOutput .= '<li>'.$rs2['typ'].'</li><ul>';
 
-	  		$sql = 'SELECT * FROM books WHERE titel_id = '.$rs['id'].' AND parent_id = '.$rs2['id'];
-			$result3 = $db->query($sql, __FILE__, __LINE__, 'Bücherliste');
+	  		$sql = 'SELECT * FROM books WHERE titel_id=? AND parent_id=?';
+			$result3 = $db->query($sql, __FILE__, __LINE__, 'Bücherliste', [$rs['id'], $rs2['id']]);
 
 			while ($rs3 = $db->fetch($result3)) {
 				$htmlOutput .= '<li><a href="?do=show&book_id='.$rs3['id'].'">'.$rs3['title'].'</a></li>';
@@ -269,8 +277,8 @@ if (!isset($action) || empty($action))
 			$htmlOutput .= '</ul><br>';
 		}
 
-		$sql = 'SELECT * FROM books WHERE titel_id = '.$rs['id'].' AND parent_id = 0';
-		$result3 = $db->query($sql, __FILE__, __LINE__, 'Bücherliste');
+		$sql = 'SELECT * FROM books WHERE titel_id=? AND parent_id=0';
+		$result3 = $db->query($sql, __FILE__, __LINE__, 'Bücherliste', [$rs['id']]);
 
 		while ($rs3 = $db->fetch($result3)) {
 				$htmlOutput .= '<li><a href="?do=show&book_id='.$rs3['id'].'">'.$rs3['title'].'</a></li>';
@@ -286,7 +294,7 @@ if (!isset($action) || empty($action))
 	{
 		/** Eingabe Screen für neue Kategorie */
 		$sidebarHtml .= '<h2>Neue Kategorie</h2>'
-			.'<form action="'.$_SERVER['PHP_SELF'].'" method="post" enctype="multipart/form-data">'
+			.'<form action="'.htmlentities($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
 			.'<input type="hidden" name="do" value="insert_titel">'
 			.'<table cellpadding="1" cellspacing="1" width="400" class="border" align="center">'
 			.'<tr><td align="left" style="font-weight: 600;">'
@@ -322,55 +330,55 @@ if (!isset($action) || empty($action))
 
 }
 /** Buch ansehen */
-elseif ($action === 'show' && isset($book_id))
+elseif ($doAction === 'show' && $book_id > 0)
 {
 	/** Get Book Details */
-	$sql = 'SELECT * from books WHERE id = '.$book_id;
-	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen'));
+	$sql = 'SELECT * from books WHERE id=?';
+	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen', [$book_id]));
 
 	if ($rs !== false && $rs !== null)
 	{
-		$sql = 'SELECT * from books_title WHERE id = '.$rs['titel_id'];
-		$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen'));
+		$sql = 'SELECT * from books_title WHERE id=?';
+		$rs2 = $db->fetch($db->query($sql, __FILE__, __LINE__, 'Buch ansehen', [$rs['titel_id']]));
 
 		$htmlOutput .= '<h1>'.htmlentities($rs['title']).'</h1>';
-		$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="border" align="center" style="max-width: 100%;">'
-			.'<tr><td align="left" style="font-weight: 600;">'
+		$htmlOutput .= '<table cellpadding="1" cellspacing="1" class="shadedcells">'
+			.'<tr><td class="strong">'
 			.'Autor:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.'</td><td>'
 			.htmlentities($rs['autor'])
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td></tr><tr><td class="strong">'
 			.'Verlag:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.'</td><td>'
 			.htmlentities($rs['verlag'])
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td></tr><tr><td class="strong">'
 			.'ISBN:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.'</td><td>'
 			.htmlentities($rs['isbn'])
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td></tr><tr><td class="strong">'
 			.'Thema:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.'</td><td>'
 			.htmlentities($rs2['typ'])
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td></tr><tr><td class="strong">'
 			.'Druckjahr:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-			.$rs['jahrgang']
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td><td>'
+			.intval($rs['jahrgang'])
+			.'</td></tr><tr><td class="strong">'
 			.'Preis:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-			.'CHF '.htmlentities($rs['preis'])
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td><td>'
+			.'CHF '.number_format(floatval($rs['preis']), 2, '.', '')
+			.'</td></tr><tr><td class="strong">'
 			.'Seiten:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
-			.htmlentities($rs['seiten'])
-			.'</td></tr><tr><td align="left" style="font-weight: 600;">'
+			.'</td><td>'
+			.intval($rs['seiten'])
+			.'</td></tr><tr><td class="strong">'
 			.'Besitzer:'
-			.'</td><td align="left" style="color:#'.FONTCOLOR.'; background-color:#'.BACKGROUNDCOLOR.'; border-bottom-style: solid; border-bottom-color: #'.BORDERCOLOR.'; border-bottom-width: 1px; border-left-style: solid; border-left-color: #'.BORDERCOLOR.'; border-left-width: 1px;">'
+			.'</td><td>'
 			;
 
 		/** besitzer auflisten */
-		$sql = 'SELECT * from books_holder WHERE book_id = '.$rs['id'];
-		$result3 = $db->query($sql, __FILE__, __LINE__, 'Besitzer auflisten');
+		$sql = 'SELECT * from books_holder WHERE book_id=?';
+		$result3 = $db->query($sql, __FILE__, __LINE__, 'Besitzer auflisten', [$rs['id']]);
 		$alleBesitzer = '';
 		while ($rs3 = $db->fetch($result3))
 		{
@@ -383,13 +391,15 @@ elseif ($action === 'show' && isset($book_id))
 		$htmlOutput .= nl2br(htmlentities($rs['text']));
 
 		/** Ists ein angemeldeter User? */
-		if (true === $user->is_loggedin())
+		if ($user->is_loggedin())
 		{
+			$htmlOutput .= '<h3>Rezensionen</h3>'; // CommentingSystem Title
+
 			$sidebarHtml = '<h3>Boook Actions</h3>';
 
 			/** Wer das Buch besitzt kanns loeschen, wer nicht kanns hinzufuegen */
-			$sql = 'SELECT user_id FROM books_holder WHERE book_id = '.$rs['id'].' AND user_id = '.$user->id;
-			if ($db->num($db->query($sql, __FILE__, __LINE__, 'Buchbesitzer')) == 1)
+			$sql = 'SELECT user_id FROM books_holder WHERE book_id=? AND user_id=?';
+			if ($db->num($db->query($sql, __FILE__, __LINE__, 'Buchbesitzer', [$rs['id'], $user->id])) == 1)
 			{
 				$sidebarHtml .= '<a href="?do=edit&book_id='.$rs['id'].'">[edit]</a><br>'
 								.'<a href="?do=delete_owner&book_id='.$rs['id'].'">[delete book from my list]</a><br>';
@@ -411,6 +421,10 @@ elseif ($action === 'show' && isset($book_id))
 		$smarty->assign('sidebarHtml', $sidebarHtml);
 		$smarty->display('file:layout/head.tpl');
 		echo $htmlOutput;
+
+		// Book Commenting ------------------------------------------
+		Forum::printCommentingSystem('k', $rs['id']);
+		// End Commenting -------------------------------------------
 	}
 
 	/** Invalid Book ID / Book not found */
@@ -424,14 +438,14 @@ elseif ($action === 'show' && isset($book_id))
 	}
 }
 /** Buch bearbeiten */
-elseif ($action === 'edit' && true === $user->is_loggedin())
+elseif ($doAction === 'edit' && $user->is_loggedin())
 {
 	$model->showEdit($smarty, $book_id);
 	$smarty->display('file:layout/head.tpl');
 
 	/** besitzt der user das buch? */
-	$sql = 'SELECT count(*) as anzahl FROM books_holder WHERE book_id = '.$book_id.' AND user_id = '.$user->id;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$sql = 'SELECT COUNT(*) AS anzahl FROM books_holder WHERE book_id=? AND user_id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT COUNT(*)', [$book_id, $user->id]);
 	$rs = $db->fetch($result);
 
 	if ($rs['anzahl'] != 1)
@@ -441,8 +455,8 @@ elseif ($action === 'edit' && true === $user->is_loggedin())
 		//exit;
 
 	} else {
-		$sql = 'SELECT * from books WHERE id = '.$book_id;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$sql = 'SELECT * FROM books WHERE id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books', [$book_id]);
 		$rs = $db->fetch($result);
 
 		echo "<form action='$_SERVER[PHP_SELF]' method='post' enctype='multipart/form-data'>"
@@ -497,7 +511,7 @@ elseif ($action === 'edit' && true === $user->is_loggedin())
 
 		/** Themen und Unterthemen in Listbox sortieren */
 		$sql = 'SELECT * FROM books_title WHERE parent_id = 0';
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books_title');
 
 		while ($rs2 = $db->fetch($result))
 		{
@@ -508,8 +522,8 @@ elseif ($action === 'edit' && true === $user->is_loggedin())
 				echo '<option value="'.$rs2['id'].'">'.$rs2['typ'].'</option>';
 			}
 
-			$sql = 'SELECT * FROM books_title WHERE parent_id = '.$rs2['id'];
-			$result2 = $db->query($sql, __FILE__, __LINE__);
+			$sql = 'SELECT * FROM books_title WHERE parent_id=?';
+			$result2 = $db->query($sql, __FILE__, __LINE__, 'SELECT books_title with parent_id', [$rs2['id']]);
 
 			while ($rs3 = $db->fetch($result2))
 			{
@@ -532,10 +546,10 @@ elseif ($action === 'edit' && true === $user->is_loggedin())
 			."<input type='submit' class='button' name='send' value='speichern'>"
 			."</form>";
 	}
-
 }
+
 /** Buch hinzufuegen */
-elseif ($action === 'add' && true === $user->is_loggedin())
+elseif ($doAction === 'add' && $user->is_loggedin())
 {
 	$model->showAddnew($smarty);
 	$smarty->display('file:layout/head.tpl');
@@ -591,14 +605,14 @@ elseif ($action === 'add' && true === $user->is_loggedin())
 
 	/** Kategorien in Listbox sortieren */
 	$sql = 'SELECT * FROM books_title WHERE parent_id = 0';
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books_title');
 
 	while($rs2 = $db->fetch($result))
 	{
 		echo '<option value="'.$rs2['id'].'">'.$rs2['typ'].'</option>';
 
-		$sql = 'SELECT * FROM books_title WHERE parent_id = '.$rs2['id'];
-		$result2 = $db->query($sql, __FILE__, __LINE__);
+		$sql = 'SELECT * FROM books_title WHERE parent_id=?';
+		$result2 = $db->query($sql, __FILE__, __LINE__, 'SELECT book_title WHERE parent_id', [$rs2['id']]);
 
 		while ($rs3 = $db->fetch($result2))
 		{
@@ -616,7 +630,7 @@ elseif ($action === 'add' && true === $user->is_loggedin())
 		."<input type='submit' class='button' name='send' value='speichern'>"
 		."</form>";
 
-} elseif ($action === 'admin' && $user->typ == USER_MEMBER) {
+} elseif ($doAction === 'admin' && $user->typ === USER_MEMBER) {
 /*
 	$sql = 'SELECT * FROM books_title WHERE parent_id = 0 ORDER BY typ ASC';
 		$result = $db->query($sql);
@@ -636,10 +650,10 @@ elseif ($action === 'add' && true === $user->is_loggedin())
 
 }
 /** Buch wirklich löschen? */
-elseif ($action === 'delete' && true === $user->is_loggedin())
+elseif ($doAction === 'delete' && $user->is_loggedin())
 {
-	$sql = 'SELECT * FROM books where id = '.$book_id;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$sql = 'SELECT * FROM books where id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books', [$book_id]);
 	$rs = $db->fetch($result);
 
 	$model->showDelete($smarty, $book_id, $rs['title']);
@@ -658,7 +672,7 @@ elseif ($action === 'delete' && true === $user->is_loggedin())
 
 }
 /** Bücherliste von bestimmten User ausgeben */
-elseif ($action === 'my' && isset($user_id))
+elseif ($doAction === 'my' && $user_id>0)
 {
 	//$smarty->display('file:layout/head.tpl');
 	//if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
@@ -666,12 +680,9 @@ elseif ($action === 'my' && isset($user_id))
 
 	$htmlOutput .= '<h2>Boooks von '.$user->id2user($user_id).'</h2>';
 
-	$sql = 'SELECT DISTINCT titel_id
-			FROM books, books_holder
-			WHERE
-			books.id = books_holder.book_id AND
-			books_holder.user_id = '.$user_id;
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$sql = 'SELECT DISTINCT titel_id FROM books, books_holder
+			WHERE books.id=books_holder.book_id AND books_holder.user_id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT DISTING books', [$user_id]);
 	while($rs = $db->fetch($result))
 	{
 		$htmlOutput .= '<h4>'.get_title($rs['titel_id']).'</h4>';
@@ -687,14 +698,9 @@ elseif ($action === 'my' && isset($user_id))
 		while($rs2 = $db->fetch($result2))
 		{
 			$htmlOutput .= "<li>".get_title($rs2['parent_id'])."</li><ul>";
-			$sql = 'SELECT *
-					FROM books, books_holder
-					WHERE
-					books.titel_id = '.$rs['titel_id'].' AND
-					books.parent_id = '.$rs2['parent_id'].' AND
-					books.id = books_holder.book_id AND
-					books_holder.user_id = '.$user_id;
-			$result3 = $db->query($sql, __FILE__, __LINE__);
+			$sql = 'SELECT * FROM books, books_holder
+					WHERE books.titel_id=? AND books.parent_id=? AND books.id = books_holder.book_id AND books_holder.user_id=?';
+			$result3 = $db->query($sql, __FILE__, __LINE__, 'SELECT books_holder', [$rs['titel_id'], $rs2['parent_id'], $user_id]);
 			while($rs3 = $db->fetch($result3))
 			{
 				$htmlOutput .= '<li><a href="?do=show&book_id='.$rs3['book_id'].'">'.$rs3['title'].'</a></li>';
@@ -702,14 +708,9 @@ elseif ($action === 'my' && isset($user_id))
 			$htmlOutput .= '</ul>';
 		}
 
-		$sql = 'SELECT *
-				FROM books, books_holder
-				WHERE
-				books.titel_id = '.$rs['titel_id'].' AND
-				books.parent_id = 0 AND
-				books.id = books_holder.book_id AND
-				books_holder.user_id = '.$user_id;
-		$result4 = $db->query($sql, __FILE__, __LINE__);
+		$sql = 'SELECT * FROM books, books_holder
+				WHERE books.titel_id=? AND books.parent_id=0 AND books.id=books_holder.book_id AND books_holder.user_id=?';
+		$result4 = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books_holder', [$rs['titel_id'], $user_id]);
 		while($rs4 = $db->fetch($result4)) {
 			$htmlOutput .= '<li><a href="?do=show&book_id='.$rs4['book_id'].'">'.$rs4['title'].'</a></li>';
 		}

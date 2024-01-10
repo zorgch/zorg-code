@@ -5,9 +5,9 @@
  * Instanziert und konfiguriert ein neues Smarty-Object. Dieses wird in
  * der globalen Variable $smarty gespeichert.
  *
- * @author [z]biko
- * @date 5.6.2004
  * @package zorg\Smarty
+ * @version 1.0
+ * @since 1.0 `5.6.2004` `[z]biko` File added
  */
 
 /**
@@ -35,7 +35,7 @@ $_tpl_stack = array();
 
 function tpl_comment_permission ($thread_id) {
 	global $db;
-	$e = $db->query('SELECT * FROM templates WHERE id='.$thread_id, __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT * FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$thread_id]);
 	$d = $db->fetch($e);
 	return tpl_permission($d['read_rights'], $d['owner']);
 }
@@ -43,13 +43,12 @@ function tpl_comment_permission ($thread_id) {
 /**
  * Check permission to access template
  *
- * @author [z]biko
  * @version 2.1
  * @since 1.0 `[z]biko` function added
  * @since 2.0 `20.06.2019` `IneX` Failsafe hinzugefügt
  * @since 2.1 `04.11.2019` `kassiopaia` fixes undefined indexes errors
  *
- * @FIXME ACHTUNG: template read_rights sind != der USER_xxx Level! z.B. read_rights=3 bedeutet "Template Owner only"...
+ * // TODO ACHTUNG: template read_rights sind != der USER_xxx Level! z.B. read_rights=3 bedeutet "Template Owner only"...
  *
  * @see self::hasTplAccess()
  * @param integer $group Gruppe Level-Nummer to check
@@ -72,7 +71,6 @@ function tpl_permission ($group, $owner)
 /**
  * Check ob Group / Usertyp Kombination Zugriff zum Lesen des Templates hat
  *
- * @author [z]biko
  * @version 1.0
  * @since 1.0 `[z]biko` function added
  */
@@ -123,7 +121,7 @@ function hasTplAccess ($group, $owner, $userid, $usertyp)
 function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
 	global $_tpl_stack;
 
-  	if ($repeat == true) { // öffnendes tag
+  	if ($repeat) { // öffnendes tag
   		// push wird in get_timestamp gemacht.
 
   		$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
@@ -147,11 +145,9 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
  *
  * Datenbankabfrage um unser Template zu laden, und '$tpl_source' zuzuweisen
  *
- * @author [z]biko
- * @author IneX
  * @version 3.2
- * @since 1.0 function added
- * @since 2.0 `26.09.2018` [Bug #761] enhanced $output with nl2br()
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `26.09.2018` `IneX` [Bug #761] enhanced $output with nl2br()
  * @since 3.0 `20.06.2019` `IneX` Updated to fetch and process new layout options such as "sidebar_tpl"
  * @since 3.1 `21.06.2019` `IneX` Fixed FIXME "Funktion so überarbeiten, dass 'border == 1' schönen Output" und TODO "Views aus dem Code entfernen"
  * @since 3.2 `02.11.2019` `IneX` Added output of {comments} if `allow_comments` on tpl=true.
@@ -172,7 +168,7 @@ function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
 
 	if (!empty($tpl_name) && is_numeric($tpl_name))
 	{
-		$templateDataQuery = $db->query('SELECT * FROM templates tpl WHERE id='.$tpl_name, __FILE__, __LINE__, __FUNCTION__);
+		$templateDataQuery = $db->query('SELECT * FROM templates tpl WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$tpl_name]);
 		$templateData = $db->fetch($templateDataQuery);
 	} else {
 		$templateData = false;
@@ -235,10 +231,8 @@ function smartyresource_tpl_get_template($tpl_name, &$tpl_source, &$smarty)
  * Datenbankabfrage um '$tpl_timestamp' zuzuweisen
  * zusätzlich lokale tpl-infos setzen (smarty-variable $tpl)
  *
- * @author [z]biko
- * @author IneX
  * @version 2.1
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  * @since 2.0 `19.06.2019` `IneX` Updated to fetch Packages new via tpl_packages > packages relationship and Comments from Tpl-Setting
  * @since 2.1 `14.06.2023` `IneX` SQL-Query optimizations
  *
@@ -258,8 +252,8 @@ function smartyresource_tpl_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 	{
 		$e = $db->query('SELECT id, title, word, LENGTH(tpl) size, owner, update_user,
 						 UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, read_rights,
-						 write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE id=?'
-						 , __FILE__, __LINE__, __FUNCTION__, [$tpl_name]);
+						 write_rights, force_compile, border, sidebar_tpl, allow_comments FROM templates WHERE id=?',
+						 __FILE__, __LINE__, __FUNCTION__, [$tpl_name]);
 		$d = $db->fetch($e);
 	} else {
 		return false;
@@ -307,10 +301,8 @@ function smartyresource_tpl_get_trusted($tpl_name, &$smarty_obj)
 /**
  * Load PHP-Package files required for a Smarty-Template
  *
- * @author [z]biko
- * @author IneX
  * @version 2.2
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  * @since 2.0 `19.06.2019` `IneX` Updated to process Packages from tpl_packages > packages relationship instead of a Field-String
  * @since 2.1 `18.04.2020` `IneX` replaced 'stream_resolve_include_path' with more performant 'is_file' (https://stackoverflow.com/a/19589043/5750030)
  * @since 2.2 `10.06.2023` `IneX` fixes risk of malicious code execution through File Inclusion (CWE-98)
@@ -337,7 +329,7 @@ function load_packages($tpl_id, &$smarty)
 		$packagesQuery = 'SELECT pkg.name as name FROM packages pkg INNER JOIN tpl_packages tplp ON pkg.id = tplp.package_id WHERE tplp.tpl_id=?';
 		$packagesFound = $db->query($packagesQuery, __FILE__, __LINE__, __FUNCTION__, [$tpl]);
 		$numPackagesFound = (int)$db->num($packagesFound);
-		zorgDebugger::me()->debug('Found %d packages for template «%s»', [$numPackagesFound, strval($tpl)]);
+		zorgDebugger::log()->debug('Found %d packages for template «%s»', [$numPackagesFound, strval($tpl)]);
 
 		/** 1 or more Packages found */
 		if ($numPackagesFound > 0)
@@ -347,7 +339,7 @@ function load_packages($tpl_id, &$smarty)
 				/** Check if $package matches a PHP-File (Package) */
 				$package_file = basename($packages['name']); // Remove any directory traversal characters
 				$package_filepath = SMARTY_PACKAGES_DIR.$package_file.SMARTY_PACKAGES_EXTENSION;
-				zorgDebugger::me()->debug('Loading package «%s» from %s', [$package_file, $package_filepath]);
+				zorgDebugger::log()->debug('Loading package «%s» from %s', [$package_file, $package_filepath]);
 				if (is_file($package_filepath) !== false)
 				{
 					require_once $package_filepath;
@@ -364,7 +356,7 @@ function load_packages($tpl_id, &$smarty)
 		/** 0 Packages found (but this is no error) */
 		elseif ($numPackagesFound === 0)
 		{
-			zorgDebugger::me()->debug('Template «%s» has no packages associated', [strval($tpl)]);
+			zorgDebugger::log()->debug('Template «%s» has no packages associated', [strval($tpl)]);
 			return true;
 		}
 	} else {
@@ -378,7 +370,6 @@ function load_packages($tpl_id, &$smarty)
  *
  * Load Menus from templates > tpl_menus > menus relationship instead of Smarty inline markup {menu}
  *
- * @author IneX
  * @version 1.0
  * @since 1.0 `02.07.2019` `IneX` function added
  *
@@ -396,8 +387,9 @@ function load_navigation($tpl_id, &$smarty)
 	if (empty($tpl_id) || is_array($tpl_id) || !is_numeric($tpl_id)) return false;
 
 	/** Retrieve Menus to $tpl_id from database */
-	$menusQuery = 'SELECT m.tpl_id as tpl_id, m.name as name, (SELECT read_rights FROM templates WHERE id=m.tpl_id) as read_rights, (SELECT owner FROM templates WHERE id=m.tpl_id) as owner FROM menus m INNER JOIN tpl_menus tplm ON m.id = tplm.menu_id WHERE tplm.tpl_id='.$tpl_id.' ORDER BY name ASC';
-	$menusFound = $db->query($menusQuery, __FILE__, __LINE__, __FUNCTION__);
+	$menusQuery = 'SELECT m.tpl_id as tpl_id, m.name as name, (SELECT read_rights FROM templates WHERE id=m.tpl_id) as read_rights, (SELECT owner FROM templates WHERE id=m.tpl_id) as owner
+					FROM menus m INNER JOIN tpl_menus tplm ON m.id = tplm.menu_id WHERE tplm.tpl_id=? ORDER BY name ASC';
+	$menusFound = $db->query($menusQuery, __FILE__, __LINE__, __FUNCTION__, [$tpl_id]);
 	$numMenusFound = $db->num($menusFound);
 	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Found %d Menus for template #%d', __FUNCTION__, __LINE__, $numMenusFound, $tpl_id));
 
@@ -417,7 +409,7 @@ function load_navigation($tpl_id, &$smarty)
 	/** 0 Packages found (but this is no error) */
 	elseif ($numMenusFound === 0)
 	{
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template %s (#%d) has no menus associated', __FUNCTION__, __LINE__, $package['name'], $tpl_id));
+		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template #%d has no menus associated', __FUNCTION__, __LINE__, $tpl_id));
 		return null;
 	}
 	/** for anything else... */
@@ -430,10 +422,10 @@ function load_navigation($tpl_id, &$smarty)
  * Return a Smarty Menu Template
  * based on a name => tpl-id lookup from the database
  *
- * @author [z]biko
  * @version 1.1
- * @since 1.0 function added
- * @since 1.1 changed global $smarty to persistent function param &$smarty
+ * @since 1.0 `[z]biko` function added
+ * @since 1.1 `IneX` Changed global $smarty to persistent function param &$smarty
+ *
  * @return array
  */
 function menu ($name, &$smarty)
@@ -448,7 +440,9 @@ function menu ($name, &$smarty)
  * Datenbankabfrage um Word-Template zu laden und '$tpl_source' zuzuweisen
  * based on a word => tpl-id lookup from the database
  *
- * @author [z]biko
+ * @version 1.0
+ * @since 1.0 `[z]biko`
+ *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean
  */
@@ -456,7 +450,7 @@ function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty)
 {
   global $db;
 
-  $e = $db->query('SELECT id FROM templates WHERE word="'.$tpl_name.'"');
+  $e = $db->query('SELECT id FROM templates WHERE word=?', __FILE__, __LINE__, __FUNCtiON__, [$tpl_name]);
   $d = $db->fetch($e);
 
   if ($d) {
@@ -475,7 +469,9 @@ function smartyresource_word_get_template($tpl_name, &$tpl_source, &$smarty)
  * zusätzlich lokale tpl-infos setzen (smarty-variable $tpl)
  * based on a word => tpl-id lookup from the database
  *
- * @author [z]biko
+ * @version 1.0
+ * @since 1.0 `[z]biko`
+ *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean
  */
@@ -483,7 +479,7 @@ function smartyresource_word_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 {
   global $db;
 
-  $e = $db->query('SELECT id FROM templates WHERE word="'.$tpl_name.'"', __FILE__, __LINE__, __FUNCTION__);
+  $e = $db->query('SELECT id FROM templates WHERE word=?', __FILE__, __LINE__, __FUNCTION__, [$tpl_name]);
   $d = mysqli_fetch_array($e);
 
   smartyresource_tpl_get_timestamp($d['id'], $ts, $smarty);
@@ -508,8 +504,11 @@ function smartyresource_word_get_trusted($tpl_name, &$smarty_obj)
 /**
  * Remove invalid HTML from Smarty template.
  * @TODO deaktiviert bis ein besserer syntax checker gebaut ist (biko)
- * @author [z]biko
+ *
  * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/tpleditor.php TPLeditor Save Action
+ *
+ * @version 1.0
+ * @since 1.0 `[z]biko`
  */
 function smarty_remove_invalid_html ($tpl, &$smarty)
 {
@@ -534,19 +533,12 @@ function package_path ($package)
  *
  * @link https://www.smarty.net/docs/en/api.register.resource.tpl
  *
- * @author [z]biko
- * @author IneX
- * @date 03.01.2016
  * @version 3.0
- * @since 1.0 function added
- * @since 2.0 `IneX` Moved Smarty directory paths to global configs
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `03.01.2016` `IneX` Moved Smarty directory paths to global configs
  * @since 3.0 `21.06.2019` `IneX` Added registration of Smarty prefilter and postfilter functions
  *
- * @uses SMARTY_TEMPLATES_HTML
- * @uses SMARTY_COMPILE
- * @uses SMARTY_CACHE
- * @uses SMARTY_TRUSTED_DIRS
- * @uses SMARTY_TEMPLATES_HTML
+ * @uses SMARTY_TEMPLATES_HTML, SMARTY_COMPILE, SMARTY_CACHE, SMARTY_TRUSTED_DIRS, SMARTY_TEMPLATES_HTML
  * @return Smarty Class-object
  */
 function startSmarty()
@@ -614,34 +606,53 @@ function startSmarty()
 	return $smarty;
 }
 
+/*
+ * Get a relevant User ID associated with a Template
+ *
+ * Get the Owner or last Editor of a Template.
+ *
+ * @version 1.0
+ * @since 1.0 `10.01.2024` `IneX` Function added
+ *
+ * @see tpleditor.php
+ * @param integer $tpl_id Template ID
+ * @param string $role User ID to fetch: either 'owner' (default) - or 'update_user'
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return int|bool Returns User ID - or false on failure
+ */
+function tpl_get_associated_user($tpl_id, $role='owner')
+{
+	global $db;
+
+	$supportedRoles = ['owner', 'update_user'];
+	if (is_numeric($tpl_id) && $tpl_id>0 && in_array($role, $supportedRoles))
+	{
+		$d = $db->fetch($db->query('SELECT '.$role.' FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$tpl_id]));
+		return intval($d[$role]);
+	}
+	return false;
+}
+
 
 /**
  * Erweiterungen der Smarty Klasse für Zorg
  *
- * @author IneX
- * @date 03.01.2016
- * @version 1.0
  * @package zorg\Smarty
+ *
+ * @version 1.0
+ * @since 1.0 `03.01.2016` `IneX`
  */
 class ZorgSmarty extends Smarty
 {
 	/**
-	 * OWN BY BIKO
-	 * Templates that can be called recursive
-	 * used in function $this->_smarty_include
-	 *
-	 * @var string-array
+	 * OWN BY BIKO.
+	 * @var array $recur_allowed_tpls Templates that can be called recursive. Used in function $this->_smarty_include
+	 * @var array $_cache_include_info
+	 * @var string $recur_handler Template that is called if a recursion was detected. Used in function $this->_smarty_include
 	 */
-	var $recur_allowed_tpls = array();
-
-	/**
-	 * OWN BY BIKO
-	 * Template that is called if a recursion was detected
-	 * used in function $this->_smarty_include
-	 *
-	 * @var string
-	 */
-	var $recur_handler = "";
+	public $recur_allowed_tpls = [];
+	public $_cache_include_info = [];
+	public $recur_handler = "";
 
 	/**
 	 * The class constructor.
@@ -736,13 +747,19 @@ class ZorgSmarty extends Smarty
 /**
  * Erweiterungen der Smarty Compiler Klasse für Zorg
  *
- * @author IneX
- * @date 03.01.2016
- * @version 1.0
  * @package zorg\Smarty
+ *
+ * @version 1.0
+ * @since 1.0 `03.01.2016` `IneX` Class added
  */
 class ZorgSmarty_Compiler extends Smarty
 {
+	/**
+	 * Class Vars
+	 */
+	public $_current_line_no = null;
+	public $_current_file = null;
+
 	/**
 	 * The class constructor.
 	 */

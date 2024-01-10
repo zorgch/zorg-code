@@ -1,36 +1,40 @@
 <?php
 /**
  * Chess game class
- * @package zorg\Games\Chess
  *
  * @TODO x open chess games im header anzeigen
  * @TODO Game-Schluss-Meldungen wie "x hat gewonnen", "x hat aufgegeben", remis, patt, matt, usw.
+ *
+ * @package zorg\Games\Chess
  */
 
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/usersystem.inc.php';
+require_once __DIR__.'/config.inc.php';
+require_once INCLUDES_DIR.'/usersystem.inc.php';
 
 /** Constants */
 define('CHESS_DWZ_BASE_POINTS', 1600);
 define('CHESS_DWZ_MAX_POINTS_TRANSFERABLE', 32);
 
-class Chess {
+/**
+ * @version 0.1
+ * @since 0.1 `[z]biko` Class added
+ */
+class Chess
+{
 	function new_game ($white, $black=0) {
 		global $db, $user;
 
 		if (!$black) $black = $user->id;
 
-		$e = $db->query("SELECT * FROM user WHERE id='$white'", __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM user WHERE id=?', __FILE__, __LINE__, __METHOD__, [$white]);
 		$d = $db->fetch($e);
 		if ($d['chess'] && $user->id) {
-			$db->query("UPDATE user SET chess='1' WHERE id='$user->id'", __FILE__, __LINE__);
-			return $db->query(
-				"INSERT INTO chess_games (start_date, white, black, next_turn)
-				VALUES (NOW(), $white, $black, $white)",
-				__FILE__, __LINE__
-			);
+			$db->query('UPDATE user SET chess="1" WHERE id=?', __FILE__, __LINE__, __METHOD__, [$user->id]);
+			return $db->query('INSERT INTO chess_games (start_date, white, black, next_turn) VALUES (?, ?, ?, ?)',
+								__FILE__, __LINE__, __METHOD__, [timestamp(true), $white, $black, $white]);
 		}else{
 			return 0;
 		}
@@ -47,11 +51,11 @@ class Chess {
 		// standard move
 		else $move = "$from-$to";
 
-		$e = $db->query("SELECT * FROM chess_games WHERE id='$game'", __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM chess_games WHERE id=?', __FILE__, __LINE__, __METHOD__, [$game]);
 		$g = $db->fetch($e);
 
 		// move
-		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr DESC LIMIT 0, 1", __FILE__, __LINE__);
+		$e = $db->query('SELECT * FROM chess_history WHERE game=? ORDER BY nr DESC LIMIT 1', __FILE__, __LINE__, __METHOD__, [$game]);
 		$d = $db->fetch($e);
 		$board = $this->get_board($game);
 
@@ -63,23 +67,24 @@ class Chess {
 
 			// update db
 			if ($player == 'w') {
-				$nr = $db->fetch($db->query("SELECT count(*) anz FROM chess_history WHERE game=$game", __FILE__, __LINE__));
-				$db->query("INSERT INTO chess_history (game, nr, white) VALUES ($game, $nr[anz], '$move')", __FILE__, __LINE__);
+				$nr = $db->fetch($db->query('SELECT COUNT(*) anz FROM chess_history WHERE game=?', __FILE__, __LINE__, __METHOD__, [$game]));
+				$db->query('INSERT INTO chess_history (game, nr, white) VALUES (?, ?, ?)',
+							__FILE__, __LINE__, __METHOD__, [$game, $nr['anz'], $move]);
 			}else{
-				$db->query("UPDATE chess_history SET black='$move' WHERE game=$game AND nr=$d[nr]", __FILE__, __LINE__);
+				$db->query('UPDATE chess_history SET black=? WHERE game=? AND nr=?', __FILE__, __LINE__, __METHOD__, [$move, $game, $d['nr']]);
 			}
 
 			// set lastturn and nextturn
 			$other = $player=='w' ? $g['black'] : $g['white'];
-			$db->query("UPDATE chess_games SET last_turn=NOW(), next_turn=$other WHERE id=$game", __FILE__, __LINE__);
+			$db->query('UPDATE chess_games SET last_turn=?, next_turn=? WHERE id=?', __FILE__, __LINE__, __METHOD__, [timestamp(true), $other, $game]);
 
 			// set state if game finished
 			if ($move[strlen($move)-1] == '#') {
 				$winner = $player=='w' ? $g['white'] : $g['black'];
-				$db->query("UPDATE chess_games SET state='matt', winner=$winner WHERE id=$game", __FILE__, __LINE__);
+				$db->query('UPDATE chess_games SET state="matt", winner=? WHERE id=?', __FILE__, __LINE__, __METHOD__, [$winner, $game]);
 				$this->update_dwz($game);
 			}elseif ($move[strlen($move)-1] == '=') {
-				$db->query("UPDATE chess_games SET state='patt' WHERE id=$game", __FILE__, __LINE__);
+				$db->query('UPDATE chess_games SET state="patt" WHERE id=?', __FILE__, __LINE__, __METHOD__, [$game]);
 				$this->update_dwz($game);
 			}
 
@@ -92,19 +97,19 @@ class Chess {
 	function do_offer_remis ($game) {
 		global $db;
 
-		$db->query("UPDATE chess_games SET offering_remis='1' WHERE id=$game", __FILE__, __LINE__);
+		$db->query("UPDATE chess_games SET offering_remis='1' WHERE id=?", __FILE__, __LINE__, __METHOD__, [$game]);
 	}
 
 	function do_remis ($game) {
 		global $db;
 
-		$db->query("UPDATE chess_games SET state='remis' WHERE id=$game", __FILE__, __LINE__);
-		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr DESC LIMIT 0,1", __FILE__, __LINE__);
+		$db->query("UPDATE chess_games SET state='remis' WHERE id=?", __FILE__, __LINE__, __METHOD__, [$game]);
+		$e = $db->query("SELECT * FROM chess_history WHERE game=? ORDER BY nr DESC LIMIT 1", __FILE__, __LINE__, __METHOD__, [$game]);
 		$d = $db->fetch($e);
 		if ($d['black']) {
-			$db->query("UPDATE chess_history SET black='".($d['black'].'=')."' WHERE game=$game AND nr=$d[nr]", __FILE__, __LINE__);
+			$db->query("UPDATE chess_history SET black=? WHERE game=? AND nr=?", __FILE__, __LINE__, __METHOD__, [$d['black'], $game, $d['nr']]);
 		}else{
-			$db->query("UPDATE chess_history SET white='".($d['white'].'=')."' WHERE game=$game AND nr=$d[nr]", __FILE__, __LINE__);
+			$db->query('UPDATE chess_history SET white=? WHERE game=? AND nr=?', __FILE__, __LINE__, __METHOD__, [$d['white'], $game, $d['nr']]);
 		}
 		$this->update_dwz($game);
 	}
@@ -115,21 +120,19 @@ class Chess {
 // TODO: aufgabe testen
 // TODO: aufgabe testen bei 1. zug
 
-		$e = $db->query(
-			"SELECT g.*, count(h.nr) no_turns
-			FROM chess_games g
-			LEFT JOIN chess_history h ON h.game = g.id
-			WHERE g.id='$game' AND g.next_turn='$user->id' AND g.state='running'
-			GROUP BY g.id
-			LIMIT 0, 1",
-			__FILE__, __LINE__
-		);
+		$e = $db->query("SELECT g.*, count(h.nr) no_turns
+						FROM chess_games g
+						LEFT JOIN chess_history h ON h.game = g.id
+						WHERE g.id=? AND g.next_turn=? AND g.state='running'
+						GROUP BY g.id LIMIT 1",
+						__FILE__, __LINE__, __METHOD__, [$game, $user->id]
+			);
 		$g = $db->fetch($e);
 		if ($g) {
 			if ($g['white'] == $user->id) {  // weiss gibt auf
-				$db->query("INSERT INTO chess_history (game, nr, white) VALUES ($game, $g[no_turns], 'Resigns')", __FILE__, __LINE__);
+				$db->query("INSERT INTO chess_history (game, nr, white) VALUES (?, ?, 'Resigns')", __FILE__, __LINE__, __METHOD__, [$game, $g['no_turns']]);
 			}elseif ($g['black'] == $user->id) { // schwarz gibt auf
-				$db->query("UPDATE chess_history SET white='Resigns' WHERE game='$game' AND nr=".($g['no_turns']-1), __FILE__, __LINE__);
+				$db->query("UPDATE chess_history SET white='Resigns' WHERE game=? AND nr=?", __FILE__, __LINE__, __METHOD__, [$game, $g['no_turns']-1]);
 			}
 		}else{
 			user_error("Invalid game '$game'", E_USER_ERROR);
@@ -139,7 +142,7 @@ class Chess {
 	function deny_remis ($game) {
 		global $db;
 
-		$db->query("UPDATE chess_games SET offering_remis='0' WHERE id='$game'", __FILE__, __LINE__);
+		$db->query("UPDATE chess_games SET offering_remis='0' WHERE id=?", __FILE__, __LINE__, __METHOD__, [$game]);
 	}
 
 	function get_board ($game) {
@@ -160,14 +163,14 @@ class Chess {
 		);
 
 
-		$e = $db->query("SELECT * FROM chess_history WHERE game=$game ORDER BY nr ASC", __FILE__, __LINE__);
+		$e = $db->query("SELECT * FROM chess_history WHERE game=? ORDER BY nr ASC", __FILE__, __LINE__, __METHOD__, [$game]);
 		while ($d = $db->fetch($e)) {
 			$board = $this->move($board, 'w', $d['white'], 1);
 			$figure = substr($this->figure($board, substr($d['white'], 3, 2)), 1, 1);
-			if ($d['white'][0] != 'o' && $figure!='P') $d['white'] = $figure.$d['white'];
+			if (isset($d['white'][0]) && $d['white'][0] != 'o' && $figure!='P') $d['white'] = $figure.$d['white'];
 			$board = $this->move($board, 'b', $d['black'], 1);
 			$figure = substr($this->figure($board, substr($d['black'], 3, 2)), 1, 1);
-			if ($d['black'][0] != 'o' && $figure!='P') $d['black'] = $figure.$d['black'];
+			if (isset($d['black'][0]) && $d['black'][0] != 'o' && $figure!='P') $d['black'] = $figure.$d['black'];
 
 			$d['nr']++;
 			$board['history'][] = $d;
@@ -192,8 +195,8 @@ class Chess {
 			$board['d'][$roch_p] = $player.'R';
 			$board['roch'][$player.'L'] = $board['roch'][$player.'G'] = 0;
 		}else{
-			if ($player=='w' && $move[1]==7 && $move[4]==8
-				|| $player=='b' && $move[1]==2 && $move[4]==1
+			if ($player=='w' && isset($move[1]) && $move[1]==7 && isset($move[4]) && $move[4]==8
+				|| $player=='b' && isset($move[1]) && $move[1]==2 && isset($move[4]) && $move[4]==1
 			) {
 				// Pawn to Queen
 				$board[$move[3]][$move[4]] = $player.'Q';
@@ -207,7 +210,7 @@ class Chess {
 				}
 
 				// standard move
-				$board[$move[3]][$move[4]] = $board[$move[0]][$move[1]];
+				if (isset($move[0]) && isset($move[1])) $board[$move[3]][$move[4]] = $board[$move[0]][$move[1]];
 
 				// verbiete künftige rochade
 				if (in_array(substr($move, 0, 2), array('e1', 'e8')))
@@ -215,7 +218,7 @@ class Chess {
 				if (in_array(substr($move, 0, 2), array('a1', 'a8'))) $board['roch'][$player.'G'] = 0;
 				if (in_array(substr($move, 0, 2), array('h1', 'h8'))) $board['roch'][$player.'L'] = 0;
 			}
-			$board[$move[0]][$move[1]] = '-';
+			if (isset($move[1])) $board[$move[0]][$move[1]] = '-';
 		}
 
 		// apply check or checkmate to move-string
@@ -573,7 +576,7 @@ class Chess {
 	function is_valid_position ($pos) {
 		if (strlen($pos) != 2) return false;
 		if (chr($pos[0]) < chr('a') || chr($pos[0]) > chr('h')) return false;
-		if ($pos[1] < 1 || $pos[1] > 8) return fals;
+		if ($pos[1] < 1 || $pos[1] > 8) return false;
 		return true;
 	}
 
@@ -595,7 +598,7 @@ class Chess {
 
 	   $prev_score_2 = $prev_score_1 = CHESS_DWZ_BASE_POINTS;
 
-	   $e = $db->query("SELECT * FROM chess_games WHERE id=$game AND state!='running'", __FILE__, __LINE__);
+	   $e = $db->query("SELECT * FROM chess_games WHERE id=? AND state!='running'", __FILE__, __LINE__, __METHOD__, [$game]);
 	   $d = $db->fetch($e);
 	   if (!$d) user_error("Invalid Chess Game-ID", E_USER_ERROR);
 
@@ -604,14 +607,14 @@ class Chess {
 	   else $p1 = 0.5;
 	   $p2 = 1 - $p1;
 
-	   $e = $db->query("SELECT * FROM chess_dwz WHERE user=$d[white]", __FILE__, __LINE__);
+	   $e = $db->query("SELECT * FROM chess_dwz WHERE user=?", __FILE__, __LINE__, __METHOD__, [$d['white']]);
 	   $d1 = $db->fetch($e);
 	   if ($d1) {
 	   	$dwz1 = $d1['score'];
 	   	$prev_score_1 = $dwz1;
 	   }
 	   else $dwz1 = CHESS_DWZ_BASE_POINTS;
-	   $e = $db->query("SELECT * FROM chess_dwz WHERE user=$d[black]", __FILE__, __LINE__);
+	   $e = $db->query("SELECT * FROM chess_dwz WHERE user=?", __FILE__, __LINE__, __METHOD__, [$d['black']]);
 	   $d2 = $db->fetch($e);
 	   if ($d2) {
 	   	$dwz2 = $d2['score'];
@@ -628,16 +631,16 @@ class Chess {
 	   $dwz1 += $dif1;
 	   $dwz2 += $dif2;
 
-	   if ($d1) $db->query("UPDATE chess_dwz SET score=$dwz1, prev_score=$prev_score_1 WHERE user=$d[white]", __FILE__, __LINE__);
-	   else $db->query("INSERT INTO chess_dwz (user, score, prev_score) VALUES ($d[white], $dwz1, $prev_score_1)", __FILE__, __LINE__);
-	   if ($d2) $db->query("UPDATE chess_dwz SET score=$dwz2, prev_score=$prev_score_2 WHERE user=$d[black]", __FILE__, __LINE__);
-	   else $db->query("INSERT INTO chess_dwz (user, score, prev_score) VALUES ($d[black], $dwz2, $prev_score_2)", __FILE__, __LINE__);
+	   if ($d1) $db->query("UPDATE chess_dwz SET score=?, prev_score=? WHERE user=?", __FILE__, __LINE__, __METHOD__, [$dwz1, $prev_score_1, $d['white']]);
+	   else $db->query("INSERT INTO chess_dwz (user, score, prev_score) VALUES (?, ?, ?)", __FILE__, __LINE__, __METHOD__, [$d['white'], $dwz1, $prev_score_1]);
+	   if ($d2) $db->query("UPDATE chess_dwz SET score=?, prev_score=? WHERE user=?", __FILE__, __LINE__, __METHOD__, [$dwz2, $prev_score_2, $d['black']]);
+	   else $db->query("INSERT INTO chess_dwz (user, score, prev_score) VALUES (?, ?, ?)", __FILE__, __LINE__, __METHOD__, [$d['black'], $dwz2, $prev_score_2]);
 
 	   // dwz_dif für game
-	   $db->query("UPDATE chess_games SET dwz_dif=".abs($dif1)." WHERE id=$game AND state!='running'", __FILE__, __LINE__);
+	   $db->query("UPDATE chess_games SET dwz_dif=? WHERE id=? AND state!='running'", __FILE__, __LINE__, __METHOD__, [abs($dif1), $game]);
 
 	   // rank update
-	   $e = $db->query("SELECT * FROM chess_dwz ORDER BY score DESC", __FILE__, __LINE__);
+	   $e = $db->query("SELECT * FROM chess_dwz ORDER BY score DESC", __FILE__, __LINE__, __METHOD__);
 	   $i = 1;
 	   $prev_score = 0;
 	   $rank = 0;
@@ -652,9 +655,9 @@ class Chess {
 	   		$prev_rank = "";
 	   	}
 
-	   	$db->query("UPDATE chess_dwz SET rank=$rank $prev_rank WHERE user=$upd[user]", __FILE__, __LINE__);
+	   	$db->query("UPDATE chess_dwz SET rank=?, prev_rank=? WHERE user=?", __FILE__, __LINE__, __METHOD__, [$rank, $prev_rank, $upd['user']]);
 
-	   	$prev_score = $upd[score];
+	   	$prev_score = $upd['score'];
 	   	++$i;
 	   }
 	}
@@ -662,7 +665,7 @@ class Chess {
 	function running_games () {
 		global $db, $user;
 
-		$e = $db->query("SELECT count(*) anz FROM chess_games WHERE next_turn='$user->id'", __FILE__, __LINE__);
+		$e = $db->query("SELECT count(*) anz FROM chess_games WHERE next_turn=?", __FILE__, __LINE__, __METHOD__, [$user->id]);
 		$d = $db->fetch($e);
 		return $d['anz'];
 	}
@@ -673,12 +676,12 @@ class Chess {
 		if (!$user->id) return array();
 
 		$e = $db->query(
-			"SELECT IF(g.white='$user->id', b.username, w.username) player, IF(g.next_turn='$user->id', 1, 0) my_turn,
+			"SELECT IF(g.white=?, b.username, w.username) player, IF(g.next_turn=?, 1, 0) my_turn,
 			concat('/?tpl=141&game=', g.id) link
 			FROM chess_games g, user b, user w
-			WHERE (g.black='$user->id' OR g.white='$user->id') AND b.id=g.black AND w.id=g.white
+			WHERE (g.black=? OR g.white=?) AND b.id=g.black AND w.id=g.white
 			ORDER BY g.last_turn DESC",
-			__FILE__, __LINE__
+			__FILE__, __LINE__, __METHOD__, [$user->id, $user->id, $user->id, $user->id]
 		);
 		$my_games = array();
 		while ($d = $db->fetch($e)) {
@@ -699,3 +702,6 @@ class Chess {
 		return $ret;
 	}
 }
+
+/** Instantiate Class */
+$chess = new Chess();

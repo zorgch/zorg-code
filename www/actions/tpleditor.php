@@ -8,9 +8,10 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/../includes/tpleditor.inc.php';
+require_once __DIR__.'/../includes/tpleditor.inc.php';
 
 /** Initialize Vars */
+global $notification;
 $error = null;
 $state = null;
 $access_error = null;
@@ -89,7 +90,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 
 				$updated_tplid = $frm['id'];
 				$return_url = '/?tpl='.$updated_tplid;
-				$return_url .= '&created';
+				$return_url .= '&created=1';
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
 
@@ -119,7 +120,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 							,'sidebar_tpl' => $frm['sidebar_tpl']
 							,'allow_comments' => $frm['allow_comments']
 							,'error' => null
-							,'owner' => $user->id
+							//,'owner' => $user->id // ähhh nei, Owner söll nöd change?!
 							,'update_user' => $user->id
 							,'last_update' => timestamp(true)
 						];
@@ -136,28 +137,36 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 			$db->query('DELETE FROM tpl_menus WHERE tpl_id=?', __FILE__, __LINE__, 'DELETE FROM tpl_menus', [$frm['id']]);
 			if (!empty($_POST['frm']['menus']))
 			{
-				$tplmenusInsertData = null;
+				$tplmenusInsertData = [];
+				$params = [];
 				foreach ($_POST['frm']['menus'] as $menu_id) {
-					/** Note: only works when getting Array directly from $_POST, not via $frm.
-					Don't know why, cost me like 2 hours to figure this out WTF */
-					if (!empty($menu_id)) $tplmenusInsertData[] = sprintf('(%d, %d)', $frm['id'], $menu_id);
+					if ($menu_id > 0) {
+						$tplmenusInsertData[] = '(?, ?)';
+						$params[] = $frm['id'];
+						$params[] = $menu_id;
+					}
 				}
-				$db->query('INSERT INTO tpl_menus (tpl_id, menu_id) VALUES '.implode(',',$tplmenusInsertData), __FILE__, __LINE__, 'Link Template to selected Menus'); // add new
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Menus: %s', __FILE__, __LINE__, $frm['id'], print_r($tplmenusInsertData, true)));
+				$sql = 'INSERT INTO tpl_menus (tpl_id, menu_id) VALUES '.implode(',', $tplmenusInsertData);
+				zorgDebugger::log()->debug('Template ID #%d linked to Menus: %s%s', [$frm['id'], $sql, print_r($params, true)]);
+				$db->query($sql, __FILE__, __LINE__, 'Link Template to selected Menus', $params);
 			}
 
 			/** Packages: remove all links between Template & Packages, relink selected Packages */
 			$db->query('DELETE FROM tpl_packages WHERE tpl_id=?', __FILE__, __LINE__, 'DELETE FROM tpl_packages', [$frm['id']]);
 			if (!empty($_POST['frm']['packages']))
 			{
-				$tplpackagesInsertData = null;
+				$tplpackagesInsertData = [];
+				$params = [];
 				foreach ($_POST['frm']['packages'] as $package_id) {
-					/** Note: only works when getting Array directly from $_POST, not via $frm.
-					Don't know why, cost me like 2 hours to figure this out WTF */
-					if (!empty($package_id)) $tplpackagesInsertData[] = sprintf('(%d, %d)', $frm['id'], $package_id);
+					if (!empty($package_id)) {
+						$tplpackagesInsertData[] = '(?, ?)';
+						$params[] = $frm['id'];
+						$params[] = $package_id;
+					}
 				}
-				$db->query('INSERT INTO tpl_packages (tpl_id, package_id) VALUES '.implode(',',$tplpackagesInsertData), __FILE__, __LINE__, 'Link Template to selected Packages'); // add new
-				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Template ID #%d linked to Packages: %s', __FILE__, __LINE__, $frm['id'], print_r($tplpackagesInsertData, true)));
+				$sql = 'INSERT INTO tpl_packages (tpl_id, package_id) VALUES ' . implode(',', $tplpackagesInsertData);
+				zorgDebugger::log()->debug('Template ID #%d linked to Packages: %s%s', [$frm['id'], $sql, print_r($params, true)]);
+				$db->query($sql, __FILE__, __LINE__, 'Link Template to selected Packages', $params);
 			}
 		}
 	}
@@ -208,7 +217,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		/** If compile-error, write it to the template in the DB */
 		if (!empty($error))
 		{
-			$db->query('UPDATE templates SET error="'.addslashes($error).'" WHERE id='.$frm['id'], __FILE__, __LINE__, 'UPDATE templates (tplid)');
+			$db->query('UPDATE templates SET error=? WHERE id=?', __FILE__, __LINE__, 'UPDATE templates (tplid)', [$error, $frm['id']]);
 		}
 	}
 
@@ -218,10 +227,20 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		/** Unlock Template for editing - only if no $error occurred */
 		tpleditor_unlock($updated_tplid);
 		if (!isset($return_url) || empty($return_url)) $return_url = '/?tpl='.$updated_tplid;
-		$return_url .= '&updated';
+		$return_url .= '&updated=1';
 
 		$updated_tplid = null;
 		$enable_tpleditor = null;
+
+		/** Notify Template-Owner about change - if done by other User */
+		$notifyOtherTplOwner = tpl_get_associated_user($frm['id']);
+		zorgDebugger::log()->debug('Notify Template-Owner: owner %d <-- edit by %d', [$notifyOtherTplOwner, $user->id]);
+		if ($notifyOtherTplOwner !== $user->id)
+		{
+			$notification_text = t('change-notification-owner', 'tpl', [ $user->id2user($user->id), $frm['id'], $frm['title'] ]);
+			$notification_status = $notification->send($notifyOtherTplOwner, 'messagesystem', ['from_user_id'=>$user->id, 'subject'=>t('change-notification-owner-subject', 'tpl'), 'text'=>$notification_text, 'message'=>$notification_text]);
+			zorgDebugger::log()->debug('$_TPLROOT[owner] Notification: %s', [$notification_status ? 'true' : 'false']);
+		}
 
 		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> header(Location): %s', __FILE__, __LINE__, $return_url));
 		header('Location: '.$return_url);
