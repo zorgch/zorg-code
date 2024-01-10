@@ -25,7 +25,7 @@ if (isset($wwwroot) && file_exists($wwwroot.'/includes/config.inc.php'))
 
 	error_log(sprintf('[%s] [NOTICE] <%s> Try including files...', date('d.m.Y H:i:s',time()), __FILE__));
 	define('SITE_ROOT', $wwwroot); // Define own SITE_ROOT before loading general zConfigs
-	require_once( SITE_ROOT.'/includes/config.inc.php');
+	(!require_once( SITE_ROOT.'/includes/config.inc.php')) ?? error_log(sprintf('[%s] [ERROR] <%s> Including %s failed', date('d.m.Y H:i:s',time()), __FILE__, SITE_ROOT.'/includes/config.inc.php'));
 	include_once( INCLUDES_DIR.'addle.inc.php');
 	include_once( INCLUDES_DIR.'hz_game.inc.php');
 	include_once( INCLUDES_DIR.'peter.inc.php');

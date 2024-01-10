@@ -15,7 +15,7 @@
  */
 require_once __DIR__.'/config.inc.php';
 if (!defined('GOOGLE_API_KEY') && isset($_ENV['GOOGLE_MAPS_API_KEY'])) define('GOOGLE_API_KEY', $_ENV['GOOGLE_MAPS_API_KEY']);
-zorgDebugger::me()->debug('GOOGLE_API_KEY: %s', [(!empty(GOOGLE_API_KEY) ? 'found' : 'MISSING')]);
+zorgDebugger::log()->debug('GOOGLE_API_KEY: %s', [(!empty(GOOGLE_API_KEY) ? 'found' : 'MISSING')]);
 
 /**
  * Google Maps API Class

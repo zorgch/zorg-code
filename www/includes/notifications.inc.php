@@ -19,7 +19,7 @@
  * File includes
  * @include messagesystem.inc.php Required Messagesystem Class
  */
-require_once INCLUDES_DIR.'messagesystem.inc.php' ;
+require_once __DIR__.'/messagesystem.inc.php' ;
 
 /**
  * Class for Notification handling
@@ -171,7 +171,7 @@ class Notification
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_id VALID', __METHOD__, __LINE__));
 		}
 
-		$query = $db->query('SELECT notifications FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
+		$query = $db->query('SELECT notifications FROM user WHERE id=? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$user_id]);
 		$result = $db->fetch($query);
 		if (!$result || empty($result))
 		{
@@ -180,7 +180,7 @@ class Notification
 			$userEnabledNotifications = json_decode( $user->default_notifications, true ); // JSON-DECODE to Array
 		} else {
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use $userEnabledNotifications for $user_id %d: %s', __METHOD__, __LINE__, $user_id, $result['notifications']));
-			$userEnabledNotifications = json_decode( $result['notifications'], true); // JSON-Decode to Array
+			$userEnabledNotifications = json_decode( stripslashes($result['notifications']), true); // JSON-Decode to Array
 		}
 
 		return $userEnabledNotifications;
@@ -211,14 +211,14 @@ class Notification
 		if (is_numeric($notification_type) || is_array($notification_type)) return false;
 		if (!is_numeric($user_id) || $user_id <= 0 || is_array($user_id)) return false;
 
-		$query = $db->query('SELECT notifications FROM user WHERE id='.$user_id.' LIMIT 1', __FILE__, __LINE__, __METHOD__);
+		$query = $db->query('SELECT notifications FROM user WHERE id=? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$user_id]);
 		$result = $db->fetch($query);
 		if (!$result || empty($result))
 		{
 			/** No query result / empty "notifications"-field */
 			return false;
 		} else {
-			$userEnabledNotifications = json_decode( $result['notifications'], true); // JSON-Decode to Array
+			$userEnabledNotifications = json_decode( stripslashes($result['notifications']), true); // JSON-Decode to Array
 		}
 
 		/** Check if $notification_type is enabled */

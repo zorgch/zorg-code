@@ -22,7 +22,7 @@ $model = new MVC\Bugtracker();
 /**
  * Validate GET-Parameters
  */
-$bug_id = (isset($_GET['bug_id']) ? (int)$_GET['bug_id'] : null);
+$bug_id = (isset($getBugId) ? $getBugId : (filter_input(INPUT_GET, 'bug_id', FILTER_VALIDATE_INT) ?? null));
 $show = (isset($_GET['show']) && !empty($_GET['show']) ? (array)$_GET['show'] : []);
 $order = isset($_GET['order'])?$_GET['order']:'';
 

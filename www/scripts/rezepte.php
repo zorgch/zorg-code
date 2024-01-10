@@ -5,12 +5,8 @@
  */
 global $db, $user, $smarty;
 
+/** Fetch all Rezepte by Title */
+// FIXME move this to rezepte.inc.php
 $f = $db->query('SELECT * FROM rezepte ORDER by title ASC', __FILE__, __LINE__, 'SELECT FROM rezepte');
 
-$list = array();
-while ($f = $db->fetch($g))
-{
-	array_push($list, $g);
-}
-
-$smarty->assign('rezepte', $list);
+$smarty->assign('rezepte', $db->fetch($f));

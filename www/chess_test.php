@@ -4,11 +4,15 @@
  *
  * @package zorg\Games\Chess
  */
+
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
-include_once INCLUDES_DIR.'usersystem.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
 include_once INCLUDES_DIR.'chess.inc.php';
 
-$board = Chess::get_board(1);
+/** Validate parameters */
+$gameId = (isset($_GET['game']) ? filter_input(INPUT_GET, 'game', FILTER_VALIDATE_INT) : 1); // Default: Game #1
+
+/** Load Chess Board */
+$board = $chess->get_board($gameId);
