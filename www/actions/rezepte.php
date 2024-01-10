@@ -1,84 +1,86 @@
 <?php
 /**
  * Rezepte Actions
+ *
  * @package zorg\Rezepte
  */
+
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'rezepte.inc.php';
 
-if (true === $user->is_loggedin())
+if ($user->is_loggedin())
 {
 	/** Validate passed Parameters */
-	$doAction = (isset($_POST['action']) && is_string($_POST['action']) ? (string)$_POST['action'] : null);
+	$doAction = filter_input(INPUT_POST, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['action']
+	$rezeptId = filter_input(INPUT_POST, 'rezept_id', FILTER_VALIDATE_INT) ?? null; // $_POST['rezept_id']
+	$returnUrl = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/tpl/129?rezept_id='.$rezeptId; // $_POST['url']
+	zorgDebugger::log()->debug('$doAction %s | $rezeptId %d | $returnUrl: %s', [$doAction, $rezeptId, $returnUrl]);
 
 	switch ($doAction)
 	{
 		/** Neues Rezept hinzufügen */
 		case 'new':
-			// TODO Change to $db->insert()
-			$sql = 'INSERT INTO rezepte
-						(category_id, title, zutaten, anz_personen, prep_time, cook_time, difficulty, description, ersteller_id, erstellt_date)
-					VALUES
-						(
-							 '.(int)$_POST['category'].'
-							,"'.$_POST['title'].'"
-							,"'.$_POST['zutaten'].'"
-							,'.(int)$_POST['personen'].'
-							,'.(int)$_POST['preparation'].'
-							,'.(int)$_POST['cookingtime'].'
-							,'.(int)$_POST['difficulty'].'
-							,"'.$_POST['description'].'"
-							,'.$user->id.'
-							,'.timestamp(true).'
-						)';
-			$rezeptId = $db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64url_decode($_POST['url']).'&rezept_id='.$rezeptId);
+			$data = [
+				'category_id' => filter_input(INPUT_POST, 'category', FILTER_VALIDATE_INT) ?? 0,
+				'title' => filter_input(INPUT_POST, 'title', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null,
+				'zutaten' => filter_input(INPUT_POST, 'zutaten', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null,
+				'anz_personen' => filter_input(INPUT_POST, 'personen', FILTER_VALIDATE_INT) ?? 0,
+				'prep_time' => filter_input(INPUT_POST, 'preparation', FILTER_VALIDATE_INT) ?? 0,
+				'cook_time' => filter_input(INPUT_POST, 'cookingtime', FILTER_VALIDATE_INT) ?? 0,
+				'difficulty' => filter_input(INPUT_POST, 'difficulty', FILTER_VALIDATE_INT) ?? 0,
+				'description' => filter_input(INPUT_POST, 'description', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null
+			];
+			$newRezeptId = Rezepte::addRezept($data);
+
+			$returnUrl = ($newRezeptId > 0 ? '/tpl/129?rezept_id='.$newRezeptId : $returnUrl.'&error=Not%20added');
+			header('Location: '.$returnUrl);
 			exit;
-		break;
+			break;
 
 		/** Rezept aktualisieren */
 		case 'edit':
-			// TODO Change to $db->update()
-			$sql = 'UPDATE rezepte
-					SET
-						 category_id = '.(int)$_POST['category'].'
-						,title = "'.$_POST['title'].'"
-						,zutaten = "'.$_POST['zutaten'].'"
-						,anz_personen = '.(int)$_POST['personen'].'
-						,prep_time = '.(int)$_POST['preparation'].'
-						,cook_time = '.(int)$_POST['cookingtime'].'
-						,difficulty = '.(int)$_POST['difficulty'].'
-						,description = "'.$_POST['description'].'"
-					WHERE id = '.(int)$_POST['id']; // TODO align by changing in Tpl & here to "rezept_id"
-			$db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64url_decode($_POST['url']).'&rezept_id='.$_POST['id']);
+			if ($rezeptId > 0) {
+				$data = [
+					'category_id' => filter_input(INPUT_POST, 'category', FILTER_VALIDATE_INT) ?? 0,
+					'title' => filter_input(INPUT_POST, 'title', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null,
+					'zutaten' => filter_input(INPUT_POST, 'zutaten', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null,
+					'anz_personen' => filter_input(INPUT_POST, 'personen', FILTER_VALIDATE_INT) ?? 0,
+					'prep_time' => filter_input(INPUT_POST, 'preparation', FILTER_VALIDATE_INT) ?? 0,
+					'cook_time' => filter_input(INPUT_POST, 'cookingtime', FILTER_VALIDATE_INT) ?? 0,
+					'difficulty' => filter_input(INPUT_POST, 'difficulty', FILTER_VALIDATE_INT) ?? 0,
+					'description' => filter_input(INPUT_POST, 'description', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null
+				];
+				$updated = Rezepte::updateRezept($rezeptId, $data);
+			}
+
+			header('Location: '.$returnUrl.(!$updated ? '&error=Not%20updated' : ''));
 			exit;
-		break;
+			break;
 
 		/** Neue Rezepte-Kategorie hinzufügen */
 		case 'newcategory':
-			$sql = 'INSERT INTO rezepte_categories SET title = "'.$_POST['new_category'].'"';
-			$db->query($sql, __FILE__, __LINE__);
-			header('Location: '.base64url_decode($_POST['url']));
+			$newCategoryTitle = filter_input(INPUT_POST, 'new_category', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_POST['new_category']
+
+			if (!empty($newCategoryTitle)) {
+				$added = Rezepte::addCategory($newCategoryTitle);
+			}
+			header('Location: '.$returnUrl.(!$added ? '&error=Category%20not%20added' : ''));
 			exit;
-		break;
 
 		/** Ein Rezept bewerten */
 		case 'benoten':
-			if (isset($_POST['score']) && is_numeric($_POST['score']) && (int)$_POST['score'] >= 1 && (int)$_POST['score'] < 6)
+			$benotenScore = filter_input(INPUT_POST, 'score', FILTER_VALIDATE_INT) ?? 0; // $_POST['score']
+
+			if ($rezeptId>0 && $benotenScore > 0 && $benotenScore <= 5)
 			{
-				$sql = 'REPLACE INTO rezepte_votes (rezept_id, user_id, score)
-						VALUES (
-							 '.$_POST['rezept_id'].'
-							,'.$user->id.'
-							,'.(int)$_POST['score'].'
-						)';
-				$db->query($sql, __FILE__, __LINE__);
+				$voted = Rezepte::addVote($rezeptId, $benotenScore);
 			}
-			header('Location: '.base64url_decode($_POST['url']));
-		break;
+			header('Location: '.$returnUrl.(!$voted ? '&error=Vote%20not%20added' : ''));
+			exit;
+			break;
 	}
 }
 /** User not logged in */
