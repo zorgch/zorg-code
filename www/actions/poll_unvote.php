@@ -3,21 +3,21 @@
  * Poll Unvote.
  * @packages zorg\Polls
  */
-require_once dirname(__FILE__).'/../includes/poll.inc.php';
+require_once __DIR__.'/../includes/poll.inc.php';
 
-/** Input validation and sanitization */
-$pollId = filter_input(INPUT_GET, 'poll', FILTER_VALIDATE_INT) ?? null; // $_GET['poll']
+global $polls;
 
 if(!$user->is_loggedin()) {
 	http_response_code(403); // Set response code 403 (Access denied)
 	user_error('Du bist nicht eingeloggt', E_USER_ERROR);
 }
+$pollId = filter_input(INPUT_GET, 'poll', FILTER_VALIDATE_INT) ?? null; // $_GET['poll']
 if(empty($pollId) || $pollId <= 0) {
 	http_response_code(404); // Set response code 404 (Not found)
 	user_error('Invalid poll-id: '.$pollId, E_USER_ERROR);
 }
 
-$polls = new Polls();
+//$polls = new Polls(); --> Instantiated in poll.inc.php
 
 $e = $db->query('SELECT * FROM polls WHERE id=?', __FILE__, __LINE__, 'SELECT', [$pollId]);
 $d = $db->fetch($e);

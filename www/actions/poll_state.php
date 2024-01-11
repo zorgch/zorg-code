@@ -5,6 +5,8 @@
  */
 require_once __DIR__.'/../includes/poll.inc.php';
 
+global $polls;
+
 /** Input validation and sanitization */
 $pollId = filter_input(INPUT_GET, 'poll', FILTER_VALIDATE_INT) ?? null; // $_GET['poll']
 $pollState = filter_input(INPUT_GET, 'state', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['state']
@@ -22,7 +24,7 @@ if(empty($pollId) || $pollId <= 0) {
 	user_error('Invalid poll-id: '.$pollId, E_USER_ERROR);
 }
 
-$polls = new Polls();
+//$polls = new Polls(); --> Instantiated in poll.inc.php
 
 $e = $db->query('SELECT * FROM polls WHERE user=? AND id=?', __FILE__, __LINE__, 'SELECT', [$user->id, $pollId]);
 $d = $db->fetch($e);

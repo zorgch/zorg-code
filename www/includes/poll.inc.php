@@ -38,24 +38,34 @@ class Polls
 	 * @param $id Poll-ID to display
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return string HTML-markup to display the Poll
+	 * @return string smarty->fetch() Results
 	 */
 	function show($id)
 	{
 		global $db, $user, $smarty;
 
+		/** Validate Parameters */
+		if (!is_numeric($id) || $id <= 0) {
+			$smarty->assign('error', ['type' => 'warn', 'title' => t('invalid-poll_id', 'poll', [$id]), 'dismissable' => false]);
+			return $smarty->fetch('file:layout/elements/block_error.tpl');
+		}
+		$id = intval($id);
+		zorgDebugger::log()->debug('poll %d', [$id]);
+
+		$sql = '';
 		$params = [];
-		$sql = 'SELECT p.* ,UNIX_TIMESTAMP(p.date) date ,(SELECT count(*) FROM poll_votes WHERE poll=?) total_votes
-					'.($user->is_loggedin() ? ',(SELECT answer FROM poll_votes WHERE poll=? AND user=?) myvote' : '').'
-				FROM polls p WHERE id=? GROUP BY p.id';
-		$params[] = $id;
 		if ($user->is_loggedin()) {
+			$sql = 'SELECT p.*, UNIX_TIMESTAMP(p.date) date, (SELECT count(*) FROM poll_votes WHERE poll=?) total_votes, (SELECT answer FROM poll_votes WHERE poll=? AND user=?) myvote FROM polls p WHERE id=? GROUP BY p.id';
+			$params[] = $id;
 			$params[] = $id;
 			$params[] = $user->id;
+			$params[] = $id;
+		} else {
+			$sql = 'SELECT p.*, UNIX_TIMESTAMP(p.date) date, (SELECT count(*) FROM poll_votes WHERE poll=?) total_votes FROM polls p WHERE id=? GROUP BY p.id';
+			$params[] = $id;
+			$params[] = $id;
 		}
-		$params = $id;
 		$poll = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__, $params));
-		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $poll: %s', __FUNCTION__, __LINE__, print_r($poll,true)));
 
 		if (!empty($poll) && $poll !== false)
 		{
@@ -66,29 +76,28 @@ class Polls
 			$smarty->assign('user_has_vote_permission', $user_has_vote_permission);
 			//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_has_vote_permission: %s', __FUNCTION__, __LINE__, ($user_has_vote_permission?'true':'false')));
 
-			/** Query Poll answers and return each answer with votes count */
-			$pollMaxvotes = ($poll['total_votes'] > 0 ? $poll['total_votes'] : 0);
-			$pollbarMaxwidth = 200;
-			$pollbarSize = 0;
-
-			//$e = $db->query('SELECT count(*) anz FROM poll_votes WHERE poll='.$id.' GROUP BY answer', __FILE__, __LINE__, __FUNCTION__);
-			$sql = 'SELECT a.*, count(v.user) votes FROM poll_answers a
-						LEFT JOIN poll_votes v ON v.answer=a.id
-					WHERE a.poll=? GROUP BY a.id ORDER BY a.id';
+			$sql = 'SELECT a.*, count(v.user) votes FROM poll_answers a LEFT JOIN poll_votes v ON v.answer=a.id WHERE a.poll=? GROUP BY a.id ORDER BY a.id';
 			$pollAnswers = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$id]);
 			while ($pollAnswer = $db->fetch($pollAnswers))
 			{
 				$pollAnswersArray[$pollAnswer['id']] = $pollAnswer;
 
+				/** Query Poll answers and return each answer with votes count */
+				$pollMaxvotes = ($poll['total_votes'] > 0 ? $poll['total_votes'] : 0);
+				$pollbarMaxwidth = 200;
+				$pollbarSize = 0;
+
 				/** Poll votes result-bar calculations */
-				if ($pollAnswer['votes'] == 0) $pollbarSize = 1;
-				else $pollbarSize = round($pollAnswer['votes'] / $pollMaxvotes * $pollbarMaxwidth);
+				if (empty($pollAnswer['votes'])) {
+					$pollbarSize = 1;
+				} else {
+					$pollbarSize = round($pollAnswer['votes'] / $pollMaxvotes * $pollbarMaxwidth);
+				}
 				$pollAnswersArray[$pollAnswer['id']]['pollbar_size'] = $pollbarSize;
 				$pollAnswersArray[$pollAnswer['id']]['pollbar_space'] = $pollbarMaxwidth - $pollbarSize;
 
 				if ($poll['myvote'] == $pollAnswer['id']) {
 					if ($poll['myvote'] && $poll['state']=='open' && $user_has_vote_permission) {
-						//$old_url = base64url_encode("$_SERVER[PHP_SELF]?".url_params());
 						$pollAnswersArray[$pollAnswer['id']]['unvote_url'] = '/actions/poll_unvote.php?poll='.$poll['id'].'&redirect='.getURL();
 					}
 				}
@@ -117,12 +126,12 @@ class Polls
 				$smarty->assign('voters', $pollVotersArray);
 			}
 
-			$smarty->display('file:layout/partials/polls/poll.tpl');
+			return $smarty->fetch('file:layout/partials/polls/poll.tpl');
 
 		/** Poll not found - $id invalid */
 		} else {
 			$smarty->assign('error', ['type' => 'warn', 'title' => t('invalid-poll_id', 'poll', [$id]), 'dismissable' => false]);
-			$smarty->display('file:layout/elements/block_error.tpl');
+			return $smarty->fetch('file:layout/elements/block_error.tpl');
 		}
 	}
 
@@ -143,7 +152,7 @@ class Polls
 	}
 
 	/**
-	 * Updates the title and options of a poll.
+	 * // TODO Updates the title and options of a poll.
 	 * @link https://zorg.ch/bug/765 [Bug #765] Edit-Link bei bestehenden My Polls fehlt
 	 *
 	 * @version 1.0
@@ -173,4 +182,29 @@ class Polls
 
 		return true;
 	}
+
+	/**
+	 * Return all Poll IDs
+	 *
+	 * @version 1.0
+	 * @since 1.0 `11.01.2024` `IneX` Method added
+	 *
+	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
+	 * @return array Array with all IDs of all Polls
+	 */
+	public function getAll()
+	{
+		global $db;
+
+		$polls = [];
+		$e = $db->query('SELECT id FROM polls ORDER BY date DESC', __FILE__, __LINE__, 'SELECT id FROM polls');
+		while ($d = $db->fetch($e)) {
+		 	$polls[] = $d['id'];
+		}
+
+		return $polls;
+	}
 }
+
+/** Instantiate Polls */
+$polls = new Polls();

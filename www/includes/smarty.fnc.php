@@ -20,7 +20,6 @@ include_once INCLUDES_DIR.'hz_game.inc.php';
 include_once INCLUDES_DIR.'go_game.inc.php';
 include_once INCLUDES_DIR.'quotes.inc.php';
 include_once INCLUDES_DIR.'stockbroker.inc.php';
-include_once INCLUDES_DIR.'util.inc.php';
 include_once INCLUDES_DIR.'poll.inc.php';
 include_once INCLUDES_DIR.'stl.inc.php';
 include_once INCLUDES_DIR.'error.inc.php';
@@ -587,11 +586,13 @@ function var_request ()
 
 		return '<a href="/?tpleditor=1&tplupd=new&location='.base64url_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
 	}
-	function smarty_edit_link ($params, $content, &$smarty, &$repeat) {
-
+	function smarty_edit_link ($params, $content, &$smarty, &$repeat)
+	{
 		if (!$repeat) {  // closing tag
 			if ($params['tpl']) {
 				$tpl = $params['tpl'];
+				$rights = 0;
+				$owner = 0;
 			}else{
 				$vars = $smarty->get_template_vars();
 				$tpl = $vars['tpl']['id'];
@@ -740,12 +741,13 @@ function smarty_peter ($params, &$smarty) {
  */
 	function smarty_poll ($params)
 	{
-		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']))
+		global $polls;
+		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']) || intval($params['id'])<=0)
 		{
 			return smarty_error(['msg' => t('invalid-poll_id', 'poll', [$params['id']])]);
 		} else {
-			$poll = new Polls();
-			return $poll->show($params['id']);
+			//$poll = new Polls(); --> Instantiated in poll.inc.php
+			return $polls->show(intval($params['id']));
 		}
 	}
 
