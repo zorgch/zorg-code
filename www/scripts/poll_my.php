@@ -3,8 +3,8 @@ global $db, $user, $smarty;
 
 if ($user->is_loggedin())
 {
-	$e = $db->query('SELECT * FROM polls WHERE user='.$user->id.' ORDER BY date DESC', __FILE__, __LINE__, 'SELECT * FROM polls');
-	$polls = array();
+	$polls = [];
+	$e = $db->query('SELECT * FROM polls WHERE user=? ORDER BY date DESC', __FILE__, __LINE__, 'SELECT polls of User', [$user->id]);
 	while ($d = $db->fetch($e)) {
 		$polls[] = $d['id'];
 	}

@@ -10,18 +10,19 @@
  * @include main.inc.php required
  * @include core.model.php required
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
  * Validate GET-Parameters
  */
-$doAction    = null;
-$user_id     = null;
-$userRegcode = null;
-if (!empty($_GET['do']) && !is_numeric($_GET['do'])) $doAction = sanitize_userinput($_GET['do']);
-if (!empty($_GET['regcode'])) $userRegcode = sanitize_userinput($_GET['regcode']);
-if (!empty($_GET['user_id']) && is_numeric($_GET['user_id']) && (int)$_GET['user_id'] > 0) $user_id = sanitize_userinput((int)$_GET['user_id']);
+$doAction = (isset($doAction) ? $doAction : (filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null)); // $_GET['do']
+$postDoAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['do']
+$userRegcode = filter_input(INPUT_GET, 'regcode', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['regcode']
+$user_id = (isset($getUserId) ? intval($getUserId) : (filter_input(INPUT_GET, 'user_id', FILTER_VALIDATE_INT) ?? null)); // $_GET['user_id']
+$view_as_user = filter_input(INPUT_GET, 'viewas', FILTER_VALIDATE_INT) ?? null; // $_GET['viewas']
+$messageToUsers = filter_input(INPUT_GET, 'msgusers', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_GET['msgusers']
+$messageSubject = filter_input(INPUT_GET, 'msgsubject', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_GET['msgsubject']
 
 //=============================================================================
 // Layout & code
@@ -54,7 +55,7 @@ if ($doAction === 'view' && empty($user_id) && $user->is_loggedin())
 	/**
 	 * Profil als anderen User anzeigen (DEV only!)
 	 */
-	if (DEVELOPMENT === true && isset($_GET['viewas']) && (int)$_GET['viewas'] > 0)
+	if (zorgDebugger::log()->isDevelopmentEnvironment && $view_as_user > 0)
 	{
 		$model->showOtherprofile($smarty, $user, $_GET['viewas']);
 		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user((int)$_GET['viewas'], TRUE).'</strong>']);
@@ -81,55 +82,58 @@ if ($doAction === 'view' && empty($user_id) && $user->is_loggedin())
 		$model->showProfileupdate($smarty);
 
 		/** Update Userprofile infos & settings */
-		if (isset($_POST['do']))
+		if (!empty($postDoAction))
 		{
-			if(isset($user->id) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 4)
+			if ($user->id > 0)
 			{
-				/** Validate $_POST-request */
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST: %s', __FILE__, __LINE__, print_r($_POST,true)));
-				if (count($_POST) > 1)
+				if($postDoAction === 'update' && $_FILES['image']['error'] === 4)
 				{
-					$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
+					/** Validate $_POST-request */
+					zorgDebugger::log()->debug('$_POST: %s', [print_r($_POST,true)]);
+					if (count($_POST) > 1)
+					{
+						$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
+					}
 				}
-			}
-			/** Upload and change new Userpic */
-			if(isset($user->id) && $_POST['do'] === 'update' && $_FILES['image']['error'] === 0)
-			{
-				$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
-			}
-			/** Change User Password */
-			if(isset($user->id) && $_POST['do'] === 'change_password')
-			{
-				$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
+				/** Upload and change new Userpic */
+				if($postDoAction === 'update' && $_FILES['image']['error'] === 0)
+				{
+					$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
+				}
+				/** Change User Password */
+				if($postDoAction === 'change_password')
+				{
+					$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
+				}
 			}
 
 			/**
 			 * Error or Success message handling
-			*/
-				/* Userprofile change */
-				if (isset($changeprofile_result[0])) {
-					if ($changeprofile_result[0] === TRUE) {
-						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $changeprofile_result[1]]);
-					} else {
-						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userprofile-change-ok', 'user')]);
-					}
+			 */
+			/* Userprofile change */
+			if (isset($changeprofile_result[0])) {
+				if ($changeprofile_result[0] === TRUE) {
+					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $changeprofile_result[1]]);
+				} else {
+					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userprofile-change-ok', 'user')]);
 				}
-				/** Userpic change */
-				if (isset($uploadimage_result[0])) {
-					if ($uploadimage_result[0] === TRUE) {
-						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $uploadimage_result[1]]);
-					} else {
-						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userpic-change-ok', 'user')]);
-					}
+			}
+			/** Userpic change */
+			if (isset($uploadimage_result[0])) {
+				if ($uploadimage_result[0] === TRUE) {
+					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $uploadimage_result[1]]);
+				} else {
+					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userpic-change-ok', 'user')]);
 				}
-				/** New Password */
-				if (isset($newpassword_result[0])) {
-					if ($newpassword_result[0] === TRUE) {
-						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $newpassword_result[1]]);
-					} else {
-						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('new-userpw-confirmation', 'user')]);
-					}
+			}
+			/** New Password */
+			if (isset($newpassword_result[0])) {
+				if ($newpassword_result[0] === TRUE) {
+					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $newpassword_result[1]]);
+				} else {
+					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('new-userpw-confirmation', 'user')]);
 				}
+			}
 
 			/** Instantiate a new, updated $user-Object (because new data...) */
 			$user = new usersystem();
@@ -147,13 +151,14 @@ if ($doAction === 'view' && empty($user_id) && $user->is_loggedin())
 /**
  * Userprofil anzeigen
  */
-if (!empty($user_id))
+if (!empty($user_id) && is_numeric($user_id) && $user_id>0)
 {
 	$htmlOutput = null;
 	$sidebarHtml = null;
+	$username = $user->id2user($user_id, true);
 
-	/** Validate required $_GET parameters */
-	if (!is_numeric($user_id) || $user_id <= 0 || is_array($user_id) || $user->id2user($user_id) === false)
+	/** Check for invalid User ID */
+	if ($username === false)
 	{
 		http_response_code(404); // Set response code 404 (not found)
 		$model->showUnknownuser($smarty, $user_id);
@@ -163,35 +168,34 @@ if (!empty($user_id))
 		exit;
 	}
 
-	$sql = 'SELECT * FROM user WHERE id = '.$user_id;
-	$result = $db->query($sql, __FILE__, __LINE__, 'Userprofil anzeigen');
-	$rs = $db->fetch($result);
-	if (isset($_geaechtet[$user_id])) $smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('user-wird-geaechtet', 'user', $user->id2user($user_id, true))]);
+	// $sql = 'SELECT * FROM user WHERE id=?';
+	// $result = $db->query($sql, __FILE__, __LINE__, 'Userprofil anzeigen', [$user_id]);
+	// $rs = $db->fetch($result);
+	if (isset($_geaechtet[$user_id])) $smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => t('user-wird-geaechtet', 'user', $username)]);
 
-	$htmlOutput .= '<h1>'.(isset($rs['clan_tag']) && !empty($rs['clan_tag']) ? html_entity_decode($rs['clan_tag']) : '').html_entity_decode($rs['username']).'</h1>';
-	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'" style="width: 100%;max-width: 100%;">';
+	$htmlOutput .= '<h1>'.html_entity_decode($username).'</h1>';
+	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'">';//style="width: 100%;max-width: 100%;"
 
-	/** User Addle */
-	if (isset($user->id) && $user->id > 0 && $user_id != $user->id && $rs['addle'])
+	/** User Addle (nur wenn Viewer selber eingeloggt ist) */
+	if ($user->is_loggedin() && $user_id !== $user->id && $user->userPlays('addle', $user_id))
 	{
 		$sidebarHtml .= '<h3>Addle</h3>
 		<form action="/addle.php?show=overview&do=new" method="post">
 			<input type="hidden" name="id" value="'.$user_id.'">
-			<input type="submit" class="button" value="'.$rs['username'].' zum Addle herausfordern">
+			<input type="submit" class="button" value="'.$_users['username'].' zum Addle herausfordern">
 		</form>';
 	}
 
-	/** User Messaging */
 	if($user->is_loggedin())
 	{
-		/** Der User das bin ich */
-		if($user_id == $user->id)
+		/** User Messaging: der User das bin ich */
+		if($user_id === $user->id)
 		{
 			/** User will eine neue Message senden */
-			if(isset($_GET['newmsg']))
+			if($doAction === 'newmsg')
 			{
-				if(isset($_GET['msgusers']) && isset($_GET['msgsubject'])) {
-					$htmlOutput .= Messagesystem::getFormSend($_GET['msgusers'],$_GET['msgsubject'],'');
+				if(!empty($messageToUsers) && !empty($messageSubject)) {
+					$htmlOutput .= Messagesystem::getFormSend($messageToUsers, $messageSubject,'');
 				} else {
 					$htmlOutput .= Messagesystem::getFormSend(0,'','');
 				}
@@ -201,17 +205,17 @@ if (!empty($user_id))
 				$page  = isset( $_GET['page'] ) ? $_GET['page'] : null;
 				$sort  = isset( $_GET['sort'] ) ? $_GET['sort'] : null;
 				$order = isset( $_GET['order'] ) ? $_GET['order'] : null;
-				$htmlOutput .= Messagesystem::getInboxHTML($box, 11,$page, $sort, $order);
+				$htmlOutput .= Messagesystem::getInboxHTML($box, 11, $page, $sort, $order);
 			}
 
 		/** Der User ist jemand anderes */
 		} else {
 			$htmlOutput .= Messagesystem::getFormSend(array($user_id), '', '');
 		}
-	}
 
-	/** User markierte Gallery-Pics */
-	if ($user->is_loggedin()) $htmlOutput .= getUserPics($user_id, 0);
+		/** User markierte Gallery-Pics */
+		if ($user->is_loggedin()) $htmlOutput .= getUserPics($user_id, 0);
+	}
 
 	/** User Events */
 	$sidebarHtml .= $smarty->fetch('tpl:211');
@@ -230,6 +234,15 @@ if (!empty($user_id))
 	$smarty->display('file:layout/footer.tpl');
 
 	exit; // make sure only Userprofile page is processed / displayed
+}
+/** Malformatted User ID */
+else {
+	http_response_code(404); // Set response code 404 (not found)
+	$model->showUnknownuser($smarty, $user_id);
+	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-id', 'user')]);
+	$smarty->display('file:layout/head.tpl');
+	$smarty->display('file:layout/footer.tpl');
+	exit;
 }
 
 /**
@@ -258,6 +271,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			require_once INCLUDES_DIR.'g-recaptcha-src/autoload.php';
 			$reCaptchaApiKeys = ['key' => $_ENV['GOOGLE_RECAPTCHA_KEY'],'secret' => $_ENV['GOOGLE_RECAPTCHA_SECRET']];
 			$reCaptchaLang = $_ENV['GOOGLE_RECAPTCHA_LOCALE'];
+			$reCaptchaVerification = filter_input(INPUT_POST, 'g-recaptcha-response', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['g-recaptcha-response']
 			try {
 				$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
 			} catch(Exception $e) {
@@ -266,26 +280,31 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			}
 
 			/** reCaptcha validieren */
-			if (isset($_POST['g-recaptcha-response']))
+			if (!empty($reCaptchaVerification))
 			{
 				//$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
-				$resp = $reCaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
+				$resp = $reCaptcha->verify($reCaptchaVerification, $_SERVER['REMOTE_ADDR']);
 
 				/** reCaptcha VALID */
 				if ($resp->isSuccess())
 				{
-					if (empty($_POST['new_username'])) $registerError = t('invalid-username', 'user');
-					if (empty($_POST['new_email'])) $registerError = t('invalid-email', 'user');
-					if (empty($_POST['new_password']) || empty($_POST['new_password2'])) $registerError = t('invalid-userpw-missing', 'user');
-					if ($_POST['new_password'] != $_POST['new_password2']) $registerError = t('invalid-userpw-match', 'user');
-					if (!check_email($_POST['new_email'])) $registerError = t('invalid-email', 'user');
+					$registerError = null;
+					$newUsername = htmlentities(sanitize_userinput(filter_input(INPUT_POST, 'new_username', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR))) ?? null; // $_POST['new_username']
+					$newEmail = filter_input(INPUT_POST, 'new_email', FILTER_VALIDATE_EMAIL) ?? null; // $_POST['new_email']
+					$newPassword = $user->crypt_pw($_POST['new_password2']);
+					$comparePassword = password_verify($_POST['new_password'], $newPassword);
+					if (empty($newUsername)) $registerError = t('invalid-username', 'user');
+					if (empty($newEmail)) $registerError = t('invalid-email', 'user');
+					if (!check_email($newEmail)) $registerError = t('invalid-email', 'user');
+					if (empty($newPassword)) $registerError = t('invalid-userpw-missing', 'user');
+					if (!$comparePassword) $registerError = t('invalid-userpw-match', 'user');
 
 					/** Userregistrierung schaut gut aus - User anlegen probieren */
-					if (!isset($registerError) || empty($registerError))
+					if (empty($registerError))
 					{
-						$createUserResult = $user->create_newuser(htmlentities($_POST['new_username']), $_POST['new_password'], $_POST['new_password2'], $_POST['new_email']);
-						if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Result: %s', __FILE__, __LINE__, (is_bool($createUserResult)?'true':$createUserResult)));
-						if (is_bool($createUserResult) && $createUserResult===true) {
+						$createUserResult = $user->create_newuser($newUsername, $newPassword, $newEmail);
+						zorgDebugger::log()->debug('Result: %s', [(is_bool($createUserResult)?'true':$createUserResult)]);
+						if ($createUserResult===true) {
 							$error = t('account-confirmation', 'user');
 							$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => $error]);
 						} else {
@@ -359,9 +378,9 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 		/**
 		 * Passwort vergessen Formular
 		 */
-		if (!empty($_POST['email']))
+		$email2check = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?? null; // $_POST['email']
+		if (!empty($email2check))
 		{
-			$email2check = sanitize_userinput($_POST['email']);
 			$checkEmail = (!empty($email2check) ? check_email($email2check) : null);
 			if ($checkEmail === false)
 			{
@@ -396,7 +415,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 	 */
 	elseif (!empty($userRegcode))
 	{
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $userRegcode: %s', __FILE__, __LINE__, $userRegcode));
+		zorgDebugger::log()->debug('$userRegcode: %s', [$userRegcode]);
 		$user_activation_result = $user->activate_user($userRegcode);
 		$model->showActivation($smarty, $user->error_message);
 		if ($user_activation_result === true) $smarty->assign('error', ['type' => 'success', 'dismissable' => 'false', 'title' => t('account-activated', 'user'), 'message' => t('account-activated-text', 'user')]);

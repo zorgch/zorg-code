@@ -12,7 +12,7 @@
  * @include setiathome.inc.php Includes SETI@home setiathome() Class and Methods
  * @include core.model.php required
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/main.inc.php';
 require_once INCLUDES_DIR.'setiathome.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -20,6 +20,7 @@ require_once MODELS_DIR.'core.model.php';
  * Initialise MVC Model
  */
 $model = new MVC\Seti();
+$seti = new setiathome();
 
 /**
  * Validate GET-Parameters
@@ -30,7 +31,7 @@ if($doAction === 'true')
 {
 	if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 	{
-		setiathome::update_group();	
+		$seti->update_group();
 		header('Location: '.getURL(false,false));
 	} else {
 		$model->showOverview($smarty);
@@ -42,38 +43,18 @@ if($doAction === 'true')
 	$model->showOverview($smarty);
 	$smarty->display('file:layout/head.tpl');
 
-	$sql = "
-	SELECT 
-	count(s.name) as number, 
-	sum(s.num_results) as results, 
-	sum(s.total_cpu) as time,
-	sum(s.num_results) - sum(st.num_results) as diff
-	FROM seti s
-	INNER JOIN seti_tage st
-		ON st.name = s.name
-	WHERE 
-		DAY(st.datum) = DAY(now()) 
-		AND 
-		YEAR(st.datum) = YEAR(now()) 
-		AND 
-		MONTH(st.datum) = MONTH(now())";
-	$result = $db->query($sql);
+	$sql = 'SELECT count(s.name) as number, sum(s.num_results) as results, sum(s.total_cpu) as time, sum(s.num_results) - sum(st.num_results) as diff
+			FROM seti s INNER JOIN seti_tage st ON st.name = s.name WHERE DAY(st.datum)=DAY(?) AND YEAR(st.datum)=YEAR(?) AND MONTH(st.datum)=MONTH(?)';
+			$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [timestamp(true), timestamp(true), timestamp(true)]);
 	if(!$db->num($result)) {
-		$sql = "
-		SELECT 
-		count(s.name) as number, 
-		sum(s.num_results) as results, 
-		sum(s.total_cpu) as time,
-		0 as diff
-		FROM seti s";
-		$result = $db->query($sql);
+		$sql = 'SELECT COUNT(s.name) as number, SUM(s.num_results) as results, SUM(s.total_cpu) as time, 0 as diff FROM seti s';
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	}
 	$group = $db->fetch($result);
 
-	echo "
-	<h1>SETI - zooomclan.org</h1>
+	echo "<h1>SETI - zooomclan.org</h1>
 	<h3>Total Units: ".$group['results']."<sup>+".$group['diff']."</sup></h3>
-	<h3>Total CPU Zeit: ".setiathome::seti_time($group['time'])."</h3>
+	<h3>Total CPU Zeit: ".$seti->seti_time($group['time'])."</h3>
 	<table cellpadding='3' cellspacing='1' bgcolor=".TABLEBACKGROUNDCOLOR.">
 		<tr><td align='center' colspan='6' bgcolor=".BORDERCOLOR."><b></b></td></tr>
 		<tr>
@@ -84,34 +65,20 @@ if($doAction === 'true')
 			<td align='left' bgcolor=".BACKGROUNDCOLOR."><b>Letztes Unit</b></td></tr>";
 
 	$secadd = (date("I",time()) ? 7200 : 3600);
-	$sql = "
-	SELECT 
-		s.*, 
-		(UNIX_TIMESTAMP(s.date_last_result) + $secadd) as date_last_result, 
-		st.num_results as last_num 
-	FROM seti s
-	LEFT JOIN seti_tage st
-		ON st.name = s.name
-	WHERE 
-		YEAR(st.datum) = YEAR(now()) AND DAY(st.datum) = DAY(now()) AND MONTH(st.datum) = MONTH(now())
-	ORDER by s.num_results DESC";
-	$result = $db->query($sql);
+	$sql = 'SELECT s.*, (UNIX_TIMESTAMP(s.date_last_result) + ?) as date_last_result, st.num_results as last_num FROM seti s
+				LEFT JOIN seti_tage st ON st.name = s.name
+			WHERE YEAR(st.datum)=YEAR(?) AND DAY(st.datum)=DAY(?) AND MONTH(st.datum)=MONTH(?) ORDER by s.num_results DESC';
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$secadd, timestamp(true), timestamp(true), timestamp(true)]);
 	if(!$db->num($result)) {
-		$sql = "
-		SELECT 
-			s.*,
-			(UNIX_TIMESTAMP(s.date_last_result) + 7200) as date_last_result,
-			num_results as last_num
-		FROM seti s
-		ORDER by s.num_results DESC	";
+		$sql = 'SELECT s.*, (UNIX_TIMESTAMP(s.date_last_result) + 7200) as date_last_result, num_results as last_num FROM seti s ORDER by s.num_results DESC';
 		$result = $db->query($sql,__FILE__,__LINE__);
 	}
 	$i = 1;
 	while($rs = $db->fetch($result)) {
-		if(($i % 2) == 0) {	
-			$add = " bgcolor=".TABLEBACKGROUNDCOLOR." "; 
-		} else { 
-			$add = " bgcolor=".BACKGROUNDCOLOR." "; 
+		if(($i % 2) == 0) {
+			$add = " bgcolor=".TABLEBACKGROUNDCOLOR." ";
+		} else {
+			$add = " bgcolor=".BACKGROUNDCOLOR." ";
 		}
 		if($rs['num_results'] > $rs['last_num']) {
 			$add2 = "<sup>+".($rs['num_results'] - $rs['last_num'])."</sup>";
@@ -126,7 +93,7 @@ if($doAction === 'true')
 			<td align='left' $add class='hide-mobile'>".setiathome::seti_time($rs['total_cpu'])."</td>
 			<td align='left' $add class='hide-mobile'>".$rs['avg_cpu']."</td>
 			<td align='left' $add>".datename($rs['date_last_result'])."</td>
-		</tr>";	
+		</tr>";
 		$i++;
 	}
 	echo "</table>";

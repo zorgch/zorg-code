@@ -11,7 +11,7 @@
 /**
  * File Includes
  */
-require_once dirname(__FILE__).'/includes/config.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
@@ -23,17 +23,27 @@ $model->showOverview($smarty);
 /** Nur für eingeloggte User! */
 if ($user->is_loggedin())
 {
+	$edit_id = filter_input(INPUT_POST, 'edit_id', FILTER_VALIDATE_INT) ?? null; // $_POST['edit_id']
+	$edit_wort = filter_input(INPUT_POST, 'edit_wort', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_POST['edit_wort']
+	$edit_user = filter_input(INPUT_POST, 'edit_user', FILTER_VALIDATE_INT) ?? null;
+	$new_wort = filter_input(INPUT_POST, 'new_wort', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$new_typ = filter_input(INPUT_POST, 'new_typ', FILTER_VALIDATE_INT) ?? null; // 1=adjektiv, or 2=subjektiv
+	$aklick = filter_input(INPUT_POST, 'afick', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_POST['afick']
+	$edit = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT) ?? null; // $_GET['edit']
+	$new = filter_input(INPUT_GET, 'new', FILTER_VALIDATE_BOOLEAN) ?? false; // $_GET['new']
+	$log = filter_input(INPUT_GET, 'log', FILTER_VALIDATE_BOOLEAN) ?? false; // $_GET['log']
+
 	if(count($_POST)>0) {
-		if($_POST['edit_wort'] && ($_POST['edit_user'] == $_SESSION['user_id'] || $user->typ == 2)) {
-			$sql = 'UPDATE aficks set wort = "'.$_POST['edit_wort'].'" WHERE id = '.$_POST['edit_id'];
-			$db->query($sql,__FILE__,__LINE__);
+		if(!empty($edit_wort) && ($edit_user === (int)$_SESSION['user_id'] || $user->typ >= USER_MEMBER)) {
+			$sql = 'UPDATE aficks set wort=? WHERE id=?';
+			$db->query($sql,__FILE__,__LINE__,'Update Aficks', [$edit_wort, $edit_id]);
 			header("Location: ".$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
 			exit;
 		}
-		if($_POST['new_wort'] && $_POST['new_typ']) {
+		if(!empty($new_wort) && ($new_typ === 1 || $new_typ === 2)) {
 			$sql = 'INSERT IGNORE INTO aficks (wort, typ, wort_user_id)
-					VALUES ("'.$_POST['new_wort'].'","'.$_POST['new_typ'].'",'.$_SESSION['user_id'].')';
-			$db->query($sql,__FILE__,__LINE__);
+					VALUES (?,?,?)';
+			$db->query($sql,__FILE__,__LINE__,'Insert Aficks', [$new_wort, $new_typ, $_SESSION['user_id']]);
 			header("Location: ".$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
 			exit;
 		}
@@ -42,13 +52,12 @@ if ($user->is_loggedin())
 			$old_query = base64url_decode($_SESSION['query']);
 		}
 
-		$aklick = strip_tags($_POST['afick']);
 		$old_query .= "
 		<tr><td align='left'>
 		<B>".$user->username."</B>
 		</td><td align='left' width='100%'>".$aklick."</td></tr>";
 		$sql = 'SELECT * FROM aficks WHERE typ = 1';
-		$result = $db->query($sql,__FILE__,__LINE__);
+		$result = $db->query($sql,__FILE__,__LINE__,'SQL Query');
 		while($rs = $db->fetch($result)) {
 			$af[] = $rs['wort'];
 			$id[$rs['wort']] = $rs['id'];
@@ -67,7 +76,7 @@ if ($user->is_loggedin())
 		}
 
 		$sql = 'SELECT * FROM aficks WHERE typ = 2';
-		$result = $db->query($sql,__FILE__,__LINE__);
+		$result = $db->query($sql,__FILE__,__LINE__,'SQL Query');
 		while($rs = $db->fetch($result)) {
 			$am[] = $rs['wort'];
 			$id[$rs['wort']] = $rs['id'];
@@ -82,13 +91,12 @@ if ($user->is_loggedin())
 		$old_query .= $afick_am."</td></tr>";
 		$_SESSION['query'] = base64url_encode($old_query);
 
-		if($_POST['afick'] == "" && !$_POST['edit_wort'] && !$_POST['new_wort']) {
+		if(empty($aklick) && empty($edit_wort) && empty($new_wort)) {
 			$_SESSION['query'] = "";
 		}
 
-		$sql = 'INSERT into aficks_log (user_id, afick_am, afick_user, datum)
-		VALUES ('.$_SESSION['user_id'].',"'.$afick_am.'","'.$aklick.'",now())';
-		$db->query($sql,__FILE__,__LINE__);
+		$sql = 'INSERT into aficks_log (user_id, afick_am, afick_user, datum) VALUES (?,?,?,?)';
+		$db->query($sql,__FILE__,__LINE__,'Insert aficks_log', [$_SESSION['user_id'], $afick_am, $aklick, timestamp(true)]);
 		header("Location: ".getURL(false,false));
 		exit;
 	}
@@ -96,7 +104,7 @@ if ($user->is_loggedin())
 	$smarty->display('file:layout/head.tpl');
 	echo '<h2>Aficks Admin</h2>';
 	echo '
-	<form action="'.$_SERVER['PHP_SELF'].'" method="post">
+	<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post">
 	<table class="border" style="display: flex;white-space: nowrap;align-items: center;">
 		<tr>
 			<td align="left">
@@ -114,17 +122,17 @@ if ($user->is_loggedin())
 			</td>
 		</tr>
 	</table>
-	</from><br />';
+	</from><br>';
 
-	if($_GET['edit'])
+	if($edit>0 && !$new)
 	{
-		$sql = 'SELECT * FROM aficks WHERE id = '.$_GET['edit'];
-		$result = $db->query($sql,__FILE__,__LINE__);
+		$sql = 'SELECT * FROM aficks WHERE id=?';
+		$result = $db->query($sql,__FILE__,__LINE__,'Select aficks by id', [$edit]);
 		$rs = $db->fetch($result);
 		$typ = array("","mittelchind","mueterbai");
 		if($rs['wort_user_id'] == $_SESSION['user_id'] || $user->typ == 2) {
 			echo '
-			<form action="'.$_SERVER['PHP_SELF'].'" method="post">
+			<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post">
 			<table cellpadding="2" class="border"><tr><td align="center" colspan="2">EDIT</td>
 			</tr><td align="left" colspan="2">
 			<input type="text" class="text" name="edit_wort" size="40" value="'.$rs['wort'].'">
@@ -133,16 +141,17 @@ if ($user->is_loggedin())
 			</td></tr><tr><td align="left">
 			<input type="submit" value="speichern" class="button">
 			</td><td align="right">
-			Typ: ".$typ['.$rs['"typ"'].']."
+			Typ: ".$typ['.$rs['typ'].']."
 			</tr></table>
 			</from>
-			<br />';
+			<br>';
 		}
 	}
-	if($_GET['new'])
+
+	if($new === true)
 	{
 		echo '
-		<form action="'.$_SERVER['PHP_SELF'].'" method="post">
+		<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post">
 		<table cellpadding="2" class="border"><tr><td align="center" colspan="2">Neu</td>
 		</tr><td align="left" colspan="2">
 		<input type="text" class="text" name="new_wort" size="40">
@@ -156,20 +165,17 @@ if ($user->is_loggedin())
 		</select>
 		</tr></table>
 		</from>
-		<br />';
+		<br>';
 	}
-	if($_GET['log'])
+
+	if($log === true)
 	{
-		$sql = '
-		SELECT
-			a.afick_am,
-			a.afick_user,
-			u.username
-		FROM aficks_log	a
-		INNER JOIN user u
-			ON u.id = a.user_id
-		ORDER by a.datum DESC';
-		$result = $db->query($sql,__FILE__,__LINE__);
+		$sql = 'SELECT a.afick_am, a.afick_user, u.username
+				FROM aficks_log	a
+				INNER JOIN user u
+					ON u.id = a.user_id
+				ORDER by a.datum DESC';
+		$result = $db->query($sql,__FILE__,__LINE__,'SQL Query');
 		echo "<table>";
 		while($rs = $db->fetch($result)) {
 			echo '
@@ -184,10 +190,11 @@ if ($user->is_loggedin())
 			</td></tr>';
 
 		}
-		echo "</table><br />";
+		echo "</table><br>";
 	}
 
-	if($_SESSION['query']) {
+	if(!empty($_SESSION['query']))
+	{
 		echo "<table>";
 		echo base64url_decode($_SESSION['query']);
 		echo "</table>";

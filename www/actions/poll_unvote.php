@@ -3,26 +3,29 @@
  * Poll Unvote.
  * @packages zorg\Polls
  */
-require_once dirname(__FILE__).'/../includes/poll.inc.php';
+require_once __DIR__.'/../includes/poll.inc.php';
+
+global $polls;
 
 if(!$user->is_loggedin()) {
 	http_response_code(403); // Set response code 403 (Access denied)
 	user_error('Du bist nicht eingeloggt', E_USER_ERROR);
 }
-if(!isset($_GET['poll']) || !is_numeric($_GET['poll']) || (int)$_GET['poll'] <= 0) {
+$pollId = filter_input(INPUT_GET, 'poll', FILTER_VALIDATE_INT) ?? null; // $_GET['poll']
+if(empty($pollId) || $pollId <= 0) {
 	http_response_code(404); // Set response code 404 (Not found)
-	user_error('Invalid poll-id: '.$_GET['poll'], E_USER_ERROR);
+	user_error('Invalid poll-id: '.$pollId, E_USER_ERROR);
 }
 
-$polls = new Polls();
+//$polls = new Polls(); --> Instantiated in poll.inc.php
 
-$e = $db->query('SELECT * FROM polls WHERE id='.$_GET['poll'], __FILE__, __LINE__, 'SELECT');
+$e = $db->query('SELECT * FROM polls WHERE id=?', __FILE__, __LINE__, 'SELECT', [$pollId]);
 $d = $db->fetch($e);
 if ($d['state'] === 'closed' || !$polls->user_has_vote_permission($d['type']))
 {
-	user_error('Poll "'.$_GET['poll'].'" is closed', E_USER_ERROR);
+	user_error('Poll "'.$pollId.'" is closed', E_USER_ERROR);
 } else {
-	$db->query('DELETE FROM poll_votes WHERE poll='.$_GET['poll'].' AND user='.$user->id, __FILE__, __LINE__, 'DELETE');
+	$db->query('DELETE FROM poll_votes WHERE poll=? AND user=?', __FILE__, __LINE__, 'DELETE', [$pollId, $user->id]);
 	unset($_GET['poll']);
 }
 

@@ -147,7 +147,7 @@ class Activities
 				/** Telegram Notification auslösen */
 				return self::notify($fromUser, $activity, $activityArea);
 			} else {
-				zorgDebugger::me()->debug('SQL INSERT result: %s', [strval($result)]);
+				zorgDebugger::log()->debug('SQL INSERT result: %s', [strval($result)]);
 				return false;
 			}
 		} else {
@@ -504,9 +504,9 @@ class Activities
 		}
 		/** For all other Activites */
 		else {
-			zorgDebugger::me()->debug('Attempting to send Telegram Notification');
+			zorgDebugger::log()->debug('Attempting to send Telegram Notification');
 			$success = $telegram->send->message('group', t('telegram-notification', 'activity', [ $user->id2user($fromUser, TRUE), $activityText ]), ['disable_notification' => 'true']);
-			zorgDebugger::me()->debug('Telegram Notification %s', [($success !== false ? 'SENT!' : 'NOT SENT')], ($success !== false ? 'DEBUG' : 'ERROR'));
+			zorgDebugger::log()->debug('Telegram Notification %s', [($success !== false ? 'SENT!' : 'NOT SENT')], ($success !== false ? 'DEBUG' : 'ERROR'));
 			return $success;
 		}
 		return false;

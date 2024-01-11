@@ -12,7 +12,6 @@
 /**
  * File includes
  * @include config.inc.php REQUIRED for $_ENV vars to be available
- * @include mysql_login.inc.local.php Include MySQL Database login information file
  */
 require_once __DIR__.'/config.inc.php';
 
@@ -78,11 +77,11 @@ class dbconn
 	 * @since 2.1 `07.08.2019` `IneX` changed return mysql_insert_id() & mysql_affected_rows() to return row-id or true
 	 * @since 3.0 `02.06.2023` `IneX` added support for mysqli prepared statements, helps mitigating SQL Injection risks (CWE-89)
 	 *
-	 * @param $sql string SQL-Query. Als Prepared Statement wird auch $params benötigt!
-	 * @param $file string (Optional) Dateiname in welcher SQL-Query abgesetzt wurde
-	 * @param $line int (Optional) Linenumber in der Datei welche SQL-Query abgesetzt hat
-	 * @param $funktion string (Optional) Name der Funktion aus welcher SQL-Query abgesetzt wurde
-	 * @param $params array (Optional) Parameter für Prepared SQL Statement
+	 * @param string $sql SQL-Query. Als Prepared Statement wird auch $params benötigt!
+	 * @param string $file (Optional) Dateiname in welcher SQL-Query abgesetzt wurde
+	 * @param int $line (Optional) Linenumber in der Datei welche SQL-Query abgesetzt hat
+	 * @param string $funktion (Optional) Name der Funktion aus welcher SQL-Query abgesetzt wurde
+	 * @param array $params (Optional) Parameter für Prepared SQL Statement
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return object|integer Query-Result-Resource or Primary-Key of INSERT
 	*/
@@ -111,7 +110,7 @@ class dbconn
 			if (empty($params)) {
 				$result = mysqli_query($this->conn, $sql);
 				/* Log SQL-Queries not upgraded to Prepared Statements */
-				zorgDebugger::me()->debug('<%s> is no SQL prepared statement, in %s:%d', [$funktion, $file, $line]);
+				zorgDebugger::log()->debug('<%s:%d> may required update to SQL prepared statement, in %s', [$funktion, $line, $file]);
 			} else {
 				$stmt = mysqli_prepare($this->conn, $sql);
 				if ($stmt === false) throw new mysqli_sql_exception(mysqli_error($this->conn));
@@ -161,16 +160,20 @@ class dbconn
 				$result = mysqli_stmt_get_result($stmt);
 			}
 
-			/** If the query failed or no rows were returned, display MySQL-Error with some context */
-			if ($result === false && mysqli_num_rows($result) === 0 && mysqli_affected_rows($this->conn) === 0)
-			{
-				if ($this->display_error === 1) {
-					throw new mysqli_sql_exception($this->msg($sql, $file, $line, $funktion));
-				} else {
-					$this->msg($sql, $file, $line, $funktion);
-					throw new mysqli_sql_exception('SQL query error in '.$file.' at line '.$line);
-				}
-			} else {
+			/**
+			 * If the query failed or no rows were returned, display MySQL-Error with some context
+			 * //FIXME I don't know why, but when this is changed, it will break a lot of things (e.g. Smarty->compile(comment:xxxx))
+			 * // INFO 08.07.2024/IneX: disabled this check - doesn't add value & there seems no save way to check for WRONG queries only (no returned rows is no error...)
+			 */
+			// if ($result === false && mysqli_num_rows($result) === 0 && mysqli_affected_rows($this->conn) === 0)
+			// {
+			// 	if (!$this->display_error) {
+			// 		throw new mysqli_sql_exception($this->msg($sql, $file, $line, $funktion));
+			// 	} else {
+			// 		$this->msg($sql, $file, $line, $funktion);
+			// 		throw new mysqli_sql_exception('SQL query error in '.$file.' at line '.$line);
+			// 	}
+			// } else {
 				/** Retrieve and return a more valuable information, depending on the SQL-query type */
 				switch (strtolower(substr($sql, 0, 6)))
 				{
@@ -182,13 +185,15 @@ class dbconn
 						return $result;
 					default:
 						/** mysqli_affected_rows() returns the number of affected rows as an integer, or -1 on failure */
-						$sql_affected_rows = (int)mysqli_affected_rows($this->conn);
+						$sql_affected_rows = intval(mysqli_affected_rows($this->conn));
 						return ($sql_affected_rows !== -1 ? $sql_affected_rows : false);
 				}
-			}
+			// }
 		} catch (mysqli_sql_exception $e) {
-			zorgDebugger::me()->debug('%s', [$e->getMessage()]);
-			die($e->getMessage());
+			zorgDebugger::log()->debug('%s', [$e->getMessage()]);
+			$this->msg($sql, $file, $line, $funktion);
+
+			die(($this->display_error ? $e->getMessage() : ''));
 		}
 	}
 
@@ -242,12 +247,10 @@ class dbconn
 		$ip = (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
 		$page = (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
 		$referer = (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
-
-		$insertSql = 'INSERT INTO sql_error (user_id, ip, page, query, msg, date, file, line, referer, status, function)
-						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)';
+		// FIXME crasht wenn von Line 193 -> Line 222 aufgerufen, prepared statement scheint falsch zu sein *shrug*
+		$insertSql = 'INSERT INTO sql_error (user_id, ip, page, query, msg, date, file, line, referer, status, function) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)';
 		$stmt = mysqli_prepare($this->conn, $insertSql);
-		mysqli_stmt_bind_param($stmt, 'isssssiss',
-								$user_id, $ip, $page, $sql, $msg, timestamp(true), $file, $line, $referer, $funktion);
+		mysqli_stmt_bind_param($stmt, 'isssssiss', $user_id, $ip, $page, $sql, $msg, timestamp(true), $file, $line, $referer, $funktion);
 		mysqli_stmt_execute($stmt);
 	}
 
@@ -348,7 +351,7 @@ class dbconn
 		$insertKeys = '(`'.implode('`,`', array_keys($values)).'`)';
 		$insertValues = implode(',', array_fill(0, count($values), '?'));
 		$sql = sprintf('INSERT INTO `%s` %s VALUES (%s)', $table, $insertKeys, $insertValues);
-		zorgDebugger::me()->debug('$db->insert() SQL: %s%s', [$sql, print_r($values,true)]);
+		zorgDebugger::log()->debug('$db->insert() SQL: %s%s', [$sql, print_r($values,true)]);
 		foreach ($values as $key => $val) {
 			if (strtolower($val) === 'now()') {
 				$values[$key] = timestamp(true); // Fix "NOW()" => NOW() without quotes
@@ -374,8 +377,8 @@ class dbconn
 	 * @since 3.0 `05.11.2018` `IneX` fixed iteration for $id (WHERE x=y) building, depending if array or integer is provided
 	 * @since 3.0 `02.06.2023` `IneX` added compatibility with mysqli prepared statements
 	 *
-	 * @FIXME array($id) soll nicht key,value-Pairs parsen, sondern direkt der Vergleich (z.B. "id>2"), aktuell kann nur auf 1 name & mehrere exakte values geprüft werden: "a=b OR a=c"
-	 * @TODO change all usages of $db->update to pass associative array elements, like 'name'=>'Barbara Harris'.
+	 * // FIXME array($id) soll nicht key,value-Pairs parsen, sondern direkt der Vergleich (z.B. "id>2"), aktuell kann nur auf 1 name & mehrere exakte values geprüft werden: "a=b OR a=c"
+	 * // TODO change all usages of $db->update to pass associative array elements, like 'name'=>'Barbara Harris'.
 	 *
 	 * @param string $table Name der Tabelle, in der geändert werden soll
 	 * @param array|int $id Array: $id[0]: Name des Primärschlüsselfeldes + $id[1+] Rows, die geändert werden sollen | bei Integer: Row, die geändert werden soll, nimmt Primärschlüsselfeld als 'id' an
@@ -384,9 +387,13 @@ class dbconn
 	 * @param int $line (optional) Zeile des Aufrufes, für Fehlermeldung
 	 * @param string $funktion (optional) Funktion wo der Aufruf stattfand, für Fehlermeldung
 	 * @return integer|boolean Anzahl der geänderten Table-Rows des Update Queries - oder FALSE bei Fehler
-	*/
+	 */
 	function update($table, $id, $values, $file='', $line='', $funktion='')
 	{
+		if (!is_string($table)) {
+			error_log(sprintf('Invalid "table" for db->update(): %s', $table));
+			return false;
+		}
 		if (empty($values) || !is_array($values)) {
 			error_log(sprintf('Wrong Parameter type "values" in db->update(): %s', print_r($values,true)));
 			return false;
@@ -436,9 +443,8 @@ class dbconn
 				if ($field !== key($conditions)) $sql .= ' OR ';  // Add Separator if not last Array-Iteration
 			}
 		}
-		zorgDebugger::me()->debug('$db->update() SQL: %s', [$sql]);
+		zorgDebugger::log()->debug('$db->update() SQL: %s', [$sql]);
 		return $this->query($sql, $file, $line, $funktion, $params);
-		//return mysql_affected_rows();
 	}
 }
 

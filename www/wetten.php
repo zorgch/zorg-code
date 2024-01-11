@@ -9,7 +9,7 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/main.inc.php';
 require_once INCLUDES_DIR.'wetten.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -19,16 +19,16 @@ require_once MODELS_DIR.'core.model.php';
 $model = new MVC\Wetten();
 
 /**
- * Validate GET-Parameters
+ * Input validation & sanitization
  */
-if (!empty($_GET['id'])) $wette = (int)$_GET['id'];
-if (!empty($_GET['eintrag'])) $getEintrag = (string)$_GET['eintrag'];
+$wette = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? 0; // $_GET['id']
+$getEintrag = filter_input(INPUT_GET, 'eintrag', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['eintrag']
 
 /** Post actions ausführen/entgegennehmen */
 wetten::exec();
 
 /** Wettbüro Übersicht */
-if (empty($wette) || $wette <= 0)
+if ($wette <= 0)
 {
 	$model->showOverview($smarty);
 	if (isset($getEintrag) && $getEintrag == true)
@@ -46,13 +46,16 @@ if (empty($wette) || $wette <= 0)
 	echo '<h1>zorg Wettbüro</h1>';
 
 	/** offene wetten auflisten */
-	wetten::listopen();
+	//wetten::listopen();
+	wetten::listwetten();
 
 	/** laufende wetten auflisten */
-	wetten::listlaufende();
-	
+	//wetten::listlaufende();
+	wetten::listwetten('laeuft');
+
 	/** geschlossene wetten auflisten */
-	wetten::listclosed();
+	//wetten::listclosed();
+	wetten::listwetten('geschlossen');
 }
 
 /** Wette anzeigen */

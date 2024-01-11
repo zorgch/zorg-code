@@ -1,39 +1,52 @@
 <?php
-require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
-if(count($_POST) > 0)
+if($user->is_loggedin() && count($_POST) > 0)
 {
+	/** Input validation & sanitization */
+	$errorId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? null; // $_GET['id']
+	$tplId = filter_input(INPUT_GET, 'tpl', FILTER_VALIDATE_INT) ?? null; // $_GET['tpl']
+	$doDelete = filter_input(INPUT_POST, 'del', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['del']
+	$showQuery = filter_input(INPUT_POST, 'query', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? 0; // $_POST['query']
+	$del_ids = filter_input(INPUT_POST, 'to_del', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?? []; // $_POST['to_del']
+	$showNum = filter_input(INPUT_POST, 'num', FILTER_VALIDATE_INT) ?? 0; // $_POST['num']
+	$urlParams = '';
+
 	/** Delete SQL-Error */
-	if($_POST['del'] && !empty($_GET['id']))
+	if($doDelete === 'delete' && $errorId>0)
 	{
-		$sql_del = 'DELETE FROM sql_error WHERE id='.$_GET['id'];
-		$db->query($sql_del, __FILE__, __LINE__, 'Delete SQL-Error');
-		header('Location: /tpl/'.$_GET['tpl']);
-		die();
+		$sql_del = 'DELETE FROM sql_error WHERE id=?';
+		$db->query($sql_del, __FILE__, __LINE__, 'Delete SQL-Error', [$errorId]);
 	}
 
 	/** Show Query details */
-	if($_POST['query'])
+	if(!empty($showQuery))
 	{
-		header('Location: /tpl/'.$_GET['tpl'].'&id='.$_GET['id'].'&query='.base64url_encode($_POST['query']));
-		die();
+		$urlParams = '?id='.$errorId.'&query='.base64url_encode($showQuery);
 	}
 
 	/** Delete multiple SQL-Errors */
-	if(count($_POST['to_del']) > 0)
+	if(count($del_ids) > 0 && $user->type >= USER_MEMBER)
 	{
-		$del_ids = implode(',', $_POST['to_del']);
-		$sql = 'DELETE FROM sql_error WHERE id IN ('.$del_ids.')';
-		$db->query($sql, __FILE__, __LINE__, 'Delete multiple SQL-Errors');
-		header('Location: /tpl/'.$_GET['tpl']);
-		die();
+		$placeholders = implode(',', array_fill(0, count($del_ids), '?'));
+		$sql = 'DELETE FROM sql_error WHERE id IN (' . $placeholders . ')';
+		$params = array_map('intval', $del_ids); // $del_ids must be integers
+		$db->query($sql, __FILE__, __LINE__, 'Delete multiple SQL-Errors', $params);
 	}
 
 	/** Change displayed number of SQL-Error */
-	if($_POST['num'])
+	if($showNum > 0)
 	{
 		$_SESSION['error_num'] = $_POST['num'];
-		header('Location: /tpl/'.$_GET['tpl'].'?error_num='.$_POST['num']);
-		die();
+		$urlParams = '?error_num='.$showNum;
 	}
+
+	header('Location: /tpl/'.$tplId.$urlParams);
+	exit;
+}
+else {
+	http_response_code(403); // Set response code 403 (Access denied)
+	user_error('Access denied', E_USER_ERROR);
 }

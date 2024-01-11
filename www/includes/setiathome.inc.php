@@ -1,6 +1,21 @@
 <?php
-class setiathome {
+/**
+ * SETI@Home Stats for zooomclan
+ *
+ * @author [z]keep3r
+ * @package zorg\SETI
+ */
 
+/**
+ * File Includes
+ * @include config.inc.php required
+ * @include	mysql.inc.php Smarty, required
+ */
+require_once __DIR__.'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
+
+class setiathome
+{
 	function seti_time($time_in) {
 		$years = $time_in / 60 / 24 / 365;
 		if($years < 1) {
@@ -57,30 +72,16 @@ class setiathome {
 						$mins = substr($values[$i]['TOTALCPU'],strpos($values[$i]['TOTALCPU']," hr")+3,strpos($values[$i]['TOTALCPU']," min")-7) + ($hours * 60);
 					}
 
-					$sql = "
-					SELECT name FROM seti WHERE name = '".$values[$i]['NAME']."'";
-					$result = $db->query($sql);
+					$sql = 'SELECT name FROM seti WHERE name=?';
+					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$values[$i]['NAME']]);
 					if($db->num($result)) {
-						$sql = "
-						UPDATE seti set num_results = ".$values[$i]['NUMRESULTS'].",
-						total_cpu = ".$mins." ,
-						avg_cpu = '".$values[$i]['AVECPU']."',
-						date_last_result = '".$date."'
-						WHERE name = '".$values[$i]['NAME']."'";
-
-
+						$sql = 'UPDATE seti set num_results=?, total_cpu=?, avg_cpu=?, date_last_result=? WHERE name=?';
+						$params = [$values[$i]['NUMRESULTS'], $mins, $values[$i]['AVECPU'], $date, $values[$i]['NAME']];
 					} else {
-						$sql = "
-						INSERT into seti
-						(name, num_results, total_cpu, avg_cpu, date_last_result)
-						VALUES
-						('".$values[$i]['NAME']."',
-						".$values[$i]['NUMRESULTS'].",
-						".$mins.",
-						'".$values[$i]['AVECPU']."',
-						'".$date."')";
+						$sql = 'INSERT INTO seti (name, num_results, total_cpu, avg_cpu, date_last_result) VALUES (?, ?, ?, ?, ?)';
+						$params = [$values[$i]['NAME'], $values[$i]['NUMRESULTS'], $mins, $values[$i]['AVECPU'], $date];
 					}
-					$db->query($sql);
+					$db->query($sql, __FILE__, __LINE__, __FUNCTION__, $params);
 				}
 			} else
 			if(!$page) { sleep(1); }
@@ -88,33 +89,13 @@ class setiathome {
 		}  while (!$page);
 	}
 
-	function tagesabschluss() {
+	function tagesabschluss()
+	{
 		global $db;
-
-		setiathome::update_group();
-		$sql = "
-		REPLACE into seti_tage
-			(
-			datum,
-			name,
-			num_results,
-			total_cpu, avg_cpu,
-			date_last_result,
-			account,
-			user_id
-			)
-		SELECT
-			now() as datum,
-			name,
-			num_results,
-			total_cpu,
-			avg_cpu,
-			date_last_result,
-			account,
-			user_id
-		FROM seti";
-		$db->query($sql, __FILE__, __LINE__);
+		self::update_group();
+		$sql = 'REPLACE into seti_tage (datum, name, num_results, total_cpu, avg_cpu, date_last_result, account, user_id)
+				SELECT now() as datum, name, num_results, total_cpu, avg_cpu, date_last_result, account, user_id FROM seti';
+		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	}
 
 }
-?>

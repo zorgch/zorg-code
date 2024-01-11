@@ -20,7 +20,6 @@ include_once INCLUDES_DIR.'hz_game.inc.php';
 include_once INCLUDES_DIR.'go_game.inc.php';
 include_once INCLUDES_DIR.'quotes.inc.php';
 include_once INCLUDES_DIR.'stockbroker.inc.php';
-include_once INCLUDES_DIR.'util.inc.php';
 include_once INCLUDES_DIR.'poll.inc.php';
 include_once INCLUDES_DIR.'stl.inc.php';
 include_once INCLUDES_DIR.'error.inc.php';
@@ -31,7 +30,7 @@ include_once INCLUDES_DIR.'rezepte.inc.php';
  * Define and include the MCV Controllers and initialise Layout related settings.
  */
 require_once CONTROLLERS_DIR.'layout.controller.php';
-zorgDebugger::me()->debug('New MVC\Controller\Layout()');
+zorgDebugger::log()->debug('New MVC\Controller\Layout()');
 $zorgLayout = new MVC\Controller\Layout();
 
 /**
@@ -587,11 +586,13 @@ function var_request ()
 
 		return '<a href="/?tpleditor=1&tplupd=new&location='.base64url_encode($_SERVER['PHP_SELF'].'?'.url_params()).'">'.$content.'</a>';
 	}
-	function smarty_edit_link ($params, $content, &$smarty, &$repeat) {
-
+	function smarty_edit_link ($params, $content, &$smarty, &$repeat)
+	{
 		if (!$repeat) {  // closing tag
 			if ($params['tpl']) {
 				$tpl = $params['tpl'];
+				$rights = 0;
+				$owner = 0;
 			}else{
 				$vars = $smarty->get_template_vars();
 				$tpl = $vars['tpl']['id'];
@@ -685,10 +686,8 @@ function var_request ()
 		global $db;
 
 		$online_users = array();
-		$sql = 'SELECT id FROM user
-				WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(now()) - '.USER_TIMEOUT.')
-				ORDER by activity DESC';
-		$e = $db->query($sql, __FILE__, __LINE__);
+		$sql = 'SELECT id FROM user WHERE UNIX_TIMESTAMP(activity) > (UNIX_TIMESTAMP(?) - ?) ORDER by activity DESC';
+		$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [timestamp(true), USER_TIMEOUT]);
 
 		while ($d = mysqli_fetch_row($e)) {
 			array_push($online_users, $d[0]);
@@ -742,12 +741,13 @@ function smarty_peter ($params, &$smarty) {
  */
 	function smarty_poll ($params)
 	{
-		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']))
+		global $polls;
+		if (!isset($params['id']) || empty($params['id']) || !is_numeric($params['id']) || intval($params['id'])<=0)
 		{
 			return smarty_error(['msg' => t('invalid-poll_id', 'poll', [$params['id']])]);
 		} else {
-			$poll = new Polls();
-			return $poll->show($params['id']);
+			//$poll = new Polls(); --> Instantiated in poll.inc.php
+			return $polls->show(intval($params['id']));
 		}
 	}
 
@@ -806,8 +806,9 @@ function smarty_peter ($params, &$smarty) {
 	 */
 	function smarty_link ($params)
 	{
-	 	global $smarty;
+	 	global $smarty, $user;
 	 	$vars = $smarty->get_template_vars();
+		$ret = '';
 
 	 	if (isset($params['url'])) {
 	 		$ret = $params['url'];
@@ -819,7 +820,7 @@ function smarty_peter ($params, &$smarty) {
 	 		$ret = Comment::getLinkComment($params['comment']);
 	 	}elseif (isset($params['user'])) {
 	 		if (is_numeric($params['user'])) $ret = '/user/'.$params['user'];
-	 		else $ret = '/user/'.usersystem::user2id($params['user']);
+	 		else $ret = '/user/'.$user->user2id($params['user']);
 	 	}elseif (isset($params['action'])) {
 	 		$ret .= '/actions/'.$params['action'].'?'.url_params();
 	 	}else{
@@ -1083,9 +1084,7 @@ function smarty_peter ($params, &$smarty) {
 
 		if (!$params['anzahl']) $params['anzahl'] = 5;
 
-		$sql = 'SELECT *, UNIX_TIMESTAMP(last_update) as date
-				FROM templates ORDER BY last_update desc
-				LIMIT ?';
+		$sql = 'SELECT *, UNIX_TIMESTAMP(last_update) as date FROM templates ORDER BY last_update DESC LIMIT ?';
 		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$params['anzahl']]);
 
 		$i=0;
@@ -1181,23 +1180,21 @@ function smarty_peter ($params, &$smarty) {
 		}*/
 		foreach ($nameArray as $it)
 		{
-			zorgDebugger::me()->debug('«%s» on tpl_id %s', [$it, strval($tpl_id)]);
+			zorgDebugger::log()->debug('«%s» on tpl_id %s', [$it, strval($tpl_id)]);
 			if (!empty($it)) {
 				/** Check if menu with same name already exists... */
-				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name=?',
-								__FILE__, __LINE__, __FUNCTION__, [$it]));
+				$menuExists = $db->fetch($db->query('SELECT * FROM menus WHERE name=?', __FILE__, __LINE__, __FUNCTION__, [$it]));
 				//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $menuExists Query: %s', __FUNCTION__, __LINE__, print_r($menuExists,true)));
 				if ($menuExists !== false && $menuExists['tpl_id'] === $tpl_id)
 				{
-					zorgDebugger::me()->debug('$menuExists: TRUE (tpl_id: %d)', [strval($tpl_id)]);
+					zorgDebugger::log()->debug('$menuExists: TRUE (tpl_id: %d)', [strval($tpl_id)]);
 					//return sprintf('Menuname "%s" existiert schon mit der id#%d und wurde deshalb nicht gespeichert!<br>Bitte anderen Namen verwenden.', $it, $tpl_id);
 				}
 
 				/** Menu mit $name gibt es noch nicht, deshlab erstellen wir es neu */
 				else {
-					zorgDebugger::me()->debug('$menuExists: FALSE (adding new)');
-					$db->query('INSERT INTO menus (tpl_id, name) VALUES (?, ?)',
-								__FILE__, __LINE__, __FUNCTION__, [$tpl_id, $it]);
+					zorgDebugger::log()->debug('$menuExists: FALSE (adding new)');
+					$db->query('INSERT INTO menus (tpl_id, name) VALUES (?, ?)', __FILE__, __LINE__, __FUNCTION__, [$tpl_id, $it]);
 					//$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => sprintf('Neues Menu "%s" erfolgreich gespeichert', $it), 'message' => 'Du kannst es jetzt im Template-Editor einer Page auswählen.']);
 				}
 			}
@@ -1298,27 +1295,14 @@ function smarty_peter ($params, &$smarty) {
 		$anzahl = ($params['anzahl'] == '' ? 10 : $params['anzahl']);
 		$page = ($params['page'] == '' ? 0 : $params['page']);
 
-		$sql = "SELECT * from chat";
-		$result = $db->query($sql, __FILE__, __LINE__);
-		$num = $db->num($result);
+		$sql = "SELECT COUNT(*) AS anz from chat";
+		$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+		$num = $result['anz'];//$db->num($result);
 
-		$sql =
-			"
-			SELECT
-				chat.text
-				, UNIX_TIMESTAMP(date) AS date
-				, user.username AS username
-				, user.clan_tag AS clantag
-				, chat.user_id
-				, chat.from_mobile
-			FROM chat
-			LEFT JOIN user ON (chat.user_id = user.id)
-			ORDER BY date ASC
-			LIMIT ".(($num-$anzahl)-($page*$anzahl)).", ".$anzahl."
-			"
-		;
+		$sql = 'SELECT chat.text, UNIX_TIMESTAMP(date) AS date, user.username AS username, user.clan_tag AS clantag, chat.user_id, chat.from_mobile
+				FROM chat LEFT JOIN user ON (chat.user_id=user.id) ORDER BY date ASC LIMIT ?,?';
 		//echo $sql;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [(($num-$anzahl)-($page*$anzahl)), $anzahl]);
 
 		while ($rs = $db->fetch($result)) {
 		  $chatmessages[] = $rs;
@@ -1480,14 +1464,14 @@ function smarty_menuname ($name, &$smarty) {
 		global $_timer_blocks, $_timer_history;
 		switch ($mode) {
 			case 'begin':
-				$_timer_blocks[] =array(microtime(true));
+				$_timer_blocks[] =array(microtime());
 				break;
 
 			case 'end':
 				$last = array_pop($_timer_blocks);
 				$_start = $last[0];
 				list($a_micro, $a_int) = explode(' ', $_start);
-				list($b_micro, $b_int) = explode(' ', microtime(true));
+				list($b_micro, $b_int) = explode(' ', microtime());
 				$elapsed = ($b_int - $a_int) + ($b_micro - $a_micro);
 				$_timer_history[] = [ $elapsed ];
 				return $elapsed;

@@ -8,9 +8,9 @@
  */
 /**
  * File includes.
- * @include main.inc.php
+ * @include poll.inc.php
  */
-require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once __DIR__.'/../includes/poll.inc.php';
 
 /** User not logged in? Error in his face! */
 if (!$user->is_loggedin()) {

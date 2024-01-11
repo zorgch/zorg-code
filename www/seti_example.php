@@ -26,9 +26,9 @@ if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
 	/**
 	 * Initialise SETI Stats Class-Object
 	 */
-	$seti = new SetiStats();
-	$seti->setEmail($_ENV['SETI_EMAIL']);
-	$seti->Init();
+	$seti = new SetiStats($_ENV['SETI_EMAIL']);
+	// $seti->setEmail();
+	// $seti->Init(); REPLACED WITH __construct($user_email)
 
 	print '<html>'
 		 .'<head>'

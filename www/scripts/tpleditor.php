@@ -33,19 +33,19 @@ if ($tpl_id != 'new')
 	if (tpleditor_access_lock($tpl_id, $access_error))
 	{
 		/** Template content */
-		$templatesQuerySql = 'SELECT *, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(last_update) last_update FROM templates WHERE id='.$tpl_id;
-		$templatesQuery = $db->query($templatesQuerySql, __FILE__, __LINE__, 'SELECT FROM templates');
+		$templatesQuerySql = 'SELECT *, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(last_update) last_update FROM templates WHERE id=?';
+		$templatesQuery = $db->query($templatesQuerySql, __FILE__, __LINE__, 'SELECT FROM templates', [$tpl_id]);
 		$templateData = $db->fetch($templatesQuery);
 
 		if ($templateData && !$vars['tpleditor_frm'])
 		{
 			/** Template menus */
-			$menusQuerySql = 'SELECT menu_id FROM tpl_menus WHERE tpl_id='.$tpl_id;
-			$menusQuery = $db->query($menusQuerySql, __FILE__, __LINE__, 'SELECT FROM tpl_menus');
+			$menusQuerySql = 'SELECT menu_id FROM tpl_menus WHERE tpl_id=?';
+			$menusQuery = $db->query($menusQuerySql, __FILE__, __LINE__, 'SELECT FROM tpl_menus', [$tpl_id]);
 
 			/** Template packages */
-			$packagesQuerySql = 'SELECT package_id FROM tpl_packages WHERE tpl_id='.$tpl_id;
-			$packagesQuery = $db->query($packagesQuerySql, __FILE__, __LINE__, 'SELECT FROM tpl_packages');
+			$packagesQuerySql = 'SELECT package_id FROM tpl_packages WHERE tpl_id=?';
+			$packagesQuery = $db->query($packagesQuerySql, __FILE__, __LINE__, 'SELECT FROM tpl_packages', [$tpl_id]);
 
 			/** Assign Template Values to Tpleditor Frame */
 			$templateData['title'] = stripslashes($templateData['title']);

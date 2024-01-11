@@ -71,8 +71,8 @@ function zorgErrorHandler ($errno, $errstr, $errfile, $errline)
  * currently are being worked on (and not distract with tons of
  * other messages in the log).
  *
- * @example zorgDebugger::me()->debug('Required SQL-Query update: <%s> in %s:%d', [$funktion, $file, $line], 'DEPRECATED');
- * @example zorgDebugger::me()->error('The provided ID "%d" is invalid!', [$tplID]);
+ * @example zorgDebugger::log()->debug('Required SQL-Query update: <%s> in %s:%d', [$funktion, $file, $line], 'DEPRECATED');
+ * @example zorgDebugger::log()->error('The provided ID "%d" is invalid!', [$tplID]);
  *
  * @version 1.0
  * @since 1.0 `26.12.2024` `IneX` Class added
@@ -80,10 +80,11 @@ function zorgErrorHandler ($errno, $errstr, $errfile, $errline)
 class zorgDebugger
 {
 	/**
-     * @var bool Indicates if the current environment is a development environment.
+     * @var bool $isDevelopmentEnvironment Indicates if the current environment is a development environment.
+     * @var object $instance Stores a Singleton instance of this Class
      */
+    public $isDevelopmentEnvironment;
 	private static $instance = null;
-    private $isDevelopmentEnvironment;
 
 	/**
      * Constructor for Errorlog.
@@ -100,12 +101,12 @@ class zorgDebugger
 	/**
      * Gets a Singleton instance of the zorgDebugger class.
 	 *
-	 * This allows to call zorgDebugger::me()->... WITHOUT instantiating the Class manually,
+	 * This allows to call zorgDebugger::log()->... WITHOUT instantiating the Class manually,
 	 * and WITHOUT including it or using something like "global $errlog;".
      *
      * @return zorgDebugger The singleton instance of the Errorlog class.
      */
-	public static function me(): zorgDebugger
+	public static function log(): zorgDebugger
     {
         if (self::$instance === null) {
             self::$instance = new zorgDebugger();
@@ -129,11 +130,11 @@ class zorgDebugger
         if ($this->isDevelopmentEnvironment) {
 			$origin = $this->getOrigin();
 
-			if (is_null(ERRORLOG_DEBUG_SCOPE) ||
-				in_array($origin['function'], ERRORLOG_DEBUG_SCOPE) ||
-				in_array(basename($origin['file']), ERRORLOG_DEBUG_SCOPE))
+			if (empty(ERRORLOG_DEBUG_SCOPE) ||
+				(in_array($origin['function'], ERRORLOG_DEBUG_SCOPE) ||
+				in_array(basename($origin['file']), ERRORLOG_DEBUG_SCOPE)))
 				{
-            		$this->log($customLoglevel, $message, $params, $origin);
+            		$this->write($customLoglevel, $message, $params, $origin);
         	}
         }
     }
@@ -146,7 +147,7 @@ class zorgDebugger
      */
     public function info($message, $params = [])
     {
-        $this->log('INFO', $message, $params, $this->getOrigin());
+        $this->write('INFO', $message, $params, $this->getOrigin());
     }
 
 	/**
@@ -157,7 +158,7 @@ class zorgDebugger
      */
     public function error($message, $params = [])
     {
-        $this->log('ERROR', $message, $params, $this->getOrigin());
+        $this->write('ERROR', $message, $params, $this->getOrigin());
     }
 
 	/**
@@ -168,7 +169,7 @@ class zorgDebugger
      */
     public function warn($message, $params = [])
     {
-        $this->log('WARNING', $message, $params, $this->getOrigin());
+        $this->write('WARNING', $message, $params, $this->getOrigin());
     }
 
 	/**
@@ -180,7 +181,7 @@ class zorgDebugger
 	 * @param array  $params  The parameters to be inserted into the message format string.
      * @param array  $origina (Optional) Origin details from where a log message was triggered from.
      */
-    private function log($level, $message, $params, $origin = [])
+    private function write($level, $message, $params, $origin = [])
     {
 		$logOrigin = (!empty($origin['function']) ? $origin['function'] : (!empty($origin['file']) ? $origin['file'] : ''));
 		$logLine = (!empty($origin['line']) ? ':'.$origin['line'] : '');
@@ -197,24 +198,69 @@ class zorgDebugger
     private function getOrigin()
     {
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 3);
+		// (Does not alway apply) 1=self::getOrigin() | 2=self::debug()/self::warn()/... | 3=caller
 
         $origin = [
             'function' => '',
             'file' => '',
             'line' => 0
         ];
+		$debuggerMethods = ['debug', 'info', 'warn', 'write'];
 
-        if (isset($backtrace[2])) {
-            if (isset($backtrace[2]['function'])) {
-                $origin['function'] = $backtrace[2]['function'];
+		$step = 2;
+        if (isset($backtrace[$step])) {
+			/** Function */
+            if (isset($backtrace[$step]['function']) && !in_array($backtrace[$step]['function'], $debuggerMethods)) {
+				/** When the Function is a Class Constructor, then log its Class Name instead */
+				if ($backtrace[$step]['function'] === '__construct' && isset($backtrace[$step]['class']) ) {
+					/** However, when it's the Debugger's Class Name, then fall back to use the Origin File reference */
+					if ($backtrace[$step]['class'] !== __CLASS__) {
+						$origin['function'] = $backtrace[$step]['class'];
+					} elseif ($backtrace[$step]['class'] === __CLASS__ && isset($backtrace[$step+1]['class'])) {
+						$origin['function'] = $backtrace[$step+1]['class'];
+					} else {
+						$origin['function'] = basename($backtrace[$step]['file']);
+					}
+				}
+				/** Only log the Function name, if it's not from this Debugger Class */
+				elseif (isset($backtrace[$step]['function'])) {
+					$origin['function'] = $backtrace[$step]['function'];
+				}
             }
-            if (isset($backtrace[2]['file'])) {
-                $origin['file'] = basename($backtrace[2]['file']);
+			/** Function of Backtrace Step+1 */
+            elseif (isset($backtrace[$step+1]['function']) && !in_array($backtrace[$step+1]['function'], $debuggerMethods)) {
+				/** When the Function is a Class Constructor, then log its Class Name instead */
+				if ($backtrace[$step+1]['function'] === '__construct' && isset($backtrace[$step+1]['class']) ) {
+					$origin['function'] = $backtrace[$step+1]['class'];
+				} else {
+					$origin['function'] = basename($backtrace[$step]['file']);
+				}
+			}
+			elseif (isset($backtrace[$step]['file'])) {
+                $origin['function'] = basename($backtrace[$step]['file']);
             }
-            if (isset($backtrace[2]['line'])) {
-                $origin['line'] = $backtrace[2]['line'];
-            }
-        }
+			/** File */
+			if (isset($backtrace[$step]['file'])) $origin['file'] = basename($backtrace[$step]['file']);
+			/** Line */
+            if (isset($backtrace[$step]['line'])) $origin['line'] = $backtrace[$step]['line'];
+		/** Backtrace Step-1 */
+        } elseif (isset($backtrace[$step-1])) {
+			/** Function */
+            if (isset($backtrace[$step-1]['function']) && !in_array($backtrace[$step-1]['function'], $debuggerMethods)) {
+				$origin['function'] = $backtrace[$step-1]['function'];
+			} elseif ($backtrace[$step-1]['file']) {
+				$origin['function'] = basename($backtrace[$step]['file']);
+			}
+			/** File */
+			if (isset($backtrace[$step-1]['file'])) $origin['file'] = basename($backtrace[$step-1]['file']);
+			/** Line */
+            if (isset($backtrace[$step-1]['line'])) $origin['line'] = $backtrace[$step-1]['line'];
+		} else {
+			$origin['function'] = 'nofunc';
+			$origin['file'] = 'nofile';
+			$origin['line'] = 0;
+		}
+
         return $origin;
     }
 }

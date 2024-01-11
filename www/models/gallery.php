@@ -33,12 +33,13 @@ class Gallery extends Model
 	 *
 	 * @param integer $album_id Eine gültige Album-ID
 	 * @param integer $pic_id Einge gültige Pic-ID
+	 * @return integer
 	 */
 	public function setAlbumId($album_id=null, $pic_id=null)
 	{
 		if(!empty($album_id)) $album_id = $album_id;
 		if((!empty($pic_id) && $pic_id > 0) && empty($album_id)) $album_id = pic2album($pic_id);
-		return $album_id;
+		return intval($album_id);
 	}
 
 	/**

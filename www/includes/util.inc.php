@@ -8,7 +8,7 @@
  * File includes
  * @include config.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 
 /**
  * Funktion um ein UNIX_TIMESTAMP schön darzustellen.
@@ -59,10 +59,10 @@ function timename($timestamp)
 	$currTime = time();
 
 	/** Vergangen oder in der Zukunft? */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Comparing timestamps %s vs %s', __FUNCTION__, __LINE__, $timestamp, $currTime));
+	zorgDebugger::log()->debug('Comparing %s : %s', [$timestamp, $currTime]);
 	$prefix = ($timestamp >= $currTime ? 'in ' : 'vor ');
 	$timeDiff = ($timestamp >= $currTime ? $timestamp - $currTime : $currTime - $timestamp);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Timestamps time difference: %s %d', __FUNCTION__, __LINE__, $prefix, $timeDiff));
+	zorgDebugger::log()->debug('Time difference %s -> %d', [$prefix, $timeDiff]);
 
 	/** Zeitperioden */
 	$timeLengths = array('s' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800, 'mt' => 2592000, 'y' => 31536000);
@@ -300,7 +300,7 @@ function changeURL($url, $query_string_changes)
 	$urlarray = parse_url($url);
 	$urlarray['query'] = changeQueryString($urlarray['query'], $query_string_changes);
 	$newUrl = glue_url($urlarray);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> url: %s | new query-string: %s | new url: %s', __FUNCTION__, __LINE__, $url, $urlarray['query'], $newUrl));
+	zorgDebugger::log()->debug('url: %s | new query-string: %s | new url: %s', [$url, $urlarray['query'], $newUrl]);
 	return $newUrl;
 }
 
@@ -330,25 +330,24 @@ function changeQueryString($querystring, $changes)
 		}
 	}
 	$str = ltrim($str, '&');
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new query-string: %s', __FUNCTION__, __LINE__, $str));
+	zorgDebugger::log()->debug('new query-string: %s', [$str]);
 	return $str;
 }
 
 /**
  * Return all URL $_GET-Parameters in a String, usable to add to an URL as Query-Parameters
  *
- * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
+ * @version 1.1
+ * @since 1.0 `[z]biko` function added
+ * @since 1.1 `03.01.2024` `IneX` Addresses potential XSS through unsanitized input from an HTTP parameter
  *
- * @param array $parsed An Array created using parse_url (splitting string parts into array elements)
- * @return string Fully glued URL including Path & Query-Parameters, and Hash-Value
+ * @return string Combined string of all URL $_GET-Parameters
  */
 function url_params()
 {
 	$ret = '';
 	foreach ($_GET as $key => $val) {
-		$ret .= $key.'='.$val.'&';
+		$ret .= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '=' . htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '&';
 	}
 	return substr($ret, 0, -1);
 }
@@ -356,9 +355,8 @@ function url_params()
 /**
  * Combine Array parts of an URL back to an URL-String
  *
- * @author [z]biko
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  *
  * @param array $parsed An Array created using parse_url (splitting string parts into array elements)
  * @return string Fully glued URL including Path & Query-Parameters, and Hash-Value
@@ -411,7 +409,9 @@ function base64url_encode($data)
  */
 function base64url_decode($data)
 {
-  return base64_decode(strtr($data, '-_', '+/') . str_repeat('=', 3-(3+strlen($data)) % 4 ));
+	$url_safe_data = strtr($data, '-_', '+/');
+	$padded_data = str_pad($url_safe_data, strlen($url_safe_data) % 4, '=', STR_PAD_RIGHT);
+	return base64_decode($padded_data);
 }
 
 /**

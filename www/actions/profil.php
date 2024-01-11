@@ -8,8 +8,8 @@
  * @include mysql.inc.php required
  * @include usersystem.inc.php required
  */
-require_once dirname(__FILE__).'/../includes/mysql.inc.php';
-require_once dirname(__FILE__).'/../includes/usersystem.inc.php';
+require_once __DIR__.'/../includes/mysql.inc.php';
+require_once __DIR__.'/../includes/usersystem.inc.php';
 
 if($_GET['do'] == 'aussperren')
 {

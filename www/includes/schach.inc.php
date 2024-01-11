@@ -73,10 +73,10 @@ function createGame()
 function xy2htmlXY($position)
 {
 	list($x, $y) = split("_", $position);
-	
+
 	$x = ($x - 1) * 64 + 2;
 	$y = (8 - $y) * 64 + 45 + 2;
-	
+
 	return array($x, $y);
 }
 
@@ -133,7 +133,7 @@ function setStartingplayer($game_id)
 	 * register user as opponent unless he's white or the opponent is already choosen
 	 * @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED?
 	 */
-	$sql = "select (case when user1!=" . $_SESSION['user_id'] . " and user2 is null then 1 " . 
+	$sql = "select (case when user1!=" . $_SESSION['user_id'] . " and user2 is null then 1 " .
 	         "        else 0 end) as register from game where ID=$game_id";
 	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
 	$rs = $db->fetch($result);
@@ -153,16 +153,11 @@ function setStartingplayer($game_id)
  */
 function buildTitle($game_id)
 {
-	global $db;
+	global $db, $user;
 	/** @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED? */
-	$sql = 
-		"select (case when user2 is null then 'noch kein Gegner'"
-		." when user1=$_SESSION[user_id] then concat('Spiel $game_id gegen <a href=\"mailto:', u2.email, '\">', u2.username, '</a>')"
-		." when user2=$_SESSION[user_id] then concat('Spiel $game_id gegen <a href=\"mailto:', u1.email, '\">', u1.username, '</a>') end) as opponent"
-		." from (chess_game g left outer join user u1 on user1=u1.ID) left outer join user u2 on user2=u2.ID " .
-	  "where g.ID=$game_id";
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
-	$rs = $db->fetch($result, __FILE__, __LINE__, __FUNCTION__);
+	$sql = 'SELECT (CASE WHEN user2 IS NULL THEN \'noch kein Gegner\' WHEN user1=? THEN concat(\'Spiel \', ?, \' gegen <a href="mailto:\', u2.email, \'">\'. u2.username, \'</a>\') WHEN user2=? then concat(\'Spiel \', ?, \' gegen <a href="mailto:\', u1.email, \'">\'. u1.username, \'</a>\') end) as opponent from (chess_game g left outer join user u1 on user1=u1.ID) left outer join user u2 on user2=u2.ID WHERE g.ID=?';
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$user->id, $game_id, $user->id, $game_id, $game_id]);
+	$rs = $db->fetch($result);
 
 	return $rs['opponent'];
 }
@@ -199,36 +194,36 @@ function buildInit($currentPlayer, $myColor, $wBoard, $bBoard) {
  * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_game", nur "chess_game_OLD" / IneX, 18.04.2020
  */
 function getMyFigureColor($game_id)
-{	
-	global $db;
+{
+	global $db, $user;
 	/** @FIXME müsste statt "game" wohl der table "chess_game_OLD" sein... ev. DEPRECATED? */
-	$sql = "select (case when user1=" . $_SESSION['user_id'] . " then 'Weiss' else 'Schwarz' end) as color from chess_game where ID=$game_id";
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$sql = "SELECT (CASE WHEN user1=? THEN 'Weiss' ELSE 'Schwarz' END) as color FROM chess_game WHERE id=?";
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$user->id, $game_id]);
 	$rs = $db->fetch($result);
 
 	return $rs['color'];
 }
 
 function getCurrentPlayer($game_id) {
-	
+
 	global $db;
 
-	$sql = "select count(ID) as noEntries from chess_history where gameID=$game_id";
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$sql = "SELECT count(ID) AS noEntries FROM chess_history WHERE gameID=?";
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$game_id]);
 	$rs = $db->fetch($result);
-	
+
 	return ($rs['noEntries'] % 2 == 0) ? "Weiss" : "Schwarz";
 }
 
 function turnBoard() {
 	global $wBoard, $bBoard;
-	
+
 	foreach($wBoard as $position => $figure) {// $wBoard['1_2'] -> 'Bauer'
 		list($x, $y) = split("_", $position);
 		$wBoard2[(9-$x) . "_" . (9-$y)] = $figure;
 	}
 	$wBoard = $wBoard2;
-	
+
 	foreach($bBoard as $position => $figure) { // $wBoard['1_2'] -> 'Bauer'
 		list($x, $y) = split("_", $position);
 		$bBoard2[(9-$x) . "_" . (9-$y)] = $figure;
@@ -253,19 +248,8 @@ function buildHistory($game_id)
 	$html .= '<div class="history">
 				<span class="big">History</span><br>
 					<table border="0">';
-	$sql = "select yFrom,yTo,
-	                (case when xFrom=1 then 'a' when xFrom=2 then 'b' when xFrom=3 then 'c' when xFrom=4 then 'd' 
-	                      when xFrom=5 then 'e' when xFrom=6 then 'f' when xFrom=7 then 'g' when xFrom=8 then 'h' end) as xFrom,
-	                (case when xTo=1 then 'a' when xTo=2 then 'b' when xTo=3 then 'c' when xTo=4 then 'd' 
-	                      when xTo=5 then 'e' when xTo=6 then 'f' when xTo=7 then 'g' when xTo=8 then 'h' end) as xTo,
-	                (case when figure='Laeufer' then 'Läufer'
-	                      when figure='Koenig' then 'König'
-	                      else figure end) as figure,
-	                (case when info='Laeufer' then 'Läufer'
-	                      when info='Koenig' then 'König'
-	                      else info end) as info
-	         FROM chess_history where gameID=$game_id order by ID asc";
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$sql = 'select yFrom, yTo, (case when xFrom=1 then \'a\' when xFrom=2 then \'b\' when xFrom=3 then \'c\' when xFrom=4 then \'d\' when xFrom=5 then \'e\' when xFrom=6 then \'f\' when xFrom=7 then \'g\' when xFrom=8 then \'h\' end) as xFrom, (case when xTo=1 then \'a\' when xTo=2 then \'b\' when xTo=3 then \'c\' when xTo=4 then \'d\' when xTo=5 then \'e\' when xTo=6 then \'f\' when xTo=7 then \'g\' when xTo=8 then \'h\' end) as xTo, (case when figure=\'Laeufer\' then \'Läufer\' when figure=\'Koenig\' then \'König\' else figure end) as figure, (case when info=\'Laeufer\' then \'Läufer\' when info=\'Koenig\' then \'König\' else info end) as info FROM chess_history where gameID=? order by ID asc';
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [[$game_id]]);
 
 	$i = 1;
 	while($rs = $db->fetch($result))
@@ -310,12 +294,12 @@ function buildHistory($game_id)
 function doMove($xFrom, $yFrom, $xTo, $yTo, $game_id, $currentPlayer)
 {
 	global $db;
-		
+
 	if(!figurePlacedOnBoard($xFrom, $yFrom, $xTo, $yTo)) { return 1; }
 	if(!moveWasMade($xFrom, $yFrom, $xTo, $yTo)) { return 2; }
 
 	$figure = getFigure($xFrom, $yFrom, $game_id);
-	
+
 	if(!$figure) { return 3; }
 
 	// Standartregeln der Figuren eingehalten?
@@ -358,15 +342,15 @@ function getFigure($x, $y, $game_id)
 {
 	global $db;
 	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
-	$sql = "select figur from chess_board where x=$x and y=$y and ID=$game_id";
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$sql = "SELECT figur FROM chess_board WHERE x=? and y=? AND id=?";
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$x, $y, $game_id]);
 	$rs = $db->fetch($result);
 
 	return $rs['figur'];
 }
 
 function isPawnMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id) {
-	
+
 	if($currentPlayer == "Weiss") {
 		// Einen Schritt nach vorne. Nur wenn keine Figur auf dem Zielfeld.
 		if($yTo-$yFrom == 1 && $xTo == $xFrom && !isFieldTaken($xTo, $yTo, $game_id)) { return 1; }
@@ -391,7 +375,7 @@ function isPawnMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id) {
 }
 
 function isRookMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id) {
-	
+
 	if($xTo == $xFrom || $yTo == $yFrom) {
 		if($xTo == $xFrom) {
 			if($yTo > $yFrom) { $bigger = $yTo; $smaller = $yFrom; }
@@ -404,8 +388,8 @@ function isRookMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id) {
 			else              { $bigger = $xFrom; $smaller = $xTo; }
 
 			// Zwischen Start- und Endfeld darf sich keine Figur befinden.
-			for($i=($smaller+1); $i<$bigger; $i++) { 
-				if(isFieldTaken($i, $yTo, $game_id)) return 0; 
+			for($i=($smaller+1); $i<$bigger; $i++) {
+				if(isFieldTaken($i, $yTo, $game_id)) return 0;
 			}
 		}
 
@@ -500,7 +484,7 @@ function isKingMoveValid($xFrom, $yFrom, $xTo, $yTo, $currentPlayer, $game_id)
  * @TODO Eventuell DEPRECATED? In der DB gibt es kein Table "chess_board", nur "chess_board_old" / IneX, 18.04.2020
  */
 function isFieldTaken($x, $y, $game_id)
-{	
+{
 	global $db;
 
 	/** @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED? */
@@ -520,7 +504,7 @@ function isFieldTaken($x, $y, $game_id)
 function isPlayerOnField($x, $y, $currentPlayer, $isOpponentAsked, $game_id)
 {
 	global $db;
-	
+
 	$player = ($currentPlayer == "Weiss") ? "w" : "b";
 	if($isOpponentAsked) { $player = ($player == "w") ? "b" : "w"; }
 
@@ -638,15 +622,13 @@ function writeHistory($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 		{
 			$rs = $db->fetch($result);
 			/** @FIXME müsste statt "chess_history" wohl der table "chass_history_OLD" sein... ev. DEPRECATED? */
-			$sql = 
-				"insert into chess_history (gameID, figure, xFrom, yFrom, xTo, yTo, info) "
-				."values ($game_id, '$figure', $xFrom, $yFrom, $xTo, $yTo, '".$rs['figur']."')";	
+			$sql = "INSERT INTO chess_history (gameID, figure, xFrom, yFrom, xTo, yTo, info) VALUES (?, ?, ?, ?, ?, ?, ?)";
 			/**
 			 * delete the eaten figure
 			 * @FIXME müsste statt "chess_board" wohl der table "chess_board_OLD" sein... ev. DEPRECATED?
 			 */
 			$delQuery = "delete from chess_board where x=$xTo and y=$yTo and ID=$game_id";
-			$db->query($delQuery, __FILE__, __LINE__, __FUNCTION__);
+			$db->query($delQuery, __FILE__, __LINE__, __FUNCTION__, [$game_id, $figure, $xFrom, $yFrom, $xTo, $yTo, $rs['figur']]);
 		}
 	}
 
@@ -663,9 +645,9 @@ function writeHistory($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 function writeMoveToDB($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 {
 	global $db;
-	
+
 	// Rochade
-	if($figure == "Koenig" && abs($xTo-$xFrom) > 1) 
+	if($figure == "Koenig" && abs($xTo-$xFrom) > 1)
 	{
 		if($xTo-$xFrom == 2)
 		{
@@ -690,18 +672,18 @@ function writeMoveToDB($xFrom, $yFrom, $xTo, $yTo, $figure, $game_id)
 function getOpenChessGames($userID) {
 /*
 	global $db;
-	
+
 	$openGames = 0;
 	if (isset($userID)) {
 		$sql = "select g.ID, (case when user1=$userID then 'Weiss' " .
-			 "                   when user2=$userID then 'Schwarz' end) as color ". 
+			 "                   when user2=$userID then 'Schwarz' end) as color ".
 			 "from (chess_game g left outer join user u1 on user1=u1.ID) left outer join user u2 on user2=u2.ID " .
 		       " where user1=$userID or user2=$userID";
 		$result = $db->query($sql);
 		while ( $rs = $db->fetch($result) ){
 			if (getCurrentPlayer($rs[ID]) == $rs[color]) $openGames++;
 		}
-				
+
 		return $openGames;
 	}*/
 

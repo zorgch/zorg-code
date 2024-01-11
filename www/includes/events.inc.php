@@ -19,10 +19,8 @@
  * @include util.inc.php Includes the Helper Utilities Class and Methods
  * @include googleapis.inc.php Include the Google API Class and Methods
  */
-require_once dirname(__FILE__).'/config.inc.php';
-//require_once INCLUDES_DIR.'smarty.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
-require_once INCLUDES_DIR.'util.inc.php';
 include_once INCLUDES_DIR.'googleapis.inc.php';
 
 /**
@@ -41,15 +39,9 @@ class Events
 	{
 		global $db;
 
-		$sql = 'SELECT *
-				, UNIX_TIMESTAMP(startdate) AS startdate
-				, UNIX_TIMESTAMP(enddate) AS enddate
-				, UNIX_TIMESTAMP(reportedon_date) AS reportedon_date
-				FROM events
-				WHERE id='.$event_id;
-
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-
+		$sql = 'SELECT *, UNIX_TIMESTAMP(startdate) AS startdate, UNIX_TIMESTAMP(enddate) AS enddate, UNIX_TIMESTAMP(reportedon_date) AS reportedon_date
+				FROM events WHERE id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$event_id]);
 		return $db->fetch($result);
 	}
 
@@ -57,16 +49,9 @@ class Events
 	{
 		global $db;
 
-		$sql = 'SELECT *
-				, UNIX_TIMESTAMP(startdate) AS startdate
-				, UNIX_TIMESTAMP(enddate) AS enddate
-				, UNIX_TIMESTAMP(reportedon_date) AS reportedon_date
-				FROM events
-				ORDER BY reportedon_date DESC
-				LIMIT 0,1';
-
+		$sql = 'SELECT *, UNIX_TIMESTAMP(startdate) AS startdate, UNIX_TIMESTAMP(enddate) AS enddate, UNIX_TIMESTAMP(reportedon_date) AS reportedon_date
+				FROM events ORDER BY reportedon_date DESC LIMIT 1';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
-
 		return $db->fetch($result);
 	}
 
@@ -76,12 +61,9 @@ class Events
 
 		$events = array();
 
-		$sql = 'SELECT *, UNIX_TIMESTAMP(reportedon_date) AS reportedon_date
-				FROM events
-				WHERE DATE_FORMAT(startdate, "%Y") = '.$year.'
-				ORDER BY startdate ASC, enddate ASC';
+		$sql = 'SELECT *, UNIX_TIMESTAMP(reportedon_date) AS reportedon_date FROM events WHERE DATE_FORMAT(startdate, "%Y")=? ORDER BY startdate ASC, enddate ASC';
 
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$year]);
 
 		while($rs = $db->fetch($result)) {
 			array_push($events, $rs);
@@ -110,21 +92,12 @@ class Events
 
 		$events = array();
 		$user_id = isset($user->id) ? $user->id : 0;
-		$sql = 'SELECT
-				  e.id,
-				  e.name,
-				  e.startdate,
-				  e.enddate,
-				  COUNT(cu.comment_id) AS numunread
-				FROM events e
+		$sql = 'SELECT e.id, e.name, e.startdate, e.enddate, COUNT(cu.comment_id) AS numunread FROM events e
 					LEFT JOIN comments c ON (c.board = "e" AND c.thread_id = e.id)
-					LEFT JOIN comments_unread cu ON (cu.user_id = '.$user_id.' AND cu.comment_id = c.id)
-				WHERE
-					e.enddate >= NOW() AND (e.startdate BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW())
-					OR e.startdate BETWEEN NOW() AND (NOW() + INTERVAL 5 DAY)
-				GROUP by e.id
-				ORDER BY e.startdate ASC';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+					LEFT JOIN comments_unread cu ON (cu.user_id = ? AND cu.comment_id = c.id)
+				WHERE e.enddate>=? AND (e.startdate BETWEEN (?-INTERVAL 7 DAY) AND ?) OR e.startdate BETWEEN ? AND (?+INTERVAL 5 DAY)
+				GROUP by e.id ORDER BY e.startdate ASC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id, timestamp(true), timestamp(true), timestamp(true), timestamp(true), timestamp(true)]);
 
 		while($rs = $db->fetch($result)) {
 			$events[] = $rs;
@@ -138,9 +111,8 @@ class Events
 
 		if(isset($user->lastlogin) && $user->lastlogin > 0)
 		{
-			$sql = 'SELECT * FROM events WHERE UNIX_TIMESTAMP(reportedon_date) > '.$user->lastlogin;
-
-			return $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__));
+			$sql = 'SELECT * FROM events WHERE UNIX_TIMESTAMP(reportedon_date)>?';
+			return $db->num($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->lastlogin]));
 		} else {
 			return 0;
 		}
@@ -151,12 +123,11 @@ class Events
 		global $db;
 		$visitors = array();
 
-		$sql = 'SELECT * FROM events_to_user WHERE event_id = '.$event_id;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT * FROM events_to_user WHERE event_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$event_id]);
 		while ($rs = $db->fetch($result)) {
 			array_push($visitors, $rs);
 		}
-
 		return $visitors;
 	}
 
@@ -178,8 +149,8 @@ class Events
 	{
 		global $db;
 
-		$sql = 'SELECT * FROM events_to_user WHERE user_id = '.$user_id.' AND event_id = '.$event_id;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT * FROM events_to_user WHERE user_id=? AND event_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id, $event_id]);
 
 		return $db->fetch($result);
 	}
@@ -200,8 +171,8 @@ class Events
 	{
 		global $db;
 
-		$sql = 'SELECT id, name FROM events WHERE id = '.$event_id;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$sql = 'SELECT id, name FROM events WHERE id=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$event_id]));
 
 		return (!empty($rs) && false !== $rs ? remove_html($rs['name']) : '');
 	}
@@ -222,8 +193,8 @@ class Events
 	{
 		global $db;
 
-		$sql = 'SELECT DATE_FORMAT(startdate,"%Y/%m/%d") as date_path, id FROM events WHERE id='.$event_id;
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
+		$sql = 'SELECT DATE_FORMAT(startdate,"%Y/%m/%d") as date_path, id FROM events WHERE id=?';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$event_id]));
 		if ($rs) {
 			$eventLink = sprintf('/event/%s/%d', $rs['date_path'], $rs['id']);
 			return $eventLink;
@@ -337,13 +308,10 @@ class UpcomingEvent
 	{
 		global $db, $googleMapsApi;
 
-		$sql = 'SELECT name, location, UNIX_TIMESTAMP(startdate) time
-				FROM events
-				WHERE startdate >= DATE_ADD(NOW(), INTERVAL '.($hours_until_start-1).' HOUR)
-					AND startdate < DATE_ADD(NOW(), INTERVAL '.($hours_until_start).' HOUR)
-				ORDER BY startdate ASC
-				LIMIT 1';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT name, location, UNIX_TIMESTAMP(startdate) time FROM events
+				WHERE startdate >= DATE_ADD(?, INTERVAL ? HOUR) AND startdate<DATE_ADD(?, INTERVAL ? HOUR)
+				ORDER BY startdate ASC LIMIT 1';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), $hours_until_start-1, timestamp(true), ($hours_until_start), ]);
 		$event = $db->fetch($result);
 		if (DEVELOPMENT) error_log("[DEBUG] Event Query Result:\n\r".print_r($event,true));
 

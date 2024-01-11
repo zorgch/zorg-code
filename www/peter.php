@@ -12,7 +12,7 @@
 ob_start();
 
 /** File includes */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/main.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
@@ -61,16 +61,6 @@ if ($user->is_loggedin())
 		if ($peterGameId > 0)
 		{
 			/** Infos über das game holen */
-			/*
-			$sql = 'SELECT 
-					*
-				FROM peter_games pg
-				LEFT JOIN user u
-				ON pg.next_player = u.id
-				WHERE pg.game_id = '.$peterGameId;
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			$rsg = $db->fetch($result);
-			*/
 			$rsg = $model->getGamedata($peterGameId);
 
 			/** Wenn dem Spiel noch beigetreten werden kann */

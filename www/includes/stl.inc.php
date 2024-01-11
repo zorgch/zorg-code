@@ -4,62 +4,66 @@
  *
  * Shoot The Lamber ist ein Schiffchen-Versenken-Klon auf Zorg
  *	mySQL Tables:
-
-	Haupttable:
-		stl:
-			game_id (primary key)
-				spiel nummer
-			game_size (max. 23, min. 5)
-				spielfeld grösse Anzahl x Anzahl
-			status int
-				0 = wurde erstellt, spieler werden gesucht
-				1 = läuft
-				2 = beendet
-			winner_team int
-				0 = team red
-				1 = team blue
-			creater_id
-				userID des spielerstellers (spiel-admin)
-			num_players (min. 6, max. 24)
-				anzahl spieler
-			game_title
-				spielname
-
-	Spieler Table:
-		stl_players:
-			user_id
-				user ID aus der user table
-			team_id
-				team id bei dem der spieler mitglied ist.
-			game_id
-				spiel nummer
-			last_shoot
-				datum an dem der spieler zuletzt geschossen hat.
-
-	Schiffs- und treffer positionen
-		stl_positions:
-			pos_id (primary key)
-				positions id
-			game_id
-				spiel nummer
-			grid_x
-				x koordinate
-			grid_y
-				y koordinate
-			hit_user_id
-				spieler id von dem hier ein torpedo gekommen ist, 0 bedeut kein schuss bis jetzt
-			hit_team_id
-				team_id vom topedo ;-)
-			ship_user_id
-				spieler id vom besitzer des schiffs, 0 bedeutet kein schiff
-			ship_team_id
-				team_id vom besitzer des schiffs
-			shoot_date
-				datum an dem der spieler das torpedo geschossen hat.
  *
- * @author [z]milamber
+ * Haupttable:
+ * 	stl:
+ * 		game_id (primary key)
+ * 			spiel nummer
+ * 		game_size (max. 23, min. 5)
+ * 			spielfeld grösse Anzahl x Anzahl
+ * 		status int
+ * 			0 = wurde erstellt, spieler werden gesucht
+ * 			1 = läuft
+ * 			2 = beendet
+ * 		winner_team int
+ * 			0 = team red
+ * 			1 = team blue
+ * 		creater_id
+ * 			userID des spielerstellers (spiel-admin)
+ * 		num_players (min. 6, max. 24)
+ * 			anzahl spieler
+ * 		game_title
+ * 			spielname
+ *
+ * Spieler Table:
+ * 	stl_players:
+ * 		user_id
+ * 			user ID aus der user table
+ * 		team_id
+ * 			team id bei dem der spieler mitglied ist.
+ * 		game_id
+ * 			spiel nummer
+ * 		last_shoot
+ * 			datum an dem der spieler zuletzt geschossen hat.
+ *
+ * Schiffs- und treffer positionen
+ * 	stl_positions:
+ * 		pos_id (primary key)
+ * 			positions id
+ * 		game_id
+ * 			spiel nummer
+ * 		grid_x
+ * 			x koordinate
+ * 		grid_y
+ * 			y koordinate
+ * 		hit_user_id
+ * 			spieler id von dem hier ein torpedo gekommen ist, 0 bedeut kein schuss bis jetzt
+ * 		hit_team_id
+ * 			team_id vom topedo ;-)
+ * 		ship_user_id
+ * 			spieler id vom besitzer des schiffs, 0 bedeutet kein schiff
+ * 		ship_team_id
+ * 			team_id vom besitzer des schiffs
+ * 		shoot_date
+ * 			datum an dem der spieler das torpedo geschossen hat.
+ *
+ * @version 2.0
+ * @since 1.0 `[z]milamber` File added
+ * @since 2.0 `IneX` Code refactorings and Query optimizations
+ *
  * @package zorg\Games\STL
  */
+
 /**
  * File includes
  * @include config.inc.php
@@ -67,7 +71,7 @@
  * @include usersystem.inc.php
  * @include util.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 include_once INCLUDES_DIR.'util.inc.php';

@@ -790,8 +790,7 @@ function writeGame($game)
 			$notification_text = t('message-your-turn', 'go', [ SITE_URL, $game['id'] ]);
 			$notification_status = $notification->send($game['nextturn'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'go'), 'text'=>$notification_text, 'message'=>$notification_text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" for user=%d to user=%d', __FUNCTION__, __LINE__, ($notification_status===true?'true':'false'), $game['nextturn'], $user->id));
-			/** @deprecated
-			Messagesystem::sendMessage(
+			/** @deprecated Messagesystem::sendMessage(
 				 $user->id
 				,$game['nextturn']
 				,t('message-subject', 'go')

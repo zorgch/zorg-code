@@ -8,7 +8,8 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/main.inc.php';
+require_once __DIR__.'/config.inc.php';
+require_once INCLUDES_DIR.'main.inc.php';
 
 /**
  * HTML Syntax Validator
@@ -40,6 +41,7 @@ function html_syntax_check ($str) {
 	// old query:	"(<[^<>]*<)"
 
 	/** check for invalid tags without > */
+	// FIXME $tagcheck_str is undefined (should it be $str ?)
 	if (preg_match('/< *\w+( +\w( *= *(\w*|"[^"]*"|\'[^\']*\'))?)*</', $tagcheck_str, $res, PREG_OFFSET_CAPTURE)) {
 		print_array($res);
 
@@ -122,7 +124,7 @@ function html_syntax_check ($str) {
 function tpleditor_unlock ($id) {
 	global $db, $user;
 
-	$e = $db->query('SELECT lock_user FROM templates WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT lock_user FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$id]);
 	$d = $db->fetch($e);
 	if ($d['lock_user'] == $user->id) $db->update('templates', ['id', $id], ['lock_user' => '0'], __FILE__, __LINE__, __FUNCTION__);
 }
@@ -146,7 +148,7 @@ function tpleditor_access_lock ($id, &$error)
 
 	if (!is_string($id) && $id > 0)
 	{
-		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(NOW()) now FROM templates WHERE id='.$id, __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT *, UNIX_TIMESTAMP(last_update) last_update, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(lock_time) lock_time_stamp, UNIX_TIMESTAMP(?) now FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [timestamp(true), $id]);
 		$d = $db->fetch($e);
 
 		if ($d && !tpl_permission($d['write_rights'], $d['owner'])) {
@@ -156,7 +158,7 @@ function tpleditor_access_lock ($id, &$error)
 			$error = 'Das Template ist gesperrt, da es gerade von '.$user->id2user($d['lock_user'], true).' bearbeitet wird.';
 			return false;
 		}else{
-			$db->query('UPDATE templates SET lock_user='.$user->id.', lock_time=NOW() WHERE id='.$d['id'], __FILE__, __LINE__);
+			$db->query('UPDATE templates SET lock_user=?, lock_time=? WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$user->id, timestamp(true), $d['id']]);
 			$error = "";
 			return true;
 		}

@@ -168,10 +168,9 @@ function albumThumbs ($id, $page=0)
 
 	if (!empty($d) && $d['anz'] > 0)
 	{
-		$e = $db->query(sprintf('SELECT
-									g.id, g.name, IF(e.enddate != "0000-00-00 00:00:00" AND g.created IS NULL, e.enddate, g.created) created, e.id eventid, e.name eventname, GROUP_CONCAT(eu.user_id SEPARATOR ",") beenthere_users
+		$e = $db->query('SELECT g.id, g.name, IF(e.enddate != "0000-00-00 00:00:00" AND g.created IS NULL, e.enddate, g.created) created, e.id eventid, e.name eventname, GROUP_CONCAT(eu.user_id SEPARATOR ",") beenthere_users
 								 FROM gallery_albums g LEFT JOIN events e ON e.gallery_id=g.id LEFT JOIN events_to_user eu ON eu.event_id=e.id
-								 WHERE g.id=%d GROUP BY g.id, e.enddate, e.id, e.name', $id), __FILE__, __LINE__, __FUNCTION__);
+								 WHERE g.id=? GROUP BY g.id, e.enddate, e.id, e.name', __FILE__, __LINE__, __FUNCTION__, [$id]);
 		$d = $db->fetch($e);
 		$htmlOutput .= '<h1 class="bottom_border center">'.($d['eventname'] ? $d['eventname'] : $d['name']).(!empty($d['eventid']) ? ' <a href="/?tpl=158&event_id='.$d['eventid'].'">📅</a>' : '').'</h1>';
 		if ($user->typ == USER_MEMBER) $htmlOutput .= '<p class="small center">[<a href="/gallery.php?albID='.$id.'&show=editAlbum">edit name</a>] [<a href="?show=editAlbumV2&albID='.$id.'">add pics</a>]</p>';
@@ -266,11 +265,11 @@ function pic ($id)
 	$cur = $db->fetch($e);
 	if($cur === false || empty($cur)) user_error('Bild "'.$id.'" existiert nicht!', E_USER_ERROR);
 
-	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
-	$last = mysqli_fetch_array($e);
+	$e = $db->query('SELECT id FROM gallery_pics p WHERE album='.$cur['album'].' AND id<'.$id.' '.ZENSUR.' ORDER BY id DESC LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+	$last = $db->fetch($e);
 
-	$e = $db->query('SELECT * FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 0,1', __FILE__, __LINE__, __FUNCTION__);
-	$next = mysqli_fetch_array($e);
+	$e = $db->query('SELECT id FROM gallery_pics p WHERE album='.$cur['album'].' AND id>'.$id.' '.ZENSUR.' ORDER BY id ASC LIMIT 1', __FILE__, __LINE__, __FUNCTION__);
+	$next = $db->fetch($e);
 
 	$e = $db->query('SELECT album, a.id, count(p.id) anz, a.name, e.gallery_id, e.name eventname
 					 FROM gallery_pics p, gallery_albums a
@@ -380,7 +379,7 @@ function pic ($id)
 	/** Normale Pic Anzeige (wenn nicht APOD UND Pic-Extension nicht mit '.' anfängt...) */
 	if ($cur['album'] != APOD_GALLERY_ID || mb_substr($cur['extension'],0,1,'UTF-8') === '.')
 	{
-		$pic_downloadname = sprintf('%s.%s', $pic_title, $cur['extension']);
+		$pic_downloadname = htmlspecialchars($pic_title.$cur['extension'], ENT_QUOTES);
 		/** Wenn User eingeloggt & noch nicht auf Bild markiert ist, Formular anzeigen... */
 		if ($user->typ >= USER_USER && !checkUserToPic($user->id, $id))
 		{
@@ -397,7 +396,7 @@ function pic ($id)
 			);
 		/** ...sonst Bild normal ohne Markierungs-Formular ausgeben (auch für Nicht Eingeloggte) */
 		} else {
-			echo '<img id="thatpic" name="'.$pic_downloadname.'" src="'. imgsrcPic($id). '" style="border: none;width: 100%;max-width: 100%;">';
+			echo '<img id="thatpic" name="'.$pic_downloadname.'" src="'.imgsrcPic($id).'" download="'.$pic_downloadname.'" style="border: none;width: 100%;max-width: 100%;">';
 		}
 
 	/** APOD Special: statt Pic ein Video embedden */
@@ -556,9 +555,9 @@ function doBenoten($pic_id, $score) {
 	if (empty($score) || $score <= 0) user_error("Fehlender Parameter <i>score</i>", E_USER_ERROR);
 	if (!hasVoted($user->id, $pic_id))
 	{
-		$sql = 'REPLACE INTO gallery_pics_votes (pic_id, user_id, score) VALUES ('.$pic_id.', '.$user->id.', '.$score.')';
+		$sql = 'REPLACE INTO gallery_pics_votes (pic_id, user_id, score) VALUES (?, ?, ?)';
 
-		$db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+		$db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$pic_id, $user->id, $score]);
 		//header("Location: ".base64url_decode($_POST['url']));
 		//return array('state'=>"Pic $pic_id benotet");
 
@@ -692,15 +691,19 @@ function doUpload($id, $frm)
 	$tnSize = "";
 	while (false !== ($file = readdir ($directory))) {
 		// checks
-		if ($file=="." || $file=="..") continue;
+		if ($file==="." || $file==="..") continue;
 
 		if (!isPic(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) {
-		$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br>";
-		if ($frm['delFiles']) {
-			if (!@unlink(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) $error .= '- '.$file.' konnte nicht gel&ouml;scht werden<br>';
+			$notDone .= "- $file (ist kein g&uuml;ltiges Bild)<br>";
+		}
+		elseif ($frm['delFiles']) {
+			// strpos() verifies that the resolved file path is within the intended directory
+			if (strpos($file, realpath(GALLERY_UPLOAD_DIR.$frm['folder'])) === 0 &&
+				!@unlink(GALLERY_UPLOAD_DIR.$frm['folder'].$file)) {
+				$error .= '- '.$file.' konnte nicht gel&ouml;scht werden<br>';
+			}
 		}
 		continue;
-		}
 
 		// writing DB
 		$picid = $db->insert("gallery_pics", array("album"=>$id, "extension"=>extension($file)), __FILE__, __LINE__, __FUNCTION__);
@@ -1631,9 +1634,8 @@ function setNewDailyPic()
 	global $db, $telegram;
 
 	/** Check if current Daily Pic is still from Today... */
-	$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(?) upd
-						FROM periodic p
-						WHERE p.name=?', __FILE__, __LINE__, __FUNCTION__, [timestamp(true), 'daily_pic']);
+	$sql = $db->query('SELECT id, TO_DAYS(p.date)-TO_DAYS(?) upd FROM periodic p WHERE p.name=?',
+						__FILE__, __LINE__, __FUNCTION__, [timestamp(true), 'daily_pic']);
 	$currdp = $db->fetch($sql);
 
 	/** If current Daily Pic is old - generate a new one: */
@@ -1656,10 +1658,10 @@ function setNewDailyPic()
 			 *     url = URL to the Pic
 			 *     caption = "Daily Pic: {Title - if available} [Gallery-Name]"
 			 */
-			$imgAuthToken = md5(TELEGRAM_API_URI);
+			$imgAuthToken = md5($_ENV['TELEGRAM_BOT_API']);
 			$imgUrl = SITE_URL.imgsrcPic($newdp['id']).'?token='.$imgAuthToken;
-			$picTitle = picHasTitle($newdp['id']);
-			$picGallery = $newdp['galleryname'];
+			$picTitle = html_entity_decode(picHasTitle($newdp['id']));
+			$picGallery = html_entity_decode($newdp['galleryname']);
 			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ (empty($picTitle) ? ' ' : $picTitle), (empty($picGallery) ? ' ' : $picGallery) ]);
 			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
 
@@ -1881,8 +1883,8 @@ function doEditFotoTitle($picID, $frm)
 /**
  * Checks if Pic has a Title - if yes, return it
  *
- * @author IneX
- * @date 21.01.2017
+ * @version 1.0
+ * @since 1.0 `21.01.2017` `IneX` Function added
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return string|bool If set, returns the Pic's title - otherwise 'false'

@@ -1,9 +1,10 @@
 <?php
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
+require_once INCLUDES_DIR.'mysql.inc.php';
 
 /** Query errors Table for all open errors (status = 1) */
-$sql = $db->fetch($db->query('SELECT count(*) as num_errors FROM sql_error WHERE status = 1', __FILE__, __LINE__, 'SELECT num_errors'));
-$num_errors = $sql['num_errors'];
+$sql = $db->fetch($db->query('SELECT COUNT(*) as num_errors FROM sql_error WHERE status=1', __FILE__, __LINE__, 'SELECT num_errors'));
+$num_errors = (isset($sql['num_errors']) ? (int)$sql['num_errors'] : 0);
 
 /**
  * Get all SQL-Error Entries from the database
@@ -23,7 +24,7 @@ function get_sql_errors($num=23,$order=3,$oby=0)
 	if (isset($_GET['tpl'])) $tpl_id = (int)strip_tags(filter_var(trim($_GET['tpl']), FILTER_SANITIZE_NUMBER_INT));
 	if (isset($_GET['query'])) $query = (string)strip_tags(filter_var(trim($_GET['query']), FILTER_SANITIZE_STRING));
 
-	if(isset($num_errors) && $num_errors > 0)
+	if($num_errors > 0)
 	{
 		if(!isset($_SESSION['error_order'])) {
 			$_SESSION['error_num'] = $num;
@@ -74,7 +75,7 @@ function get_sql_errors($num=23,$order=3,$oby=0)
 			        LIMIT '.$_SESSION['error_num'].') s
 				LEFT JOIN user u ON u.id = s.s_user_id
 				WHERE 1 = 1';
-		$result = $db->query($sql,__FILE__,__LINE__);
+		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
 		$html = '';
 		if(isset($error_id) && $error_id>0)
 		{

@@ -1,4 +1,4 @@
-{if $tplroot.sidebar_tpl neq '' || $sidebarHtml neq ''}
+{if $tplroot.sidebar_tpl neq '' || isset($sidebarHtml) && $sidebarHtml neq ''}
 	</main>
 	<aside class="sidebar">
 		{if $tplroot.sidebar_tpl neq ''}

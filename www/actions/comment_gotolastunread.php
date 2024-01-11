@@ -1,10 +1,11 @@
 <?php
-require_once dirname(__FILE__).'/../includes/main.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
 
-if(Forum::getNumunreadposts($user->id) > 0) { 
+if(Forum::getNumunreadposts($user->id) > 0) {
 	header("Location: ".Forum::getUnreadLink());
-	die();
+	exit();
 } else {
-	header("Location: ../index.php?".session_name()."=".session_id());
-	die();
+	header("Location: /index.php");
+	exit();
 }

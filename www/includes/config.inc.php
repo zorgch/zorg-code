@@ -347,18 +347,18 @@ if (!defined('ZORG_VEREIN_KONTO_BESRID')) define('ZORG_VEREIN_KONTO_BESRID', (is
  * @const ERRORLOG_FILETYPE sets the file extension used for the error log file
  * @const ERRORLOG_DIR sets the directory for logging the custom user_errors
  * @const ERRORLOG_FILEPATH sets the directory & file path for logging the custom user_errors to
- * @const ERRORLOG_LEVELS sets the verbosity of logging errors, warnings, and notices caused by the application
+ * @const ERRORLOG_LEVEL sets the verbosity of logging errors, warnings, and notices caused by the application. See: https://stackoverflow.com/q/3758418
  * @const ERRORLOG_DEBUG_SCOPE (Optional) sets a focused scope for DEBUG log entries
  * @include errlog.inc.php Errorlogging Class: Load the zorg Error and Debug Handling
  */
 if (!defined('ERRORLOG_FILETYPE')) define('ERRORLOG_FILETYPE', (isset($_ENV['ERRORLOG_FILETYPE']) ? $_ENV['ERRORLOG_FILETYPE'] : '.log'));
 if (!defined('ERRORLOG_DIR')) define('ERRORLOG_DIR', (isset($_ENV['ERRORLOG_DIR']) ? $_ENV['ERRORLOG_DIR'] : null));
 if (!defined('ERRORLOG_FILE')) define('ERRORLOG_FILE', ERRORLOG_DIR.date('Y-m-d').ERRORLOG_FILETYPE);
-if (!defined('ERRORLOG_LEVELS')) define('ERRORLOG_LEVELS', (isset($_ENV['ERROR_REPORTING_LEVELS']) ? $_ENV['ERROR_REPORTING_LEVELS'] : E_ERROR));
+if (!defined('ERRORLOG_LEVEL')) define('ERRORLOG_LEVEL', (isset($_ENV['ERROR_REPORTING_LEVELS']) && is_numeric($_ENV['ERROR_REPORTING_LEVELS']) ? $_ENV['ERROR_REPORTING_LEVELS'] : E_ERROR));
 if (!defined('ERRORLOG_DEBUG_SCOPE')) {
-    define('ERRORLOG_DEBUG_SCOPE', isset($_ENV['DEBUG_SCOPE']) ? explode(',', $_ENV['DEBUG_SCOPE']) : []);
+    define('ERRORLOG_DEBUG_SCOPE', isset($_ENV['DEBUG_SCOPE']) && !empty($_ENV['DEBUG_SCOPE']) ? explode(',', $_ENV['DEBUG_SCOPE']) : []);
 }
-error_reporting(ERRORLOG_LEVELS);
+error_reporting(ERRORLOG_LEVEL);
 require_once INCLUDES_DIR.'errlog.inc.php';
 //set_error_handler('zorgErrorHandler');
 

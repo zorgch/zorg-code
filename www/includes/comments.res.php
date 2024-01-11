@@ -3,22 +3,22 @@
  * Comments Template-Resources Handling
  * @package zorg\Forum
  */
+
 /**
  * File includes
  * @include smarty.inc.php required
  * @include forum.inc.php required
  * @include usersystem.inc.php required
  */
-require_once INCLUDES_DIR.'/smarty.inc.php';
+require_once __DIR__.'/smarty.inc.php';
 require_once INCLUDES_DIR.'forum.inc.php';
 //require_once INCLUDES_DIR.'usersystem.inc.php'; // DUPLICATE INCLUSION (already in smarty.inc.php)
 
 /**
  * tpl resource - get timestamp
  *
- * @author [z]biko
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  */
 function smartyresource_comments_get_timestamp($tpl_name, &$tpl_timestamp, &$smarty)
 {
@@ -33,9 +33,8 @@ function smartyresource_comments_get_timestamp($tpl_name, &$tpl_timestamp, &$sma
  * tpl resource - get secure
  * sicherheit des templates $tpl_name überprüfen
  *
- * @author [z]biko
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  */
 function smartyresource_comments_get_secure($tpl_name, &$smarty_obj) {
   return true;
@@ -45,9 +44,8 @@ function smartyresource_comments_get_secure($tpl_name, &$smarty_obj) {
  * tpl resource - get trusted
  * nicht verwendet; funktion muss aber existieren
  *
- * @author [z]biko
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  */
 function smartyresource_comments_get_trusted($tpl_name, &$smarty_obj) {
   // elmatrichüd!
@@ -56,13 +54,12 @@ function smartyresource_comments_get_trusted($tpl_name, &$smarty_obj) {
 /**
  * tpl resource - comments get thread
  *
- * @author [z]biko
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  */
 function smartyresource_comments_get_thread ($id, $board) {
 	//if(!is_numeric($id)) echo '$id is not numeric!';
-	if ($board == 'f') {
+	if ($board === 'f') {
 		//if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> smartyresource_comments_get_thread(): %s', __METHOD__, __LINE__, $board));
 		return smartyresource_comments_get_commenttree($id, true);
 	} else {
@@ -82,17 +79,15 @@ function smartyresource_comments_get_thread ($id, $board) {
  * -> holt thread 123 aus dem board b
  * boards können mit dem einzelnen character (aus table) angegeben werden.
  *
- * @author [z]biko
  * @version 2.1
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  * @since 2.0 `26.10.2018` `IneX` various optimizations, structured html (schema.org)
  * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden um unser Template zu laden, und '$tpl_source' zuzuweisen
  */
-function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty) {
-	global $db;
-
+function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty)
+{
 	$tpl_source = '';
 
 	$name = explode('-', $tpl_name);
@@ -115,8 +110,6 @@ function smartyresource_comments_get_template ($tpl_name, &$tpl_source, &$smarty
 /**
  * tpl resource - comments get navigation
  *
- * @author [z]biko
- * @author IneX
  * @version 2.0
  * @since 1.0 `[z]biko` function added
  * @since 2.0 `14.01.2019` `IneX` added schema.org tags
@@ -167,14 +160,12 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 	;
 
 	return $html;
-	return $smarty->fetch('file:layout/partials/forum/comments_navigation');
+	// TODO return $smarty->fetch('file:layout/partials/forum/comments_navigation');
 }
 
 /**
  * tpl resource - comments get comment-tree
  *
- * @author [z]biko
- * @author IneX
  * @version 3.2
  * @since 1.0 `[z]biko` function added
  * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized, added structured data (schema.org) and google-off/-on, added Thread-Switch
@@ -196,25 +187,26 @@ function smartyresource_comments_get_navigation ($id, $thread_id, $board) {
 function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 	global $db, $user, $smarty;
 
+	if(!is_numeric($id) || $id <= 0)
+	{
+		echo sprintf('[ERROR] &lt;%s:%d&gt; $id is not numeric: "%s"', __FILE__, __LINE__, $id);
+		exit;
+		//$html .= '$rs[id] is not numeric! '.__FILE__.' Line: '.__LINE__;
+	}
+
 	$params = [];
-	$sql = 'SELECT
-				comments.*,
-				UNIX_TIMESTAMP(comments.date) date,
-				UNIX_TIMESTAMP(comments.date_edited) date_edited,
-				user.clan_tag, user.username,
-				count(c2.id) as numchildposts'
+	$sql = 'SELECT comments.*, UNIX_TIMESTAMP(comments.date) date, UNIX_TIMESTAMP(comments.date_edited) date_edited, user.clan_tag, user.username, count(c2.id) as numchildposts'
 				.($user->is_loggedin() ? ', IF(ISNULL(cs.comment_id), 0, 1) AS issubscribed' : '').'
-			FROM comments
-				LEFT JOIN user ON (comments.user_id = user.id)
-				LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)'
-			.($user->is_loggedin() ? 'LEFT JOIN comments_subscriptions cs ON (comments.id = cs.id AND comments.board = cs.board AND cs.user_id=?)' : '').'
+			FROM comments LEFT JOIN user ON (comments.user_id = user.id) LEFT JOIN comments as c2 ON (comments.id = c2.parent_id AND comments.board = c2.board)'
+				.($user->is_loggedin() ? 'LEFT JOIN comments_subscriptions cs ON (comments.id = cs.id AND comments.board = cs.board AND cs.user_id=?)' : '').'
 			WHERE comments.id=? GROUP BY comments.id';
 	if ($user->is_loggedin()) $params[] = $user->id;
 	$params[] = $id;
 	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__, $params));
+	$rsID = intval($rs['id']);
 
 	$html = '{if $comments_top_additional == 1}';
-		$html .= smartyresource_comments_get_navigation($rs['id'], $rs['thread_id'], $rs['board']);
+		$html .= smartyresource_comments_get_navigation($rsID, $rs['thread_id'], $rs['board']);
 	$html .= '{else}';
 
 			$html .=
@@ -227,7 +219,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 						if($rs['numchildposts'] > 0) {
 					  		$html .=
 					  			'<td class="threading {$it}">'
-						    		.'<a class="threading switch collapse" onClick="showhide('.$rs['id'].', this)"></a>'
+						    		.'<a class="threading switch collapse" onClick="showhide('.$rsID.', this)"></a>'
 						    	.'</td>'
 					    	;
 					  	} else {
@@ -246,9 +238,9 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 			$html .=
 			'<td align="left" class="border forum">'
-				.'{if $user->id>0 && in_array('.$rs['id'].', $comments_unread)}'
+				.'{if $user->id>0 && in_array('.$rsID.', $comments_unread)}'
 					.'{assign var=comment_color value=$color.newcomment}'
-					.'{comment_mark_read comment_id="'.$rs['id'].'" user_id=$user->id}'
+					.'{comment_mark_read comment_id="'.$rsID.'" user_id=$user->id}'
 				.'{elseif $user->id == '.$rs['user_id'].'}'
 					.'{assign var=comment_color value=$color.owncomment}'
 				.'{else}'
@@ -259,10 +251,10 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 				.'<tr class="tiny">'
 					.'<td class="forum comment meta left" style="width: {if $user->from_mobile}85%{else}70%{/if};">'
 						.'<div style="display: none;" itemscope itemtype="http://schema.org/Organization" itemprop="publisher"><span style="display: none;" itemprop="name">{$smarty.const.SITE_HOSTNAME}</span></div>'
-						.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rs['id'].' thread_id='.$rs['thread_id'].'}" name="'.$rs['id'].'"'.($is_thread ? ' itemprop="url"' : '').'>'
-						.'#'.$rs['id']
+						.'<a href="{comment_get_link board='.$rs['board'].' parent_id='.$rs['parent_id'].' id='.$rsID.' thread_id='.$rs['thread_id'].'}" name="'.$rsID.'"'.($is_thread ? ' itemprop="url"' : '').'>'
+						.'#'.$rsID
 						.'</a>'
-						.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person">'.$user->userpagelink($rs['user_id'], $rs['clan_tag'], $rs['username'])
+						.' by <span itemprop="'.($is_thread ? 'author' : 'contributor').'" itemscope itemtype="http://schema.org/Person">'.$user->userpagelink(intval($rs['user_id']), $rs['clan_tag'], $rs['username'])
 						.'</span> @ <meta itemprop="datePublished" content="{'.$rs['date'].'|date_format:"%Y-%m-%d"}">{datename date='.$rs['date'].'}'
 			;
 
@@ -276,29 +268,29 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 
 			/** Subscribe / Unsubscribe */
 			$html .= '{if $user->id > 0}'
-						.'{if in_array('.$rs['id'].', $comments_subscribed)}
+						.'{if in_array('.$rsID.', $comments_subscribed)}
 							<a href="/actions/commenting.php'
 							.'?do=unsubscribe'
 							.'&board='.$rs['board']
-							.'&comment_id='.$rs['id']
+							.'&comment_id='.$rsID
 							.'&url={$request.url|base64encodeurl}'
 							.'">[unsubscribe]</a>
 						{else}
-							<a href="/actions/commenting.php?do=subscribe&board='.$rs['board'].'&comment_id='.$rs['id'].'&url={$request.url|base64encodeurl}">[subscribe]</a>
+							<a href="/actions/commenting.php?do=subscribe&board='.$rs['board'].'&comment_id='.$rsID.'&url={$request.url|base64encodeurl}">[subscribe]</a>
 						{/if}
 					{/if}';
 
 			/** Edit Comment */
 			$html .= '{if $user->id == '.$rs['user_id'].'}'
-						.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rs['id'].'&url={$request.url|base64encodeurl}">[edit]</a> '
+						.'<a href="/forum.php?layout=edit&parent_id='.$rs['parent_id'].'&id='.$rsID.'&url={$request.url|base64encodeurl}">[edit]</a> '
 					.'{/if}';
 
 			/** Reply-to Comment */
 			$html .= '{if $user->id > 0}'
 						.'</td><td class="forum comment meta right align-right" style="width: 15%;">'
-							.'<label for="replyfor-'.$rs['id'].'" class="dont-wrap" style="margin-right: 2px;">'
-								.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rs['id'].'" onClick="reply()" value="'.$rs['id'].'"'
-								.'{if $smarty.get.parent_id == '.$rs['id'].'} checked="checked"{/if}'
+							.'<label for="replyfor-'.$rsID.'" class="dont-wrap" style="margin-right: 2px;">'
+								.'<input type="radio" class="replybutton" name="parent_id" id="replyfor-'.$rsID.'" onClick="reply()" value="'.$rsID.'"'
+								.'{if $smarty.get.parent_id == '.$rsID.'} checked="checked"{/if}'
 								.'/><span class="hide-mobile">&nbsp;reply</span>'
 							.'</label>'
 					.'{/if}';
@@ -313,7 +305,7 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			} else {
 				$html .= '<b><font color="red">{literal}'.$rs['error'].'{/literal}</font></b>';
 			}
-			$replyCount = Comment::getNumChildposts($rs['board'], $rs['id']);
+			$replyCount = Comment::getNumChildposts($rs['board'], $rsID);
 			if ($replyCount > 0) $html .= '<span itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
 						<link itemprop="interactionType" href="http://schema.org/CommentAction" />
 						<span itemprop="userInteractionCount" content="'.$replyCount.'"></span>
@@ -322,14 +314,8 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 			$html .= '</td></tr></table></td></tr></table>';
 			$html .= '{/if}';
 
-		if(!is_numeric($rs['id']))
-		{
-			echo sprintf('[ERROR] <%s:%d> $rs[id] is not numeric: "%d"', __FILE__, __LINE__, $rs['id']);
-			exit;
-			//$html .= '$rs[id] is not numeric! '.__FILE__.' Line: '.__LINE__;
-		}
 		$html .= '{if !$comments_no_childposts}';
-			$html .= smartyresource_comments_get_childposts($rs['id'], $rs['board']);
+			$html .= smartyresource_comments_get_childposts($rsID, $rs['board']);
 		$html .= '{/if}';
 
 		return $html;
@@ -338,9 +324,8 @@ function smartyresource_comments_get_commenttree ($id, $is_thread=false) {
 /**
  * tpl resource - comments get child-posts
  *
- * @author [z]biko
  * @version 2.2
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  * @since 2.0 `26.10.2018` `IneX` function code cleanup & optimized
  * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
  * @since 2.2 `04.12.2020` `IneX` Fix error in compiled template "Warning: count(): Parameter must be an array or an object that implements Countable"
