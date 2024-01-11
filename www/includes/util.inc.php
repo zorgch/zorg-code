@@ -300,7 +300,7 @@ function changeURL($url, $query_string_changes)
 	$urlarray = parse_url($url);
 	$urlarray['query'] = changeQueryString($urlarray['query'], $query_string_changes);
 	$newUrl = glue_url($urlarray);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> url: %s | new query-string: %s | new url: %s', __FUNCTION__, __LINE__, $url, $urlarray['query'], $newUrl));
+	zorgDebugger::log()->debug('url: %s | new query-string: %s | new url: %s', [$url, $urlarray['query'], $newUrl]);
 	return $newUrl;
 }
 

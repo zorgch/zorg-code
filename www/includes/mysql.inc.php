@@ -247,7 +247,7 @@ class dbconn
 		$ip = (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
 		$page = (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
 		$referer = (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
-		// FIXME crasht wenn von :193 -> :222 aufgerufen, prepared statement scheint falsch zu sein *shrug*
+		// FIXME crasht wenn von Line 193 -> Line 222 aufgerufen, prepared statement scheint falsch zu sein *shrug*
 		$insertSql = 'INSERT INTO sql_error (user_id, ip, page, query, msg, date, file, line, referer, status, function) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)';
 		$stmt = mysqli_prepare($this->conn, $insertSql);
 		mysqli_stmt_bind_param($stmt, 'isssssiss', $user_id, $ip, $page, $sql, $msg, timestamp(true), $file, $line, $referer, $funktion);

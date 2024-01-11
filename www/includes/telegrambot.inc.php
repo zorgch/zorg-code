@@ -171,7 +171,7 @@ class Telegram
 						}
 					}
 				} else {
-					zorgDebugger::log()->warn('«%s» did not pass validation!', [$messageType]);
+					zorgDebugger::log()->warn('"%s" did not pass validation!', [$messageType]);
 					return false;
 				}
 			}
@@ -220,7 +220,7 @@ class Telegram
 					LIMIT 1';
 			$telegramUserIds = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__));
 			$telegramUserId = $telegramUserIds['tui'];
-			zorgDebugger::log()->debug('Found Telegram User ID «%d»', [$telegramUserId]);
+			zorgDebugger::log()->debug('Found Telegram User ID "%d"', [$telegramUserId]);
 
 			if (!empty($telegramUserId))
 			{

@@ -175,7 +175,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 				if ( mail($mailTo, $mailSubject, $message_text, $mailHeaders) )
 				{
 					/** mail(): Success! */
-					error_log('[INFO] OK - Successfully sent E-Mail «'.$mailMessage['subject_text'].'» to ' . $mailTo . ' (user id '.$recipient_id.')');
+					error_log('[INFO] OK - Successfully sent E-Mail "'.$mailMessage['subject_text'].'" to ' . $mailTo . ' (user id '.$recipient_id.')');
 					//echo $recipient_id;
 					$response[] = [ 'value' => $recipient_id ];
 				} else {
@@ -183,7 +183,7 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 					 * mail(): Failed
 					 * @link http://php.net/manual/de/function.mail.php#121163
 					 */
-					error_log('[ERROR] Failed to send E-Mail «'.$mailMessage['subject_text'].'» to ' . $mailTo . ': ' . error_get_last()['message']);
+					error_log('[ERROR] Failed to send E-Mail "'.$mailMessage['subject_text'].'" to ' . $mailTo . ': ' . error_get_last()['message']);
 					$response[] = [ 'value' => "Failed to send E-Mail to user id: $recipient_id with error: ".error_get_last()['message'] ]; // Don't die - would kill foreach{..}!
 				}
 			} else {

@@ -59,6 +59,7 @@ switch ($onlineUserListstyle)
 		require_once INCLUDES_DIR.'mysql.inc.php';
 		$sql = 'SELECT id, username, clan_tag FROM user WHERE activity > (NOW()-?) ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-onlineuser)', [USER_TIMEOUT]);
+		zorgDebugger::log()->debug('%s', [$sql]);
 		/** Check if at least 1 user is online */
 		$num_online = (false !== $result && !empty($result) ? (int)$db->num($result) : 0);
 		if (false !== $num_online && !empty($num_online))
