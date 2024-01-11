@@ -10,9 +10,8 @@
 /**
  * File Includes
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
-include_once INCLUDES_DIR.'util.inc.php';
 
 /**
  * Bugtracker Klasse
@@ -130,7 +129,7 @@ class Bugtracker
 			if($user->id != $rs['reporter_id'])
 			{
 				$notification_subject = t('message-subject-reopenbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
-				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_text = sprintf('<a href="%">Bug %d anschauen</a>', SITE_URL.'/bug/'.$bugId, $bugId);
 				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
@@ -162,7 +161,7 @@ class Bugtracker
 			if($user->id != $rs['reporter_id'])
 			{
 				$notification_subject = t('message-subject-resolvedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
-				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_text = sprintf('<a href="%">Bug %d anschauen</a>', SITE_URL.'/bug/'.$bugId, $bugId);
 				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
@@ -208,7 +207,7 @@ class Bugtracker
 			if($user->id != $rs['reporter_id'])
 			{
 				$notification_subject = t('message-subject-deniedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
-				$notification_text = t('message-newbug', 'bugtracker', [ remove_html($rs['description'],'<a><br><i><b><code><pre>'), SITE_URL, $bugId, $bugTitle]);
+				$notification_text = sprintf('<a href="%">Bug %d anschauen</a>', SITE_URL.'/bug/'.$bugId, $bugId);
 				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
@@ -459,7 +458,7 @@ class Bugtracker
 
 		$sql .= " ORDER BY ".$order;
 
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		$html =
 			'<table class="border shadedcells" width="100%">'
@@ -628,7 +627,7 @@ class Bugtracker
 
 		if ($user->typ >= USER_MEMBER) {
 		$sql = 'SELECT count(*) as num FROM bugtracker_bugs WHERE assignedto_id = 0';
-			$result = $db->query($sql, __FILE__, __LINE__);
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		  $rs = $db->fetch($result);
 
 			return $rs['num'];
@@ -640,16 +639,8 @@ class Bugtracker
 		global $db, $user;
 
 		if ($user->typ >= USER_MEMBER) {
-			$sql =
-				"
-				SELECT count(*) as num FROM bugtracker_bugs
-				WHERE UNIX_TIMESTAMP(reported_date) > ".$user->lastlogin."
-				AND UNIX_TIMESTAMP(resolved_date) = 0
-				AND UNIX_TIMESTAMP(denied_date) = 0
-				"
-			;
-
-		  $rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
+			$sql = 'SELECT count(*) as num FROM bugtracker_bugs WHERE UNIX_TIMESTAMP(reported_date)>? AND UNIX_TIMESTAMP(resolved_date)=0 AND UNIX_TIMESTAMP(denied_date)=0';
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->lastlogin]));
 
 		 	return $rs['num'];
 		}
@@ -660,9 +651,9 @@ class Bugtracker
 		global $db;
 
 		$sql = 'SELECT * FROM bugtracker_bugs WHERE (denied_date = 0 OR denied_date IS NULL) && (resolved_date = 0 OR resolved_date IS NULL)';
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-		$html .= '<select name="'.$name.'" size="1">';
+		$html = '<select name="'.$name.'" size="1">';
 		$html .= '<option value="0"> -- kein Bug --</option>';
 		while ($rs = $db->fetch($result)) {
 		   $html .= '<option value="'.$rs['id'].'">#'.$rs['id'].' '.htmlentities($rs['title'], ENT_QUOTES).'</option>';
@@ -677,7 +668,7 @@ class Bugtracker
 		global $db;
 
 		$sql = 'SELECT * FROM bugtracker_categories ORDER BY title ASC';
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		$html = '<select name="category_id"><option label="--- Kategorie wählen ---" selected disabled>--- Kategorie wählen ---</option>';
 		while($rs = $db->fetch($result))
@@ -698,7 +689,7 @@ class Bugtracker
 		global $db;
 
 		$sql = 'SELECT * FROM bugtracker_categories ORDER BY title ASC';
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		$html = '<select name="show[]">';
 		while($rs = $db->fetch($result))

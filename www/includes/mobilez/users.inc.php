@@ -3,7 +3,7 @@
  * User Management
  * Various functions to handle user management
  * like login, logout, profiles, etc.
- * 
+ *
  * @author IneX
  * @date 16.01.2016
  * @version 1.0
@@ -40,19 +40,8 @@ class UserManagement
 			}
 
 			//erstellt sql string fuer passwort ueberpruefung
-			$sql =
-				"
-					SELECT
-						id
-						, ".$this->field_user_active."
-						, UNIX_TIMESTAMP(".AUSGESPERRT_BIS.") as ".AUSGESPERRT_BIS."
-					FROM ".$this->table_name."
-					WHERE "
-							.$this->field_username." = '".$username."'
-						AND
-							".$this->field_userpw." = '".$crypted_pw."'
-				"
-			;
+			$sql = "SELECT id, ".$this->field_user_active.", UNIX_TIMESTAMP(".AUSGESPERRT_BIS.") as ".AUSGESPERRT_BIS." FROM ".$this->table_name."
+					WHERE ".$this->field_username." = '".$username."' AND ".$this->field_userpw." = '".$crypted_pw."'";
 			$result = $db->query($sql, __FILE__, __LINE__);
 
 			//ueberprueft ob passwort korrekt ist
@@ -102,7 +91,7 @@ class UserManagement
 		} else { $error = "Dieser Benutzer existiert nicht!"; }
 		return $error;
 	}
-	
+
 	/**
 	 * User Logout
 	 *

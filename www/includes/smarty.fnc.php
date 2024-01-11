@@ -1293,27 +1293,14 @@ function smarty_peter ($params, &$smarty) {
 		$anzahl = ($params['anzahl'] == '' ? 10 : $params['anzahl']);
 		$page = ($params['page'] == '' ? 0 : $params['page']);
 
-		$sql = "SELECT * from chat";
-		$result = $db->query($sql, __FILE__, __LINE__);
-		$num = $db->num($result);
+		$sql = "SELECT COUNT(*) AS anz from chat";
+		$result = $db->fetch($db->query($sql, __FILE__, __LINE__, __FUNCTION__));
+		$num = $result['anz'];//$db->num($result);
 
-		$sql =
-			"
-			SELECT
-				chat.text
-				, UNIX_TIMESTAMP(date) AS date
-				, user.username AS username
-				, user.clan_tag AS clantag
-				, chat.user_id
-				, chat.from_mobile
-			FROM chat
-			LEFT JOIN user ON (chat.user_id = user.id)
-			ORDER BY date ASC
-			LIMIT ".(($num-$anzahl)-($page*$anzahl)).", ".$anzahl."
-			"
-		;
+		$sql = 'SELECT chat.text, UNIX_TIMESTAMP(date) AS date, user.username AS username, user.clan_tag AS clantag, chat.user_id, chat.from_mobile
+				FROM chat LEFT JOIN user ON (chat.user_id=user.id) ORDER BY date ASC LIMIT ?,?';
 		//echo $sql;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [(($num-$anzahl)-($page*$anzahl)), $anzahl]);
 
 		while ($rs = $db->fetch($result)) {
 		  $chatmessages[] = $rs;

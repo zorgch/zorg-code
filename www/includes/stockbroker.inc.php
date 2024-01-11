@@ -110,20 +110,8 @@ class Stockbroker
 	/*
 	function getKurseNeuste() {
 		global $db;
-		$sql =
-			"
-			SELECT
-				sq.symbol
-				, sq.kurs
-				, sq.zeit
-				, si.company
-			FROM
-				stock_quotes sq
-			LEFT JOIN stock_items si ON (si.symbol = sq.symbol)
-			ORDER BY tag DESC, zeit DESC
-			LIMIT 0,20
-			"
-		;
+		$sql = "SELECT sq.symbol, sq.kurs, sq.zeit, si.company FROM stock_quotes sq
+			LEFT JOIN stock_items si ON (si.symbol = sq.symbol) ORDER BY tag DESC, zeit DESC LIMIT 0,20";
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
 		while($rs = $db->fetch($result)) {
@@ -292,18 +280,9 @@ class Stockbroker
 	/*
 	function getCurrentProperty($user_id) {
 		global $db;
-		$sql =
-			"
-			SELECT
-				*
-			FROM
-				stock_trades st
-			WHERE
-				user_id = '".$user_id."'
-			"
-		;
+		$sql = "SELECT * FROM stock_trades st WHERE user_id=?;
 
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id]);
 
 		$assets['Bargeld'] = 1000; // Anfangsvermögen
 
