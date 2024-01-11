@@ -100,7 +100,7 @@ class Books extends Model
 	public function showUserbooks(&$smarty, &$user, $user_id)
 	{
 		$this->page_title = 'Books von '.$user->id2user($user_id);
-		$this->page_link = $this->page_link . '?do=show&book_id=' . $book_id;
+		$this->page_link = $this->page_link . '?do=my&user=' . $user_id;
 
 		$this->assign_model_to_smarty($smarty);
 	}
