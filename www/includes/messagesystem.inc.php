@@ -58,128 +58,137 @@ class Messagesystem
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 */
-	static function execActions()
+	static function execActions($doAction=null)
 	{
 		global $user;
 
-		if(isset($_POST['action']) && $_POST['action'] === 'sendmessage')
-		{
-			$to_users = ( empty($_POST['to_users']) ? $user->id : $_POST['to_users'] );
+		/** Validate parameters */
+		$doAction = filter_var($doAction, FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+		zorgDebugger::log()->debug('$doAction: %s', [$doAction]);
+		if (isset($_POST['message_id']) && is_array($_POST['message_id'])) { // $_POST['message_id'] (multiple)
+			$i=0;
+			for ($i;$i<count($_POST['message_id']);$i++) {
+				$messageId[] = intval(filter_var($_POST['message_id'][$i], FILTER_VALIDATE_INT)) ?? null;
+			}
+		} else {
+			$messageId = filter_input(INPUT_POST, 'message_id', FILTER_VALIDATE_INT) ?? null; // $_POST['message_id'] (single)
+		}
+		zorgDebugger::log()->debug('$messageId: %s', [(is_array($messageId)? print_r($messageId,true) : $messageId)]);
+		$deleteMessageId = filter_input(INPUT_POST, 'delete_message_id', FILTER_VALIDATE_INT) ?? null; // $_POST['delete_message_id']
+		$msgSubject = htmlspecialchars_decode(filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
+		$msgText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
+		$headerLocation = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? sprintf('%s/user/%d?box=inbox', SITE_URL, $user->id);
+		zorgDebugger::log()->debug('header() Location: %s', [$headerLocation]);
 
-			for ($i=0; $i < count($to_users); $i++)
+		if($doAction === 'sendmessage')
+		{
+			$to_users = [];
+			if (isset($_POST['to_users']) && is_array($_POST['to_users'])) {
+				$i=0;
+				for ($i;$i<count($_POST['to_users']);$i++) {
+					$to_users[] = intval(filter_var($_POST['to_users'][$i], FILTER_VALIDATE_INT)) ?? null;
+				}
+			}
+			if (empty($to_users)) $to_users[] = $user->id; // Fallback: der Sender kriegt die Message...
+			$to_user_ids_string = implode(',', $to_users);
+
+			foreach ($to_users as $to_user_id)
 			{
 				/** Wenn ich mir selber was schicke, dann nimm die Bärbel als Absender */
-				if ($to_users[$i] == $user->id)
+				if ($to_user_id === $user->id)
 				{
-					self::sendMessage(
-						BARBARA_HARRIS,
-						$to_users[$i],
-						$_POST['subject'],
-						$_POST['text'],
-						implode(',', $to_users)
-					);
+					$sent = self::sendMessage(BARBARA_HARRIS, $to_user_id, $msgSubject, $msgText, $to_user_ids_string);
 				}
 
 				/** Nachricht an andere Leute */
 				else {
-						self::sendMessage(
-						$user->id,
-						$to_users[$i],
-						$_POST['subject'],
-						$_POST['text'],
-						implode(',', $to_users)
-					);
+					$sent = self::sendMessage($user->id, $to_user_id, $msgSubject, $msgText, $to_user_ids_string);
 				}
-
 			}
 
-			/** Eigene Message für den 'Sent'-Ordner */
-			self::sendMessage(
-				$user->id,
-				$user->id,
-				$_POST['subject'],
-				$_POST['text'],
-				$to_users=implode(',', $to_users),
-				1
-			);
+			/** Eigene Message für den 'Sent'-Ordner & direkt als gelesen markieren */
+			self::sendMessage($user->id, $user->id, $msgSubject, $msgText, $to_user_ids_string, '1');
 
-			/** When the option "Delete message after sending" was checked... */
-			if (isset($_POST['delete_message_id']) && $_POST['delete_message_id'] > 0) {
-				Messagesystem::deleteMessage($_POST['delete_message_id'], $user->id);
+			/** If the option "Delete message after sending" was checked... */
+			if ($deleteMessageId > 0) {
+				Messagesystem::deleteMessage($deleteMessageId, $user->id);
 			}
 
-			$headerLocation = ( !empty($_POST['url']) ? base64url_decode($_POST['url']) . '&sent=successful' : sprintf('%s/profil.php?user_id=%d&box=outbox&sent=successful', SITE_URL, $user->id) );
-			zorgDebugger::log()->debug('header() Location: %s', [$headerLocation]);
+			if ($sent) $headerLocation = changeUrl($headerLocation, 'sent=successful');
 			header('Location: ' . $headerLocation);
+			exit;
 		}
 
-		if(isset($_POST['do']) && $_POST['do'] === 'delete_messages')
+		if($doAction === 'delete_messages')
 		{
-			/** Delete all passed message_id's */
-			for ($i=0; $i < count($_POST['message_id']); $i++) {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Deleting Message ID: %d', __METHOD__, __LINE__, $_POST['message_id']));
-				self::deleteMessage($_POST['message_id'][$i], $user->id);
-			}
-
 			/** If only singe passed message_id, redirect User to previous Message */
-			if(count($_POST['message_id']) == 1) {
-				$msgid = self::getPrevMessageid($_POST['message_id'][0]);
-				if($msgid > 0) {
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User to Message ID: %d', __METHOD__, __LINE__, $msgid));
-					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id()."&delete=done");
-					//exit;
-				} else {
-					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User to Userprofile: /user/%s', __METHOD__, __LINE__, $user->id));
-					header("Location: /user/".$user->id."?".session_name()."=".session_id()."&delete=done");
-					//exit;
+			if(is_numeric($messageId) && $messageId > 0)
+			{
+				zorgDebugger::log()->debug('Deleting single Message ID: %d', [$messageId]);
+				self::deleteMessage($messageId, $user->id);
+			}
+			/** Delete multiple passed message_id's */
+			elseif (is_array($messageId) && count($messageId) > 0)
+			{
+				foreach ($messageId as $delmsgid) {
+					zorgDebugger::log()->debug('Deleting Message ID of multiples: %d', [$delmsgid]);
+					self::deleteMessage($delmsgid, $user->id);
 				}
 			}
 
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User back to Page: %s', __METHOD__, __LINE__, base64url_decode($_POST['url'])));
-			header("Location: ".base64url_decode($_POST['url']));
-			//exit;
+			$msgid = self::getPrevMessageid($messageId);
+			if($msgid > 0) {
+				zorgDebugger::log()->debug('Redirecting User to Message ID: %d', [$msgid]);
+				header("Location: /messagesystem.php?message_id=".$msgid."&delete=done");
+				exit;
+			} else {
+				zorgDebugger::log()->debug('Redirecting User to Userprofile: /user/%s', [$user->id]);
+				header("Location: /user/".$user->id."?&delete=done");
+				exit;
+			}
+
+			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirecting User back to Page: %s', __METHOD__, __LINE__, $headerLocation));
+			header("Location: ".$headerLocation);
+			exit;
 		}
 
-		if(isset($_POST['do']) && $_POST['do'] === 'messages_as_unread')
+		if($doAction === 'messages_as_unread')
 		{
 			/** Change Message Status to UNREAD */
-			for ($i=0; $i < count($_POST['message_id']); $i++) {
-				self::doMessagesUnread($_POST['message_id'][$i], $user->id);
+			if(is_numeric($messageId) && $messageId > 0)
+			{
+				self::doMessagesUnread($messageId, $user->id);
+				$msgid = self::getPrevMessageid($messageId);
+				$headerLocation = '/messagesystem.php?message_id='.$msgid;
 			}
-
-			if(count($_POST['message_id']) == 1) {
-				$msgid = self::getPrevMessageid($_POST['message_id'][0]);
-				if($msgid > 0) {
-					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id());
-					//exit;
-				} else {
-					header("Location: profil.php?user_id=".$user->id."&".session_name()."=".session_id());
-					//exit;
+			elseif (is_array($messageId) && count($messageId) > 0)
+			{
+				foreach ($messageId as $unreadmsgid) {
+					self::doMessagesUnread($unreadmsgid, $user->id);
 				}
+				$headerLocation = '/user/'.$user->id;
 			}
-
-			header("Location: ".base64url_decode($_POST['url']));
-			//exit;
+			header("Location: ".$headerLocation);
+			exit;
 		}
 
-		if(isset($_POST['do']) && $_POST['do'] === 'mark_all_as_read')
+		if($doAction === 'mark_all_as_read')
 		{
-			/** Mark all Messages as read */
+			/** Mark all Messages as READ */
 			self::doMarkAllAsRead($user->id);
 
-			if(count($_POST['message_id']) == 1) {
-				$msgid = self::getPrevMessageid($_POST['message_id'][0]);
-				if($msgid > 0) {
-					header("Location: messagesystem.php?message_id=".$msgid."&".session_name()."=".session_id());
-					//exit;
-				} else {
-					header("Location: profil.php?user_id=".$user->id."&".session_name()."=".session_id());
-					//exit;
-				}
+			if(is_numeric($messageId) && $messageId > 0)
+			{
+				$msgid = self::getPrevMessageid($messageId);
+				$headerLocation = '/messagesystem.php?message_id='.$msgid;
+			}
+			elseif (is_array($messageId) && count($messageId) > 0)
+			{
+				$headerLocation = '/user/'.$user->id;
 			}
 
-			header("Location: ".base64url_decode($_POST['url']));
-			//exit;
+			header("Location: ".$headerLocation);
+			exit;
 		}
 	}
 
@@ -427,7 +436,7 @@ class Messagesystem
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return integer
+	 * @return integer|void No response if a user is not logged-in
 	 */
 	static function getNumNewMessages()
 	{
@@ -435,11 +444,11 @@ class Messagesystem
 
 		if ($user->is_loggedin())
 		{
-			$sql = 'SELECT count(*) AS num FROM messages WHERE owner=? AND isread="0"'; // isread = ENUM(0;1)
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id]);
-			$rs = $db->fetch($result);
+			$sql = 'SELECT COUNT(*) AS num FROM messages WHERE owner=? AND isread="0"'; // isread = ENUM(0;1)
+			$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id]));
+			$numNewMessages = (isset($rs['num']) && $rs['num']>0 ? intval($rs['num']) : 0 );
 
-			return intval($rs['num']);
+			return $numNewMessages;
 		}
 	}
 
@@ -473,7 +482,8 @@ class Messagesystem
 
 		if ($db->num($result) > 0 && false !== $rs)
 		{
-			return [ 'inbox' => $rs['num_inbox'], 'outbox' => $rs['num_outbox'] ];
+			return [ 'inbox' => (isset($rs['num_inbox']) && $rs['num_inbox']>0 ? intval($rs['num_inbox']) : 0)
+					,'outbox' => (isset($rs['num_outbox']) && $rs['num_outbox']>0 ? intval($rs['num_outbox']) : 0) ];
 		} else {
 			return false;
 		}
@@ -591,8 +601,7 @@ class Messagesystem
 	{
 		global $db, $user;
 
-		$sql = "SELECT *, UNIX_TIMESTAMP(date) as date FROM messages
-				WHERE owner=? AND from_user_id!=? AND id<? ORDER BY id DESC LIMIT 1";
+		$sql = "SELECT *, UNIX_TIMESTAMP(date) as date FROM messages WHERE owner=? AND from_user_id!=? AND id<? ORDER BY id DESC LIMIT 1";
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $user->id, $id]));
 		if (false !== $rs && !empty($rs)) return intval($rs['id']);
 		else return false;
@@ -615,7 +624,7 @@ class Messagesystem
 	 * @see Notification::send()
 	 * @param integer	$from_user_id User-ID des Senders
 	 * @param integer	$owner User-ID des Nachrichten-Owners
-	 * @param string	$subject Titel der Nachricht
+	 * @param string	$subject Titel der Nachricht !NOTE: cannot exceed 40 characters
 	 * @param string	$text (Optional) Nachrichten-Text
 	 * @param string	$to_users (Optional) Liste aller Empfänger der Nachricht
 	 * @param string	$isread (Optional) Lesestatus der Nachricht - ENUM('0','1'), Default: Ungelesen ('0')
@@ -634,6 +643,7 @@ class Messagesystem
 		if (!isset($to_users) || empty($to_users)) $to_users = $owner;
 		if (is_array($to_users)) implode(',', $to_users);
 		if (empty($text)) $text = t('message-empty-text', 'messagesystem');
+		if (strlen($subject) > 40) $subject = text_width($subject, 40, '…', false, true); // Trim too long Subject-Texts to <=40
 
 		/**
 		 * Send zorg Message to recipient
@@ -653,5 +663,6 @@ class Messagesystem
 			$notification_status = $notification->send($owner, 'messagesystem', ['from_user_id'=>$from_user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
 		}
+		return true;
 	}
 }
