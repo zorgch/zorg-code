@@ -51,8 +51,10 @@ define('THREAD_TPL_TIMEOUT', 30);  // in tagen
  *
  * In dieser Klasse befinden sich alle Funktionen zum Commenting-System
  *
- * @author [z]biko
- * @version 1.0
+ * @version 1.1
+ * @since 1.0 `[z]biko` Class added
+ * @since 1.1 `IneX` Various code refactorings
+ *
  * @package zorg\Forum
  */
 class Comment
@@ -772,7 +774,7 @@ class Comment
 			{
 				foreach ($msg_users as $msg_recipient_id)
 				{
-					$subject = t('message-newcomment-subject', 'commenting', $user->id2user($user_id,true));
+					$subject = t('message-newcomment-subject', 'commenting', [$user->id2user($user_id,false)]);
 					$text = t('message-newcomment', 'commenting', [ $user->id2user($user_id,true), addslashes(stripslashes($text)), self::getLink($board, $parent_id, $rs['id'], $thread_id) ]);
 					$notification_status = $notification->send($msg_recipient_id, 'mentions', ['from_user_id'=>$user_id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text]);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status: %s', __METHOD__, __LINE__, ($notification_status == 'true' ? 'true' : 'false')));
@@ -784,7 +786,7 @@ class Comment
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$parent_id, $board]);
 			if($db->num($result) > 0)
 			{
-				$subject = t('message-newcomment-subscribed-subject', 'subscriptions', [ $user->id2user($user_id,true), $parent_id]);
+				$subject = t('message-newcomment-subscribed-subject', 'subscriptions', [ $user->id2user($user_id,false), $parent_id]);
 				$text = t('message-newcomment-subscribed', 'commenting', [ $user->id2user($user_id), self::getLink($rs['board'], $rs['parent_id'], $rs['id'], $rs['thread_id']), addslashes(stripslashes(self::getTitle($rs['text']))) ]);
 				while($rs2 = $db->fetch($result))
 				{
@@ -806,79 +808,74 @@ class Comment
 	 *
 	 * Update contents of an existing Comment (e.g. via Comment Edit Form)
 	 *
-	 * @author IneX
-	 * @version 2.0
-	 * @since 1.0 `26.11.2018` method moved to Comment-Class from /actions/comment_edit.php
-	 * @since 2.0 `27.11.2018` updated to use new $notifcation Class & some code and query optimizations
+	 * @version 3.0
+	 * @since 1.0 `26.11.2018` `IneX` method moved to Comment-Class from /actions/comment_edit.php
+	 * @since 2.0 `27.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
+	 * @since 3.0 `14.01.2024` `IneX` refactored to no longer use $_POST but passed array()
 	 *
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/actions/comment_edit.php Used in Comment-Editing Action
 	 * @param integer $comment_id
-	 * @param array $comment_data_updated $_POST-Array containing updated data values for $comment_id
+	 * @param array $comment_data_updated Array containing updated data values for $comment_id
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @global object $notification Globales Class-Object mit allen Notification-Methoden
+	 * @return bool
 	 */
 	static function update($comment_id, $comment_data_updated)
 	{
 		global $db, $user, $notification;
 
-		$sql = 'UPDATE comments
-				SET
-					text=?
-					, board=?
-					, parent_id=?
-					, thread_id=?
-					, date_edited=NOW()
-				WHERE id = ? AND board=?';
-		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$_POST['text'], $_POST['board'], $_POST['parent_id'], $_POST['thread_id'], $comment_id, $_POST['board']]);
+		$comment_id = filter_var($comment_id, FILTER_VALIDATE_INT) ?? null;
+		if (isset($comment_data_updated['board'])) $board = strval($comment_data_updated['board']);
+		if (isset($comment_data_updated['parent_it'])) $parent_it = intval($comment_data_updated['parent_it']);
+		if (isset($comment_data_updated['thread_id'])) $thread_id = intval($comment_data_updated['thread_id']);
+		if (isset($comment_data_updated['msg_users'])) $msg_users = array($comment_data_updated['msg_users']);
+		if (isset($comment_data_updated['text'])) $text = strval($comment_data_updated['text']);;
 
-		/** Smarty Comment Templates neu Kompilieren */
-		self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
-		self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // alter parent
-		self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // neuer Parent
-
-
-		/** last post setzen */
-		$sql = 'UPDATE comments_threads
-					SET last_comment_id=(SELECT MAX(id) FROM comments WHERE thread_id=? AND board=?)
-				WHERE thread_id=?';
-		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$_POST['thread_id'], $_POST['board'], $_POST['thread_id']]);
-
-		/** Mark comment as unread for all users (again) */
-		$markedAsUnread = self::markasunread($comment_id);
-
-		/** Mark comment as read for this user */
-		$markedReadForPoster = self::markasread($comment_id, $user->id);
-
-		/** Message an alle gewünschten senden */
-		if(count($_POST['msg_users']) > 0)
+		if ($comment_id > 0)
 		{
-			$subject = t('message-commentupdate-subject', 'commenting', $user->id2user($user->id,true));
-			$text = t('message-commentupdate', 'commenting', [ $user->id2user($user->id,true), sanitize_userinput($_POST['text']), self::getLink($_POST['board'], $_POST['parent_id'], $comment_id, $_POST['thread_id']) ]);
-			//for ($i=0; $i < count($_POST['msg_users']); $i++) {
-			foreach ($_POST['msg_users'] as $msg_recipient_id)
+			$sql = 'UPDATE comments SET text=?, board=?, parent_id=?, thread_id=?, date_edited=? WHERE id=? AND board=?';
+			$numUpdatedRows = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$text, $board, $parent_it, $thread_id, timestamp(true), $comment_id, $board]);
+
+			if ($numUpdatedRows > 0)
 			{
-				$notification_status = $notification->send($msg_recipient_id, 'mentions', ['from_user_id'=>$user->id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text, 'to_users' => $_POST['msg_users']]);
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status to user_id %d: %s', __METHOD__, __LINE__, $msg_recipient_id, ($notification_status == 'true' ? 'true' : 'false')));
-				/** @deprecated Messagesystem::sendMessage(
-					$user->id
-					, $_POST['msg_users'][$i]
-					, addslashes(
-							stripslashes(
-							'[Forumpost] von '.$user->id2user($user->id)
-							)
-						)
-					, addslashes(
-							stripslashes(
-								$user->id2user($user->id).' hat geschrieben: <br><i>'
-								.$commentText
-								.'</i><br><br><a href="'.Comment::getLink($_POST['board'], $_POST['parent_id'], $_POST['id'], $_POST['thread_id'])
-								.'">--> zum Post</a>'
-							)
-						)
-					, implode(',', $_POST['msg_users'])
-				);*/
+				/** Smarty Comment Templates neu Kompilieren */
+				self::compile_template($thread_id, $comment_id, $board); // sich selbst
+				self::compile_template($thread_id, $parent_it, $board); // alter parent
+				//self::compile_template($thread_id, $parent_it, $board); // FIXME doppelt: "neuer Parent"
+
+				/** last post setzen */
+				$sql = 'UPDATE comments_threads SET last_comment_id=(SELECT MAX(id) FROM comments WHERE thread_id=? AND board=?) WHERE thread_id=?';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__, [$thread_id, $board, $thread_id]);
+
+				/** Mark comment as unread for all users (again) */
+				self::markasunread($comment_id);
+
+				/** Mark comment as read for this user */
+				self::markasread($comment_id, $user->id);
+
+				/** Message an alle gewünschten senden */
+				if(count($msg_users) > 0)
+				{
+					$subject = t('message-commentupdate-subject', 'commenting', [$user->id2user($user->id,true)]);
+					$text = t('message-commentupdate', 'commenting', [ $user->id2user($user->id,true), sanitize_userinput($text), self::getLink($board, $parent_it, $comment_id, $thread_id) ]);
+					foreach ($msg_users as $msg_recipient_id)
+					{
+						$notification_status = $notification->send($msg_recipient_id, 'mentions', ['from_user_id'=>$user->id, 'subject'=>$subject, 'text'=>$text, 'message'=>$text, 'to_users' => $msg_users]);
+						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status to user_id %d: %s', __METHOD__, __LINE__, $msg_recipient_id, ($notification_status == 'true' ? 'true' : 'false')));
+					}
+				}
+				return true;
 			}
+			/** Comment was not updated */
+			else {
+				zorgDebugger::log()->error('Comment could not be updated: %d', [$comment_id]);
+				return false;
+			}
+		/** Invalid $comment_id */
+		} else {
+			zorgDebugger::log()->error('Invalid or empty $comment_id to update: %d', [$comment_id]);
+			return false;
 		}
 	}
 }
@@ -890,13 +887,14 @@ class Comment
  * In dieser Klasse befinden sich die Hauptfunktionen zum Forum-System
  * inkl. Boards und Board-Management
  *
- * @author [z]milamber
- * @author IneX
  * @version 1.0
+ * @since 1.0 `[z]milamber` Class added
+ * @since 1.1 `IneX` Code refactorings
+ *
  * @package zorg\Forum
  */
-class Forum {
-
+class Forum
+{
 	static function deleteOldTemplates () {
 		global $db, $smarty;
 
@@ -1950,11 +1948,26 @@ class Forum {
 		return $html;
 	}
 
+	/**
+	 * Checks if User has posted to same Thread recently.
+	 *
+	 * @version	2.0
+	 * @since	1.0 `[z]biko` Method added
+	 * @since	2.0 `13.01.2024` `IneX` Code and SQL Query refactored
+	 *
+	 * @param integer $user_id
+	 * @param integer $parent_id
+	 * @return bool TRUE=User has just commented | FALSE=User has not (yet) recently commented
+	 */
 	static function hasPostedRecently($user_id, $parent_id) {
 		global $db;
-		$sql = 'SELECT UNIX_TIMESTAMP(date) as date, parent_id FROM comments WHERE user_id=? ORDER BY date DESC LIMIT 1';
-		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id]));
-		return time() < ($rs['date'] + 10) && $parent_id == $rs['parent_id'];
+
+		$pace = 10; // in Seconds
+		$sql = 'SELECT date FROM comments WHERE user_id=? AND parent_id=? ORDER BY date DESC LIMIT 1';
+		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id, $parent_id]));
+		$next_posttime_threshold = (isset($rs['date']) ? timestamp(false, $rs['date'])+$pace : 0);
+		zorgDebugger::log()->debug('Comaprison timestamps: %d %s %d', [$next_posttime_threshold, (timestamp(false)<$next_posttime_threshold ? '>' : '<'), timestamp(false)]);
+		return boolval(timestamp(false)<=$next_posttime_threshold);
 	}
 
 	/**
@@ -1963,13 +1976,11 @@ class Forum {
 	 *
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/commentform.tpl Template used for output is commentform.tpl
 	 *
-	 * @author	[z]biko
-	 * @author	IneX
 	 * @version	3.2
 	 * @since	1.0 `[z]biko` added method
-	 * @since	2.0 `IneX` 17.12.2017 Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
-	 * @since	3.0 `IneX` 25.07.2018 Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
-	 * @since	3.1 `IneX` 22.01.2020 Code optimizations
+	 * @since	2.0 `17.12.2017` `IneX` Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
+	 * @since	3.0 `25.07.2018` `IneX` Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
+	 * @since	3.1 `22.01.2020` `IneX` Code optimizations
 	 * @since	3.2 `22.01.2020` `IneX` Fixed PHP Notice undefined property: usersystem::$id
 	 *
 	 * @uses USER_USER
@@ -2015,7 +2026,7 @@ class Forum {
 			}
 
 			/** Wenn $thread_id = NICHT erster (Thread) Comments, sondern Sub-Thread Comment */
-			$sql = 'SELECT * FROM comments WHERE board=? AND id=? ORDER BY id ASC LIMIT 1';
+			$sql = 'SELECT * FROM comments WHERE board=? AND id=? ORDER BY id ASC';
 			$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$board, $parent_id]));
 
 			/** Set Thread/Sub-Thread starting Comment-ID */
