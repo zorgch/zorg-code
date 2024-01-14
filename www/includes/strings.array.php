@@ -140,7 +140,7 @@ return
 										<p><small><a href="%1$s%2$s">"%4$s..."</a></small></p>'
 			,'message-newcomment-subject' => 'Du wurdest von %s in einem Comment erwähnt'
 			,'message-newcomment' => '%s hat Dich in einem Comment erwähnt:<br>
-									  <p><i>%s</i></p>
+									  <blockquote><p><i>%s</i></p></blockquote>
 									  <a href="%s">→ Comment lesen</a>'
 			,'message-newcomment-subscribed-subject' => 'Neuer Reply von %s zum Post #%d'
 			,'message-newcomment-subscribed' => '%s hat einen Post commented welchen Du abonniert hast:
