@@ -102,34 +102,18 @@ function timename($timestamp)
 }
 
 /**
- * Funktion um ein Datum-Zeit String in einen Timestamp umzuwandeln
- *
- * @author IneX
- * @version 1.0
- * @since 1.0 `04.02.2018` function added
- *
- * @see date_default_timezone_set(), config.inc.php, getGitCodeVersion()
- * @param $datetime Must be valid full Date-Time String, e.g. 2016-03-11 11:00:00
- * @return string Timestamp - Attention: DateTime will take default Timezone as in date_default_timezone_set()!
- */
-function datetimeToTimestamp($datetime)
-{
-	$d = new DateTime($datetime);
-	return $d->getTimestamp();
-}
-
-/**
  * Timestamp erzeugen wie time() aber auch SQL-Insert tauglich und für spezifisches DateTime Inputs
  *
  * @link https://alvinalexander.com/php/php-date-formatted-sql-timestamp-insert
  * @link http://php.net/manual/de/datetime.createfromformat.php
  *
- * @author IneX
- * @version 2.1
+ * @version 3.0
  * @since 1.0 `12.11.2018` function added
  * @since 2.0 `13.04.2021` Complete refactoring because it was f*cked up. Changed 1st param to $return_sql_datetime
  * @since 2.1 `19.05.2021` Fixed wrong OR-Conditions when validating the function params & made is_string()-Cases more precise.
+ * @since 3.0 `13.01.2024` Improved DateTime / Timestamp creation
  *
+ * @uses date_default_timezone_set(), config.inc.php
  * @param boolean $return_sql_datetime Wenn 'true', dann wird ein SQL-kompatibles Date-Time in Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) erzeugt - default: false
  * @param int|string|array $date_to_convert Array mit Date-Time-Werten, Integer oder Datum-String welche konvertiert werden sollen (statt 'jetzt') - default: null
  * @return int|string|bool Integer oder String mit konvertiertem Timestamp (`1618332031`) oder Date-Time (`2021-04-13 18:40:31`) - oder `false` bei falschem mktime()
@@ -143,37 +127,27 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 	/** Generate $timestamp */
 	switch (true)
 	{
-		/** (Quasi Default) Current Unix Timestamp: 1618332031 */
-		case (false === $return_sql_datetime && empty($date_to_convert)):
-			$timestamp = time();
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %d', __METHOD__, __LINE__, $timestamp));
-			break;
-
 		/** Current SQL-compatible DateTime, like NOW(): 2021-04-13 18:40:31 */
 		case (true === $return_sql_datetime && empty($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s');
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** Unix Timestamp from given Date-String: 1618332031 (or `false`) */
 		case (false === $return_sql_datetime
 				 && !empty($date_to_convert) && is_string($date_to_convert) && !is_numeric($date_to_convert)):
 			$timestamp = date('U', strtotime($date_to_convert));
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** SQL-compatible from given Date-String: 2021-04-14 19:57:31 (or `false`) */
 		case (true === $return_sql_datetime
 				 && !empty($date_to_convert) && is_string($date_to_convert) && !is_numeric($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s', strtotime($date_to_convert));
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** SQL-compatible from given Integer-Timestamp: 2021-04-13 18:40:31 */
 		case (true === $return_sql_datetime
 				 && !empty($date_to_convert) && is_numeric($date_to_convert)):
 			$timestamp = date('Y-m-d H:i:s', $date_to_convert);
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** Unix Timestamp from given Array-DateTime: 1618332031 (or `false`) */
@@ -187,23 +161,32 @@ function timestamp($return_sql_datetime=false, $date_to_convert=null)
 				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
 				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
 			));
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
 			break;
 
 		/** SQL-compatible from given Array-DateTime: 2021-04-13 18:40:31 (or `false`) */
 		case (true === $return_sql_datetime
 				 && !empty($date_to_convert) && is_array($date_to_convert)):
-			$timestamp = date('Y-m-d H:i:s', mktime(
-				 (isset($date_to_convert['hour']) ? $date_to_convert['hour'] : 0)
-				,(isset($date_to_convert['minute']) ? $date_to_convert['minute'] : 0)
-				,(isset($date_to_convert['second']) ? $date_to_convert['second'] : 0)
-				,(isset($date_to_convert['month']) ? $date_to_convert['month'] : date('m'))
-				,(isset($date_to_convert['day']) ? $date_to_convert['day'] : date('d'))
-				,(isset($date_to_convert['year']) ? $date_to_convert['year'] : date('Y'))
-			));
-			//if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> NEW $timestamp: %s', __METHOD__, __LINE__, $timestamp));
+			$datetime = new DateTime();
+			$datetime->setDate(
+				isset($date_to_convert['year']) ? intval($date_to_convert['year']) : date('Y'),
+				isset($date_to_convert['month']) ? intval($date_to_convert['month']) : date('m'),
+				isset($date_to_convert['day']) ? intval($date_to_convert['day']) : date('d')
+			);
+			$datetime->setTime(
+				isset($date_to_convert['hour']) ? intval($date_to_convert['hour']) : 0,
+				isset($date_to_convert['minute']) ? intval($date_to_convert['minute']) : 0,
+				isset($date_to_convert['second']) ? intval($date_to_convert['second']) : 0
+			);
+			/** Format the DateTime as a SQL DateTime string */
+			$timestamp = $datetime->format('Y-m-d H:i:s');
 			break;
+
+		/** Default: current Unix Timestamp like 1618332031 */
+		default:
+			$timestamp = time();
+
 	}
+	zorgDebugger::log()->debug('New $timestamp: %s', [$timestamp]);
 	return $timestamp;
 }
 
@@ -866,24 +849,23 @@ function urlExists($url)
  * @link https://gist.github.com/rponte/fdc0724dd984088606b0
  * @link https://stackoverflow.com/a/33986403/5750030
  *
- * @author IneX
  * @version 3.1
- * @since `1.0` `04.02.2018` function added
- * @since `2.0` `20.08.2018` fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
- * @since `3.0` `17.12.2018` fixed git error from apache2 error.log: "fatal: No tags can describe '`sha1`'" https://stackoverflow.com/a/6445255/5750030
- * @since `3.1` `02.10.2020` fixed for new FUCKUP server and site structure (decoupled .git and web root)
+ * @since `1.0` `04.02.2018` `IneX` function added
+ * @since `2.0` `20.08.2018` `IneX` fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
+ * @since `3.0` `17.12.2018` `IneX` fixed git error from apache2 error.log: "fatal: No tags can describe '`sha1`'" https://stackoverflow.com/a/6445255/5750030
+ * @since `3.1` `02.10.2020` `IneX` fixed for new FUCKUP server and site structure (decoupled .git and web root)
  *
- * @see GIT_REPOSITORY_ROOT
- * @see datetimeToTimestamp()
+ * @uses GIT_REPOSITORY_ROOT, timestamp()
  * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
  */
 function getGitCodeVersion()
 {
-	static $codeVersion = array();
+	static $codeVersion = [];
 	$codeVersion['version'] = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' describe --tags `git -C '.GIT_REPOSITORY_ROOT.' rev-list --tags --max-count=1`'));
 	$codeVersion['last_commit'] = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty="%h" HEAD'));
 	$lastCommitDatetime = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty=%ci HEAD'));
-	$codeVersion['last_update'] = datetimeToTimestamp($lastCommitDatetime);
+	$codeVersion['last_update'] = timestamp(false, $lastCommitDatetime);
+	zorgDebugger::log()->debug('%s', [print_r($codeVersion,true)]);
 
 	return $codeVersion;
 }

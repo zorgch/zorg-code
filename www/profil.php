@@ -34,7 +34,7 @@ $model = new MVC\Profile();
 $model->showOverview($smarty);
 
 /** Messaging update */
-Messagesystem::execActions();
+Messagesystem::execActions($postDoAction);
 
 /**
  * Userlist anzeigen
@@ -337,7 +337,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			/** username eingeben */
 			echo '<fieldset>';
 			echo '<label>Gew&uuml;nschter Benutzername
-					<br><input type="text" class="text" name="new_username" value="'.(isset($error) && !empty($error) ? $_POST['new_username'] : '').'">
+					<br><input type="text" class="text" name="new_username" value="'.(isset($error) && !empty($error) ? htmlspecialchars($newUsername) : '').'">
 					</label>
 					<br><span class="tiny info">Clan Tag kannst du sp&auml;ter separat angeben</span>
 				</fieldset>';
@@ -353,7 +353,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			/** email adresse eingeben */
 			echo '<fieldset>';
 			echo '<label>E-Mail Adresse
-					<br><input type="text" name="new_email" class="text" value="'.(isset($error) && !empty($error) ? $_POST['new_email'] : '').'">
+					<br><input type="text" name="new_email" class="text" value="'.(isset($error) && !empty($error) ? htmlspecialchars($newEmail) : '').'">
 					</label>
 					<br><span class="tiny info">Du bekommst einen Aktivierungscode per E-Mail zugeschickt
 				</fieldset>';

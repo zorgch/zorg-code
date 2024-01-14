@@ -22,7 +22,7 @@ $model->showOverview($smarty);
 function dream_add_form()
 {
     return(
-    '<form action="'.$_SERVER['PHP_SELF'].'" method="post" enctype="multipart/form-data">'
+    '<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
     .'<input type="hidden" name="do" value="add_dream">'
 
     ."<table width=\"$mainwidth\"><tr><td align=\"left\" class=\"title\">"

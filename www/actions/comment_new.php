@@ -8,77 +8,63 @@
 /**
  * File Includes
  */
-require_once dirname(__FILE__).'/../includes/forum.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
-require_once INCLUDES_DIR.'util.inc.php';
+require_once INCLUDES_DIR.'forum.inc.php';
 
-if(!is_numeric($user->id) || $user->id <= 0)
-{
+/** Only allowed for logged-in Users */
+if(!$user->is_loggedin()) {
 	http_response_code(403); // Set response code 403 (access denied) and exit.
 	user_error('Du bist nicht eingeloggt.', E_USER_WARNING);
-	die();
+	exit;
 }
 
-if(!isset($_POST['text']) || $_POST['text'] == '' || empty($_POST['text']))
-{
+$parent_id = filter_input(INPUT_POST, 'parent_id', FILTER_VALIDATE_INT) ?? null;
+$board = filter_input(INPUT_POST, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$commentText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
+$msg_users = isset($_POST['msg_users']) ? explode(',', $_POST['msg_users'][0]) : null;
+
+/** Validate User has sent a non-empty Comment */
+if (empty($commentText)) {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	user_error('keine leeren Posts erlaubt.', E_USER_WARNING);
-	die();
-} else {
-	$commentText = htmlspecialchars_decode($_POST['text'], ENT_COMPAT | ENT_SUBSTITUTE);
+	exit;
 }
 
-if(!is_numeric($_POST['parent_id']) || $_POST['parent_id'] == '')
-{
+/** Validate parent_id */
+if(!empty($parent_id) && $parent_id <= 0) {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	user_error('Parent id leer oder ungültig: ' . $_POST['parent_id'], E_USER_WARNING);
-	die();
+	user_error('Parent id leer oder ungültig: ' . $parent_id, E_USER_WARNING);
+	exit;
 }
 
-if(Forum::hasPostedRecently($user->id, $_POST['parent_id']))
+/** Validate User has not posted recently */
+if(Forum::hasPostedRecently($user->id, $parent_id))
 {
-	http_response_code(409); // Set response code 400 (conflict) and exit.
-	user_error($user->id2user($user->id) . ', Du hast vor wenigen Sekunden bereits gepostet - bitte warte noch kurz!', E_USER_NOTICE);
-	die();
+	http_response_code(409); // Set response code 409 (conflict) and exit.
+	user_error($user->id2user($user->id) . ', du hast vor wenigen Sekunden bereits gepostet - bitte warte noch kurz!', E_USER_NOTICE);
+	exit;
 }
 
 /** Validate msg_users is REALLY set */
-if(isset($_POST['msg_users']) && $_POST['msg_users'] != ' ' && !empty(array_filter($_POST['msg_users'])))
+if(!empty($msg_users) && is_array($msg_users))
 {
-	$msg_users = $_POST['msg_users'];
-
-	/** Let's check if it's just a comma-separated String, or an Array */
-	if (!is_array($msg_users) && strpos($msg_users, ',') !== false)
-	{
-		/** make an Array, if necessary */
-		$msg_users = explode(',', $_POST['msg_users']);
-	}
-
 	/** Remove any duplicate User-IDs */
 	$msg_users = array_unique($msg_users);
-} else {
-	$msg_users = NULL;
+	zorgDebugger::log()->debug('$msg_users = %s', [print_r($msg_users,true)]);
 }
 
 /** Post new Comment & get Link */
-if(
-	$commentlink =
-		Comment::post(
-			$_POST['parent_id'],
-			$_POST['board'],
-			$user->id,
-			$commentText,
-			$msg_users
-		)
-) {
+if($commentlink = Comment::post($parent_id, $board, $user->id, $commentText, $msg_users))
+{
 	/** Redirect browser to new Comment */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Redirect to $commentlink: %s', __FILE__, __LINE__, $commentlink));
+	zorgDebugger::log()->debug('Redirect to $commentlink: %s', [$commentlink]);
 	header('Location: '.$commentlink);
 	exit;
 
 /** Error posting new Comment */
 } else {
 	http_response_code(500); // Set response code 500 (internal error) and exit.
-	user_error('Post konnte nicht erstellt werden.', E_USER_ERROR);
+	user_error('Comment konnte nicht hinzugefügt werden.', E_USER_ERROR);
 	exit;
 }

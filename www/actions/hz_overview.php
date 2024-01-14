@@ -1,35 +1,34 @@
 <?php
 /**
  * Hunting z Game Actions
+ *
  * @package zorg\Games\Hz
  */
-require_once dirname(__FILE__).'/../includes/hz_game.inc.php';
+require_once __DIR__.'/../includes/hz_game.inc.php';
 
 unset($_GET['tplupd']);
+$doAction = filter_input(INPUT_POST, 'formid', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$hzMap = filter_input(INPUT_GET, 'map', FILTER_SANITIZE_NUMBER_INT) ?? null;
+unset($_GET['map']);
+$join = filter_input(INPUT_GET, 'join', FILTER_SANITIZE_NUMBER_INT) ?? null;
+unset($_GET['join']);
+$unjoin = filter_input(INPUT_GET, 'unjoin', FILTER_SANITIZE_NUMBER_INT) ?? null;
+unset($_GET['unjoin']);
+$close = filter_input(INPUT_GET, 'close', FILTER_SANITIZE_NUMBER_INT) ?? null;
+unset($_GET['close']);
 
 /** New Game */
-if ($_POST['formid'] == "hz_new_game" && is_numeric($_POST['map'])) {
-	start_new_game($_POST['map']);
-}
+if ($doAction === "hz_new_game" && $hzMap > 0) start_new_game($hzMap);
 
 /** Join Game */
-if (is_numeric($_GET['join'])) {
-	join_game($_GET['join']);
-	unset($_GET['join']);
-	
-}
+if ($join > 0) join_game($join);
 
 /** Unjoin Game */
-if (is_numeric($_GET['unjoin'])) {
-	unjoin_game ($_GET['unjoin']);
-	unset($_GET['unjoin']);
-}
+if ($unjoin > 0) unjoin_game($unjoin);
 
 /** Close Game */
-if (is_numeric($_GET['close'])) {
-	hz_close_game ($_GET['close']);
-	unset($_GET['close']);
-}
+if ($close > 0) hz_close_game($close);
 
+/** Redirect */
 header('Location: /?'.url_params());
 exit;

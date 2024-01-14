@@ -1,47 +1,61 @@
 <?php
-require_once dirname(__FILE__).'/../includes/main.inc.php';
+/**
+ * Go Game Actions
+ *
+ * @package zorg\Games\Go
+ */
+
+/**
+ * File includes
+ */
+require_once __DIR__.'/../includes/config.inc.php';
 require_once INCLUDES_DIR.'go_game.inc.php';
 
+/** Input validation */
 unset($_GET['tplupd']);
-
-if ($_POST['formid'] == "go_skip" && is_numeric($_POST['game'])){
-       go_skip($_POST['game']);
-       $_GET['game'] = $_POST['game']; //return to the game
-}
-
-if ($_POST['formid'] == "go_luck" && is_numeric($_POST['game'])){
-       go_luck($_POST['game']);
-       $_GET['game'] = $_POST['game'];
-}
-
-if ($_POST['formid'] == "go_thank" && is_numeric($_POST['game'])){
-       go_thank($_POST['game']);
-       $_GET['game'] = $_POST['game'];
-}
-
-if ($_POST['formid'] == "go_count_propose" && is_numeric($_POST['game'])){
-    go_count_propose($_POST['game']);
-    $_GET['game'] = $_POST['game'];
-}
-
-if ($_POST['formid'] == "go_count_accept" && is_numeric($_POST['game'])){
-    go_count_accept($_POST['game']);
-    $_GET['game'] = $_POST['game'];
-}
-
-if ($_GET['action']=='move'){
-   if (is_numeric($_GET['move']) && is_numeric($_GET['game'])){
-       go_move($_GET['move'], $_GET['game']);
-       unset($_GET['move']);
-   }
-}
-if ($_GET['action']=='count'){
-    if (is_numeric($_GET['move']) && is_numeric($_GET['game'])){
-	go_count($_GET['move'], $_GET['game']);
-	unset($_GET['move']);
-    }
-}
-
+$doAction = filter_input(INPUT_POST, 'formid', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$game = (isset($_POST['game']) ? filter_input(INPUT_POST, 'game', FILTER_SANITIZE_NUMBER_INT) : filter_input(INPUT_GET, 'game', FILTER_SANITIZE_NUMBER_INT));
+$_GET['game'] = $game; // Return redirect back to game
+$gameAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
 unset($_GET['action']);
+$move = filter_input(INPUT_GET, 'move', FILTER_SANITIZE_NUMBER_INT) ?? null;
+unset($_GET['move']);
+
+switch ($doAction)
+{
+	case "go_skip":
+		go_skip($game);
+		break;
+
+	case "go_luck":
+		go_luck($game);
+		break;
+
+	case "go_thank":
+		go_thank($game);
+		break;
+
+	case "go_count_propose":
+		go_count_propose($game);
+		break;
+
+	case "go_count_accept":
+		go_count_accept($game);
+		break;
+
+}
+
+switch ($gameAction)
+{
+	case 'move':
+		go_move($move, $game);
+		break;
+
+	case 'count':
+		go_count($move, $game);
+		break;
+}
+
+/** Redirect */
 header("Location: /?".url_params());
-die();
+exit;

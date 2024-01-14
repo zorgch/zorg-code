@@ -1,8 +1,9 @@
 <?php
 /**
- * @include config.inc.php Include required global site configurations
+ * zorg Localizations
+ *
+ * @package zorg\Utils\Localization
  */
-//require_once dirname(__FILE__).'/config.inc.php'; // DEACTIVATED BECAUSE RECURSIVE INCLUSION
 
 /**
  * @const NO_STRING_FOUND String for empty / not found references to be replaced
@@ -27,19 +28,17 @@ $GLOBALS['strings'] = include_once INCLUDES_DIR.'strings.array.php';
  * - values können übergeben werden
  * - statt einem string kann ein Template benutzt werden
  *
- * @TODO make it work to output a Smarty-Template...
+ * // TODO make it work to output a Smarty-Template...
  *
- * @author IneX
- * @date 04.02.2017
- * @version 1.0
- * @package zorg
- * @subpackage Strings
+ * @version 1.1
+ * @since 1.0 `04.02.2017` `IneX` Function added
+ * @since 1.1 `13.01.2024` `IneX` Enforce a single $values string to array()
  *
- * @param $reference string The placeholder reference to be replaced with a string
- * @param $context string The context from where to pull and replace the given reference
- * @param $values array Optional: any values which shall be replaced within the string
- * @param $tploutput string Optional: reference to template instead of a simple string, e.g. 'db:123', 'file:template.tpl'
- * @return string|null The string which replaced the passed and matched placeholder
+ * @param string $reference The placeholder reference to be replaced with a string
+ * @param string $context The context from where to pull and replace the given reference
+ * @param array|string $values Optional: any values which shall be replaced within the string
+ * @param string $tploutput Optional: reference to template instead of a simple string, e.g. 'db:123', 'file:template.tpl'
+ * @return string|null The compiled string from passed and matched values
  */
 function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 {
@@ -49,17 +48,20 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	 * Validate the passed $values
 	 */
 	$values_count = 0;
-	if (isset($values) && is_array($values)) //&& count($values) > 0)
+	if (isset($values) && is_string($values) && $values !== '')
+	{
+		$values = array($values); // Force $values to be array()
+	} elseif (isset($values) && $values === '') {
+		error_log(sprintf('[WARN] <%s:%d> A value for %s was passed but it is empty!', __FILE__, __LINE__, $reference));
+	}
+	if (isset($values) && is_array($values))
 	{
 		/** Check if any of the $values is empty */
 		foreach ($values as $key=>$value) {
 			if (empty($value)) error_log(sprintf('[WARN] <%s:%d> Value %s for string "%s" was passed but is empty!', __FILE__, __LINE__, $key+1, $reference));
 		}
 		$values_count = count($values);
-	} elseif (isset($values) && $values == '') {
-		error_log(sprintf('[WARN] <%s:%d> A value was passed but it is empty!', __FILE__, __LINE__));
 	}
-
 
 	/**
 	 * Resolve the placeholder reference
@@ -82,7 +84,7 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 	}
 
 	/*if (!empty($tploutput))
-	=> does this need to be part of $found_string?
+	// FIXME does this need to be part of $found_string?
 	{
 		// Assign passed values to Smarty. This makes it available as:
 		// {$reference-text.value-text}
@@ -104,8 +106,8 @@ function t($reference, $context='global', $values=NULL, $tploutput=NULL)
 /**
  * Find & return a given reference in the Strings-Array
  *
- * @param $reference The placeholder reference to be replaced with a string
- * @param $context The context from where to pull and replace the given reference
+ * @param string $context The context from where to pull and replace the given reference
+ * @param string $reference The placeholder reference to be replaced with a string
  * @var $strings Array with all the strings
  */
 function findReferenceInArray($context, $reference)

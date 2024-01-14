@@ -14,19 +14,18 @@ require_once __DIR__.'/../../../includes/config.inc.php';
 /**
  * AJAX Request validation
  */
-if(!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] !== 'add' ||
- 	!isset($_POST['album_id']) || !is_numeric($_POST['album_id']) || $_POST['album_id'] <= 0) // Action
+$action = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['action']
+$gallery_id = filter_input(INPUT_POST, 'album_id', FILTER_VALIDATE_INT) ?? null; // $_POST['album_id']
+$nonce = filter_input(INPUT_POST, 'nonce', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['nonce']
+if(empty($action) || $action !== 'add' || empty($gallery_id) || $gallery_id<=0)
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	exit('Invalid or missing GET-Parameter');
-} else {
-	$action = 'add';
-	$gallery_id = (integer)$_POST['album_id'];
 }
-if (isset($_POST['nonce']) && !empty($_POST['nonce'])) // Nonce
+if (!empty($nonce)) // Nonce
 {
 	/** ! IMPORTANT: needs a SESSION to be (reused) - hence config.inc.php in the top... */
-	if ($_SESSION['nonce']['gallery_maker']['add'] !== $_POST['nonce'])
+	if ($_SESSION['nonce']['gallery_maker']['add'] !== $nonce)
 	{
 		http_response_code(403); // Set response code 403 (forbidden) and exit.
 		exit('Invalid request validation');
@@ -38,7 +37,7 @@ if (isset($_POST['nonce']) && !empty($_POST['nonce'])) // Nonce
 if (!isset($_FILES) || !isset($_FILES['dropzone-pic']['name']) || $_FILES['dropzone-pic']['error'] !== UPLOAD_ERR_OK) // Data
 {
 	http_response_code(406); // Set response code 406 (Not Acceptable) and exit.
-	exit('Invalid or missing Data (Error: '.$_FILES['dropzone-pic']['error'].')');
+	exit('Invalid or missing Data (Error: '.htmlspecialchars($_FILES['dropzone-pic']['error']).')');
 } else {
 	/**
 	 * Sanitize Source File Properties

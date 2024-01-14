@@ -10,7 +10,7 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/main.inc.php';
 require_once INCLUDES_DIR.'quotes.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -22,50 +22,50 @@ $model = new MVC\Quotes();
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['quote_id'])) $quote_id = (int)$_GET['quote_id'];
-if (!empty($_GET['do'])) $action = (string)$_GET['do'];
-$userid = (isset($_GET['user_id']) ? (int)$_GET['user_id'] : (isset($user->id) ? $user->id : null));
+$quote_id = filter_input(INPUT_GET, 'quote_id', FILTER_VALIDATE_INT) ?? null; // $_GET['quote_id']
+$action = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
+unset($_GET['do']);
+$postAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['action']
+$quote_text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_POST['text']
+$userid = (isset($_GET['user_id']) ? (int)$_GET['user_id'] : ($user->is_loggedin() ? $user->id : null));
+$site = filter_input(INPUT_GET, 'site', FILTER_VALIDATE_INT) ?? 0;
 
 /** Form-Post Aktionen ausführen */
 Quotes::execActions();
 
 /** Aenderung an Quote speichern */
-if(isset($_POST['do']) && $_POST['do'] == 'edit_now' && $user->is_loggedin())
+if($postAction === 'edit_now' && $user->is_loggedin())
 {
 	//FIXME Quote Editing not implented yet./keep3r
 }
 
 /** Quote hinzufuegen */
-elseif (isset($_POST['do']) && $_POST['do'] === 'add_now' && $user->is_loggedin())
+elseif ($postAction === 'add_now' && $user->is_loggedin())
 {
-	$sql = 'INSERT INTO quotes(user_id, date, text)
-			VALUES('.$user->id.',"'.date('YmdHis').'","'.sanitize_userinput($_POST['text']).'")';
-	$db->query($sql,__FILE__, __LINE__);
+	$sql = 'INSERT INTO quotes(user_id, date, text) VALUES(?, ?, ?)';
+	$db->query($sql,__FILE__, __LINE__, 'INSERT INTO quotes', [$user->id, timestamp(true), $quote_text]);
 
 	//echo ('Quote hinzugef&uuml;gt');
 	$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => 'Quote hinzugef&uuml;gt']);
-	unset($_GET['do']);
 	$action = null;
 
 }
 
 /** Quote loeschen */
-elseif (isset($action) && $action === 'delete_now' && $user->is_loggedin()) {
+elseif ($action === 'delete_now' && $user->is_loggedin()) {
 	$sql = 'SELECT * FROM quotes WHERE id = '.sanitize_userinput($quote_id);
 	$result = $db->query($sql, __FILE__, __LINE__);
 	$rs = $db->fetch($result, __FILE__, __LINE__);
 
-	if ($rs["user_id"] == $user->id)
+	if ($quote_id > 0 && intval($rs['user_id']) === $user->id)
 	{
 		if(Quotes::isDailyQuote($quote_id))
 		{
 			Quotes::newDailyQuote();
 		}
-		$sql = 'DELETE FROM quotes WHERE id = '.(int)$_GET[quote_id];
-		$db->query($sql,__FILE__, __LINE__);
-		//echo "Quote gel&ouml;scht";
+		$sql = 'DELETE FROM quotes WHERE id=?';
+		$db->query($sql,__FILE__, __LINE__, 'DELETE FROM quotes', [$quote_id]);
 		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'true', 'title' => 'Quote gel&ouml;scht']);
-		unset($_GET['do']);
 		$action = null;
 	} else {
 		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => 'scho recht, tschipthorre']);
@@ -73,22 +73,28 @@ elseif (isset($action) && $action === 'delete_now' && $user->is_loggedin()) {
 }
 
 /** Quotes ausgeben, ev. von speziellem User */
-if (!isset($action) || isset($action) && $action === 'my')
+if (empty($action) || $action === 'my')
 {
-	$sql = 'SELECT count(*) as anzahl FROM quotes '.(isset($action) && $action === 'my' ? 'WHERE user_id = '.$userid : '');
-	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__));
-	$total = $rs['anzahl'];
+	$params = [];
+	$sql = 'SELECT count(*) as anzahl FROM quotes '.(!empty($userid) && $action === 'my' ? 'WHERE user_id=?' : '');
+	if (!empty($userid) && $action === 'my') $params[] = $userid;
+	$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, 'SELECT COUNT(*) FROM quotes', $params));
+	$total = intval($rs['anzahl']);
 
-	$curr_site_num = (isset($_GET['site']) && is_numeric($_GET['site']) && $_GET['site'] > 0 ? (int)$_GET['site'] : 0);
+	$curr_site_num = filter_input(INPUT_GET, 'site', FILTER_VALIDATE_INT) ?? 0;
 	$cnt = 10; // wird hier noch auf usercount gesetzt
 
+	$params = [];
 	if (isset($action) && $action === 'my')
 	{
-		$sql = sprintf('SELECT * FROM quotes WHERE user_id = %s ORDER BY date DESC LIMIT %d,%d', $userid, $curr_site_num, $cnt);
+		$sql = 'SELECT * FROM quotes WHERE user_id=? ORDER BY date DESC LIMIT ?,?';
+		$params[] = $userid;
 	} else {
-		$sql = sprintf('SELECT * FROM quotes ORDER BY date DESC LIMIT %d,%d', $curr_site_num, $cnt);
+		$sql = 'SELECT * FROM quotes ORDER BY date DESC LIMIT ?,?';
 	}
-	$result = $db->query($sql, __FILE__, __LINE__);
+	$params[] = $curr_site_num;
+	$params[] = $cnt;
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT * FROM quotes', $params);
 
 	$model->showOverview($smarty, $user, $userid, $curr_site_num);
 	$smarty->display('file:layout/head.tpl');
@@ -144,7 +150,7 @@ if (!isset($action) || isset($action) && $action === 'my')
 }
 
 // Quote hinzufügen
-elseif (isset($action) && $action === 'add' && $user->is_loggedin()) {
+elseif ($action === 'add' && $user->is_loggedin()) {
 	$model->showAddnew($smarty);
 	$smarty->display('file:layout/head.tpl');
 	if ($smarty->get_template_vars('error') != null) $smarty->display('file:layout/elements/block_error.tpl');
@@ -164,7 +170,7 @@ elseif (isset($action) && $action === 'add' && $user->is_loggedin()) {
 }
 
 // Quote wirklich loeschen?
-elseif (isset($action) && $action === 'delete' && $user->is_loggedin()) {
+elseif ($action === 'delete' && $user->is_loggedin()) {
 	$sql = 'SELECT * FROM quotes where id = '.sanitize_userinput($quote_id);
 	$result = $db->query($sql, __FILE__, __LINE__);
 	$rs = $db->fetch($result, __FILE__, __LINE__);
@@ -175,10 +181,10 @@ elseif (isset($action) && $action === 'delete' && $user->is_loggedin()) {
 	/*echo ("Willst du den Quote wirklich l&ouml;schen?<br>"
 		 ."<a href=$PHP_SELF?do=delete_now&quote_id=$rs[id]>ja</a>"
 		 ." / "
-		 ."<a href=$PHP_SELF?site=$_GET[site]>nein</a>");
+		 ."<a href=$PHP_SELF?site=$site>nein</a>");
 	*/
 	$confirmSubject = 'Willst du den Quote wirklich l&ouml;schen?';
-	$confirmMessage = '<a href="?do=delete_now&quote_id='.$rs['id'].'"">ja</a> / <a href="?site='.$_GET['site'].'">nein</a>';
+	$confirmMessage = '<a href="?do=delete_now&quote_id='.$rs['id'].'"">ja</a> / <a href="?site='.$site.'">nein</a>';
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => $confirmSubject, 'message' => $confirmMessage]);
 	$smarty->display('file:layout/elements/block_error.tpl');
 } else {

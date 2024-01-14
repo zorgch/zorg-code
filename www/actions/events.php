@@ -20,15 +20,15 @@ if (isset($_GET['url'])) $redirect_url = preg_replace('/([?&])error=[^&]+(&|$)/'
 if (empty($redirect_url) || !isset($redirect_url)) $redirect_url = '/events'; // /events = Events page, tpl=158 (Fallback)
 
 /** Validate & escape event fields for new or edit an event */
-if ( isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] >= 0) $eventId = $_POST['id'];
-if ( isset($_POST['name']) && !empty($_POST['name'])) $eventName = sanitize_userinput($_POST['name']);
+if ( isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] >= 0) $eventId = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?? null;
+if ( isset($_POST['name']) && !empty($_POST['name'])) $eventName = htmlspecialchars_decode(filter_input(INPUT_POST, 'name', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
 if ( !empty($_POST['location'])) $eventLocation = sanitize_userinput($_POST['location']);
 if ( !empty($_POST['link'])) $eventLink = (filter_input(INPUT_POST, 'link', FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['link'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['link']:$error='Ungültiger Event-Link'):$_POST['link']);
 if ( !empty($_POST['review_url'])) $eventReviewlink = (filter_input(INPUT_POST, 'review_url', FILTER_VALIDATE_URL)===false?(filter_var(SITE_PROTOCOL.$_POST['review_url'], FILTER_VALIDATE_URL)!==false?SITE_PROTOCOL.$_POST['review_url']:$error='Ungültige Review-URL'):$_POST['review_url']);
 if ( !empty($_POST['description'])) $eventDescription = htmlspecialchars_decode($_POST['description'], ENT_COMPAT | ENT_SUBSTITUTE);
 if ( isset($_POST['gallery_id']) && is_numeric($_POST['gallery_id']) && $_POST['gallery_id'] >= 0) $eventGallery = $_POST['gallery_id'];
-if ( isset($_GET['join']) && is_numeric($_GET['join']) && $_GET['join'] >= 0) $eventJoinId = $_GET['join'];
-if ( isset($_GET['unjoin']) && is_numeric($_GET['unjoin']) && $_GET['unjoin'] >= 0) $eventUnjoinId = $_GET['unjoin'];
+if ( isset($_GET['join']) && is_numeric($_GET['join']) && $_GET['join'] >= 0) $eventJoinId = filter_input(INPUT_GET, 'join', FILTER_VALIDATE_INT) ?? null;
+if ( isset($_GET['unjoin']) && is_numeric($_GET['unjoin']) && $_GET['unjoin'] >= 0) $eventUnjoinId = filter_input(INPUT_GET, 'unjoin', FILTER_VALIDATE_INT) ?? null;
 if ( isset($_POST['fromDate']) && !empty($_POST['fromDate']) && isset($_POST['fromTime']) && !empty($_POST['fromTime']) ) {
 	$fromDate = explode('-', $_POST['fromDate']);
 	$fromTime = explode(':', $_POST['fromTime']);
@@ -37,6 +37,7 @@ if (isset($_POST['toDate']) && !empty($_POST['toDate']) && isset($_POST['toTime'
 	$toDate = explode('-', $_POST['toDate']);
 	$toTime = explode(':', $_POST['toTime']);
 }
+
 switch (true)
 {
 	/** Validation Error */
@@ -68,6 +69,8 @@ switch (true)
 		/** Backwards-compatibility to old individual Date fields */
 		if (!isset($startdate)) $startdate = sprintf('%s-%s-%s %s:00', $_POST['startYear'], $_POST['startMonth'], $_POST['startDay'], $_POST['startHour']);
 		if (!isset($enddate)) $enddate = sprintf('%s-%s-%s %s:00', $_POST['endYear'], $_POST['endMonth'], $_POST['endDay'], $_POST['endHour']);
+		zorgDebugger::log()->debug('Dates: %s --> %s', [$newStartdate, $newEnddate]);
+
 		$values = [
 			'name' => $eventName,
 			'location' => $eventLocation,
@@ -80,7 +83,7 @@ switch (true)
 			'reportedon_date' => timestamp(true),
 			'review_url' => $eventReviewlink
 		];
-		zorgDebugger::log()->debug('Adding new Event: %s dateFrom %s to %s', [$eventName, $startdate, $enddate]);
+		zorgDebugger::log()->debug('Adding new Event: %s', [print_r($values,true)]);
 		$idNewEvent = $db->insert('events', $values, __FILE__, __LINE__, 'INSERT INTO events');
 
 		/** Error */
@@ -100,7 +103,6 @@ switch (true)
 
 	/** Save updated Event details */
 	case ($_POST['action'] === 'edit'):
-		zorgDebugger::log()->debug('Update existing Event: %d "%s"', [$eventId, $eventName]);
 		if (isset($fromDate) && isset($fromTime)) {
 			$newStartdate = timestamp(true, [
 				 'year' => intval($fromDate[0])
@@ -121,14 +123,18 @@ switch (true)
 		}
 		if (!isset($newStartdate)) $newStartdate = sprintf('%s-%s-%s %s:00', $_POST['startYear'], $_POST['startMonth'], $_POST['startDay'], $_POST['startHour']);
 		if (!isset($newEnddate)) $newEnddate = sprintf('%s-%s-%s %s:00', $_POST['endYear'], $_POST['endMonth'], $_POST['endDay'], $_POST['endHour']);
-		if (!isset($eventName)) $values[] = $eventName;
-		if (!isset($eventLocation)) $values[] = $eventLocation;
-		if (!isset($eventLink)) $values[] = $eventLink;
-		if (!isset($eventDescription)) $values[] = $eventDescription;
-		if (!isset($newStartdate)) $values[] = $newStartdate;
-		if (!isset($newEnddate)) $values[] = $newEnddate;
-		if (!isset($eventGallery)) $values[] = $eventGallery;
-		if (!isset($eventReviewlink)) $values[] = $eventReviewlink;
+		zorgDebugger::log()->debug('Dates: %s --> %s', [$newStartdate, $newEnddate]);
+
+		$values = [];
+		if (isset($eventName)) $values['name'] = $eventName;
+		if (isset($eventLocation)) $values['location'] = $eventLocation;
+		if (isset($eventLink)) $values['link'] = $eventLink;
+		if (isset($eventDescription)) $values['description'] = $eventDescription;
+		if (isset($newStartdate)) $values['startdate'] = $newStartdate;
+		if (isset($newEnddate)) $values['enddate'] = $newEnddate;
+		if (isset($eventGallery)) $values['gallery_id'] = $eventGallery;
+		if (isset($eventReviewlink)) $values['review_url'] = $eventReviewlink;
+		zorgDebugger::log()->debug('Updating Event %d details: %s', [$eventId, print_r($values,true)]);
 
 		$result = $db->update('events', $eventId, $values, __FILE__, __LINE__, 'UPDATE events');
 		if ($result === false) $error = 'Error updating Event ID "' . $eventId . '"';

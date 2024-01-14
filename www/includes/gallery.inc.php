@@ -606,7 +606,7 @@ function editAlbum ($id, $done="", $state="", $error="", $frm="")
 	if ($id > 0) echo '<a href="/gallery.php?albID='.$id.'&show=albumThumbs">&hookrightarrow; go to Album</a><br><br>';
 	?>
 	<table class="border" cellspacing="3"><tr><td>
-	<form action="<?php echo $_SERVER['PHP_SELF'] ?>?show=editAlbum&albID=<?php echo $id ?>&do=editAlbum" method="post">
+	<form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']) ?>?show=editAlbum&albID=<?php echo $id ?>&do=editAlbum" method="post">
 		<fieldset style="display: flex;flex-flow: wrap;white-space: nowrap;align-items: center; margin: 0;">
 			<label for="name" style="width: 100%;">Name:</label>
 			<input type="text" id="name" name="frm['name']" class="text" style="flex: 1.5;" placeholder="Album Name..." value="<?php echo (isset($frm['name']) || !empty($frm['name']) ? $frm['name'] : '') ?>">

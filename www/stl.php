@@ -28,13 +28,16 @@ $model->showOverview($smarty);
 /**
  * Validate GET-Parameters
  */
-if (!empty($_GET['game_id'])) $game_id = (int)$_GET['game_id'];
-if (!empty($_GET['do'])) $action = (string)$_GET['do'];
+$game_id = filter_input(INPUT_GET, 'game_id', FILTER_VALIDATE_INT) ?? null;
+$action = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$shoot_field = filter_input(INPUT_GET, 'shoot', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$message = filter_input(INPUT_GET, 'msg', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
 
 /**
  * Initialise Shoot the Lamber Game Class-Object
  */
-$stl = new stl();
+$stl = new stl($game_id);
+if (!empty($message)) $stl->message = $message;
 
 /** Zugriff nur wenn User eingeloggt ist */
 if ($user->is_loggedin())
@@ -45,10 +48,12 @@ if ($user->is_loggedin())
 		if ($game_id > 0)
 		{
 			/** Action */
-			if($_GET['shoot']) $stl->shoot(); // FIXME PHP Notice:  Undefined index: shoot in /srv/zorg.ch/www/public/stl.php on line 48
+			if(!empty($shoot_field)) {
+				$stl->shoot_field = $shoot_field;
+				$stl->shoot();
+			}
 
 			/** Layout */
-			//printStlPageHeader();
 			$model->showGame($smarty, $game_id, $stl->config['game_title']);
 			$smarty->display('file:layout/head.tpl');
 			echo '<h1>'.$model->page_title.'</h1>';
@@ -56,19 +61,14 @@ if ($user->is_loggedin())
 			echo $stl->data['legende'];
 
 		} else {
-			$sql = 'SELECT game_id
-					FROM stl_players
-					WHERE user_id = '.$user->id.'
-					ORDER by last_shoot DESC';
-			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+			$sql = 'SELECT game_id FROM stl_players WHERE user_id=? ORDER by last_shoot DESC';
+			$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__, [$user->id]);
 			if($db->num($result)) {
 				$rs = $db->fetch($result);
-				//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=".$rs['game_id']."&".session_name()."=".session_id());
-				header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$rs['game_id']);
+				header('Location: '.getURL(false, false).'?do=game&game_id='.$rs['game_id']);
 				exit;
 			} else {
-				//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=overview&".session_name()."=".session_id());
-				header('Location: '.base64url_decode(getURL(false)).'?do=overview');
+				header('Location: '.getURL(false, false).'?do=overview');
 				exit;
 			}
 		}
@@ -88,12 +88,11 @@ if ($user->is_loggedin())
 	{
 		if ($user->typ >= USER_MEMBER)
 		{
-			$sql = 'DELETE FROM stl_positions WHERE game_id = '.$game_id;
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			$sql = 'UPDATE stl SET status = 0 WHERE game_id = '.$game_id;
-			$db->query($sql,__FILE__,__LINE__,__FUNCTION__);
-			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$game_id);
+			$sql = 'DELETE FROM stl_positions WHERE game_id=?';
+			$db->query($sql,__FILE__,__LINE__,__FUNCTION__, [$game_id]);
+			$sql = 'UPDATE stl SET status = 0 WHERE game_id=?';
+			$db->query($sql,__FILE__,__LINE__,__FUNCTION__, [$game_id]);
+			header('Location: '.getURL(false, false).'?do=game&game_id='.$game_id);
 			exit;
 		} else {
 			$smarty->display('file:layout/head.tpl');

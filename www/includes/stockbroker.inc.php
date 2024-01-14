@@ -163,7 +163,7 @@ class Stockbroker
 		global $db, $notification;
 
 		$sql = 'SELECT * FROM stock_warnings WHERE symbol=?';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $symbol);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$symbol]);
 
 		while($rs = $db->fetch($result))
 		{

@@ -8,14 +8,12 @@
 /**
  * AJAX Request validation
  */
-if (!isset($_GET['action']) || empty($_GET['action']) || $_GET['action'] !== 'fetch' ||
-	!isset($_GET['album_id']) || !is_numeric($_GET['album_id']) || $_GET['album_id'] <= 0)
+$action = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['action']
+$album_id = filter_input(INPUT_GET, 'album_id', FILTER_VALIDATE_INT) ?? null; // $_GET['album_id']
+if (empty($action) || $action !== 'fetch' || empty($album_id) || $album_id<=0)
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
 	exit('Invalid or missing GET-Parameter');
-} else {
-	$action = $_GET['action'];
-	$album_id = filter_var($_GET['album_id'], FILTER_SANITIZE_SPECIAL_CHARS);
 }
 
 /**
@@ -30,8 +28,8 @@ if ($action === 'fetch' && $album_id > 0)
 	//require_once __DIR__.'/../../../includes/mysql.inc.php';
 	require_once __DIR__.'/../../../includes/gallery.inc.php';
 
-	$sql = 'SELECT id as pic_id, album as album_id, name as pic_name, extension FROM gallery_pics WHERE album = '.$album_id.' ORDER BY id ASC';
-	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM gallery_pics');
+	$sql = 'SELECT id as pic_id, album as album_id, name as pic_name, extension FROM gallery_pics WHERE album=? ORDER BY id ASC';
+	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM gallery_pics', [$album_id]);
 	$num_pics = $db->num($result);
 
 	http_response_code(200); // Set response code 200 (OK)
@@ -42,7 +40,7 @@ if ($action === 'fetch' && $album_id > 0)
 			$pics[] = [
 				'id' => $rs['pic_id'],
 				'title' => $rs['pic_name'],
-				'url' => '/gallery/thumbs/'.$rs['pic_id']//SITE_URL.'/gallery/thumbs/'.$rs['pic_id']
+				'url' => '/gallery/thumbs/'.$rs['pic_id']
 			];
 		}
 		exit(json_encode($pics));

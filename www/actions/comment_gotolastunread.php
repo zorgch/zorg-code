@@ -6,6 +6,6 @@ if(Forum::getNumunreadposts($user->id) > 0) {
 	header("Location: ".Forum::getUnreadLink());
 	exit();
 } else {
-	header("Location: /index.php");
+	header("Location: /forum.php");
 	exit();
 }

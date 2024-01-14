@@ -7,128 +7,112 @@
 
 /**
  * File includes
- * @include main.inc.php DEPRECATED
  * @include forum.inc.php
  */
-//require_once dirname(__FILE__) .'/../includes/main.inc.php';
-require_once dirname(__FILE__).'/../includes/forum.inc.php';
+require_once __DIR__.'/../includes/forum.inc.php';
+
+/** Input validation */
+$comment_id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?? null;
+$thread_id = filter_input(INPUT_POST, 'thread_id', FILTER_VALIDATE_INT) ?? null;
+$parent_id = filter_input(INPUT_POST, 'parent_id', FILTER_VALIDATE_INT) ?? null;
+$board = filter_input(INPUT_POST, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$msg_users = isset($_POST['msg_users']) ? explode(',', $_POST['msg_users'][0]) : null;
+$commentText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
+$returnUrl = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/forum.php'.$comment_id;
 
 /** Board checken und validieren */
-if($_POST['board'] == '' || empty($_POST['board']) || strlen($_POST['board']) != 1) {
+if(empty($board)) {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	//user_error('Board nicht angegeben!', E_USER_WARNING);
-	$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('error-missing-board', 'commenting'));
-	header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+	$returnUrl = changeUrl($returnUrl, 'error='.t('error-missing-board', 'commenting'));
+	header('Location: '.$returnUrl); // Redirect user back to where he came from
 	exit;
 }
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[board]: OK => %s', __FILE__, __LINE__, $_POST['board']));
+zorgDebugger::log()->debug('$_POST[board]: OK => %s', [$board]);
 
 /** Parent id checken */
-if($_POST['parent_id'] <= 0 || empty($_POST['parent_id']) || $_POST['parent_id'] === '0' || !is_numeric($_POST['parent_id']))
+if(empty($parent_id) || $parent_id <= 0)
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	//user_error('Parent id leer oder ungültig: ' . $_POST['parent_id'], E_USER_WARNING);
-	$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('invalid-parent_id', 'commenting'));
-	header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+	$returnUrl = changeUrl($returnUrl, 'error='.t('invalid-parent_id', 'commenting'));
+	header('Location: '.$returnUrl); // Redirect user back to where he came from
 	exit;
 }
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[parent_id]: OK => %s', __FILE__, __LINE__, $_POST['parent_id']));
+zorgDebugger::log()->debug('$_POST[parent_id]: OK => %d', [$parent_id]);
 
 /** Thread id checken */
-if($_POST['thread_id'] < 0 || empty($_POST['thread_id']) || $_POST['thread_id'] === '0' || !is_numeric($_POST['thread_id']))
+if(empty($thread_id) || $thread_id <= 0)
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	//user_error('Thread id leer oder ungültig: ' . $_POST['thread_id'], E_USER_WARNING);
-	$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('invalid-thread_id', 'commenting'));
-	header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+	$returnUrl = changeUrl($returnUrl, 'error='.t('invalid-thread_id', 'commenting'));
+	header('Location: '.$returnUrl); // Redirect user back to where he came from
 	exit;
 }
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[thread_id]: OK => %s', __FILE__, __LINE__, $_POST['thread_id']));
+zorgDebugger::log()->debug('$_POST[thread_id]: OK => %d', [$thread_id]);
 
 /** Text escapen */
-if(trim($_POST['text']) === '' || empty($_POST['text']) || !isset($_POST['text']))
+if(empty($commentText) || $commentText === '')
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
-	//user_error('keine leeren Posts erlaubt.', E_USER_WARNING);
-	$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('invalid-comment-empty', 'commenting'));
-	header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+	$returnUrl = changeUrl($returnUrl, 'error='.t('invalid-comment-empty', 'commenting'));
+	header('Location: '.$returnUrl); // Redirect user back to where he came from
 	exit;
-} else {
-	$commentText = htmlspecialchars_decode($_POST['text'], ENT_COMPAT | ENT_SUBSTITUTE);
-	$_POST['text'] = $commentText; // required for passing to Comment::update() later...
 }
-if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $_POST[text]: OK', __FILE__, __LINE__));
+zorgDebugger::log()->debug('$_POST[text]: OK');
 
 /** Existiert der Parent-Post? */
-/**try {
-	$sql =
-		"
-		SELECT
-		*
-		FROM comments
-		WHERE id = ".$_POST['parent_id']."
-		AND board = '".$_POST['board']."'
-		AND thread_id = '".$_POST['thread_id']."'
-		"
-	;
-	$result = $db->query($sql, __FILE__, __LINE__);
-	$rs = $db->fetch($result);
-*/
-	$comment_recordset = Comment::getRecordset($_POST['id']);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $comment_recordset: fetched => %s', __FILE__, __LINE__, print_r($comment_recordset,true)));
-	$comment_parentid = Comment::getParentid($_POST['id'], 1);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $comment_parentid: fetched => %d', __FILE__, __LINE__, $comment_parentid));
+$comment_recordset = Comment::getRecordset($comment_id);
+$comment_parentid = Comment::getParentid($comment_id, 1);
 
-	/** Keine Parent-ID gefunden */
-	if ($comment_parentid == FALSE || $comment_parentid === 0 || empty($comment_parentid))
+/** Keine Parent-ID gefunden */
+if (!$comment_parentid || empty($comment_parentid) || $comment_parentid === 0)
+{
+	/** Comment ist im forum board */
+	if ($comment_recordset['board'] === 'f')
 	{
-		/** Comment ist im forum board */
-		if ($comment_recordset['board'] === 'f')
+		//$rs = $db->fetch($db->query("SELECT * FROM comments WHERE id = ".$comment_id, __FILE__, __LINE__));
+		if ($comment_recordset['parent_id'] != $parent_id)
 		{
-			//$rs = $db->fetch($db->query("SELECT * FROM comments WHERE id = ".$_POST['id'], __FILE__, __LINE__));
-			if ($comment_recordset['parent_id'] != $_POST['parent_id'])
-			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> parent_id does NOT match!', __FILE__, __LINE__));
-				http_response_code(400); // Set response code 400 (bad request) and exit.
-				//user_error(t('invalid-comment-no-parentid', 'commenting'), E_USER_WARNING);
-				$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('invalid-comment-no-parentid', 'commenting'));
-				header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
-				exit;
-			}
-		}
-
-		/** comment ist top level, da nicht im forum board */
-		elseif ($_POST['parent_id'] != $_POST['thread_id']) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> comment ist top level, da nicht im forum board', __FILE__, __LINE__));
+			zorgDebugger::log()->debug('parent_id does NOT match!');
 			http_response_code(400); // Set response code 400 (bad request) and exit.
-			//user_error(t('invalid-parent_id', 'commenting'), E_USER_WARNING);
-			$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('invalid-parent_id', 'commenting'));
-			header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
+			$returnUrl = changeUrl($returnUrl, 'error='.t('invalid-comment-no-parentid', 'commenting'));
+			header('Location: '.$returnUrl); // Redirect user back to where he came from
 			exit;
 		}
 	}
 
-	/** Parent-ID vorhanden */
-	else {
-		/** Besitzer checken */
-		//$rs = Comment::getRecordset($_POST['id']);
-		if($user->id != $comment_recordset['user_id'])
-		{
-			http_response_code(403.3); // Set response code 403.3 (Write access forbidden) and exit.
-			//user_error(t('invalid-comment-edit-permissions', 'commenting'), E_USER_WARNING);
-			$url_querystring = changeQueryString(parse_url(base64url_decode($_POST['url']))['query'], 'error='.t('invalid-comment-edit-permissions', 'commenting'));
-			header('Location: '.changeURL(base64url_decode($_POST['url']), $url_querystring)); // Redirect user back to where he came from
-			exit;
-		}
+	/** comment ist top level, da nicht im forum board */
+	elseif ($parent_id != $thread_id) {
+		zorgDebugger::log()->debug('comment ist top level, da nicht im forum board');
+		http_response_code(400); // Set response code 400 (bad request) and exit.
+		$returnUrl = changeUrl($returnUrl, 'error='.t('invalid-parent_id', 'commenting'));
+		header('Location: '.$returnUrl); // Redirect user back to where he came from
+		exit;
 	}
-/*} catch(Exception $e) {
-	http_response_code(500); // Set response code 500 (internal server error)
-	echo $e->getMessage();
-}*/
+}
+
+/** Parent-ID vorhanden */
+else {
+	/** Besitzer checken */
+	if($user->id != $comment_recordset['user_id'])
+	{
+		http_response_code(403.3); // Set response code 403.3 (Write access forbidden) and exit.
+		$returnUrl = changeUrl($returnUrl, 'error='.t('invalid-comment-edit-permissions', 'commenting'));
+		header('Location: '.$returnUrl); // Redirect user back to where he came from
+		exit;
+	}
+}
 
 /** Update Comment with new $_POST Data */
-Comment::update($_POST['id'], $_POST);
+$updatedData = [
+	 'board' => $board
+	,'parent_it' => $parent_id
+	,'thread_id' => $thread_id
+	,'msg_users' => $msg_users
+	,'text' => $commentText
+];
+$success = Comment::update($comment_id, $updatedData);
+if (!$success) $returnUrl = changeUrl($returnUrl, 'error=updating%20comment%20failed');
 
 /** User redirecten nach erfolgreichem Comment Update */
-header('Location: '.base64url_decode($_POST['url']));
+header('Location: '.$returnUrl);
 exit;
