@@ -10,7 +10,7 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/main.inc.php';
 include_once INCLUDES_DIR.'bugtracker.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -22,9 +22,16 @@ $model = new MVC\Bugtracker();
 /**
  * Validate GET-Parameters
  */
+$doAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
 $bug_id = (isset($getBugId) ? $getBugId : (filter_input(INPUT_GET, 'bug_id', FILTER_VALIDATE_INT) ?? null));
-$show = (isset($_GET['show']) && !empty($_GET['show']) ? (array)$_GET['show'] : []);
-$order = isset($_GET['order'])?$_GET['order']:'';
+$order = filter_input(INPUT_GET, 'order', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$show = [];
+if (isset($_GET['show']) && is_array($_GET['show'])) {
+	$i=0;
+	for ($i;$i<count($_GET['show']);$i++) {
+		$show[] = filter_var($_GET['show'][$i], FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+	}
+}
 
 /** Aktionen ausführen */
 Bugtracker::execActions();
@@ -34,7 +41,7 @@ Bugtracker::execActions();
  */
 if(empty($bug_id) || $bug_id <= 0)
 {
-	if(count($show) == 0)
+	if(empty($show))
 	{
 		if($user->is_loggedin())
 		{
@@ -137,23 +144,23 @@ if(empty($bug_id) || $bug_id <= 0)
 	$bug_data = Bugtracker::getBugRS($bug_id);
 
 	$htmlOutput = null;
-	if(isset($_GET['action']) && $_GET['action'] == 'editlayout')
+	if($doAction === 'editlayout' && $bug_id > 0)
 	{
 		$model->showEdit($smarty, $bug_id);
 		$htmlOutput .= '<h1>Bug bearbeiten</h1>';
-		$htmlOutput .= Bugtracker::getBugHTML($_GET['bug_id'], TRUE);
+		$htmlOutput .= Bugtracker::getBugHTML($bug_id, TRUE);
 	} else {
 		$model->showBug($smarty, $bug_id, $bug_data);
 		$htmlOutput .= '<h1>'.$bug_data['title'].'</h1>';
 		$htmlOutput .= '<div itemscope itemtype="http://schema.org/QAPage">'; // schema.org
-		$htmlOutput .= Bugtracker::getBugHTML($_GET['bug_id']);
+		$htmlOutput .= Bugtracker::getBugHTML($bug_id);
 		$htmlOutput .= '</div>'; // schema.org
 	}
 
 	/** Layout */
 	$smarty->display('file:layout/head.tpl');
 	echo $htmlOutput;
-	if (!isset($_GET['action']) || $_GET['action'] !== 'editlayout') Forum::printCommentingSystem('b', $_GET['bug_id']);
+	if (empty($doAction) || $doAction !== 'editlayout') Forum::printCommentingSystem('b', $bug_id);
 }
 
 $smarty->display('file:layout/footer.tpl');

@@ -16,8 +16,9 @@
  * @include config.inc.php
  * @include mysql.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
+require_once INCLUDES_DIR.'usersystem.inc.php';
 
 try { // Catch missing GD image library
 	/**
@@ -73,14 +74,10 @@ catch (\Error $ex) { // Continue code execution, even when GD image library is m
 function go_running_games ()
 {
     global $db, $user;
-    $e = $db->query(
-		    'SELECT count(*) anz
-		      FROM go_games g
-		      WHERE g.nextturn='.$user->id.' AND g.state="running"',
-		    __FILE__, __LINE__
-		    );
+    $e = $db->query('SELECT count(*) anz FROM go_games g WHERE g.nextturn=? AND g.state="running"',
+		    		__FILE__, __LINE__, __FUNCTION__, [$user->id]);
     $d = $db->fetch($e);
-    return $d['anz'];
+    return intval($d['anz']);
 }
 
 
@@ -95,14 +92,10 @@ function go_running_games ()
 function go_open_games ()
 {
     global $db, $user;
-    $e = $db->query(
-		    'SELECT count(*) anz
-		      FROM go_games g
-		      WHERE g.pl2='.$user->id.' AND g.state="open"',
-		    __FILE__, __LINE__
-		    );
+    $e = $db->query('SELECT count(*) anz FROM go_games g WHERE g.pl2=? AND g.state="open"',
+					__FILE__, __LINE__, __FUNCTION__, [$user->id]);
     $d = $db->fetch($e);
-    return $d['anz'];
+    return intval($d['anz']);
 }
 
 
@@ -122,12 +115,8 @@ function go_open_games ()
 function go_close_game ($gid)
 {
 	global $db, $user;
-    $e = $db->query('DELETE
-    	FROM go_games
-    	WHERE state="open"
-    	AND id='.$gid.'
-    	AND pl1='.$user->id,
-    	__FILE__, __LINE__);
+    $e = $db->query('DELETE FROM go_games WHERE state="open" AND id=? AND pl1=?',
+    				__FILE__, __LINE__, __FUNCTION__, [intval($gid), $user->id]);
 }
 
 
@@ -146,12 +135,8 @@ function go_close_game ($gid)
  */
 function go_decline_game ($gid) {
 	global $db, $user;
-   	$e = $db->query('DELETE
-		 FROM go_games
-		 WHERE state="open"
-		   AND id='.$gid.'
-		   AND pl2='.$user->id,
-		 __FILE__, __LINE__);
+   	$e = $db->query('DELETE FROM go_games WHERE state="open" AND id=? AND pl2=?',
+		 __FILE__, __LINE__, __FUNCTION__, [intval($gid), $user->id]);
 }
 
 
@@ -170,12 +155,8 @@ function go_decline_game ($gid) {
  */
 function go_accept_game ($gid) {
 	global $db, $user;
-   	$e = $db->query('UPDATE go_games
-		 SET state="running"
-		 WHERE state="open"
-		   AND id='.$gid.'
-		   AND pl2='.$user->id,
-		 __FILE__, __LINE__);
+   	$e = $db->query('UPDATE go_games SET state="running" WHERE state="open" AND id=? AND pl2=?',
+		 			__FILE__, __LINE__, __FUNCTION__, [intval($gid), $user->id]);
 }
 
 
@@ -199,24 +180,21 @@ function go_new_game ($opponent, $size, $handicap) {
 
 	if (!$user->id) user_error( t('error-newgame-not-logged-in'), E_USER_ERROR);
 
-        $e = $db->query("SELECT u.id
-			 FROM user u
-			 WHERE id='".$opponent."'",
-			 __FILE__, __LINE__);
-        if ($size < 20 && $size >= 9){
-	    if ($db->fetch($e)){
-			for ($i = 0; $i < $size*$size; $i++) $board .= "0";
-			$e = $db->query("INSERT
-					 INTO go_games (pl1, pl2, size, data, nextturn, state, round, handicap)
-					 VALUES ('".$user->id."', '".$opponent."', '".$size."', '".$board."', '".$opponent."', 'open', 1-$handicap, '".$handicap."')",
-					 __FILE__, __LINE__);
+	$e = $db->query('SELECT u.id FROM user u WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [intval($opponent)]);
+	if ($size < 20 && $size >= 9){
+		if ($db->fetch($e)){
+			$board = null;
+			for ($i = 0; $i < $size*$size; $i++) $board = "0";
+			$e = $db->query('INSERT INTO go_games (pl1, pl2, size, data, nextturn, state, round, handicap)
+							VALUES (?, ?, ?, ?, ?, "open", ?, ?)', __FILE__, __LINE__, __FUNCTION__,
+							[$user->id, $opponent, $size, $board, $opponent, 1-$handicap, $handicap]);
 
 			// Activity Eintrag auslösen
-			Activities::addActivity($user->id, 0, t('activity-newgame', 'go', [ usersystem::id2user($opponent, TRUE), SITE_URL, $game ]), 'go');
-	    }
-	    else user_error( t('error-game-player-unknown'), E_USER_ERROR);
+			Activities::addActivity($user->id, 0, t('activity-newgame', 'go', [ $user->id2user($opponent, TRUE), SITE_URL, $e ]), 'go');
+		}
+		else user_error( t('error-game-player-unknown'), E_USER_ERROR);
 	}
-        else user_error( t('invalid-size', 'go'), E_USER_ERROR);
+	else user_error( t('invalid-size', 'go'), E_USER_ERROR);
 }
 
 
@@ -241,21 +219,13 @@ function go_luck($gameid)
 
     if ($user->id == $game['pl1'])
     {
-		$e = $db->query("UPDATE go_games
-				 SET pl1luck=1
-				 WHERE pl1luck=0
-				   AND id='".$gameid."'",
-				 __FILE__, __LINE__);
+		$db->query('UPDATE go_games SET pl1luck=1 WHERE pl1luck=0 AND id=?', __FILE__, __LINE__, __FUNCTION__, [$gameid]);
 
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl2'], "hat ".$user->id2user($game['pl2'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');
 
     } else {
-		$e = $db->query("UPDATE go_games
-				 SET pl2luck=1
-				 WHERE pl2luck=0
-				   AND id='".$gameid."'",
-				 __FILE__, __LINE__);
+		$db->query('UPDATE go_games SET pl2luck=1 WHERE pl2luck=0 AND id=?', __FILE__, __LINE__, __FUNCTION__, [$gameid]);
 
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl1'], "hat ".$user->id2user($game['pl1'])." im GO Gl&uuml;ck gew&uuml;nscht!<br/><br/>", 'go');
@@ -285,22 +255,14 @@ function go_thank($gameid)
 
     if ($user->id == $game['pl1'])
     {
-		$e = $db->query("UPDATE go_games
-				 SET pl1thank=1
-				 WHERE pl1thank=0
-				   AND id='".$gameid."'",
-				 __FILE__, __LINE__);
+		$db->query('UPDATE go_games SET pl1thank=1 WHERE pl1thank=0 AND id=?', __FILE__, __LINE__, __FUNCTION__, [$gameid]);
 
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl2'], "hat sich bei ".$user->id2user($game['pl2'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
 
     }
     else {
-		$e = $db->query("UPDATE go_games
-				 SET pl2thank=1
-				 WHERE pl2thank=0
-				   AND id='".$gameid."'",
-				 __FILE__, __LINE__);
+		$db->query('UPDATE go_games SET pl2thank=1 WHERE pl2thank=0 AND id=?', __FILE__, __LINE__, __FUNCTION__, [$gameid]);
 
 		// Activity Eintrag auslösen
 		Activities::addActivity($user->id, $game['pl1'], "hat sich bei ".$user->id2user($game['pl1'])." &uuml;ber das GO-Spiel bedankt.<br/><br/>", 'go');
@@ -310,16 +272,13 @@ function go_thank($gameid)
 
 
 function go_count_game($gameid){
-	global $db, $user;
-	        $e = $db->query("UPDATE go_games
-		 SET state='counting'
-		 WHERE state='running'
-		   AND id='".$gameid."'",
-		 __FILE__, __LINE__);
+	global $db;
+	$e = $db->query('UPDATE go_games SET state="counting" WHERE state="running"	AND id=?',
+					__FILE__, __LINE__, __FUNCTION__, [$gameid]);
 }
 
-    function go_finish_game($gameid){
-    global $db, $user;
+function go_finish_game($gameid){
+    global $db;
 
     $game = readGame($gameid);
     $size = $game['size'];
@@ -355,13 +314,8 @@ function go_count_game($gameid){
     if ($game['pl1points'] > $game['pl2points']) $game['winner'] = $game['pl1'];
     else $game['winner'] = $game['pl2'];
 
-    $e = $db->query("UPDATE go_games
-		      SET state='finished', pl1points='".$game['pl1points'].
-			"', pl2points='".$game['pl2points'].
-		        "', winner='".$game['winner']."'
-		      WHERE state='counting'
-		      AND id='".$gameid."'",
-		    __FILE__, __LINE__);
+    $e = $db->query('UPDATE go_games SET state="finished", pl1points=?, pl2points=?, winner=? WHERE state="counting" AND id=?',
+		    		__FILE__, __LINE__, __FUNCTION__, [$game['pl1points'], $game['pl2points'], $game['winner'], $gameid]);
 }
 
 
@@ -533,67 +487,67 @@ function nextstone_map($gameid)
     if ($game['state'] == 'running' || $game['state'] == 'finished')
       for ($i = 0; $i < $size; $i++) for ($j = 0; $j < $size; $j++){
 
-	$which = $i + $j*$size;
+		$which = $i + $j*$size;
 
-	if ($game['board'][$which] == 1 || $game['board'][$which] == 2){
-	    $area = get_area($which, $game);
-	    $freedoms = get_freedoms($game, $area);
-	    $msg = t('gebietssteine-freiheiten', 'go', [ count($area), count($freedoms) ]);
-	    $islink = false;
-	}
-	else if ($user->id == $game['nextturn'] && $game['state'] == 'running'){
-
-	    $countHit = count(check_hit($which, $game));
-	    if ($countHit > 0){
-			if ($ko_sit == $which && $countHit == 1){
-			    $msg = t('ko-warning', 'go');
-			    $islink = false;
-	        }
-	        else {
-		    // check if you can hit the opponent
-     		    $msg = t('hit-check', 'go');
-	 			$islink = true;
-			}
-	    }
-	    else if (check_suicide($which, $game)){
-		// check for suicide
-			$msg = t('suicide-prevention', 'go');
+		if ($game['board'][$which] == 1 || $game['board'][$which] == 2){
+			$area = get_area($which, $game);
+			$freedoms = get_freedoms($game, $area);
+			$msg = t('gebietssteine-freiheiten', 'go', [ count($area), count($freedoms) ]);
 			$islink = false;
-	    }
-	    else{
-			$msg = t('maaachs', 'go');
-			$islink = true;
-	    }
-	}
-	else continue;
+		}
+		else if ($user->id == $game['nextturn'] && $game['state'] == 'running'){
 
-    $ret .= '<area shape="rect" coords="'.(($i+1)*FIELDSIZE-LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE-LINKRADIUS)
-                                 .','.(($i+1)*FIELDSIZE+LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE+LINKRADIUS).'" ';
-    if ($islink) $ret .= 'href="/actions/go_game.php?tpl=699&action=move&move='.$which.'&game='.$gameid.'"';
+			$countHit = count(check_hit($which, $game));
+			if ($countHit > 0){
+				if ($ko_sit == $which && $countHit == 1){
+					$msg = t('ko-warning', 'go');
+					$islink = false;
+				}
+				else {
+				// check if you can hit the opponent
+					$msg = t('hit-check', 'go');
+					$islink = true;
+				}
+			}
+			else if (check_suicide($which, $game)){
+			// check for suicide
+				$msg = t('suicide-prevention', 'go');
+				$islink = false;
+			}
+			else{
+				$msg = t('maaachs', 'go');
+				$islink = true;
+			}
+		}
+		else continue;
+
+		$ret .= '<area shape="rect" coords="'.(($i+1)*FIELDSIZE-LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE-LINKRADIUS)
+									.','.(($i+1)*FIELDSIZE+LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE+LINKRADIUS).'" ';
+		if ($islink) $ret .= 'href="/actions/go_game.php?tpl=699&action=move&move='.$which.'&game='.$gameid.'"';
+			$ret .= 'alt="'.$msg.'"'.'title="'.$msg.'">';
+		}
+
+		if ($game['state'] == 'counting' && $game['nextturn'] == $user->id)
+		for ($i = 0; $i < $size; $i++) for ($j = 0; $j < $size; $j++){
+
+		$which = $i + $j*$size;
+
+		if ($game['board'][$which] == 1 || $game['board'][$which] == 2){
+			$area = get_area($which, $game);
+			if (count($area) == 1) $msg = 'Zu den Gefangenen mit dir!';
+			else $msg = 'Diese '.count($area).' Steine zu den Gefangenen gesellen.';
+		}
+		else if ($game['board'][$which] == 3 || $game['board'][$which] == 4){
+			$area = get_area($which, $game);
+			if (count($area) == 1) $msg = 'Du doch nöd. Chum zrugg!';
+			else $msg = 'Diese '.count($area).' Steine doch nicht als tot betrachten.';
+		}
+		else continue;
+
+		$ret.= '<area shape="rect" coords="'.(($i+1)*FIELDSIZE-LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE-LINKRADIUS)
+										.','.(($i+1)*FIELDSIZE+LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE+LINKRADIUS).'" ';
+		$ret .= 'href="/actions/go_game.php?tpl=699&action=count&move='.$which.'&game='.$gameid.'"';
 		$ret .= 'alt="'.$msg.'"'.'title="'.$msg.'">';
-    }
-
-    if ($game['state'] == 'counting' && $game['nextturn'] == $user->id)
-      for ($i = 0; $i < $size; $i++) for ($j = 0; $j < $size; $j++){
-
-	$which = $i + $j*$size;
-
-	if ($game['board'][$which] == 1 || $game['board'][$which] == 2){
-	    $area = get_area($which, $game);
-	    if (count($area) == 1) $msg = 'Zu den Gefangenen mit dir!';
-	    else $msg = 'Diese '.count($area).' Steine zu den Gefangenen gesellen.';
-	}
-	else if ($game['board'][$which] == 3 || $game['board'][$which] == 4){
-	    $area = get_area($which, $game);
-	    if (count($area) == 1) $msg = 'Du doch nöd. Chum zrugg!';
-	    else $msg = 'Diese '.count($area).' Steine doch nicht als tot betrachten.';
-	}
-	else continue;
-
-	$ret.= '<area shape="rect" coords="'.(($i+1)*FIELDSIZE-LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE-LINKRADIUS)
-	                                .','.(($i+1)*FIELDSIZE+LINKRADIUS).','.(OFFSET_PIC+($j+1)*FIELDSIZE+LINKRADIUS).'" ';
-        $ret .= 'href="/actions/go_game.php?tpl=699&action=count&move='.$which.'&game='.$gameid.'"';
-	$ret .= 'alt="'.$msg.'"'.'title="'.$msg.'">';
     }
 
     $ret .= '</map>';
@@ -608,10 +562,9 @@ function check_hit($which, $game)
     $hit_areas = array();
 
     for ($i = 0; $i < count($neighbours); $i++){
-
-	$area = get_area($neighbours[$i], $game);
-	$freedoms = get_freedoms($game, $area);
-	if (count($freedoms) == 1) for ($k = 0; $k < count($area); $k++) $hit_area[] = $area[$k];
+		$area = get_area($neighbours[$i], $game);
+		$freedoms = get_freedoms($game, $area);
+		if (count($freedoms) == 1) for ($k = 0; $k < count($area); $k++) $hit_area[] = $area[$k];
     }
 
     return $hit_area;
@@ -625,9 +578,8 @@ function check_suicide($which, $game)
 
     $checksuicide = true;
     for ($i = 0; $i < count($neighbours); $i++){
-
-	$freedoms = get_freedoms($game, get_area($neighbours[$i], $game));
-	if (count($freedoms) > 1) $checksuicide = false;
+		$freedoms = get_freedoms($game, get_area($neighbours[$i], $game));
+		if (count($freedoms) > 1) $checksuicide = false;
     }
     if (count(get_neighbours($which, $game, array(0, 3, 4))) == 0 && $checksuicide) return true;
 
@@ -639,9 +591,8 @@ function get_freedoms($game, $area)
     $freedoms = array();
 
     for ($i = 0; $i < count($area); $i++){
-
-	$wholes = get_neighbours($area[$i], $game, array(0, 3, 4));
-	for ($k = 0; $k < count($wholes); $k++) if (!in_array($wholes[$k], $freedoms)) $freedoms[] = $wholes[$k];
+		$wholes = get_neighbours($area[$i], $game, array(0, 3, 4));
+		for ($k = 0; $k < count($wholes); $k++) if (!in_array($wholes[$k], $freedoms)) $freedoms[] = $wholes[$k];
     }
 
     return $freedoms;
@@ -651,8 +602,8 @@ function get_neighbourstones_of_area($game, $area)
 {
     $neighbours = array();
     for ($i = 0; $i < count($area); $i++){
-	$wholes = get_neighbours($area[$i], $game, array(1, 2));
-	for ($k = 0; $k < count($wholes); $k++) if (!in_array($wholes[$k], $neighbours)) $neighbours[] = $wholes[$k];
+		$wholes = get_neighbours($area[$i], $game, array(1, 2));
+		for ($k = 0; $k < count($wholes); $k++) if (!in_array($wholes[$k], $neighbours)) $neighbours[] = $wholes[$k];
     }
 
     return $neighbours;
@@ -665,9 +616,9 @@ function get_area($which, $game)
     $mycolor = $game['board'][$which];
     $mycolors = array();
     if ($mycolor == 0){
-	$mycolors[] = 0;
-	$mycolors[] = 3;
-	$mycolors[] = 4;
+		$mycolors[] = 0;
+		$mycolors[] = 3;
+		$mycolors[] = 4;
     }
     else $mycolors[] = $mycolor;
 
@@ -688,9 +639,9 @@ function get_area_rec($which, $game, $mycolors, $stonesdone)
 
 	$updatestones = get_area_rec($neighbours[$i], $game, $mycolors, $stonesdone);
 	if(is_array($updatestones)) {
-	for ($k = 0; $k < count($updatestones); $k++)
-	  if (!in_array($updatestones[$k], $stonesdone)) $stonesdone[] = $updatestones[$k];
-    }
+		for ($k = 0; $k < count($updatestones); $k++)
+			if (!in_array($updatestones[$k], $stonesdone)) $stonesdone[] = $updatestones[$k];
+    	}
     }
     return $stonesdone;
 }
@@ -723,6 +674,7 @@ function field_equals($x, $y, $game, $items){
 
 
 /**
+ * Read in the game data from db
  *
  * @author [z]bert
  * @author [z]domi
@@ -738,10 +690,8 @@ function field_equals($x, $y, $game, $items){
  */
 function readGame($gameid){
     global $db, $user;
-    $e = $db->query( //read in the game data from db
-		    "SELECT *
-		    FROM go_games g
-		    WHERE g.id = '$gameid'", __FILE__, __LINE__);
+
+    $e = $db->query('SELECT * FROM go_games g WHERE g.id=?', __FILE__, __LINE__, __FUNCTION__, [$gameid]);
     $game = $db->fetch($e);
     if (!$game){
 		user_error( t('error-game-invalid', 'global', $gameid), E_USER_ERROR );
@@ -777,26 +727,15 @@ function writeGame($game)
 		if ($game['round'] >= 0) $game['nextturn'] = ($game['nextturn'] == $game['pl1'] ? $game['pl2'] : $game['pl1']);
 
 		$game['round'] += ($game['nextturn'] == $game['pl2'] ? 1 : 0); //advance a round?
-		$e = $db->query("UPDATE go_games
-			 SET pl1lost='".$game['pl1lost']."', pl2lost='".$game['pl2lost']."', data='".$game['data'].
-			      "', last1='".$game['last1']."', last2='".$game['last2'].
-			      "', ko_sit='".$game['ko_sit']."', nextturn='".$game['nextturn']."', round='".$game['round']."'
-			 WHERE id='".$game['id']."'
-			 AND nextturn='".$user->id."'", __FILE__, __LINE__);
+		$e = $db->query('UPDATE go_games SET pl1lost=?, pl2lost=?, data=?, last1=?, last2=?, ko_sit=?, nextturn=?, round=? WHERE id=? AND nextturn=?',
+			 __FILE__, __LINE__, 'UPDATE go_games', [$game['pl1lost'], $game['pl2lost'], $game['data'], $game['last1'], $game['last2'], $game['ko_sit'], $game['nextturn'], $game['round'], $game['id'], $user->id]);
 
 		/** Gegenspieler benachrichten, dass ein Zug gemacht wurde */
-		if($user->id != $game['nextturn'])
+		if($e !== false && $user->id != $game['nextturn'])
 		{
 			$notification_text = t('message-your-turn', 'go', [ SITE_URL, $game['id'] ]);
 			$notification_status = $notification->send($game['nextturn'], 'games', ['from_user_id'=>$user->id, 'subject'=>t('message-subject', 'go'), 'text'=>$notification_text, 'message'=>$notification_text]);
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" for user=%d to user=%d', __FUNCTION__, __LINE__, ($notification_status===true?'true':'false'), $game['nextturn'], $user->id));
-			/** @deprecated Messagesystem::sendMessage(
-				 $user->id
-				,$game['nextturn']
-				,t('message-subject', 'go')
-				,t('message-your-turn', 'go', [ SITE_URL, $game['id'] ])
-				,$game['nextturn']
-			);*/
 		}
     }
 }
@@ -1124,15 +1063,12 @@ function writeGameCount($game)
 {
     global $db, $user;
 
-    if ($game)
+    if (isset($game['data']))
     {
 		$game['data'] = implode("", $game['board']);
 
-		$e = $db->query("UPDATE go_games
-			 SET data='".$game['data']."', nextturn='".$game['nextturn'].
-			"', countchanged='".$game['countchanged']."'
-			 WHERE id='".$game['id']."'",
-			__FILE__, __LINE__);
+		$e = $db->query('UPDATE go_games SET data=?, nextturn=?, countchanged= WHERE id=?',
+						__FILE__, __LINE__, __FUNCTION__, [$game['data'], $game['nextturn'], $game['countchanged'], $game['id']]);
 
     }
 

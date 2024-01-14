@@ -94,11 +94,11 @@ function save_map ($mapfile) {
 		return $err;
 	}else{
 		$cfg['map']['user'] = $user->id;
-		$mapid = $db->insert("hz_maps", $cfg['map'], __FILE__, __LINE__);
+		$mapid = $db->insert("hz_maps", $cfg['map'], __FILE__, __LINE__, __FUNCTION__);
 		foreach ($cfg['stations'] as $it) {
 			$it['map'] = $mapid;
 			print_array($it);
-			$db->insert("hz_stations", $it, __FILE__, __LINE__);
+			$db->insert("hz_stations", $it, __FILE__, __LINE__, __FUNCTION__);
 		}
 		foreach ($cfg['routes'] as $it) {
 			$transit = "";
@@ -108,11 +108,11 @@ function save_map ($mapfile) {
 			}
 			$it['transit'] = substr($transit, 0, -1);
 			$it['map'] = $mapid;
-			$db->insert("hz_routes", $it, __FILE__, __LINE__);
+			$db->insert("hz_routes", $it, __FILE__, __LINE__, __FUNCTION__);
 		}
 		foreach ($cfg['aims'] as $it) {
 			$it['map'] = $mapid;
-			$db->insert("hz_aims", $it, __FILE__, __LINE__);
+			$db->insert("hz_aims", $it, __FILE__, __LINE__, __FUNCTION__);
 		}
 	}
 }
@@ -121,14 +121,14 @@ function save_map ($mapfile) {
 function change_map_state ($map, $state) {
 	global $db, $user;
 
-	if (!in_array($state, array("active", "inactive"))) user_error("Invalid map state '$state'", E_USER_ERROR);
+	if (!in_array($state, array("active", "inactive"))) user_error("Invalid map state '".$state."'", E_USER_ERROR);
 
-	$e = $db->query("SELECT * FROM hz_maps WHERE id=$map", __FILE__, __LINE__);
+	$e = $db->query('SELECT * FROM hz_maps WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$map]);
 	$d = $db->fetch($e);
 	if ($d['user'] == $user->id) {
-		$db->query("UPDATE hz_maps SET state='$state' WHERE id=$map", __FILE__, __LINE__);
+		$db->query('UPDATE hz_maps SET state=? WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$state, $map]);
 	}else{
-		user_error("Permission denied for change_map_state on map '$map'", E_USER_ERROR);
+		user_error("Permission denied for change_map_state on map '".$map."'", E_USER_ERROR);
 	}
 }
 
@@ -138,12 +138,12 @@ function change_map_state ($map, $state) {
 function station_pos ($map, $id) {
 	global $db;
 
-	$e = $db->query("SELECT * FROM hz_stations WHERE map='$map' AND id='$id'", __FILE__, __LINE__);
+	$e = $db->query('SELECT * FROM hz_stations WHERE map=? AND id=?', __FILE__, __LINE__, __FUNCTION__, [$map, $id]);
 	$d = $db->fetch($e);
 	if ($d) {
 		return array($d['x'], $d['y']);
 	}else{
-		user_error("Invalid station: map '$map', id '$id'", E_USER_ERROR);
+		user_error("Invalid station: map '".$map."', id '".$id."'", E_USER_ERROR);
 	}
 }
 
@@ -245,7 +245,7 @@ function check_config ($cfg) {
 	global $db, $map_stations;
 
 	if (!$cfg['map']['name']) return "Missing 'name' in section [MAP]";
-	$e = $db->query("SELECT * FROM hz_maps WHERE name='".$cfg['map']['name']."'", __FILE__, __LINE__);
+	$e = $db->query('SELECT * FROM hz_maps WHERE name=?', __FILE__, __LINE__, __FUNCTION__, [$cfg['map']['name']]);
 	$d = $db->fetch($e);
 	if ($d) return ("Es gibt schon eine Map mit diesem Namen. Bitte einen anderen Namen wählen.");
 

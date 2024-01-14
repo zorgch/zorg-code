@@ -15,12 +15,38 @@ global $notification;
 $error = null;
 $state = null;
 $access_error = null;
-if (isset($_POST['frm']) && is_array($_POST['frm'])) $frm = (array)$_POST['frm'];
-if (isset($_GET['tpleditor']) && (is_bool($_GET['tpleditor']) || is_numeric($_GET['tpleditor']))) $enable_tpleditor = (bool)$_GET['tpleditor'];
+if (isset($_POST['frm']) && is_array($_POST['frm'])) {
+	$frm['id'] = ($_POST['frm']['id'] === 'new' ? 'new' : (filter_var($_POST['frm']['id'], FILTER_SANITIZE_NUMBER_INT) ?? null));
+	$frm['title'] = filter_var($_POST['frm']['title'], FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
+	$frm['page_title'] = filter_var($_POST['frm']['page_title'], FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+	$frm['word'] = filter_var($_POST['frm']['word'], FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+	$frm['border'] = filter_var($_POST['frm']['border'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
+	$frm['sidebar_tpl'] = filter_var($_POST['frm']['sidebar_tpl'], FILTER_SANITIZE_NUMBER_INT) ?? null;
+	$frm['read_rights'] = filter_var($_POST['frm']['read_rights'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
+	$frm['write_rights'] = filter_var($_POST['frm']['write_rights'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
+	$frm['tpl'] = $_POST['frm']['tpl'];// FIXME better would be: htmlspecialchars($_POST['frm']['tpl'], ENT_QUOTES, 'UTF-8'); --> but this encodes too much within the Smarty Tpl / breaking them for compiling.
+	$frm['menus'] = [];
+	if (isset($_POST['frm']['menus']) && is_array($_POST['frm']['menus'])) {
+		$i=0;
+		for ($i; $i<count($_POST['frm']['menus']); $i++) {
+			$menu_id = filter_var($_POST['frm']['menus'][$i], FILTER_SANITIZE_NUMBER_INT) ?? null;
+			if (!empty($menu_id)) $frm['menus'][] = $menu_id;
+		}
+	}
+	$frm['packages'] = [];
+	if (isset($_POST['frm']['packages']) && is_array($_POST['frm']['packages'])) {
+		$i=0;
+		for ($i; $i<count($_POST['frm']['packages']); $i++) {
+			$package_id = filter_var($_POST['frm']['packages'][$i], FILTER_SANITIZE_NUMBER_INT) ?? null;
+			if (!empty($package_id)) $frm['packages'][] = $package_id;
+		}
+	}
+}
+$enable_tpleditor = filter_input(INPUT_GET, 'tpleditor', FILTER_VALIDATE_BOOL) ?? false; // $_GET['tpleditor']
 unset($_GET['tpleditor']);
-if (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) && $_GET['tplupd'] > 0) $updated_tplid = (int)$_GET['tplupd'];
+$updated_tplid = ($_GET['tplupd'] === 'new' ? 'new' : (filter_input(INPUT_GET, 'tplupd', FILTER_VALIDATE_INT) ?? null)); // $_GET['tplupd']
 unset($_GET['tplupd']);
-if (isset($_GET['location']) && is_string($_GET['location'])) $return_url = base64url_decode((string)$_GET['location']);
+$return_url = base64url_decode(filter_input(INPUT_GET, 'location', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/index.php?tpl='.$updated_tplid; // $_GET['location']
 unset($_GET['location']);
 
 /**
@@ -89,7 +115,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 				$db->query('INSERT INTO templates_backup SELECT * FROM templates WHERE id=?', __FILE__, __LINE__, 'Copy Template to templates_backup', [$frm['id']]);
 
 				$updated_tplid = $frm['id'];
-				$return_url = '/?tpl='.$updated_tplid;
+				$return_url = '/index.php?tpl='.$updated_tplid;
 				$return_url .= '&created=1';
 				$smarty->assign('tplupdnew', 1);
 				$state = t('created', 'tpl', $frm['id']);
@@ -135,11 +161,11 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		{
 			/** Menus: remove all links between Template & Menus, relink selected Menus */
 			$db->query('DELETE FROM tpl_menus WHERE tpl_id=?', __FILE__, __LINE__, 'DELETE FROM tpl_menus', [$frm['id']]);
-			if (!empty($_POST['frm']['menus']))
+			if (!empty($frm['menus']))
 			{
 				$tplmenusInsertData = [];
 				$params = [];
-				foreach ($_POST['frm']['menus'] as $menu_id) {
+				foreach ($frm['menus'] as $menu_id) {
 					if ($menu_id > 0) {
 						$tplmenusInsertData[] = '(?, ?)';
 						$params[] = $frm['id'];
@@ -153,11 +179,11 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 
 			/** Packages: remove all links between Template & Packages, relink selected Packages */
 			$db->query('DELETE FROM tpl_packages WHERE tpl_id=?', __FILE__, __LINE__, 'DELETE FROM tpl_packages', [$frm['id']]);
-			if (!empty($_POST['frm']['packages']))
+			if (!empty($frm['packages']))
 			{
 				$tplpackagesInsertData = [];
 				$params = [];
-				foreach ($_POST['frm']['packages'] as $package_id) {
+				foreach ($frm['packages'] as $package_id) {
 					if (!empty($package_id)) {
 						$tplpackagesInsertData[] = '(?, ?)';
 						$params[] = $frm['id'];
@@ -226,7 +252,7 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 	{
 		/** Unlock Template for editing - only if no $error occurred */
 		tpleditor_unlock($updated_tplid);
-		if (!isset($return_url) || empty($return_url)) $return_url = '/?tpl='.$updated_tplid;
+		if (!isset($return_url) || empty($return_url)) $return_url = '/index.php?tpl='.$updated_tplid;
 		$return_url .= '&updated=1';
 
 		$updated_tplid = null;

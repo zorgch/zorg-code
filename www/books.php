@@ -35,17 +35,24 @@ $postAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCAL
  *
  * Gibt Kategorie aus books_title zurück
  *
- * @return string title
  * @param $kat_id int
+ * @return string title
  */
 function get_title($kat_id)
 {
 	global $db;
-	$sql = 'SELECT typ FROM books_title WHERE id=?';
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$kat_id]);
-	$rs = $db->fetch($result);
 
-	return $rs['typ'];
+	$book_categoryid = filter_var($kat_id, FILTER_VALIDATE_INT) ?? null;
+
+	if ($book_categoryid > 0) {
+		$sql = 'SELECT typ FROM books_title WHERE id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$kat_id]);
+		$rs = $db->fetch($result);
+
+		return htmlspecialchars($rs['typ'], ENT_QUOTES, 'UTF-8');
+	} else {
+		return false;
+	}
 }
 
 /***************/
@@ -294,7 +301,7 @@ if (empty($doAction))
 	{
 		/** Eingabe Screen für neue Kategorie */
 		$sidebarHtml .= '<h2>Neue Kategorie</h2>'
-			.'<form action="'.htmlentities($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
+			.'<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
 			.'<input type="hidden" name="do" value="insert_titel">'
 			.'<table cellpadding="1" cellspacing="1" width="400" class="border" align="center">'
 			.'<tr><td align="left" style="font-weight: 600;">'
@@ -459,7 +466,7 @@ elseif ($doAction === 'edit' && $user->is_loggedin())
 		$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books', [$book_id]);
 		$rs = $db->fetch($result);
 
-		echo "<form action='$_SERVER[PHP_SELF]' method='post' enctype='multipart/form-data'>"
+		echo "<form action='".htmlspecialchars($_SERVER['PHP_SELF'])."' method='post' enctype='multipart/form-data'>"
 			.'<input type="hidden" name="do" value="edit_now">'
 			.'<input type="hidden" name="book_id" value="'.$rs["id"].'">'
 
@@ -555,7 +562,7 @@ elseif ($doAction === 'add' && $user->is_loggedin())
 	$smarty->display('file:layout/head.tpl');
 
 	echo '<h2>Add Boook</h2>'
-		.'<form action="'.$_SERVER['PHP_SELF'].'" method="post" enctype="multipart/form-data">'
+		.'<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
 		.'<input type="hidden" name="do" value="add_now">'
 
 		.'<table width="'.$mainwidth.'"><tr><td align="left" class="title">'
@@ -685,7 +692,7 @@ elseif ($doAction === 'my' && $user_id>0)
 	$result = $db->query($sql, __FILE__, __LINE__, 'SELECT DISTING books', [$user_id]);
 	while($rs = $db->fetch($result))
 	{
-		$htmlOutput .= '<h4>'.get_title($rs['titel_id']).'</h4>';
+		$htmlOutput .= '<h4>'.get_title(intval($rs['titel_id'])).'</h4>';
 		$htmlOutput .= '<ul>';
 		$sql = 'SELECT DISTINCT parent_id
 				FROM books, books_holder
@@ -697,7 +704,7 @@ elseif ($doAction === 'my' && $user_id>0)
 		$result2 = $db->query($sql, __FILE__, __LINE__);
 		while($rs2 = $db->fetch($result2))
 		{
-			$htmlOutput .= "<li>".get_title($rs2['parent_id'])."</li><ul>";
+			$htmlOutput .= "<li>".get_title(intval($rs2['parent_id']))."</li><ul>";
 			$sql = 'SELECT * FROM books, books_holder
 					WHERE books.titel_id=? AND books.parent_id=? AND books.id = books_holder.book_id AND books_holder.user_id=?';
 			$result3 = $db->query($sql, __FILE__, __LINE__, 'SELECT books_holder', [$rs['titel_id'], $rs2['parent_id'], $user_id]);

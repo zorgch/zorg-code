@@ -12,7 +12,7 @@
  * File Includes
  * @include go_game.inc.php Required
  */
-require_once dirname(__FILE__).'/../includes/config.inc.php';
+require_once __DIR__.'/../includes/config.inc.php';
 require_once INCLUDES_DIR.'go_game.inc.php';
 
 /**
@@ -21,7 +21,7 @@ require_once INCLUDES_DIR.'go_game.inc.php';
 global $db, $user, $smarty;
 
 /** Validate and set passed Game-ID */
-$gameid = (isset($_GET['game']) && is_numeric($_GET['game']) ? $_GET['game'] : null);
+$gameid = filter_input(INPUT_GET, 'game', FILTER_VALIDATE_INT) ?? null;
 
 /** No Game-ID supplied, choose one randomly */
 if (empty($gameid))
@@ -30,14 +30,7 @@ if (empty($gameid))
 	if ($user->is_loggedin())
 	{
 		$notice = 'SELECT a GO-Game of the User';
-		$e = $db->query('SELECT g.id FROM go_games g
-						 WHERE g.nextturn='.$user->id.'
-						   AND g.state="running"
-						 OR g.nextturn='.$user->id.'
-						   AND g.state="counting"
-						 ORDER BY RAND()
-						 LIMIT 1'
-						 ,__FILE__, __LINE__, $notice);
+		$e = $db->query('SELECT g.id FROM go_games g WHERE g.nextturn=? AND g.state="running" OR g.nextturn=? AND g.state="counting" ORDER BY RAND() LIMIT 1', __FILE__, __LINE__, $notice, [$user->id, $user->id]);
 		$gameid = $db->fetch($e);
 		$gameid = $gameid['id'];
 
@@ -45,36 +38,28 @@ if (empty($gameid))
 		if (!$gameid)
 		{
 			$notice = 'SELECT random GO-Game for logged-in';
-			$e = $db->query('SELECT g.id FROM go_games g
-							 WHERE g.state="running"
-							 OR g.state="counting"
-							 ORDER BY RAND()
-							 LIMIT 1'
-							 ,__FILE__, __LINE__, $notice);
+			$e = $db->query('SELECT g.id FROM go_games g WHERE g.state="running" OR g.state="counting" ORDER BY RAND() LIMIT 1',
+							 __FILE__, __LINE__, $notice);
 			$gameid = $db->fetch($e);
 			$gameid = $gameid['id'];
 		}
 	}
-	
+
 	/** Für nicht-eingeloggte */
 	else {
 		$notice = 'SELECT random GO-Game for Guests';
-		$e = $db->query('SELECT g.id FROM go_games g
-						 WHERE g.state="running"
-						 OR g.state="counting"
-						 ORDER BY RAND()
-						 LIMIT 1'
-						 ,__FILE__, __LINE__, $notice);
+		$e = $db->query('SELECT g.id FROM go_games g WHERE g.state="running" OR g.state="counting" ORDER BY RAND() LIMIT 1',
+						 __FILE__, __LINE__, $notice);
 		$gameid = $db->fetch($e);
 		$gameid = $gameid['id'];
 	}
 }
 
 /** Load Game Details */
-if (is_numeric($gameid))
+if (!empty($gameid) && $gameid>0)
 {
 	$notice = 'Load GO-Game Details';
-	$e = $db->query('SELECT * FROM go_games g WHERE g.id='.$gameid.' LIMIT 1', __FILE__, __LINE__, $notice);
+	$e = $db->query('SELECT * FROM go_games g WHERE g.id=? LIMIT 1', __FILE__, __LINE__, $notice, [$gameid]);
 	$game = $db->fetch($e);
 }
 

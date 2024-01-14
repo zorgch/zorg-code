@@ -24,7 +24,7 @@ require_once INCLUDES_DIR.'main.inc.php';
  */
 function html_syntax_check ($str) {
 	$res = array();
-	$err = "";
+	$err = null;
 	$pos = 0;
 
 	/** comments rausnehmen */

@@ -31,29 +31,32 @@ if ($user->is_loggedin())
 		if (!@file_exists(USERPATH)) @mkdir(USERPATH, 0775);
 
 		if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-			$e = $db->query('SELECT SUM(size) size FROM files WHERE user=?', __FILE__, __LINE__, 'SELECT FROM files', [$user->id]);
-			$d = $db->fetch($e);
-			if ($d['size'] + $_FILES['file']['size'] <= MAX_DISCSPACE) {
-				if (file_exists(USERPATH.$_FILES['file']['name']))  {
-					$index = 0;
-					do {
-						$index++;
-						$filename = file_name($_FILES['file']['name']) . " ($index)" . file_ext($_FILES['file']['name']);
-					} while (file_exists(USERPATH.$filename));
+			$e = $db->query('SELECT SUM(size) size FROM files WHERE user=? LIMIT 1', __FILE__, __LINE__, 'SELECT FROM files', [$user->id]);
+			if ($e !== false && $db->num($e) > 0)
+			{
+				$d = $db->fetch($e);
+				if ($d['size'] + $_FILES['file']['size'] <= MAX_DISCSPACE) {
+					if (file_exists(USERPATH.$_FILES['file']['name']))  {
+						$index = 0;
+						do {
+							$index++;
+							$filename = file_name($_FILES['file']['name']) . " ($index)" . file_ext($_FILES['file']['name']);
+						} while (file_exists(USERPATH.$filename));
+					}else{
+						$filename = filter_var(basename($_FILES['file']['name']), FILTER_DEFAULT);
+					}
+					if (@move_uploaded_file($_FILES['file']['tmp_name'], USERPATH.$filename)) {
+						chmod(USERPATH.$filename, 0664);
+						$db->query('INSERT INTO files (user, upload_date, name, size, mime)
+									VALUES (?, ?, ?, ?, ?)', __FILE__, __LINE__, 'INSERT INTO files'
+									,[$user->id, timestamp(true), $filename, $_FILES['file']['size'], $_FILES['file']['type']]);
+						$state = "File hinzugefügt. <br />";
+					}else{
+						$error = "Datei-Indizierung fehlgeschlagen. <br />";
+					}
 				}else{
-					$filename = $_FILES['file']['name'];
+					$error = "Maximale Disc Quota überschritten. <br />";
 				}
-				if (@move_uploaded_file($_FILES['file']['tmp_name'], USERPATH.$filename)) {
-					chmod(USERPATH.$filename, 0664);
-					$db->query('INSERT INTO files (user, upload_date, name, size, mime)
-								VALUES (?, ?, ?, ?, ?)', __FILE__, __LINE__, 'INSERT INTO files'
-								,[$user->id, timestamp(true), $filename, $_FILES['file']['size'], $_FILES['file']['type']]);
-					$state = "File hinzugefügt. <br />";
-				}else{
-					$error = "Datei-Indizierung fehlgeschlagen. <br />";
-				}
-			}else{
-				$error = "Maximale Disc Quota überschritten. <br />";
 			}
 		}else{
 			$error = "Datei-Upload fehlgeschlagen. <br />";

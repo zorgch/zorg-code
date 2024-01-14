@@ -10,6 +10,7 @@
  */
 require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
+include_once INCLUDES_DIR.'usersystem.inc.php';
 include_once INCLUDES_DIR.'addle.inc.php';
 include_once INCLUDES_DIR.'apod.inc.php';
 include_once INCLUDES_DIR.'bugtracker.inc.php';
@@ -705,34 +706,34 @@ function var_request ()
 	}
 
 /** Addle */
-    function smarty_addle_highscore ($params) {
-	    // wrapper function for addle highscore
-        if (!isset($params['anzahl'])) $params['anzahl'] = 5;
-        return highscore_dwz($params['anzahl']);
-    }
-	/*function smarty_addle_highscore ($params) {
-      if (!isset($params[anzahl])) $params[anzahl] = 5;
-      return highscore_dwz($params[anzahl]);
-    }*/
+function smarty_addle_highscore ($params) {
+	// wrapper function for addle highscore
+	if (!isset($params['anzahl'])) $params['anzahl'] = 5;
+	return highscore_dwz($params['anzahl']);
+}
+/*function smarty_addle_highscore ($params) {
+	if (!isset($params[anzahl])) $params[anzahl] = 5;
+	return highscore_dwz($params[anzahl]);
+}*/
 
 /** Peter */
 function smarty_peter ($params, &$smarty) {
-		$smarty->assign('peter_zuege', peter::peter_zuege());
-	}
+	$smarty->assign('peter_zuege', peter::peter_zuege());
+}
 
 /** Shoot the Lamber */
-	function smarty_stl_games ($params, &$smarty) {
-		$smarty->assign('stl_shots', stl::getOpenSTLLink());
-		$smarty->assign('stl_open_games', stl::getOpenSTLGames());
-	}
+function smarty_stl_games ($params, &$smarty) {
+	$smarty->assign('stl_shots', stl::getOpenSTLLink());
+	$smarty->assign('stl_open_games', stl::getOpenSTLGames());
+}
 
 /** Quotes */
-    function smarty_getrandomquote ($params) {
-	   return Quotes::getRandomQuote(true);
-	}
-	function smarty_getdailyquote ($params) {
-		return Quotes::getDailyQuote();
-	}
+function smarty_getrandomquote ($params) {
+	return Quotes::getRandomQuote(true);
+}
+function smarty_getdailyquote ($params) {
+	return Quotes::getDailyQuote();
+}
 
 /**
  * Polls

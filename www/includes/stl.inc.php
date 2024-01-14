@@ -84,7 +84,19 @@ include_once INCLUDES_DIR.'util.inc.php';
  * @version 1.0
  * @package zorg\Games\STL
  */
-class stl {
+class stl
+{
+	/**
+	 * Class Vars
+	 */
+	public $game = null;
+	public $config = [];
+	public $data = [];
+	public $case = null;
+	public $shoot_field = null;
+	public $add = [];
+	public $team_id = null;
+	public $message = null;
 
 	/**
 	 * Shoot The Lamber Spielfeld
@@ -96,12 +108,16 @@ class stl {
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return stl
 	 */
-	function __construct() {
+	function __construct($game=null)
+	{
 		global $db, $user;
+
+		if (!empty($game) && $game>0) $this->game = intval($game);
+
 		//Feldchengrösse
 		$this->case = 20;
 		//Posts
-		$this->exec();
+		self::exec();
 
 		/** Legende */
 		$this->data['legende'] = '<br><br><br>
@@ -177,22 +193,16 @@ class stl {
 		Meerfarbene Felder mit einer Namensabkürzung kennzeichnen gesunkene Teammitglieder
 		</td></tr></table>';
 
-		if(!empty($_GET['game_id']) && $_GET['game_id'] > 0) {
-			$sql = 'SELECT * FROM stl WHERE game_id = '.$_GET['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		if(!empty($this->game) && $this->game > 0) {
+			$sql = 'SELECT * FROM stl WHERE game_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->game]);
 
 			/** Game-ID exists (Game can be loaded) */
-			if ($db->num($result) == 1 && $user->is_loggedin()) {
+			if ($db->num($result) === 1 && $user->is_loggedin()) {
 				$this->data['stl'] = $db->fetch($result);
 
-				$sql = 'SELECT
-							team_id
-						FROM stl_players
-						WHERE
-							user_id = '.$user->id.'
-							AND
-							game_id = '.$this->data['stl']['game_id'];
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'SELECT team_id FROM stl_players WHERE user_id=? AND game_id=?';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $this->data['stl']['game_id']]);
 				$rs = $db->fetch($result);
 				$this->data['team_id'] = $rs['team_id'];
 
@@ -204,7 +214,7 @@ class stl {
 				$this->data['msg'][6] = 'Ihre Mannschaft lädt gerade die Torpedorohre, %s wieder schiessbereit!';
 				$this->data['msg'][7] = 'Kommandant, die Schlacht ist vorbei!';
 
-				$this->game();
+				self::game();
 
 			/** Invalid Game-ID - Game couldn't be loaded */
 			} else {
@@ -213,7 +223,7 @@ class stl {
 
 		/** No $_GET['game_id'] Game-ID passed */
 		} else {
-			$this->overview();
+			self::overview();
 			//user_error(t('error-game-invalid', 'global', $_GET['game_id']), E_USER_NOTICE);
 		}
 	}
@@ -230,18 +240,10 @@ class stl {
 	function teams() {
 		global $db, $user;
 
-		$sql = 'SELECT
-					stl_players.user_id as user_id,
-					stl_players.team_id as team_id,
-					stl_positions.*
-				FROM stl_players
-					INNER JOIN stl_positions
-						ON stl_players.user_id = stl_positions.ship_user_id
-				WHERE
-					stl_players.game_id = '.$this->data['stl']['game_id'].'
-					AND stl_positions.game_id = '.$this->data['stl']['game_id'].'
-				ORDER BY hit_user_id ASC';
-		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT stl_players.user_id as user_id, stl_players.team_id as team_id, stl_positions.* FROM stl_players
+					INNER JOIN stl_positions ON stl_players.user_id = stl_positions.ship_user_id
+				WHERE stl_players.game_id=? AND stl_positions.game_id=? ORDER BY hit_user_id ASC';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $this->data['stl']['game_id']]);
 
 		while($rs = $db->fetch($result))
 		{
@@ -263,25 +265,15 @@ class stl {
 	 */
 	function check4join() {
 		global $db, $user;
-		$sql = 'SELECT
-					game_id
-				FROM stl
-				WHERE status = 0
-				AND game_id = '.$this->data['stl']['game_id'];
-		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT game_id FROM stl WHERE status = 0 AND game_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 		if($db->num($result)) {
-			$sql = 'SELECT
-						user_id
-					FROM stl_players
-					WHERE
-						game_id = '.$this->data['stl']['game_id'].'
-						AND user_id = '.$user->id;
-			$result = $db->query($sql);
+			$sql = 'SELECT user_id FROM stl_players WHERE game_id=? AND user_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $user->id]);
 			//wenn spieler noch nicht eingetragen ist
 			if(!$db->num($result)) {
-				$sql = sprintf('INSERT INTO stl_players (game_id, user_id)
-								VALUES (%d, %d)', $this->data['stl']['game_id'], $user->id);
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'INSERT INTO stl_players (game_id, user_id) VALUES (?, ?)';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $user->id]);
 
 				/** Activity Eintrag auslösen */
 				Activities::addActivity($user->id, 0, t('activity-joingame', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ]), 'sl');
@@ -300,59 +292,26 @@ class stl {
 	function check4finish() {
 		global $db, $user;
 
-		$sql = 'SELECT
-					pos_id
-				FROM stl_positions
-				WHERE
-					game_id = '.$this->data['stl']['game_id'].'
-					AND
-					ship_team_id = 1
-					AND
-					hit_team_id = 0
-					AND
-					ship_user_id <> 0
-					AND
-					hit_user_id <> 0';
-		$win_team_gelb = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT pos_id FROM stl_positions WHERE game_id=? AND ship_team_id = 1 AND hit_team_id = 0 AND ship_user_id <> 0 AND hit_user_id <> 0';
+		$win_team_gelb = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 
-		$sql = 'SELECT
-					pos_id
-				FROM stl_positions
-				WHERE
-					game_id = '.$this->data['stl']['game_id'].'
-					AND
-					ship_team_id = 0
-					AND
-					hit_team_id = 1
-					AND
-					ship_user_id <> 0
-					AND
-					hit_user_id <> 0';
-		$win_team_gruen = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT pos_id FROM stl_positions WHERE game_id=? AND ship_team_id = 0 AND hit_team_id = 1 AND ship_user_id <> 0 AND hit_user_id <> 0';
+		$win_team_gruen = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 
-		if($db->num($win_team_gelb) == ($this->data['stl']['num_players'] / 2)) {
-			/*$sql = 'UPDATE stl
-						set
-						status = 2,
-						winner_team = 0
-					WHERE
-						game_id = '.$_GET['game_id'];
-			$db->query($sql,__FILE__,__LINE__,__METHOD__);*/
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $game_id %d: %s', __METHOD__, __LINE__, $this->data['stl']['game_id'], t('activity-won-gelb', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ])));
+		if($db->num($win_team_gelb) == ($this->data['stl']['num_players'] / 2))
+		{
+			/*$sql = 'UPDATE stl SET status = 2, winner_team = 0 WHERE game_id=?';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->game]);*/
+			zorgDebugger::log()->debug('$game_id %d: %s', [$this->data['stl']['game_id'], t('activity-won-gelb', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ])]);
 			$result = $db->update('stl', ['game_id', $this->data['stl']['game_id']], ['status' => 2, 'winner_team' => 0],__FILE__,__LINE__,__METHOD__);
 
 			/** Activity Eintrag auslösen */
 			if (!empty($result) && $result > 0) Activities::addActivity($user->id, 0, t('activity-won-gelb', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ]), 'sl');
 		}
 		if($db->num($win_team_gruen) == ($this->data['stl']['num_players'] / 2)) {
-			/*$sql = 'UPDATE stl
-						set
-						status = 2,
-						winner_team = 1
-					WHERE
-						game_id = '.$_GET['game_id'];
-			$db->query($sql,__FILE__,__LINE__,__METHOD__);*/
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $game_id %d: %s', __METHOD__, __LINE__, $this->data['stl']['game_id'], t('activity-won-gruen', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ])));
+			/*$sql = 'UPDATE stl SET status = 2, winner_team = 1 WHERE game_id=?';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->game]);*/
+			zorgDebugger::log()->debug('$game_id %d: %s', [$this->data['stl']['game_id'], t('activity-won-gruen', 'stl', [ SITE_URL, $this->data['stl']['game_id'], $this->config['game_title'] ])]);
 			$result = $db->update('stl', ['game_id', $this->data['stl']['game_id']], ['status' => 2, 'winner_team' => 1],__FILE__,__LINE__,__METHOD__);
 
 			/** Activity Eintrag auslösen */
@@ -372,14 +331,12 @@ class stl {
 	{
 		global $db;
 
-		$sql = 'SELECT count(user_id) as num FROM stl_players WHERE game_id = '.$this->data['stl']['game_id'];
-		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT count(user_id) as num FROM stl_players WHERE game_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 		$rs = $db->fetch($result);
 		if($rs['num'] == $this->config['num_players']) {
-			$sql = 'SELECT *
-					FROM stl_players
-					WHERE game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT * FROM stl_players WHERE game_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 			while($rs = $db->fetch($result)) {
 				$players[] = $rs['id'];
 			}
@@ -394,8 +351,8 @@ class stl {
 				$i++;
 			}
 
-			$sql = 'SELECT * FROM stl_players WHERE game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT * FROM stl_players WHERE game_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 			while($rs = $db->fetch($result)) {
 
 				//grid array erstellen
@@ -427,37 +384,26 @@ class stl {
 					}
 				}
 				//position
-				$sql = 'INSERT INTO stl_positions (game_id, grid_x, grid_y, ship_user_id, shoot_date)
-						VALUES ('.$this->data['stl']['game_id'].','.$grid_x.','.$grid_y.','.$rs['user_id'].', NOW())';
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'INSERT INTO stl_positions (game_id, grid_x, grid_y, ship_user_id, shoot_date) VALUES (?, ?, ?, ?, ?)';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $grid_x, $grid_y, $rs['user_id'], timestamp(true)]);
 
 			}
 
 			/** team_id in positions table schreiben */
-			$sql = 'SELECT
-						team_id,
-						game_id,
-						user_id
-					FROM stl_players
-					WHERE game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT team_id, game_id, user_id FROM stl_players WHERE game_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 			while($rs = $db->fetch($result))
 			{
-				$sql = 'UPDATE stl_positions
-						SET
-							ship_team_id = '.$rs['team_id'].'
-						WHERE
-							ship_user_id = '.$rs['user_id'].'
-							AND game_id = '.$this->data['stl']['game_id'];
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'UPDATE stl_positions SET ship_team_id=? WHERE ship_user_id=? AND game_id=?';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__, [$rs['team_id'], $rs['user_id'], $this->data['stl']['game_id']]);
 			}
 
 			/** game starten */
-			$sql = 'UPDATE stl set status = 1 WHERE game_id = '.$this->data['stl']['game_id'];
-			$db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'UPDATE stl set status = 1 WHERE game_id=?';
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
+			header('Location: '.getURL(false,false).'?do=game&game_id='.$this->data['stl']['game_id']);
 			exit;
 		}
 	}
@@ -473,8 +419,8 @@ class stl {
 	function game()
 	{
 		global $db, $user;
-		$sql = 'SELECT * FROM stl WHERE game_id = '.$this->data['stl']['game_id'];
-		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT * FROM stl WHERE game_id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 		$this->config = $db->fetch($result);
 
 		if (!empty($this->config['game_title'])) $this->data['game'] .= '<h2>'.$this->config['game_title'].'</h2>';
@@ -487,10 +433,8 @@ class stl {
 			//Prüfen ob das game gestartet werden kann (genügend spieler)
 			$this->check4start();
 
-			$sql = 'SELECT user_id
-					FROM stl_players
-					WHERE game_id ='.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT user_id FROM stl_players WHERE game_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 
 			$this->data['game'] .= '<div>';
 			$this->data['game'] .= '<h4>Spieler bis jetzt:</h4>';
@@ -511,48 +455,25 @@ class stl {
 		{
 			//Prüfen ob das Spiel beendet werden kann (status<2) - wenn es noch nicht beendet ist (status=2)
 			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> STL-Game Status: %d', __METHOD__, __LINE__, $this->data['stl']['status']));
-			if ($this->data['stl']['status'] < 2) $this->check4finish();
+			if ($this->data['stl']['status'] < 2) self::check4finish();
 
 			//Teams zuweisung ausführen und daten generieren
-			$this->teams();
+			self::teams();
 
 			//Grid Infos
-			$sql = 'SELECT
-						stl_positions.grid_x as grid_x,
-						stl_positions.grid_y as grid_y,
-						stl_positions.hit_user_id as hit_user_id,
-						stl_positions.hit_team_id as hit_team_id,
-						stl_positions.ship_user_id as ship_user_id,
-						stl_positions.ship_team_id as ship_team_id,
-						stl_positions.shoot_date as shoot_date,
-						stl_players.team_id as team_id,
-						user.username as username
-					FROM stl_positions
-						LEFT JOIN stl_players
-							ON
-							stl_players.game_id = stl_positions.game_id
-							AND
-							stl_players.user_id = stl_positions.ship_user_id
-						LEFT JOIN user
-							ON
-							user.id = stl_positions.ship_user_id
-					WHERE
-						stl_positions.game_id = '.$this->data['stl']['game_id'];
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT stl_positions.grid_x as grid_x, stl_positions.grid_y as grid_y, stl_positions.hit_user_id as hit_user_id, stl_positions.hit_team_id as hit_team_id, stl_positions.ship_user_id as ship_user_id, stl_positions.ship_team_id as ship_team_id, stl_positions.shoot_date as shoot_date, stl_players.team_id as team_id, user.username as username FROM stl_positions
+						LEFT JOIN stl_players ON stl_players.game_id = stl_positions.game_id AND stl_players.user_id = stl_positions.ship_user_id
+						LEFT JOIN user ON user.id = stl_positions.ship_user_id
+					WHERE stl_positions.game_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 			//erstellung eines daten-arrays (ist einfachen beim erstellen des grids
 			while($rs = $db->fetch($result)) {
 				$this->data['game_data'][$rs['grid_y']][$rs['grid_x']] = $rs;
 			}
 
 			//Team ID zuweisungen
-			$sql = 'SELECT
-						team_id
-					FROM stl_players
-					WHERE
-						game_id = '.$this->data['stl']['game_id'].'
-						AND
-						user_id = '.$user->id;
-			$result = $db->query($sql);
+			$sql = 'SELECT team_id FROM stl_players WHERE game_id=? AND user_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $user->id]);
 			//team zuweisung
 			if($db->num($result)) {
 				$rs = $db->fetch($result);
@@ -562,34 +483,21 @@ class stl {
 			}
 
 			//Messages
-			if($_GET['msg']) {
+			if(!empty($this->message)) {
 				//Bei übergabe
-				$msg = $this->data['msg'][$_GET['msg']];
+				$msg = $this->data['msg'][$this->message];
 			//normalerweise
 			} else {
 				//Prüfen ob der Spieler getroffen wurde
-				$sql = 'SELECT
-							hit_user_id
-						FROM stl_positions
-						WHERE
-							ship_user_id = '.$user->id.'
-							AND
-							game_id = '.$this->data['stl']['game_id'];
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'SELECT hit_user_id FROM stl_positions WHERE ship_user_id=? AND game_id=?';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $this->data['stl']['game_id']]);
 				$rs = $db->fetch($result);
 				//Wenn der spieler noch im spiel ist
 				if($rs['hit_user_id'] == 0) {
 					/** Prüfen wann Seine Torpedos wieder geladen sind (kein query-result = schussbereit) */
-					$sql = 'SELECT
-								 game_id
-								,UNIX_TIMESTAMP(last_shoot) as last_shoot
-								,UNIX_TIMESTAMP(last_shoot+INTERVAL 1 HOUR) as next_shoot
-							FROM stl_players
-							WHERE
-								game_id = '.$this->data['stl']['game_id'].'
-								AND user_id = '.$user->id.'
-								AND last_shoot > (NOW() - INTERVAL 1 HOUR)';
-					$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+					$sql = 'SELECT game_id, UNIX_TIMESTAMP(last_shoot) as last_shoot, UNIX_TIMESTAMP(last_shoot+INTERVAL 1 HOUR) as next_shoot
+							FROM stl_players WHERE game_id=? AND user_id=? AND last_shoot>(?-INTERVAL 1 HOUR)';
+					$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $user->id, timestamp(true)]);
 
 					/** Zuweisung der Message wenn geladen wird oder nicht */
 					if ($db->num($result)) {
@@ -766,72 +674,6 @@ class stl {
 							</b>
 							</td>';
 						}
-
-						/* FIXME
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 697
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 710
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 711
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 712
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 723
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 724
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 737
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 9 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 738
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 650
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 659
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 671
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 686
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 697
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 710
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 711
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 712
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 723
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 724
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 737
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 10 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 738
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 650
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 659
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 671
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 686
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 697
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 710
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 711
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 712
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 723
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 724
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 737
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						PHP Notice:  Undefined offset: 11 in /srv/zorg.ch/www/public/includes/stl.inc.php on line 738
-						PHP Notice:  Trying to access array offset on value of type null in /srv/zorg.ch/www/public/includes/stl.inc.php $
-						*/
 					}
 				}
 				$this->data['game'] .= "</tr>";
@@ -867,28 +709,10 @@ class stl {
 		if ($user->is_loggedin())
 		{
 			/** selektiert games bei denen ich mitmache */
-			$sql = 'SELECT
-						stl.game_id as game_id,
-						stl.game_title as game_title,
-						stl.game_size as game_size,
-						stl.num_players as num_players,
-						stl.status as status,
-						user.username as username,
-						HOUR(stl_players.last_shoot) as last_shoot,
-						HOUR(now()) as akt
-					FROM stl
-						LEFT JOIN stl_players
-							ON
-							stl_players.game_id = stl.game_id
-						LEFT JOIN user
-							ON
-							user.id = stl.creator_id
-					WHERE
-						stl_players.user_id = '.$user->id.'
-						AND
-						stl.status <> 2
-					ORDER by stl.status DESC';
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT stl.game_id as game_id, stl.game_title as game_title, stl.game_size as game_size, stl.num_players as num_players, stl.status as status, user.username as username, HOUR(stl_players.last_shoot) as last_shoot, HOUR(NOW()) as akt FROM stl
+						LEFT JOIN stl_players ON stl_players.game_id = stl.game_id LEFT JOIN user ON user.id = stl.creator_id
+					WHERE stl_players.user_id=? AND stl.status<>2 ORDER by stl.status DESC';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id]);
 
 			/** wenns spiele gibt bei denen ich mitmachen */
 			if($db->num($result)) {
@@ -910,32 +734,17 @@ class stl {
 			}
 
 			/** selektiert games bei denen ich nicht mitmache und noch joinen kann */
-			$sql = 'SELECT
-						stl.game_id as game_id,
-						stl.game_title as game_title,
-						stl.game_size as game_size,
-						stl.num_players as num_players,
-						stl.status as status,
-						user.username as username
-					FROM stl
-						LEFT JOIN stl_players
-							ON
-							stl_players.game_id = stl.game_id
-						LEFT JOIN user
-							ON
-							user.id = stl.creator_id
-					WHERE
-						stl_players.user_id <> '.$user->id.'
-						AND
-						stl.status = 0';
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT stl.game_id as game_id, stl.game_title as game_title, stl.game_size as game_size, stl.num_players as num_players, stl.status as status, user.username as username FROM stl
+						LEFT JOIN stl_players ON stl_players.game_id = stl.game_id LEFT JOIN user ON user.id = stl.creator_id
+					WHERE stl_players.user_id<>? AND stl.status=0';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id]);
 
 			/** wenns games gibt wo ich nicht mitmache */
 			if($db->num($result)) {
 				$this->data['overview'] .= '<h3>Offene Spiele:<br><small style="font-weight:normal;">(hier könnt ihr noch joinen, klicken um zu joinen)</small></h3>';
 
 				while($rs = $db->fetch($result)) {
-					if($old != $rs['game_id']) {
+					if($old != $rs['game_id']) { // FIXME what & where is $old?
 						$this->data['overview'] .= '<a href="?do=game&amp;game_id='.$rs['game_id'].'">'.strip_tags($rs['game_title']).' <small>('.$rs['game_size'].' x '.$rs['game_size'].'), '.$rs['num_players'].'</small></a><br />';
 					}
 					$old = $rs['game_id'];
@@ -984,52 +793,44 @@ class stl {
 	function exec() {
 		global $db, $user;
 
-		$go = false;
 		//Wenn POST ist
-		if(count($_POST) > 1) {
-			if($_POST['num_players'] && $_POST['game_title'] && $_POST['game_size']) {
+		if(count($_POST) > 1)
+		{
+			/** Validate inputs */
+			$game_size = filter_input(INPUT_POST, 'game_size', FILTER_SANITIZE_NUMBER_INT) ?? 5;
+			$num_players = filter_input(INPUT_POST, 'num_players', FILTER_SANITIZE_NUMBER_INT) ?? 6;
+			$game_name = filter_input(INPUT_POST, 'game_title', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? 'STLv2 Game';
+			$redirectUrl = getURL(false, false);
 
-				//spielfeld grösse korrekturen
-				$game_size = ($_POST['game_size'] > 23) ? 23 : $_POST['game_size'];
-				$game_size = ($game_size < 5) ? 5 : $game_size;
+			//spielfeld grösse korrekturen
+			if ($game_size < 5) $game_size = 5;
+			if ($game_size > 23) $game_size = 23;
+			//anzahl spieler korrekturen
+			if ($num_players < 6) $num_players = 6;
+			if ($num_players > 24) $num_players = 24;
+			if (($num_players % 2) === 1) $num_players++;
 
-				//anzahl spieler korrekturen
-				$num_players = ($_POST['num_players'] > 24) ? 24 : $_POST['num_players'];
-				$num_players = ($num_players < 6) ? 6 : $num_players;
-
-				//wenn spieler anzahl ungerade ist
-				if(($num_players % 2) == 1) { $num_players++; }
-
+			if($num_players >= 6 && $game_size >= 5 && !empty($game_name))
+			{
 				//game erstellen
-				$sql = 'INSERT into stl
-							(game_size, status, creator_id, game_title, num_players)
-						VALUES
-							('.$game_size.',0,'.$user->id.',"'.$_POST['game_title'].'",'.$num_players.')';
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'INSERT into stl (game_size, status, creator_id, game_title, num_players) VALUES (?, 0, ?, ?, ?)';
+				$new_game_id = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$game_size, $user->id, $game_name, $num_players]);
 
-				//creator automatisch als spieler im neu erstellten game eintragen.
-				$sql = 'SELECT game_id
-						FROM stl
-						WHERE creator_id = '.$user->id.'
-						ORDER by game_id DESC
-						LIMIT 0,1';
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
-				$rs = $db->fetch($result);
-				$sql = 'INSERT into stl_players
-							(game_id, user_id)
-						VALUES
-							('.$rs['game_id'].', '.$user->id.')';
-				$db->query($sql,__FILE__,__LINE__,__METHOD__);
+				if ($new_game_id > 0) {
+					//setzte redirect
+					$redirectUrl .= '?game_id='.$new_game_id;
 
-				//setzte redirect
-				$go = true;
+					//creator automatisch als spieler im neu erstellten game eintragen.
+					$sql = 'INSERT into stl_players (game_id, user_id) VALUES (?, ?)';
+					$db->query($sql, __FILE__, __LINE__, __METHOD__, [$new_game_id, $user->id]);
 
-				/** Activity Eintrag auslösen */
-				Activities::addActivity($user->id, 0, t('activity-newgame', 'stl', [ $_POST['game_title'], $num_players/2, SITE_URL, $rs['game_id'] ]), 'sl');
-			}
-		}
-		if($go === true) {
-			header('Location: '.base64url_decode(getURL(false)));
+					/** Activity Eintrag auslösen */
+					Activities::addActivity($user->id, 0, t('activity-newgame', 'stl', [ $game_name, $num_players/2, SITE_URL, $new_game_id ]), 'sl');
+				} else { $redirectUrl .= '?msg=Error%20joining%20game'; }
+			} else { $redirectUrl .= '?msg=Error%20creating%20new%20game'; }
+
+			/** Redirect */
+			header('Location: '.$redirectUrl);
 			exit;
 		}
 	}
@@ -1044,65 +845,36 @@ class stl {
 	function shoot() {
 		global $db, $user;
 
-		$sql = 'SELECT
-					game_id
-				FROM stl_players
-				WHERE
-					game_id = '.$this->data['stl']['game_id'].'
-					AND
-					user_id = '.$user->id.'
-					AND
-					HOUR(last_shoot) <> HOUR(now())';
-		$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+		$sql = 'SELECT game_id FROM stl_players WHERE game_id=? AND user_id=? AND HOUR(last_shoot)<>HOUR(?)';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $user->id, timestamp(true)]);
 
 		//Prüfen ob der Spieler schiessen darf und ob das Spiel den passenden Status hat
 		if($db->num($result) && $this->data['stl']['status'] == 1) {
-			$sql = 'SELECT
-						hit_user_id
-					FROM stl_positions
-					WHERE
-						game_id = '.$this->data['stl']['game_id'].'
-						AND
-						ship_user_id = '.$user->id;
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT hit_user_id FROM stl_positions WHERE game_id=? AND ship_user_id=?';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $user->id]);
 			$rs = $db->fetch($result);
 			//Prüfen ob der Spieler nicht gesunken ist
-			if($rs['hit_user_id'] == 0) {
-				$x_grid = substr($_GET['shoot'],0,strrpos($_GET['shoot'],','));
-				$y_grid = substr($_GET['shoot'],strrpos($_GET['shoot'],',')+1);
+			if(intval($rs['hit_user_id']) === 0 && !empty($this->shoot_field)) {
+				$x_grid = substr($this->shoot_field,0,strrpos($this->shoot_field,','));
+				$y_grid = substr($this->shoot_field,strrpos($this->shoot_field,',')+1);
 
 				//Prüfen ob ein Datensatz mit diesen Grid koords bereits besteht
-				$sql = 'SELECT *
-						FROM stl_positions
-						WHERE
-							grid_x = '.$x_grid.'
-							AND grid_y = '.$y_grid.'
-							AND game_id = '.$this->data['stl']['game_id'];
-				$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+				$sql = 'SELECT * FROM stl_positions WHERE grid_x=? AND grid_y=? AND game_id=?';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$x_grid, $y_grid, $this->data['stl']['game_id']]);
 				//wenn JA wird der bestehende Datensatz geupdatet
 				if($db->num($result)) {
 					$rs = $db->fetch($result);
 					//Prüft ob Ziel keine verbündete sind
 					if($rs['ship_team_id'] != $this->data['team_id']) {
 						if($rs['hit_user_id'] == 0) {
-							$sql = 'UPDATE stl_positions
-										set
-											hit_user_id = '.$user->id.',
-											hit_team_id = '.$this->data['team_id'].',
-											shoot_date = now()
-									WHERE
-										pos_id = '.$rs['pos_id'];
-							$db->query($sql,__FILE__,__LINE__,__METHOD__);
+							$sql = 'UPDATE stl_positions SET hit_user_id=?, hit_team_id=?, shoot_date=? WHERE pos_id=?';
+							$db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $this->data['team_id'], timestamp(true), $rs['pos_id']]);
 
 							//last_shoot neu setzen
-							$sql = 'UPDATE stl_players
-										SET last_shoot = now()
-									WHERE
-										game_id = '.$this->data['stl']['game_id'].'
-										AND user_id = '.$user->id;
-							$db->query($sql,__FILE__,__LINE__,__METHOD__);
+							$sql = 'UPDATE stl_players SET last_shoot=? WHERE game_id=? AND user_id=?';
+							$db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), $this->data['stl']['game_id'], $user->id]);
 
-							$this->check4finish();
+							self::check4finish();
 						} else {
 							$msg = 2;
 						}
@@ -1112,19 +884,12 @@ class stl {
 				//Wenn NEIN werden diese koords im Grid erstellt
 				} else {
 					//Neue Position im Grid erstellen
-					$sql = 'INSERT into stl_positions
-								(game_id, grid_x, grid_y, hit_user_id, hit_team_id, shoot_date)
-							VALUES
-								('.$this->data['stl']['game_id'].','.$x_grid.','.$y_grid.','.$user->id.','.$this->data['team_id'].',now())';
-					$db->query($sql,__FILE__,__LINE__,__METHOD__);
+					$sql = 'INSERT into stl_positions (game_id, grid_x, grid_y, hit_user_id, hit_team_id, shoot_date) VALUES (?, ?, ?, ?, ?, ?)';
+					$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id'], $x_grid, $y_grid, $user->id, $this->data['team_id'], timestamp(true)]);
 
 					//last_shoot neu setzen
-					$sql = 'UPDATE stl_players
-								SET last_shoot = now()
-							WHERE
-								game_id = '.$this->data['stl']['game_id'].'
-								AND user_id = '.$user->id;
-					$db->query($sql,__FILE__,__LINE__,__METHOD__);
+					$sql = 'UPDATE stl_players SET last_shoot=? WHERE game_id=? AND user_id=?';
+					$db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), $this->data['stl']['game_id'], $user->id]);
 				}
 			} else {
 				//echo "gesunken";
@@ -1135,11 +900,11 @@ class stl {
 		}
 		if(!isset($msg)) {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id']);
+			header('Location: '.getURL(false, false).'?do=game&game_id='.$this->data['stl']['game_id']);
 			exit;
 		} else {
 			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&msg=$msg&".session_name()."=".session_id());
-			header('Location: '.base64url_decode(getURL(false)).'?do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg);
+			header('Location: '.getURL(false, false).'?do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg);
 			exit;
 		}
 	}
@@ -1166,21 +931,9 @@ class stl {
 		$count = 0;
 		if ($user->is_loggedin())
 		{
-			$sql = 'SELECT
-					 stlg.game_id
-					FROM
-						 stl_players AS stlp
-						,stl AS stlg
-					LEFT JOIN
-						stl_players stljp ON stljp.game_id=stlg.game_id
-						AND stljp.user_id='.$user->id.'
-					WHERE
-						stlg.status=0
-						AND stlp.game_id=stlg.game_id
-						AND stlg.creator_id<>'.$user->id.'
-						AND stljp.user_id IS NULL
-					GROUP BY stlg.game_id';
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT stlg.game_id FROM stl_players AS stlp, stl AS stlg LEFT JOIN stl_players stljp ON stljp.game_id=stlg.game_id AND stljp.user_id=?
+					WHERE stlg.status=0 AND stlp.game_id=stlg.game_id AND stlg.creator_id<>? AND stljp.user_id IS NULL GROUP BY stlg.game_id';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $user->id]);
 			$count = ($result ? $db->num($result) : 0);
 			$next = $db->fetch($result);
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' open STL game'.($count > 1 ? 's' : '').'</a>' : '' );
@@ -1211,19 +964,10 @@ class stl {
 		$count = 0;
 		if ($user->is_loggedin())
 		{
-			$sql = 'SELECT
-						 stl.game_id AS game_id
-						,HOUR( pl.last_shoot) AS last_shoot
-					FROM stl
-						LEFT JOIN stl_players pl ON pl.game_id = stl.game_id
-						LEFT JOIN stl_positions p ON stl.game_id = p.game_id
-					WHERE
-						pl.user_id='.$user->id.'
-						AND stl.status=1
-						AND p.ship_user_id='.$user->id.'
-						AND p.hit_user_id=0
-						AND last_shoot < (NOW() - INTERVAL 1 HOUR)';
-			$result = $db->query($sql,__FILE__,__LINE__,__METHOD__);
+			$sql = 'SELECT stl.game_id AS game_id, HOUR( pl.last_shoot) AS last_shoot FROM stl
+						LEFT JOIN stl_players pl ON pl.game_id = stl.game_id LEFT JOIN stl_positions p ON stl.game_id = p.game_id
+					WHERE pl.user_id=? AND stl.status=1 AND p.ship_user_id=? AND p.hit_user_id=0 AND last_shoot<(?-INTERVAL 1 HOUR)';
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$user->id, $user->id, timestamp(true)]);
 			$count = ($result ? $db->num($result) : 0);
 			$next = $db->fetch($result);
 			return ( $count > 0 ? '<a href="/stl.php?do=game&game_id='.$next['game_id'].'">'.$count.' STL-shot'.($count > 1 ? 's' : '').'</a>' : '' );

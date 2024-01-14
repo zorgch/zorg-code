@@ -1,5 +1,11 @@
 <?php
 /**
+ * File includes
+ */
+require_once __DIR__.'/config.inc.php';
+include_once INCLUDES_DIR.'usersystem.inc.php';
+
+/**
  * Quotes Class
  *
  * In dieser Klasse befinden sich alle Funktionen zur Steuerung der Activities
@@ -15,18 +21,19 @@ class Quotes
 	{
 		global $db, $user;
 
-		if(isset($_POST['action']) && $_POST['action'] == 'benoten' &&
-			isset($_POST['quote_id']) && !empty($_POST['quote_id']) && $_POST['quote_id'] > 0 &&
-			isset($_POST['score']) && is_numeric($_POST['score']) && $_POST['score'] > 0)
+		/** Validate parameters */
+		$doAction = filter_input(INPUT_POST, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['action']
+		$quote_id = filter_input(INPUT_POST, 'quote_id', FILTER_VALIDATE_INT) ?? null; // $_POST['quote_id']
+		$votescore = filter_input(INPUT_POST, 'score', FILTER_VALIDATE_INT) ?? null; // $_POST['score']
+		$redirectUrl = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/quotes.php'; // $_POST['url']
+		if($doAction === 'benoten' && !empty($quote_id) && $quote_id>0 && !empty($votescore) && $votescore>0)
 		{
-			$quote_id = $_POST['quote_id'];
-			$votescore = $_POST['score'];
 			if (!self::hasVoted($user->id, $quote_id))
 			{
-				$sql = 'REPLACE INTO quotes_votes (quote_id, user_id, score) VALUES ('.$quote_id.', '.$user->id.', '.$votescore.')';
-				$db->query($sql, __FILE__, __LINE__, __METHOD__);
+				$sql = 'REPLACE INTO quotes_votes (quote_id, user_id, score) VALUES (?, ?, ?)';
+				$db->query($sql, __FILE__, __LINE__, __METHOD__, [$quote_id, $user->id, $votescore]);
 			}
-			header('Location: '.base64url_decode($_POST['url']));
+			header('Location: '.$redirectUrl);
 		}
 	}
 
@@ -39,9 +46,9 @@ class Quotes
 	{
 		global $user;
 
-		$site = (isset($_POST['site']) && !empty($_POST['site']) && $_POST['site'] > 0 ? $_POST['site'] : 0);
+		$site = filter_input(INPUT_GET, 'site', FILTER_VALIDATE_INT) ?? 0;
 		$html = '<div class="quote">'
-					.'<blockquote><i>'.nl2br(htmlentities($rs["text"])).'</i>'
+					.'<blockquote><i>'.nl2br(html_entity_decode($rs["text"], ENT_QUOTES, 'UTF-8')).'</i>'
 					.' - '.$user->id2user($rs['user_id'], 0)
 					.($user->is_loggedin() ? ($user->id === (int)$rs['user_id'] ? ' <a href="'.getChangedURL('do=delete&quote_id='.$rs['id'].'&site='.$site).'">[delete]</a>' : '') : '')
 					.'</blockquote>';
@@ -106,7 +113,7 @@ class Quotes
 
 		$rnd = random_int(1, $total);
 		$sql_sel = 'SELECT * FROM quotes WHERE id=?';
-		$result = $db->query($sql_sel, __FILE__, __LINE__, __METHOD__, [$rnd]);
+		$rs = $db->query($sql_sel, __FILE__, __LINE__, __METHOD__, [$rnd]);
 
 		$quote = ($htmlFormattedResult === true ? self::formatQuote($rs) : $rs['text']);
 		return $quote;
@@ -157,11 +164,12 @@ class Quotes
 	{
 		global $db;
 		$date = date('Y-m-d');
-		$sql = 'SELECT * FROM daily_quote WHERE date = "'.$date.'"';
-		$result = $db->query($sql);
+		$sql = 'SELECT * FROM daily_quote WHERE date=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$date]);
 		$rs = $db->fetch($result);
 
-		if (!$rs) {
+		if (!$rs)
+		{
 			$quote = self::getRandomQuote();
 			$sql = 'INSERT INTO daily_quote (date, quote) VALUES (?, ?)';
 			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$date, $quote]);
@@ -179,10 +187,8 @@ class Quotes
 	static function getDailyQuote() {
 		global $db;
 
-		$sql = 'SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(?) upd
-				FROM periodic p, quotes
-				WHERE p.name=? AND p.id=quotes.id';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), 'daily_quote']);
+		$sql = 'SELECT quotes.*, TO_DAYS(p.date)-TO_DAYS(?) upd FROM periodic p, quotes WHERE p.name="daily_quote" AND p.id=quotes.id';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true)]);
 
 		$rs = $db->fetch($result);
 
@@ -260,14 +266,8 @@ class Quotes
 
 		try {
 			/** Alle Quotes holen */
-			$sql_sel = 'SELECT
-							id
-							,COALESCE((SELECT AVG(score) FROM quotes_votes WHERE quote_id=quotes.id GROUP BY quote_id), 0) score
-							,text
-							,user_id
-						FROM quotes
-							GROUP BY id
-						ORDER BY RAND()';
+			$sql_sel = 'SELECT id, COALESCE((SELECT AVG(score) FROM quotes_votes WHERE quote_id=quotes.id GROUP BY quote_id), 0) score,
+						text, user_id FROM quotes GROUP BY id ORDER BY RAND()';
 			$quotes = $db->query($sql_sel, __FILE__, __LINE__, __METHOD__);
 
 			/** Zufällige Quote ID auswählen */
@@ -287,7 +287,7 @@ class Quotes
 			$db->query($sql, __FILE__, __LINE__, __METHOD__, ['daily_quote', $rs['id'], timestamp(true)]);
 
 			/** Send new Daily Quote as Telegram Message */
-			$telegram->send->message('group', sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', $rs['text'], $user->id2user($rs['user_id'], TRUE)), ['disable_notification' => 'true']);
+			$telegram->send->message('group', sprintf('Daily [z]Quote: <b>%s</b><i> - %s</i>', html_entity_decode($rs['text']), $user->id2user($rs['user_id'], TRUE)), ['disable_notification' => 'true']);
 
 			return true;
 		}

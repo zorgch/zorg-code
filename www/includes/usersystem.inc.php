@@ -212,8 +212,9 @@ class usersystem
 				zorgDebugger::log()->debug('$_SESSION[user_id] missing & no login/logout...');
 				if (!empty($_COOKIE[ZORG_COOKIE_USERID]) && !empty($_COOKIE[ZORG_COOKIE_USERPW]))
 				{
+					$cookie_username = filter_input(INPUT_COOKIE, ZORG_COOKIE_USERID, FILTER_UNSAFE_RAW);
 					zorgDebugger::log()->debug('Autologin-Cookies existieren -> Login-Passthrough');
-					$this->login($_COOKIE[ZORG_COOKIE_USERID]); // Do NOT send $_COOKIE[ZORG_COOKIE_USERPW] here - because it only contains the PW-Hash!
+					$this->login($cookie_username); // Do NOT send $_COOKIE[ZORG_COOKIE_USERPW] here - because it only contains the PW-Hash!
 				}
 			}
 		}
@@ -227,13 +228,14 @@ class usersystem
 			isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && $_SESSION['user_id'] > 0)
 		{
 			/** Query User Infos in der DB */
+			$session_userid = filter_var($_SESSION['user_id'], FILTER_VALIDATE_INT);
 			zorgDebugger::log()->debug('Session re-started inkl. $_SESSION[user_id]');
 			$sql = 'SELECT *,
 						UNIX_TIMESTAMP('.$this->field_activity.') as '.$this->field_activity.',
 						UNIX_TIMESTAMP('.$this->field_lastlogin.') as '.$this->field_lastlogin.',
 						UNIX_TIMESTAMP('.$this->field_currentlogin.') as '.$this->field_currentlogin.'
 					FROM '.$this->table_name.' WHERE id=?';
-			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$_SESSION['user_id']]);
+			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$session_userid]);
 			$rs = $db->fetch($result);
 
 			if (!empty($rs) && $rs !== false)
@@ -511,7 +513,7 @@ class usersystem
 							 * ...needed to work for whole page
 							 */
 							$redirect = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['redirect']
-							$loginRedirectUrl = (!empty($redirect) ? base64url_decode($redirect) : $_SERVER['PHP_SELF'].(!empty($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : null));
+							$loginRedirectUrl = (!empty($redirect) ? base64url_decode($redirect) : getURL(true, false));
 							zorgDebugger::log()->debug('redirect url => %s', [$loginRedirectUrl]);
 							header('Location: '.$loginRedirectUrl);
 							exit;
@@ -534,7 +536,6 @@ class usersystem
 					} else {
 						$this->logerror(1,$rs['id']);
 						$error = t('authentication-failed', 'user'); // nicht gegen aussen exponieren, dass es einen Useraccount gibt aber falsches PW
-
 					}
 					zorgDebugger::log()->debug('$db->num($result)=>ERROR: %s', [$error]);
 				}
@@ -646,6 +647,8 @@ class usersystem
 	/**
 	 * Speichert ob User zorg oder zooomclan Layout haben will
 	 *
+	 * @deprecated This seems no longer used (no function reference / dependency found) / IneX, 14.01.2024
+	 *
 	 * @param integer $user_id User-ID
 	 * @param boolean $zorg Zorg-Layout
 	 * @param boolean $zooomclan Zooomclan-Layout
@@ -654,10 +657,12 @@ class usersystem
 	{
 		global $db, $zorg, $zooomclan;
 
-		if ($zorg == true) $sql = sprintf('UPDATE %s SET %s="%s" WHERE id=%d', $this->table_name, $this->field_zorger, "1", $user_id);
-		elseif ($zooomclan == true) $sql = sprintf('UPDATE %s SET %s="%s" WHERE id=%d', $this->table_name, $this->field_zorger, "0", $user_id);
+		$params = [];
+		$sql = sprintf('UPDATE %s SET %s=? WHERE id=?', $this->table_name, $this->field_zorger);
+		$params[] = ($zooomclan ? '0' : '1');
+		$params[] = $user_id;
 
-		$db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, $params);
 	}
 
 	/**
@@ -1471,7 +1476,7 @@ class usersystem
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> get_headers() response: %s', __METHOD__, __LINE__, print_r($url_check, true)));
 		$url_parse = parse_url(trim($d)); // For eventual fallback: parse URL of Default image
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> parse_url() %s', __METHOD__, __LINE__, $d));
-		if(strpos($url_check[0],'200')===false) return $url_parse['path']; // If $url response header is NOT 200, fallback to local image
+		if(strpos($url_check[0],'200')===false) return htmlspecialchars($url_parse['path'], ENT_QUOTES, 'UTF-8'); // If $url response header is NOT 200, use local image
 		return $url;
 	}
 

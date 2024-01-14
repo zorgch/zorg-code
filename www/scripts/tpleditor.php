@@ -8,11 +8,13 @@
 /**
  * File includes
  */
-include_once dirname(__FILE__).'/../includes/tpleditor.inc.php';
+include_once __DIR__.'/../includes/tpleditor.inc.php';
 
+/** Global Vars */
 global $smarty, $db, $user;
 
-$tpl_id = (!isset($_GET['tplupd']) || empty($_GET['tplupd']) ? 'new' : $_GET['tplupd']);
+/** Input validation */
+$tpl_id = filter_input(INPUT_GET, 'tplupd', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? 'new';
 $smarty->assign('tpleditor_close_url', '/actions/tpleditor_close.php?'.url_params());
 $username = $user->id2user($user->id, true);
 $smarty->assign('rgroupids', array(0,1,2,3));
@@ -22,13 +24,13 @@ $smarty->assign('wgroupnames', array('Normale User', 'Member und Sch&ouml;ne', '
 $smarty->assign('bordertypids', array(0,1,2));
 $smarty->assign('bordertypnames', array('kein Rahmen', 'Rahmen mit Footer', 'Rahmen ohne Footer'));
 
-$access_error = '';
+$access_error = null;
 $vars = $smarty->get_template_vars();
 
 /**
  * Edit existing Template
  */
-if ($tpl_id != 'new')
+if ($tpl_id !== 'new' && intval($tpl_id) > 0)
 {
 	if (tpleditor_access_lock($tpl_id, $access_error))
 	{
@@ -71,10 +73,10 @@ if ($tpl_id != 'new')
 /**
  * New Template
  */
-elseif ($tpl_id == 'new' && !$vars['tpleditor_frm'])
+elseif ($tpl_id === 'new' && !$vars['tpleditor_frm'])
 {
 	/** Set default values */
-	$frm = array();
+	$frm = [];
 	$frm['read_rights'] = 0;
 	$frm['write_rights'] = 3;
 	$frm['border'] = 1;

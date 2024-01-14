@@ -37,14 +37,13 @@ if ($user->is_loggedin())
 		if(!empty($edit_wort) && ($edit_user === (int)$_SESSION['user_id'] || $user->typ >= USER_MEMBER)) {
 			$sql = 'UPDATE aficks set wort=? WHERE id=?';
 			$db->query($sql,__FILE__,__LINE__,'Update Aficks', [$edit_wort, $edit_id]);
-			header("Location: ".$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
+			header("Location: ".$_SERVER['PHP_SELF']);
 			exit;
 		}
 		if(!empty($new_wort) && ($new_typ === 1 || $new_typ === 2)) {
-			$sql = 'INSERT IGNORE INTO aficks (wort, typ, wort_user_id)
-					VALUES (?,?,?)';
+			$sql = 'INSERT IGNORE INTO aficks (wort, typ, wort_user_id) VALUES (?,?,?)';
 			$db->query($sql,__FILE__,__LINE__,'Insert Aficks', [$new_wort, $new_typ, $_SESSION['user_id']]);
-			header("Location: ".$_SERVER['PHP_SELF']."?".session_name()."=".session_id());
+			header("Location: ".$_SERVER['PHP_SELF']);
 			exit;
 		}
 
