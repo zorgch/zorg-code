@@ -29,9 +29,8 @@ set_time_limit(600);
  * @include util.inc.php DISABLED is part of config.inc.php
  * @include usersystem.inc.php
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 include_once INCLUDES_DIR.'forum.inc.php';
-//require_once INCLUDES_DIR.'util.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /**
@@ -789,6 +788,11 @@ function doDelAlbum ($id, $del)
 
 /**
  * Ein Bild zensieren / unzensieren.
+ *
+ * @version 2.0
+ * @since 1.0 Function added
+ * @since 2.0 Bug #632 : Mark all Pic comments as READ for regular Users
+ *
  * @param int $picID
  * @return boolean
  */
@@ -800,6 +804,7 @@ function doZensur ($picID)
 	$sql_zensur = 'SELECT zensur FROM gallery_pics WHERE id=?';
 	$e = $db->query($sql_zensur, __FILE__, __LINE__, __FUNCTION__, [$picID]);
 	$d = $db->fetch($e);
+
 	/** Bild ist zensiert: unzensieren */
 	if ($d['zensur']) {
 		$sql_unzensieren = 'UPDATE gallery_pics SET zensur="0" WHERE id=?';
@@ -812,6 +817,16 @@ function doZensur ($picID)
 		$sql_zensieren = 'UPDATE gallery_pics SET zensur="1" WHERE id=?';
 		$db->query($sql_zensieren, __FILE__, __LINE__, __FUNCTION__, [$picID]);
 		Thread::setRights('i', $picID, USER_MEMBER);
+
+		/** Mark all Pic comments as READ for regular Users */
+		$sql_user_unreads = $db->query('SELECT cu.comment_id comment, cu.user_id user FROM comments_unread cu
+										INNER JOIN comments c ON cu.comment_id=c.id INNER JOIN user u ON cu.user_id=u.id
+										WHERE c.thread_id=? AND u.usertype<?',
+										__FILE__, __LINE__, __FUNCTION__, [$picID, USER_MEMBER]);
+		while ($user_unreads = $db->fetch($sql_user_unreads))
+		{
+			Comment::markasread(intval($user_unreads['comment']), intval($user_unreads['user']));
+		}
 		return true;
 	}
 	return false;

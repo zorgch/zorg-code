@@ -672,7 +672,8 @@ class Comment
 		global $db, $user, $notification;
 
 		/** Parent-Id = 1 wenn man ein ForumThread postet */
-		$parent_id = ($parent_id <= 0 ? 1 : $parent_id);
+		$parent_id = ($parent_id <= 0 ? 1 : intval($parent_id));
+		if(!is_numeric($user_id)) $user_id = intval($user_id);
 		if(!is_numeric($parent_id) || $parent_id <= 0) user_error(t('invalid-parent_id', 'commenting'), E_USER_ERROR);
 
 		/**
@@ -738,10 +739,10 @@ class Comment
 			}
 
 			/** Mark comment as unread for all users */
-			$markedAsUnread = self::markasunread($rs['id']);
+			$markedAsUnread = self::markasunread(intval($rs['id']));
 
 			/** Mark comment as read for poster (current user) */
-			$markedReadForPoster = self::markasread($rs['id'], $user_id);
+			$markedReadForPoster = self::markasread(intval($rs['id']), $user_id);
 
 			/**
 			 * Comment Notifications
