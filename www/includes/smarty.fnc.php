@@ -662,8 +662,8 @@ function var_request ()
 		global $db, $user;
 		if (isset($user->lastlogin)) {
 			$result = $db->query(
-				'SELECT COUNT(*) AS num FROM tauschboerse
-				 WHERE UNIX_TIMESTAMP(datum)>?', __FILE__, __LINE__, __FUNCTION__, [$user->lastlogin]
+				'SELECT COUNT(*) AS num FROM tauschboerse WHERE UNIX_TIMESTAMP(datum)>?',
+				__FILE__, __LINE__, __FUNCTION__, [$user->lastlogin]
 			);
 			$rs = $db->fetch($result);
 			//$smarty->assign("artikel", $rs);
@@ -673,12 +673,32 @@ function var_request ()
 	function smarty_assign_artikel ($params, &$smarty) {
 		global $db;
 		$result = $db->query(
-			'SELECT *, CONVERT(kommentar USING latin1) kommentar, UNIX_TIMESTAMP(datum) AS datum
-			FROM tauschboerse WHERE id=?',
+			'SELECT *, CONVERT(kommentar USING latin1) kommentar, UNIX_TIMESTAMP(datum) AS datum FROM tauschboerse WHERE id=?',
 			__FILE__, __LINE__, __FUNCTION__, [$params['id']]
 		);
 		$rs = $db->fetch($result);
 		$smarty->assign("artikel", $rs);
+	}
+	/**
+	 * Smarty Block: Prüft ob ein Tauschbörse Artikelbild existiert.
+	 * @example {check_artikel_image id=$angebot.id}<img src="...">{/check_artikel_image}
+	 * @uses fileExists()
+	 *
+	 * @version 1.0
+	 * @since 1.0 `17.01.2024` `IneX` Bug #607 : Wenns kein Bild hat, den img-Tag weglassen.
+	 */
+	function smarty_check_tauschartikel_image($params, $content, &$smarty, &$repeat)
+	{
+		$artikelimgurl = null;
+		if (isset($params['id']) && is_numeric($params['id']))
+		{
+			$artikelid = strval($params['id']);
+			$artikelimgpath = TAUSCHARTIKEL_IMGPATH.$artikelid.USER_IMGEXTENSION;
+			if (fileExists($artikelimgpath) !== false) {
+				$artikelimgurl = TAUSCHBOERSE_IMGPATH_PUBLIC.$artikelid.USER_IMGEXTENSION;
+			}
+		}
+		return (!empty($artikelimgurl) ? $content : '&nbsp;');
 	}
 
 /** Usersystem */
@@ -1597,7 +1617,7 @@ function smarty_menuname ($name, &$smarty) {
 	 *
 	 * @var array
 	 */
-	$zorg_php_blocks 	= array( //Format: [Block] => array ([PHP-Funktion] | [Kategorie] | [Beschreibung] | [Members only true/false])
+	$zorg_php_blocks 	= array( //Format: [PHP-Funktion] => array ([Block] | [Kategorie] | [Beschreibung] | [Members only true/false])
 								 'smarty_zorg' => array('zorg', 'Layout', '{zorg title="Titel"}...{/zorg}	displays the zorg layout (including header, menu and footer)', false)
 								,'smarty_html_link' => array('link', 'HTML', '{link tpl=x param="urlparams"}text{/a}	default tpl = das aktuelle', false)
 								,'smarty_new_tpl_link' => array('new_link', 'Smarty Template', 'shows a link to the editor with new tpl.', false)
@@ -1616,6 +1636,7 @@ function smarty_menuname ($name, &$smarty) {
 								,'smarty_mailctabutton' => array('mail_button', 'Verein Mailer - Call-to-Action-Button', '{mail_button style="NULL|secondary" position="left|center|right" action="mail|link" href="url"}button-text{/mail_button}', false)
 								,'smarty_mailtelegrambutton' => array('telegram_button', 'Verein Mailer - Telegram Messenger Button', '{telegram_button}button-text{/telegram}', false)
 								,'smarty_swissqrbillimage' => ['swissqrbillcode', 'zorg Swiss QR Bill - QR-Code', '{swissqrbillcode size="s|m|l" user=23 betrag=23.00}zorg Verein Mitgliederbeitrag{/swissqrbillcode}', true]
+								,'smarty_check_tauschartikel_image' => [ 'check_artikel_image', 'Tauschbörse', 'Renders content only if Tauschbörse Artikel-Image exists. Usage: {check_artikel_image id=$angebot.id}<img src="...">{/check_artikel_image}', false ]
 
 								);
 
