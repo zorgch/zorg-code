@@ -45,10 +45,10 @@ $model = new MVC\Addle();
 function use_ki($game_id) {
 	global $db;
 	$ki = false;
-	$sql = 'SELECT player1 FROM addle WHERE id = '.$game_id;
-	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	$sql = 'SELECT player1 FROM addle WHERE id=?';
+	$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, $game_id);
 	$rs = $db->fetch($result);
-	if($rs['player1'] == BARBARA_HARRIS) {
+	if(intval($rs['player1']) === BARBARA_HARRIS) {
 		$ki = true;
 	}
 }
@@ -97,22 +97,19 @@ function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $
  *
  * Erzeugt ein neues Addle Spiel
  *
- * @author [z]bert
- * @author [z]keep3r
  * @version 3.0
- * @since 1.0 function added
- * @since 2.0 KI added
- * @since 3.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 1.0 `[z]keep3r` function added
+ * @since 2.0 `[z]bert` `[z]cylander` KI added
+ * @since 3.0 `07.11.2018` `IneX` code and sql-query optimizations, moved Constants to config.inc.php
  *
  * @uses MAX_ADDLE_GAMES
  * @param integer $player ID des Gegners
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
- * @global object $smarty Globales Class-Object mit allen Smarty-Methoden
  * @global object $notification Globales Class-Object mit allen Notification-Methoden
  */
 function newgame($player) {
-	global $db, $user, $smarty, $notification;
+	global $db, $user, $notification;
 
 	$anz = $db->fetch($db->query('SELECT count(*) anz FROM addle WHERE finish=0 AND ((player1='.$user->id.' AND player2='.$player.') OR (player1='.$player.' AND player2='.$user->id.'))',
 		__FILE__, __LINE__, 'SELECT FROM addle'));
@@ -177,15 +174,13 @@ function newgame($player) {
 	$row = mt_rand(0,7);
 
 	// db-entry
-	$gameid = $db->query('INSERT INTO addle (date, player1, player2, data, nextrow) VALUES (UNIX_TIMESTAMP(?), ?, ?, ?, ?)',
-						__FILE__, __LINE__, __FUNCTION__, [timestamp(true), $player, $user->id, $board, $row]);
+	$gameid = $db->query('INSERT INTO addle (date, player1, player2, data, nextrow) VALUES (?, ?, ?, ?, ?)',
+						__FILE__, __LINE__, __FUNCTION__, [timestamp(), $player, $user->id, $board, $row]);
 	$db->query('UPDATE user SET addle="1" WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$user->id]);
 	/*========================================
 		Addle KI - start
 	========================================*/
-	if($player == 59) {
-		//include_once $_SERVER['DOCUMENT_ROOT']."/addle_ki.php";
-	}
+	use_ki($gameid);
 	/*========================================
 		Addle KI - end
 	========================================*/
@@ -208,11 +203,11 @@ function newgame($player) {
  *
  * Listet alle offenen Addle Spiele auf
  *
- * @author [z]bert
- * @version 2.1
- * @since 1.0 `bert` function added
+ * @version 2.2
+ * @since 1.0 `[z]bert` function added
  * @since 2.0 `07.11.2018` `IneX` code and sql-query optimizations
  * @since 2.1 `25.12.2022` `IneX` fixes Undefined property & Undefined variable notices
+ * @since 2.2 `17.01.2024` `IneX` switch overview order and fixes listings
  *
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -221,63 +216,76 @@ function games()
 {
 	global $db, $user;
 
-	$i = 1;
 	$out = null;
-	echo '<h2>Laufende Spiele</h2>';
+	$out .= '<h2>Laufende Spiele</h2>';
 	/** Eingeloggte User */
 	if ($user->is_loggedin())
 	{
+		/** Meine Laufenden Spiele */
 		$e = $db->query('SELECT * FROM addle WHERE ((player1=? AND nextturn=1) OR (player2=? AND nextturn=2)) AND finish=0',
 						__FILE__, __LINE__, __FUNCTION__, [$user->id, $user->id]);
-		$num = $db->num($e);
-		if (!empty($num) && $num !== false && $num > 0)
+		$nume = $db->num($e);
+		if ($nume !== false && $nume>0)
 		{
+			$i = 1;
 			while ($d = $db->fetch($e))
 			{
-				if ($d['player1'] == $user->id || $d['player2'] == $user->id) printf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d - vs. %2$s</a></b>', $d['id'], $user->id2user($d['player'.($d['player1'] == $user->id ? 2 : 1)]));
-				else printf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
-				if ($i < $num) echo ', ';
+				$gameid = $d['id'];
+				$playerids = [ intval($d['player1']), intval($d['player2']) ];
+				if (in_array($user->id, $playerids)) {
+					$otherpl = ($playerids[0] === $user->id ? 1 : 0);
+					$out .= sprintf('<b><a style="color:red;" href="?show=play&id=%1$d">Game #%1$d vs. %2$s</a></b>', $gameid, $user->id2user($playerids[$otherpl]));
+				} else {
+					$out .= sprintf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $gameid, $user->id2user($playerids[0]), $user->id2user($playerids[1]));
+				}
+				if ($i < $nume) $out .= '<br>';
 				$i++;
 			}
 		} else {
 			echo '<b>Keine laufenden Addle Spiele</b>';
 		}
 
-		/** Meine Laufenden Spiele */
+		/** Warten auf den Gegner */
 		$s = $db->query('SELECT * FROM addle WHERE ((player1=? AND nextturn=2) OR (player2=? AND nextturn=1)) AND finish=0',
 						__FILE__, __LINE__, __FUNCTION__, [$user->id, $user->id]);
-		$num = $db->num($s);
-		if (!empty($num) || $num > 0)
+		$nums = $db->num($s);
+		if ($nums !== false && $nums>0)
 		{
-			echo '<h2>Warten auf deinen Gegner</h2>';
+			$out .= '<h3>Warten auf deinen Gegner</h3>';
 			$i = 1;
-			while ($m = $db->fetch($s)) {
-				if ($m['player1'] != $user->id) {
-						$otherpl = $m['player1'];
-				} else {
-						$otherpl = $m['player2'];
-				}
-				printf('<a href="?show=play&id=%1$d">Game #%1$d - <b>%2$s</b></a>', $m['id'], $user->id2user($otherpl, true));
-				if ($i < $num) $out .= ', ';
+			while ($m = $db->fetch($s))
+			{
+				$gameid = intval($m['id']);
+				$player1id = intval($m['player1']);
+				$player2id = intval($m['player2']);
+				$otherpl = ($player1id !== $user->id ? $player1id : $player2id);
+				$out .= sprintf('<a href="?show=play&id=%1$d">Game #%1$d - <b>%2$s</b></a>', $gameid, $user->id2user($otherpl, true));
+				if ($i < $nums) $out .= ', ';
 				$i++;
 			}
 		}
 	}
 	/** Nicht eingeloggte User */
 	else {
-		$e = $db->query('SELECT * FROM addle WHERE finish=0', __FILE__, __LINE__, __FUNCTION__);
-		$num = $db->num($e);
-		if (!empty($num) && $num !== false && $num > 0)
+		$t = $db->query('SELECT * FROM addle WHERE finish=0', __FILE__, __LINE__, __FUNCTION__);
+		$numt = $db->num($t);
+		if ($numt !== false && $numt>0)
 		{
-			while ($d = $db->fetch($e)) {
-				printf('<b><a href="?show=play&id=%d">%s vs. %s</a></b>', $d['id'], $user->id2user($d['player1']), $user->id2user($d['player2']));
-				if ($i < $num) echo ', ';
+			$i = 1;
+			while ($n = $db->fetch($t))
+			{
+				$gameid = intval($n['id']);
+				$player1id = intval($n['player1']);
+				$player2id = intval($n['player2']);
+				$out .= sprintf('<b><a href="?show=play&id=%d">%s vs. %s (#%1$d)</a></b>', $gameid, $user->id2user($player1id), $user->id2user($player2id));
+				if ($i < $numt) $out .= ' | ';
 				$i++;
 			}
 		} else {
-			echo '<b>Keine laufenden Addle Spiele</b>';
+			$out .= '<b>Keine laufenden Addle Spiele</b>';
 		}
 	}
+	echo $out;
 }
 
 
@@ -297,6 +305,9 @@ function games()
  */
 function overview() {
 	global $db, $user, $smarty;
+
+	/** Laufende Addle Games auflisten */
+	games();
 
 	/** New Addle Game-Formular anzeigen */
 	if ($user->is_loggedin())
@@ -323,9 +334,6 @@ function overview() {
 		</form>
 	<?php
 	}
-
-	/** Laufende Addle Games auflisten */
-	games();
 
 	echo '<h2>Anleitung</h2>';
 	echo t('howto', 'addle');
@@ -399,8 +407,8 @@ function doplay($id, $choose) {
 						}
 					}
 					/** db entry zug */
-					$sql = 'UPDATE addle SET date=UNIX_TIMESTAMP(?), score'.$d['nextturn'].'=?, data=?, nextturn=?, nextrow=?, finish=?, last_pick_data=?, last_pick_row=? WHERE id=?';
-					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [timestamp(true), $score, $data, $nextturn, $choose, $finish, ord($act)-96, $d['nextrow'], $id]);
+					$sql = 'UPDATE addle SET date=?, score'.$d['nextturn'].'=?, data=?, nextturn=?, nextrow=?, finish=?, last_pick_data=?, last_pick_row=? WHERE id=?';
+					$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [timestamp(), $score, $data, $nextturn, $choose, $finish, ord($act)-96, $d['nextrow'], $id]);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> db entry zug $sql: %s => %s', __METHOD__, __LINE__, ($result?'SUCCESS':'ERROR'),$sql));
 
 					/** Notification */
