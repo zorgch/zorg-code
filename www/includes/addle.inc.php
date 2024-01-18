@@ -4,16 +4,15 @@
  *
  * Beinhaltet diverse Zusatzfunktionen für Addle
  *
- * @author [z]biko
- * @version 1.0
  * @package zorg\Games\Addle
  */
+
 /**
  * File includes
  * @include config.inc.php required
  * @include mysql.inc.php required
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 
 /**
@@ -21,10 +20,9 @@ require_once INCLUDES_DIR.'mysql.inc.php';
  *
  * Liefert den Text für die Startseite, wieviele Addle Games eines Benutzers noch offen sind.
  *
- * @author [z]biko
  * @version 2.0
- * @since 1.0 function added
- * @since 2.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `07.11.2018` `IneX` code and sql-query optimizations, moved Constants to config.inc.php
  *
  * @param integer $user_id ID des Users
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -48,11 +46,11 @@ function getOpenAddleGames($user_id)
  *
  * Entfernt ganz alte Addle spiele (> 3 Monate [15 Wochen])
  *
- * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
- * @since 2.0 `15.11.2018` updated to use new $notifcation Class & some code and query optimizations
+ * @version 2.0
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `15.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
  *
+ * @uses Notification()
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @global object $notification Globales Class-Object mit allen Notification-Methoden
  * @return boolean Returns true or false depending on successful execution
@@ -60,7 +58,7 @@ function getOpenAddleGames($user_id)
 function addle_remove_old_games() {
 	global $db, $notification;
 
-	$e = $db->query('SELECT * FROM addle WHERE finish=0 and UNIX_TIMESTAMP(NOW()) - date > (60*60*24*7*15)', __FILE__, __LINE__, __FUNCTION__);
+	$e = $db->query('SELECT * FROM addle WHERE finish=0 and UNIX_TIMESTAMP(?)-date > (60*60*24*7*15)', __FILE__, __LINE__, __FUNCTION__, [timestamp(true)]);
 	while ($d = $db->fetch($e)) {
 		if ($d['nextturn'] == 1) {
 			$winner = $d['player2'];
@@ -97,8 +95,8 @@ function addle_remove_old_games() {
  *
  * Zeigt die Highscore Liste der Addle DWZ an
  *
- * @author [z]biko
  * @version 1.0
+ * @since `[z]biko` function added
  *
  * @param integer $anzahl Anzahl Zeilen, welche ausgegeben werden sollen
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
@@ -116,8 +114,8 @@ function highscore_dwz($anzahl)
 	  . '   WHERE u.id = dwz.user && a.finish=1'
 	  . '   GROUP BY u.id'
 	  . '   ORDER BY dwz.rank ASC '
-	  . '   LIMIT 0, '.$anzahl;
-	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__);
+	  . '   LIMIT 0,?';
+	$e = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$anzahl]);
 
 	$html = '<h1>Addle Highscores</h1>
 			<table>
@@ -167,13 +165,11 @@ function highscore_dwz($anzahl)
  *
  * Aktualisiert die DWZ Punkte eines Benutzers
  *
- * @author [z]biko
  * @version 2.0
- * @since 1.0 function added
- * @since 2.0 `07.11.2018` code and sql-query optimizations, moved Constants to config.inc.php
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `07.11.2018` `IneX` code and sql-query optimizations, moved Constants to config.inc.php
  *
- * @uses ADDLE_BASE_POINTS
- * @uses ADDLE_MAX_POINTS_TRANSFERABLE
+ * @uses ADDLE_BASE_POINTS, ADDLE_MAX_POINTS_TRANSFERABLE
  * @param integer $user_id ID des Users
  * @global object $db Globales Class-Object mit allen MySQL-Methoden
  */
@@ -262,11 +258,11 @@ $max_depth = 5;
  * um möglichst viele Punkte zu machen aber dem
  * Gegner nur kleine Punkte zur Wahl zu lassen
  *
- * @author [z]stamp
- * @author [z]cylander
  * @version 1.0
+ * @since 1.0 `[z]stamp` `[z]cylander` KI zum Leben erweckt
+ * @since 1.1 `17.01.2024` `IneX` Bug #535 : Barbara Harris spielt nicht mit mir!
  *
- * @param integer $game_data_array
+ * @param array $game_data_array
  * @param integer $row
  * @param integer $score_self
  * @param integer $score_chind
@@ -336,7 +332,7 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 			$game_data_array[$row*8 + $to_select] = ".";
 			}
 			else $game_data_array[$row + $to_select*8] = ".";
-			$new_data['game_data'] = join($game_data_array, null);
+			$new_data['game_data'] = implode('', $game_data_array);
 			$new_data['row'] = $to_select;
 			$new_data['score'] = ($score_self + ord($row_data[$to_select])) - 96;
 
@@ -355,11 +351,11 @@ function evil_max($game_data_array, $row, $score_self, $score_chind, $depth, $mo
  * Ermittelt, welches das kleinste Feld für die KI ist,
  * um dem Gegner möglichst wenig Punkte zur Wahl zu lassen
  *
- * @author [z]stamp
- * @author [z]cylander
- * @version 1.0
+ * @version 1.1
+ * @since 1.0 `[z]stamp` `[z]cylander` KI zum Leben erweckt
+ * @since 1.1 `17.01.2024` `IneX` Bug #535 : Barbara Harris spielt nicht mit mir!
  *
- * @param integer $game_data_array
+ * @param array $game_data_array
  * @param integer $row
  * @param integer $score_self
  * @param integer $score_chind
@@ -413,19 +409,19 @@ function evil_min($game_data_array, $row, $score_self, $score_chind, $depth, $mo
 	return $score_self - $score_chind + 2000;
 }
 
-$sql = 'SELECT * FROM addle WHERE ((player1 = '.BARBARA_HARRIS.' OR player2 = '.BARBARA_HARRIS.') AND (player1 = 1 OR player2 = 1) AND finish = 0)';
-$result = $db->query($sql,__LINE__,__FILE__);
+$sql = 'SELECT * FROM addle WHERE ((player1=? AND nextturn=1) OR (player2=? AND nextturn=2)) AND finish=0';
+$result = $db->query($sql, __LINE__, __FILE__, __FUNCTION__, [BARBARA_HARRIS, BARBARA_HARRIS]);
 while($rs = $db->fetch($result)) {
 	$data = $rs['data'];
-	$nextturn = $rs['nextturn'];
-	$nextrow = $rs['nextrow'];
-	$game_id = $rs['id'];
+	$nextturn = intval($rs['nextturn']);
+	$nextrow = intval($rs['nextrow']);
+	$game_id = intval($rs['id']);
 	$new_nextturn = $nextturn;
 	$checker = 0;
 
 	$data = preg_split("[]", $data, 0, PREG_SPLIT_NO_EMPTY);
 
-	if($rs['player1'] == BARBARA_HARRIS && $nextturn == 1) {
+	if(intval($rs['player1']) === BARBARA_HARRIS && $nextturn === 1) {
 		$mode = 1;
 		$score_self = $rs['score1'];
 	    $score_chind = $rs['score2'];
@@ -433,7 +429,7 @@ while($rs = $db->fetch($result)) {
 		$new_data = evil_max($data , $nextrow , $score_self, $score_chind,$max_depth, $mode);
 		$checker = 1;
 		$my_score = "score1";
-	} elseif($rs['player2'] == BARBARA_HARRIS && $nextturn == 2) {
+	} elseif(intval($rs['player2']) === BARBARA_HARRIS && $nextturn === 2) {
 		$mode = 2;
 		$score_self = $rs['score2'];
 		$score_chind = $rs['score1'];
@@ -443,21 +439,11 @@ while($rs = $db->fetch($result)) {
 		$my_score = "score2";
 	}
 
-	if ($checker == 1) {
-		$sql = 'UPDATE addle
-				SET
-					data = "'.$new_data['game_data'].'",
-					nextturn = '.$new_nextturn.',
-					nextrow = "'.$new_data['row'].'",
-					'.$my_score.' = '.$new_data['score'].',
-					date = '.timestamp(true);
-		if($new_data['row'] != 23) {
-			$sql_add = '';
-		} else {
-			$sql_add = ', finish = 1 ';
-		}
-		$sql = $sql.$sql_add.' WHERE id = '.$game_id;
-		echo $sql;
-		$db->query($sql,__LINE__,__FILE__,'UPDATE addle');
+	if ($checker === 1) {
+		$sql_add = '';
+		$sql = 'UPDATE addle SET data=?, nextturn=?, nextrow=?, '.$my_score.'=?, date=?';
+		if(intval($new_data['row']) === 23) $sql_add = ', finish=1';
+		$sql = $sql.$sql_add.' WHERE id=?';
+		$db->query($sql, __LINE__, __FILE__, 'UPDATE addle KI Zug', [$new_data['game_data'], $new_nextturn, $new_data['row'], $new_data['score'], timestamp(), $game_id]);
 	}
 }

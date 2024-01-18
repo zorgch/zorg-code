@@ -214,7 +214,7 @@ if (!empty($user_id) && is_numeric($user_id) && $user_id>0)
 		}
 
 		/** User markierte Gallery-Pics */
-		if ($user->is_loggedin()) $htmlOutput .= getUserPics($user_id, 0);
+		if (!empty($user->vereinsmitglied)) $htmlOutput .= getUserPics($user_id, 0);
 	}
 
 	/** User Events */

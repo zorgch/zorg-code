@@ -12,7 +12,8 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
+require_once INCLUDES_DIR.'main.model.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
@@ -56,25 +57,28 @@ echo "<td></tr></table>";
 //echo foot();
 $smarty->display('file:layout/footer.tpl');
 
-function print_stars($stars) {
-
+function print_stars($stars)
+{
 	// imagesource
     $star1 = '<img src="/images/star1.png">';
     $star2 = '<img src="/images/star2.png">';
-    
+    $star = ''; // Initialize $star HTML as an empty string
+
+	/** Add filled stars based on rating */
     for ($i=0;$i<$stars;$i++){
-    	$star=$star.$star2;
+    	$star.=$star2;
     }
+	/** Fill HTML string with remaining unfilled stars */
     for ($i=0;$i<(5-$stars);$i++){
-    	$star=$star.$star1;
+    	$star.=$star1;
     }
 	return $star;
 }
 
 function print_score_table($song,$difficulty){
-	
+
 	global $db;
-	
+
 	switch ($difficulty) {
     case 0:
 		$difficulty_name = "Amazing";
@@ -86,21 +90,21 @@ function print_score_table($song,$difficulty){
        $difficulty_name = "Easy";
        break;
     }
-    
+
 	echo "<td style='width: 33%; vertical-align: top; border-left: solid thin #200; padding-left: 1em'><h3>$difficulty_name</h3>";
 	echo "<table>";
-	
+
 	$sql = "SELECT * FROM fretsonzorg WHERE song = '$song' AND difficulty = '$difficulty' ORDER BY score DESC LIMIT 0,10";
   	$result = $db->query($sql, __FILE__, __LINE__);
 
 	$i=1;
 	while($rs = $db->fetch($result, __FILE__, __LINE__)) {
-	
-		$starpic = print_stars($rs[stars]);
+
+		$starpic = print_stars($rs['stars']);
 		echo "<tr><td style='width: 2em' valign='top'>$i.</td><td style='width: 5em' valign='top'>$rs[score]</td><td style='width: 10em' valign='top'>$starpic</td><td valign='top'>$rs[name]</td></tr></tr>";
 		$i++;
 	}
-	
+
 	echo "</table></td>";
 
 }

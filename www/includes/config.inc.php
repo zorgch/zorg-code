@@ -187,6 +187,7 @@ if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE', (isset($_EN
  * @const SCRIPTS_DIR Scripts directory for Frontend-Resources
  * @const UTIL_DIR Utilities directory for Frontend-Resources
  * @const USER_IMGPATH_PUBLIC	Externer Pfad zu den Userpics
+ * @const TAUSCHBOERSE_IMGPATH_PUBLIC Externer Pfad zu den Tauschbörse Artikel-Bilder
  */
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', (isset($_ENV['URLPATH_ACTIONS']) ? $_ENV['URLPATH_ACTIONS'] : null));
 if (!defined('CSS_DIR')) define('CSS_DIR', (isset($_ENV['URLPATH_CSS']) ? $_ENV['URLPATH_CSS'] : null));
@@ -195,6 +196,7 @@ if (!defined('JS_DIR')) define('JS_DIR', (isset($_ENV['URLPATH_JS']) ? $_ENV['UR
 if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', (isset($_ENV['URLPATH_SCRIPTS']) ? $_ENV['URLPATH_SCRIPTS'] : null));
 if (!defined('UTIL_DIR')) define('UTIL_DIR', (isset($_ENV['URLPATH_UTILS']) ? $_ENV['URLPATH_UTILS'] : null));
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', (isset($_ENV['URLPATH_USERIMAGES']) ? $_ENV['URLPATH_USERIMAGES'] : null));
+if (!defined('TAUSCHBOERSE_IMGPATH_PUBLIC')) define('TAUSCHBOERSE_IMGPATH_PUBLIC', (defined('IMAGES_DIR') ? IMAGES_DIR.'tauschboerse/' : null));
 
 /**
  * Define User & Usersystem constants

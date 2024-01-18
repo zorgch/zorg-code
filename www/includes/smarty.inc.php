@@ -131,9 +131,12 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
 	} else {  // schliessendes tag
 		array_pop($_tpl_stack);
 
-		$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
-		$smarty->assign('tpl_parent', $_tpl_stack[sizeof($_tpl_stack)-2]);
-		$smarty->assign('tpl_level', sizeof($_tpl_stack));
+		if (is_array($_tpl_stack) && count($_tpl_stack)>1)
+		{
+			$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
+			$smarty->assign('tpl_parent', $_tpl_stack[sizeof($_tpl_stack)-2]);
+			$smarty->assign('tpl_level', sizeof($_tpl_stack));
+		}
 
 		return $content;
 	}

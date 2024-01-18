@@ -94,10 +94,10 @@ class Model
 
 		/** Assign Model to Smarty variables */
 		$smarty->assign('tplroot', [
-									 'page_title' => $this->page_title
+									 'page_title' => html_entity_decode($this->page_title, ENT_COMPAT, 'UTF-8')
 									,'page_link' => $this->page_link
 									,'page_image' => $this->page_image
-									,'meta_description' => $this->meta_description
+									,'meta_description' => html_entity_decode($this->meta_description, ENT_COMPAT, 'UTF-8')
 									,'menus' => $this->menus
 									,'sidebar' => $this->sidebar
 									,'additional_scripts' => $this->scripts

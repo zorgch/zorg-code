@@ -43,11 +43,8 @@ if (isset($_POST['frm']) && is_array($_POST['frm'])) {
 	}
 }
 $enable_tpleditor = filter_input(INPUT_GET, 'tpleditor', FILTER_VALIDATE_BOOL) ?? false; // $_GET['tpleditor']
-unset($_GET['tpleditor']);
 $updated_tplid = ($_GET['tplupd'] === 'new' ? 'new' : (filter_input(INPUT_GET, 'tplupd', FILTER_VALIDATE_INT) ?? null)); // $_GET['tplupd']
-unset($_GET['tplupd']);
 $return_url = base64url_decode(filter_input(INPUT_GET, 'location', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/index.php?tpl='.$updated_tplid; // $_GET['location']
-unset($_GET['location']);
 
 /**
  * Save Template
@@ -268,26 +265,29 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 			zorgDebugger::log()->debug('$_TPLROOT[owner] Notification: %s', [$notification_status ? 'true' : 'false']);
 		}
 
-		if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> header(Location): %s', __FILE__, __LINE__, $return_url));
+		unset($_GET['tpleditor']);
+		unset($_GET['tplupd']);
+		unset($_GET['location']);
+		zorgDebugger::log()->debug('Location: %s', [$return_url]);
 		header('Location: '.$return_url);
 		exit();
 	}
 
 	/** Otherweise go back to TPL-Editor & display Errors */
 	else {
-		$frm['tpl'] = stripslashes(stripslashes($frm['tpl']));
-		$frm['title'] = stripslashes(stripslashes($frm['title']));
-		$frm['packages'] = stripslashes(stripslashes($frm['packages']));
+		$frm['tpl'] = (is_string($frm['tpl']) ? stripslashes(stripslashes($frm['tpl'])) : strval($frm['tpl']));
+		$frm['title'] = (is_string($frm['title']) ? stripslashes(stripslashes($frm['title'])) : strval($frm['title']));
+		$frm['packages'] = (is_string($frm['packages']) ? stripslashes(stripslashes($frm['packages'])) : strval($frm['packages']));
 		// FIXME aus irgend einem grund ist stripslashes() 2x nötig. sonst wird nur ein teil der slashes entfernt. wüsste gern wieso. ([z]biko)
 
 		/** Pass $error to error-log */
-		error_log($error);
+		zorgDebugger::log()->warn('Smarty Template Error: %s', [strval($error)]);
 
 		/** Pass $error to Smarty and display template */
 		$smarty->assign('tpleditor_error', $error);
 		$frm['tpl'] = htmlentities($frm['tpl']);
-		$smarty->assign('tpleditor_frm', $frm);
 		$smarty->assign('tpleditor_state', $state);
+		$smarty->assign('tpleditor_frm', $frm);
 
 		$smarty->display('file:layout/layout.tpl');
 	}

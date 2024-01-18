@@ -8,7 +8,7 @@
 require_once __DIR__.'/../includes/stockbroker.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 
-global $smarty, $user;
+global $stockbroker, $smarty, $user;
 
 //$smarty->assign("kurse_aktuell", Stockbroker::getKurseNeuste(10));
 $smarty->assign("kurse_tagesgewinner", $stockbroker->getTodaysWinners());

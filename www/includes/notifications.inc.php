@@ -37,10 +37,10 @@ class Notification
 	 * Send a Notification to a User
 	 * Schickt eine Notification an einen User über die aktivierten Kanäle
 	 *
-	 * @author	IneX
-	 * @version	1.1
+	 * @version	1.2
 	 * @since	1.0 `21.10.2018` `IneX` method added
 	 * @since	1.1 `13.08.2021` `IneX` fixed Undefined index: games & Invalid argument supplied for foreach()
+	 * @since	1.2 `13.08.2021` `IneX` harmonise $text & $message when sending Telegram Notification (with more context)
 	 *
 	 * @param integer $user_id Valid User-ID integer
 	 * @param string $notification_source String representing the source of Notification to send $content for. E.g. 'messagesystem', 'mentions', 'games', etc...
@@ -54,21 +54,20 @@ class Notification
 		global $user, $telegram;
 
 		/** Validate passed parameters */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> passed parameters: %d | %s | %s', __METHOD__, __LINE__, $user_id, $notification_source, (is_array($content) ? print_r($content,true) : strval($content))));
+		zorgDebugger::log()->debug('Values: %d | %s | %s', [$user_id, $notification_source, (is_array($content) ? print_r($content,true) : strval($content))]);
 		if (!is_numeric($user_id) || $user_id <= 0) return false;
 		if (is_numeric($notification_source) || is_array($notification_source)) return false;
 		if (!is_array($content)) return false;
 
 		/** Get the Notifications for $user_id */
-		$userNotifications = $this->get($user_id);
+		$userNotifications = self::get($user_id);
 
 		/**
 		 * Check and send User Notifications
-		 * @TODO harmonise $text & $message...
 		 */
 		if (is_array($userNotifications) && count($userNotifications)>0) // @FIXME what if the user has NO (0) Notifications activated?
 		{
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $userNotifications: %s', __METHOD__, __LINE__, print_r($userNotifications,true)));
+			zorgDebugger::log()->debug('$userNotifications: %s', [print_r($userNotifications,true)]);
 			/** Make sure $notification_source = eixsts in $userNotifications */
 			if (false === array_key_exists($notification_source, $userNotifications))
 			{
@@ -78,16 +77,17 @@ class Notification
 			}
 			foreach($userNotifications[$notification_source] as $notification_type => $notification_value)
 			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> %s => %s', __METHOD__, __LINE__, $notification_type, $notification_value));
+				zorgDebugger::log()->debug('%s => %s', [$notification_type, $notification_value]);
 
 				/**
 				 * zorg Message
 				 */
 				if ($notification_type === 'message' && $notification_value == 'true')
 				{
-					/** Validate $content for $notification_type 'message'
-						$from_user_id, $owner, $subject, $text='', $to_users='', $isread='0'
-					*/
+					/**
+					 * Validate $content for $notification_type 'message'
+					 * $from_user_id, $owner, $subject, $text='', $to_users='', $isread='0'
+					 */
 					if (!empty($content['from_user_id']) && !empty($content['from_user_id']) && !empty($content['subject']) && !empty($content['text']))
 					{
 						/** Send notification */
@@ -103,13 +103,14 @@ class Notification
 				 */
 				elseif ($notification_type === 'email' && $notification_value == 'true')
 				{
-					/** Validate $content for $notification_type 'message'
-						$from_user_id, $owner, $subject, $text
-					*/
+					/**
+					 * Validate $content for $notification_type 'message'
+					 * $from_user_id, $owner, $subject, $text
+					 */
 					if (!empty($content['from_user_id']) && !empty($content['subject']) && !empty($content['text']))
 					{
 						/** Send notification */
-						$this->sendEmailNotification($content['from_user_id'], $user_id, $content['subject'], $content['text']);
+						self::sendEmailNotification($content['from_user_id'], $user_id, $content['subject'], $content['text']);
 					} else {
 						error_log(sprintf('[WARN] <%s:%d> $notification_type "email": invalid or incomplete $content! %s', __METHOD__, __LINE__, print_r($content,true)));
 					}
@@ -124,8 +125,8 @@ class Notification
 					if (!empty($content['message']) && !is_numeric($content['message']) && !is_array($content['message']))
 					{
 						/** Send notification */
-						$content['parameters'] = ['disable_web_page_preview' => 'true']; // TEMP - REMOVE LATER!
-						//$message = t('telegram-newmessage-notification', 'messagesystem', [ SITE_URL, $user_id, $user->id2user($content['from_user_id'], TRUE), SITE_HOSTNAME, text_width($text, 140, '...', true) ] );
+						$content['parameters'] = ['disable_web_page_preview' => 'false']; // TODO TEMP - REMOVE LATER! / Re-enabled because don't know why disabled... [17.01.2024/IneX]
+						if (isset($content['subject']) && !empty($content['subject'])) $content['message'] = $content['subject'].': '.$content['message']; // Merge Subject + Message
 						$telegram->send->message($user_id, $content['message'], $content['parameters']);
 					} else {
 						error_log(sprintf('[WARN] <%s:%d> $notification_type "telegram": invalid or incomplete $content! %s', __METHOD__, __LINE__, print_r($content,true)));
@@ -137,7 +138,7 @@ class Notification
 			return true;
 
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $userNotifications INVALID: %d', __METHOD__, __LINE__, print_r($userNotifications,true)));
+			zorgDebugger::log()->debug('$userNotifications INVALID: %d', [print_r($userNotifications,true)]);
 			return false;
 		}
 	}
@@ -163,12 +164,11 @@ class Notification
 		global $db, $user;
 
 		/** Validate passed parameters */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> passed parameters: %d', __METHOD__, __LINE__, $user_id));
 		if (!is_numeric($user_id) || $user_id <= 0 || true === is_array($user_id) || false === $user->id2user($user_id)) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_id INVALID: %d', __METHOD__, __LINE__, $user_id));
+			zorgDebugger::log()->debug('$user_id INVALID: %d', [$user_id]);
 			return false;
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $user_id VALID', __METHOD__, __LINE__));
+			zorgDebugger::log()->debug('$user_id VALID: %d', [$user_id]);
 		}
 
 		$query = $db->query('SELECT notifications FROM user WHERE id=? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$user_id]);
@@ -176,10 +176,10 @@ class Notification
 		if (!$result || empty($result))
 		{
 			/** Use fallback usersystem::$default_notifications if No query result / empty "notifications"-field */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use fallback usersystem::$default_notifications for $user_id %d: %s', __METHOD__, __LINE__, $user_id, $user->default_notifications));
+			zorgDebugger::log()->debug('Use fallback usersystem::$default_notifications for $user_id %d: %s', [$user_id, $user->default_notifications]);
 			$userEnabledNotifications = json_decode( $user->default_notifications, true ); // JSON-DECODE to Array
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Use $userEnabledNotifications for $user_id %d: %s', __METHOD__, __LINE__, $user_id, $result['notifications']));
+			zorgDebugger::log()->debug('Use $userEnabledNotifications for $user_id %d: %s', [$user_id, $result['notifications']]);
 			$userEnabledNotifications = json_decode( stripslashes($result['notifications']), true); // JSON-Decode to Array
 		}
 
@@ -254,13 +254,12 @@ class Notification
 	 * @param	integer	$to_user_id		User-ID des Empfängers
 	 * @param	string	$titel			Titel der ursprünglichen Nachricht
 	 * @param	string	$text			Ursprünglicher Text
-	 * @global	object	$db				Globales Class-Object mit allen MySQL-Methoden
 	 * @global	object	$user			Globales Class-Object mit den User-Methoden & Variablen
 	 * @return	boolean					Returns 'true' or 'false', depending if mail() was successful or not
 	 */
 	private function sendEmailNotification($from_user_id, $to_user_id, $titel, $text)
 	{
-		global $db, $user;
+		global $user;
 
 		/** Validate passed parameters */
 		if (!empty($to_user_id) && is_numeric($to_user_id))
