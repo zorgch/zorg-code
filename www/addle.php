@@ -111,11 +111,11 @@ function selectoption($inputname, $size, $valuearray, $array2="",$selected="", $
 function newgame($player) {
 	global $db, $user, $notification;
 
-	$anz = $db->fetch($db->query('SELECT count(*) anz FROM addle WHERE finish=0 AND ((player1='.$user->id.' AND player2='.$player.') OR (player1='.$player.' AND player2='.$user->id.'))',
-		__FILE__, __LINE__, 'SELECT FROM addle'));
+	$sql = 'SELECT COUNT(*) anz FROM addle WHERE finish=0 AND ((player1=? AND player2=?) OR (player1=? AND player2=?))';
+	$anz = $db->fetch($db->query($sql, __FILE__, __LINE__, 'SELECT FROM addle', [$user->id, $player, $player, $user->id]));
 	if ($anz['anz'] > MAX_ADDLE_GAMES) user_error(t('error-game-max-limit-reached'), E_USER_NOTICE);
 
-	$e = $db->query('SELECT addle FROM user WHERE id='.$player, __FILE__, __LINE__, 'SELECT FROM user');
+	$e = $db->query('SELECT addle FROM user WHERE id=?', __FILE__, __LINE__, 'SELECT FROM user', [$player]);
 	$d = $db->fetch($e);
 
 	if (!$player || $player == $user->id || $d['addle'] !=1) {
@@ -800,7 +800,7 @@ function archiv() {
 				<td>&nbsp;</td>
 		</tr>	<?php
 
-		$e = $db->query('SELECT * FROM addle WHERE (player1='.$uid.' OR player2='.$uid.') ORDER BY date DESC', __FILE__, __LINE__, __FUNCTION__);
+		$e = $db->query('SELECT * FROM addle WHERE (player1=? OR player2=?) ORDER BY date DESC', __FILE__, __LINE__, __FUNCTION__, [$uid, $uid]);
 		$i = 0;
 		while ($d = $db->fetch($e))
 		{
