@@ -330,9 +330,10 @@ function url_params()
 {
 	$ret = '';
 	foreach ($_GET as $key => $val) {
-		$ret .= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '=' . htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '&';
+		$ret .= htmlspecialchars(strval($key), ENT_QUOTES, 'UTF-8') . '=' . htmlspecialchars(strval($val), ENT_QUOTES, 'UTF-8');
+		if ($key !== array_key_last($_GET)) $ret .= '&';
 	}
-	return substr($ret, 0, -1);
+	return $ret;
 }
 
 /**

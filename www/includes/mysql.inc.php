@@ -25,7 +25,7 @@ class dbconn
 	var $conn;
 	var $noquerys = 0;
 	var $noquerytracks = 0;
-	var $nolog = 0;
+	var $nolog = false;
 	var $display_error = (DEVELOPMENT === true ? 1 : 0);
 	var $query_track = [];
 
@@ -219,8 +219,8 @@ class dbconn
 		</td></tr><tr><td align='left' valign='top'><b>Line:</b> </td><td align='left'>".$line."
 		</td></tr><tr><td align='left' valign='top'><b>Function:</b> </td><td align='left'>".$funktion."
 		</td></tr></table>";
-		if($this->nolog == 0) {
-			$this->saveerror($msg,$sql,$file,$line,$funktion);
+		if(!$this->nolog && !empty($msg) && !empty($sql)) {
+			$this->saveerror($msg, $sql, $file, $line, $funktion);
 		}
 		return $ausg;
 	}
@@ -241,16 +241,22 @@ class dbconn
 	 */
 	function saveerror($msg, $sql, $file='', $line=0, $funktion='')
 	{
-		$msg = addslashes($msg);
-		$sql = addslashes($sql);
-		$user_id = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0);
-		$ip = (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
-		$page = (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
-		$referer = (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
-		// FIXME crasht wenn von Line 193 -> Line 222 aufgerufen, prepared statement scheint falsch zu sein *shrug*
+		/** Validate parameters */
+		$msg = strval($msg);
+		$sql = strval($sql);
+		$file = strval($file);
+		$line = intval($line);
+		$funktion = strval($funktion);
+		$user_id = (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0);
+		$ip = (isset($_SERVER['REMOTE_ADDR']) && !empty($_SERVER['REMOTE_ADDR']) ? strval($_SERVER['REMOTE_ADDR']) : '');
+		$page = (isset($_SERVER['REQUEST_URI']) && !empty($_SERVER['REQUEST_URI']) ? strval($_SERVER['REQUEST_URI']) : '');
+		$referer = (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER']) ? strval($_SERVER['HTTP_REFERER']) : '');
+		$datetime = strval(timestamp(true));
+
+		/** Insert SQL-Error to DB */
 		$insertSql = 'INSERT INTO sql_error (user_id, ip, page, query, msg, date, file, line, referer, status, function) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)';
 		$stmt = mysqli_prepare($this->conn, $insertSql);
-		mysqli_stmt_bind_param($stmt, 'isssssiss', $user_id, $ip, $page, $sql, $msg, timestamp(true), $file, $line, $referer, $funktion);
+		mysqli_stmt_bind_param($stmt, 'issssssiss', $user_id, $ip, $page, $sql, $msg, $datetime, $file, $line, $referer, $funktion);
 		mysqli_stmt_execute($stmt);
 	}
 
