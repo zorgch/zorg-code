@@ -35,14 +35,13 @@ class Bugtracker
 	 * - deny a Bug
 	 * - adding new Bug Category
 	 *
-	 * @author [z]milamber
-	 * @author IneX
-	 * @version 3.2
+	 * @version 3.3
 	 * @since 1.0 `[z]milamber` function added
 	 * @since 2.0 `IneX` various code optimizations, I don't remember all of them
 	 * @since 3.0 `26.11.2018` `IneX` updated to use new $notifcation Class & some code and query optimizations
 	 * @since 3.1 `04.12.2019` `IneX` [GitHub-Issue #22] updated SQL-queries
 	 * @since 3.2 `02.06.2023` `IneX` Fixes SQL Injection Risks (CWE-89), Open Redirect Risks (CWE-601)
+	 * @since 3.3 `17.01.2024` `IneX` Fixes empty Notification Text, better Input Validation
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
@@ -53,10 +52,12 @@ class Bugtracker
 	{
 		global $db, $user, $notification;
 
-		$sanitizedReturnURL = parse_url(base64url_decode($_GET['url']), PHP_URL_PATH);
+		$returnUrl = (isset($_GET['url']) ? filter_input(INPUT_GET, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) : (filter_input(INPUT_POST, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? '/bugtracker.php'));
+		$sanitizedReturnURL = parse_url(base64url_decode($returnUrl), PHP_URL_PATH);
+		$doAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
 
 		/** Add new Bug */
-		if (isset($_GET['action']) && $_GET['action'] === 'new')
+		if ($doAction === 'new')
 		{
 			/** Validate & escape fields */
 			$bugCategory = ( isset($_GET['category_id']) && is_numeric($_GET['category_id']) && $_GET['category_id'] >= 0 ? $_GET['category_id'] : user_error('Bugtracker: invalid Category-ID "' . $_GET['category_id'] . '"', E_USER_WARNING) );
@@ -83,7 +84,7 @@ class Bugtracker
 				for ($i=0; $i < count($_GET['msg_users']); $i++)
 				{
 					$notification_subject = t('message-subject-newbug', 'bugtracker', [ $user->id2user($user->id, true), $newBugId ]);
-					$notification_text = t('message-newbug', 'bugtracker', [ remove_html($bugDescription, '<a><br><i><b><code><pre>'), SITE_URL, $newBugId, $bugTitle]);
+					$notification_text = t('message-newbug', 'bugtracker', [ remove_html($bugDescription, '<a><br><i><b><code><pre>'), $newBugId, $bugTitle]);
 					$notification_status = $notification->send($_GET['msg_users'][$i], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text, 'to_users' => $_GET['msg_users']]);
 					if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $_GET['msg_users'][$i]));
 				}
@@ -94,7 +95,7 @@ class Bugtracker
 		}
 
 		/** Assign Bug */
-		elseif (isset($_GET['action']) && $_GET['action'] === 'assign')
+		elseif ($doAction === 'assign')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 
@@ -102,12 +103,12 @@ class Bugtracker
 			if($rs['assignedto_id'] == 0) {
 				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
 			}
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Bug klauen */
-		elseif (isset($_GET['action']) &&  $_GET['action'] === 'klauen')
+		elseif ($doAction === 'klauen')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 
@@ -115,12 +116,12 @@ class Bugtracker
 			if($rs['assignedto_id'] == 0 OR $rs['assignedto_id'] > 0) {
 				$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => $user->id, 'assigned_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
 			}
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Bug erneut öffnen */
-		elseif (isset($_GET['action']) && $_GET['action'] === 'reopen')
+		elseif ($doAction === 'reopen')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => 'NULL', 'denied_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
@@ -129,27 +130,27 @@ class Bugtracker
 			if($user->id != $rs['reporter_id'])
 			{
 				$notification_subject = t('message-subject-reopenbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
-				$notification_text = sprintf('<a href="%">Bug %d anschauen</a>', SITE_URL.'/bug/'.$bugId, $bugId);
+				$notification_text = t('message-buglink', 'bugtracker', [$bugId]);
 				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Bug wieder freigeben (unassign) */
-		elseif (isset($_GET['action']) && $_GET['action'] === 'resign')
+		elseif ($doAction === 'resign')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['assignedto_id' => 'NULL', 'assigned_date' => 'NULL'], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Bug als gelöst markieren */
-		elseif (isset($_GET['action']) && $_GET['action'] === 'resolve')
+		elseif ($doAction === 'resolve')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['resolved_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
@@ -161,17 +162,17 @@ class Bugtracker
 			if($user->id != $rs['reporter_id'])
 			{
 				$notification_subject = t('message-subject-resolvedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
-				$notification_text = sprintf('<a href="%">Bug %d anschauen</a>', SITE_URL.'/bug/'.$bugId, $bugId);
+				$notification_text = t('message-buglink', 'bugtracker', [$bugId]);
 				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Bug bearbeiten */
-		elseif (isset($_GET['action']) && $_GET['action'] == 'edit')
+		elseif ($doAction === 'edit')
 		{
 			/** Validate & escape fields */
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
@@ -190,12 +191,12 @@ class Bugtracker
 																,'code_commit' => $bugCommit
 															], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Bug ablehnen */
-		elseif (isset($_GET['action']) && $_GET['action'] == 'deny')
+		elseif ($doAction === 'deny')
 		{
 			$bugId = ( isset($_GET['bug_id']) && is_numeric($_GET['bug_id']) && $_GET['bug_id'] >= 0 ? (int)$_GET['bug_id'] : user_error('Bugtracker: invalid Bug-ID "' . $_GET['bug_id'] . '"', E_USER_WARNING) );
 			$result = $db->update('bugtracker_bugs', $bugId, ['denied_date' => timestamp(true)], __FILE__, __LINE__, __METHOD__);
@@ -207,17 +208,17 @@ class Bugtracker
 			if($user->id != $rs['reporter_id'])
 			{
 				$notification_subject = t('message-subject-deniedbug', 'bugtracker', [ $user->id2user($user->id, true), $bugId ]);
-				$notification_text = sprintf('<a href="%">Bug %d anschauen</a>', SITE_URL.'/bug/'.$bugId, $bugId);
+				$notification_text = t('message-buglink', 'bugtracker', [$bugId]);
 				$notification_status = $notification->send($rs['reporter_id'], 'bugtracker', ['from_user_id'=>$user->id, 'subject'=>$notification_subject, 'text'=>$notification_text, 'message'=>$notification_text]);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $notification_status "%s" from user=%s to user=%s', __METHOD__, __LINE__, ($notification_status===true?'true':'false'), $user->id, $rs['reporter_id']));
 			}
 
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 
 		/** Add new Category */
-		elseif (isset($_GET['action']) && $_GET['action'] == 'newcategory')
+		elseif ($doAction === 'newcategory')
 		{
 			$title_sanitized = sanitize_userinput($_GET['title']);
 			$categoryTitle = ( isset($title_sanitized) && !empty($title_sanitized) ? $title_sanitized : user_error('Bugtracker: invalid Category Title "' . $_GET['title'] . '"', E_USER_WARNING) );
@@ -225,7 +226,7 @@ class Bugtracker
 			/** Add new Category to DB */
 			$newBugId = $db->insert('bugtracker_categories', [ 'title' => $categoryTitle ], __FILE__, __LINE__, __METHOD__);
 
-			header('Location: '.(!empty($sanitizedReturnURL) ? $sanitizedReturnURL : '/bugtracker.php'));
+			header('Location: '.$sanitizedReturnURL);
 			exit;
 		}
 	}
@@ -249,17 +250,8 @@ class Bugtracker
 
 		$html = null;
 
-		$sql = 'SELECT
-					 bugtracker_bugs.*
-					,categories.title as category
-					,UNIX_TIMESTAMP(assigned_date) as assigned_date
-					,UNIX_TIMESTAMP(denied_date) as denied_date
-					,UNIX_TIMESTAMP(resolved_date) as resolved_date
-					,UNIX_TIMESTAMP(reported_date) as reported_date
-				 FROM bugtracker_bugs
-					 LEFT JOIN bugtracker_categories as categories ON (bugtracker_bugs.category_id = categories.id)
-				 WHERE bugtracker_bugs.id ='.$bug_id;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT bugtracker_bugs.*, categories.title as category, UNIX_TIMESTAMP(assigned_date) as assigned_date, UNIX_TIMESTAMP(denied_date) as denied_date, UNIX_TIMESTAMP(resolved_date) as resolved_date, UNIX_TIMESTAMP(reported_date) as reported_date FROM bugtracker_bugs LEFT JOIN bugtracker_categories as categories ON (bugtracker_bugs.category_id = categories.id) WHERE bugtracker_bugs.id=?';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$bug_id]);
 		$rs = $db->fetch($result);
 
 		$reportedDate_iso8601 = date('c', $rs['reported_date']);
@@ -268,12 +260,10 @@ class Bugtracker
 
 		if($edit == TRUE)
 		{
-			$html .=
-				'<form action="/bug/'.$rs['id'].'" method="get">'
-				.'<input name="action" type="hidden" value="edit">'
-				.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
-				.'<input name="url" type="hidden" value="'.base64url_encode(getChangedURL('action=')).'">'
-			;
+			$html .= '<form action="/bug/'.$rs['id'].'" method="get">'
+					.'<input name="action" type="hidden" value="edit">'
+					.'<input name="bug_id" type="hidden" value="'.$rs['id'].'">'
+					.'<input name="url" type="hidden" value="'.base64url_encode(getChangedURL('action=')).'">';
 		}
 
 		/** schema.org QAPage/Question "itemprop=answerCount" berechnen */

@@ -196,8 +196,9 @@ return
 			,'message-subject-newbug' => '%s hat den Bug #%d neu erstellt'
 			,'message-subject-reopenbug' => '%s hat den Bug #%d reopened'
 			,'message-subject-resolvedbug' => '%s hat den Bug #%d gelöst'
+			,'message-buglink' => '<a href="'.SITE_URL.'/bug/%1$d">Bug %1$d anschauen</a>'
 			,'message-subject-deniedbug' => '%s hat den Bug #%d denied'
-			,'message-newbug' => 'Bug Details:<br><blockquote><i>%s</i></blockquote><br><a href="%s/bug/%d">&raquo; %s</a>'
+			,'message-newbug' => 'Bug Details:<br><blockquote><i>%s</i></blockquote><br><a href="'.SITE_URL.'/bug/%d">&raquo; %s</a>'
 		]
 	,'addle' =>
 		[
