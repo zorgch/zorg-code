@@ -260,8 +260,9 @@ if (tpleditor_access_lock($updated_tplid, $access_error))
 		zorgDebugger::log()->debug('Notify Template-Owner: owner %d <-- edit by %d', [$notifyOtherTplOwner, $user->id]);
 		if ($notifyOtherTplOwner !== $user->id)
 		{
-			$notification_text = t('change-notification-owner', 'tpl', [ $user->id2user($user->id), $frm['id'], $frm['title'] ]);
-			$notification_status = $notification->send($notifyOtherTplOwner, 'messagesystem', ['from_user_id'=>$user->id, 'subject'=>t('change-notification-owner-subject', 'tpl'), 'text'=>$notification_text, 'message'=>$notification_text]);
+			$username = $user->id2user($user->id);
+			$notification_text = t('change-notification-owner', 'tpl', [ $username, $frm['id'], $frm['title'] ]);
+			$notification_status = $notification->send($notifyOtherTplOwner, 'messagesystem', ['from_user_id'=>$user->id, 'subject'=>t('change-notification-owner-subject', 'tpl', [$username]), 'text'=>$notification_text, 'message'=>$notification_text]);
 			zorgDebugger::log()->debug('$_TPLROOT[owner] Notification: %s', [$notification_status ? 'true' : 'false']);
 		}
 

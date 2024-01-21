@@ -44,64 +44,32 @@ function get_sql_errors($num=23,$order=3,$oby=0)
 
 		$order_by = array('','u.username', 's.page', 's.file', 's.date', 's.referer');
 		$by = array('DESC','ASC');
-		$sql = 'SELECT
-					COALESCE(u.username,"ausgeloggt") AS username,
-					s.page,
-					s.file,
-					s.line,
-					s.function,
-					s.query,
-					s.msg,
-					s.referrer,
-					s.id,
-					s.s_date AS datum
-				FROM
-					(SELECT
-			            s.page AS page,
-			            s.file AS file,
-			            s.line AS line,
-			            s.function AS function,
-			            s.query AS query,
-			            s.msg AS msg,
-			            s.referer AS referrer,
-			            s.id AS id,
-			            UNIX_TIMESTAMP(s.date) AS s_date,
-			            s.user_id AS s_user_id
-			        FROM
-			            sql_error s
-			        WHERE
-			            s.status = 1
-			        ORDER BY '.$order_by[$_SESSION['error_order']].' '.$by[$_SESSION['error_oby']].'
-			        LIMIT '.$_SESSION['error_num'].') s
-				LEFT JOIN user u ON u.id = s.s_user_id
-				WHERE 1 = 1';
-		$result = $db->query($sql,__FILE__,__LINE__,__FUNCTION__);
+		$sql = 'SELECT COALESCE(u.username,"ausgeloggt") AS username, s.page, s.file, s.line, s.function, s.query, s.msg, s.referrer, s.id, s.s_date AS datum
+				FROM (SELECT s.page AS page, s.file AS file, s.line AS line, s.function AS function, s.query AS query, s.msg AS msg, s.referer AS referrer, s.id AS id, UNIX_TIMESTAMP(s.date) AS s_date, s.user_id AS s_user_id FROM sql_error s WHERE s.status=1 ORDER BY '.$order_by[$_SESSION['error_order']].' '.$by[$_SESSION['error_oby']].' LIMIT ?) s
+				LEFT JOIN user u ON u.id = s.s_user_id WHERE 1 = 1';
+		$result = $db->query($sql, __FILE__, __LINE__, __FUNCTION__, [$_SESSION['error_num']]);
 		$html = '';
-		if(isset($error_id) && $error_id>0)
+		if(!isset($error_id) || empty($error_id))
 		{
-			$html .= "
-			<script language='javascript'>
-			function selectAll() {
-			for(i=0; i < (".$num_errors."); i++)
-			document.error_form.elements[i].checked = !document.error_form.elements[i].checked;
-			}
-			</script>
+			$html .= "<script language='javascript'>
+						function selectAll() {
+							for(i=0; i < (".$num_errors."); i++)
+							document.error_form.elements[i].checked = !document.error_form.elements[i].checked;
+						}
+					</script>
 			<form action='/actions/error_action.php?tpl=".$tpl_id."&id=".$error_id."' name='error_form' method='post'>";
 		}
 
-		$html .= "
-		<table class='border'>
-			<tr>
-				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=1'>User</a></b></td>
-				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=2'>Page</a></b></td>
-				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=5'>Referrer</a></b></td>
-				<td align='center' class='hide-mobile'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=3'>File</a></b></td>
-				<td align='center' class='hide-mobile'><b><b>Line</b></td>
-				<td align='center'><b>SQL</b></td>
-				<td align='center'><b><a href='".$_SERVER['PHP_SELF']."?tpl=".$tpl_id."&o=4'>Datum</a></b></td>
-			";
-			if(isset($error_id) && $error_id>0) $html .= '<td align="right" class="hide-mobile"><b>del</b></td>';
-
+		$html .= "<table class='border'>
+					<tr>
+						<td align='center'><b><a href='".htmlspecialchars($_SERVER['PHP_SELF'])."?tpl=".$tpl_id."&o=1'>User</a></b></td>
+						<td align='center' class='hide-mobile'><b><a href='".htmlspecialchars($_SERVER['PHP_SELF'])."?tpl=".$tpl_id."&o=2'>Page</a></b></td>
+						<td align='center' class='hide-mobile'><b><a href='".htmlspecialchars($_SERVER['PHP_SELF'])."?tpl=".$tpl_id."&o=5'>Referrer</a></b></td>
+						<td align='center' class='hide-mobile'><b><a href='".htmlspecialchars($_SERVER['PHP_SELF'])."?tpl=".$tpl_id."&o=3'>File</a></b></td>
+						<td align='center' class='hide-mobile'><b><b>Line</b></td>
+						<td align='center'><b>SQL</b></td>
+						<td align='center'><b><a href='".htmlspecialchars($_SERVER['PHP_SELF'])."?tpl=".$tpl_id."&o=4'>Datum</a></b></td>";
+			if(!isset($error_id) || empty($error_id)) $html .= '<td align="right" class="hide-mobile"><b>del</b></td>';
 		$html .= "</tr>";
 		$i = 0;
 		while($rs = $db->fetch($result))
@@ -121,10 +89,10 @@ function get_sql_errors($num=23,$order=3,$oby=0)
 					<td align="left" class="hide-mobile"><small>'.substr(str_replace('http://'.$_SERVER['SERVER_NAME'],'', $rs['referrer']),0,23).'...</small></td>
 					<td align="left" class="hide-mobile"><small>'.str_replace($_SERVER['DOCUMENT_ROOT'],'',$rs['file']).'</small></td>
 					<td align="left" class="hide-mobile"><small>'.$rs['line'].'</small></td>
-					<td align="left"><small><a href="'.$_SERVER['PHP_SELF'].'?tpl='.$tpl_id.'&id='.$rs['id'].'">'.substr($rs['query'],0,23).'...</a></small></td>
+					<td align="left"><small><a href="'.htmlspecialchars($_SERVER['PHP_SELF']).'?tpl='.$tpl_id.'&id='.intval($rs['id']).'">'.substr($rs['query'],0,23).'...</a></small></td>
 					<td align="left"><small>'.datename($rs['datum']).'</small></td>';
 
-				if(isset($error_id) && $error_id>0) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';
+				if(!isset($error_id) || empty($error_id)) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';
 
 			$html .= '</tr>';
 
@@ -181,7 +149,7 @@ function get_sql_errors($num=23,$order=3,$oby=0)
 			}
 		}
 
-		if(isset($error_id) && $error_id>0)
+		if(!isset($error_id) || empty($error_idy))
 		{
 			$html .= '
 			<tr>
