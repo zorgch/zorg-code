@@ -104,6 +104,7 @@ class dbconn
 				$this->query_track[$qfile]['line '.$qline]++;
 			}
 		}
+		zorgDebugger::log()->debug('Query: %s%s', [str_replace(["\r", "\n", "\t"], '', $sql), (isset($params) ? ' | Values: '.print_r($params,true) : '')]);
 
 		try {
 			/** Check if $params is provided, if not, execute the query directly */
@@ -129,14 +130,14 @@ class dbconn
 								$params[$i] = ($params[$i] ? 1 : 0); // 0 for FALSE, 1 for TRUE
 								$paramTypes .= 'i';
 								break;
-							case is_int($params[$i]):
-								$paramTypes .= 'i';
+							case is_null($params[$i]) || $params[$i] === '':
+								$paramTypes .= 's';
 								break;
 							case is_float($params[$i]):
 								$paramTypes .= 'd';
 								break;
-							case is_null($params[$i]) || $params[$i] === '':
-								$paramTypes .= 's';
+							case is_int($params[$i]):
+								$paramTypes .= 'i';
 								break;
 							case is_string($params[$i]):
 								$paramTypes .= 's';

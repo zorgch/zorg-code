@@ -1705,11 +1705,12 @@ class Forum
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 3.1
+	 * @version 3.2
 	 * @since 1.0 method added
 	 * @since 2.0 `07.11.2018` `IneX` code optimizations, fixed $sql-Query for Thread list for not-loggedin Users
 	 * @since 3.0 `05.12.2018` `IneX` fixed and restored Thread-Overview Pagination
 	 * @since 3.1 `25.07.2019` `IneX` fixed Bug #774: In der Forumthreads-Übersicht wird ein falscher "Thread starter" angezeigt
+	 * @since 3.2 `20.01.2024` `IneX` fixes SQL nonaggregated column warning, convert SQL to prepared statement
 	 *
 	 * @used-by Forum::getNavigation()
 	 * @param array|string $showboards Array mit den Boards für welche die Threads angezeigt werden sollen
@@ -1719,94 +1720,113 @@ class Forum
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @return string
  	 */
-	static function getHTML($showboards, $pagesize, $sortby='last_post_date')
+	static function getHTML($showboards, $pagesize, $sortby='threadupdated')
 	{
 		global $db, $user;
 
+		$sqlparams = [];
+		$showboards_values = [];
+
 		/** Boards als komma-separierte Liste */
-		if (is_array($showboards)) $showboards_commaseparated = sprintf('"%s"', implode('","', $showboards));
-		else $showboards_commaseparated = '"'.$showboards.'"';
+		$sqlplaceholders_boards = null;
+		if (is_array($showboards)) {
+			$sqlplaceholders_boards = implode(',', array_fill(0, count($showboards), '?'));
+			$showboards_values = array_map('strval', $showboards); // Each board must be a string
+		}
+		else {
+			$sqlplaceholders_boards = '?';
+			$showboards_values[] = strval($showboards);
+		}
 
-		/** Sortieren */
-		if(empty($sortby) || is_numeric($sortby) || is_array($sortby)) $sortby = 'last_post_date';
+		/** Sortierungsspalte */
+		if (!is_string($sortby)) $sortby = 'threadupdated';
+		$sqlsortby_value = 'last_post_date';
+		switch ($sortby) {
+			case 'threadname':
+				$sqlsortby_value = 't.text';
+				break;
+			case 'threadstarter':
+				$sqlsortby_value = 'thread_starter';
+				break;
+			case 'threadid':
+				$sqlsortby_value = 'ct.thread_id';
+				break;
+			case 'threadposts':
+				$sqlsortby_value = 'numposts';
+				break;
+			default: // + Fallback
+			$sqlsortby_value = 'last_post_date';
+				break;
+		}
 
-		/**
-		 * "ASC"-Sortierung ist nur bei Nummern oder Datum erlaubt, nicht bei Text
-		 * ...prüfen, ob wir eine numerische/datum Spalte sortieren wollen */
-		$order = 'DESC';
-		$new_order = 'ASC';
-		if (strpos($sortby,'_id') > 0 || strpos($sortby,'date') > 0 || strpos($sortby,'num') > 0)
-		{
-			if(isset($_GET['order'])) {
-				switch ($_GET['order']) {
-					case 'ASC':
-						$order = 'ASC';
-						$new_order = 'DESC';
-						break;
-					case 'DESC':
-						$order = 'DESC';
-						$new_order = 'ASC';
-						break;
-					default:
-						$order = 'DESC';
-						$new_order = 'ASC';
-				}
-			}
+		/** Sortierreihenfolge (ASC / DESC) */
+		$orders = [ 1 => 'DESC', 2 => 'ASC'];
+		$sqlorderby_value = $orders[1];
+		$new_order = 2;
+		$custom_order = (isset($_GET['order']) && key_exists(intval($_GET['order']), $orders) ? $orders[intval($_GET['order'])] : $orders[1]); // FIXME function param
+		if($custom_order === $orders[2]) {
+			$sqlorderby_value = $orders[2];
+			$new_order = 1;
 		}
 
 		/** Threads analog ?page=n anzeigen... */
-		$page = (!isset($_GET['page']) || empty($_GET['page']) || !is_numeric($_GET['page'])) ? 1 : $_GET['page'];
-		$limit = ($page-1) * $pagesize.','.$pagesize;
+		$page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?? 1; // FIXME function param
+		$sqlrecordsnum_value = intval($pagesize);
+		$sqlrecordsstart_value = (($page-1) * $sqlrecordsnum_value);
 
 		/** Query for Thread list */
-		$sql = 'SELECT
-					c.board board,
-					max(c.id) id,
-					max(c.parent_id) parent_id,
-					c.text last_post_text,
-					max(c.user_id) last_comment_poster,
-					UNIX_TIMESTAMP(c.date) last_post_date,
-					max(t.thread_id) thread_id,
-					max(t.user_id) thread_starter,
-					UNIX_TIMESTAMP(t.date) thread_date,
-					'.($user->is_loggedin() ? 'IF(ISNULL(max(tfav.thread_id) ), 0, 1) isfavorite,
-					IF(ISNULL(max(tignore.thread_id)), 0, 1) ignoreit,' : '').'
-					count(DISTINCT cnum.id) numposts,
-					(SELECT count(DISTINCT thread_id) FROM comments WHERE board IN ('.$showboards_commaseparated.')) numthreads
-				FROM
-					comments_threads ct
-				LEFT JOIN comments c ON (c.id = (SELECT MAX(id) FROM comments WHERE thread_id = ct.thread_id AND board = ct.board) )
+		$sql = 'SELECT c.board board,
+					MAX(c.id) id,
+					MAX(c.parent_id) parent_id,
+					(SELECT MAX(text) FROM comments AS sub_c WHERE sub_c.id = MAX(c.id) GROUP BY sub_c.board, sub_c.thread_id) AS last_post_text,
+					(SELECT user_id FROM comments AS sub_c WHERE sub_c.id = MAX(c.id) GROUP BY sub_c.board, sub_c.thread_id) AS last_comment_poster,
+					UNIX_TIMESTAMP(MAX(c.date)) last_post_date,
+					MAX(t.thread_id) thread_id,
+					MAX(t.user_id) thread_starter,
+					UNIX_TIMESTAMP(MAX(t.date)) thread_date,'.
+					($user->is_loggedin() ? 'IF(ISNULL(MAX(tfav.thread_id)), 0, 1) isfavorite, IF(ISNULL(MAX(tignore.thread_id)), 0, 1) ignoreit,' : '')
+					.'COUNT(DISTINCT cnum.id) numposts,
+					(SELECT COUNT(DISTINCT thread_id) FROM comments WHERE board IN ('.$sqlplaceholders_boards.')) numthreads
+				FROM comments_threads ct
+				LEFT JOIN (SELECT MAX(id) id, board, user_id, parent_id, date FROM comments GROUP BY board, thread_id, parent_id, date, user_id) c ON (c.id = ct.comment_id)
 				LEFT JOIN comments t ON (t.id = ct.comment_id)
-				LEFT JOIN comments cnum ON (ct.board = cnum.board AND ct.thread_id = cnum.thread_id)
-				'.($user->is_loggedin() ? 'LEFT JOIN comments_threads_rights ctr
-					ON (ctr.thread_id=ct.thread_id AND ctr.board=ct.board AND ctr.user_id='.$user->id.')
+				LEFT JOIN comments cnum ON (ct.board = cnum.board AND ct.thread_id = cnum.thread_id)'.
+				($user->is_loggedin() ? 'LEFT JOIN comments_threads_rights ctr
+					ON (ctr.thread_id=ct.thread_id AND ctr.board=ct.board AND ctr.user_id=?)
 				LEFT JOIN comments_threads_favorites tfav
-					ON (tfav.board = ct.board AND tfav.thread_id = ct.thread_id AND tfav.user_id='.$user->id.')
+					ON (tfav.board = ct.board AND tfav.thread_id = ct.thread_id AND tfav.user_id=?)
 				LEFT JOIN comments_threads_ignore tignore
-					ON (tignore.board = ct.board AND tignore.thread_id = ct.thread_id AND tignore.user_id='.$user->id.')
-				' : '').'
-				WHERE
-					 c.board IN ('.$showboards_commaseparated.')
-					 AND ('.$user->typ.' >= ct.rights OR ct.rights='.USER_SPECIAL . ($user->is_loggedin() ? ' AND ctr.user_id IS NOT NULL' : '').')
-					 AND ct.comment_id IS NOT NULL
-				GROUP BY
-					c.board, ct.thread_id, t.date, c.date, c.text
-				ORDER BY '.$sortby.' '.$order.'
-				LIMIT '.$limit
-		;
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+					ON (tignore.board = ct.board AND tignore.thread_id = ct.thread_id AND tignore.user_id=?)' : '')
+				.'WHERE
+					c.board IN ('.$sqlplaceholders_boards.')
+					AND (ct.rights<=? OR ct.rights=?'.($user->is_loggedin() ? ' AND ctr.user_id IS NOT NULL' : '').')
+					AND ct.comment_id IS NOT NULL
+				GROUP BY c.board, ct.thread_id, t.text
+				ORDER BY '.$sqlsortby_value.' '.$sqlorderby_value.' LIMIT ?,?';
+		$sqlparams = array_merge($sqlparams, $showboards_values);
+		if ($user->is_loggedin()) {
+			$sqlparams[] = $user->id;
+			$sqlparams[] = $user->id;
+			$sqlparams[] = $user->id;
+		}
+		$sqlparams = array_merge($sqlparams, $showboards_values);
+		$sqlparams[] = $user->typ;
+		$sqlparams[] = USER_SPECIAL;
+		$sqlparams[] = $sqlrecordsstart_value;
+		$sqlparams[] = $sqlrecordsnum_value;
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $sqlparams);
 
 		/** Ausgabe ---------------------------------------------------------------- */
 		/** Thread-Table mit Spaltenüberschriften */
 		$html =
 			'<h1>Discussions</h1>'
-			.'<table cellpadding="1" cellspacing="1" class="border" width="100%">'
+			.'<table cellpadding="1" cellspacing="1" class="border">'
 				.'<!--googleoff: all--><tr class="title">'
-					.'<td align="left" width="30%"><a href="?sortby=t.text&amp;order='.$new_order.'">Thread</a></td>'
-					.'<td align="left" class="small hide-mobile" width="11%"><a href="?sortby=tu_username&amp;order='.$new_order.'">Thread starter</a></td>'
-					.'<td align="center" class="hide-mobile"><a href="?sortby=ct.thread_id&amp;order='.$new_order.'">Datum</a></td>'
-					.'<td align="center" class="small hide-mobile"><a href="?sortby=numposts&amp;order='.$new_order.'">#</a></td>'
-					.'<td align="left" class="small" width="25%"><a href="?sortby=last_post_date&amp;order='.$new_order.'">Last comment</a></td>'
+					.'<td align="left" width="30%"><a href="?sortby=threadname&amp;order='.$new_order.'">Thread</a></td>'
+					.'<td align="left" class="small hide-mobile" width="11%"><a href="?sortby=threadstarter&amp;order='.$new_order.'">Thread starter</a></td>'
+					.'<td align="center" class="hide-mobile"><a href="?sortby=threadid&amp;order='.$new_order.'">Datum</a></td>'
+					.'<td align="center" class="small hide-mobile"><a href="?sortby=threadposts&amp;order='.$new_order.'">#</a></td>'
+					.'<td align="left" class="small" width="25%"><a href="?sortby=threadupdated&amp;order='.$new_order.'">Last comment</a></td>'
 					.'<td class="hide-mobile"></td>'
 				.'</tr><!--googleon: all-->';
 
@@ -1836,7 +1856,11 @@ class Forum
 					  .Comment::getLinkThread($rs['board'], $rs['thread_id'])
 					  .'</span>';
 
-		/** DISABLED
+		/**
+		 * Sticky-Threads.
+		 * @link https://zorg.ch/bug/158 Sticky Threads
+		 */
+		/** // TODO
     	if($rs['sticky'] == 1) {
     		if($user->typ >= USER_MEMBER) {
     			$html .= ' <a href="/actions/forum.php?action=unsticky&thread_id='.$rs['thread_id'].'">*sticky*</a>';
@@ -1913,7 +1937,7 @@ class Forum
 			;
 			$html .= '</tr>';
 
-			$numpages = $rs['numthreads'];
+			$numpages = $rs['numthreads']; // FIXME numthreads unterschlägt Thread-Pages am Ende! z.B. last=155 - aber via URL kann man weiterb blättern...
 		}
 
 		/** Pagination für Thread-Liste */
@@ -1977,12 +2001,13 @@ class Forum
 	 *
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/templates/layout/partials/commentform.tpl Template used for output is commentform.tpl
 	 *
-	 * @version	3.2
+	 * @version	3.5
 	 * @since	1.0 `[z]biko` added method
 	 * @since	2.0 `17.12.2017` `IneX` Deprecated Forum::getFormNewPart2of2() & 'tpl:194' due to change into a Smary-Template 'file:commentform.tpl'
 	 * @since	3.0 `25.07.2018` `IneX` Updated SQL-Queries, Formatting & check for logged in User regarding printing Subscriptions & Unreads
 	 * @since	3.1 `22.01.2020` `IneX` Code optimizations
 	 * @since	3.2 `22.01.2020` `IneX` Fixed PHP Notice undefined property: usersystem::$id
+	 * @since	3.5 `21.01.2024` `IneX` Fixed Comments Threading in Boards, updated SQL to use prepared statements
 	 *
 	 * @uses USER_USER
 	 * @uses usersystem::is_loggedin()
@@ -2000,9 +2025,14 @@ class Forum
 	{
 		global $db, $user, $smarty;
 
+		/** Validate parameters */
+		$board = strval($board);
+		$thread_id = intval($thread_id);
+
 		/** Get and set missing parent_id */
 		// FIXME it would be better to pass $_GET[parent_id] als Function Param via {smarty_comments}-Parameter...
-		$parent_id = filter_input(INPUT_GET, 'parent_id', FILTER_VALIDATE_INT) ?? intval($thread_id);
+		$parent_id = filter_input(INPUT_GET, 'parent_id', FILTER_VALIDATE_INT) ?? $thread_id;
+		zorgDebugger::log()->debug('thread_id: %d | parent_id: %d', [$thread_id, $parent_id]);
 
 		if (true === Thread::hasRights($board, $thread_id, ($user->is_loggedin() ? $user->id : USER_ALLE)))
 		{
@@ -2012,14 +2042,14 @@ class Forum
 			/** Subscribed_Comments Array Bauen (nur für eingeloggte User) */
 			if($user->is_loggedin())
 			{
-				$comments_subscribed = array();
+				$comments_subscribed = [];
 				$sql = 'SELECT comment_id FROM comments_subscriptions WHERE board=? AND user_id=?';
 				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$board, $user->id]);
 				while ($d = $db->fetch($e)) $comments_subscribed[] = $d['comment_id'];
 				$smarty->assign('comments_subscribed', $comments_subscribed);
 
 				/** Unread Comment Array Bauen */
-				$comments_unread = array();
+				$comments_unread = [];
 				$sql = 'SELECT u.* FROM comments_unread u, comments c WHERE c.id=u.comment_id AND c.thread_id=? AND c.board=? AND u.user_id=?';
 				$e = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$thread_id, $board, $user->id]);
 				while ($d = $db->fetch($e)) $comments_unread[] = $d['comment_id'];
@@ -2031,14 +2061,13 @@ class Forum
 			$d = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$board, $parent_id]));
 
 			/** Set Thread/Sub-Thread starting Comment-ID */
-			$comment_parent_id = (isset($d['parent_id']) && $d['parent_id'] > 0 ? intval($d['parent_id']) : $thread_id);
+			$comment_parent_id = (isset($d['parent_id']) ? intval($d['parent_id']) : $thread_id);
 
 			/** Comments an Smarty übergeben */
-			if ($parent_id === $thread_id || $thread_id === $comment_parent_id)
+			if ($parent_id === $thread_id || $comment_parent_id === $thread_id)
 			{
 				/** $thread_id ist der erste Comment (Thread) */
-				$fetch_commentthread = sprintf('comments:%s-%d', $board, $thread_id);
-				$smarty->display($fetch_commentthread);
+				$smarty->display('comments:'.$board.'-'.$thread_id);
 			} else {
 				/** $thread_id ist ein Sub-Thread (nicht Main Thread) */
 				$smarty->assign('comments_top_additional', 1);
@@ -2050,7 +2079,7 @@ class Forum
 	    	{
 	    		$smarty->assign('board', $board);
 				$smarty->assign('thread_id', $thread_id);
-				$smarty->assign('parent_id', $comment_parent_id);
+				$smarty->assign('parent_id', $comment_parent_id); // parent_id darf nie leer sein! Sonst crasht nachher das Commenting
 				$smarty->display('file:layout/partials/commentform.tpl');
 	    	}
 		}
@@ -2153,8 +2182,7 @@ class Forum
 				// für den Moment wird hier einfach ein Query über alle neuen Sachen gemacht.... IneX, 16.3.08
 				// FIXME erm... aber so wies scheint, kommen die richtigen Sachen (weil alles über s board gesteuert wird). IneX, 16.3.08
 				$sql ='SELECT comments.*, IF(ISNULL(comments_unread.comment_id), 0, 1) AS isunread, UNIX_TIMESTAMP(date) as date
-					FROM comments LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = ?) '.( !empty($wboard) ? 'WHERE '.$wboard : '').
-					' ORDER BY date desc LIMIT ?';
+					FROM comments LEFT JOIN comments_unread ON (comments.id=comments_unread.comment_id AND comments_unread.user_id = ?) '.( !empty($wboard) ? 'WHERE '.$wboard : '').' ORDER BY date desc LIMIT ?'; // FIXME https://zorg.ch/index.php?tpl=162&id=2
 				$sqlparams[] = $user->id;
 				if (!empty($wboard)) $sqlparams[] = $board;
 				$sqlparams[] = $num;
@@ -2164,7 +2192,7 @@ class Forum
 		/**
 		 * Feed bauen - Query mit $sql
 		 */
-		if ($result = $db->query($sql, __FILE__, __LINE__, __METHOD__))
+		if ($result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $sqlparams))
 		{
 			/** Datensätze auslesen */
 			while($rs = $db->fetch($result))

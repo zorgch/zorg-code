@@ -151,7 +151,7 @@ if ($doAction === 'view' && empty($user_id) && $user->is_loggedin())
 /**
  * Userprofil anzeigen
  */
-if (!empty($user_id) && is_numeric($user_id) && $user_id>0)
+if (!empty($user_id) && $user_id>0)
 {
 	$htmlOutput = null;
 	$sidebarHtml = null;
@@ -236,7 +236,7 @@ if (!empty($user_id) && is_numeric($user_id) && $user_id>0)
 	exit; // make sure only Userprofile page is processed / displayed
 }
 /** Malformatted User ID */
-else {
+elseif (!empty($user_id)) {
 	http_response_code(404); // Set response code 404 (not found)
 	$model->showUnknownuser($smarty, $user_id);
 	$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-id', 'user')]);

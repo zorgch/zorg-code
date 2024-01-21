@@ -10,7 +10,7 @@ if($user->is_loggedin() && count($_POST) > 0)
 	$tplId = filter_input(INPUT_GET, 'tpl', FILTER_VALIDATE_INT) ?? null; // $_GET['tpl']
 	$doDelete = filter_input(INPUT_POST, 'del', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['del']
 	$showQuery = filter_input(INPUT_POST, 'query', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? 0; // $_POST['query']
-	$del_ids = filter_input(INPUT_POST, 'to_del', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?? []; // $_POST['to_del']
+	$del_ids = (isset($_POST['to_del']) ? call_user_func_array('array_merge', array($_POST['to_del'])) : null); // $_POST['to_del']
 	$showNum = filter_input(INPUT_POST, 'num', FILTER_VALIDATE_INT) ?? 0; // $_POST['num']
 	$urlParams = '';
 
@@ -28,7 +28,7 @@ if($user->is_loggedin() && count($_POST) > 0)
 	}
 
 	/** Delete multiple SQL-Errors */
-	if(count($del_ids) > 0 && $user->type >= USER_MEMBER)
+	if(count($del_ids) > 0 && $user->typ >= USER_MEMBER)
 	{
 		$placeholders = implode(',', array_fill(0, count($del_ids), '?'));
 		$sql = 'DELETE FROM sql_error WHERE id IN (' . $placeholders . ')';
@@ -39,7 +39,7 @@ if($user->is_loggedin() && count($_POST) > 0)
 	/** Change displayed number of SQL-Error */
 	if($showNum > 0)
 	{
-		$_SESSION['error_num'] = $_POST['num'];
+		$_SESSION['error_num'] = intval($_POST['num']);
 		$urlParams = '?error_num='.$showNum;
 	}
 
