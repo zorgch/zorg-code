@@ -187,7 +187,7 @@ class usersystem
 
 		/** Grundsätzlich mal jeden zuerst als "Gast" anschauen */
 		$this->typ = USER_ALLE;
-		session_name(ZORG_SESSION_ID);
+		session_name(ZORG_SESSION_ID); // FIXME Cannot change session name when session is active
 
 		/** DEACTIVATED: Generelle Session Settings & Session (re-)Starten (wenn noch nicht aktiv) */
 		// if (session_status() === PHP_SESSION_NONE)
@@ -1831,10 +1831,10 @@ class usersystem
 	 * @since 1.0 `04.01.2024` `IneX` Method added
 	 *
 	 * @param integer $user_id
-	 * @param string $game_name Name of Game: «addle» or chess. Default: addle
+	 * @param string $game_name Name of Game: «addle» or «chess». Default: addle
 	 * @return boolean
 	 */
-	function userPlays($game_name='addle', $user_id)
+	function userPlays($user_id, $game_name='addle')
 	{
 		global $db;
 
