@@ -4,8 +4,9 @@
  *
  * Holt und speichert die Astronomy Pictures of the Day (APOD)
  *
- * @author [z]biko
- * @date 01.01.2004
+ * @version 1.0
+ * @since 1.0 `01.01.2004` `[z]biko` File added
+ *
  * @package zorg\APOD
  */
 /**
@@ -16,7 +17,7 @@
  * @include	gallery.inc.php Gallery and Pic functions
  * @include util.inc.php 	Various Helper Functions
  */
-require_once dirname(__FILE__).'/config.inc.php';
+require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'forum.inc.php';
 require_once INCLUDES_DIR.'gallery.inc.php';
@@ -36,28 +37,26 @@ require_once INCLUDES_DIR.'util.inc.php';
  * 	hd			| bool			| False		| Retrieve the URL for the high resolution image
  * 	api_key		| string		| DEMO_KEY	| api.nasa.gov key for expanded usage
  *
- * @author [z]biko
- * @author IneX
- * @version 4.1
- * @since 1.0 `01.01.2004` function added
- * @since 2.0 `06.08.2018` function refactored to use NASA APOD API
- * @since 3.0 `09.08.2018` enhanced function so an APOD date can be passed
- * @since 4.0 `14.09.2018` added processing of videos & website links passed from the APOD API
- * @since 4.1 `26.06.2023` fixes code quality issue "Unreachable code ('cleanup:')"
+ * @version 4.2
+ * @since 1.0 `01.01.2004` `[z]biko` function added
+ * @since 2.0 `06.08.2018` `IneX` function refactored to use NASA APOD API
+ * @since 3.0 `09.08.2018` `IneX` enhanced function so an APOD date can be passed
+ * @since 4.0 `14.09.2018` `IneX` added processing of videos & website links passed from the APOD API
+ * @since 4.1 `26.06.2023` `IneX` fixes code quality issue "Unreachable code ('cleanup:')"
+ * @since 4.2 `24.02.2024` `IneX` replaces deprecated $MAX_PIC_SIZE, fixes SQL INSERT with empty 'extension'
  *
- * @uses APOD_API, APOD_TEMP_IMGPATH, APOD_GALLERY_ID, $MAX_PIC_SIZE
+ * @uses APOD_API, APOD_TEMP_IMGPATH, APOD_GALLERY_ID, MAX_PIC_SIZE
  * @uses cURLfetchJSON(), createPic(), getYoutubeVideoThumbnail(), getVimeoVideoThumbnail(), Comment::post()
  * @param string $apod_date (Optional) A valid date after June 16 1995, formatted as: yyyy-mm-dd (2018-08-06)
- * @global	object	$db		Globales Class-Object mit allen MySQL-Methoden
- * @global	array	$MAX_PIC_SIZE	Globales Array im Scope von gallery.inc.php mit den Image-Width & -Height Grössen für Pics und Thumbnails
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
  * @return boolean Returns true or false, depening on if the function was processed successfully or not
  */
 function get_apod($apod_date_input=NULL)
 {
-	global $db, $MAX_PIC_SIZE;
+	global $db;
 
 	/** Validate $apod_date if passed */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $apod_date_input: %s', __FUNCTION__, __LINE__, $apod_date_input));
+	zorgDebugger::log()->debug('$apod_date_input: %s', [$apod_date_input]);
 	if (empty($apod_date_input) || strtotime($apod_date_input) === false) $apod_date_input = NULL;
 
 	/** Retrieve the APOD data from the APOD_API */
@@ -82,10 +81,10 @@ function get_apod($apod_date_input=NULL)
 		 *	    [url] => https://apod.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
 		 *	)
 		 */
-		if ( DEVELOPMENT && $apod_date_input != NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",$apod_date_input): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_date_input))));
-		if ( DEVELOPMENT && $apod_date_input == NULL ) error_log(sprintf('[DEBUG] <%s:%d> date("ymd",strtotime($apod_data[date])): %s', __FUNCTION__, __LINE__, date('ymd',strtotime($apod_data['date']))));
+		zorgDebugger::log()->debug('date("ymd",$apod_date_input): %s', [date('ymd',strtotime($apod_date_input))]);
+		zorgDebugger::log()->debug('date("ymd",strtotime($apod_data[date])): %s', [date('ymd',strtotime($apod_data['date']))]);
 		$new_apod_date = ( $apod_date_input != NULL ? date('ymd',strtotime($apod_date_input)) : date('ymd',strtotime($apod_data['date'])) );
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_date: %s', __FUNCTION__, __LINE__, $new_apod_date));
+		zorgDebugger::log()->debug('$new_apod_date: %s', [$new_apod_date]);
 		$new_apod_title = $apod_data['title'];
 		$new_apod_explanation = $apod_data['explanation'];
 		$new_apod_copyright = $apod_data['copyright'];
@@ -94,7 +93,7 @@ function get_apod($apod_date_input=NULL)
 		$new_apod_img_large = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['hdurl']);  // with fix for malformed url (APOD API issue)
 		$new_apod_archive_url = APOD_SOURCE . 'ap'.$new_apod_date.'.html'; // E.g.: https://apod.nasa.gov/apod/ap180714.html
 		$new_apod_urlparts = pathinfo($new_apod_img_small);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> pathinfo(): %s', __FUNCTION__, __LINE__, print_r($new_apod_urlparts,true)));
+		zorgDebugger::log()->debug('pathinfo(): %s', [print_r($new_apod_urlparts,true)]);
 		$new_apod_fileext = $new_apod_urlparts['extension'];
 		$new_apod_filename = $apod_data['date'] . '.' . $new_apod_fileext;
 		$new_apod_temp_filepath = APOD_TEMP_IMGPATH . $new_apod_filename;
@@ -109,13 +108,14 @@ function get_apod($apod_date_input=NULL)
 			if (!empty($new_apod_title))
 			{
 				if ($new_apod_mediatype === 'image') $new_apod_fileext = '.'.$new_apod_fileext;
-				$new_apod_picid = $db->insert('gallery_pics', [
-																 'album'=>APOD_GALLERY_ID
-																,'extension'=>$new_apod_fileext
-																,'pic_added'=>$new_apod_date
-																,'name'=>$new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : '')
-															  ], __FILE__, __LINE__, __FUNCTION__);
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_picid: %s', __FUNCTION__, __LINE__, $new_apod_picid));
+				$new_apod_basedata = [
+					 'album'=>APOD_GALLERY_ID
+					,'pic_added'=>$new_apod_date
+					,'name'=>$new_apod_title.($new_apod_mediatype == 'video' ? ' [video]' : '')
+				];
+				if (!empty($new_apod_fileext) && is_string($new_apod_fileext)) $new_apod_basedata['extension'] = $new_apod_fileext;
+				$new_apod_picid = $db->insert('gallery_pics', $new_apod_basedata, __FILE__, __LINE__, __FUNCTION__);
+				zorgDebugger::log()->debug('$new_apod_picid: %s', [$new_apod_picid]);
 
 			/** If $new_apod_title is empty, abort */
 			} else {
@@ -142,8 +142,8 @@ function get_apod($apod_date_input=NULL)
 						$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, $new_apod_fileext); // Fix eventual double-slashes in path
 
 						/** Create APOD gallery pic */
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic(): %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic));
-						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic, $MAX_PIC_SIZE['picWidth'], $MAX_PIC_SIZE['picHeight']))
+						zorgDebugger::log()->debug('image createPic(): %s', [$new_apod_filepath_pic]);
+						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic, MAX_PIC_SIZE['width'], MAX_PIC_SIZE['height']))
 						{
 							error_log(sprintf('[ERROR] <%s:%d> %s createPic() ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic));
 							/** Goto: cleanup */
@@ -152,8 +152,8 @@ function get_apod($apod_date_input=NULL)
 						}
 
 						/** Create APOD gallery pic-thumbnail */
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
-						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
+						zorgDebugger::log()->debug('image createPic() thumbnail: %s', [$new_apod_filepath_pic_tn]);
+						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, MAX_THUMBNAIL_SIZE['width'], MAX_THUMBNAIL_SIZE['height']))
 						{
 							error_log(sprintf('[ERROR] <%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
 							/** Goto: cleanup */
@@ -171,6 +171,7 @@ function get_apod($apod_date_input=NULL)
 					 */
 					case 'video':
 						/* Find out what 'video'-type exactly we're dealing with... */
+						$media_type = null;
 						$video_services = [
 												 [
 													 'service' => 'youtube'
@@ -186,14 +187,14 @@ function get_apod($apod_date_input=NULL)
 							if (strpos($service['identifier'], $new_apod_urlparts['dirname']) !== false)
 							{
 							    $media_type = $service['service'];
+								zorgDebugger::log()->debug('$service[identifier] found: %s', [$media_type]);
 							    /** Video type found, let's exit the foreach{}-loop */
-							    if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $service[identifier] found: %s', __FUNCTION__, __LINE__, $media_type));
 								break;
 							}
 						}
 
 						/** No matching $media_type found, let's Goto: cleanup */
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $media_type: %s', __FUNCTION__, __LINE__, print_r($media_type,true)));
+						zorgDebugger::log()->debug('$media_type: NOT FOUND --> %s', [print_r($media_type,true)]);
 						if (empty($media_type) || is_array($media_type))
 						{
 							/** Goto: cleanup */
@@ -204,7 +205,7 @@ function get_apod($apod_date_input=NULL)
 							/** Get Video-Thumbnail image */
 							$new_apod_img_thumbnail = getVideoThumbnail($media_type, $new_apod_urlparts['filename']);
 							$new_apod_temp_filepath = $new_apod_temp_filepath.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION);
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> cURLfetchUrl(): %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
+							zorgDebugger::log()->debug('video cURLfetchUrl(): %s', [$new_apod_temp_filepath]);
 							if (!cURLfetchUrl($new_apod_img_thumbnail, $new_apod_temp_filepath))
 							{
 								remove_apod_id_from_db($new_apod_picid);
@@ -213,8 +214,8 @@ function get_apod($apod_date_input=NULL)
 
 							/** Create APOD gallery pic-thumbnail for 'video' */
 							$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, '.'.pathinfo($new_apod_img_thumbnail, PATHINFO_EXTENSION));
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
-							if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
+							zorgDebugger::log()->debug('video createPic() thumbnail: %s', [$new_apod_filepath_pic_tn]);
+							if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, MAX_PIC_SIZE['width'], MAX_PIC_SIZE['height']))
 							{
 								error_log(sprintf('[ERROR] <%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
 								remove_apod_id_from_db($new_apod_picid);
@@ -223,7 +224,7 @@ function get_apod($apod_date_input=NULL)
 
 							/** Update APOD 'video' entry in gallery_pics table */
 							$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $media_type, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
-							if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
+							zorgDebugger::log()->debug('$db->update(gallery_pics): (%s) %s', [$result, ($result>0 ? 'true' : 'false')]);
 							if ($result === 0) {
 								remove_apod_id_from_db($new_apod_picid);
 								return false;
@@ -238,10 +239,10 @@ function get_apod($apod_date_input=NULL)
 					case 'website':
 						/** Create APOD gallery pic-thumbnail for 'video' or 'website' */
 						$new_apod_temp_filepath = PHP_IMAGES_DIR . 'apod/tn_website.png';
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $new_apod_temp_filepath: %s', __FUNCTION__, __LINE__, $new_apod_temp_filepath));
+						zorgDebugger::log()->debug('$new_apod_temp_filepath: %s', [$new_apod_temp_filepath]);
 						$new_apod_filepath_pic_tn = tnPath(APOD_GALLERY_ID, $new_apod_picid, '.'.pathinfo($new_apod_temp_filepath, PATHINFO_EXTENSION));
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic() thumbnail: %s', __FUNCTION__, __LINE__, $new_apod_filepath_pic_tn));
-						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, $MAX_PIC_SIZE['tnWidth'], $MAX_PIC_SIZE['tnHeight']))
+						zorgDebugger::log()->debug('website createPic() thumbnail: %s', [$new_apod_filepath_pic_tn]);
+						if (!createPic($new_apod_temp_filepath, $new_apod_filepath_pic_tn, MAX_PIC_SIZE['width'], MAX_PIC_SIZE['height']))
 						{
 							error_log(sprintf('[ERROR] <%s:%d> %s createPic() thumbnail ERROR: %s', __FILE__, __LINE__, __FUNCTION__, $new_apod_filepath_pic_tn));
 							remove_apod_id_from_db($new_apod_picid);
@@ -250,7 +251,7 @@ function get_apod($apod_date_input=NULL)
 
 						/** Update APOD 'website' entry in gallery_pics table */
 						$result = $db->update('gallery_pics', ['id', $new_apod_picid], ['extension' => $new_apod_mediatype, 'picsize' => $new_apod_img_small], __FILE__, __LINE__, __FUNCTION__);
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $db->update(gallery_pics): (%s) %s', __FUNCTION__, __LINE__, $result, ($result>0 ? 'true' : 'false')));
+						zorgDebugger::log()->debug('$db->update(gallery_pics): (%s) %s', [($result>0 ? 'true' : 'false')]);
 						if ($result === 0) {
 							remove_apod_id_from_db($new_apod_picid);
 							return false;

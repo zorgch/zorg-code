@@ -110,9 +110,13 @@ class dbconn
 			/** Check if $params is provided, if not, execute the query directly */
 			if (empty($params)) {
 				$result = mysqli_query($this->conn, $sql);
-				/* Log SQL-Queries not upgraded to Prepared Statements */
+				/** Log SQL-Queries not upgraded to Prepared Statements */
 				zorgDebugger::log()->debug('<%s:%d> may required update to SQL prepared statement, in %s', [$funktion, $line, $file]);
 			} else {
+				/** Ensure $params is an Array */
+				if (is_object($params)) throw '$params cannot be of type object!';
+				if (!is_array($params)) $params = [ $params ];
+
 				$stmt = mysqli_prepare($this->conn, $sql);
 				if ($stmt === false) throw new mysqli_sql_exception(mysqli_error($this->conn));
 

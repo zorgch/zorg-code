@@ -177,7 +177,7 @@ if (!empty($user_id) && $user_id>0)
 	$htmlOutput .= '<img src="'.$user->userImage($user_id, 1).'">';//style="width: 100%;max-width: 100%;"
 
 	/** User Addle (nur wenn Viewer selber eingeloggt ist) */
-	if ($user->is_loggedin() && $user_id !== $user->id && $user->userPlays('addle', $user_id))
+	if ($user->is_loggedin() && $user_id !== $user->id && $user->userPlays($user_id, 'addle'))
 	{
 		$sidebarHtml .= '<h3>Addle</h3>
 		<form action="/addle.php?show=overview&do=new" method="post">

@@ -2,30 +2,28 @@
 global $db, $smarty;
 
 $sort_by = filter_input(INPUT_GET, 'sort', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$order_by = filter_input(INPUT_GET, 'order', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? 'DESC';
 
 switch ($sort_by)
 {
 	case 'tpl':
-		$sort = 'ORDER BY id';
+		$sort = 'id';
 		break;
 	case 'titel':
-		$sort = 'ORDER BY title';
+		$sort = 'title';
 		break;
 	case 'word':
-		$sort = 'ORDER BY word';
+		$sort = 'word';
 		break;
 	case 'owner':
-		$sort = 'ORDER BY owner';
+		$sort = 'owner';
 		break;
-	case 'update':
-		break;
+	case 'update';
 	default:
-		$sort = 'ORDER BY last_update'; break;
+		$sort = 'last_update';
 }
 
-$order = $_GET['order'] === 'ASC' ? 'ASC' : 'DESC';
-$sort_order = $sort.' '.$order;
-
+$sort_order = sprintf('ORDER BY %s %s', $sort, $order_by);
 $e = $db->query('SELECT id, title, word, owner, LENGTH(tpl) size, UNIX_TIMESTAMP(last_update) updated, update_user, read_rights, write_rights FROM templates WHERE del="0" '.$sort_order, __FILE__, __LINE__, 'SELECT All Templates');
 $list = [];
 $totalsize = 0;
