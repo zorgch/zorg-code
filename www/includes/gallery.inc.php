@@ -1497,14 +1497,14 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 
 		$ret = array('width'=>$maxWidth, 'height'=>$maxHeight);
 	} else {
-		$dst = ImageCreateTrueColor ($picWidth, $picHeight);  // GD 2.0.1
-		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
+		$dst = ImageCreateTrueColor($picWidth, $picHeight); // GD 2.0.1
+		//$dst = ImageCreate($picWidth, $picHeight);  		// GD 1.6
 		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
 
 		if (ImageCopyResampled($dst, $src, 0,0,0,0, $picWidth, $picHeight, $width, $height)) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCopyResampled OK', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->debug('ImageCopyResampled OK');
 		} else {
-			error_log(sprintf('[ERROR] <%s:%d> ImageCopyResampled: %s => %s', __FUNCTION__, __LINE__, $src, $dst));
+			error_log(sprintf('[ERROR] <%s:%d> ImageCopyResampled: %s', __FUNCTION__, __LINE__, $src));
 			return false;
 		}
 
@@ -1513,42 +1513,41 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 
 	switch ($ext) {
 		case '.jpg':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			zorgDebugger::log()->debug('ImageJPEG($dst, %s)', [$dstFile]);
 			if (!ImageJPEG($dst, $dstFile)) {
-				error_log(sprintf('[ERROR] <%s:%d> ImageJPEG: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				zorgDebugger::log()->debug('ImageJPEG: $dst => %s', [$dstFile]);
 				return false;
 			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageJPEG() OK', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->debug('ImageJPEG() OK');
 			break;
 
 		case '.gif':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			zorgDebugger::log()->debug('ImageGIF($dst, %s)', [$dstFile]);
 			if (!ImageGIF($dst, $dstFile)) {
-				error_log(sprintf('[ERROR] <%s:%d> ImageGIF: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				zorgDebugger::log()->debug('ImageGIF: $dst => %s', [$dstFile]);
 				return false;
 			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageGIF() OK', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->debug('ImageGIF() OK');
 			break;
 
 		case '.png':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImagePNG(%s, %s)', __FUNCTION__, __LINE__, $dst, $dstFile));
+			zorgDebugger::log()->debug('ImagePNG($dst, %s)', [$dstFile]);
 			if (!ImagePNG($dst, $dstFile)) {
-				error_log(sprintf('[ERROR] <%s:%d> ImagePNG: %s => %s', __FUNCTION__, __LINE__, $dst, $dstFile));
+				zorgDebugger::log()->debug('ImagePNG: $dst => %s', [$dstFile]);
 				return false;
 			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImagePNG() OK', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->debug('ImagePNG() OK');
 			break;
 
 		default:
-			error_log(sprintf('[ERROR] <%s:%d> Wrong File Type', __FUNCTION__, __LINE__));
+			error_log(sprintf('[ERROR] <%s:%d> Wrong File Type: %s', __FUNCTION__, __LINE__, strval($ext)));
 			return false;
-			break;
 	}
 	chmod($dstFile, 0664);
 
 	ImageDestroy($src);
 	ImageDestroy($dst);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageDestroy() OK', __FUNCTION__, __LINE__));
+	zorgDebugger::log()->debug('ImageDestroy() OK');
 
 	return $ret;
 }
@@ -2012,7 +2011,7 @@ function pic2album($id)
 function getVideoThumbnail($service, $video_id, $image_size='small', $output_to='display')
 {
 	/** Validate & format passed parameters */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> getVideoThumbnail(): %s, %s, %s, %s', __FUNCTION__, __LINE__, $service, $video_id, $image_size, $output_to));
+	zorgDebugger::log()->debug('getVideoThumbnail(): %s, %s, %s, %s', [$service, $video_id, $image_size, $output_to]);
 	if (is_array($service) || is_array($video_id) || is_array($image_size) || is_array($output_to)) return false;
 	if (is_numeric($service) || is_numeric($image_size) || is_numeric($output_to)) return false;
 	if (strpos($video_id, '?') > 0) $video_id = strtok($video_id, '?');
@@ -2037,7 +2036,7 @@ function getVideoThumbnail($service, $video_id, $image_size='small', $output_to=
 								 ]
 					 ];
 	$thumbnailUrl = sprintf($service_data[$service]['url'], $video_id, $service_data[$service]['size'][$image_size]);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $thumbnailUrl: %s', __FUNCTION__, __LINE__, $thumbnailUrl));
+	zorgDebugger::log()->debug('$thumbnailUrl: %s', [$thumbnailUrl]);
 
 	/** Download Video-Thumbnail from URL to path as specified in $output_to */
 	if ($output_to != 'display')
