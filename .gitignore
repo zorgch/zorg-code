@@ -1,12 +1,14 @@
 # Ignore all these files & folders:
 /*
-/www/test
-*.local.php
-*apis_key.inc.php
-*.log
+**/test/
+/data
 /vendor
 .env
+*apis_key.inc.php
+*.dccache
 *.code-workspace
+*.local.php
+*.log
 
 # ...and DON'T ignore these things
 !.github/
@@ -14,11 +16,11 @@
 !.gitkeep
 !.issuetracker
 !.npmignore
+!.editorconfig
+!.vscode/
 !composer.json
 !composer.lock
-!/www
-!/cd
-!/cron
-!/keys
+!LICENSE
+!README.md
 !/migration
-!/scripts
+!/www

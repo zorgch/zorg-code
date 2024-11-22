@@ -1,5 +1,0 @@
-# Ignore changes within the Docker database volume
-/mysql57
-
-# ...and DON'T ignore the DB template
-!/mysql57/zooomclan-empty

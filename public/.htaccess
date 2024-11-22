@@ -1,0 +1,37 @@
+<ifModule mod_rewrite.c>
+	# Rewrite Flags - https://httpd.apache.org/docs/2.4/rewrite/flags.html
+	#    R=301 = Redirect with HTTP Code
+	#    QSA = Combine Query strings
+	#    NC = No case - match case-insensitive
+	#    NE = No escape - prevent special characters to be converted to hexcode
+	#    L = Last Rule (stop)
+	RewriteRule wiki.php / [R=301,QSA,NC,NE,L]
+	RewriteRule smarty.php / [R=301,QSA,NC,NE,L]
+
+	# Pretty URL for User Profile page
+	# https://httpd.apache.org/docs/trunk/rewrite/remapping.html#rewrite-query
+	RewriteCond %{QUERY_STRING} user_id=([0-9]+)
+	RewriteRule profil.php /user/%1 [R=301,QSA,L]
+
+	# Pretty URL for Bugtracker Bug pages
+	RewriteCond %{QUERY_STRING} bug_id=([0-9]+)
+	RewriteRule bugtracker.php /bug/%1 [R=301,QSA,L]
+
+	# !-f if the file with the specified name in the browser doesn't exist,
+	# !-d or the directory in the browser doesn't exist then proceed to the rewrite rules below
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+		RewriteRule ^user/(.*?[^/])(/.*)?$ /?username=$1 [QSA,NC,NE,L]
+			RewriteRule ^user/?$ /profil.php [R=301,QSA,L]
+		RewriteRule ^bug/([0-9]+)(/.*)?$ /?bug=$1 [QSA,L]
+			RewriteRule ^bug/?$ /bugtracker.php [R=301,QSA,L]
+		RewriteRule ^tpl/([0-9]+)(/.*)?$ /?tpl=$1 [QSA,NC,L]
+			RewriteRule ^tpl/?$ /?tpl=23 [QSA,L]
+		RewriteRule ^page/([\S]+?[^/])(/.*)?$ /?word=$1 [QSA,NC,NE,L]
+			RewriteRule ^page/?$ /?tpl=23 [QSA,L]
+		RewriteRule ^event/([0-9]{4})(?:/([0-9]{2}))?(?:/([0-9]{2}))?(?:/([\w-]+))? /?event=$4&year=$1&month=$2&day=$3 [QSA,L]
+			RewriteRule ^event/?$ /?tpl=158 [QSA,L]
+			RewriteRule ^events(/.*)?$ /?tpl=158 [QSA,L]
+		RewriteRule ^thread/([0-9]+)(/.*)?$ /?thread=$1 [QSA,L]
+			RewriteRule ^thread/?$ /forum.php [R=301,QSA,L]
+</IfModule>
