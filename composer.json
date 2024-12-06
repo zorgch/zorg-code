@@ -7,9 +7,9 @@
 	},
 	"require": {
 		"vlucas/phpdotenv": "^5.6",
-		"sprain/swiss-qr-bill": "^3.2",
-		"maxmind-db/reader": "^1.11"
+		"sprain/swiss-qr-bill": "^3.2"
 	},
 	"require-dev": {
+		"smarty/smarty": "^3"
 	}
 }
