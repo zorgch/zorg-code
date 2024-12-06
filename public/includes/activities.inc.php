@@ -85,8 +85,8 @@ class Activities
 		while($rs = $db->fetch($result))
 		{
 			/** New way to do it - coming soon... */
-			if (!empty($rs['values']) || $rs['values'] !== false) $rs['values'] = json_decode($rs['values']);
-			{
+			if (!empty($rs['values']) && is_string($rs['values'])) {
+				$rs['values'] = json_decode($rs['values']);
 				/** sprintf() each Activity */
 				$rs['activity'] = sprintf($rs['activity'], $rs['values']);
 			}

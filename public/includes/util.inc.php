@@ -387,13 +387,14 @@ function base64url_encode($data)
  * @author IneX
  * @version 1.0
  * @since 1.0 function added
+ * @since 1.1 fixed passing null to strstr() parameter of type string is deprecated
  *
  * @see base64_decode()
  * @param string $data String-data to encode URL-safe using base64_encode
  */
-function base64url_decode($data)
+function base64url_decode($data='')
 {
-	$url_safe_data = strtr($data, '-_', '+/');
+	$url_safe_data = strtr($data ?: '', '-_', '+/');
 	$padded_data = str_pad($url_safe_data, strlen($url_safe_data) % 4, '=', STR_PAD_RIGHT);
 	return base64_decode($padded_data);
 }

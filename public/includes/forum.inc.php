@@ -62,10 +62,10 @@ class Comment
 	/**
 	 * Kompiliert ein Comment als Smarty-Template Resource
 	 *
-	 * @author [z]biko
-	 * @version 2.0
-	 * @since 1.0 method added
-	 * @since 2.0 `05.11.2018` method ehnaced with code & query optimizations
+	 * @version 2.1
+	 * @since 1.0 `[z]biko` method added
+	 * @since 2.0 `05.11.2018` `IneX` method ehnaced with code & query optimizations
+	 * @since 2.0 `04.12.2024` `IneX` fixed iterating $error in case it is an Array
 	 *
 	 * @link https://github.com/zorgch/zorg-code/blob/master/www/includes/comments.res.php Wird verwendet in comments.res.php
 	 * @uses smartyresource_comments_get_template()
@@ -142,7 +142,11 @@ class Comment
 			/** $smarty->comile ERROR */
 			} else {
 				$errortext = '';
-				foreach ($error as $value) $errortext .= $value.'<br>';
+				if (is_array($error) || is_object($error)) {
+					foreach ($error as $value) $errortext .= $value.'<br>';
+				} else {
+					$errortext = $error.'<br>';
+				}
 				$comments_update_query = $db->update('comments', ['id', $comment_id], ['error' => $errortext], __FILE__, __LINE__, __METHOD__);
 				$smarty->compile($resource, $error);
 				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $smarty->compile ERROR', __METHOD__, __LINE__));
@@ -1317,7 +1321,19 @@ class Forum
 		return $rs;
 	}
 
-	static function getNavigation($page=1, $pagesize, $numpages) {
+	/**
+	 * Forum navigation
+	 *
+	 * @version 1.1
+	 * @since 1.0 method added
+	 * @since 1.1 `04.12.2024` `IneX` Fixed deprecated optional parameter declared before required parameter is implicitly treated as required
+	 *
+	 * @param int $page Current page number (optional, defaults to 1)
+	 * @param int $pagesize Number of items per page
+	 * @param int $numpages Total number of pages
+	 * @return string Navigation HTML
+	 */
+	static function getNavigation($page=1, $pagesize=23, $numpages=1) {
 		$html = '<table bgcolor="'.TABLEBACKGROUNDCOLOR.'" cellspacing="1" cellpadding="1" class="border small">'
 			.'<tr><td class="hide-mobile">Page '.$page.' von '.$numpages.'</td>';
 

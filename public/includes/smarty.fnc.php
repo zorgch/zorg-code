@@ -1147,9 +1147,9 @@ function smarty_getdailyquote ($params) {
 
 		$vars = $smarty->get_template_vars();
 
-		if ($vars['tpl_parent']['id'] == $vars['tpl_root']['id'])
-		{
-			if ($params['tpl']) {
+		// if (isset($vars['tpl_parent']) && $vars['tpl_parent']['id'] == $vars['tpl_root']['id'])
+		// {
+			if (isset($params['tpl'])) {
 				$e = $db->query('SELECT * FROM templates WHERE id=?', __FILE__, __LINE__, __FUNCTION__, [$params['tpl']]);
 				$d = $db->fetch($e);
 				if (tpl_permission($d['read_rights'], $d['owner']))
@@ -1169,7 +1169,7 @@ function smarty_getdailyquote ($params) {
 					return '<font color="red"><b>[Menu "'.$params['name'].'" not found]</b></font><br />';
 				}
 			}
-		}
+		// }
 	}
 
 	/**

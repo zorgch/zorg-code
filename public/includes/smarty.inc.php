@@ -115,6 +115,7 @@ function hasTplAccess ($group, $owner, $userid, $usertyp)
  *
  * @version 1.0
  * @since 1.0 `[z]biko` function added
+ * @since 1.0 `04.12.2024` `IneX` fixed warning for undefined array key -1
  *
  * @global array $_tpl_stack Globales Array mit allen Template-Variablen
  */
@@ -124,18 +125,32 @@ function _tpl_assigns ($params, $content, &$smarty, &$repeat) {
   	if ($repeat) { // öffnendes tag
   		// push wird in get_timestamp gemacht.
 
-  		$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
-		$smarty->assign('tpl_parent', $_tpl_stack[sizeof($_tpl_stack)-2]);
-		$smarty->assign('tpl_level', sizeof($_tpl_stack));
+		$stackSize = sizeof($_tpl_stack);
+		$lastIndex = sizeof($_tpl_stack)-1;
+		$parentIndex = sizeof($_tpl_stack)-2;
+		if ($lastIndex >= 0) {
+            $smarty->assign('tpl', $_tpl_stack[$lastIndex]);
+        }
+        if ($parentIndex >= 0) {
+            $smarty->assign('tpl_parent', $_tpl_stack[$parentIndex]);
+        }
+		$smarty->assign('tpl_level', $stackSize);
 
 	} else {  // schliessendes tag
+		// Remove last Array element
 		array_pop($_tpl_stack);
-
 		if (is_array($_tpl_stack) && count($_tpl_stack)>1)
 		{
-			$smarty->assign('tpl', $_tpl_stack[sizeof($_tpl_stack)-1]);
-			$smarty->assign('tpl_parent', $_tpl_stack[sizeof($_tpl_stack)-2]);
-			$smarty->assign('tpl_level', sizeof($_tpl_stack));
+			$stackSize = sizeof($_tpl_stack);
+			$lastIndex = sizeof($_tpl_stack)-1;
+			$parentIndex = sizeof($_tpl_stack)-2;
+			if ($lastIndex >= 0) {
+				$smarty->assign('tpl', $_tpl_stack[$lastIndex]);
+			}
+			if ($parentIndex >= 0) {
+				$smarty->assign('tpl_parent', $_tpl_stack[$parentIndex]);
+			}
+			$smarty->assign('tpl_level', $stackSize);
 		}
 
 		return $content;

@@ -935,6 +935,10 @@ class peter
 	/**
 	 * Führt einen Zug aus
 	 *
+	 * @version 1.1
+	 * @since 1.0 method added
+	 * @since 1.1 `04.12.2024` `IneX` Fixed optional parameter declared before required parameter implicitly treated as required
+	 *
 	 * @TODO Zug als Comment eintragen, damit man darüber diskutieren kann
 	 *
 	 * @return void
@@ -942,7 +946,7 @@ class peter
 	 * @param (karte|aus) $make
 	 * @param num_players $players
 	 */
-	function zug($card_id=null, $make, $players)
+	function zug($card_id=null, $make=null, $players=0)
 	{
 		global $db, $user;
 
@@ -959,7 +963,8 @@ class peter
 				$sql = 'UPDATE peter_cardsets SET datum=?, status="gelegt", spezial=? WHERE game_id=? AND card_id=?';
 				$db->query($sql, __FILE__, __LINE__, __METHOD__, [timestamp(true), $spezial, $this->game_id, $card_id]);
 
-				/** Zug als Comment eintragen, damit man darüber diskutieren kann
+				// TODO Zug als Comment eintragen, damit man darüber diskutieren kann
+				/*
 				$sql = "SELECT * FROM peter_cardsets WHERE card_id =?";
 				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$card_id]);
 				$rs = $db->fetch($result);

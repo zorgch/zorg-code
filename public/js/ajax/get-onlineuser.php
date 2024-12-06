@@ -19,12 +19,11 @@ if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQ
 	http_response_code(405); // Set response code 405 (Method Not Allowed)
 	exit('Request not allowed');
  }
-if(!isset($_GET['style']) || empty($_GET['style']) || false === filter_var(trim($_GET['style']), FILTER_SANITIZE_STRING))
-{
-	http_response_code(400); // Set response code 400 (bad request) and exit.
+if(!isset($_GET['style']) || empty($_GET['style'])) {
+	http_response_code(400);
 	exit('Invalid or missing GET-Parameter');
 } else {
-	$onlineUserListstyle = filter_var(trim($_GET['style']), FILTER_SANITIZE_STRING);
+	$onlineUserListstyle = htmlspecialchars(trim($_GET['style']), ENT_QUOTES, 'UTF-8');
 }
 
 /**
@@ -57,7 +56,9 @@ switch ($onlineUserListstyle)
 		 */
 		/** Requires mysql.inc.php */
 		require_once INCLUDES_DIR.'mysql.inc.php';
-		$sql = 'SELECT id, username, clan_tag FROM user WHERE activity > (NOW()-?) ORDER by activity DESC';
+		$sql = 'SELECT id, username, clan_tag FROM user
+		        WHERE activity IS NOT NULL AND activity > DATE_SUB(NOW(), INTERVAL ? SECOND)
+		        ORDER by activity DESC';
 		$result = $db->query($sql, __FILE__, __LINE__, 'AJAX.GET(get-onlineuser)', [USER_TIMEOUT]);
 		zorgDebugger::log()->debug('%s', [$sql]);
 		/** Check if at least 1 user is online */

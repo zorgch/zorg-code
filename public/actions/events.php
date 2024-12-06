@@ -47,7 +47,7 @@ switch (true)
 		break;
 
 	/** Add new Event */
-	case ($_POST['action'] === 'new'):
+	case (isset($_POST['action']) && $_POST['action'] === 'new'):
 		if (isset($fromDate) && isset($fromTime)) {
 			$startdate = timestamp(true, [
 				 'year' => intval($fromDate[0])
@@ -102,7 +102,7 @@ switch (true)
 
 
 	/** Save updated Event details */
-	case ($_POST['action'] === 'edit'):
+	case (isset($_POST['action']) && $_POST['action'] === 'edit'):
 		if (isset($fromDate) && isset($fromTime)) {
 			$newStartdate = timestamp(true, [
 				 'year' => intval($fromDate[0])
@@ -169,7 +169,7 @@ switch (true)
 
 
 	/** Post Event to Twitter */
-	case ($_POST['action'] === 'tweet'):
+	case (isset($_POST['action']) && $_POST['action'] === 'tweet'):
 		zorgDebugger::log()->debug('Tweet Event: %s', [$redirect_url]);
 
 		/**

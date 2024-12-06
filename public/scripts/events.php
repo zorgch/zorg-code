@@ -1,8 +1,8 @@
 <?php
 global $db, $user, $smarty;
 
-$e = $db->query('SELECT a.* 
-				FROM gallery_albums a, gallery_pics p 
+$e = $db->query('SELECT a.*
+				FROM gallery_albums a, gallery_pics p
 				WHERE a.id=p.album
 				GROUP BY a.id
 				ORDER BY a.id DESC',

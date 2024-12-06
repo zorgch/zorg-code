@@ -47,10 +47,11 @@ class Messagesystem
 	 *
 	 * Controller für diverse Message Actions
 	 *
-	 * @version 2.1
+	 * @version 2.2
 	 * @since 1.0 `[z]milamber` method added
 	 * @since 2.0 `IneX` code optimizations
 	 * @since 2.1 `04.04.2021` `IneX` fixed wrong check if own message, and PHP Deprecated: Non-static method Messagesystem::sendMessage()
+	 * @since 2.2 `04.12.2024` `IneX` fixed passing NULL to htmlspecialchars_decode() stringg parameter is deprecated
 	 *
 	 * @uses BARBARA_HARRIS
 	 * @uses Messagesystem::sendMessage()
@@ -75,8 +76,8 @@ class Messagesystem
 		}
 		zorgDebugger::log()->debug('$messageId: %s', [(is_array($messageId)? print_r($messageId,true) : $messageId)]);
 		$deleteMessageId = filter_input(INPUT_POST, 'delete_message_id', FILTER_VALIDATE_INT) ?? null; // $_POST['delete_message_id']
-		$msgSubject = htmlspecialchars_decode(filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
-		$msgText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
+		$msgSubject = htmlspecialchars_decode(filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?: '', ENT_COMPAT | ENT_SUBSTITUTE);
+		$msgText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?: '', ENT_COMPAT | ENT_SUBSTITUTE);
 		$headerLocation = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? sprintf('%s/user/%d?box=inbox', SITE_URL, $user->id);
 		zorgDebugger::log()->debug('header() Location: %s', [$headerLocation]);
 
