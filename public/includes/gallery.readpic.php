@@ -25,9 +25,9 @@
  * @include mysql.inc.php MySQL-DB Connection and Functions
  * @include usersystem.inc.php Usersystem Functions and User definitions
  */
-require_once dirname(__FILE__).'/config.inc.php';
-require_once INCLUDES_DIR.'mysql.inc.php';
-include_once INCLUDES_DIR.'usersystem.inc.php';
+require_once __DIR__.'/config.inc.php';
+//require_once INCLUDES_DIR.'mysql.inc.php'; --> included in config.inc.php
+//include_once INCLUDES_DIR.'usersystem.inc.php'; --> included in config.inc.php
 
 /** Check if passed $_GET['id'] is valid / integer & not empty */
 $media_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? 0; // $_GET['id']

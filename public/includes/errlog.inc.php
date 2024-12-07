@@ -192,74 +192,47 @@ class zorgDebugger
 
 	/**
      * Retrieves the origin details of the log message.
+	 *
+	 * @version 1.1
+	 * @since 1.0 `IneX` method added
+	 * @since 1.1 `06.12.2024` `IneX` fixes PHP Notices for undefined offset and array offset of type null
      *
      * @return array The origin details including file, function, and line.
      */
     private function getOrigin()
     {
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 3);
-		// (Does not alway apply) 1=self::getOrigin() | 2=self::debug()/self::warn()/... | 3=caller
+        $debuggerMethods = ['debug', 'info', 'warn', 'write'];
+        $step = 2;
 
         $origin = [
-            'function' => '',
-            'file' => '',
+            'function' => 'nofunc',
+            'file' => 'nofile',
             'line' => 0
         ];
-		$debuggerMethods = ['debug', 'info', 'warn', 'write'];
 
-		$step = 2;
+        // Check if $step exists in backtrace before accessing
         if (isset($backtrace[$step])) {
-			/** Function */
+            // Function
             if (isset($backtrace[$step]['function']) && !in_array($backtrace[$step]['function'], $debuggerMethods)) {
-				/** When the Function is a Class Constructor, then log its Class Name instead */
-				if ($backtrace[$step]['function'] === '__construct' && isset($backtrace[$step]['class']) ) {
-					/** However, when it's the Debugger's Class Name, then fall back to use the Origin File reference */
-					if ($backtrace[$step]['class'] !== __CLASS__) {
-						$origin['function'] = $backtrace[$step]['class'];
-					} elseif ($backtrace[$step]['class'] === __CLASS__ && isset($backtrace[$step+1]['class'])) {
-						$origin['function'] = $backtrace[$step+1]['class'];
-					} else {
-						$origin['function'] = basename($backtrace[$step]['file']);
-					}
-				}
-				/** Only log the Function name, if it's not from this Debugger Class */
-				elseif (isset($backtrace[$step]['function'])) {
-					$origin['function'] = $backtrace[$step]['function'];
-				}
+                if ($backtrace[$step]['function'] === '__construct' && isset($backtrace[$step]['class'])) {
+                    if ($backtrace[$step]['class'] !== __CLASS__) {
+                        $origin['function'] = $backtrace[$step]['class'];
+                    } elseif ($backtrace[$step]['class'] === __CLASS__ && isset($backtrace[$step+1]['class'])) {
+                        $origin['function'] = $backtrace[$step+1]['class'];
+                    } else {
+                        $origin['function'] = basename($backtrace[$step]['file']);
+                    }
+                } elseif (isset($backtrace[$step]['function'])) {
+                    $origin['function'] = $backtrace[$step]['function'];
+                }
             }
-			/** Function of Backtrace Step+1 */
-            elseif (isset($backtrace[$step+1]['function']) && !in_array($backtrace[$step+1]['function'], $debuggerMethods)) {
-				/** When the Function is a Class Constructor, then log its Class Name instead */
-				if ($backtrace[$step+1]['function'] === '__construct' && isset($backtrace[$step+1]['class']) ) {
-					$origin['function'] = $backtrace[$step+1]['class'];
-				} else {
-					$origin['function'] = basename($backtrace[$step]['file']);
-				}
-			}
-			elseif (isset($backtrace[$step]['file'])) {
-                $origin['function'] = basename($backtrace[$step]['file']);
+            // File and Line
+            if (isset($backtrace[$step]['file'])) {
+                $origin['file'] = basename($backtrace[$step]['file']);
+                $origin['line'] = isset($backtrace[$step]['line']) ? $backtrace[$step]['line'] : 0;
             }
-			/** File */
-			if (isset($backtrace[$step]['file'])) $origin['file'] = basename($backtrace[$step]['file']);
-			/** Line */
-            if (isset($backtrace[$step]['line'])) $origin['line'] = $backtrace[$step]['line'];
-		/** Backtrace Step-1 */
-        } elseif (isset($backtrace[$step-1])) {
-			/** Function */
-            if (isset($backtrace[$step-1]['function']) && !in_array($backtrace[$step-1]['function'], $debuggerMethods)) {
-				$origin['function'] = $backtrace[$step-1]['function'];
-			} elseif ($backtrace[$step-1]['file']) {
-				$origin['function'] = basename($backtrace[$step]['file']);
-			}
-			/** File */
-			if (isset($backtrace[$step-1]['file'])) $origin['file'] = basename($backtrace[$step-1]['file']);
-			/** Line */
-            if (isset($backtrace[$step-1]['line'])) $origin['line'] = $backtrace[$step-1]['line'];
-		} else {
-			$origin['function'] = 'nofunc';
-			$origin['file'] = 'nofile';
-			$origin['line'] = 0;
-		}
+        }
 
         return $origin;
     }
