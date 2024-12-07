@@ -183,8 +183,9 @@ elseif (!empty($_POST['template_id']) && is_numeric($_POST['template_id']))
 					 * mail(): Failed
 					 * @link http://php.net/manual/de/function.mail.php#121163
 					 */
-					error_log('[ERROR] Failed to send E-Mail "'.$mailMessage['subject_text'].'" to ' . $mailTo . ': ' . error_get_last()['message']);
-					$response[] = [ 'value' => "Failed to send E-Mail to user id: $recipient_id with error: ".error_get_last()['message'] ]; // Don't die - would kill foreach{..}!
+					$error_message = (isset(error_get_last()['message']) ? error_get_last()['message'] : '(unknown error)');
+					error_log('[ERROR] Failed to send E-Mail "'.$mailMessage['subject_text'].'" to ' . $mailTo . ': ' . $error_message);
+					$response[] = [ 'value' => "Failed to send E-Mail to user id: $recipient_id with error: $error_message" ]; // Don't die - would kill foreach{..}!
 				}
 			} else {
 				error_log('[ERROR] Could not create new message for user '.$recipient_id);
