@@ -107,7 +107,7 @@ class dbconn
 			if (empty($params)) {
 				$result = mysqli_query($this->conn, $sql);
 				/** Log SQL-Queries not upgraded to Prepared Statements */
-				if (strpos($sql, '=') === false) {
+				if (strpos($sql, '=') > 0) {
 					zorgDebugger::log()->debug('<%s:%d> may require update to SQL prepared statement, in %s', [$funktion, $line, $file]);
 				}
 			} else {
