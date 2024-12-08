@@ -1085,30 +1085,33 @@ function fileExists($filepath)
 function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to_compare=NULL)
 {
 	/** Hash 1st $filepath (required) */
-	if (md5_file($filepath) !== false)
+	if (file_exists($filepath))
 	{
 		$file_hash = md5_file($filepath);
 
 		if ($use_last_modification_datetime)
 		{
 			/** filemtime() requires a LOCAL file (no URL) */
-			if (fileExists($filepath) !== false)
-			{
-				$file_lastmodified = filemtime($filepath);
-				$file_hash = md5($file_lastmodified.$file_hash);
-			} else {
-				error_log(sprintf('[WARN] <%s:%d> filemtime() requires a LOCAL file (no URL), given: %s', __FILE__, __LINE__, $filepath));
-				return false;
-			}
+			$file_lastmodified = filemtime($filepath);
+			$file_hash = md5($file_lastmodified.$file_hash);
 		}
 	} else {
-		//error_log(sprintf('[WARN] <%s:%d> %s Non-existent $filepath: %s', __FILE__, __LINE__, __FUNCTION__, $filepath));
+		zorgDebugger::log()->warn('Local file not found - or no read-permissions: "%s"', [$filepath]);
 		return false;
 	}
 
 	/** Hash 2nd $filepath_to_compare (optional) */
 	if (!empty($filepath_to_compare) && $filepath_to_compare != null)
 	{
+		/** Check if $filepath_to_compare is an URL; and if so, check if it exists */
+		if (filter_var($filepath_to_compare, FILTER_VALIDATE_URL)) {
+			$headers = @get_headers($filepath_to_compare);
+			if (!$headers || strpos($headers[0], '200') === false) {
+				zorgDebugger::log()->warn('HTTP request returned error: %s -> %s', [$headers[0], $filepath_to_compare]);
+				return false;
+			}
+		}
+
 		if (md5_file($filepath_to_compare) !== false)
 		{
 			$file_to_compare_hash = md5_file($filepath_to_compare);
@@ -1121,7 +1124,7 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 					$file_to_compare_lastmodified = filemtime($filepath_to_compare);
 					$file_to_compare_hash = md5($file_to_compare_lastmodified.$file_to_compare_hash);
 				} else {
-					error_log(sprintf('[WARN] <%s:%d> filemtime() requires a LOCAL file (no URL), given: %s', __FILE__, __LINE__, $filepath_to_compare));
+					zorgDebugger::log()->warn('filemtime() requires a LOCAL file (no URL), given: %s', [$filepath_to_compare]);
 					return false;
 				}
 			}

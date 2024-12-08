@@ -494,7 +494,9 @@ class Comment
 	/**
 	 * Holt den Thread-Id eines Posts oder Threads.
 	 *
-	 * WICHTIG! UNBEDINGT SO LASSEN!
+	 * @version 1.1
+	 * @since 1.0 `[z]biko` method added mit Zitat "WICHTIG! UNBEDINGT SO LASSEN!"
+	 * @since 1.1 `08.12.2024` `IneX` Address issue that "thread_id" cannot exist (1st comment on templates, gallery pics,...)
 	 *
 	 * @param string $board
 	 * @param int $id
@@ -504,7 +506,8 @@ class Comment
 		global $db;
 		$sql = 'SELECT thread_id FROM comments WHERE board=? AND id=?';
 		$rs = $db->fetch($db->query($sql, __FILE__, __LINE__, __METHOD__, [$board, $id]));
-		return $rs['thread_id'];
+		$thread_id = (int)(isset($rs['thread_id']) ? $rs['thread_id'] : $id);
+		return $thread_id;
 	}
 
 	/**

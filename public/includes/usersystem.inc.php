@@ -1512,8 +1512,8 @@ class usersystem
 			/** (array)LIST: If $userScope = User-ID list: try to get Gravatar-Image for all of them */
 			case ($userScope === 'all'):
 				if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> Checking for %s User-IDs', __METHOD__, __LINE__, $userScope));
-				$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email <> "" AND active = 1';
-				$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				$sql = 'SELECT id FROM user WHERE email IS NOT NULL AND email<>? AND active=?';
+				$userids_list = $db->query($sql, __FILE__, __LINE__, __METHOD__, ['', 1]);
 					while ($result = $db->fetch($userids_list))
 				{
 					$userids[] = $result['id'];
