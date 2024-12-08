@@ -244,8 +244,8 @@ function check_email($email) {
  */
 function getURL($preserve_query_string=true, $base64_encoding=true)
 {
-	$getUrl = rawurldecode($_SERVER['PHP_SELF'].($preserve_query_string === true ? '?'.$_SERVER['QUERY_STRING'] : ''));
-	return ($base64_encoding === true ? base64url_encode($getUrl) : $getUrl);
+	$getUrl = rawurldecode($_SERVER['PHP_SELF'].($preserve_query_string && isset($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : ''));
+	return ($base64_encoding ? base64url_encode($getUrl) : $getUrl);
 }
 
 /**
@@ -863,12 +863,17 @@ function urlExists($url)
 function getGitCodeVersion()
 {
 	static $codeVersion = [];
-	$codeVersion['version'] = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' describe --tags `git -C '.GIT_REPOSITORY_ROOT.' rev-list --tags --max-count=1`'));
-	$codeVersion['last_commit'] = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty="%h" HEAD'));
-	$lastCommitDatetime = trim(exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty=%ci HEAD'));
-	$codeVersion['last_update'] = timestamp(false, $lastCommitDatetime);
-	zorgDebugger::log()->debug('%s', [print_r($codeVersion,true)]);
 
+	try {
+		$codeVersion['version'] = trim(shell_exec('git -C '.GIT_REPOSITORY_ROOT.' describe --tags `git -C '.GIT_REPOSITORY_ROOT.' rev-list --tags --max-count=1` 2>&1'));
+		$codeVersion['last_commit'] = trim(shell_exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty="%h" HEAD'));
+		$lastCommitDatetime = trim(shell_exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty=%ci HEAD 2>&1'));
+		$codeVersion['last_update'] = timestamp(false, $lastCommitDatetime);
+		zorgDebugger::log()->debug('%s', [print_r($codeVersion,true)]);
+	}
+	catch (Exception $e) {
+        zorgDebugger::log()->debug('git -C shell_exec() failed: %s', [print_r($codeVersion,true)], 'ERROR');
+    }
 	return $codeVersion;
 }
 
@@ -944,7 +949,7 @@ function cURLfetchUrl($url, $save_as_file)
 								];
 
 		/** Initialize & execute cURL-Request */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_exec() START: %s', __FUNCTION__, __LINE__, $url));
+		zorgDebugger::log()->debug('curl_exec() START: %s', [$url]);
 		$curl_instance = curl_init($url);
 		curl_setopt_array($curl_instance, $curl_request_options);
 		$curl_data = curl_exec($curl_instance);
@@ -953,18 +958,25 @@ function cURLfetchUrl($url, $save_as_file)
 		/** cURL request successful */
 		if ($curl_done['http_code'] == 200)
 		{
-			/** Open a new file handle */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_getinfo(%d): %s', __FUNCTION__, __LINE__, $curl_done['http_code'], $curl_done['url']));
-			if (file_put_contents($save_as_file, $curl_data) !== false) {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_put_contents() OK: %s', __FUNCTION__, __LINE__, $save_as_file));
-			} else {
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> file_put_contents() ERROR: %s', __FUNCTION__, __LINE__, $save_as_file));
+			/** Check target directory path, to make sure it exists */
+			$save_to_dir = dirname($save_as_file);
+			if (!is_dir($save_to_dir)) {
+				zorgDebugger::log()->warn('Missing target directory "%s" for file "%s"', [$save_to_dir, $save_as_file]);
+				mkdir($save_to_dir, 0755, true); // recursive directory creation
+				if (is_dir($save_to_dir)) zorgDebugger::log()->info('Directory successfully created: "%s"', [$save_to_dir]);
 			}
+
+			/** Open a new file handle */
+			zorgDebugger::log()->debug('curl_getinfo(HTTP %d): %s', [$curl_done['http_code'], $curl_done['url']]);
+			$file_save_status = file_put_contents($save_as_file, $curl_data);
+
+			if ($file_save_status !== false) zorgDebugger::log()->debug('file_put_contents() OK: "%s"', [$save_as_file]);
+			else zorgDebugger::log()->error('file_put_contents() ERROR: "%s"', [$save_as_file]);
 		}
 
 		/** Close the $curl_instance */
 		curl_close($curl_instance);
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> curl_close(): DONE', __FUNCTION__, __LINE__));
+		zorgDebugger::log()->debug('curl_close(): DONE');
 
 		return true;
 

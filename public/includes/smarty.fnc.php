@@ -42,9 +42,9 @@ $zorgLayout = new MVC\Controller\Layout();
 function var_request ()
 {
    return [ 'page' => $_SERVER['PHP_SELF']
-           ,'params' => $_SERVER['QUERY_STRING']
-           ,'url' => $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']
-           ,'tpl' => isset($_GET['tpl'])?$_GET['tpl']:''
+           ,'params' => isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : ''
+           ,'url' => $_SERVER['PHP_SELF'].(isset($_SERVER['QUERY_STRING']) ? '?'.$_SERVER['QUERY_STRING'] : '')
+           ,'tpl' => isset($_GET['tpl']) ? $_GET['tpl'] : ''
            ,'_tpl' => 'tpl:'.(isset($_GET['tpl'])?$_GET['tpl']:'')
            ,'_word' => 'word:'.(isset($_GET['tpl'])?$_GET['tpl']:'')
 		];

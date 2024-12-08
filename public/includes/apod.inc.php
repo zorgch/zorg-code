@@ -85,10 +85,10 @@ function get_apod($apod_date_input=NULL)
 		zorgDebugger::log()->debug('date("ymd",strtotime($apod_data[date])): %s', [date('ymd',strtotime($apod_data['date']))]);
 		$new_apod_date = ( $apod_date_input != NULL ? date('ymd',strtotime($apod_date_input)) : date('ymd',strtotime($apod_data['date'])) );
 		zorgDebugger::log()->debug('$new_apod_date: %s', [$new_apod_date]);
-		$new_apod_title = $apod_data['title'];
-		$new_apod_explanation = $apod_data['explanation'];
-		$new_apod_copyright = $apod_data['copyright'];
-		$new_apod_mediatype = $apod_data['media_type'];
+		$new_apod_title = (isset($apod_data['title']) ? $apod_data['title'] : 'APOD '.$new_apod_date);
+		$new_apod_explanation = (isset($apod_data['explanation']) ? $apod_data['explanation'] : 'The best APODs have no words at all - the image says it all.');
+		$new_apod_copyright = (isset($apod_data['copyright']) ? $apod_data['copyright'] : 'Uncredited');
+		$new_apod_mediatype = (isset($apod_data['media_type']) ? $apod_data['media_type'] : '');
 		$new_apod_img_small = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['url']); // with fix for malformed url (APOD API issue)
 		$new_apod_img_large = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['hdurl']);  // with fix for malformed url (APOD API issue)
 		$new_apod_archive_url = APOD_SOURCE . 'ap'.$new_apod_date.'.html'; // E.g.: https://apod.nasa.gov/apod/ap180714.html

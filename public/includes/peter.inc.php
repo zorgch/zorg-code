@@ -467,9 +467,10 @@ class peter
 		global $db, $user;
 
 		$sql = 'SELECT pg.game_id, pg.next_player, pg.players,
-					(SELECT join_id FROM peter_players WHERE game_id=pp.game_id AND user_id=pg.next_player) join_id
-				FROM peter_players pp LEFT JOIN peter_games pg ON pg.game_id=pp.game_id WHERE pg.status = "lauft" GROUP BY pg.game_id';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+				  (SELECT join_id FROM peter_players WHERE game_id=pp.game_id AND user_id=pg.next_player) join_id
+				FROM peter_players pp LEFT JOIN peter_games pg ON pg.game_id=pp.game_id WHERE pg.status= "?" GROUP BY pg.game_id';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, ['lauft']);
+		$runningGames = [];
 
 		if ($return_html)
 		{

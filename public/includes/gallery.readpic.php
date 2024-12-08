@@ -33,7 +33,7 @@ require_once __DIR__.'/config.inc.php';
 $media_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? 0; // $_GET['id']
 if ($media_id <= 0) {
 	// TODO instead of just exit(), output a default image showing "broken" or alike? */
-	header('HTTP/1.1 400 Bad Request');
+	http_response_code(400); // Set response code 400 (Bad Request) and exit.
 	exit( error_log(sprintf('<%s:%d> Invalid Media-ID was requested: %s', __FILE__, __LINE__, $media_id)) );
 }
 
@@ -41,7 +41,7 @@ if ($media_id <= 0) {
 $query = $db->query('SELECT * FROM gallery_pics WHERE id=?', __FILE__, __LINE__, 'SELECT FROM gallery_pics', [$media_id]);
 $media_data = $db->fetch($query);
 if (!$media_data) {
-	header('HTTP/1.1 400 Bad Request');
+	http_response_code(400); // Set response code 400 (Bad Request) and exit.
 	exit( error_log(sprintf('<%s:%d> No Media data could be obtained', __FILE__, __LINE__)) );
 }
 
@@ -82,6 +82,14 @@ if ((int)$media_data['album'] === APOD_GALLERY_ID || $auth_granted === true || (
 		$mediafile_name = $media_type.$media_data['id'].$media_extension;
 		$mediafile = GALLERY_DIR . $media_data['album'] . DIRECTORY_SEPARATOR . $mediafile_name;
 
+		/** Check if physical file also exists */
+		if (!file_exists($mediafile)) {
+			zorgDebugger::log()->warn('Gallery pic file does not exist (or no read-permissions?): "%s"', [$mediafile]);
+			http_response_code(410); // Set response code 410 (Gone) and exit.
+			user_error('Bild existiert nicht auf dem Server - oder du hast keinen Zugriff dafür (eingeloggt?)', E_USER_NOTICE);
+			exit;
+		}
+
 		/**
 		 * Last file modification date HTTP-Headers, must be valid HTTP-Date (in GMT)
 		 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
@@ -105,7 +113,7 @@ if ((int)$media_data['album'] === APOD_GALLERY_ID || $auth_granted === true || (
 			if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $mediafile_lastmodified_gmt || str_replace('"', '', stripslashes($_SERVER['HTTP_IF_NONE_MATCH'])) == $mediafile_hash)
 			{
 				/** File is chached & has not changed - so exit() */
-				header('HTTP/1.1 304 Not Modified');
+				http_response_code(304); // Set response code 304 (Not Modified)
 				exit();
 			}
 		}
@@ -127,12 +135,12 @@ if ((int)$media_data['album'] === APOD_GALLERY_ID || $auth_granted === true || (
 
 	/** Zensurmeldung für non-Members */
 	} else {
-		header('HTTP/1.1 451 Unavailable For Legal Reasons');
+		http_response_code(451); // Set response code 451 (Unavailable For Legal Reasons) and exit.
 		exit( error_log(sprintf('<%s:%d> Not allowed access to censored Pic: %d', __FILE__, __LINE__, $media_id)) );
 	}
 
 /** Access denied */
 } else {
-	header('HTTP/1.1 403 Forbidden');
+	http_response_code(403); // Set response code 403 (Forbidden) and exit.
 	exit( error_log(sprintf('<%s:%d> Access denied to Pic: %d', __FILE__, __LINE__, $media_id)) );
 }

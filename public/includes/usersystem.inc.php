@@ -996,8 +996,8 @@ class usersystem
 	{
 		global $db;
 
-		$sql = 'SELECT id, username, active FROM user WHERE regcode = "'.$regcode.'"';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$sql = 'SELECT id, username, active FROM user WHERE regcode = "?"';
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$regcode]);
 		if($db->num($result))
 		{
 			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: VALID', __METHOD__, __LINE__));
@@ -1264,14 +1264,15 @@ class usersystem
 		/** Remove any duplicate User-IDs */
 		$users_selected = array_unique($users_selected);
 
-		$sql =
-			'SELECT id, clan_tag, username FROM user'
-			.' WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(NOW())-'.(USER_OLD_AFTER*2).')'
-			.' OR z_gremium = "1" OR (vereinsmitglied != "0" AND vereinsmitglied != "")'
-			.(!empty($users_selected) ? ' OR id IN ('.implode(',', $users_selected).')' : null)
-			.' ORDER BY clan_tag DESC, username ASC'
+		$sql = 'SELECT id, clan_tag, username FROM user'
+				.' WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(NOW())-?)'
+				.' OR z_gremium = "1" OR (vereinsmitglied != "0" AND vereinsmitglied != "")'
+				.(!empty($users_selected) ? ' OR id IN (?)' : null)
+				.' ORDER BY clan_tag DESC, username ASC'
 		;
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$params = [ USER_OLD_AFTER*2 ];
+		if (!empty($users_selected)) { $params[] = implode(',', $users_selected); }
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $params);
 
 		$html = '<select multiple="multiple" name="'.$name.'" size="'.$size.'" tabindex="'.$tabindex.'">';
 		$htmlSelectElements = [];
@@ -1565,7 +1566,7 @@ class usersystem
 			 * @TODO wenn die usersystem::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
 			 */
 			//$useremail = usersystem::id2useremail($userid);
-			$queryresult = $db->fetch($db->query('SELECT email FROM user WHERE id = '.$userid.' LIMIT 0,1', __FILE__, __LINE__, __METHOD__));
+			$queryresult = $db->fetch($db->query('SELECT email FROM user WHERE id = ? LIMIT 1', __FILE__, __LINE__, __METHOD__, [$userid]));
 			$useremail = $queryresult['email'];
 
 			if (!empty($useremail))

@@ -3,7 +3,7 @@ require_once __DIR__.'/config.inc.php';
 require_once INCLUDES_DIR.'mysql.inc.php';
 
 /** Query errors Table for all open errors (status = 1) */
-$sql = $db->fetch($db->query('SELECT COUNT(*) as num_errors FROM sql_error WHERE status=1', __FILE__, __LINE__, 'SELECT num_errors'));
+$sql = $db->fetch($db->query('SELECT COUNT(*) as num_errors FROM sql_error WHERE status=?', __FILE__, __LINE__, 'SELECT num_errors', [1]));
 $num_errors = (isset($sql['num_errors']) ? (int)$sql['num_errors'] : 0);
 
 /**
