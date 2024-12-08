@@ -1450,13 +1450,12 @@ class usersystem
 	 * Get either a Gravatar URL or complete image tag for a specified email address.
 	 *
 	 * @source http://gravatar.com/site/implement/images/php/
-	 * @author IneX
-	 * @version 3.0
-	 * @since 1.0 `IneX` 24.07.2014
+	 * @version 3.1
+	 * @since 1.0 `24.07.2014` `IneX` method added
 	 * @since 2.0 `11.01.2017` `IneX` Fixed Gravatar-URL to https using SITE_PROTOCOL
 	 * @since 3.0 `16.07.2018` `IneX` Removed possibility to return `img`-Tag
+	 * @since 3.1 `08.12.2024` `IneX` Always use https for Gravatar-URL to prevent Redirects
 	 *
-	 * @uses SITE_PROTOCOL
 	 * @param string $email The email address
 	 * @param string $s Size in pixels, defaults to 80px [ 1 - 2048 ]
 	 * @param string $d Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
@@ -1468,7 +1467,7 @@ class usersystem
 	function get_gravatar( $email, $s = 150, $d = '404', $r = 'x' )
 	{
 		/** HTTP-request to Gravatar */
-		$url = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
+		$url = 'https://www.gravatar.com/avatar/';
 		$url .= md5( strtolower( trim( $email ) ) );
 		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $email: %s', __METHOD__, __LINE__, $email));
 		$url .= "?s=$s&d=$d&r=$r";
@@ -1541,13 +1540,8 @@ class usersystem
 	 *
 	 * @TODO wenn die usersystem::id2useremail() Funktion gefixt ist (nicht nur eine response wenn E-Mail Notifications = true), dann Query ersetzen mit Methode
 	 *
-	 * @uses SITE_PROTOCOL
-	 * @uses USER_IMGPATH
-	 * @uses USER_IMGSIZE_LARGE
-	 * @uses USER_IMGSIZE_SMALL
-	 * @uses USER_IMGEXTENSION
-	 * @uses cURLfetchUrl()
-	 * @uses fileHash()
+	 * @uses USER_IMGPATH, USER_IMGSIZE_LARGE, USER_IMGSIZE_SMALL, USER_IMGEXTENSION
+	 * @uses cURLfetchUrl(), fileHash()
 	 * @param array $userid Single or List of User ID(s) as Array
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return bool Returns true/false depening on if a successful execution was possible, or not
@@ -1571,7 +1565,7 @@ class usersystem
 
 			if (!empty($useremail))
 			{
-				$gravatar_baseurl = SITE_PROTOCOL.'://www.gravatar.com/avatar/';
+				$gravatar_baseurl = 'https://www.gravatar.com/avatar/';
 				$gravatar_useremail = md5( strtolower( trim( $useremail ) ) );
 				/** d=404: return http 404 response, r=x: all ratings of images */
 				$gravatar_urlparam = '?d=404&r=x';
