@@ -134,26 +134,26 @@ class usersystem
 	 *
 	 * @used-by usersystem::exec_changeprofile()
 	 */
-	public $default_clan_tag = null; // none
-	public $default_activities_allow = '1'; // enabled
-	public $default_telegram_chat_id = null; // none
-	public $default_irc_username = null; // none
-	public $default_addle = '1'; // enabled
-	public $default_chess = '1'; // enabled
-	public $default_forum_boards = '["b","e","f","o","r","t"]'; // Bugtracker, Events, Forum, Go, Tauschbörse, Templates
-	public $default_forum_boards_unread = '["b","e","f","g","h","i","o","t"]'; // Bugtracker, Events, Forum, Hunting z, Gallery, Tauschbörse, Templates
-	public $default_forummaxthread = 10; // depth: 10
-	public $default_menulayout = ''; // none (String, because ENUM='')
-	public $default_mymenu = null; // none
-	public $default_notifications = '{"bugtracker":{"message":"true","email":"true"},"games":{"email":"true"},"mentions":{"email":"true"},"messagesystem":{"email":"true"},"subscriptions":{"message":"true"}}';
-	public $default_show_comments = '1'; // enabled
-	public $default_sql_tracker = '0'; // disabled
-	public $default_usertype = 0; // nicht-eingeloggt
-	public $default_zorger = '0'; // zorg-Layout
-	public $default_vereinsmitglied = '0'; // kein Mitglied
-	public $default_z_gremium = ''; // no
-	public $default_firstname = null; // none
-	public $default_lastname = null; // none
+	public ?string $default_clan_tag = null; // none
+	public string $default_activities_allow = '1'; // enabled
+	public ?int $default_telegram_chat_id = null; // none
+	public ?string $default_irc_username = null; // none
+	public string $default_addle = '1'; // enabled
+	public string $default_chess = '1'; // enabled
+	public string $default_forum_boards = '["b","e","f","o","r","t"]'; // Bugtracker, Events, Forum, Go, Tauschbörse, Templates
+	public string $default_forum_boards_unread = '["b","e","f","g","h","i","o","t"]'; // Bugtracker, Events, Forum, Hunting z, Gallery, Tauschbörse, Templates
+	public int $default_forummaxthread = 10; // depth: 10
+	public string $default_menulayout = ''; // none (String, because ENUM='')
+	public ?int $default_mymenu = null; // none
+	public string $default_notifications = '{"bugtracker":{"message":"true","email":"true"},"games":{"email":"true"},"mentions":{"email":"true"},"messagesystem":{"email":"true"},"subscriptions":{"message":"true"}}';
+	public string $default_show_comments = '1'; // enabled
+	public string $default_sql_tracker = '0'; // disabled
+	public int $default_usertype = 0; // nicht-eingeloggt
+	public string $default_zorger = '0'; // zorg-Layout
+	public string $default_vereinsmitglied = '0'; // kein Mitglied
+	public string $default_z_gremium = ''; // no
+	public ?string $default_firstname = null; // none
+	public ?string $default_lastname = null; // none
 
 	/**
 	 * Object Vars
@@ -1936,12 +1936,11 @@ class usersystem
 	 *
 	 * Execute a Profile info & settings update for a User
 	 *
-	 * @author [z]biko
-	 * @author IneX
-	 * @version 3.0
-	 * @since 1.0 function added
-	 * @since 2.0 `02.10.2018` function improved to handle $_POST data dynamically
-	 * @since 3.0 `11.11.2018` function moved to usersystem()-Class
+	 * @version 3.1
+	 * @since 1.0 `[z]biko` method added
+	 * @since 2.0 `02.10.2018` `IneX` function improved to handle $_POST data dynamically
+	 * @since 3.0 `11.11.2018` `IneX` function moved to usersystem()-Class
+	 * @since 3.1 `08.12.2024` `IneX` fixes Bug #787 due to incorrect integer value '' for column
 	 *
 	 * @uses check_email()
 	 * @param integer $user_id User-ID
@@ -1963,7 +1962,6 @@ class usersystem
 		$error[0] = FALSE;
 
 		/** Check e-mail address & dass User nicht einen Force-Logout hat */
-
 		if (check_email($data_array['email']) && !isset($_geaechtet[$user_id]))
 		{
 			/** Process $data_array values */
@@ -1977,15 +1975,20 @@ class usersystem
 					 * We're building a dynamic variable using ${string}
 					 * refering to any $user->default_var from usersystem()
 					 */
-
 					$defaultValue = isset(${'$this->default_'.strtolower($dataKey)})?${'$this->default_'.strtolower($dataKey)}:'';
 					if (empty($dataValue) && $dataValue !== $defaultValue)
 					{
 						/**
 						 * if $data_array[param](value) is empty & not identical to dynamic $defaultValue
-						 * then set $data_array[param](value) => value of $defaultValue
+						 * then set $data_array[param](value) => value of $defaultValue & use the right type hint
 						 */
-						$data_array[$dataKey] = (empty($defaultValue) || $defaultValue === null ? null : strval($defaultValue));
+						if (is_int($defaultValue)) {
+							/** For integer : use NULL instead of empty string */
+							$data_array[$dataKey] = ($defaultValue === null ? null : intval($defaultValue));
+						} else {
+							/** For strings : use an empty string */
+							$data_array[$dataKey] = (empty($defaultValue) || $defaultValue === null ? null : strval($defaultValue));
+						}
 					}
 				}
 
@@ -1996,17 +1999,18 @@ class usersystem
 			/**
 			 * Process regular Form-Checkbox values
 			 */
-			$data_array_checkbox_count = count($data_array['checkbox']);
-			if (is_array($data_array['checkbox']) && $data_array_checkbox_count > 0) {
-				for ($i=0;$i<$data_array_checkbox_count;$i++)
+			if (is_array($data_array['checkbox']) && count($data_array['checkbox']) > 0)
+			{
+				//for ($i=0;$i<$data_array_checkbox_count;$i++)
+				foreach ($data_array['checkbox'] as $checkbox_key => $checkbox_value)
 				{
-					if (DEVELOPMENT === true && $data_array_checkbox_count > 0) error_log(sprintf('[DEBUG] <%s:%d> $data_array[checkbox]: <%d> %s => %s', __METHOD__, __LINE__, $data_array['checkbox'][$i], array_keys($data_array['checkbox'])[$i], array_values($data_array['checkbox'])[$i]));
-					if (array_values($data_array['checkbox'])[$i] === true || array_values($data_array['checkbox'])[$i] === 'true' || array_values($data_array['checkbox'])[$i] === '1' || array_values($data_array['checkbox'])[$i] === 1) {
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $sqlUpdateSetValuesArray adding: %s => 1', __METHOD__, __LINE__, array_keys($data_array['checkbox'])[$i]));
-						$sqlUpdateSetValuesArray[array_keys($data_array['checkbox'])[$i]] = '1';
+					zorgDebugger::log()->debug('$data_array[checkbox]: <%d> %s => %s', [$checkbox_key, $checkbox_value]);
+					if ($checkbox_value === true || $checkbox_value === 'true' || $checkbox_value === '1' || $checkbox_value === 1) {
+						zorgDebugger::log()->debug('$sqlUpdateSetValuesArray adding: %s => 1', [$checkbox_key]);
+						$sqlUpdateSetValuesArray[$checkbox_key] = '1';
 					} else {
-						if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $sqlUpdateSetValuesArray adding: %s => 1', __METHOD__, __LINE__, array_keys($data_array['checkbox'])[$i]));
-						$sqlUpdateSetValuesArray[array_keys($data_array['checkbox'])[$i]] = '0';
+						zorgDebugger::log()->debug('$sqlUpdateSetValuesArray adding: %s => 0', [$checkbox_key]);
+						$sqlUpdateSetValuesArray[$checkbox_key] = '0';
 					}
 				}
 			}

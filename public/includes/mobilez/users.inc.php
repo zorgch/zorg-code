@@ -25,9 +25,8 @@ class UserManagement
 		global $db;
 
 		//erstellt sql string fuer user ueberpruefung
-		$sql = "SELECT id, ".$this->field_userpw." FROM ".$this->table_name." WHERE "
-		.$this->field_username." = '".$username."'";
-		$result = $db->query($sql, __FILE__, __LINE__);
+		$sql = 'SELECT id, '.$this->field_userpw.' FROM '.$this->table_name.' WHERE '.$this->field_username.'=?';
+		$result = $db->query($sql, __FILE__, __LINE__, 'user ueberpruefung', [$username]);
 
 		//ueberpruefe ob der user besteht
 		if($db->num($result)) {
@@ -40,9 +39,9 @@ class UserManagement
 			}
 
 			//erstellt sql string fuer passwort ueberpruefung
-			$sql = "SELECT id, ".$this->field_user_active.", UNIX_TIMESTAMP(".AUSGESPERRT_BIS.") as ".AUSGESPERRT_BIS." FROM ".$this->table_name."
-					WHERE ".$this->field_username." = '".$username."' AND ".$this->field_userpw." = '".$crypted_pw."'";
-			$result = $db->query($sql, __FILE__, __LINE__);
+			$sql = 'SELECT id, '.$this->field_user_active.', UNIX_TIMESTAMP(AUSGESPERRT_BIS) as AUSGESPERRT_BIS FROM '.$this->table_name.'
+					WHERE '.$this->field_username.'=? AND '.$this->field_userpw.'=?';
+			$result = $db->query($sql, __FILE__, __LINE__, 'passwort ueberpruefung', [$username, $crypted_pw]);
 
 			//ueberprueft ob passwort korrekt ist
 			if($db->num($result)) {
@@ -52,9 +51,9 @@ class UserManagement
 				if($rs[$this->field_user_active]) {
 
 					// überprüfe ob User nicht ausgesperrt ist
-					if($rs[AUSGESPERRT_BIS] < time()) {
+					if($rs['AUSGESPERRT_BIS'] < time()) {
 						session_start();
-						$_SESSION['user_id'] = $rs['id'];
+						$_SESSION['user_id'] = (int)$rs['id'];
 
 						//wenn cookie aktiviert und user gewuenscht
 						if($this->use_cookie == TRUE && $use_cookie) {
@@ -65,21 +64,16 @@ class UserManagement
 						}
 
 						//Last Login update
-						$sql = "UPDATE ".$this->table_name."
-						set ".$this->field_lastlogin." = ".$this->field_currentlogin."
-						WHERE id = '".$rs['id']."'";
-						$db->query($sql, __FILE__, __LINE__);
+						$sql = 'UPDATE '.$this->table_name.' SET '.$this->field_lastlogin.'=? WHERE id=?';
+						$db->query($sql, __FILE__, __LINE__, 'last login update', [$this->field_currentlogin, $_SESSION['user_id']]);
 
 						//current login update
-						$sql = "UPDATE ".$this->table_name."
-						set ".$this->field_currentlogin." = now(),
-						".$this->field_last_ip." = '".$_SERVER['REMOTE_ADDR']."'
-						WHERE id = '".$rs['id']."'";
-						$db->query($sql, __FILE__, __LINE__);
+						$sql = 'UPDATE '.$this->table_name.' SET '.$this->field_currentlogin.'=NOW(), '.$this->field_last_ip.'=? WHERE id=?';
+						$db->query($sql, __FILE__, __LINE__, 'current login update', [$_SERVER['REMOTE_ADDR'], $_SESSION['user_id']]);
 
-						header("Location: ".$_SERVER['PHP_SELF']."?". session_name(). "=". session_id());
+						header("Location: ".$_SERVER['PHP_SELF']);
 					} else {
-						echo "Du bist ausgesperrt! (bis ".date("d.m.Y", $rs[AUSGESPERRT_BIS]).")";
+						echo "Du bist ausgesperrt! (bis ".date("d.m.Y", $rs['AUSGESPERRT_BIS']).")";
 						exit;
 					}
 

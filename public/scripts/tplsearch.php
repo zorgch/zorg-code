@@ -1,7 +1,8 @@
 <?php
 global $db, $smarty;
 
-$search = htmlspecialchars_decode($_GET['query'], ENT_COMPAT | ENT_SUBSTITUTE);
+$search = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_SPECIAL_CHARS);
+$search = htmlspecialchars_decode($search, ENT_COMPAT | ENT_SUBSTITUTE);
 
 if (!empty($search))
 {

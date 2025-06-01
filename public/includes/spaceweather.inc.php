@@ -229,7 +229,9 @@ function spaceweather_ticker() {
 			}
 		}
 
-		shuffle($sw); // Randomize Speachweather infos
+		if (is_array($sw)) {
+			shuffle($sw); // Randomize Speachweather infos
+		}
 		return $sw;
 	} else {
 		return null;
