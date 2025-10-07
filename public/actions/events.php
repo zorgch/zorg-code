@@ -69,19 +69,19 @@ switch (true)
 		/** Backwards-compatibility to old individual Date fields */
 		if (!isset($startdate)) $startdate = sprintf('%s-%s-%s %s:00', $_POST['startYear'], $_POST['startMonth'], $_POST['startDay'], $_POST['startHour']);
 		if (!isset($enddate)) $enddate = sprintf('%s-%s-%s %s:00', $_POST['endYear'], $_POST['endMonth'], $_POST['endDay'], $_POST['endHour']);
-		zorgDebugger::log()->debug('Dates: %s --> %s', [$newStartdate, $newEnddate]);
+		zorgDebugger::log()->debug('Dates: %s --> %s', [$startdate, $enddate]);
 
 		$values = [
 			'name' => $eventName,
 			'location' => $eventLocation,
-			'link' => $eventLink,
+			'link' => (isset($eventLink) ? $eventLink : null),
 			'description' => $eventDescription,
 			'startdate' => $startdate,
 			'enddate' => $enddate,
-			'gallery_id' => $eventGallery,
+			'gallery_id' => (isset($eventGallery) ? $eventGallery : null),
 			'reportedby_id' => $user->id,
 			'reportedon_date' => timestamp(true),
-			'review_url' => $eventReviewlink
+			'review_url' => (isset($eventReviewlink) ? $eventReviewlink : null)
 		];
 		zorgDebugger::log()->debug('Adding new Event: %s', [print_r($values,true)]);
 		$idNewEvent = $db->insert('events', $values, __FILE__, __LINE__, 'INSERT INTO events');
