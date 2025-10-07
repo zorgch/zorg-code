@@ -50,101 +50,111 @@ if (empty($doAction) && empty($user_id) && empty($userRegcode))
 /**
  * Mein Profil
  */
-if ($doAction === 'view' && empty($user_id) && $user->is_loggedin())
+if ($doAction === 'view')
 {
-	/**
-	 * Profil als anderen User anzeigen (DEV only!)
-	 */
-	if (zorgDebugger::log()->isDevelopmentEnvironment && $view_as_user > 0)
+	if (empty($user_id) && $user->is_loggedin())
 	{
-		$model->showOtherprofile($smarty, $user, $_GET['viewas']);
-		$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user((int)$_GET['viewas'], TRUE).'</strong>']);
-
-		/** Switch to "viewas"-User */
-		$saveMyUserID = $user->id;
-		$_SESSION['user_id'] = (int)$_GET['viewas'];
-		$user = new usersystem();
-		$smarty->assign('user', $user);
-
-		/** Display "viewas"-Userprofile */
-		$smarty->assign('form_action', '?do=nothing');
-		$smarty->display('file:layout/pages/profile_page.tpl');
-
-		/** Switch back to current User */
-		$_SESSION['user_id'] = $saveMyUserID;
-		$user = new usersystem();
-		$smarty->assign('user', $user);
-
-	/**
-	 * Mein Profil anzeigen + updaten
-	 */
-	} else {//if ($doAction === 'view' || empty($user_id)) {
-		$model->showProfileupdate($smarty);
-
-		/** Update Userprofile infos & settings */
-		if (!empty($postDoAction))
+		/**
+		 * Profil als anderen User anzeigen (DEV only!)
+		 */
+		if (zorgDebugger::log()->isDevelopmentEnvironment && $view_as_user > 0)
 		{
-			if ($user->id > 0)
-			{
-				if($postDoAction === 'update' && $_FILES['image']['error'] === 4)
-				{
-					/** Validate $_POST-request */
-					zorgDebugger::log()->debug('$_POST: %s', [print_r($_POST,true)]);
-					if (count($_POST) > 1)
-					{
-						$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
-					}
-				}
-				/** Upload and change new Userpic */
-				if($postDoAction === 'update' && $_FILES['image']['error'] === 0)
-				{
-					$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
-				}
-				/** Change User Password */
-				if($postDoAction === 'change_password')
-				{
-					$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
-				}
-			}
+			$model->showOtherprofile($smarty, $user, $_GET['viewas']);
+			$smarty->assign('error', ['type' => 'info', 'dismissable' => 'false', 'title' => 'Userprofil wird angezeigt als <strong>'.$user->id2user((int)$_GET['viewas'], TRUE).'</strong>']);
 
-			/**
-			 * Error or Success message handling
-			 */
-			/* Userprofile change */
-			if (isset($changeprofile_result[0])) {
-				if ($changeprofile_result[0] === TRUE) {
-					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $changeprofile_result[1]]);
-				} else {
-					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userprofile-change-ok', 'user')]);
-				}
-			}
-			/** Userpic change */
-			if (isset($uploadimage_result[0])) {
-				if ($uploadimage_result[0] === TRUE) {
-					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $uploadimage_result[1]]);
-				} else {
-					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userpic-change-ok', 'user')]);
-				}
-			}
-			/** New Password */
-			if (isset($newpassword_result[0])) {
-				if ($newpassword_result[0] === TRUE) {
-					$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $newpassword_result[1]]);
-				} else {
-					$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('new-userpw-confirmation', 'user')]);
-				}
-			}
-
-			/** Instantiate a new, updated $user-Object (because new data...) */
+			/** Switch to "viewas"-User */
+			$saveMyUserID = $user->id;
+			$_SESSION['user_id'] = (int)$_GET['viewas'];
 			$user = new usersystem();
 			$smarty->assign('user', $user);
+
+			/** Display "viewas"-Userprofile */
+			$smarty->assign('form_action', '?do=nothing');
+			$smarty->display('file:layout/pages/profile_page.tpl');
+
+			/** Switch back to current User */
+			$_SESSION['user_id'] = $saveMyUserID;
+			$user = new usersystem();
+			$smarty->assign('user', $user);
+
+		/**
+		 * Mein Profil anzeigen + updaten
+		 */
+		} else {//if ($doAction === 'view' || empty($user_id)) {
+			$model->showProfileupdate($smarty);
+
+			/** Update Userprofile infos & settings */
+			if (!empty($postDoAction))
+			{
+				if ($user->id > 0)
+				{
+					if($postDoAction === 'update' && $_FILES['image']['error'] === 4)
+					{
+						/** Validate $_POST-request */
+						zorgDebugger::log()->debug('$_POST: %s', [print_r($_POST,true)]);
+						if (count($_POST) > 1)
+						{
+							$changeprofile_result = $user->exec_changeprofile($user->id, $_POST);
+						}
+					}
+					/** Upload and change new Userpic */
+					if($postDoAction === 'update' && $_FILES['image']['error'] === 0)
+					{
+						$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
+					}
+					/** Change User Password */
+					if($postDoAction === 'change_password')
+					{
+						$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
+					}
+				}
+
+				/**
+				 * Error or Success message handling
+				 */
+				/* Userprofile change */
+				if (isset($changeprofile_result[0])) {
+					if ($changeprofile_result[0] === TRUE) {
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $changeprofile_result[1]]);
+					} else {
+						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userprofile-change-ok', 'user')]);
+					}
+				}
+				/** Userpic change */
+				if (isset($uploadimage_result[0])) {
+					if ($uploadimage_result[0] === TRUE) {
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $uploadimage_result[1]]);
+					} else {
+						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('userpic-change-ok', 'user')]);
+					}
+				}
+				/** New Password */
+				if (isset($newpassword_result[0])) {
+					if ($newpassword_result[0] === TRUE) {
+						$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'true', 'title' => $newpassword_result[1]]);
+					} else {
+						$smarty->assign('error', ['type' => 'success', 'dismissable' => 'true', 'title' => t('new-userpw-confirmation', 'user')]);
+					}
+				}
+
+				/** Instantiate a new, updated $user-Object (because new data...) */
+				$user = new usersystem();
+				$smarty->assign('user', $user);
+			}
+
+			/** Display "Mein Profil ändern" */
+			$smarty->assign('form_action', '?do=view');
+			$smarty->display('file:layout/pages/profile_page.tpl');
+
+			exit; // make sure only personal Profile page is processed / displayed
 		}
-
-		/** Display "Mein Profil ändern" */
-		$smarty->assign('form_action', '?do=view');
-		$smarty->display('file:layout/pages/profile_page.tpl');
-
-		exit; // make sure only personal Profile page is processed / displayed
+	} else {
+		http_response_code(403); // Set response code 403 (Forbidden)
+		$model->showOverview($smarty);
+		$smarty->assign('error', ['type' => 'warn', 'dismissable' => 'false', 'title' => t('invalid-username', 'user')]);
+		$smarty->display('file:layout/head.tpl');
+		$smarty->display('file:layout/footer.tpl');
+		exit;
 	}
 }
 

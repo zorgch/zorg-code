@@ -13,8 +13,8 @@ $index = ((isset($_GET['index']) && $_GET['index'] >= 0 && is_numeric($_GET['ind
 /**
  * FILE INCLUDES
  */
-require_once dirname(__FILE__).'/../../includes/config.inc.php';
-require_once INCLUDES_DIR.'mysql.inc.php';
+require_once __DIR__.'/../../includes/config.inc.php';
+//require_once INCLUDES_DIR.'mysql.inc.php';
 //require_once INCLUDES_DIR.'gallery.inc.php'; // zu lange Ladezeiten
 
 /**
@@ -29,7 +29,7 @@ try {
 	    $pics[] = [
 		    'pic_id' => $rs['pic_id'],
 		    //'img_path' => imgsrcPic($rs['pic_id']),
-		    'img_path' => 'https://zorg.ch/gallery/' . $rs['pic_id'],
+		    'img_path' => SITE_URL.'/gallery/' . $rs['pic_id'],
 		    'user_id' => $rs['user_id_tagged'],
 			'top' => $rs['top'],
 			'left' => $rs['left'],

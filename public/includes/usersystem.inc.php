@@ -176,6 +176,7 @@ class usersystem
 	 * @since 5.0 `09.04.2021` `IneX` reworked Session and Cookie handling
 	 * @since 6.0 `14.05.2021` `IneX` no longer creating a Session by default - only if user is authenticated!
 	 * @since 6.1 `03.12.2021` `IneX` Deprecated to store & retrieve the `last_ip` (User IP address) on the Database
+	 * @since 6.2 `06.10.2025` `IneX` fixes "Cannot change session name when session is active"
 	 *
 	 * @uses ZORG_SESSION_ID, ZORG_COOKIE_SESSION, ZORG_COOKIE_USERID, ZORG_COOKIE_USERPW, ZORG_SESSION_LIFETIME, ZORG_COOKIE_SECURE
 	 * @uses usersystem::login(), usersystem::userImage(), timestamp()
@@ -187,7 +188,7 @@ class usersystem
 
 		/** Grundsätzlich mal jeden zuerst als "Gast" anschauen */
 		$this->typ = USER_ALLE;
-		session_name(ZORG_SESSION_ID); // FIXME Cannot change session name when session is active
+		if (session_status() !== PHP_SESSION_ACTIVE) session_name(ZORG_SESSION_ID);
 
 		/** DEACTIVATED: Generelle Session Settings & Session (re-)Starten (wenn noch nicht aktiv) */
 		// if (session_status() === PHP_SESSION_NONE)
@@ -1941,6 +1942,7 @@ class usersystem
 	 * @since 2.0 `02.10.2018` `IneX` function improved to handle $_POST data dynamically
 	 * @since 3.0 `11.11.2018` `IneX` function moved to usersystem()-Class
 	 * @since 3.1 `08.12.2024` `IneX` fixes Bug #787 due to incorrect integer value '' for column
+	 * @since 4.0 `06.10.2025` `IneX` fixes incorrect integer value '' by using reflection to get declared type more reliably
 	 *
 	 * @uses check_email()
 	 * @param integer $user_id User-ID
@@ -1964,6 +1966,9 @@ class usersystem
 		/** Check e-mail address & dass User nicht einen Force-Logout hat */
 		if (check_email($data_array['email']) && !isset($_geaechtet[$user_id]))
 		{
+			/** Instantiate an ad-hoc Reflection Class */
+			$reflectionClass = new ReflectionClass($this);
+
 			/** Process $data_array values */
 			foreach ($data_array as $dataKey => $dataValue)
 			{
@@ -1972,29 +1977,40 @@ class usersystem
 				{
 					/**
 					 * Fancy shit incoming:
-					 * We're building a dynamic variable using ${string}
-					 * refering to any $user->default_var from usersystem()
+					 * We're using a reflection class to get the type
+					 * of any $user->default_var from usersystem()
 					 */
-					$defaultValue = isset(${'$this->default_'.strtolower($dataKey)})?${'$this->default_'.strtolower($dataKey)}:'';
-					if (empty($dataValue) && $dataValue !== $defaultValue)
-					{
-						/**
-						 * if $data_array[param](value) is empty & not identical to dynamic $defaultValue
-						 * then set $data_array[param](value) => value of $defaultValue & use the right type hint
-						 */
-						if (is_int($defaultValue)) {
-							/** For integer : use NULL instead of empty string */
-							$data_array[$dataKey] = ($defaultValue === null ? null : intval($defaultValue));
-						} else {
-							/** For strings : use an empty string */
-							$data_array[$dataKey] = (empty($defaultValue) || $defaultValue === null ? null : strval($defaultValue));
+					$defaultValueProperty = 'default_' . strtolower($dataKey);
+
+					if ($reflectionClass->hasProperty($defaultValueProperty)) {
+						$getProperty = $reflectionClass->getProperty($defaultValueProperty)->getType();
+						$getType = $getProperty ? $getProperty->getName() : 'mixed';
+						$isNullable = $getProperty ? $getProperty->allowsNull() : true;
+						$defaultValue = $getProperty ? $reflectionClass->getProperty($defaultValueProperty)->getValue($this) : null;
+
+						if ($dataValue !== $defaultValue) {
+							if (empty($dataValue) && $isNullable) {
+								$data_array[$dataKey] = null;
+							} else {
+								switch ($getType) {
+									case 'int':    $data_array[$dataKey] = (int)$dataValue; break;
+									case 'float':  $data_array[$dataKey] = (float)$dataValue; break;
+									case 'bool':   $data_array[$dataKey] = (bool)$dataValue; break;
+									case 'string': $data_array[$dataKey] = (string)$dataValue; break;
+									case 'array':  $data_array[$dataKey] = (array)$dataValue; break;
+									default:       $data_array[$dataKey] = $dataValue; // fallback
+								}
+							}
 						}
+					} else {
+						zorgDebugger::log()->error('%s => undefined!', [$defaultValueProperty]);
 					}
 				}
 
 				/** Prepare SQL-Update "SET row=value"-Array */
-				$sqlUpdateSetValuesArray[$dataKey] = (!is_array($dataValue) ? $dataValue : $dataValue);
+				$sqlUpdateSetValuesArray[$dataKey] = (!is_array($dataValue) ? $data_array[$dataKey] : $dataValue);
 			}
+			zorgDebugger::log()->debug('$sqlUpdateSetValuesArray => %s', [print_r($sqlUpdateSetValuesArray, true)]);
 
 			/**
 			 * Process regular Form-Checkbox values
@@ -2032,7 +2048,7 @@ class usersystem
 
 			if (count($sqlUpdateSetValuesArray) > 0)
 			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $sqlUpdateSetValuesArray: %s', __METHOD__, __LINE__, print_r($sqlUpdateSetValuesArray,true)));
+				zorgDebugger::log()->debug('$sqlUpdateSetValuesArray: %s', [print_r($sqlUpdateSetValuesArray, true)]);
 				$result = $db->update('user', ['id', $_SESSION['user_id']], $sqlUpdateSetValuesArray, __FILE__, __LINE__, __METHOD__);
 				if ($result === 0 || !$result) {
 					$error[0] = TRUE;

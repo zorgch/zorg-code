@@ -322,14 +322,14 @@
 		</div>
 		<div class="col-sm-4">
 			<div class="input-field">
-				<input type="hidden" id="addle" name="checkbox[addle]" value="{if $user->addle === '1'}1{else}0{/if}">
-				<label for="switch-addle">Ich will <input type="checkbox" id="switch-addle" onclick="$(getElementById('addle')).attr('value',this.checked ? '1' : '0');" {if $user->addle === '1'}checked{/if}> <strong class="text-primary">Addle</strong> spielen</label>
+				<input type="hidden" id="addle" name="checkbox[addle]" value="{if $user->addle}1{else}0{/if}">
+				<label for="switch-addle">Ich will <input type="checkbox" id="switch-addle" onclick="$(getElementById('addle')).attr('value',this.checked ? '1' : '0');" {if $user->addle}checked{/if}> <strong class="text-primary">Addle</strong> spielen</label>
 			</div>
 		</div>
 		<div class="col-sm-5">
 			<div class="input-field">
-				<input type="hidden" id="chess" name="checkbox[chess]" value="{if $user->chess === '1'}1{else}0{/if}">
-				<label for="switch-chess" class="text-muted">Ich will <input type="checkbox" id="switch-chess" onclick="$(getElementById('chess')).attr('value',this.checked ? '1' : '0');" {if $user->chess === '1'}checked{/if} disabled> <strong class="text-muted">Schach</strong> spielen</label>
+				<input type="hidden" id="chess" name="checkbox[chess]" value="{if $user->chess}1{else}0{/if}">
+				<label for="switch-chess" class="text-muted">Ich will <input type="checkbox" id="switch-chess" onclick="$(getElementById('chess')).attr('value',this.checked ? '1' : '0');" {if $user->chess}checked{/if} disabled> <strong class="text-muted">Schach</strong> spielen</label>
 			</div>
 		</div>
 	</div>
@@ -344,7 +344,7 @@
 			</fieldset>
 			<div class="input-field">
 				<span class="switch">
-					<input type="hidden" id="show_comments" name="checkbox[show_comments]" value="{if $user->show_comments === '1'}1{else}0{/if}">
+					<input type="hidden" id="show_comments" name="checkbox[show_comments]" value="{if $user->show_comments}1{else}0{/if}">
 					<input type="checkbox" id="switch-show_comments" onclick="$(getElementById('show_comments')).attr('value', this.checked ? '1' : '0')" {if $user->show_comments}checked{/if}>
 					<label for="switch-show_comments">Comments standardmässig anzeigen</label>
 				</span>
@@ -379,7 +379,7 @@
 		</div>
 	</div>
 	{* @deprecated
-	<div class="row">
+	<!-- <div class="row">
 		<div class="col-sm-3">
 			<h5>Menu Layout</h5>
 		</div>
@@ -391,7 +391,7 @@
 				<label class="pad-xs">&nbsp;<input type="radio" name="menulayout" value="3" {if $user->menulayout === '3'}checked{/if}> Style C</label>
 			</div>
 		</div>
-	</div> *}
+	</div> --> *}
 	<div class="row">
 		<div class="col-sm-3">
 			<h5>My Menu</h5>
@@ -401,9 +401,9 @@
 			<div class="input-field">
 				{if $smarty_menus|@count > 0}
 					<select name="mymenu" id="mymenu">
-						<option value="null" {if $user->mymenu === ''}selected{/if}>-- Menu auswählen --</option>
+						<option value="null" {if !$user->mymenu || $user->mymenu === 0}selected{/if}>-- Menu auswählen --</option>
 						{foreach from=$smarty_menus item=menu name=smarty_menus_foreach}
-						<option value="{$menu.id}" {if $user->mymenu === $menu.id}selected{/if}>{$menu.name} [tpl #{$menu.id}]</option>
+						<option value="{$menu.id}" {if $user->mymenu == $menu.id}selected{/if}>{$menu.name} [tpl #{$menu.id}]</option>
 						{/foreach}
 					</select>
 				{else}
