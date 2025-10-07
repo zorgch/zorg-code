@@ -18,7 +18,6 @@ switch ($sort_by)
 	case 'owner':
 		$sort = 'owner';
 		break;
-	case 'update';
 	default:
 		$sort = 'last_update';
 }
@@ -28,8 +27,8 @@ $e = $db->query('SELECT id, title, word, owner, LENGTH(tpl) size, UNIX_TIMESTAMP
 $list = [];
 $totalsize = 0;
 while ($d = $db->fetch($e)) {
-  $totalsize += $d['size'];
-  array_push($list, $d);
+	$totalsize += $d['size'];
+	array_push($list, $d);
 }
 $anz = sizeof($list);
 
