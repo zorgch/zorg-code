@@ -1209,8 +1209,7 @@ class peter
 				{
 					/** Zug ausführen */
 					$this->zug($card_id,$make,$gd['players']);
-					//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?game_id=".$this->game_id."&".session_name()."=".session_id());
-					header('Location: ?game_id='.$this->game_id);
+					header('Location: '.getChangedURL('game_id='.$this->game_id));
 					exit();
 				}
 
