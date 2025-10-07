@@ -31,7 +31,6 @@ if (file_exists(COMPOSER_AUTOLOAD))
 		$dotenv->load();
         /** Variable validations: required variables */
 		$dotenv->required(['MYSQL_HOST', 'MYSQL_DATABASE', 'MYSQL_USER'])->notEmpty();
-		$dotenv->required(['HOSTNAME', 'HTTP_PROTOCOL', 'SITE_FQDN'])->notEmpty();
 		$dotenv->required(['LOCALE'])->allowedRegexValues('([[:lower:]]{2}_[[:upper:]]{2})');
 		$dotenv->required(['TIMEZONE'])->allowedRegexValues('([a-zA-Z0-9]+([\/|+-][a-zA-Z0-9_]+)?(\/[a-zA-Z0-9_]+)?)');
         /** Variable validations: Integers */
@@ -115,17 +114,26 @@ if (true === $isDevelopmentEnv && true === file_exists(__DIR__.'/development.con
  * @const PAGETITLE_SUFFIX General suffix for <title>...[suffix]</title> on every page. Default: (empty)
  */
 $isSecure = false;
-if ((isset($_ENV['HTTP_PROTOCOL']) && $_ENV['HTTP_PROTOCOL'] === 'https') ||
-	(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
-	(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
-	(isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on'))
+switch(true)
 {
-	$isSecure = true;
+	case !empty($_SERVER['HTTP_X_FORWARDED_PROTO']):
+		$isSecure = ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'); break;
+	case !empty($_SERVER['HTTP_X_FORWARDED_SSL']):
+		$isSecure = ($_SERVER['HTTP_X_FORWARDED_SSL'] === 'on'); break;
+	case !empty($_SERVER['HTTPS']):
+		$isSecure = ($_SERVER['HTTPS'] === 'on'); break;
 }
 if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', (false === $isSecure ? 'http' : 'https'));
-if (!isset($_ENV['HOSTNAME']) || empty($_ENV['HOSTNAME']) || empty($_SERVER['SERVER_NAME'])) $_SERVER['SERVER_NAME'] = 'zorg.ch';
-elseif (isset($_ENV['HOSTNAME']) || !empty($_ENV['HOSTNAME'])) $_SERVER['SERVER_NAME'] = $_ENV['HOSTNAME'];
-if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $_SERVER['SERVER_NAME']);
+
+$httpHost = null;
+if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+	$httpHost = $_SERVER['HTTP_X_FORWARDED_HOST'];
+} elseif (isset($_SERVER['HTTP_HOST'])) {
+	$httpHost = $_SERVER['HTTP_HOST'];
+} elseif (isset($_ENV['HOSTNAME'])) {
+	$httpHost = $_ENV['HOSTNAME'];
+}
+if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $httpHost);
 if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME);
 if (!defined('PAGETITLE_SUFFIX')) define('PAGETITLE_SUFFIX', (isset($_ENV['PAGETITLE_SUFFIX']) && !empty($_ENV['PAGETITLE_SUFFIX']) ? $_ENV['PAGETITLE_SUFFIX'] : ''));
 
@@ -190,8 +198,9 @@ if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE', (isset($_EN
  * @const JS_DIR JavaScripts directory for Frontend-Resources
  * @const SCRIPTS_DIR Scripts directory for Frontend-Resources
  * @const UTIL_DIR Utilities directory for Frontend-Resources
- * @const USER_IMGPATH_PUBLIC	Externer Pfad zu den Userpics
+ * @const USER_IMGPATH_PUBLIC Externer Pfad zu den Userpics
  * @const TAUSCHBOERSE_IMGPATH_PUBLIC Externer Pfad zu den Tauschbörse Artikel-Bilder
+ * @const RSS_URL External Base URL from where RSS-Feeds are being served from
  */
 if (!defined('ACTIONS_DIR')) define('ACTIONS_DIR', (isset($_ENV['URLPATH_ACTIONS']) ? $_ENV['URLPATH_ACTIONS'] : null));
 if (!defined('CSS_DIR')) define('CSS_DIR', (isset($_ENV['URLPATH_CSS']) ? $_ENV['URLPATH_CSS'] : null));
@@ -201,6 +210,7 @@ if (!defined('SCRIPTS_DIR')) define('SCRIPTS_DIR', (isset($_ENV['URLPATH_SCRIPTS
 if (!defined('UTIL_DIR')) define('UTIL_DIR', (isset($_ENV['URLPATH_UTILS']) ? $_ENV['URLPATH_UTILS'] : null));
 if (!defined('USER_IMGPATH_PUBLIC')) define('USER_IMGPATH_PUBLIC', (isset($_ENV['URLPATH_USERIMAGES']) ? $_ENV['URLPATH_USERIMAGES'] : null));
 if (!defined('TAUSCHBOERSE_IMGPATH_PUBLIC')) define('TAUSCHBOERSE_IMGPATH_PUBLIC', (defined('IMAGES_DIR') ? IMAGES_DIR.'tauschboerse/' : null));
+if (!defined('RSS_URL')) define('RSS_URL', SITE_URL . (isset($_ENV['URLPATH_RSS']) ? $_ENV['URLPATH_RSS'] : '/?layout=rss'));
 
 /**
  * Define User & Usersystem constants

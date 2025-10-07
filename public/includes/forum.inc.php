@@ -1928,7 +1928,7 @@ class Forum
 			}
 
 			/** RSS Feed-Link für Thread anzeigen */
-			$feedURLbase = (isset($_ENV['URLPATH_RSS']) ? $_ENV['URLPATH_RSS'] : '');
+			$feedURLbase = RSS_URL;
 			$html .=
 					' <a href="'.$feedURLbase.'&amp;type=forum&amp;board='.$rs['board'].'&amp;thread_id='
     				.$rs['thread_id'].'" class="hide-mobile">'.t('forum-rss-thread-action', 'commenting').'</a>';

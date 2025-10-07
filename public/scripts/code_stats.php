@@ -9,7 +9,7 @@ $FORBIDDEN_DIRS = array('.', '..', 'smartylib', 'phpmyadmin', 'phpmyadmin.old', 
 
 
 // code stats
-$rootdir = $_SERVER['DOCUMENT_ROOT'];
+$rootdir = APP_ROOT;
 $stats = code_stats($rootdir);
 $stats['avg_size'] = round($stats['size'] / $stats['files']);
 $stats['avg_lines'] = round($stats['lines'] / $stats['files']);
@@ -19,7 +19,7 @@ $smarty->assign("code_stats", $stats);
 function code_stats ($dir) {
 	global $FORBIDDEN_DIRS;
 	$ret = array('files'=>0, 'size'=>0, 'lines'=>0);
-	
+
 	$hdir = opendir($dir);
 	while (false !== ($file = readdir($hdir))) {
 		if (!in_array($file, $FORBIDDEN_DIRS)) {
@@ -29,12 +29,13 @@ function code_stats ($dir) {
 			}elseif (is_file($dir.'/'.$file) && substr($file, -4) == '.php') {
 				$ret['files']++;
 				$ret['size'] += filesize($dir.'/'.$file);
-				$ret['lines'] += sizeof(file($dir.'/'.$file));
+				$files = file($dir.'/'.$file);
+				$ret['lines'] += (!$files ? 0 : sizeof($files));
 			}
 		}
 	}
 	closedir($hdir);
-	
+
 	return $ret;
 }
 
@@ -45,20 +46,20 @@ if ($_POST['formid'] == 127 && $_POST['query'] && $user->typ == USER_MEMBER) {
 	$smarty->assign("search_query", $_POST['query']);
 	$smarty->assign("search_results", search_code($_POST['query']));
 }
-	
+
 function search_code ($query, $dir='') {
 	global $FORBIDDEN_DIRS;
-	
+
 	$ret = array();
-	
-	$hdir = opendir($rootdir.'/'.$dir);
+
+	$hdir = opendir(APP_ROOT.'/'.$dir);
 	while (false !== ($file = readdir($hdir))) {
 		if (!in_array($file, $FORBIDDEN_DIRS)) {
-			if (is_dir($rootdir.'/'.$dir.'/'.$file)) {
+			if (is_dir(APP_ROOT.'/'.$dir.'/'.$file)) {
 				$ret = array_merge(search_code($query, $dir.'/'.$file), $ret);
 
-			}elseif (is_file($rootdir.'/'.$dir.'/'.$file) && substr($file, -4) == '.php') {
-				$lines = file($rootdir.'/'.$dir.'/'.$file);
+			}elseif (is_file(APP_ROOT.'/'.$dir.'/'.$file) && substr($file, -4) == '.php') {
+				$lines = file(APP_ROOT.'/'.$dir.'/'.$file);
 				for ($i=0; $i<sizeof($lines); $i++) {
 					if (stristr($lines[$i], $query)) {
 						if (!isset($ret[$dir.'/'.$file])) $ret[$dir.'/'.$file] = array();
@@ -68,8 +69,8 @@ function search_code ($query, $dir='') {
 			}
 		}
 	}
-	
+
 	closedir($hdir);
-	
+
 	return $ret;
 }

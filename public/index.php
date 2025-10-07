@@ -94,7 +94,7 @@ if ($useLayout === 'rss' && !empty($feedType))
 	$smarty->assign('feeddesc', SITE_HOSTNAME . ' RSS Feed');
 	$smarty->assign('feedlang', 'de-DE');
 	$smarty->assign('feeddate', date('D, d M Y H:i:s').' GMT');
-	$feedURLbase = $_ENV['URLPATH_RSS'];
+	$feedURLbase = RSS_URL;
 
 	switch ($feedType)
 	{

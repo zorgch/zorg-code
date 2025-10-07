@@ -16,7 +16,7 @@
 		<h2>{$h2}</h2>
 		{if ($currindex-1 >= 0)}<a href="?action=getpic&amp;index={$currindex-1}" id="prev" tabindex="4">&larr; prev</a> {/if}<input id="select_user" type="text" placeholder="Username..." autocomplete="off" tabindex="1" onkeydown = "if (event.keyCode == 13 && Number(userid_input.value) > 0) save_btn.click();" /> <label for="userid"> = </label><input id="userid" type="text" value="" placeholder="User-ID" autocomplete="off" disabled /> <input id="save_btn" type="button" class="button" value="markier&auml;!" tabindex="2" disabled />{if ($currindex+1 >= 1)} <a href="javascript:;" tabindex="3" onclick="getNewPic();">-- NEW PIC --</a> <a href="?action=getpic&amp;index={$currindex+1}" id="next" tabindex="4">next &rarr;</a>{/if}
 		<div style="display:inline-block;position:relative;">
-			<img id="img_{$pics[i].pic_id}" src="https://zorg.ch{$pics[i].img_path}" style="display:block;">
+			<img id="img_{$pics[i].pic_id}" src="{$smarty.const.SITE_URL}{$pics[i].img_path}" style="display:block;">
 			{*foreach $pics as $pic*}
 			{if $pics[i].headpose_roll_angle}
 				{assign var='transform_tooltip' value='transform: rotateZ(`$pics[i].headpose_roll_angle`deg);'}

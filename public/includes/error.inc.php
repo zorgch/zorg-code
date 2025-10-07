@@ -86,10 +86,10 @@ function get_sql_errors($num=23,$order=3,$oby=0)
 				<tr '.$add.'>
 					<td align="left"><small>'.$rs['username'].'</small></td>
 					<td align="left" class="hide-mobile"><small>'.substr($rs['page'],0,23).'...</small></td>
-					<td align="left" class="hide-mobile"><small>'.substr(str_replace('http://'.$_SERVER['SERVER_NAME'],'', $rs['referrer']),0,23).'...</small></td>
+					<td align="left" class="hide-mobile"><small>'.substr(str_replace(SITE_URL,'', $rs['referrer']), 0, 23).'...</small></td>
 					<td align="left" class="hide-mobile"><small>'.str_replace($_SERVER['DOCUMENT_ROOT'],'',$rs['file']).'</small></td>
 					<td align="left" class="hide-mobile"><small>'.$rs['line'].'</small></td>
-					<td align="left"><small><a href="'.htmlspecialchars($_SERVER['PHP_SELF']).'?tpl='.$tpl_id.'&id='.intval($rs['id']).'">'.substr($rs['query'],0,23).'...</a></small></td>
+					<td align="left"><small><a href="'.getChangedURL('tpl='.intval($tpl_id).'&id='.intval($rs['id'])).'">'.substr($rs['query'], 0, 23).'...</a></small></td>
 					<td align="left"><small>'.datename($rs['datum']).'</small></td>';
 
 				if(!isset($error_id) || empty($error_id)) $html .= '<td align="right" '.$add.' class="hide-mobile"><input type="checkbox" name="to_del[]" value="'.$rs['id'].'"></td>';

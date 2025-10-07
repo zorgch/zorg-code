@@ -54,7 +54,7 @@
 		<link rel="stylesheet" href="{$smarty.const.CSS_DIR}fonts/iosevka-web.css" as="font">
 
 		<!-- RSS Feeds -->
-		{assign var=feedURLbase value=$smarty.env.URLPATH_RSS}
+		{assign var=feedURLbase value=$smarty.const.RSS_URL}
 		<link rel="alternate" type="application/rss+xml" title="RSS{$smarty.const.PAGETITLE_SUFFIX}" href="{$feedURLbase}&type=forum" />
 		<link rel="alternate" type="application/rss+xml" title="Forum Feed{$smarty.const.PAGETITLE_SUFFIX}" href="{$feedURLbase}&type=forum&board=f" />
 		<link rel="alternate" type="application/rss+xml" title="Events Feed{$smarty.const.PAGETITLE_SUFFIX}" href="{$feedURLbase}&type=forum&board=e" />
