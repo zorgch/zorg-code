@@ -1073,9 +1073,10 @@ function fileExists($filepath)
  * Pass a second file, in order to do a comparison of the two
  *
  * @author IneX
- * @version 2.0
+ * @version 2.1
  * @since 1.0 `08.08.2018` added function
  * @since 2.0 `13.08.2018` added $filepath_to_compare & comaprison functionality, added file_exists() before filemtime()
+ * @since 2.1 `03.06.2025` make it a bit less verbose, to save logspace in production…
  *
  * @param string $filepath 	The filepath to a file for creating the hash
  * @param boolean $use_last_modification_datetime	(Optional) Whether or not to md5-hash with $filepath AND filemtime(), default: false
@@ -1096,7 +1097,7 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 			$file_hash = md5($file_lastmodified.$file_hash);
 		}
 	} else {
-		zorgDebugger::log()->warn('Local file not found - or no read-permissions: "%s"', [$filepath]);
+		zorgDebugger::log()->debug('Local file not found - or no read-permissions: "%s"', [$filepath]);
 		return false;
 	}
 
@@ -1107,7 +1108,7 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 		if (filter_var($filepath_to_compare, FILTER_VALIDATE_URL)) {
 			$headers = @get_headers($filepath_to_compare);
 			if (!$headers || strpos($headers[0], '200') === false) {
-				zorgDebugger::log()->warn('HTTP request returned error: %s -> %s', [$headers[0], $filepath_to_compare]);
+				zorgDebugger::log()->debug('HTTP request returned error: %s -> %s', [$headers[0], $filepath_to_compare]);
 				return false;
 			}
 		}
@@ -1124,7 +1125,7 @@ function fileHash($filepath, $use_last_modification_datetime=false, $filepath_to
 					$file_to_compare_lastmodified = filemtime($filepath_to_compare);
 					$file_to_compare_hash = md5($file_to_compare_lastmodified.$file_to_compare_hash);
 				} else {
-					zorgDebugger::log()->warn('filemtime() requires a LOCAL file (no URL), given: %s', [$filepath_to_compare]);
+					zorgDebugger::log()->debug('filemtime() requires a LOCAL file (no URL), given: %s', [$filepath_to_compare]);
 					return false;
 				}
 			}
