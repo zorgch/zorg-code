@@ -98,12 +98,19 @@ function var_request ()
 		if ($count == 1) return "$count $singular";
 		else return "$count $plural";
 	}
-	function smarty_number_quotes($number, $num_decimal_places='', $dec_seperator='', $thousands_seperator='') {
+	/**
+	 * @version 1.1
+	 * @since 1.0 function added
+	 * @since 1.1 `06.10.2025` `IneX` fixes Warning: number_format() expects parameter 2 to be int, string given
+	 */
+	function smarty_number_quotes($number, $num_decimal_places=0, $dec_seperator='', $thousands_seperator='') {
+		if (!intval($num_decimal_places)) $num_decimal_places = 0;
 		if (!$thousands_seperator) $thousands_seperator = '\'';
-		if ($thousands_seperator)
+		if ($thousands_seperator) {
 			return number_format($number, $num_decimal_places, $dec_seperator, $thousands_seperator);
-		else
+		} else {
 			return number_format($number, $num_decimal_places, $dec_seperator, $thousands_seperator);
+		}
 	}
 	function smarty_maxwordlength($text, $maxlength) {
 		return maxwordlength($text, $maxlength);
