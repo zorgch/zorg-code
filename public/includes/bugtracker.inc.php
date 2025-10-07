@@ -354,9 +354,8 @@ class Bugtracker
 	/**
 	 * Return a Bug's DB-Recordset
 	 *
-	 * @author [z]milamber
 	 * @version 1.1
-	 * @since 1.0 method added
+	 * @since 1.0 `[z]milamber` method added
 	 * @since 1.1 `02.06.2023` `IneX` Fixes SQL Injection (CWE-89)
 	 *
 	 * @param int $bug_id Bug-ID to fetch as record from DB
@@ -375,6 +374,10 @@ class Bugtracker
 	* Bug Liste
 	*
 	* Druckt eine Liste aller Bugs aus
+	*
+	* @version 2.0
+	* @since 1.0 `[z]milamber` method added
+	* @since 2.0 `07.10.2025` `IneX` Resolves Bug #406 : adds Filter by Category
 	*
 	* @return HTML
 	* @param Array $show
@@ -397,16 +400,20 @@ class Bugtracker
 				LEFT OUTER JOIN user AS userrep ON (bugs.reporter_id = userrep.id)
 				WHERE 1=1';
 
-		if(in_array('open', $show) || in_array('resolved', $show)) {
+		/** + Filter by STATUS (open / resolve) */
+		if(in_array('open', $show) || in_array('resolved', $show))
+		{
 			$sql .=
 				" AND ( 1=2"
-				.(in_array('open', $show) ? " OR bugs.resolved_date = 0" : "")
+				.(in_array('open', $show) ? " OR (bugs.resolved_date = 0 AND bugs.denied_date = 0)" : "")
 				.(in_array('resolved', $show) ? " OR bugs.resolved_date <> 0" : "")
 				.")"
 			;
 		}
 
-		if(in_array('denied', $show) || in_array('notdenied', $show)) {
+		/** + Filter by DENIED (denied / not denied) */
+		if(in_array('denied', $show) || in_array('notdenied', $show))
+		{
 			$sql .=
 				" AND (1=2"
 				.(in_array('denied', $show)  ? " OR bugs.denied_date <> 0" :  " ")
@@ -415,13 +422,16 @@ class Bugtracker
 			;
 		}
 
-		// Assigned -----------------------------------
-		if(in_array('assigned', $show) || in_array('unassigned', $show)) {
+		/** + Filter by ASSIGNMENT (assigned / unasssigned / own / not own) */
+		if(in_array('assigned', $show) || in_array('unassigned', $show))
+		{
 			$sql .= " AND (1=2";
 
-			if($user->is_loggedin() && in_array('assigned', $show)) {
+			if($user->is_loggedin() && in_array('assigned', $show))
+			{
 				$sql .= " OR bugs.assignedto_id <> 0";
-				if(in_array('own', $show) || in_array('notown', $show)) {
+				if(in_array('own', $show) || in_array('notown', $show))
+				{
 					$sql .=
 						" AND (1=2"
 						.(in_array('own', $show) ? " OR bugs.assignedto_id = ".$user->id : "" )
@@ -437,7 +447,9 @@ class Bugtracker
 			;
 		}
 
-		if($user->is_loggedin() && (in_array('new', $show) || in_array('old', $show))) {
+		/** + Filter by REPORTED_DATE (new / old) */
+		if($user->is_loggedin() && (in_array('new', $show) || in_array('old', $show)))
+		{
 			$sql .=
 				" AND (1=2"
 				.(in_array('new', $show)  ? " OR UNIX_TIMESTAMP(bugs.reported_date) > ".$user->lastlogin : "")
@@ -446,41 +458,56 @@ class Bugtracker
 			;
 		}
 
+		/** + Filter by CATEGORY */
+		if(!empty($show['category']))
+		{
+			$sql .=
+				' AND (cat.id = '.$show['category'].')'
+			;
+		}
+
 		$sql .= " ORDER BY ".$order;
 
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-		$html =
+		if ($db->num($result) > 0)
+		{
+			$html =
 			'<table class="border shadedcells" width="100%">'
 				.'<thead><tr class="title">'
 					.'<td><a href="'.getChangedURL('order=priority ASC, category_id ASC, assignedto_id ASC').'">Prio</a></td>'
 					.'<td><a href="'.getChangedURL('order=category_id ASC, priority ASC, assignedto_id ASC').'">Category</a></td>'
 					.'<td>Title</td>'
-					.'<td class="hide-mobile">Reported by</td>'
+					.'<td class="hide-mobile">Reporter</td>'
 					.'<td class="hide-mobile"><a href="'.getChangedURL('order=assignedto_id DESC, category_id ASC, priority ASC').'">Assignee</a></td>'
 					.'<td>Status</td>'
 				.'</tr></thead>'
 				.'<tbody>';
 
-		while($rs = $db->fetch($result))
-		{
-			$html .=
-				'<tr>'
-					.'<td align="left">'.($rs['priority'] === '1' ? '&#128314;' : ($rs['priority'] === '2' ? '&#128312;' : ($rs['priority'] === '3' ? '&#128313;' : ($rs['priority'] === '4' ? '&#9660;' : '?')))).'</td>'
-					.'<td align="left">'.$rs['category_title'].'</td>'
-					.'<td align="left"><a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a></td>'
-					.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['reporter_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>'
-					.'<td align="left" class="hide-mobile">'.(!empty($rs['assignedto_id']) ? $user->userprofile_link($rs['assignedto_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]) : '').'</td>';
-			if (!empty($rs['resolved_date'])) { // wenn der Bug resolved wurde...
-				$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span> <span class="hide-mobile">'.datename($rs['resolved_date']).'</span></td>';
-			} elseif (!empty($rs['denied_date'])) { // wenn der Bug denied wurde...
-				$html .= '<td align="left" class="tiny"><span class="strong warn">Denied</span> <span class="hide-mobile">'.datename($rs['denied_date']).'</span></td>';
-			} else { // wenn der Bug noch offen ist...
-				$html .= '<td align="left"></td>';
+			while($rs = $db->fetch($result))
+			{
+				$html .=
+					'<tr>'
+						.'<td align="left">'.($rs['priority'] === '1' ? '&#128314;' : ($rs['priority'] === '2' ? '&#128312;' : ($rs['priority'] === '3' ? '&#128313;' : ($rs['priority'] === '4' ? '&#9660;' : '?')))).'</td>'
+						.'<td align="left">'.$rs['category_title'].'</td>'
+						.'<td align="left"><a href="/bug/'.$rs['id'].'">'.str_pad($rs['title'], 8, '.', STR_PAD_RIGHT).'</a></td>'
+						.'<td align="left" class="hide-mobile">'.$user->userprofile_link($rs['reporter_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]).'</td>'
+						.'<td align="left" class="hide-mobile">'.(!empty($rs['assignedto_id']) ? $user->userprofile_link($rs['assignedto_id'], ['link' => TRUE, 'username' => TRUE, 'clantag' => FALSE]) : '').'</td>';
+				if (!empty($rs['resolved_date'])) { // wenn der Bug resolved wurde...
+					$html .= '<td align="left" class="tiny"><span class="strong success">Resolved</span><br><span class="hide-mobile">'.datename($rs['resolved_date']).'</span></td>';
+				} elseif (!empty($rs['denied_date'])) { // wenn der Bug denied wurde...
+					$html .= '<td align="left" class="tiny"><span class="strong warn">Denied</span><br><span class="hide-mobile">'.datename($rs['denied_date']).'</span></td>';
+				} else { // wenn der Bug noch offen ist...
+					$html .= '<td align="left"></td>';
+				}
+				$html .= '</tr>';
 			}
-			$html .= '</tr>';
+			$html .= '</tbody></table>';
 		}
-		$html .= '</tbody></table>';
+		/** Zero matching Bug Records found / filtered */
+		else {
+			$html = 'No Bugs matching the selected Filter criteria:' . '<pre>'.print_r($show, true).'</pre>';
+		}
 
 		return $html;
 	}
@@ -674,19 +701,22 @@ class Bugtracker
 		return $html;
 	}
 
-	function getFormFieldFilterCategory($category_id='')
+	static function getFormFieldFilterCategory($category_id='')
 	{
 		global $db;
 
 		$sql = 'SELECT * FROM bugtracker_categories ORDER BY title ASC';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 
-		$html = '<select name="show[]">';
+		$html = '<select name="show[category]" style="width: auto;">'
+				.'<option value="">--- Alle ---</option>'
+		;
 		while($rs = $db->fetch($result))
 		{
 			$html .=
 				'<option value="'.$rs['id'].'" '.($rs['id'] == $category_id ? 'selected' : '').'>'
-				.htmlentities($rs['title'], ENT_QUOTES).'</option>'
+					.htmlentities($rs['title'], ENT_QUOTES)
+				.'</option>'
 			;
 		}
 

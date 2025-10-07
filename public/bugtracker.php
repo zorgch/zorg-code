@@ -10,7 +10,7 @@
 /**
  * File includes
  */
-require_once __DIR__.'/includes/main.inc.php';
+require_once __DIR__.'/includes/config.inc.php';
 include_once INCLUDES_DIR.'bugtracker.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
@@ -25,13 +25,13 @@ $model = new MVC\Bugtracker();
 $doAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
 $bug_id = (isset($getBugId) ? $getBugId : (filter_input(INPUT_GET, 'bug_id', FILTER_VALIDATE_INT) ?? null));
 $order = filter_input(INPUT_GET, 'order', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+// Filter handling
 $show = [];
-if (isset($_GET['show']) && is_array($_GET['show'])) {
-	$i=0;
-	for ($i;$i<count($_GET['show']);$i++) {
-		$show[] = filter_var($_GET['show'][$i], FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
-	}
-}
+$allowedFilters = ['open','resolved','denied','notdenied','assigned','unassigned','new','old','own','notown'];
+$show = filter_input(INPUT_GET, 'show', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?? [];
+$showCategory = isset($show['category']) && ctype_digit($show['category']) ? (int)$show['category'] : null;
+$show = array_values(array_intersect($show, $allowedFilters)); // Nicht erlaubte ?show[]=xyz Werte entfernen/ignorieren
+if (!empty($showCategory) && $showCategory > 0) $show['category'] = $showCategory;
 
 /** Aktionen ausführen */
 Bugtracker::execActions();
@@ -43,30 +43,15 @@ if(empty($bug_id) || $bug_id <= 0)
 {
 	if(empty($show))
 	{
-		if($user->is_loggedin())
-		{
-			header(
-				'Location: '
-				.'?show[]=open'
-				.'&show[]=notdenied'
-				.'&show[]=assigned'
-				.'&show[]=unassigned'
-				.'&show[]=new'
-				.'&show[]=old'
-				.'&show[]=own'
-				.'&show[]=notown'
-			);
-			exit;
-		} else {
-			header(
-				'Location: '
-				.'?show[]=open'
-				.'&show[]=notdenied'
-				.'&show[]=assigned'
-				.'&show[]=unassigned'
-			);
-			exit;
-		}
+		$showDefaults = (isset($_ENV['BUGTRACKER_FILTER_DEFAULT'])
+			? $_ENV['BUGTRACKER_FILTER_DEFAULT']
+			: 'show[]=open'
+		);
+
+		if($user->is_loggedin()) $showDefaults .= '&show[]=own'
+												 .'&show[]=notown';
+		header('Location: ?'.$showDefaults);
+		exit;
 	}
 
 	$model->showOverview($smarty);
@@ -77,46 +62,40 @@ if(empty($bug_id) || $bug_id <= 0)
 		.'<thead>'
 		.'<tr>'
 		.'<th>'
-		.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="open" '.(in_array('open', $show) ? 'checked' : '').'>open'
-		.'<br />'
-		.'<input style="white-space: nowrap;margin-left: 10px;" name="show[]" type="checkbox" value="resolved" '.(in_array('resolved', $show) ? 'checked' : '').'>resolved'
+		.'<label style="white-space: nowrap;"><input name="show[]" type="checkbox" value="open" '.(in_array('open', $show) ? 'checked' : '').'>open</label>'
+		.'<br>'
+		.'<label style="white-space: nowrap;"><input style="margin-left: 10px;" name="show[]" type="checkbox" value="resolved" '.(in_array('resolved', $show) ? 'checked' : '').'>resolved</label>'
 		.'</th><th>'
-		.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="denied" '.(in_array('denied', $show) ? 'checked' : '').'>denied'
-		.'<br />'
-		.'<input style="white-space: nowrap;margin-left: 10px;" name="show[]" type="checkbox" value="notdenied" '.(in_array('notdenied', $show) ? 'checked' : '').'>not denied'
+		.'<label style="white-space: nowrap;"><input name="show[]" type="checkbox" value="denied" '.(in_array('denied', $show) ? 'checked' : '').'>denied</label>'
+		.'<br>'
+		.'<label style="white-space: nowrap;"><input style="margin-left: 10px;" name="show[]" type="checkbox" value="notdenied" '.(in_array('notdenied', $show) ? 'checked' : '').'>not denied</label>'
+		.'</th><th>'
+		.'<label style="white-space: nowrap;"><input name="show[]" type="checkbox" value="assigned" '.(in_array('assigned', $show) ? 'checked' : '').'>assigned</label>'
+		.'<br>'
+		.'<label style="white-space: nowrap;"><input name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned</label>'
 		.'</th>'
-
-		.'<th>'
-		.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="assigned" '.(in_array('assigned', $show) ? 'checked' : '').'>assigned'
 	;
 
-	if($user->typ >= USER_USER) {
-		$htmlOutput .= '<input style="white-space: nowrap;margin-left: 10px;" name="show[]" type="checkbox" value="own" '.(in_array('own', $show) ? 'checked' : '').'>mine'
-			.'<input style="white-space: nowrap;margin-left: 10px;" name="show[]" type="checkbox" value="notown" '.(in_array('notown', $show) ? 'checked' : '').'>not mine';
+	if($user->typ >= USER_USER)
+	{
+		$htmlOutput .= '</tr><tr>'
+					   .'<th colspan="2">'
+					   .'<label style="white-space: nowrap;"><input name="show[]" type="checkbox" value="own" '.(in_array('own', $show) ? 'checked' : '').'>mine</label>'
+					   .'<label style="white-space: nowrap;margin-left: 1rem;"><input name="show[]" type="checkbox" value="notown" '.(in_array('notown', $show) ? 'checked' : '').'>not mine</label>'
+					   .'</th><th>'
+					   .'<label style="white-space: nowrap;"><input name="show[]" type="checkbox" value="new" '.(in_array('new', $show) ? 'checked' : '').'>new</label>'
+					   .'<label style="white-space: nowrap;margin-left: 1rem;"><input name="show[]" type="checkbox" value="old" '.(in_array('old', $show) ? 'checked' : '').'>old</label>'
+					   .'</th>'
+		;
 	}
 
-	$htmlOutput .= '<br />'
-		.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned'
-		.'</th>';
+	$htmlOutput .= '</tr>';
 
-	/* @TODO [Bug #406] Filter by Category (IneX)
-	$htmlOutput .=(
-		'<br />'
-		.'<input name="show[]" type="checkbox" value="unassigned" '.(in_array('unassigned', $show) ? 'checked' : '').'>unassigned'
-		.'<br />'
-		.Bugtracker::getFormFieldFilterCategory()
-		.'</th>'
-	);*/
-
-	if($user->typ >= USER_USER) {
-		$htmlOutput .= '<th>'
-			.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="new" '.(in_array('new', $show) ? 'checked' : '').'>new'
-			.'<br />'
-			.'<input style="white-space: nowrap;" name="show[]" type="checkbox" value="old" '.(in_array('old', $show) ? 'checked' : '').'>old'
-			.'</th>';
-	}
-
-	$htmlOutput .= '<td align="center">'
+	$htmlOutput .= '<tr>'
+		.'<th colspan="2">'
+		.'<label for="show[category]" class="hide-mobile">Category</label>'
+		.Bugtracker::getFormFieldFilterCategory($showCategory)
+		.'</th><th align="right">'
 		.'<input class="button" type="submit" value="filter">'
 		.'</th>'
 		.'</tr>'
