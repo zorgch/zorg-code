@@ -402,8 +402,7 @@ class stl
 			$sql = 'UPDATE stl set status = 1 WHERE game_id=?';
 			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->data['stl']['game_id']]);
 
-			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.getURL(false,false).'?do=game&game_id='.$this->data['stl']['game_id']);
+			header('Location: '.getChangedURL('do=game&game_id='.$this->data['stl']['game_id']));
 			exit;
 		}
 	}
@@ -813,8 +812,8 @@ class stl
 			if($num_players >= 6 && $game_size >= 5 && !empty($game_name))
 			{
 				//game erstellen
-				$sql = 'INSERT into stl (game_size, status, creator_id, game_title, num_players) VALUES (?, 0, ?, ?, ?)';
-				$new_game_id = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$game_size, $user->id, $game_name, $num_players]);
+				$sql = 'INSERT into stl (game_size, status, creator_id, game_title, num_players) VALUES (?, ?, ?, ?, ?)';
+				$new_game_id = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$game_size, 0, $user->id, $game_name, $num_players]);
 
 				if ($new_game_id > 0) {
 					//setzte redirect
@@ -899,12 +898,10 @@ class stl
 			$msg = ($this->data['stl']['status'] < 2 ? 5 : 0);
 		}
 		if(!isset($msg)) {
-			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&".session_name()."=".session_id());
-			header('Location: '.getURL(false, false).'?do=game&game_id='.$this->data['stl']['game_id']);
+			header('Location: '.getChangedURL('do=game&game_id='.$this->data['stl']['game_id']));
 			exit;
 		} else {
-			//header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']."?do=game&game_id=$_GET[game_id]&msg=$msg&".session_name()."=".session_id());
-			header('Location: '.getURL(false, false).'?do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg);
+			header('Location: '.getChangedURL('do=game&game_id='.$this->data['stl']['game_id'].'&msg='.$msg));
 			exit;
 		}
 	}
