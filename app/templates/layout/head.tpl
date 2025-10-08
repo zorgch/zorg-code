@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">{if $daytime eq ''}{if $sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}{/if}
-	<head>{if $code_info.last_commit != ''}{assign var=currversion value=$code_info.last_commit}{else}{assign var=currversion value='4-2-0'}{/if}
+	<head>{if $code_info.last_commit != ''}{assign var=currversion value=$code_info.last_commit}{else}{assign var=currversion value=$smarty.now|date_format:"%Y%m%d"}{/if}
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="application-name" content="zorg.ch Website"/>

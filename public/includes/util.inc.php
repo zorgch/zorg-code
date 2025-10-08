@@ -851,28 +851,33 @@ function urlExists($url)
  * @link https://gist.github.com/rponte/fdc0724dd984088606b0
  * @link https://stackoverflow.com/a/33986403/5750030
  *
- * @version 3.1
+ * @version 3.2
  * @since `1.0` `04.02.2018` `IneX` function added
  * @since `2.0` `20.08.2018` `IneX` fixed error when running from PHP CLI: "fatal: Not a git repository (or any of the parent directories): .git"
  * @since `3.0` `17.12.2018` `IneX` fixed git error from apache2 error.log: "fatal: No tags can describe '`sha1`'" https://stackoverflow.com/a/6445255/5750030
  * @since `3.1` `02.10.2020` `IneX` fixed for new FUCKUP server and site structure (decoupled .git and web root)
+ * @since `3.2` `08.10.2025` `IneX` fixed git describe error when there are no --tags: "fatal: No names found, cannot describe anything."
  *
  * @uses GIT_REPOSITORY_ROOT, timestamp()
- * @return array|boolean Returns PHP-Array containing the current GIT-Version info, or false if exec() failed
+ * @return array Returns PHP-Array containing the current GIT-Version info (or some fallback values if shell_exec failed)
  */
 function getGitCodeVersion()
 {
 	static $codeVersion = [];
 
 	try {
-		$codeVersion['version'] = trim(shell_exec('git -C '.GIT_REPOSITORY_ROOT.' describe --tags `git -C '.GIT_REPOSITORY_ROOT.' rev-list --tags --max-count=1` 2>&1'));
-		$codeVersion['last_commit'] = trim(shell_exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty="%h" HEAD'));
-		$lastCommitDatetime = trim(shell_exec('git -C '.GIT_REPOSITORY_ROOT.' log -n1 --pretty=%ci HEAD 2>&1'));
+		$gitRootshellesc = escapeshellarg(GIT_REPOSITORY_ROOT);
+		$lastCommitDatetime = trim(shell_exec('git -C '.$gitRootshellesc.' log -n1 --pretty=%ci HEAD 2>&1'));
 		$codeVersion['last_update'] = timestamp(false, $lastCommitDatetime);
+		$codeVersion['last_commit'] = trim(shell_exec('git -C '.$gitRootshellesc.' rev-parse --short=7 HEAD 2>&1'));
+		$codeVersion['version'] = trim(shell_exec('git -C '.$gitRootshellesc.' describe --tags --always --abbrev=7 2>&1'));
 		zorgDebugger::log()->debug('%s', [print_r($codeVersion,true)]);
 	}
 	catch (Exception $e) {
-        zorgDebugger::log()->debug('git -C shell_exec() failed: %s', [print_r($codeVersion,true)], 'ERROR');
+        zorgDebugger::log()->info('git -C shell_exec() failed: %s', [print_r($codeVersion,true)], $e);
+		$codeVersion['last_update'] = timestamp();
+		$codeVersion['last_commit'] = 'unbekannt';
+		$codeVersion['version'] = 'zorg-code';
     }
 	return $codeVersion;
 }
