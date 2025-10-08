@@ -10,6 +10,6 @@
 		"sprain/swiss-qr-bill": "^3.2"
 	},
 	"require-dev": {
-		"smarty/smarty": "^3"
+		"smarty/smarty": "^4.5.3"
 	}
 }
