@@ -157,6 +157,7 @@ class peter
 		/** karten selektieren */
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__);
 		$num_cards = $db->num($result);
+
 		while($rs = $db->fetch($result)) {
 			$karten[] = $rs['card_id'];
 		}
@@ -166,7 +167,7 @@ class peter
 
 		/** spieler selektieren */
 		$sql = 'SELECT * FROM peter_players WHERE game_id=?';
-		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->game_id]);
+		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$gameId]);
 		while($rs = $db->fetch($result)) {
 			$in = ($rs['join_id'] - 1);
 			$pp[$in] = $rs['user_id'];
@@ -178,12 +179,12 @@ class peter
 			$in = ($i % $numPlayers);
 			$uu = $pp[$in];
 			$sql = 'INSERT INTO peter_cardsets (game_id, card_id, user_id, status, datum) VALUES (?, ?, ?, "nicht gelegt", ?)';
-			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->game_id, $karten[$i], $uu, timestamp(true)]);
+			$db->query($sql, __FILE__, __LINE__, __METHOD__, [$gameId, $karten[$i], $uu, timestamp(true)]);
 			$card[$uu][] = $karten[$i];
 		}
 		/** game status updaten */
 		$sql = 'UPDATE peter_games set status="lauft" WHERE game_id=?';
-		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$this->game_id]);
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$gameId]);
 	}
 
 	/**
