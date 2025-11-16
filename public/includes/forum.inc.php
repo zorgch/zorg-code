@@ -1094,54 +1094,56 @@ class Forum
 	 * @return string
 	 *
 	 */
-	static function getFormEdit($comment_id) {
-	  global $user;
-
-	  if(!is_numeric($comment_id) || $comment_id<=0) user_error( t('invalid-comment_id', 'commenting'), E_USER_WARNING);
-	  $passedBase64encodedUrl = filter_input(INPUT_GET, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? '/forum.php'.$comment_id;
-
-	  $rs = Comment::getRecordset($comment_id);
-
-	  $html = '<br>
-	    <a name="edit"></a><h2>Comment #'.$comment_id.' bearbeiten</h2>
-	    <form name="commentform" action="/actions/comment_edit.php" method="post">
-	    <input type="hidden" name="action" value="update">
-	  	<input type="hidden" name="url" value="'.$passedBase64encodedUrl.'">
-	  	<input name="thread_id" type="hidden" value="'.intval($rs['thread_id']).'">
-	    <input type="hidden" name="id" value="'.$comment_id.'">
-	  	<input class="text" name="board" type="hidden" value="'.strval($rs['board']).'">
-	    <table width="'.FORUMWIDTH.'" class="border" align="center">
-	    <tr><td align="left" colspan="6">
-	    <textarea name="text" cols="80" rows="20" class="text">'
-	  	.htmlentities($rs['text'])
-	  	.'</textarea>'
-	    .'</td>'
-	    .'<td align="left" valign="top">Benachrichtigen:<br>'
-	    .$user->getFormFieldUserlist('msg_users[]', 20).'</td>'
-	  	.'</tr>';
-	if(Comment::getNumchildposts($rs['board'], $comment_id) < 1)
+	static function getFormEdit($comment_id)
 	{
-		$html .= '<table cellpadding="0" cellspacing="0">
-					<form action="/actions/comment_delete.php" method="post">
+		global $user;
+
+		if(!is_numeric($comment_id) || $comment_id<=0) user_error( t('invalid-comment_id', 'commenting'), E_USER_WARNING);
+		$passedBase64encodedUrl = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_SPECIAL_CHARS) ?? '/forum.php'.$comment_id;
+
+		$rs = Comment::getRecordset($comment_id);
+		$parent = intval($rs['parent_id']);
+
+		$html = '<br><h2 id="edit">'.($parent === 1 ? 'Thread' : 'Comment').' #'.$comment_id.' bearbeiten</h2>
+			<form name="commentform" action="/actions/comment_edit.php" method="post">
+			<input type="hidden" name="action" value="update">
+			<input type="hidden" name="url" value="'.$passedBase64encodedUrl.'">
+			<input name="thread_id" type="hidden" value="'.intval($rs['thread_id']).'">
+			<input type="hidden" name="id" value="'.$comment_id.'">
+			<input class="text" name="board" type="hidden" value="'.strval($rs['board']).'">
+			<table width="'.FORUMWIDTH.'" class="border" align="center">
+				<tr>
+					<td align="left" colspan="6">'
+						.($parent > 1 ?
+							'Change Parent <input class="text" name="parent_id" type="text" value="'.intval($rs['parent_id']).'"><br>' : '')
+						.'<textarea name="text" cols="80" rows="20" class="text">'
+							.htmlentities($rs['text']).
+						'</textarea>'
+					.'</td>'
+					.'<td align="left" valign="top">Benachrichtigen:<br>'
+						.$user->getFormFieldUserlist('msg_users[]', 20).'</td>'
+					.'</tr>'
+					.'<tr><td align="right">
+						<input type="submit" name="submit" value="Update" class="button secondary">
+						<br><br>
+					</td>
+				</tr>
+			</table>
+			</form>';
+	$html .= '<table cellpadding="0" cellspacing="0" style="width: 50%">
+				<tr><td>
+					<a href="'.base64url_decode($passedBase64encodedUrl).'">« Zurück</a>
+				</td>';
+		if(Comment::getNumchildposts($rs['board'], $comment_id) < 1)
+		{
+			$html .= '<td><form action="/actions/comment_delete.php" method="post">
 						<input type="hidden" name="url" value="'.$passedBase64encodedUrl.'">
 						<input type="hidden" name="id" value="'.$comment_id.'">
-					<tr><td>
-						<input type="submit" value="Delete" class="button">
-					</td></tr>
-					</form>
-				</table>';
-	}
-	$html .= '<tr><td align="left" valign="top">
-	  	<td align="left">
-			Parent
-			</td><td>
-			<input class="text" name="parent_id" type="text" value="'.intval($rs['parent_id']).'">
-	  	</td>
-	  	</form>
-	    </td><td align="right">
-			<input type="submit" name="submit" value="Update" class="button">
-	    </td></tr></table>
-	    <br>';
+						<input type="submit" value="Delete" class="button danger">
+					</form></td>';
+		}
+	$html .= '</tr>
+			</table>';
 
 	  return $html;
 	}
