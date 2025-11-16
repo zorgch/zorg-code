@@ -2147,7 +2147,7 @@ class usersystem
 		}
 
 		/** ...danach das Neue raufladen */
-		$tmpfile = UPLOAD_DIR.'userpics/'.$user_id.USER_IMGEXTENSION;
+		$tmpfile = USER_IMGPATH_UPLOAD.$user_id.USER_IMGEXTENSION;
 		if (!move_uploaded_file($new_pic_files_array['image']['tmp_name'], $tmpfile)) {
 			$error[0] = TRUE;
 			$error[1] = t('error-userpic-permissions', 'user');

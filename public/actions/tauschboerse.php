@@ -63,7 +63,7 @@ if ($user->is_loggedin())
 
 				$extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
 				$allowedPath = realpath(TAUSCHARTIKEL_IMGPATH);
-				$tmpFilePath = UPLOAD_DIR.'tauschboerse/'.$_FILES['image']['tmp_name'].'.'.$extension;
+				$tmpFilePath = TAUSCHARTIKEL_IMGPATH_UPLOAD.$_FILES['image']['tmp_name'].'.'.$extension;
 				$realPathOfFile = realpath($tmpFilePath);
 				$moveToFilePath = TAUSCHARTIKEL_IMGPATH.$artikelId.'.'.$extension;
 				$moveToFilePathThumb = TAUSCHARTIKEL_IMGPATH.$artikelId.'_tn.'.$extension;

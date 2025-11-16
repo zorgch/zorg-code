@@ -172,8 +172,10 @@ if (!defined('TWITTER_NAME')) define('TWITTER_NAME', (isset($_ENV['TWITTER_NAME'
  * @const UPLOAD_DIR Temporary upload storage for uploads of files & images from PHP-Scripts
  * @const PHP_IMAGES_DIR Images directory for including Images in PHP-Scripts
  * @const TAUSCHARTIKEL_IMGPATH Path to store uploaded images for Tauschbörse-Angebote
+ * @const TAUSCHARTIKEL_IMGPATH_UPLOAD Path to temporarily store image uploads for Tauschbörse-Angebote
  * @const USER_IMGPATH	Interner PHP-Pfad zum Userpics Ordner
  * @const USER_IMGPATH_ARCHIVE	Interner PHP-Pfad zum Userpics Archiv-Ordner
+ * @const USER_IMGPATH_UPLOAD	Interner PHP-Pfad zum temporären Upload-Ordner für neue Userpics
  */
 if (!defined('INCLUDES_DIR')) define('INCLUDES_DIR', (isset($_ENV['INCLUDES_DIR']) ? $_ENV['INCLUDES_DIR'] : null));
 if (!defined('MODELS_DIR')) define('MODELS_DIR', (isset($_ENV['MODELS_DIR']) ? $_ENV['MODELS_DIR'] : null));
@@ -186,8 +188,10 @@ if (!defined('HZ_MAPS_DIR')) define('HZ_MAPS_DIR', (isset($_ENV['HZ_MAPS_DIR']) 
 if (!defined('UPLOAD_DIR')) define('UPLOAD_DIR', (isset($_ENV['DATA_UPLOAD_DIR']) ? $_ENV['DATA_UPLOAD_DIR'] : null));
 if (!defined('PHP_IMAGES_DIR')) define('PHP_IMAGES_DIR', (isset($_ENV['IMAGES_DIR']) ? $_ENV['IMAGES_DIR'] : null));
 if (!defined('TAUSCHARTIKEL_IMGPATH')) define('TAUSCHARTIKEL_IMGPATH', (isset($_ENV['TAUSCHARTIKEL_IMGAGES_DIR']) ? $_ENV['TAUSCHARTIKEL_IMGAGES_DIR'] : null));
+if (!defined('TAUSCHARTIKEL_IMGPATH_UPLOAD')) define('TAUSCHARTIKEL_IMGPATH_UPLOAD', (isset($_ENV['TAUSCHARTIKEL_UPLOAD_DIR']) ? $_ENV['TAUSCHARTIKEL_UPLOAD_DIR'] : null));
 if (!defined('USER_IMGPATH')) define('USER_IMGPATH', (isset($_ENV['USERIMAGES_DIR']) ? $_ENV['USERIMAGES_DIR'] : null));
 if (!defined('USER_IMGPATH_ARCHIVE')) define('USER_IMGPATH_ARCHIVE', (isset($_ENV['USERIMAGES_ARCHIVE_DIR']) ? $_ENV['USERIMAGES_ARCHIVE_DIR'] : null));
+if (!defined('USER_IMGPATH_UPLOAD')) define('USER_IMGPATH_UPLOAD', (isset($_ENV['USERIMAGES_UPLOAD_DIR']) ? $_ENV['USERIMAGES_UPLOAD_DIR'] : null));
 
 /**
  * Define external frontend paths to where certain resources are retrieved from by webbrowsers
