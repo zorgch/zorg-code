@@ -18,8 +18,8 @@ require_once MODELS_DIR.'core.model.php';
  */
 $doAction = (isset($doAction) ? $doAction : (filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null)); // $_GET['do']
 $postDoAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['do']
-$userRegcode = filter_input(INPUT_GET, 'regcode', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['regcode']
 $user_id = (isset($getUserId) ? intval($getUserId) : (filter_input(INPUT_GET, 'user_id', FILTER_VALIDATE_INT) ?? null)); // $_GET['user_id']
+$userRegcode = filter_input(INPUT_GET, 'regcode', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['regcode']
 $view_as_user = filter_input(INPUT_GET, 'viewas', FILTER_VALIDATE_INT) ?? null; // $_GET['viewas']
 $messageToUsers = filter_input(INPUT_GET, 'msgusers', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_GET['msgusers']
 $messageSubject = filter_input(INPUT_GET, 'msgsubject', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_GET['msgsubject']

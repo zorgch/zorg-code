@@ -90,7 +90,7 @@ return
 			,'message-newaccount-subject' => SITE_HOSTNAME . ' Benutzerdaten'
 			,'message-newaccount' =>  "Willkommen auf zorg!\n
 			 							Du hast erfolgreich einen Account erstellt mit folgendem Benutzernamen: %s\n\n
-										Wir bitten Dich deinen Account noch <b>freizuschalten</b>, bevor Du dich das erste mal anmelden kannst. Dazu musst du lediglich folgendem Link aufrufen:\n
+										Wir bitten Dich deinen Account noch **freizuschalten**, bevor Du dich das erste mal anmelden kannst. Dazu musst du lediglich folgendem Link aufrufen:\n
 										%s/profil.php?regcode=%s\n\n
 										Vielen Dank & viel Spass auf zorg!"
 			,'message-newpass-subject' => 'Neues Passwort'

@@ -746,11 +746,12 @@ class usersystem
 	 *
 	 * Erstellt einen Neuen Benutzer
 	 *
-	 * @version 3.1
+	 * @version 3.5
 	 * @since 1.0 method added
 	 * @since 2.0 `IneX` replaced messages with Translation-String solution t()
 	 * @since 3.0 `04.12.2018` `IneX` removed IMAP-code, code & query optimizations
 	 * @since 3.1 `03.01.2024` `IneX` code hardenings, excluded Password-Checks
+	 * @since 3.5 `15.11.2025` `IneX` code hardenings, re-send regcode for unverified user
 	 *
 	 * @uses usersystem::crypt_pw(), t()
 	 * @uses SITE_URL, SENDMAIL_EMAIL
@@ -763,54 +764,82 @@ class usersystem
 	function create_newuser($username, $crypted_pw, $email) {
 		global $db;
 
+		$error = '';
+
+		/** E-mailadresse validieren */
+		if(!check_email($email)) {
+			$error = t('invalid-email', 'user');
+			zorgDebugger::log()->debug('Error: %s for %s', [$error, $email]);
+			return $error;
+		}
+
 		if(is_string($username))
 		{
-			$sql = sprintf('SELECT id FROM %s WHERE %s=?', $this->table_name, $this->field_username);
+			zorgDebugger::log()->debug('$username is good');
+			$sql = sprintf('SELECT id, email, active, regcode FROM %s WHERE %s=?', $this->table_name, $this->field_username);
 			$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$username]);
 
 			/** überprüfe ob user bereits existiert */
-			if(!$db->num($result))
+			if(empty($db->num($result)))
 			{
-				/** E-mailadresse validieren */
-				if(check_email($email))
-				{
-					/** überprüfe ob user mit gleicher email nicht bereits existiert */
-					$sql = 'SELECT id FROM '.$this->table_name.' WHERE '.$this->field_email.'=?';
-					$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$email]);
+				zorgDebugger::log()->debug('$username does not yet exist');
+				/** überprüfe ob user mit gleicher email nicht bereits existiert */
+				$sql = 'SELECT id, email, active, regcode FROM '.$this->table_name.' WHERE '.$this->field_email.'=?';
+				$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$email]);
 
-					if($db->num($result) === 0)
-					{
-						/** erstelle regcode */
-						$key = $this->regcode_gen($username);
+				if(empty($db->num($result)))
+				{
+					zorgDebugger::log()->debug('$email does not yet exist');
+					/** erstelle regcode */
+					$key = $this->regcode_gen($username);
+
+					/** zuerst (versuchen) email zu versenden */
+					try {
+						mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.SENDMAIL_EMAIL."\n");
 
 						/** user eintragen */
-						$sql = 'INSERT into '.$this->table_name.'
-									('.$this->field_regcode.', '.$this->field_regdate.', '.$this->field_userpw.','.$this->field_username.',
-									'.$this->field_email.', '.$this->field_usertyp.')
-								VALUES (?,?,?,?,?,1)';
-						$db->query($sql, __FILE__, __LINE__, __METHOD__, [$key, timestamp(true), $crypted_pw, $username, $email]);
-
-						/** email versenden */
-						$sendNewaccountConfirmation = mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.SENDMAIL_EMAIL."\n");
-						if ($sendNewaccountConfirmation !== true)
-						{
-							error_log(sprintf('[NOTICE] <%s:%d> Account confirmation e-mail could NOT be sent', __FILE__, __LINE__));
-							$error = t('error-userprofile-update', 'user');
-						} else {
-							//$error = t('account-confirmation', 'user');
-							return true;
-						}
-					} else {
-						$error = t('invalid-email', 'user');
+						zorgDebugger::log()->debug('mail() sent, adding user to DB');
+						$newUser = $db->insert($this->table_name, [
+							$this->field_regcode => $key
+							,$this->field_regdate => timestamp(true)
+							,$this->field_userpw => $crypted_pw
+							,$this->field_username => $username
+							,$this->field_email => $email
+							,$this->field_usertyp => '1'
+						], __FILE__, __LINE__, 'INSERT INTO user');
+						if (empty($newUser)) return t('error-userprofile-update', 'user');
+						return true;
+					} catch (Exception $e) {
+						zorgDebugger::log()->error('%s', [$e]);
+						return t('error-userprofile-update', 'user');
 					}
 				} else {
-					$error = t('invalid-email', 'user');
+					return t('invalid-email', 'user');
 				}
-			} else {
-				$error = t('invalid-username', 'user');
+			}
+			/** Falls doppelter user, aber noch nicht aktiviert : sende regcode erneut */
+			else {
+				zorgDebugger::log()->debug('$username already EXISTS!');
+				$userexists = $db->fetch($result);
+				if (!intval($userexists['active']))
+				{
+					zorgDebugger::log()->debug('sending regcode email again');
+					$key = $userexists['regcode'];
+
+					/** email versenden */
+					try {
+						mail($email, t('message-newaccount-subject', 'user'), t('message-newaccount', 'user', [ $username, SITE_URL, $key ]), 'From: '.SENDMAIL_EMAIL."\n");
+						return true;
+					} catch (Exception $e) {
+						zorgDebugger::log()->error('%s', [$e]);
+						return t('error-userprofile-update', 'user');
+					}
+				}
 			}
 		}
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create_newuser() Error: %s', __METHOD__, __LINE__, $error));
+		/** Invalid or Duplicate activated $username */
+		$error = t('invalid-username', 'user').' : Invalid or Duplicate $username';
+		zorgDebugger::log()->info('Error: %s for %s', [$error, print_r([$username, $crypted_pw, $email], true)]);
 		return $error;
 	}
 
@@ -978,9 +1007,10 @@ class usersystem
 	 * User aktivieren
 	 * Aktiviert einen Useraccount mittels Regcode
 	 *
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 Method added
 	 * @since 2.0 `07.12.2019` `IneX` Fixed $regcode check and response for profil.php
+	 * @since 2.1 `15.11.2025` `IneX` Fixed regcode INVALID with sql prepared statement, corde hardenings
 	 *
 	 * @var string $error_message String to store any Error message for later output
 	 * @param string $regcode User Registration-Code
@@ -991,43 +1021,39 @@ class usersystem
 	{
 		global $db;
 
-		$sql = 'SELECT id, username, active FROM user WHERE regcode = "?"';
+		$sql = 'SELECT id, username, active FROM user WHERE regcode=? LIMIT 1';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, [$regcode]);
-		if($db->num($result))
+		if(!empty($db->num($result)))
 		{
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: VALID', __METHOD__, __LINE__));
+			zorgDebugger::log()->debug('User regcode: VALID');
 			$rs = $db->fetch($result);
+			$user_status = boolval($rs[$this->field_user_active]);
+			$user_id = intval($rs['id']);
 
 			/** User already activated */
-			if ($rs[$this->field_user_active] == '1')
+			if ($user_status)
 			{
 				$this->error_message = t('account-is-active', 'user');
 				return false;
 			}
 
 			/** Try activating User */
-			else {
-				$username = $rs[$this->field_username];
-				$user_activated = $db->update($this->table_name, ['id', $rs['id']], [$this->field_user_active => 1], __FILE__, __LINE__, __METHOD__);
-				/** FAILED */
-				if ($user_activated === 0 || !$user_activated)
-				{
-					$this->error_message = t('invalid-regcode', 'user');
-					return false;
-				}
-				/** SUCCESS */
-				else {
-					$this->error_message = t('account-activated', 'user');
-					Activities::addActivity($rs['id'], 0, t('activity-newuser', 'user' ), 'u');
-					return true;
-				}
+			$user_activated = $db->update($this->table_name, ['id', $user_id], [$this->field_user_active => '1'], __FILE__, __LINE__, __METHOD__);
+			/** SUCCESS */
+			if (!empty($user_activated))
+			{
+				$this->error_message = t('account-activated', 'user');
+				Activities::addActivity($user_id, 0, t('activity-newuser', 'user' ), 'u');
+				return true;
 			}
-		} else {
-			if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> User regcode: INVALID', __METHOD__, __LINE__));
+			/** FAILED */
 			$this->error_message = t('invalid-regcode', 'user');
-			$this->logerror(2,0);
 			return false;
 		}
+		zorgDebugger::log()->info('User regcode: INVALID');
+		$this->error_message = t('invalid-regcode', 'user');
+		$this->logerror(2,0);
+		return false;
 	}
 
 	/**
