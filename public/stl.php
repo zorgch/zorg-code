@@ -29,8 +29,8 @@ $model->showOverview($smarty);
  * Validate GET-Parameters
  */
 $game_id = filter_input(INPUT_GET, 'game_id', FILTER_VALIDATE_INT) ?? null;
-$action = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
-$shoot_field = filter_input(INPUT_GET, 'shoot', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$action = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+$shoot_field = filter_input(INPUT_GET, 'shoot', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $message = filter_input(INPUT_GET, 'msg', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
 
 /**

@@ -23,9 +23,9 @@ $model = new MVC\Quotes();
  * Validate GET-Parameters
  */
 $quote_id = filter_input(INPUT_GET, 'quote_id', FILTER_VALIDATE_INT) ?? null; // $_GET['quote_id']
-$action = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
+$action = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
 unset($_GET['do']);
-$postAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['action']
+$postAction = filter_input(INPUT_POST, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
 $quote_text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_POST['text']
 $userid = (isset($_GET['user_id']) ? (int)$_GET['user_id'] : ($user->is_loggedin() ? $user->id : null));
 $site = filter_input(INPUT_GET, 'site', FILTER_VALIDATE_INT) ?? 0;

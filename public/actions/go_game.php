@@ -13,10 +13,10 @@ require_once INCLUDES_DIR.'go_game.inc.php';
 
 /** Input validation */
 unset($_GET['tplupd']);
-$doAction = filter_input(INPUT_POST, 'formid', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$doAction = filter_input(INPUT_POST, 'formid', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $game = (isset($_POST['game']) ? filter_input(INPUT_POST, 'game', FILTER_SANITIZE_NUMBER_INT) : filter_input(INPUT_GET, 'game', FILTER_SANITIZE_NUMBER_INT));
 $_GET['game'] = $game; // Return redirect back to game
-$gameAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$gameAction = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 unset($_GET['action']);
 $move = filter_input(INPUT_GET, 'move', FILTER_SANITIZE_NUMBER_INT) ?? null;
 unset($_GET['move']);

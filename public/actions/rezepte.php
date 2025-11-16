@@ -14,7 +14,7 @@ require_once INCLUDES_DIR.'rezepte.inc.php';
 if ($user->is_loggedin())
 {
 	/** Validate passed Parameters */
-	$doAction = filter_input(INPUT_POST, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['action']
+	$doAction = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
 	$rezeptId = filter_input(INPUT_POST, 'rezept_id', FILTER_VALIDATE_INT) ?? null; // $_POST['rezept_id']
 	$returnUrl = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/tpl/129?rezept_id='.$rezeptId; // $_POST['url']
 	zorgDebugger::log()->debug('$doAction %s | $rezeptId %d | $returnUrl: %s', [$doAction, $rezeptId, $returnUrl]);

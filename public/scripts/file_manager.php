@@ -13,7 +13,7 @@ if ($user->is_loggedin())
 	define('MAX_DISCSPACE', 10485760 * 5); // 50 MB
 	define('USERPATH', FILES_DIR.$user->id.'/');
 
-	$sortby = filter_input(INPUT_GET, 'sort', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['sort']
+	$sortby = filter_input(INPUT_GET, 'sort', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['sort']
 	switch ($sortby) {
 		case "datum":
 			$sort = 'datum';
@@ -26,7 +26,7 @@ if ($user->is_loggedin())
 			break;
 	}
 
-	$showform = filter_input(INPUT_POST, 'formid', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['formid']
+	$showform = filter_input(INPUT_POST, 'formid', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['formid']
 	if ($showform === "filemanager") {
 		if (!@file_exists(USERPATH)) @mkdir(USERPATH, 0775);
 

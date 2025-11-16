@@ -10,7 +10,7 @@ require_once __DIR__.'/../includes/config.inc.php';
 require_once INCLUDES_DIR.'anficker.inc.php';
 
 /** Input validation */
-$doAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['do']
+$doAction = filter_input(INPUT_POST, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['do']
 $trainSpresim = filter_input(INPUT_POST, 'spresim-trainieren', FILTER_VALIDATE_BOOLEAN) ?? false; // $_POST['spresim-trainieren']
 $anfickId = filter_input(INPUT_POST, 'anfick_id', FILTER_VALIDATE_INT) ?? 0; // $_POST['anfick_id']
 $anfickScore = filter_input(INPUT_POST, 'note', FILTER_VALIDATE_INT) ?? 0; // $_POST['note']

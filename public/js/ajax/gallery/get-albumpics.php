@@ -8,7 +8,7 @@
 /**
  * AJAX Request validation
  */
-$action = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['action']
+$action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['action']
 $album_id = filter_input(INPUT_GET, 'album_id', FILTER_VALIDATE_INT) ?? null; // $_GET['album_id']
 if (empty($action) || $action !== 'fetch' || empty($album_id) || $album_id<=0)
 {

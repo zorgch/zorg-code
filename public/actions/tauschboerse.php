@@ -27,7 +27,7 @@ if ($user->is_loggedin())
 		 * Add new Tauschbörse Angebot
 		 */
 		case 'add':
-			$angebot = filter_input(INPUT_POST, 'art', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['art']
+			$angebot = filter_input(INPUT_POST, 'art', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['art']
 			$angebotTyp = (in_array($angebot, ['angebot', 'nachfrage']) ? $angebot : 'angebot'); // Default: 'angebot'
 			$bezeichnung = text_width(filter_input(INPUT_POST, 'bezeichnung', FILTER_SANITIZE_FULL_SPECIAL_CHARS), 255) ?? null; // $_POST['bezeichnung']
 			$wertvorstellung = text_width(filter_input(INPUT_GET, 'wertvorstellung', FILTER_SANITIZE_FULL_SPECIAL_CHARS), 25) ?? '0'; // $_POST['wertvorstellung'] : Default: '0'

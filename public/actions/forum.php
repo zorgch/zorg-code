@@ -5,8 +5,8 @@ require_once INCLUDES_DIR.'usersystem.inc.php';
 
 if ($user->is_loggedin())
 {
-	$doAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
-	$board = filter_input(INPUT_GET, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+	$doAction = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+	$board = filter_input(INPUT_GET, 'board', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 	$thread_id = filter_input(INPUT_GET, 'thread_id', FILTER_SANITIZE_NUMBER_INT) ?? null;
 	$sql = null;
 	$sqlparams = [];

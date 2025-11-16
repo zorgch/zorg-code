@@ -17,7 +17,7 @@ if (!$user->is_loggedin()) {
 }
 
 /** Validate passed Parameters */
-$sperrMiUse = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do'] ("aussperren")
+$sperrMiUse = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do'] ("aussperren")
 $sperrStunde = filter_input(INPUT_POST, 'aussperrenHour', FILTER_VALIDATE_INT) ?? null; // $_POST['aussperrenHour']
 $sperrTag = filter_input(INPUT_POST, 'aussperrenDay', FILTER_VALIDATE_INT) ?? null; // $_POST['aussperrenDay']
 $sperrMonat = filter_input(INPUT_POST, 'aussperrenMonth', FILTER_VALIDATE_INT) ?? null; // $_POST['aussperrenMonth']

@@ -8,8 +8,8 @@ require_once INCLUDES_DIR.'forum.inc.php';
 
 /** Input validation */
 $post_id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?? 0;
-$board = filter_input(INPUT_POST, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
-$redirect = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR)) ?? '/forum.php';
+$board = filter_input(INPUT_POST, 'board', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+$redirect = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_SPECIAL_CHARS)) ?? '/forum.php';
 
 // Error-Checking -------------------------------------------------------------
 if($post_id <= 0) {

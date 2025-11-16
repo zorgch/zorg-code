@@ -13,10 +13,10 @@ require_once INCLUDES_DIR.'mysql.inc.php';
 require_once INCLUDES_DIR.'usersystem.inc.php';
 
 /** Input validation & sanitization */
-$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
+$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
 $comment_id = filter_input(INPUT_GET, 'comment_id', FILTER_VALIDATE_INT) ?? 0; // $_GET['comment_id']
-$board = filter_input(INPUT_GET, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['board']
-$redirect = base64url_decode(filter_input(INPUT_GET, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR)) ?? null; // $_GET['url']
+$board = filter_input(INPUT_GET, 'board', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['board']
+$redirect = base64url_decode(filter_input(INPUT_GET, 'url', FILTER_SANITIZE_SPECIAL_CHARS)) ?? null; // $_GET['url']
 
 if (!$user->is_loggedin()) {
 	http_response_code(403); // Set response code 403 (Access denied)

@@ -14,7 +14,7 @@ include_once __DIR__.'/../includes/tpleditor.inc.php';
 global $smarty, $db, $user;
 
 /** Input validation */
-$tpl_id = filter_input(INPUT_GET, 'tplupd', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? 'new';
+$tpl_id = filter_input(INPUT_GET, 'tplupd', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'new';
 $smarty->assign('tpleditor_close_url', '/actions/tpleditor_close.php?'.url_params());
 $username = $user->id2user($user->id, true);
 $smarty->assign('rgroupids', array(0,1,2,3));

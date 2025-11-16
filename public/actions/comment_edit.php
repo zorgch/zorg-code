@@ -15,7 +15,7 @@ require_once __DIR__.'/../includes/forum.inc.php';
 $comment_id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?? null;
 $thread_id = filter_input(INPUT_POST, 'thread_id', FILTER_VALIDATE_INT) ?? null;
 $parent_id = filter_input(INPUT_POST, 'parent_id', FILTER_VALIDATE_INT) ?? null;
-$board = filter_input(INPUT_POST, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$board = filter_input(INPUT_POST, 'board', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $msg_users = isset($_POST['msg_users']) ? explode(',', $_POST['msg_users'][0]) : null;
 $commentText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
 $returnUrl = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/forum.php'.$comment_id;

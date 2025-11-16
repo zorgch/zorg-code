@@ -52,9 +52,9 @@ class Bugtracker
 	{
 		global $db, $user, $notification;
 
-		$returnUrl = (isset($_GET['url']) ? filter_input(INPUT_GET, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) : (filter_input(INPUT_POST, 'url', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? '/bugtracker.php'));
+		$returnUrl = (isset($_GET['url']) ? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_SPECIAL_CHARS) : (filter_input(INPUT_POST, 'url', FILTER_SANITIZE_SPECIAL_CHARS) ?? '/bugtracker.php'));
 		$sanitizedReturnURL = parse_url(base64url_decode($returnUrl), PHP_URL_PATH);
-		$doAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+		$doAction = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 
 		/** Add new Bug */
 		if ($doAction === 'new')

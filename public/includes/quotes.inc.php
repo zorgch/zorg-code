@@ -22,7 +22,7 @@ class Quotes
 		global $db, $user;
 
 		/** Validate parameters */
-		$doAction = filter_input(INPUT_POST, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['action']
+		$doAction = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
 		$quote_id = filter_input(INPUT_POST, 'quote_id', FILTER_VALIDATE_INT) ?? null; // $_POST['quote_id']
 		$votescore = filter_input(INPUT_POST, 'score', FILTER_VALIDATE_INT) ?? null; // $_POST['score']
 		$redirectUrl = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? '/quotes.php'; // $_POST['url']

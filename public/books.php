@@ -24,8 +24,8 @@ $model = new MVC\Books();
  */
 $book_id = filter_input(INPUT_GET, 'book_id', FILTER_VALIDATE_INT) ?? null; // $_GET['book_id']
 $user_id = filter_input(INPUT_GET, 'user', FILTER_VALIDATE_INT) ?? ($user->is_loggedin() ? $user->id : null); // $_GET['user']
-$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
-$postAction = filter_input(INPUT_POST, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['do']
+$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
+$postAction = filter_input(INPUT_POST, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['do']
 
 /**************/
 /* Funktionen */

@@ -7,7 +7,7 @@
 require_once __DIR__.'/../includes/hz_game.inc.php';
 
 unset($_GET['tplupd']);
-$doAction = filter_input(INPUT_POST, 'formid', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$doAction = filter_input(INPUT_POST, 'formid', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $hzMap = filter_input(INPUT_GET, 'map', FILTER_SANITIZE_NUMBER_INT) ?? null;
 unset($_GET['map']);
 $join = filter_input(INPUT_GET, 'join', FILTER_SANITIZE_NUMBER_INT) ?? null;

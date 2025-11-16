@@ -36,7 +36,7 @@ class wetten
 		if($user->is_loggedin())
 		{
 			$wetteId = (isset($wette) ? $wette : (filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? 0)); // $_GET['id']
-			$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
+			$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
 
 			if (count($_POST) > 0)
 			{

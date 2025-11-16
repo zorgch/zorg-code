@@ -15,7 +15,7 @@ require_once MODELS_DIR.'core.model.php';
 /** Validate parameters */
 $user = filter_input(INPUT_GET, 'user', FILTER_VALIDATE_INT) ?? null; // $_GET['user'] interger
 $mail = filter_input(INPUT_GET, 'mail', FILTER_VALIDATE_INT) ?? null; // $_GET['mail'] integer
-$hash = filter_input(INPUT_GET, 'hash', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['hash'] string
+$hash = filter_input(INPUT_GET, 'hash', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['hash'] string
 $path = filter_input(INPUT_GET, 'path', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null; // $_GET['path'] string
 $is_admin = filter_input(INPUT_GET, 'admin', FILTER_VALIDATE_BOOL) ?? false; // $_GET['admin'] bool
 

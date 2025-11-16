@@ -281,7 +281,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 			require_once INCLUDES_DIR.'g-recaptcha-src/autoload.php';
 			$reCaptchaApiKeys = ['key' => $_ENV['GOOGLE_RECAPTCHA_KEY'],'secret' => $_ENV['GOOGLE_RECAPTCHA_SECRET']];
 			$reCaptchaLang = $_ENV['GOOGLE_RECAPTCHA_LOCALE'];
-			$reCaptchaVerification = filter_input(INPUT_POST, 'g-recaptcha-response', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['g-recaptcha-response']
+			$reCaptchaVerification = filter_input(INPUT_POST, 'g-recaptcha-response', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['g-recaptcha-response']
 			try {
 				$reCaptcha = new \ReCaptcha\ReCaptcha($reCaptchaApiKeys['secret']);
 			} catch(Exception $e) {
@@ -299,7 +299,7 @@ if (!$user->is_loggedin() && $doAction === 'anmeldung' || !empty($userRegcode))
 				if ($resp->isSuccess())
 				{
 					$registerError = null;
-					$newUsername = htmlentities(sanitize_userinput(filter_input(INPUT_POST, 'new_username', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR))) ?? null; // $_POST['new_username']
+					$newUsername = htmlentities(sanitize_userinput(filter_input(INPUT_POST, 'new_username', FILTER_SANITIZE_SPECIAL_CHARS))) ?? null; // $_POST['new_username']
 					$newEmail = filter_input(INPUT_POST, 'new_email', FILTER_VALIDATE_EMAIL) ?? null; // $_POST['new_email']
 					$newPassword = $user->crypt_pw($_POST['new_password2']);
 					$comparePassword = password_verify($_POST['new_password'], $newPassword);

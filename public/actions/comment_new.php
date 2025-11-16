@@ -20,7 +20,7 @@ if(!$user->is_loggedin()) {
 }
 
 $parent_id = filter_input(INPUT_POST, 'parent_id', FILTER_VALIDATE_INT) ?? null;
-$board = filter_input(INPUT_POST, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$board = filter_input(INPUT_POST, 'board', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $commentText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS), ENT_COMPAT | ENT_SUBSTITUTE) ?? null;
 $msg_users = isset($_POST['msg_users']) ? explode(',', $_POST['msg_users'][0]) : null;
 

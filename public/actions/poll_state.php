@@ -9,7 +9,7 @@ global $polls;
 
 /** Input validation and sanitization */
 $pollId = filter_input(INPUT_GET, 'poll', FILTER_VALIDATE_INT) ?? null; // $_GET['poll']
-$pollState = filter_input(INPUT_GET, 'state', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['state']
+$pollState = filter_input(INPUT_GET, 'state', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['state']
 
 if (!$user->is_loggedin()) {
 	http_response_code(403); // Set response code 403 (Access denied)

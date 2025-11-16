@@ -179,7 +179,7 @@ class zorgDebugger
      * @param string $level   The log level (e.g. DEBUG, INFO, ERROR).
 	 * @param string $message The message format string.
 	 * @param array  $params  The parameters to be inserted into the message format string.
-     * @param array  $origina (Optional) Origin details from where a log message was triggered from.
+     * @param array  $origin (Optional) Origin details from where a log message was triggered from.
      */
     private function write($level, $message, $params, $origin = [])
     {

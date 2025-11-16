@@ -73,15 +73,15 @@ if (!empty(key($_GET)))
 }
 
 /** Input validation and sanitization */
-$tplByName = (isset($tplWord) ? $tplWord : (filter_input(INPUT_GET, 'word', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null)); // $_GET['word']
+$tplByName = (isset($tplWord) ? $tplWord : (filter_input(INPUT_GET, 'word', FILTER_SANITIZE_SPECIAL_CHARS) ?? null)); // $_GET['word']
 $tplById = (isset($tplId) ? $tplId : (filter_input(INPUT_GET, 'tpl', FILTER_VALIDATE_INT) ?? null)); // $_GET['tpl']
-$useLayout = filter_input(INPUT_GET, 'layout', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['layout']
-$feedType = filter_input(INPUT_GET, 'type', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['type']
-$feedCommentsBoard = filter_input(INPUT_GET, 'board', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['board']
+$useLayout = filter_input(INPUT_GET, 'layout', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['layout']
+$feedType = filter_input(INPUT_GET, 'type', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['type']
+$feedCommentsBoard = filter_input(INPUT_GET, 'board', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['board']
 $feedCommentsThreadId = filter_input(INPUT_GET, 'thread_id', FILTER_VALIDATE_INT) ?? null; // $_GET['thread_id']
 $eventId = (isset($getEventId) ? $getEventId : (filter_input(INPUT_GET, 'event_id', FILTER_VALIDATE_INT) ?? null)); // $_GET['event_id']
 $tplEditor = filter_input(INPUT_GET, 'tpleditor', FILTER_VALIDATE_BOOLEAN); // $_GET['tpleditor'] === "1"
-$editTpl = (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) ? filter_input(INPUT_GET, 'tplupd', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) : (isset($_GET['tplupd']) && $_GET['tplupd'] === 'new' ? 'new' : null));
+$editTpl = (isset($_GET['tplupd']) && is_numeric($_GET['tplupd']) ? filter_input(INPUT_GET, 'tplupd', FILTER_SANITIZE_SPECIAL_CHARS) : (isset($_GET['tplupd']) && $_GET['tplupd'] === 'new' ? 'new' : null));
 $tplCreated = filter_input(INPUT_GET, 'created', FILTER_VALIDATE_BOOLEAN); // $_GET['created'] === "1"
 $tplUpdated = filter_input(INPUT_GET, 'updated', FILTER_VALIDATE_BOOLEAN); // $_GET['updated'] === "1"
 

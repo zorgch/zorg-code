@@ -883,9 +883,9 @@ class stlv2
 
 }
 
-$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $gameid = filter_input(INPUT_GET, 'game_id', FILTER_SANITIZE_NUMBER_INT) ?? null;
-$shootat = filter_input(INPUT_GET, 'shoot', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$shootat = filter_input(INPUT_GET, 'shoot', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $message = filter_input(INPUT_GET, 'msg', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
 
 /** Load STLv2 */

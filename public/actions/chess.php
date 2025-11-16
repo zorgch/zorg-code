@@ -12,11 +12,11 @@ require_once __DIR__.'/../includes/config.inc.php';
 include_once INCLUDES_DIR.'chess.inc.php';
 
 /** Input validation and sanitization */
-$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
+$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
 $gameId = filter_input(INPUT_GET, 'game', FILTER_VALIDATE_INT) ?? 0; // $_GET['game']
-$fromField = filter_input(INPUT_GET, 'from', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['from']
-$toField = filter_input(INPUT_GET, 'to', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['to']
-$viewForm = filter_input(INPUT_POST, 'formid', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['formid']
+$fromField = filter_input(INPUT_GET, 'from', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['from']
+$toField = filter_input(INPUT_GET, 'to', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['to']
+$viewForm = filter_input(INPUT_POST, 'formid', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['formid']
 $userId = filter_input(INPUT_POST, 'user', FILTER_VALIDATE_INT) ?? null; // $_POST['user']
 
 if (isset($gameId) && $gameId > 0)

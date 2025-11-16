@@ -22,7 +22,7 @@ $model = new MVC\Wetten();
  * Input validation & sanitization
  */
 $wette = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? 0; // $_GET['id']
-$getEintrag = filter_input(INPUT_GET, 'eintrag', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['eintrag']
+$getEintrag = filter_input(INPUT_GET, 'eintrag', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['eintrag']
 
 /** Post actions ausführen/entgegennehmen */
 wetten::exec();

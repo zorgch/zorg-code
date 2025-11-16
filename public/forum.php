@@ -30,12 +30,12 @@ $model = new MVC\Forum();
 /**
  * Validate passed Parameters
  */
-$doAction = filter_input(INPUT_GET, 'layout', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$doAction = filter_input(INPUT_GET, 'layout', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $searchKeyword = filter_input(INPUT_GET, 'keyword', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
 $commentId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? null;
 $threadId = (isset($getThreadId) ? $getThreadId : (filter_input(INPUT_GET, 'thread_id', FILTER_VALIDATE_INT) ?? null));
 $commentParentId = filter_input(INPUT_GET, 'parent_id', FILTER_VALIDATE_INT) ?? null;
-$sortBy = filter_input(INPUT_GET, 'sortby', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$sortBy = filter_input(INPUT_GET, 'sortby', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $errorMessage = filter_input(INPUT_GET, 'error', FILTER_SANITIZE_FULL_SPECIAL_CHARS, ['flags' => FILTER_FLAG_NO_ENCODE_QUOTES]) ?? null;
 
 /**

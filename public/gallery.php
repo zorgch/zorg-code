@@ -62,8 +62,8 @@ elseif ($album_id !== APOD_GALLERY_ID && empty($user->vereinsmitglied))
 else {
 
 	/** Sanitize User Inputs */
-	$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['do']
-	$show = filter_input(INPUT_GET, 'show', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['show']
+	$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
+	$show = filter_input(INPUT_GET, 'show', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['show']
 	$showPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?? 0; // $_GET['page'] Default page: 0
 
 	/** User muss mindestens eingeloggt sein, um DO Actions zu machen */
@@ -144,7 +144,7 @@ else {
 				break;
 
 			case 'doRotatePic':
-				$rotateLeftOrRight = filter_input(INPUT_POST, 'rotatedir', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['rotatedir']
+				$rotateLeftOrRight = filter_input(INPUT_POST, 'rotatedir', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['rotatedir']
 				if ($user->typ >= USER_MEMBER && !empty($rotateLeftOrRight)) { // Dürfen nur Member+Schöne
 					$res = doRotatePic($getPicId, $rotateLeftOrRight);
 				} else {

@@ -4,9 +4,9 @@ require_once __DIR__.'/../includes/hz_game.inc.php';
 /** Validate passed $_GET Parameters */
 zorgDebugger::log()->debug('$_GET-Params: %s', [print_r($_GET,true)]);
 $gameId = filter_input(INPUT_GET, 'game', FILTER_SANITIZE_NUMBER_INT) ?? null;
-$ticketType = filter_input(INPUT_GET, 'ticket', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;;
+$ticketType = filter_input(INPUT_GET, 'ticket', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;;
 $moveToStationNum = filter_input(INPUT_GET, 'move', FILTER_SANITIZE_NUMBER_INT) ?? null;
-$doAction = filter_input(INPUT_GET, 'do', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 zorgDebugger::log()->debug('do => %s: $gameId => %d | $ticketType => %s | $stationNum => %d', [(!empty($doAction) ? $doAction : $moveToStationNum), $gameId, $ticketType, $moveToStationNum]);
 
 /** hz actions */

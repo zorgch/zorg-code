@@ -22,9 +22,9 @@ $model = new MVC\Bugtracker();
 /**
  * Validate GET-Parameters
  */
-$doAction = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$doAction = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 $bug_id = (isset($getBugId) ? $getBugId : (filter_input(INPUT_GET, 'bug_id', FILTER_VALIDATE_INT) ?? null));
-$order = filter_input(INPUT_GET, 'order', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+$order = filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 // Filter handling
 $show = [];
 $allowedFilters = ['open','resolved','denied','notdenied','assigned','unassigned','new','old','own','notown'];

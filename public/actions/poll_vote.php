@@ -31,7 +31,7 @@ if ($poll>0 && $vote>0)
 		user_error('Invalid Poll/Vote "'.$poll.' / '.$vote.'"', E_USER_ERROR);
 	}
 
-	$redirect = base64url_decode(filter_input(INPUT_GET, 'redirect', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR)) ?? null; // $_GET['redirect']
+	$redirect = base64url_decode(filter_input(INPUT_GET, 'redirect', FILTER_SANITIZE_SPECIAL_CHARS)) ?? null; // $_GET['redirect']
 	header('Location: '.$redirect);
 	exit;
 

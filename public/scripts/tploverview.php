@@ -1,8 +1,8 @@
 <?php
 global $db, $smarty;
 
-$sort_by = filter_input(INPUT_GET, 'sort', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
-$order_by = filter_input(INPUT_GET, 'order', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? 'DESC';
+$sort_by = filter_input(INPUT_GET, 'sort', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+$order_by = filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'DESC';
 
 switch ($sort_by)
 {

@@ -51,14 +51,14 @@ if (!$media_data) {
  * - Ausnahme #2: Telegram-Bot (Daily Pic)
  * @link https://github.com/zorgch/zorg-verein-docs/blob/master/GV/GV%202018/2018-12-23%20zorg%20GV%202018%20Protokoll.md
  */
-$token = filter_input(INPUT_GET, 'token', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['token']
+$token = filter_input(INPUT_GET, 'token', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['token']
 $token_validation = md5($_ENV['TELEGRAM_BOT_API']);
 $auth_granted = (!empty($token) && $token === $token_validation ? true : null); // Validate Telegram-Bot Auth-Token
 zorgDebugger::log()->debug('Auth-Token Validation: %s (required: %s)', [($auth_granted ? $_GET['token'] : 'false'), (!empty($_GET['token']) ? 'yes' : 'no')]);
 if ((int)$media_data['album'] === APOD_GALLERY_ID || $auth_granted === true || ($user->is_loggedin() && !empty($user->vereinsmitglied) && $user->vereinsmitglied !== '0'))
 {
 	/** Check if passed $_GET['type'] is set to "tn" and valid - in all other cases fallback to "_pic" (default) */
-	$type = filter_input(INPUT_GET, 'type', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['type']
+	$type = filter_input(INPUT_GET, 'type', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['type']
 	$media_type = (empty($type) || $type != 'tn' ? 'pic_' : 'tn_' );
 
 	/** Zensur-Check: zensurierte Pics können nur Members sehen */

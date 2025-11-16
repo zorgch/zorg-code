@@ -165,10 +165,8 @@ class usersystem
 	/**
 	 * Klassen Konstruktor
 	 *
-	 * @author [z]biko
-	 * @author IneX
-	 * @version 6.1
-	 * @since 1.0 method added
+	 * @version 6.2
+	 * @since 1.0 `[z]biko` method added
 	 * @since 2.0 `20.11.2018` `IneX` code & query optimizations, updated Cookie & Session info taken from config.inc.php
 	 * @since 3.0 `27.11.2018` `IneX` refactored User-Object instantiation if $_SESSION[user_id] is missing but Session-Cookie is there
 	 * @since 4.0 `10.12.2018` `IneX` adjusted reading the Autologin-Cookies (cannot be dependent on the Session-Cookie, doh!)
@@ -326,10 +324,8 @@ class usersystem
 	 *
 	 * Erstellt eine Session (login)
 	 *
-	 * @author [z]cylander
-	 * @author IneX
 	 * @version 5.2
-	 * @since 1.0 `cylander` method added
+	 * @since 1.0 `[z]cylander` method added
 	 * @since 2.0 `12.11.2018` `IneX` code & query optimizations
 	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Login auf jeweils aktuelle Seite, nicht immer Home
 	 * @since 4.0 `10.12.2018` `IneX` Improved Cookie-Settings (secure and stuff)
@@ -513,7 +509,7 @@ class usersystem
 							 * ...to have __construct() assign all additional User values
 							 * ...needed to work for whole page
 							 */
-							$redirect = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['redirect']
+							$redirect = filter_input(INPUT_POST, 'redirect', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['redirect']
 							$loginRedirectUrl = (!empty($redirect) ? base64url_decode($redirect) : getURL(true, false));
 							zorgDebugger::log()->debug('redirect url => %s', [$loginRedirectUrl]);
 							header('Location: '.$loginRedirectUrl);
@@ -557,13 +553,11 @@ class usersystem
 	 *
 	 * Logt einen User aus!
 	 *
-	 * @author [z]cylander
-	 * @author IneX
 	 * @version 3.1
-	 * @since 1.0 method added
-	 * @since 2.0 fixed "If you put a date too far in the past, IE will bark and igores it, i.e. the value will not be removed"
-	 * @since 3.0 `21.11.2018` Fixed redirect bei Logout auf jeweils aktuelle Seite, nicht immer Home
-	 * @since 3.1 `11.04.2021` Added HTTP Header Output "Clear-Site-Data: cookies"
+	 * @since 1.0 `[z]cylander` method added
+	 * @since 2.0 `IneX` fixed "If you put a date too far in the past, IE will bark and igores it, i.e. the value will not be removed"
+	 * @since 3.0 `21.11.2018` `IneX` Fixed redirect bei Logout auf jeweils aktuelle Seite, nicht immer Home
+	 * @since 3.1 `11.04.2021` `IneX` Added HTTP Header Output "Clear-Site-Data: cookies"
 	 *
 	 * @uses usersystem::invalidate_session()
 	 * @return void
@@ -577,7 +571,7 @@ class usersystem
 		header('Clear-Site-Data: "cookies"');
 
 		/** Redirect user back to last page */
-		$redirect = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['redirect']
+		$redirect = filter_input(INPUT_POST, 'redirect', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['redirect']
 		$redirectUrl = (!empty($redirect) ? base64url_decode($redirect) : $_SERVER['PHP_SELF']);
 		zorgDebugger::log()->debug('redirect url => %s', [$redirectUrl]);
 		header('Location: '.$redirectUrl);
@@ -2288,8 +2282,8 @@ if (isset($_POST['do']) && $_POST['do'] === 'login')
 	zorgDebugger::log()->debug('exec User login (Form): %s', [print_r($_POST, true)]);
 	if (!empty($_POST['username']) && !empty($_POST['password']))
 	{
-		$login_remember = filter_input(INPUT_POST, 'autologin', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? false; // $_POST['autologin']
-		$login_username = filter_input(INPUT_POST, 'username', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['username']
+		$login_remember = filter_input(INPUT_POST, 'autologin', FILTER_SANITIZE_SPECIAL_CHARS) ?? false; // $_POST['autologin']
+		$login_username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['username']
 		$login_password = (string)$_POST['password']; // No sanitization to prevent PW being modified vs. user input
 		$auto = ($login_remember !== false && $login_remember === 'cookie' ? true : false); // User wants Autologin on/off?
 		$login_error = $user->login($login_username, $login_password, $auto);

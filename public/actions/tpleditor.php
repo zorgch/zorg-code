@@ -18,8 +18,8 @@ $access_error = null;
 if (isset($_POST['frm']) && is_array($_POST['frm'])) {
 	$frm['id'] = ($_POST['frm']['id'] === 'new' ? 'new' : (filter_var($_POST['frm']['id'], FILTER_SANITIZE_NUMBER_INT) ?? null));
 	$frm['title'] = filter_var($_POST['frm']['title'], FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? null;
-	$frm['page_title'] = filter_var($_POST['frm']['page_title'], FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
-	$frm['word'] = filter_var($_POST['frm']['word'], FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+	$frm['page_title'] = filter_var($_POST['frm']['page_title'], FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+	$frm['word'] = filter_var($_POST['frm']['word'], FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 	$frm['border'] = filter_var($_POST['frm']['border'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
 	$frm['sidebar_tpl'] = filter_var($_POST['frm']['sidebar_tpl'], FILTER_SANITIZE_NUMBER_INT) ?? null;
 	$frm['read_rights'] = filter_var($_POST['frm']['read_rights'], FILTER_SANITIZE_NUMBER_INT) ?? 0;

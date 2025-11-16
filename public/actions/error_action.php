@@ -8,7 +8,7 @@ if($user->is_loggedin() && count($_POST) > 0)
 	/** Input validation & sanitization */
 	$errorId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?? null; // $_GET['id']
 	$tplId = filter_input(INPUT_GET, 'tpl', FILTER_VALIDATE_INT) ?? null; // $_GET['tpl']
-	$doDelete = filter_input(INPUT_POST, 'del', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['del']
+	$doDelete = filter_input(INPUT_POST, 'del', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['del']
 	$showQuery = filter_input(INPUT_POST, 'query', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? 0; // $_POST['query']
 	$del_ids = (isset($_POST['to_del']) ? call_user_func_array('array_merge', array($_POST['to_del'])) : null); // $_POST['to_del']
 	$showNum = filter_input(INPUT_POST, 'num', FILTER_VALIDATE_INT) ?? 0; // $_POST['num']
