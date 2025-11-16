@@ -39,53 +39,48 @@ if (!isset($_POST['album-name']) || empty($_POST['album-name'])) // Data
 	$new_album_name = filter_var($_POST['album-name'], FILTER_SANITIZE_SPECIAL_CHARS);
 }
 
-/**
- * FILE INCLUDES (additional)
- */
-require_once __DIR__.'/../../../includes/mysql.inc.php';
-
 /** Simple Error Handler for mkdir() E_WARNING */
 function mkdirErrorHandler($errno, $errmsg, $errfile, $errline) {
 	if ($errno >= E_WARNING)
 	{
-		error_log(sprintf('[ERROR] <%s:%d> Gallery Upload-Folder could NOT be created: %s', __FILE__, __LINE__, $errmsg));
-		http_response_code(500); // Set response code 500 (Internal Server Error) and exit.
+		error_log(sprintf('[ERROR] <%s:%d> Gallery Upload-Folder could NOT be created: %s', $errfile, $errline, $errmsg));
+		http_response_code(507); // Set response code 507 (Insufficient Storage) and exit.
 		exit($errmsg.' (line '.$errline.')');
 	}
 }
 
 if ($user->typ >= USER_MEMBER)
 {
-	/* Get temporary next Gallery ID */
-	$sql = 'SELECT id FROM gallery_albums ORDER BY id DESC LIMIT 1';
-	$next_gallery_id = $db->fetch($db->query($sql, __FILE__, __LINE__, 'SELECT id FROM gallery_albums'))['id']+1;
-
-	/**
-	 * Create Gallery-specific Upload-Folder on Server - if not yet exists
-	 */
-	$upload_dirpath = GALLERY_UPLOAD_DIR.$next_gallery_id;
-	if (!fileExists($upload_dirpath))
-	{
-		/* Gallery-specific Upload-Folder must be created */
-		set_error_handler('mkdirErrorHandler');
-		error_log(sprintf('[INFO] <%s:%d> User-ID %d attempts to create new Gallery Upload-Folder: %s', __FILE__, __LINE__, $user->id, $upload_dirpath));
-		mkdir($upload_dirpath, 0775, TRUE); // If not exists, create the nested structure
-		error_log(sprintf('[INFO] <%s:%d> User-ID %d created new Gallery Upload-Folder: %s', __FILE__, __LINE__, $user->id, $upload_dirpath));
-		restore_error_handler();
-	} else {
-		/* Gallery-specific Upload-Folder exists */
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Gallery Upload-Folder already created: %s', __FILE__, __LINE__, $upload_dirpath));
-	}
-
 	/* Add new empty Gallery Album to Database */
 	$new_gallery_id = $db->insert('gallery_albums', ['name' => $new_album_name], __FILE__, __LINE__, __FUNCTION__);
-	if ($new_gallery_id > 0 && $new_gallery_id >= $next_gallery_id)
+	if (!$new_gallery_id || is_string($new_gallery_id))
 	{
-		http_response_code(200); // Set response code 200 (OK)
-		exit((string)$new_gallery_id);
-	} else {
+		/* Database Insert Error */
 		http_response_code(500); // Set response code 500 (Internal Server Error) and exit.
-		exit('New Gallery could not be added');
+		exit('New Gallery could not be added (database)');
+	}
+	else {
+		/**
+		 * Create Gallery-specific Upload-Folder on Server - if not yet exists
+		 */
+		$upload_dirpath = GALLERY_UPLOAD_DIR.(string)$new_gallery_id;
+		if (!fileExists($upload_dirpath))
+		{
+			/* Gallery-specific Upload-Folder must be created */
+			set_error_handler('mkdirErrorHandler');
+			error_log(sprintf('[INFO] <%s:%d> User-ID %d attempts to create new Gallery Upload-Folder: %s', __FILE__, __LINE__, $user->id, $upload_dirpath));
+			mkdir($upload_dirpath, 0775, TRUE); // If not exists, create the nested structure
+			error_log(sprintf('[INFO] <%s:%d> User-ID %d created new Gallery Upload-Folder: %s', __FILE__, __LINE__, $user->id, $upload_dirpath));
+			restore_error_handler();
+
+			http_response_code(200); // Set response code 200 (OK)
+			exit((string)$new_gallery_id);
+		} else {
+			/* Gallery-specific Upload-Folder exists */
+			zorgDebugger::log()->debug('Gallery Upload-Folder already created: %s', [$upload_dirpath]);
+			http_response_code(200); // Set response code 200 (OK)
+			exit((string)$new_gallery_id);
+		}
 	}
 }
 /** Insufficient Usertype level */

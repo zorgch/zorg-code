@@ -1665,7 +1665,7 @@ function setNewDailyPic()
 			/** Add the new Daily-Pic into the `periodic` Database-Table */
 			$db->query('REPLACE INTO periodic (name, id, date) VALUES (?, ?, ?)',
 						__FILE__, __LINE__, __FUNCTION__, ['daily_pic', $newdp['id'], timestamp(true)]);
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> new Daily Pic generated: %d from album "%s"', __FUNCTION__, __LINE__, $newdp['id'], $newdp['galleryname']));
+			zorgDebugger::log()->debug('new Daily Pic generated: %d from album "%s"', [$newdp['id'], $newdp['galleryname']]);
 
 			/**
 			 * Telegram Notification auslösen
@@ -1677,19 +1677,26 @@ function setNewDailyPic()
 			$picTitle = html_entity_decode(picHasTitle($newdp['id']));
 			$picGallery = html_entity_decode($newdp['galleryname']);
 			$imgCaption = t('telegram-dailypic-notification', 'gallery', [ (empty($picTitle) ? ' ' : $picTitle), (empty($picGallery) ? ' ' : $picGallery) ]);
-			$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
+			try {
+				zorgDebugger::log()->debug('New Daily Pic URL: %s', [$imgUrl]);
+				$telegram->send->photo('group', $imgUrl, $imgCaption, ['disable_notification' => 'true']);
+			}
+			catch (Exception $e) {
+				zorgDebugger::log()->warn('New Daily Pic $telegram->send->photo(): %s', [$e->getMessage()]);
+				return false;
+			}
 
 			return true;
 
 		/** Error updating Daily Pic */
 		} else {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Updating Daily Pic: ERROR', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->warn('No Pic ID found to use as new Daily Pic');
 			return false;
 		}
 
 	/** Daily Pic for today is already set */
 	} else {
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Daily Pic for today already set', __FUNCTION__, __LINE__));
+		zorgDebugger::log()->info('Daily Pic no update needed - already set for TODAY');
 		return false;
 	}
 }

@@ -14,9 +14,9 @@ require_once __DIR__.'/../../../includes/config.inc.php';
 /**
  * AJAX Request validation
  */
-$action = filter_input(INPUT_GET, 'action', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_GET['action']
+$action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['action']
 $gallery_id = filter_input(INPUT_POST, 'album_id', FILTER_VALIDATE_INT) ?? null; // $_POST['album_id']
-$nonce = filter_input(INPUT_POST, 'nonce', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null; // $_POST['nonce']
+$nonce = filter_input(INPUT_POST, 'nonce', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['nonce']
 if(empty($action) || $action !== 'add' || empty($gallery_id) || $gallery_id<=0)
 {
 	http_response_code(400); // Set response code 400 (bad request) and exit.
@@ -80,14 +80,14 @@ if (!isset($_FILES) || !isset($_FILES['dropzone-pic']['name']) || $_FILES['dropz
 /**
  * FILE INCLUDES (additional)
  */
-require_once __DIR__.'/../../../includes/gallery.inc.php';
+require_once INCLUDES_DIR.'gallery.inc.php';
 
 /** Simple Error Handler for mkdir() E_WARNING */
 function mkdirErrorHandler($errno, $errmsg, $errfile, $errline) {
 	if ($errno >= E_WARNING)
 	{
-		error_log(sprintf('[ERROR] <%s:%d> Gallery Upload-Folder could NOT be created: %s', __FILE__, __LINE__, $errmsg));
-		http_response_code(500); // Set response code 500 (Internal Server Error) and exit.
+		error_log(sprintf('[ERROR] <%s:%d> Gallery Upload-Folder could NOT be created: %s', $errfile, $errline, $errmsg));
+		http_response_code(507); // Set response code 507 (Insufficient Storage) and exit.
 		exit($errmsg.' (line '.$errline.')');
 	}
 }
@@ -95,7 +95,7 @@ function mkdirErrorHandler($errno, $errmsg, $errfile, $errline) {
 if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 {
 	/** Check if Upload Directory for Gallery exists */
-	$upload_dirpath = GALLERY_UPLOAD_DIR.$gallery_id;
+	$upload_dirpath = GALLERY_UPLOAD_DIR.(string)$gallery_id;
 	if (!is_dir($upload_dirpath))
 	{
 		set_error_handler('mkdirErrorHandler');
@@ -108,7 +108,7 @@ if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 	/** Check integrity of uploaded image */
 	if (!is_uploaded_file($sourcefile['tmp_name']))
 	{
-		http_response_code(400); // Set response code 400 (bad request) and exit.
+		http_response_code(422); // Set response code 422 (Unprocessable Content) and exit.
 		exit('compromised');
 	} else {
 		/** Iterate Filename if File with same name already exists in Upload Dir */
@@ -121,13 +121,16 @@ if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 			{
 				$sourcefile['filename'] .= (string)$total_dirfilecount+1; // Add +1 and update Filename
 				$upload_filepath = sprintf('%s/%s.%s', $upload_dirpath, $sourcefile['filename'], $sourcefile['fileextension']); // Redefine target filepath
-				if (DEVELOPMENT === true) error_log(sprintf('[INFO] <%s:%d> Gallery Upload Directory filecount %d => new dest filepath: %s', __FILE__, __LINE__, $total_dirfilecount, $upload_filepath));
+				zorgDebugger::log()->debug('Gallery Upload Directory filecount %d => new dest filepath: %s', [$total_dirfilecount, $upload_filepath]);
 			}
 			/** Directory Filecount failed */
 			else {
-				http_response_code(500); // Set response code 500 (internal server error) and exit.
+				http_response_code(508); // Set response code 508 (Loop Detected) and exit.
 				exit('filecount');
 			}
+		} else {
+			http_response_code(424); // Set response code 424 (Failed Dependency) and exit.
+			exit('isfile');
 		}
 
 		/** Move Temporary File to actual Upload Directory */
@@ -162,7 +165,7 @@ if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 	/** Get the Pic-ID from a new DB-entry */
 	$new_pic_id = $db->insert('gallery_pics', ['album'=>$gallery_id, 'extension'=>'.'.$sourcefile['fileextension']], __FILE__, __LINE__, 'INSERT INTO gallery_pics');
 	if ($new_pic_id <= 0) {
-		http_response_code(500); // Set response code 500 (internal server error) and exit.
+		http_response_code(503); // Set response code 503 (Service Unavailable) and exit.
 		exit('database');
 	}
 	else {
