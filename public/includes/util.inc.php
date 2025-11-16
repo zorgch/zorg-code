@@ -269,9 +269,9 @@ function getChangedURL($new_query_string)
 /**
  * Replace ALL Query-Parameters in a URL with new Parameters
  *
- * @author [z]biko
- * @version 1.0
- * @since 1.0 function added
+ * @version 2.0
+ * @since 1.0 `[z]biko` function added
+ * @since 2.0 `15.11.2025` `IneX` Adds hanlding relative Path-only $url as well
  *
  * @see changeQueryString(), glue_url()
  * @param string $url
@@ -281,8 +281,17 @@ function getChangedURL($new_query_string)
 function changeURL($url, $query_string_changes)
 {
 	$urlarray = parse_url($url);
-	$urlarray['query'] = changeQueryString($urlarray['query'], $query_string_changes);
+
+	// Handle parse_url failing to parse
+	if ($urlarray === false) {
+		zorgDebugger::log()->info('Failed to parse URL: %s', [$url]);
+		return $url;
+	}
+
+	$existingQuery = isset($urlarray['query']) ? $urlarray['query'] : '';
+	$urlarray['query'] = changeQueryString($existingQuery, $query_string_changes);
 	$newUrl = glue_url($urlarray);
+
 	zorgDebugger::log()->debug('url: %s | new query-string: %s | new url: %s', [$url, $urlarray['query'], $newUrl]);
 	return $newUrl;
 }
@@ -290,9 +299,8 @@ function changeURL($url, $query_string_changes)
 /**
  * Replace only specific Query-Parameters with new Parameters
  *
- * @author [z]biko
  * @version 1.0
- * @since 1.0 function added
+ * @since 1.0 `[z]biko` function added
  *
  * @param string $querystring Query-String to be modified
  * @param string $changed Changed Query-Parameter
@@ -339,8 +347,9 @@ function url_params()
 /**
  * Combine Array parts of an URL back to an URL-String
  *
- * @version 1.0
+ * @version 2.0
  * @since 1.0 `[z]biko` function added
+ * @since 2.0 `15.11.2025` `IneX` Adds hanlding relative Path-only $parsed as well
  *
  * @param array $parsed An Array created using parse_url (splitting string parts into array elements)
  * @return string Fully glued URL including Path & Query-Parameters, and Hash-Value
@@ -350,14 +359,28 @@ function glue_url($parsed)
 	/** Validate passed $parsed parameter */
 	if (!is_array($parsed)) return false;
 
-	/** Glue an URL together from all URL-Parts from the $parsed Array */
-	$url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
-	$url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
-	$url .= $parsed['host'] ? $parsed['host'] : '';
-	$url .= $parsed['port'] ? ':'.$parsed['port'] : '';
-	$url .= $parsed['path'] ? $parsed['path'] : '';
-	$url .= $parsed['query'] ? '?'.$parsed['query'] : '';
-	$url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
+	/** Glue an URL together from all (provided) URL-Parts from the $parsed Array */
+	if (isset($parsed['scheme'])) {
+		$url = $parsed['scheme'] ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '':'//'): '';
+	}
+	if (isset($parsed['user'])) {
+		$url .= $parsed['user'] ? $parsed['user'].($parsed['pass']? ':'.$parsed['pass']:'').'@':'';
+	}
+	if (isset($parsed['host'])) {
+		$url .= $parsed['host'] ? $parsed['host'] : '';
+	}
+	if (isset($parsed['port'])) {
+		$url .= $parsed['port'] ? ':'.$parsed['port'] : '';
+	}
+	if (isset($parsed['path'])) {
+		$url .= $parsed['path'] ? $parsed['path'] : '';
+	}
+	if (isset($parsed['query'])) {
+		$url .= $parsed['query'] ? '?'.$parsed['query'] : '';
+	}
+	if (isset($parsed['fragment'])) {
+		$url .= $parsed['fragment'] ? '#'.$parsed['fragment'] : '';
+	}
 
 	return $url;
 }
