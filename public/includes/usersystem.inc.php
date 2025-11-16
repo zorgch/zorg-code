@@ -1264,35 +1264,38 @@ class usersystem
 	/**
 	 * Retrieve list of Users for Notification-Messages in Comments or Personal Messages
 	 *
-	 * @deprecated
+	 * // TODO Make this method obsolete / deprecated once all forms referencing it support inline "@mention" / IneX
 	 *
-	 * @author IneX
-	 * @date 26.12.2017
+	 * @1.6
+	 * @version 1.0 method added
+	 * @version 1.5 `26.12.2017` `IneX` Corde hardening, and using SQL prepared statement
+	 * @version 1.5 `26.12.2017` `IneX` Corde hardening, and using SQL prepared statement
 	 *
-	 * @TODO remove this function 'getFormFieldUserlist()' & make sure to remove all references in corresponding files pointing to it
+	 * @param string $name Name to use for the Select-Container
+	 * @param integer $size (Optional) Column-based Width of the Select-Container. Default: 15 (cols)
+	 * @param array $users_selected Array (Optional) with User-IDs that should be pre-selected. Default: none
+	 * @param integer $tabindex (Optional) Keyboard Tabbing index of the element. Default: 10
+	 * @return string Full HTML-markup of the Select-Container
 	 */
-	function getFormFieldUserlist($name, $size, $users_selected=0, $tabindex=10) {
+	function getFormFieldUserlist($name, $size=15, $users_selected=0, $tabindex=10) {
 		global $db;
 
 		/** Wenn User ganz neue Message schreibt */
-		if (empty($users_selected) || $users_selected === 0) $users_selected = [];
+		if (empty($users_selected)) $users_selected = [];
+		/** Make an Array, if comma-separated String - or only 1 value (UserID) provided */
+		else if (!is_array($users_selected)) $users_selected = explode(',', $users_selected);
 
-		/** check and make an Array, if necessary */
-		if (!is_array($users_selected)) // Fixes: PHP Warning: strpos() expects parameter 1 to be string, array given
-		{
-			if (strpos($users_selected, ',') !== false) $users_selected = explode(',', $users_selected);
-		}
 		/** Remove any duplicate User-IDs */
 		$users_selected = array_unique($users_selected);
 
-		$sql = 'SELECT id, clan_tag, username FROM user'
-				.' WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(NOW())-?)'
-				.' OR z_gremium = "1" OR (vereinsmitglied != "0" AND vereinsmitglied != "")'
-				.(!empty($users_selected) ? ' OR id IN (?)' : null)
+		$sql = 'SELECT id, clan_tag, username FROM user
+				WHERE UNIX_TIMESTAMP(lastlogin) > (UNIX_TIMESTAMP(NOW())-?)
+				OR z_gremium = "1" OR (vereinsmitglied != "0" AND vereinsmitglied != "")
+				'.(!empty($users_selected) ? ' OR id IN (?)' : null)
 				.' ORDER BY clan_tag DESC, username ASC'
 		;
-		$params = [ USER_OLD_AFTER*2 ];
-		if (!empty($users_selected)) { $params[] = implode(',', $users_selected); }
+		$params[] = USER_OLD_AFTER*2;
+		if (!empty($users_selected)) $params[] = implode(',', $users_selected);
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, $params);
 
 		$html = '<select multiple="multiple" name="'.$name.'" size="'.$size.'" tabindex="'.$tabindex.'">';

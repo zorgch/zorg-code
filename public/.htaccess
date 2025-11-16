@@ -15,9 +15,11 @@ ErrorDocument 500 /error_static.html
 	RewriteRule smarty.php / [R=301,QSA,NC,NE,L]
 
 	# Pretty URL for User Profile page
+	# Redirect /user/X to /profil.php?user_id=X (preserve other params)
 	# https://httpd.apache.org/docs/trunk/rewrite/remapping.html#rewrite-query
-	RewriteCond %{QUERY_STRING} user_id=([0-9]+)
-	RewriteRule profil.php /user/%1 [R=301,QSA,L]
+	RewriteRule ^user/([^/]+)/?$ /profil.php?user_id=$1 [R=301,QSA,NC,L]
+	# Redirect /user to /profil.php (preserve query params)
+	RewriteRule ^user/?$ /profil.php [R=301,QSA,NC,L]
 
 	# Pretty URL for Bugtracker Bug pages
 	RewriteCond %{QUERY_STRING} bug_id=([0-9]+)

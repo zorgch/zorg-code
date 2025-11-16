@@ -124,8 +124,14 @@ class Notification
 					/** Validate $content for $notification_type 'message' */
 					if (!empty($content['message']) && !is_numeric($content['message']) && !is_array($content['message']))
 					{
+						/** If $notification_source is 'messagesystem' add some more Context for Telegram */
+						if ($notification_source === 'messagesystem')
+						{
+							$zMessageSenderName = (isset($content['from_user_id']) ? $user->id2user($content['from_user_id'], true) : 'someone');
+							$content['subject'] = sprintf('<blockquote>zorg Message from %s</blockquote>\n%s', $zMessageSenderName, $content['subject']);
+						}
 						/** Send notification */
-						$content['parameters'] = ['disable_web_page_preview' => 'false']; // TODO TEMP - REMOVE LATER! / Re-enabled because don't know why disabled... [17.01.2024/IneX]
+						$content['parameters'] = ['disable_web_page_preview' => 'false'];
 						if (isset($content['subject']) && !empty($content['subject'])) $content['message'] = $content['subject'].': '.$content['message']; // Merge Subject + Message
 						$telegram->send->message($user_id, $content['message'], $content['parameters']);
 					} else {

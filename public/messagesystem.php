@@ -65,11 +65,14 @@ if ($user->is_loggedin())
 			}
 
 			$html .= '<br />';
+			$preselect_to_users = [];
+			if (intval($messageDetails['from_user_id']) === $user->id) $preselect_to_users = $messageDetails['to_users'];
+			else $preselect_to_users[] = intval($messageDetails['from_user_id']);
 			$html .= Messagesystem::getFormSend(
-						array(intval($messageDetails['from_user_id']))
-						, $subject, '> '.str_replace("\n", "\n> "
-						, $messageDetails['text'])
-						, $messageId
+						 $preselect_to_users
+						,$subject, '> '.str_replace("\n", "\n> "
+						,$messageDetails['text'])
+						,$messageId
 					);
 		}
 		/** User darf diese Nachricht nicht lesen (weil es nicht seine ist, doh!) */

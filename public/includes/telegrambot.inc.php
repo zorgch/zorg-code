@@ -100,7 +100,7 @@ class Telegram
 		if (isset($botconfigs) && is_array($botconfigs))
 		{
 			/** Get the corresponding Telegram Chat-ID */
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $userScope: %s', __METHOD__, __LINE__, $userScope));
+			zorgDebugger::log()->debug('$userScope: %s', [$userScope]);
 			switch ($userScope)
 			{
 				/** USER: If $userScope = User-ID: get the Telegram Chat-ID */
@@ -125,7 +125,7 @@ class Telegram
 			/** When we got a Telegram Chat-ID... */
 			if (!empty($telegramChatId))
 			{
-				if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> found Telegram Chat-ID: %s', __METHOD__, __LINE__, $telegramChatId));
+				zorgDebugger::log()->debug('Found Telegram Chat-ID: %s', [$telegramChatId]);
 
 				/** Build API Call */
 				$parameters = array_merge( $content, [ 'chat_id' => $telegramChatId ] );
@@ -262,13 +262,13 @@ class Telegram
 		/**
 		 * Strip away all HTML-tags & unix line breaks
 		 * Except from the whitelist:
-		 * <b>, <strong>, <i>, <em>, <a>, <code>, <pre>
+		 * <a>, <b>, <blockquote>, <code>, <em>, <i>, <pre>, <strong>
 		 * -> However: "Tags must not be nested"!
 		 */
 		$notificationText = stripslashes($notificationText); // remove escaping slashes
 		$notificationText = str_replace(array('&nbsp;', '  '), ' ', $notificationText); // spaces
 		$notificationText = str_replace(array("\r\n", "\r\n ", "\r", "\r ", "\n "), "\n", $notificationText); // line-breaks
-		$notificationText = remove_html($notificationText, '<b><strong><i><em><a><code><pre>'); // html-tags
+		$notificationText = remove_html($notificationText, '<b><strong><i><em><a><code><pre><blockquote>'); // html-tags
 
 		/**
 		 * Cleanup nested HTML-Tags, e.g. <a ...><i>text</i></a>

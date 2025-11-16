@@ -27,7 +27,7 @@ if (!empty(key($_GET)))
 	switch ($routeSwitch)
 	{
 		/** Route: /user/[user-id|username] */
-		case 'username':
+		case 'user_id':
 			$getUserId = ( is_numeric($routeValue) ? $routeValue : $user->user2id($routeValue) );
 			if (!empty($getUserId)) {
 				$_GET['user_id'] = $getUserId;

@@ -47,11 +47,12 @@ class Messagesystem
 	 *
 	 * Controller für diverse Message Actions
 	 *
-	 * @version 2.2
+	 * @version 2.3
 	 * @since 1.0 `[z]milamber` method added
 	 * @since 2.0 `IneX` code optimizations
 	 * @since 2.1 `04.04.2021` `IneX` fixed wrong check if own message, and PHP Deprecated: Non-static method Messagesystem::sendMessage()
 	 * @since 2.2 `04.12.2024` `IneX` fixed passing NULL to htmlspecialchars_decode() stringg parameter is deprecated
+	 * @since 2.3 `15.11.2025` `IneX` Code hardenings
 	 *
 	 * @uses BARBARA_HARRIS
 	 * @uses Messagesystem::sendMessage()
@@ -64,7 +65,7 @@ class Messagesystem
 		global $user;
 
 		/** Validate parameters */
-		$doAction = filter_var($doAction, FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?? null;
+		$doAction = filter_var($doAction, FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
 		zorgDebugger::log()->debug('$doAction: %s', [$doAction]);
 		if (isset($_POST['message_id']) && is_array($_POST['message_id'])) { // $_POST['message_id'] (multiple)
 			$i=0;
@@ -78,7 +79,7 @@ class Messagesystem
 		$deleteMessageId = filter_input(INPUT_POST, 'delete_message_id', FILTER_VALIDATE_INT) ?? null; // $_POST['delete_message_id']
 		$msgSubject = htmlspecialchars_decode(filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?: '', ENT_COMPAT | ENT_SUBSTITUTE);
 		$msgText = htmlspecialchars_decode(filter_input(INPUT_POST, 'text', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?: '', ENT_COMPAT | ENT_SUBSTITUTE);
-		$headerLocation = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_FULL_SPECIAL_CHARS)) ?? sprintf('%s/user/%d?box=inbox', SITE_URL, $user->id);
+		$headerLocation = base64url_decode(filter_input(INPUT_POST, 'url', FILTER_SANITIZE_ENCODED)) ?? sprintf('%s/user/%d?box=inbox', SITE_URL, $user->id);
 		zorgDebugger::log()->debug('header() Location: %s', [$headerLocation]);
 
 		if($doAction === 'sendmessage')
@@ -206,7 +207,7 @@ class Messagesystem
 	 * @param integer $deleter_userid User-ID welcher die Nachricht(en) löscht
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 */
-	function deleteMessage($messageid, $deleter_userid)
+	static function deleteMessage($messageid, $deleter_userid)
 	{
 		global $db;
 
@@ -328,12 +329,9 @@ class Messagesystem
 	 *
 	 * Baut das HTML-Formular um eine neue Nachrichten zu versenden
 	 *
-	 * @author [z]milamber
-	 * @author IneX
-	 * @date 23.06.2018
 	 * @version 2.0
-	 * @since 1.0 initial method release
-	 * @since 2.0 frontend is now a template - as it should be
+	 * @since 1.0 `[z]milamber`initial method release
+	 * @since 2.0 `23.06.2018` `IneX` frontend is now a template - as it should be
 	 *
 	 * @param string $to_users Alle Empfänger der Nachricht
 	 * @param string $subject Titel der Nachricht
@@ -348,11 +346,11 @@ class Messagesystem
 		global $user, $smarty;
 
 		$smarty->assign('form_action', base64url_decode(getURL()));
-		$smarty->assign('form_url', getURL());
+		$smarty->assign('form_url', base64url_encode('/profil.php?user_id='.strval($user->id).'&box=outbox'));
 		$smarty->assign('subject', $subject);
 		$smarty->assign('text', $text);
 		$smarty->assign('userlist', $user->getFormFieldUserlist('to_users[]', 15, $to_users, 4));
-		$smarty->assign('backlink_url', '/user/'.$user->id.'?box=inbox');
+		$smarty->assign('backlink_url', '/profil.php?user_id='.strval($user->id).'&box=inbox');
 		$smarty->assign('delete_message_id', $delete_message_id);
 
 		return $smarty->fetch('file:layout/partials/messages/messages_send.tpl');
@@ -632,7 +630,7 @@ class Messagesystem
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @return boolean	Returns true or false, depening on the susccessful execution
 	 */
-	function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
+	static function sendMessage($from_user_id, $owner, $subject, $text='', $to_users='', $isread='0')
 	{
 		global $db, $notification;
 

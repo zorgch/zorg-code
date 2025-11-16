@@ -4,35 +4,35 @@
 	<strong>Ausgew&auml;hlte Nachricht wurde gel&ouml;scht</strong>
 </div>
 {/if}
-<form name="inboxform" method="POST" action="{$form_action}">
+<style>
+	table .messages > tbody > tr:nth-child(odd){ldelim}background-color:{$smarty.const.TABLEBACKGROUNDCOLOR}{rdelim}
+	table .messages > tbody > .new{ldelim}background-color:{$smarty.const.NEWCOMMENTCOLOR} !important{rdelim}
+	table .messages > tbody > .my{ldelim}background-color:{$smarty.const.OWNCOMMENTCOLOR} !important{rdelim}
+</style>
+<table class="border messages" width="100%">{assign var="cols_total" value=5}
+	<thead>
+		<tr>
+			<th align="right" colspan="{$cols_total-2}">
+				<h3>{if $box == 'inbox'}
+					Empfangen / <a href="{get_changed_url change="box=outbox&user_id=`$user->id`"}">Gesendet</a>
+				{elseif $box == 'outbox'}
+					<a href="{get_changed_url change="box=inbox&user_id=`$user->id`"}">Empfangen</a> / Gesendet
+				{/if}</h3>
+			</th>
+			<th align="right" colspan="{$cols_total-3}">
+				<a href="/profil.php?do=newmsg&user_id={$user->id}"><button class="button primary" name="button_newMessage" style="float:right;">Neue Nachricht</button></a>
+			</th>
+		</tr>
+		<tr>
+			<th style="width:5%"><input class="button" onClick="selectAllMessages();" type="button" value="Alle"></th>
+			<th style="width:20%"><a href="{get_changed_url change="sort=date&order=asc"}">Datum</a></th>
+			<th style="width:35%;text-align:left;"><a href="{get_changed_url change="sort=subject"}">Message</a></th>
+			<th style="width:15%"><a href="{get_changed_url change="sort=from_user_id"}">Sender</a></th>
+			<th style="width:25%">Empf&auml;nger</th>
+		</tr>
+	</thead>
+	<form name="inboxform" method="POST" action="{$form_action}">
 	<input type="hidden" name="url" value="{$form_url}">
-	<style>
-		table .messages > tbody > tr:nth-child(odd){ldelim}background-color:{$smarty.const.TABLEBACKGROUNDCOLOR}{rdelim}
-		table .messages > tbody > .new{ldelim}background-color:{$smarty.const.NEWCOMMENTCOLOR} !important{rdelim}
-		table .messages > tbody > .my{ldelim}background-color:{$smarty.const.OWNCOMMENTCOLOR} !important{rdelim}
-	</style>
-	<table class="border messages" width="100%">{assign var="cols_total" value=5}
-		<thead>
-			<tr>
-				<th align="right" colspan="{$cols_total-2}">
-					<h3>{if $box == 'inbox'}
-						Empfangen / <a href="{get_changed_url change='box=outbox'}">Gesendet</a>
-					{elseif $box == 'outbox'}
-						<a href="{get_changed_url change='box=inbox'}">Empfangen</a> / Gesendet
-					{/if}</h3>
-				</th>
-				<th align="right" colspan="{$cols_total-3}">
-					<a href="{get_changed_url change="do=newmsg"}{*$newmsg_url*}"><button class="button primary" name="button_newMessage" style="float:right;">Neue Nachricht</button></a>
-				</th>
-			</tr>
-			<tr>
-				<th style="width:5%"><input class="button" onClick="selectAllMessages();" type="button" value="Alle"></th>
-				<th style="width:20%"><a href="{get_changed_url change="sort=date&order=asc"}">Datum</a></th>
-				<th style="width:35%;text-align:left;"><a href="{get_changed_url change="sort=subject"}">Message</a></th>
-				<th style="width:15%"><a href="{get_changed_url change="sort=from_user_id"}">Sender</a></th>
-				<th style="width:25%">Empf&auml;nger</th>
-			</tr>
-		</thead>
 		<tbody>
 		{section name='message' loop=$messages}
 			<tr {if $messages[message].isread == 0}class="new"{elseif $messages[message].from_user_id == $user->id}class="my"{/if}>
@@ -89,5 +89,5 @@
 				</td>
 			</tr>
 		</tfoot>
-	</table>
-</form>
+	</form>
+</table>
