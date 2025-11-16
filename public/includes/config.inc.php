@@ -116,22 +116,30 @@ if (true === $isDevelopmentEnv && true === file_exists(__DIR__.'/development.con
 $isSecure = false;
 switch(true)
 {
-	case !empty($_SERVER['HTTP_X_FORWARDED_PROTO']):
+	case isset($_SERVER['X-Forwarded-Proto']):
+		$isSecure = ($_SERVER['X-Forwarded-Proto'] === 'https'); break;
+	case isset($_SERVER['HTTP_X_FORWARDED_PROTO']):
 		$isSecure = ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'); break;
-	case !empty($_SERVER['HTTP_X_FORWARDED_SSL']):
+	case isset($_SERVER['HTTP_X_FORWARDED_SSL']):
 		$isSecure = ($_SERVER['HTTP_X_FORWARDED_SSL'] === 'on'); break;
-	case !empty($_SERVER['HTTPS']):
+	case isset($_SERVER['HTTPS']):
 		$isSecure = ($_SERVER['HTTPS'] === 'on'); break;
 }
 if (!defined('SITE_PROTOCOL')) define('SITE_PROTOCOL', (false === $isSecure ? 'http' : 'https'));
 
 $httpHost = null;
-if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-	$httpHost = $_SERVER['HTTP_X_FORWARDED_HOST'];
-} elseif (isset($_SERVER['HTTP_HOST'])) {
-	$httpHost = $_SERVER['HTTP_HOST'];
-} elseif (isset($_ENV['HOSTNAME'])) {
-	$httpHost = $_ENV['HOSTNAME'];
+switch(true)
+{
+	case isset($_SERVER['X-Forwarded-Host']):
+		$httpHost = $_SERVER['X-Forwarded-Host']; break;
+	case isset($_SERVER['HTTP_X_FORWARDED_HOST']):
+		$httpHost = $_SERVER['HTTP_X_FORWARDED_HOST']; break;
+	case isset($_SERVER['HTTP_HOST']):
+		$httpHost = $_SERVER['HTTP_HOST']; break;
+	case isset($_ENV['HOSTNAME']):
+		$httpHost = $_ENV['HOSTNAME']; break;
+	default:
+		error_log(sprintf('[WARN] <%s:%d> $httpHost: UNDEFINED', __FILE__, __LINE__));
 }
 if (!defined('SITE_HOSTNAME')) define('SITE_HOSTNAME', $httpHost);
 if (!defined('SITE_URL')) define('SITE_URL', SITE_PROTOCOL . '://' . SITE_HOSTNAME);

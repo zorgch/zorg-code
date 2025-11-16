@@ -176,10 +176,20 @@ function get_spaceweather()
 	}
 }
 
-
+/**
+ * Spaceweather Daten
+ *
+ * @version 2.0
+ * @since 1.0 method added
+ * @since 2.0 `15.11.2025` `IneX` Code hardening (Notices: undefined index)
+ *
+ * @global object $db Globales Class-Object mit allen MySQL-Methoden
+ * @return array Array mit allen vorhandenen Spaceweather-Datenpunkten
+ */
 function spaceweather_ticker() {
 	global $db;
 
+	$sw = [];
 	$add['solarwind_speed'][0] = "Solarwind";
 	$add['solarwind_speed'][1] = "km/s";
 	$add['solarwind_density'][0] = "Solarwind Dichte";
@@ -214,26 +224,27 @@ function spaceweather_ticker() {
 	$add['magstorm_high_severe_48hr'][0] = 0;
 	$add['PHA'][0] = "Potenziell gef&auml;hrliche Asteroiden";
 
-	$sql = 'SELECT * FROM spaceweather';
-	$query = $db->query($sql,__LINE__,__FILE__,__FUNCTION__);
-	if ($db->num($query) > 0)
+	$query = $db->query('SELECT * FROM spaceweather', __LINE__, __FILE__, __FUNCTION__);
+	if (!empty($db->num($query)))
 	{
-		while($rs = $db->fetch($query)) {
-			if(empty($rs['wert']) || $rs['wert'] === '') {
-				$rs['wert'] = 'unbekannt';
-			}
-			if(isset($add[$rs['name']]) && !empty($add[$rs['name']][0]))
-			{
-				zorgDebugger::log()->debug('$rs[name]=%s exists, value: %s', [$add[$rs['name']][0], (isset($add[$rs['name']][1]) ? $add[$rs['name']][1] : 'null')]);
-				$sw[] = [ 'type' => $add[$rs['name']][0], 'value' => $rs['wert'].(isset($add[$rs['name']][1]) ? " ".$add[$rs['name']][1] : '') ];
-			}
-		}
+		while($rs = $db->fetch($query))
+		{
+			$attr = strval($rs['name']);
+			$value = intval($rs['wert']);
 
-		if (is_array($sw)) {
-			shuffle($sw); // Randomize Speachweather infos
+			if (empty($value)) $attr = 'unbekannt';
+
+			if (isset($add[$attr]) && !empty($add[$attr][0]))
+			{
+				$value_ext = strval($value.(isset($add[$attr][1]) ? ' '.$add[$attr][1] : ''));
+				zorgDebugger::log()->debug('$rs[name]=%s exists, value: %s', [$add[$attr][0], $value_ext]);
+				$sw[] = [
+							'type' => $add[$attr][0]
+							,'value' => $value_ext
+						];
+			}
 		}
-		return $sw;
-	} else {
-		return null;
 	}
+	shuffle($sw); // Randomize Speachweather infos
+	return $sw;
 }

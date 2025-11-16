@@ -469,7 +469,7 @@ class peter
 
 		$sql = 'SELECT pg.game_id, pg.next_player, pg.players,
 				  (SELECT join_id FROM peter_players WHERE game_id=pp.game_id AND user_id=pg.next_player) join_id
-				FROM peter_players pp LEFT JOIN peter_games pg ON pg.game_id=pp.game_id WHERE pg.status= "?" GROUP BY pg.game_id';
+				FROM peter_players pp LEFT JOIN peter_games pg ON pg.game_id=pp.game_id WHERE pg.status=? GROUP BY pg.game_id';
 		$result = $db->query($sql, __FILE__, __LINE__, __METHOD__, ['lauft']);
 		$runningGames = [];
 
@@ -1278,15 +1278,16 @@ class peter
 	 *
 	 * Gibt das Kartenberg Image komplett zurück
 	 *
-	 * @version 2.2
+	 * @version 2.3
 	 * @since 1.0 Method added
 	 * @since 2.0 `IneX` Code optimizations
 	 * @since 2.1 `18.04.2020` `IneX` Migrate to mysqli_
 	 * @since 2.2 `19.10.2020` `IneX` Optimized SQL-Query and not passing resource to img_kartenberg()
+	 * @since 2.3 `15.11.2024` `IneX` code improvements
 	 *
 	 * @global object $db Globales Class-Object mit allen MySQL-Methoden
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
-	 * @return resource img_handle
+	 * @return resource A resource / \GdImage instance
 	 */
 	function kartenberg()
 	{
@@ -1303,7 +1304,7 @@ class peter
 			{
 				$usernameToPrint = $user->id2user($rs['user_id']);
 				if ($i === 0) $img = $this->img_kartenberg($usernameToPrint, $rs['card_id'], 'create', 1);
-				else $img = $this->img_kartenberg($usernameToPrint, $rs['card_id'], 'add', $i, $img);
+				else $img = $this->img_kartenberg($usernameToPrint, $rs['card_id'], 'add', $i);
 				$i++;
 			}
 			$db->seek($result, 0);
@@ -1331,23 +1332,24 @@ class peter
 	 *
 	 * Generiert die Kartenberge, legt ein Bild auf ein anderes
 	 *
-	 * @version 2.0
+	 * @version 2.1
 	 * @since 1.0 method added
 	 * @since 1.1 `14.10.2020` `IneX` fixed non well formed numeric values & invalid characters passed
 	 * @since 2.0 `19.10.2020` `IneX` fixed imagesx() expects parameter 1 to be resource (removed passing of $old_img)
+	 * @since 2.1 `15.11.2024` `IneX` code improvements
 	 *
 	 * @return resource
 	 * @param string $textToPlot Text (Username) der auf die Karte geschrieben werden soll
 	 * @param int $card_id Card-ID
 	 * @param string $mode Supported values: 'create' (früher 1) | 'add' (früher 2)
 	 * @param int $depth
-	 * @param resource $img_input (Optional) Existing image resource (for width calculations of new)
+	 * @param \GdImage $img_input (Optional) Existing image resource (for width calculations of new)
 	 */
 	function img_kartenberg($textToPlot, $card_id, $mode='add', $depth=0, $img_input=null)
 	{
-		global $db, $new_y_pos;
+		global $new_y_pos;
 
-		if (!empty($img_input) && is_resource($img_input))
+		if (!empty($img_input) && (is_resource($img_input) || $img_input instanceof \GdImage))
 		{
 			if(imagesx($img_input) > 600) $xx = 90;
 			else $xx = 50;

@@ -25,7 +25,7 @@ function dream_add_form()
     '<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
     .'<input type="hidden" name="do" value="add_dream">'
 
-    ."<table width=\"$mainwidth\"><tr><td align=\"left\" class=\"title\">"
+    ."<table><tr><td align=\"left\" class=\"title\">"
     ."<h2>Add Dream</h2>"
     ."</td></tr></table>"
     ."<br/>"

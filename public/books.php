@@ -466,13 +466,11 @@ elseif ($doAction === 'edit' && $user->is_loggedin())
 		$result = $db->query($sql, __FILE__, __LINE__, 'SELECT FROM books', [$book_id]);
 		$rs = $db->fetch($result);
 
-		echo "<form action='".htmlspecialchars($_SERVER['PHP_SELF'])."' method='post' enctype='multipart/form-data'>"
+		echo '<h2>Edit Boook</h2>'
+			.'<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
 			.'<input type="hidden" name="do" value="edit_now">'
-			.'<input type="hidden" name="book_id" value="'.$rs["id"].'">'
+			.'<input type="hidden" name="book_id" value="'.$rs['id'].'">'
 
-			."<table width=\"$mainwidth\"><tr><td align=\"left\" class=\"title\">"
-			."Edit Boook"
-			."</td></tr></table>"
 			."<br/>"
 			."<table cellpadding=\"1\" cellspacing=\"1\" width=\"500\" class=\"border\" align=\"center\">"
 			."<tr><td align=\"left\" style=\"font-weight: 600;\">"
@@ -565,7 +563,7 @@ elseif ($doAction === 'add' && $user->is_loggedin())
 		.'<form action="'.htmlspecialchars($_SERVER['PHP_SELF']).'" method="post" enctype="multipart/form-data">'
 		.'<input type="hidden" name="do" value="add_now">'
 
-		.'<table width="'.$mainwidth.'"><tr><td align="left" class="title">'
+		.'<table><tr><td align="left" class="title">'
 		."</td></tr></table>"
 		."<br/>"
 		."<table cellpadding=\"1\" cellspacing=\"1\" width=\"500\" class=\"border\" align=\"center\">"

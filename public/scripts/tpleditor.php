@@ -38,6 +38,8 @@ if ($tpl_id !== 'new' && intval($tpl_id) > 0)
 		$templatesQuerySql = 'SELECT *, UNIX_TIMESTAMP(created) created, UNIX_TIMESTAMP(last_update) last_update FROM templates WHERE id=?';
 		$templatesQuery = $db->query($templatesQuerySql, __FILE__, __LINE__, 'SELECT FROM templates', [$tpl_id]);
 		$templateData = $db->fetch($templatesQuery);
+		$templateData['menus'] = [];
+		$templateData['packages'] = [];
 
 		if ($templateData && !$vars['tpleditor_frm'])
 		{
