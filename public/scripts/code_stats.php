@@ -1,11 +1,12 @@
 <?php
 /**
  * zorg Code Stats
+ *
  * @package zorg\Code
  */
 global $smarty, $user, $FORBIDDEN_DIRS;
 
-$FORBIDDEN_DIRS = array('.', '..', 'smartylib', 'phpmyadmin', 'phpmyadmin.old', 'phpmyadmin_old');
+$FORBIDDEN_DIRS = ['.', '..', 'smartylib', 'migration', 'vendor', basename(FILES_DIR), basename(GALLERY_DIR), basename(PHP_IMAGES_DIR)];
 
 
 // code stats
@@ -15,9 +16,10 @@ $stats['avg_size'] = round($stats['size'] / $stats['files']);
 $stats['avg_lines'] = round($stats['lines'] / $stats['files']);
 $smarty->assign("code_stats", $stats);
 
-
-function code_stats ($dir) {
+function code_stats ($dir)
+{
 	global $FORBIDDEN_DIRS;
+
 	$ret = array('files'=>0, 'size'=>0, 'lines'=>0);
 
 	$hdir = opendir($dir);
@@ -41,13 +43,20 @@ function code_stats ($dir) {
 
 
 // suche im code
-if ($_POST['formid'] == 127 && $_POST['query'] && $user->typ == USER_MEMBER) {
-	$smarty->assign("search_performed", 1);
-	$smarty->assign("search_query", $_POST['query']);
-	$smarty->assign("search_results", search_code($_POST['query']));
+if ($user->is_loggedin() && $user->typ >= USER_MEMBER)
+{
+	$form = strval(filter_input(INPUT_POST, 'formid', FILTER_SANITIZE_SPECIAL_CHARS) ?? 127);
+	$search = filter_input(INPUT_POST, 'query', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+	if (isset($form) && !empty($search))
+	{
+		$smarty->assign("search_performed", 1);
+		$smarty->assign("search_query", $search);
+		$smarty->assign("search_results", search_code($search));
+	}
 }
 
-function search_code ($query, $dir='') {
+function search_code ($query, $dir='')
+{
 	global $FORBIDDEN_DIRS;
 
 	$ret = array();
