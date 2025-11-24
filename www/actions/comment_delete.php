@@ -55,9 +55,18 @@ $sql =
 $db->query($sql, __FILE__, __LINE__);  	
 
 
-// parent neu kompilieren
+// parent neu kompilieren => replaced with cache clearing
+// @since 24.11.2024 Using new caching system instead of recompiling
 if($rs['board'] != 'f' || $rs['parent_id'] > 1) {
-	Comment::compile_template($rs['thread_id'], $rs['parent_id'], $rs['board']);
+	require_once INCLUDES_DIR.'comments_cache.inc.php';
+	// Clear cache for the deleted comment and its parent
+	CommentsCache::clearCommentCache($_POST['id'], $rs['board'], $smarty);
+	CommentsCache::clearCommentCache($rs['parent_id'], $rs['board'], $smarty);
+	
+	if (DEVELOPMENT) {
+		error_log(sprintf('[DEBUG] <%s:%d> Cleared caches after deleting comment %d (parent: %d, board: %s)', 
+			__FILE__, __LINE__, $_POST['id'], $rs['parent_id'], $rs['board']));
+	}
 }
 
 // todo: wenns ein thread war, redirecten auf die Übersicht oder Startseite

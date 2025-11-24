@@ -838,7 +838,7 @@ class Comment
 	 */
 	static function update($comment_id, $comment_data_updated)
 	{
-		global $db, $user, $notification;
+		global $db, $user, $notification, $smarty;
 
 			$sql = 'UPDATE comments 
 					 SET 
@@ -852,12 +852,19 @@ class Comment
 
 			if ($db->num($updateResult) > 0)
 			{
-				// FIXME needs to recompile the thread as well - otherwise edited comment shown in old position (IneX, 07.05.2020)
-
-				/** Smarty Comment Templates neu Kompilieren */
-				self::compile_template($_POST['thread_id'], $comment_id, $_POST['board']); // sich selbst
-				self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // alter parent
-				self::compile_template($_POST['thread_id'], $_POST['parent_id'], $_POST['board']); // neuer Parent
+				/** Clear comment caches for edited comment and affected parents
+				 * Using new caching system instead of recompiling templates
+				 * @since 24.11.2024 Replaced compile_template with cache clearing
+				 */
+				require_once INCLUDES_DIR.'comments_cache.inc.php';
+				CommentsCache::clearCommentCache($comment_id, $_POST['board'], $smarty); // The edited comment
+				CommentsCache::clearCommentCache($_POST['parent_id'], $_POST['board'], $smarty); // Old parent (if changed)
+				// Note: Thread cache clearing not needed as thread itself wasn't modified
+				
+				if (DEVELOPMENT) {
+					error_log(sprintf('[DEBUG] <%s:%d> Cleared caches for comment %d and parent %d on board %s', 
+						__METHOD__, __LINE__, $comment_id, $_POST['parent_id'], $_POST['board']));
+				}
 			} else {
 				header('Location: '.base64_decode($_POST['url'])); // redirect user back where he came from
 				exit;

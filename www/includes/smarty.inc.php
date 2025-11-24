@@ -725,11 +725,12 @@ class Smarty_Resource_Comments extends Smarty_Resource_Custom
 	 *
 	 * @author [z]biko
 	 * @author IneX
-	 * @version 3.0
+	 * @version 4.0
 	 * @since 1.0 `[z]biko` function added
 	 * @since 2.0 `26.10.2018` `IneX` various optimizations, structured html (schema.org)
 	 * @since 2.1 `22.01.2020` `IneX` Fix sizeof() to only be called when variable is an array, and therefore guarantee it's Countable (eliminating parsing warnings)
 	 * @since 3.0 `09.05.2020` `IneX` Moved funtion to new Class, renamed "smartyresource_comments_get_template" to "fetch" for compatibility with Smarty 3
+	 * @since 4.0 `24.11.2024` `Copilot` Updated to use new caching-based rendering system instead of custom compiler
 	 *
 	 * @param string $tpl_name Smarty Template Name
 	 * @param string $tpl_source Pass by reference: Smarty Template-Source (Template content)
@@ -738,8 +739,7 @@ class Smarty_Resource_Comments extends Smarty_Resource_Custom
 	 * @global object $user Globales Class-Object mit den User-Methoden & Variablen
 	 * @uses Comment::isThread() Used to check and - if true - assign self::$comment_thread_id
 	 * @uses usersystem::is_loggedin() Used to check and assign a true/false bool to self::$user_is_loggedin
-	 * @uses show_comment_forumthread()
-	 * @uses show_comment_thread()
+	 * @uses render_comment_tree() New caching-based rendering function
 	 * @return callable
 	 */
 	protected function fetch($tpl_name, &$tpl_source, &$mtime)
@@ -750,15 +750,18 @@ class Smarty_Resource_Comments extends Smarty_Resource_Custom
 		$boardkey_and_commentid = explode('-', $tpl_name);
 
 		/** Store Board and Comment-ID for futher usage in Class */
-		$this->board_key = (sizeof($boardkey_and_commentid) === 2 ? (string)$boardkey_and_commentid[0] : null);
+		$this->board_key = (sizeof($boardkey_and_commentid) === 2 ? (string)$boardkey_and_commentid[0] : 'f');
 		$this->comment_id = (sizeof($boardkey_and_commentid) === 2 ? (is_numeric($boardkey_and_commentid[1]) && $boardkey_and_commentid[1] > 0 ? (integer)$boardkey_and_commentid[1] : null) : (integer)$boardkey_and_commentid[0]);
 		$this->user_is_loggedin = $user->is_loggedin();
 		$this->current_user_id = ($this->user_is_loggedin === true ? $user->id : null);
 
-		/** Comment als Tree holen */
-		if (!empty($this->board_key) && !empty($this->comment_id))
+		/** Comment als Tree holen - using new caching-based approach */
+		if (!empty($this->comment_id) && $this->comment_id > 0)
 		{
-			$tpl_source = sprintf('{show_comments comment_id=%d board=%s}', $this->comment_id, $this->board_key); // smartyresource_comments_get_childposts
+			// Use new rendering system with caching
+			// Note: We still use Smarty function call format for backward compatibility
+			// but the actual rendering uses the new caching system
+			$tpl_source = sprintf('{render_comment_tree_cached comment_id=%d board="%s"}', $this->comment_id, $this->board_key);
 			$mtime = $this->fetchTimestamp($this->comment_id);
 		}
 		/** Missing or invalid Board or Comment-ID */
@@ -1222,6 +1225,13 @@ $smarty->registerResource('word', new Smarty_Resource_Word());
 $smarty->registerResource('comments', new Smarty_Resource_Comments());
 $smarty->registerPlugin('function', 'show_comments', 'show_comments_tree');
 $smarty->registerPlugin('function', 'show_comment', 'show_comment');
+
+/**
+ * Include new caching-based comment rendering system
+ * @since 24.11.2024 Added for Smarty 3.x compatibility and performance improvement
+ */
+require_once INCLUDES_DIR.'comments_render.inc.php';
+$smarty->registerPlugin('function', 'render_comment_tree_cached', 'render_comment_tree_smarty_wrapper');
 
 /**
  * This tells smarty what resource type to use implicitly.
