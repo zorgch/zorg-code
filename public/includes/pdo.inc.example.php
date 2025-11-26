@@ -4,10 +4,10 @@ require_once __DIR__.'/config.inc.php';
 
 class Database
 {
-    private $host   = $_ENV['MYSQL_HOST'];
-    private $user   = $_ENV['MYSQL_USER'];
-    private $pass   = $_ENV['MYSQL_PASSWORD'];
-    private $dbname = $_ENV['MYSQL_DATABASE'];
+    private $host;
+    private $user;
+    private $pass;
+    private $dbname;
 
     private $dbh;
     private $error;
@@ -16,6 +16,11 @@ class Database
 
     public function __construct()
     {
+		$this->host   = $_ENV['MYSQL_HOST'];
+        $this->user   = $_ENV['MYSQL_USER'];
+        $this->pass   = $_ENV['MYSQL_PASSWORD'];
+        $this->dbname = $_ENV['MYSQL_DATABASE'];
+
         // Set DSN
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         // Set options
@@ -24,13 +29,13 @@ class Database
             PDO::ATTR_ERRMODE       => PDO::ERRMODE_EXCEPTION
         );
         //Create a new PDO instance
-        try {
+        // try {
             $this->dbh = new PDO($dsn, $this->user, $this->pass, $options);
-        }
+        // }
         // Catch any errors
-        catch(PDOException $e) {
-            $this->error = $e->getMessage();
-        }
+        // catch(PDOException $e) {
+        //     $this->error = $e->getMessage();
+        // }
     }
 
     public function query($query)

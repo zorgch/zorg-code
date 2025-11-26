@@ -95,7 +95,7 @@ function mkdirErrorHandler($errno, $errmsg, $errfile, $errline) {
 if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 {
 	/** Check if Upload Directory for Gallery exists */
-	$upload_dirpath = GALLERY_UPLOAD_DIR.(string)$gallery_id;
+	$upload_dirpath = rtrim(GALLERY_UPLOAD_DIR, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.strval($gallery_id);
 	if (!is_dir($upload_dirpath))
 	{
 		set_error_handler('mkdirErrorHandler');
@@ -112,7 +112,7 @@ if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 		exit('compromised');
 	} else {
 		/** Iterate Filename if File with same name already exists in Upload Dir */
-		$upload_filepath = $upload_dirpath.'/'.$sourcefile['name'];
+		$upload_filepath = $upload_dirpath.DIRECTORY_SEPARATOR.$sourcefile['name'];
 		if (is_file($upload_filepath))
 		{
 			/** File with same name already exists - iterate up */

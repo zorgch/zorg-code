@@ -1379,44 +1379,47 @@ function delDir ($dir) {
 /**
  * Create a z-Gallery ready Imagefile
  *
- * @author [z]deep
- * @author IneX
- * @version 4.0
- * @since 1.0 function added
- * @since 2.0 updated pathes
- * @since 3.0 major overhaul - added better error handling, added debugging infos
- * @since 4.0 added support for PNG image file types
+ * @version 5.0
+ * @since 1.0 `[z]deep` function added
+ * @since 2.0 `IneX` updated pathes
+ * @since 3.0 `IneX` major overhaul - added better error handling, added debugging infos
+ * @since 4.0 `IneX` added support for PNG image file types
+ * @since 5.0 `26.11.2025` `IneX` added conversion support between different $srcFile -> $dstFile types
  *
  * @uses extension()
- * @FIXME getImageSize() funktioniert nicht mit .gif-Files
+ * @param string $srcFile Path to the image used as source / original
+ * @param string $dstFile Path to where the transformed/created image shall be stored to
+ * @param string $maxWidth The preferred maximum width of $dstFile image (no letterboxing when $bgcolor=null)
+ * @param string $maxHeight The preferred maximum height of $dstFile image (no letterboxing when $bgcolor=null)
+ * @param null|array $bgcolor If omitted (default) the $dstFile will just be resized using original aspect-ratio; when set it will be letterboxed with the provided rgb(0,0,0)
+ * @return array|null FALSE on any error; otherwise an array('width'=>X, 'height'=>X) containing the $dstFile dimensions
  */
-function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
+function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=null)
 {
 	// errors
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> createPic(): %s, %s, %s, %s, %s', __FUNCTION__, __LINE__, $srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor));
+	zorgDebugger::log()->debug('%s, %s, %s, %s, %s', [$srcFile, $dstFile, $maxWidth, $maxHeight, print_r($bgcolor,true)]);
 	if (!isPic($srcFile)) {
-		error_log(sprintf('<%s:%d> Wrong File Type: %s', __FUNCTION__, __LINE__, $srcFile));
-		return false;
-	}
-	if (extension($srcFile) != extension($dstFile)) {
-		error_log(sprintf('<%s:%d> Source- and Destination-Files have mismatching File Types: %s vs. %s', __FUNCTION__, __LINE__, $srcFile, $dstFile));
+		zorgDebugger::log()->warn('Wrong File Type: %s', [$srcFile]);
 		return false;
 	}
 	if (empty($maxWidth) || empty($maxHeight) || !is_numeric($maxWidth) || !is_numeric($maxHeight)) {
-		error_log(sprintf('<%s:%d> Wrong Max Width/Height: %s x %s', __FUNCTION__, __LINE__, (empty($maxWidth) ? 'null' : $maxWidth), (empty($maxHeight) ? 'null' : $maxHeight) ));
+		zorgDebugger::log()->warn('Wrong Max Width/Height: %s x %s', [(empty($maxWidth) ? 'null' : $maxWidth), (empty($maxHeight) ? 'null' : $maxHeight)]);
 		return false;
 	}
+	// allow conversion: don't abort on mismatching extensions, just log it (do not return; allow conversion (e.g. PNG -> JPG))
+	if (extension($srcFile) != extension($dstFile)) zorgDebugger::log()->debug('(Conversion needed) Source- and Destination-Files have mismatching File Types: %s vs. %s', [$srcFile, $dstFile]);
 
 	$ext = extension($srcFile);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $ext: %s', __FUNCTION__, __LINE__, $ext));
+	$dstExt = extension($dstFile);
+	zorgDebugger::log()->debug('$ext: %s, $dstExt: %s', [$ext, $dstExt]);
 
 	/** calc new pic size */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> calc new pic size', __FUNCTION__, __LINE__));
-	$img_size = getImageSize($srcFile);
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $img_size: %s', __FUNCTION__, __LINE__, print_r($img_size,true)));
+	zorgDebugger::log()->debug('calc new pic size');
+	$img_size = getImageSize($srcFile); // FIXME getImageSize() funktioniert nicht mit .gif-Files
+	zorgDebugger::log()->debug('$img_size: %s', [print_r($img_size,true)]);
 	if (!$img_size) return array('error'=>'keine Rechte');
 	$width = (int)$img_size[0];
-    $height = (int)$img_size[1];
+	$height = (int)$img_size[1];
 
 	/** Ensure pic size meets max allowed sizes (or rescale using same aspect-ratio) */
 	$picWidth = $width;
@@ -1435,112 +1438,114 @@ function createPic($srcFile, $dstFile, $maxWidth, $maxHeight, $bgcolor=0)
 			$picWidth = $picHeight * $ratio;
 		}
 	}
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $picWidth=%d x $picHeight=%d', __FUNCTION__, __LINE__, $picWidth, $picHeight));
 
 	/** Create new Pic */
-	if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> create new pic', __FUNCTION__, __LINE__));
-	switch ($ext)
+	zorgDebugger::log()->debug('create new pic: $picWidth=%d x $picHeight=%d', [$picWidth, $picHeight]);
+	switch (true)
 	{
-		case '.jpg':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG(): %s', __FUNCTION__, __LINE__, $srcFile));
+		case ($ext === '.jpg' || $ext === '.jpeg'):
+			zorgDebugger::log()->debug('ImageCreateFromJPEG(): %s', [$srcFile]);
 			$src = ImageCreateFromJPEG($srcFile);
-			if ($src === null) {
-				error_log(sprintf('[ERROR] <%s:%d> Bild konnte nicht erzeugt werden', __FUNCTION__, __LINE__));
-				return false;
-			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromJPEG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
 			break;
 
-		case '.gif':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF(): %s', __FUNCTION__, __LINE__, $srcFile));
+		case ($ext === '.gif'):
+			zorgDebugger::log()->debug('ImageCreateFromGIF(): %s', [$srcFile]);
 			$src = ImageCreateFromGIF($srcFile);
-			if ($src === null) {
-				error_log(sprintf('[ERROR] <%s:%d> Bild konnte nicht erzeugt werden', __FUNCTION__, __LINE__));
-				return false;
-			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromGIF: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
 			break;
 
-		case '.png':
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromPNG(): %s', __FUNCTION__, __LINE__, $srcFile));
+		case ($ext === '.png'):
+			zorgDebugger::log()->debug('ImageCreateFromPNG(): %s', [$srcFile]);
 			$src = ImageCreateFromPNG($srcFile);
-			if ($src === null) {
-				error_log(sprintf('[ERROR] <%s:%d> Bild konnte nicht erzeugt werden', __FUNCTION__, __LINE__));
-				return false;
-			}
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> ImageCreateFromPNG: %s', __FUNCTION__, __LINE__, ($src != null ? 'OK' : 'ERROR')));
 			break;
 
 		default:
-			error_log(sprintf('<%s:%d> Wrong File Type', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->warn('Wrong File Type: %s', [$srcFile]);
 			return false;
 			break;
 	}
+	zorgDebugger::log()->debug('ImageCreateFrom%s(): %s', [str_replace('.', '', strtoupper($ext)), ($src != null ? 'OK' : 'ERROR')]);
+	if ($src === null) {
+		zorgDebugger::log()->warn('Bild konnte nicht erzeugt werden: %s', [$srcFile]);
+		return false;
+	}
 
-	/** Modify Pic */
-	if (is_array($bgcolor) && sizeof($bgcolor) == 3)
+	/** Modify Pic : Note only if $bgcolor is provided it will "letterbox" the $dstFile image! */
+	if (is_array($bgcolor) && sizeof($bgcolor) === 3)
 	{
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> $bgcolor: %s', __FUNCTION__, __LINE__, print_r($bgcolor, true)));
+		zorgDebugger::log()->debug('$bgcolor: %s', [print_r($bgcolor, true)]);
 		$dst = ImageCreateTrueColor ($maxWidth, $maxHeight);  // GD 2.0.1
-		//$dst = ImageCreate($picWidth, $picHeight);  			// GD 1.6
 		if (!$dst) {
-			error_log(sprintf('[ERROR] <%s:%d> Bild konnte nicht modifiziert werden', __FUNCTION__, __LINE__));
+			zorgDebugger::log()->warn('Bild konnte nicht modifiziert werden');
 			return false;
 		}
 		$bg = imagecolorallocate($dst, $bgcolor[0], $bgcolor[1], $bgcolor[2]);
+		imagefilledrectangle($dst, 0, 0, $maxWidth, $maxHeight, $bg);
 
 		$x = round(($maxWidth-$picWidth) / 2);
 		$y = round(($maxHeight-$picHeight) / 2);
 
-		if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> imagecopyresized()', __FUNCTION__, __LINE__));
+		zorgDebugger::log()->debug('imagecopyresized()');
 		imagecopyresized($dst, $src, $x,$y,0,0, $picWidth, $picHeight, $width, $height);
 
 		$ret = array('width'=>$maxWidth, 'height'=>$maxHeight);
 	} else {
-		$dst = ImageCreateTrueColor($picWidth, $picHeight); // GD 2.0.1
-		//$dst = ImageCreate($picWidth, $picHeight);  		// GD 1.6
+		$dst = imagecreatetruecolor($picWidth, $picHeight); // GD 2.0.1
 		if (!$dst) return array('error'=>"Bild konnte nicht erzeugt werden");
 
-		if (ImageCopyResampled($dst, $src, 0,0,0,0, $picWidth, $picHeight, $width, $height)) {
-			zorgDebugger::log()->debug('ImageCopyResampled OK');
-		} else {
-			error_log(sprintf('[ERROR] <%s:%d> ImageCopyResampled: %s', __FUNCTION__, __LINE__, $src));
-			return false;
+		// If destination is JPEG, intentionally flatten transparency onto black
+		if ($dstExt === '.jpg' || $dstExt === '.jpeg') {
+		    $bg = imagecolorallocate($dst, 0, 0, 0); // black background by preference
+		    imagefilledrectangle($dst, 0, 0, $picWidth, $picHeight, $bg);
+		}
+		// If producing PNG output, preserve alpha
+		elseif ($dstExt === '.png') {
+		    imagealphablending($dst, false);
+		    imagesavealpha($dst, true);
+		    $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+		    imagefilledrectangle($dst, 0, 0, $picWidth, $picHeight, $transparent);
+		}
+
+		// Perform high-quality resampling
+		if (!imagecopyresampled($dst, $src, 0, 0, 0, 0, $picWidth, $picHeight, $width, $height)) {
+		    zorgDebugger::log()->warn('ImageCopyResampled: %s', [$src]);
+		    imagedestroy($dst);
+		    return false;
 		}
 
 		$ret = array('width'=>$picWidth, 'height'=>$picHeight);
 	}
 
-	switch ($ext) {
-		case '.jpg':
+	// Use destination extension to decide how to save
+	switch (true) {
+		case ($dstExt === '.jpg' || $dstExt === '.jpeg'):
 			zorgDebugger::log()->debug('ImageJPEG($dst, %s)', [$dstFile]);
 			if (!ImageJPEG($dst, $dstFile)) {
-				zorgDebugger::log()->debug('ImageJPEG: $dst => %s', [$dstFile]);
+				zorgDebugger::log()->warn('ImageJPEG: $dst => %s', [$dstFile]);
 				return false;
 			}
 			zorgDebugger::log()->debug('ImageJPEG() OK');
 			break;
 
-		case '.gif':
+		case ($dstExt === '.gif'):
 			zorgDebugger::log()->debug('ImageGIF($dst, %s)', [$dstFile]);
 			if (!ImageGIF($dst, $dstFile)) {
-				zorgDebugger::log()->debug('ImageGIF: $dst => %s', [$dstFile]);
+				zorgDebugger::log()->warn('ImageGIF: $dst => %s', [$dstFile]);
 				return false;
 			}
 			zorgDebugger::log()->debug('ImageGIF() OK');
 			break;
 
-		case '.png':
+		case ($dstExt === '.png'):
 			zorgDebugger::log()->debug('ImagePNG($dst, %s)', [$dstFile]);
 			if (!ImagePNG($dst, $dstFile)) {
-				zorgDebugger::log()->debug('ImagePNG: $dst => %s', [$dstFile]);
+				zorgDebugger::log()->warn('ImagePNG: $dst => %s', [$dstFile]);
 				return false;
 			}
 			zorgDebugger::log()->debug('ImagePNG() OK');
 			break;
 
 		default:
-			error_log(sprintf('[ERROR] <%s:%d> Wrong File Type: %s', __FUNCTION__, __LINE__, strval($ext)));
+			zorgDebugger::log()->warn('Wrong File Type: %s', [strval($dstExt)]);
 			return false;
 	}
 	chmod($dstFile, 0664);

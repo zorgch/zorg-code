@@ -60,7 +60,7 @@
 			<label for="irc_username">IRC Nick</label>
 			<div class="input-group">
 				<span class="input-addon">#</span>
-				<input type="text" name="irc_username" id="irc_username" maxlength="9" autocomplete="off" value="{$user->irc}">
+				<input type="text" name="irc_username" id="irc_username" maxlength="10" autocomplete="off" value="{$user->irc}">
 			</div>
 			<label for="telegram_chat_id">Telegram Chat-ID</label>
 			<div class="input-group">

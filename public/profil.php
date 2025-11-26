@@ -19,7 +19,8 @@ require_once MODELS_DIR.'core.model.php';
  * Validate GET-Parameters
  */
 $doAction = filter_input(INPUT_GET, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['do']
-$postDoAction = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
+$postProfileAction = filter_input(INPUT_POST, 'do', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
+$postMessageAction = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
 $userRegcode = filter_input(INPUT_GET, 'regcode', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_GET['regcode']
 $user_id = (isset($getUserId) ? $getUserId : (filter_input(INPUT_GET, 'user_id', FILTER_SANITIZE_SPECIAL_CHARS) ?? null)); // $_GET['user_id']
 $user_id = !empty($user_id) ? (ctype_digit($user_id) ? intval($user_id) : $user->user2id($user_id)) : null;
@@ -37,7 +38,7 @@ $model = new MVC\Profile();
 $model->showOverview($smarty);
 
 /** Messaging update */
-Messagesystem::execActions($postDoAction);
+Messagesystem::execActions($postMessageAction);
 
 /**
  * Userlist anzeigen
@@ -83,15 +84,16 @@ if ($doAction === 'view')
 		/**
 		 * Mein Profil anzeigen + updaten
 		 */
-		} else {//if ($doAction === 'view' || empty($user_id)) {
+		} else {
 			$model->showProfileupdate($smarty);
 
 			/** Update Userprofile infos & settings */
-			if (!empty($postDoAction))
+			if (!empty($postProfileAction))
 			{
+				zorgDebugger::log()->debug('$_POST[do]: %s', [$postProfileAction]);
 				if ($user->id > 0)
 				{
-					if($postDoAction === 'update' && $_FILES['image']['error'] === 4)
+					if($postProfileAction === 'update' && $_FILES['image']['error'] === 4)
 					{
 						/** Validate $_POST-request */
 						zorgDebugger::log()->debug('$_POST: %s', [print_r($_POST,true)]);
@@ -101,12 +103,12 @@ if ($doAction === 'view')
 						}
 					}
 					/** Upload and change new Userpic */
-					if($postDoAction === 'update' && $_FILES['image']['error'] === 0)
+					if($postProfileAction === 'update' && $_FILES['image']['error'] === 0)
 					{
 						$uploadimage_result = $user->exec_uploadimage($user->id, $_FILES);
 					}
 					/** Change User Password */
-					if($postDoAction === 'change_password')
+					if($postProfileAction === 'change_password')
 					{
 						$newpassword_result = $user->exec_newpassword($user->id, $_POST['old_pass'], $_POST['new_pass'], $_POST['new_pass2']);
 					}
@@ -143,7 +145,7 @@ if ($doAction === 'view')
 				/** Instantiate a new, updated $user-Object (because new data...) */
 				$user = new usersystem();
 				$smarty->assign('user', $user);
-			}
+			} else { zorgDebugger::log()->debug('$_POST[do]: EMPTY / NOT SET'); }
 
 			/** Display "Mein Profil ändern" */
 			$smarty->assign('form_action', '?do=view');

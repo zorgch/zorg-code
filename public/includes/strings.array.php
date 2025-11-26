@@ -78,7 +78,7 @@ return
 			,'invalid-userpw-match' => 'Du hast dich vertippt, bitte wiederholen! (tippä chasch au nö?)'
 			,'invalid-userpw-old' => 'Das alte Passwort ist falsch! (bisch du däne, hai echt)'
 			,'invalid-userpw-missing' => 'Alle Passwort-Felder müssen zum ändern ausgefüllt werden! (ähä)'
-			,'invalid-userpic-format' => 'Dies ist kein JPEG Bild! (muäsch nöd meinä!)'
+			,'invalid-userpic-format' => '%s ist kein gültigter Bildtyp! (muäsch nöd meinä!)'
 			,'lockout-notice' => 'Du bist ausgesperrt! (bis %s)'
 			,'user-wird-geaechtet' => '%s wird zur Zeit geächtet - weil er sich selber <strong>ausgesperrt</strong> hat. Tz-tz-tz...'
 			,'newpass-confirmation' => 'Ein neues Passwort wurde generiert und Dir zugestellt!'

@@ -185,7 +185,7 @@ class zorgDebugger
     {
 		$logOrigin = (!empty($origin['function']) ? $origin['function'] : (!empty($origin['file']) ? $origin['file'] : ''));
 		$logLine = (!empty($origin['line']) ? ':'.$origin['line'] : '');
-		$formattedMessage = vsprintf($message, $params);
+		$formattedMessage = @vsprintf($message, $params);
 		$logMessage = sprintf('[%s] <%s%s> %s', $level, $logOrigin, $logLine, $formattedMessage);
 		error_log($logMessage);
     }

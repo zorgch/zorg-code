@@ -2043,12 +2043,12 @@ class usersystem
 				//for ($i=0;$i<$data_array_checkbox_count;$i++)
 				foreach ($data_array['checkbox'] as $checkbox_key => $checkbox_value)
 				{
-					zorgDebugger::log()->debug('$data_array[checkbox]: <%d> %s => %s', [$checkbox_key, $checkbox_value]);
+					zorgDebugger::log()->debug('$data_array[checkbox]: <%d> %s', [$checkbox_key, $checkbox_value]);
 					if ($checkbox_value === true || $checkbox_value === 'true' || $checkbox_value === '1' || $checkbox_value === 1) {
-						zorgDebugger::log()->debug('$sqlUpdateSetValuesArray adding: %s => 1', [$checkbox_key]);
+						zorgDebugger::log()->debug('$sqlUpdateSetValuesArray adding: %s => 1', [$checkbox_value]);
 						$sqlUpdateSetValuesArray[$checkbox_key] = '1';
 					} else {
-						zorgDebugger::log()->debug('$sqlUpdateSetValuesArray adding: %s => 0', [$checkbox_key]);
+						zorgDebugger::log()->debug('$sqlUpdateSetValuesArray adding: %s => 0', [$checkbox_value]);
 						$sqlUpdateSetValuesArray[$checkbox_key] = '0';
 					}
 				}
@@ -2089,15 +2089,14 @@ class usersystem
 	/**
 	 * Userpic hochladen
 	 *
-	 * @TODO move this function to the usersystem()-Class
+	 * // TODO move this function to the usersystem()-Class
 	 *
-	 * @author [z]biko
-	 * @author IneX
-	 * @version 4.0
-	 * @since 1.0 function added
-	 * @since 2.0 Userpic Archivierung eingebaut / IneX
-	 * @since 3.0 `03.10.2018` function fixed and modernized
-	 * @since 4.0 `11.11.2018` function moved to usersystem()-Class
+	 * @version 5.0
+	 * @since 1.0 `[z]biko` function added
+	 * @since 2.0 `IneX` Userpic Archivierung eingebaut / IneX
+	 * @since 3.0 `03.10.2018` `IneX` function fixed and modernized
+	 * @since 4.0 `11.11.2018` `IneX` function moved to usersystem()-Class
+	 * @since 5.0 `26.11.2025` `IneX` adds support for different uploaded image formats
 	 *
 	 * @uses createPic()
 	 * @uses USER_IMGPATH, USER_IMGEXTENSION, USER_IMGPATH_ARCHIVE, UPLOAD_DIR
@@ -2111,28 +2110,44 @@ class usersystem
 		global $db;
 
 		$error[0] = FALSE;
+		$allowedImageTypes = ['image/jpeg', 'image/pjpeg', 'image/png', 'image/gif'];
 
 		/** Validate passed parameters & $_FILES-array */
-		if (empty($user_id) || $user_id === NULL || $user_id <= 0) return false;
+		if (empty($user_id) || $user_id === NULL || $user_id <= 0) {
+			return false;
+		} else { $user_id = strval($user_id); }
 		if (!is_array($new_pic_files_array) || is_numeric($new_pic_files_array)) return false;
 		if (!$new_pic_files_array['image']['name']) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Bildupload Data Error: %s', __METHOD__, __LINE__, $new_pic_files_array['image']['name']));
+			zorgDebugger::log()->debug('Bildupload Data Error: %s', [$new_pic_files_array['image']['name']]);
 			$error[0] = TRUE;
 			$error[1] = t('error-userpic-name', 'user');
 			return $error;
 		}
 		if($new_pic_files_array['image']['error'] != 0) {
-			if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> Bildupload Error: %d', __METHOD__, __LINE__, $new_pic_files_array['image']['error']));
+			zorgDebugger::log()->debug('Bildupload Error: %d', [$new_pic_files_array['image']['error']]);
 			$error[0] = TRUE;
 			$error[1] = t('error-userpic-upload', 'user');
 			return $error;
 		}
-		if ($new_pic_files_array['image']['type'] != 'image/jpeg' && $new_pic_files_array['image']['type'] != 'image/pjpeg') {
-			 if (DEVELOPMENT) error_log(sprintf('[DEBUG] <%s:%d> kein JPEG Bild: %s', __METHOD__, __LINE__, $new_pic_files_array['image']['type']));
-			 $error[0] = TRUE;
-			 $error[1] = t('invalid-userpic-format', 'user');
-			 return $error;
-		}
+		if (!in_array($new_pic_files_array['image']['type'], $allowedImageTypes)) {
+			zorgDebugger::log()->debug('kein gültiger Bildtyp: %s', [$new_pic_files_array['image']['type']]);
+			$error[0] = TRUE;
+			$error[1] = t('invalid-userpic-format', 'user', strval($new_pic_files_array['image']['type']));
+			return $error;
+		} else { zorgDebugger::log()->debug('Gültiger Bildtyp: %s', [$new_pic_files_array['image']['type']]); }
+
+		/** map mime -> extension (include leading dot to match your extension() checks) */
+		$mimeToExt = [
+			'image/jpeg' => '.jpg',
+			'image/pjpeg' => '.jpg',
+			'image/jpg'  => '.jpg',
+			'image/png'  => '.png',
+			'image/gif'  => '.gif',
+			'image/webp' => '.webp',
+		];
+		/** fallback to .jpg if unknown */
+		$srcExt = isset($mimeToExt[$new_pic_files_array['image']['type']]) ? $mimeToExt[$new_pic_files_array['image']['type']] : '.jpg';
+		$uploadedTmp = $new_pic_files_array['image']['tmp_name'];
 
 		/** Zuerst altes Bild archivieren... */
 		$currtimestamp = time();
@@ -2147,16 +2162,16 @@ class usersystem
 			if (!copy($oldfile, $archiv)) { // zuerst das grosse...
 				$error[0] = TRUE;
 				$error[1] = t('error-userpic-archive', 'user');
-				error_log(sprintf('[ERROR] <%s:%d> %s. $oldfile: %s => $archiv: %s', __METHOD__, __LINE__, $error[1], $oldfile, $archiv));
+				zorgDebugger::log()->warn('%s. $oldfile: %s => $archiv: %s', [$error[1], $oldfile, $archiv]);
 				return $error;
 			}
 			if (!copy($oldfile_tn, $archiv_tn)) { // ...und dann noch das kleine
 				$error[0] = TRUE;
 				$error[1] = t('error-userpictn-archive', 'user');
-				error_log(sprintf('[ERROR] <%s:%d> %s. $oldfile: %s => $archiv: %s', __METHOD__, __LINE__, $error[1], $oldfile_tn, $archiv_tn));
+				zorgDebugger::log()->warn('%s. $oldfile: %s => $archiv: %s', [$error[1], $oldfile_tn, $archiv_tn]);
 				return $error;
 			}
-			/** @TODO DEAKTIVIERT WEIL ZUVOR NOCH ALLE PHP-FILES ÜBERPRÜFT WERDEN MÜSSEN, OB DA NOCH WAS BEZÜGLICH USERPICS DRIN IST, WEGEN DER NEUEN NAMENGEBUNG! */
+			/** // TODO DEAKTIVIERT WEIL ZUVOR NOCH ALLE PHP-FILES ÜBERPRÜFT WERDEN MÜSSEN, OB DA NOCH WAS BEZÜGLICH USERPICS DRIN IST, WEGEN DER NEUEN NAMENGEBUNG! */
 			/*$sql = "SELECT * FROM userpics
 				WHERE user_id = $user_id AND image_name = '".$oldfilename."'";
 			if ($db->query($sql, __FILE__, __LINE__)) {
@@ -2176,42 +2191,37 @@ class usersystem
 		}
 
 		/** ...danach das Neue raufladen */
-		$tmpfile = USER_IMGPATH_UPLOAD.$user_id.USER_IMGEXTENSION;
-		if (!move_uploaded_file($new_pic_files_array['image']['tmp_name'], $tmpfile)) {
-			$error[0] = TRUE;
-			$error[1] = t('error-userpic-permissions', 'user');
-			error_log(sprintf('[ERROR] <%s:%d> %s. tmp_name: %s => $tmpfile: %s', __METHOD__, __LINE__, $error[1], $new_pic_files_array['image']['tmp_name'], $tmpfile));
-			return $error;
-		} else {
-			/** db-gschmäus machen */
-			$sql = 'INSERT INTO userpics
-						(user_id, image_name, image_title, image_added)
-					VALUES
-						('.$user_id.', "'.$new_pic_files_array['image']['name'].'", "'.$new_pic_files_array['image']['name'].'", NOW())';
-			$db->query($sql, __FILE__, __LINE__, __METHOD__);
+		$tmpfile = rtrim(USER_IMGPATH_UPLOAD, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $user_id . $srcExt;
+		if (!move_uploaded_file($uploadedTmp, $tmpfile)) {
+			/** If move_uploaded_file fails (e.g., you previously moved it), try copy as fallback */
+			if (!copy($uploadedTmp, $tmpfile)) {
+				$error[0] = TRUE;
+				$error[1] = t('error-userpic-permissions', 'user');
+				zorgDebugger::log()->warn('%s. tmp_name: %s => $tmpfile: %s', [$error[1], $uploadedTmp, $tmpfile]);
+				return $error;
+			}
 		}
 
+		/** Zersch neue Userpic Thumbnail mache... */
 		$userpicThumb = createPic($tmpfile, USER_IMGPATH.$user_id.'_tn'.USER_IMGEXTENSION, USER_IMGSIZE_SMALL, USER_IMGSIZE_SMALL, array(0,0,0));
-		if (!$userpicThumb || $userpicThumb['error']) {
+		if (!$userpicThumb || isset($userpicThumb['error'])) {
 			$error[0] = TRUE;
 			$error[1] = $userpicThumb['error'];
-			error_log(sprintf('[ERROR] <%s:%d> %s. $tmpfile: %s => %s', __METHOD__, __LINE__, $userpicThumb['error'], $tmpfile, USER_IMGPATH.$user_id.'_tn'.USER_IMGEXTENSION));
+			zorgDebugger::log()->warn('%s. $tmpfile: %s => %s', [$userpicThumb['error'], $tmpfile, USER_IMGPATH.$user_id.'_tn'.USER_IMGEXTENSION]);
 			return $error;
 		}
-
+		/** ...und denn grosses neue Userpic mache */
 		$userpicLarge = createPic($tmpfile, USER_IMGPATH.$user_id.USER_IMGEXTENSION, USER_IMGSIZE_LARGE, USER_IMGSIZE_LARGE);
-		if (!$userpicLarge || $userpicLarge['error']) {
+		if (!$userpicLarge || isset($userpicLarge['error'])) {
 			$error[0] = TRUE;
 			$error[1] = $userpicLarge['error'];
-			error_log(sprintf('[ERROR] <%s:%d> %s. $tmpfile: %s => %s', __METHOD__, __LINE__, $userpicLarge['error'], $tmpfile, USER_IMGPATH.$user_id.USER_IMGEXTENSION));
+			zorgDebugger::log()->warn('%s. $tmpfile: %s => %s', [$userpicLarge['error'], $tmpfile, USER_IMGPATH.$user_id.USER_IMGEXTENSION]);
 			return $error;
 		}
 
-		/** $tmpfile löschen */
-		if (unlink($tmpfile) === false)
-		{
-			error_log(sprintf('[WARN] <%s:%d> unlink($tmpfile) FAILED: %s', __METHOD__, __LINE__, $tmpfile));
-		}
+		/** db-gschmäus machen */
+		$sql = 'INSERT INTO userpics (user_id, image_name, image_title, image_added) VALUES (?, ?, ?, ?)';
+		$db->query($sql, __FILE__, __LINE__, __METHOD__, [$user_id, $new_pic_files_array['image']['name'], $new_pic_files_array['image']['name'], timestamp(true)]);
 
 		return $error;
 	}

@@ -16,6 +16,7 @@
  * @include usersystem.inc.php
  * @include googleapis.inc.php
  */
+if (!require_once INCLUDES_DIR.'pdo.inc.example.php') die('ERROR: DB could NOT be loaded!');
 if (!require_once INCLUDES_DIR.'usersystem.inc.php') die('ERROR: Usersystem could NOT be loaded!');
 if (!require_once INCLUDES_DIR.'googleapis.inc.php') die('ERROR: Google API could NOT be loaded!');
 
@@ -34,11 +35,11 @@ class mobilezChat
 	/**
 	 * Chat Messages
 	 * Query and output chat messages
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string {$order} is the column to sort the results
 	 * @param integer {$limit} defines the maximum number of results
 	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
@@ -47,7 +48,7 @@ class mobilezChat
 	function getChatMessages($order = 'date', $limit = 25)
 	{
 		global $pdo_db, $smarty;
-		
+
 		try {
 			$query = $pdo_db->query(sprintf('SELECT text, UNIX_TIMESTAMP(date) AS date, user_id FROM %s ORDER BY %s DESC LIMIT 0,%u', DB_CHAT_TABLE, $order, $limit));
 			$rows = $query->fetchAll(); // Returns rows or "false"
@@ -63,18 +64,18 @@ class mobilezChat
 			Error_Handler::addError('Error: '.$err->getMessage(), __FILE__, __LINE__, __FUNCTION__, __CLASS__);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Save Chat Message
 	 * Saves a Chat Message to the Database
-	 * 
+	 *
 	 * @ToDo Parse for User @mentioning and generate Notification (e-mail?)
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$message} is the message the user posted
 	 * @param integer {$from_mobile} defines if the user posted from a mobile device
@@ -83,7 +84,7 @@ class mobilezChat
 	function postChatMessage($user_id, $message, $from_mobile = 0)
 	{
 		global $pdo_db;
-		
+
 		try {
 			$query = $pdo_db->prepare("INSERT INTO chat (user_id, date, from_mobile, text) VALUES (:userid, now(), :frommobile, :message)");
 			$query->execute(array(
@@ -105,19 +106,19 @@ class mobilezChat
 			return false;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Get additional Messages
 	 * Queries and returns additional Chat Messages from a specific starting point.
 	 * This is required for something like a "Load more"-button.
-	 * 
+	 *
 	 * @ToDo combine this function into getChatMessages()
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer {$start_id} from what record to start from
 	 * @param integer {$limit} defines the maximum number of results
 	 * @param string {$order} is the column to sort the results
@@ -126,9 +127,9 @@ class mobilezChat
 	function getAdditionalChatMessages($start_date, $limit = 25, $order = 'date')
 	{
 		global $pdo_db, $user;
-		
+
 		$jsonResult = array();
-		
+
 		try {
 			$query = $pdo_db->query(sprintf('SELECT text, UNIX_TIMESTAMP(date) AS date, user_id FROM %s WHERE UNIX_TIMESTAMP(date) < %u ORDER BY %s DESC LIMIT 0,%u', DB_CHAT_TABLE, $start_date, $order, $limit));
 			$rows = $query->fetchAll(); // Returns rows or "false"
@@ -146,7 +147,7 @@ class mobilezChat
 									,'text' => utf8_encode($row['text'])
 									//,'userpic' => $user->userImage($row['user_id']) -> disabled because slowing everything down
 								);
-					
+
 					array_push($jsonResult, $jsonDataEntry);
 				}
 				return $jsonResult;
@@ -155,17 +156,17 @@ class mobilezChat
 			Error_Handler::addError('Error: '.$err->getMessage(), __FILE__, __LINE__, __FUNCTION__, __CLASS__);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Save Uploaded Image
 	 * Saves an uploaded image file into the user's file directory
-	 * 
+	 *
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
 	 * @since 2.0 `27.08.2019` `IneX` Added Telegram Notification
-	 * 
+	 *
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$image_path} contains the path to the uploaded image
 	 * @param integer {$image_size} contains the size of the uploaded image
@@ -178,14 +179,14 @@ class mobilezChat
 	function saveImage($user_id, $image_path, $image_size, $image_type, $image_name = '', $image_extension = '', $from_mobile = 0)
 	{
 		global $pdo_db, $user, $telegram;
-		
+
 		if (empty($image_extension)) $image_extension = IMAGE_FORMAT;
 		$target_dir = usersystem::get_and_create_user_files_dir($user_id);
 		$target_dir = FILES_DIR.$user_id.'/';
 		$filename  = (!empty($image_name) ? str_replace('.','',str_replace(',','_',str_replace(' ','_',$image_name))) : 'file');
 		$filename .= '_'.time().IMG_FULL_SUFFIX.'.'.$image_extension;
 		$full_file_savepath = $target_dir.$filename;
-		
+
 		// Download and save the image file
 		if(@copy($image_path, $full_file_savepath))
 		{
@@ -251,9 +252,9 @@ class mobilezChat
 	 * additionally it triggers a download of a Google Maps Image file
  	 * Example URL: http://maps.googleapis.com/maps/api/staticmap?size=640x480&scale=1&zoom=15&markers=color:red%7Csize:mid%7C47.39220630060216,9.366854022435746
 	 * @link https://developers.google.com/maps/documentation/static-maps/ Google Static Maps Developer Guide
- 	 * 
+ 	 *
  	 * @ToDo Save Google Staticmap in 3 sizes: small, medium, large
- 	 * 
+ 	 *
 	 * @author IneX
 	 * @version 2.0
 	 * @since 1.0 method added
@@ -292,11 +293,11 @@ class mobilezChat
 		/**
 		 * Google Maps API - staticmap
 		 * Grab and save a Google Maps Snapshot and save image into user's file directory
-		 * 
+		 *
 		 * @author IneX
 		 * @version 1.0
 		 * @since 1.0
-		 * 
+		 *
 		 * @param integer {$user_id} ID of the user who posted the message
 		 * @param string {$image_url} contains the full URL to the Google Maps staticimage
 		 * @global object $pdo_db PDO-Database Object, active SQL-Connection
@@ -304,12 +305,12 @@ class mobilezChat
 		private function saveGoogleMapsImage($user_id, $image_url)
 		{
 			global $pdo_db;
-			
+
 			$target_dir = usersystem::get_and_create_user_files_dir($user_id);
 			$target_dir = FILES_DIR.$user_id.'/';
 			$filename = 'staticmap_'.time().'.'.IMAGE_FORMAT;
 			$full_file_savepath = $target_dir.$filename;
-			
+
 			// Download and save the Google Maps staticimage file from the web
 			if(@copy($image_url, $full_file_savepath))
 			{
@@ -341,16 +342,16 @@ class mobilezChat
 				return false;
 			}
 		}
-	
-	
+
+
 	/**
 	 * Handle Chat Message Commands
 	 * Deals with various special Commands requested from the Chat Message
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer {$user_id} ID of the user who executed the command
 	 * @param string {$command} is the extracted '/command' from the Chat Message
 	 * @param array {$parameters} are the extracted /command PARAMETERS' from the Chat Message
@@ -370,11 +371,11 @@ class mobilezChat
 			}
 		}
 	}
-	
+
 		/**
 		 * Anfick
 		 * Fickt einen User aufs übelste an
-		 * 
+		 *
 		 * @param integer {$from_user_id} ID of the user who ficks an
 		 * @param integer {$to_user_id} ID of the user who gets angefickt
 		 * @global object $pdo_db PDO-Database Object, active SQL-Connection
@@ -382,7 +383,7 @@ class mobilezChat
 		private function postAnfickMessage($from_user_id, $to_user)
 		{
 			global $pdo_db, $user, $telegram;
-			
+
 			try {
 				$adj_query = $pdo_db->query('SELECT wort, typ FROM aficks WHERE typ = 1 ORDER BY RAND() LIMIT 1');
 				$nom_query = $pdo_db->query('SELECT wort, typ FROM aficks WHERE typ = 2 ORDER BY RAND() LIMIT 1');
@@ -412,23 +413,23 @@ class mobilezChat
 				return false;
 			}
 		}
-	
-	
+
+
 	/**
 	 * Parses a Chat Message before saving
 	 * Does various magics to add fancy stuff to a Chat Message before saving it
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string {$message} is the Chat Message text
 	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
  	 */
 	private function parseChatMessage($message)
 	{
 		global $pdo_db;
-	 	
+
 	 	$mention_regex = '/\@(\S+)/i';
 	 	$text = strip_tags($message);
 	 	$mentions_found = preg_match_all($mention_regex, $text, $mention_matches);
@@ -436,7 +437,7 @@ class mobilezChat
 	 	$text = preg_replace($mention_regex, '<a href="/profil.php?user_id='.$user_id.'">$0</a>', $text);
 		$text = Markdown::defaultTransform($text);
 		return array('text' => $text, 'mentions' => $mention_matches[1]);
-	 	
+
 		/*$home_url = 'https://dankest.website/';
 		$link_regex = '/\b(https?:\/\/)?(\S+)\.(\S+)\b/i';
 		$hashtag_regex = '/\#([^\s\#]+)/i';
@@ -474,8 +475,8 @@ class mobilezChat
 		return array('text' => $t, 'links' => $link_matches[0], 'mentions' => $mention_matches[1], 'hashtags' => $hashtag_matches[1]);
 		*/
  	 }
- 	 
- 	 
+
+
  	/**
 	 * Image Thumbnail Download
 	 * Download a small preview thumbnail of an image link within a Chat Message for linking
@@ -483,7 +484,7 @@ class mobilezChat
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$image_url} contains the full URL to the image
 	 * @global object $pdo_db PDO-Database Object, active SQL-Connection
@@ -492,26 +493,26 @@ class mobilezChat
 	private function saveImageThumbnail($user_id, $image_url, $image_name = '')
 	{
 		global $pdo_db;
-		
+
 		$image_name = (!empty($image_name) ? str_replace('.','',str_replace(',','_',str_replace(' ','_',$image_name))) : 'file' );
 		$target_dir = usersystem::get_and_create_user_files_dir($user_id);
 		$target_filename = $image_name.IMG_THUMB_SUFFIX.'.'.IMAGE_FORMAT;
 		$full_file_savepath = $target_dir.$target_filename;
-		
+
 		// Read/download and save the image file
 		if($fcontents = file_get_contents($image_url))
 		{
 			$img = imagecreatefromstring($fcontents);
 			$width = imagesx($img);
 			$height = imagesy($img);
-			
+
 			// Crop & resize the Thumbnail
 			// Source: https://www.gidforums.com/t-21016.html
 			$width_ratio = $width / IMG_THUMB_W; // Width Ratio (source:destination)
 			$height_ratio = $height / IMG_THUMB_H; // Height Ratio (source:destination)
 			$crop_x = 0; // Crop X (source offset left)
 			$crop_y = 0; // Crop Y (source offset top)
-			
+
 			// If the width ratio equals the height ratio, the dimensions stay the same!
 			if ($height_ratio < $width_ratio) // Height is the limiting dimension; adjust Width
 			{
@@ -525,13 +526,13 @@ class mobilezChat
 				$height = IMG_THUMB_H * $width_ratio; // New virtual Source Height
 				$crop_y = ($orig_height - $height) / 2; // Crops source height; focus remains centered
 			}
-			
+
 			$img_thumb = imagecreatetruecolor(IMG_THUMB_W, IMG_THUMB_H);
 			imagecopyresized($img_thumb, $img, 0, 0, $crop_x, $crop_y, IMG_THUMB_W, IMG_THUMB_H, $width, $height);
 			imagejpeg($img_thumb, $full_file_savepath); //save image as jpg
-			imagedestroy($img_thumb); 
+			imagedestroy($img_thumb);
 			imagedestroy($img);
-			
+
 			if (chmod($full_file_savepath, 0664))
 			{
 				try {
@@ -560,18 +561,18 @@ class mobilezChat
 			return false;
 		}
 	}
- 	
- 	
+
+
  	/**
 	 * Save Bug
 	 * Saves a Bug Report to the Database
-	 * 
+	 *
 	 * @ToDo Post new Bug Report as Chat message with link?
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param integer {$user_id} ID of the user who posted the message
 	 * @param string {$title} is the title of the Bug Report
 	 * @param string {$description} is the description of the Bug Report
@@ -581,7 +582,7 @@ class mobilezChat
 	function saveBug($user_id, $title, $description, $from_mobile = 0)
 	{
 		global $pdo_db;
-		
+
 		try {
 			$query = $pdo_db->prepare("INSERT INTO bugtracker_bugs (category_id, reporter_id, priority, reported_date, title, description) VALUES (:categoryid, :userid, :priority, now(), :title, :description)");
 			$query->execute(array(
@@ -610,16 +611,16 @@ class mobilezChat
 			return false;
 		}
 	}
-	
-	
+
+
 	/**
 	 * User Password Reset
 	 * Resets a User's password and sends the new one by e-mail
-	 * 
+	 *
 	 * @author IneX
 	 * @version 1.0
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string {$email} E-Mail address of the user to reset the Password
 	 * @global object $pdo_db Usersystem Object, contains all User methods
  	 */
@@ -628,11 +629,11 @@ class mobilezChat
 		global $user;
 		return $user->new_pass($email);
 	}
- 	
- 	
+
+
  	/**
 	 * RezaSeyf/twitterHashtags
-	 * Twitter-like Hashtag system with Unicode and Hashtag Exporting system Support 
+	 * Twitter-like Hashtag system with Unicode and Hashtag Exporting system Support
 	 *
 	 * @author RezaSeyf <reza.safe@icloud.com>
 	 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
@@ -642,67 +643,67 @@ class mobilezChat
 	 * @param string $str the input string to be proccess and export the hashtags from it
 	 * @param string $outputType using 'null' as default will output the full text with href'ed links for hashtags or 'tagsOnly' to just show the hashtags
 	 * @return string Returns the full string with linked hashtags or will just give you the hashtags.
-	 */  
-	private function tagExtract($str, $outputType = null) 
-	{ 
+	 */
+	private function tagExtract($str, $outputType = null)
+	{
 	  	/**
-		 * An array of string objects for storing hashtags inside it. 
+		 * An array of string objects for storing hashtags inside it.
 		 * @var array $hashtagsArray
 		 */
-		$hashtagsArray = array(); 
-		
+		$hashtagsArray = array();
+
 		/**
 		 * An array of string objects that will save the words of the string argument.
 		 * @var array $strArray
 		 */
 		$strArray = explode(" ",$str);
-		
+
 		/**
 		 * Regular expression pattern for notes.
 		 * don't scare! it works! even with unicode characters!
 		 * @var string $pattern
 		 */
-		$pattern = '%(\A#(\w|(\p{L}\p{M}?)|-)+\b)|((?<=\s)#(\w|(\p{L}\p{M}?)|-)+\b)|((?<=\[)#.+?(?=\]))%u'; 
-		
-		 
-		foreach ($strArray as $b) 
-		{	 
+		$pattern = '%(\A#(\w|(\p{L}\p{M}?)|-)+\b)|((?<=\s)#(\w|(\p{L}\p{M}?)|-)+\b)|((?<=\[)#.+?(?=\]))%u';
+
+
+		foreach ($strArray as $b)
+		{
 			// match the word with our hashtag pattern
 		 	preg_match_all($pattern, ($b), $matches);
-		 	
+
 		 	/**
 			 * An array of string objects that will save the hashtags.
 			 * @var array hashtag
 			 */
-			$hashtag	= implode(', ', $matches[0]);	  
-			
+			$hashtag	= implode(', ', $matches[0]);
+
 			// add to array if hashtag is not empty
 			if (!empty($hashtag) or $hashtag != "")
-				array_push($hashtagsArray, $hashtag); 
+				array_push($hashtagsArray, $hashtag);
 		}
-		
+
 		// now we have found all hashtags in the string
 		// so we have to replace them and built a new string :
 		foreach ($hashtagsArray as $c)
 		{
 			/**
-			 * container for the exported hashtags without # sign (to insert to db or etc) 
+			 * container for the exported hashtags without # sign (to insert to db or etc)
 			 * @var string $hashtagTitle
 			 */
 			$hashtagTitle = ltrim($c,"#");
-			
+
 			//create links for hashtags
 			$str = str_replace($c,'<a href="?lookfor='.$hashtagTitle.'">#'.$hashtagTitle.'</a>',$str);
-			
+
 			// uncomment the below line to see the functionality.
 			// echo "$hashtagTitle <br>";
-		} 
-		
+		}
+
 		// return fulltext with linked hashtags OR return just the hashtags (with # sign)
-		if ($outputType == "tagsOnly") 
-			return $listOfHashtags = implode(" ",$hashtagsArray);  
+		if ($outputType == "tagsOnly")
+			return $listOfHashtags = implode(" ",$hashtagsArray);
 		else
-			return $str;	 
+			return $str;
 	}
 }
 
