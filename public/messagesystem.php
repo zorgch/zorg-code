@@ -7,7 +7,7 @@
 /**
  * File includes
  */
-require_once dirname(__FILE__).'/includes/messagesystem.inc.php';
+require_once __DIR__.'/includes/messagesystem.inc.php';
 require_once MODELS_DIR.'core.model.php';
 
 /**
@@ -20,11 +20,12 @@ $html = '';
 
 if ($user->is_loggedin())
 {
-	Messagesystem::execActions();
-
 	/** Validate passed GET-Parameters */
-	$messageId = (isset($_GET['message_id']) && is_numeric($_GET['message_id']) && (int)$_GET['message_id'] > 0 ? (int)$_GET['message_id'] : null);
+	$messageId = intval(filter_var($_GET['message_id'], FILTER_VALIDATE_INT)) ?? null; // $_GET['message_id']
 	if (DEVELOPMENT === true) error_log(sprintf('[DEBUG] <%s:%d> $messageId: %d', __FILE__, __LINE__, $messageId));
+	$postMessageAction = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_SPECIAL_CHARS) ?? null; // $_POST['action']
+
+	Messagesystem::execActions($postMessageAction);
 
 	if (empty($messageId))
 	{

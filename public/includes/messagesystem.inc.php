@@ -513,8 +513,8 @@ class Messagesystem
 
 		if (false !== $messageDetails && !empty($messageDetails) && intval($messageDetails['owner']) === $user->id)
 		{
-			$smarty->assign('prevmessage_url', (self::getNextMessageid($messageid) > 0 ? '<a href="/messagesystem.php?message_id='.self::getNextMessageid($messageid).'"><-- </a> | ' : ''));
-			$smarty->assign('nextmessage_url', (self::getPrevMessageid($messageid) > 0 ? '<a href="/messagesystem.php?message_id='.self::getPrevMessageid($messageid).'"> --></a>' : ''));
+			$smarty->assign('prevmessage_url', (self::getNextMessageid($messageid) > 0 ? '<a href="/messagesystem.php?message_id='.self::getNextMessageid($messageid).'">&larr; neuer</a> | ' : ''));
+			$smarty->assign('nextmessage_url', (self::getPrevMessageid($messageid) > 0 ? '<a href="/messagesystem.php?message_id='.self::getPrevMessageid($messageid).'"> &auml;lter &rarr;</a>' : ''));
 			$smarty->assign('deletemessage_html', self::getFormDelete($messageid));
 			$smarty->assign('messagedetails', $messageDetails);
 			$smarty->assign('recipientslist', explode(',', $messageDetails['to_users']));

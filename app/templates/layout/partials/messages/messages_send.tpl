@@ -9,7 +9,7 @@
 	<fieldset style="flex: 3;">
 		<label style="display: flex;flex-direction: column;">
 			Betreff
-			<input type="text" class="text" maxlength="40" name="subject" tabindex="1" value="{$subject}">
+			<input type="text" class="text" maxlength="40" name="subject" tabindex="1" value="{if $delete_message_id}Re: {/if}{$subject|replace:'Re: ':''}">
 		</label>
 		<label style="display: flex;flex-direction: column;">
 			Message

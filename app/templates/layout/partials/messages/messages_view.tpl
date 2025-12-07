@@ -31,11 +31,6 @@
 			{/section}
 		</td>
 	</tr>
-	<tr>
-		<td align="left" colspan="2">
-			{$messagedetails.text|nl2br}
-		</td>
-	</tr>
 	<tr height="30" style="background-color:{$smarty.const.TABLEBACKGROUNDCOLOR}">
 		<td align="left" width="80">
 			{$prevmessage_url}
@@ -43,6 +38,11 @@
 		</td>
 		<td align="right" width="80%">
 			{$deletemessage_html}
+		</td>
+	</tr>
+	<tr>
+		<td align="left" colspan="2">
+			{$messagedetails.text|nl2br}
 		</td>
 	</tr>
 </table>

@@ -233,6 +233,7 @@ if (!empty($user_id) && $user_id>0)
 	}
 
 	/** User Events */
+	is_string($user_id) ?? $_GET['user_id'] = intval($user_id); // Propagate user_id=123 for $smarty.get.user_id
 	$sidebarHtml .= $smarty->fetch('tpl:211');
 
 	/** User Post-Statistik */
