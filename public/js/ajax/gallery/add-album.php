@@ -77,7 +77,7 @@ if ($user->typ >= USER_MEMBER)
 			exit((string)$new_gallery_id);
 		} else {
 			/* Gallery-specific Upload-Folder exists */
-			zorgDebugger::log()->debug('Gallery Upload-Folder already created: %s', [$upload_dirpath]);
+			\zorgDebugger::log()->debug('Gallery Upload-Folder already created: %s', [$upload_dirpath]);
 			http_response_code(200); // Set response code 200 (OK)
 			exit((string)$new_gallery_id);
 		}
