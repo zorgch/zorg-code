@@ -113,24 +113,22 @@ if ($user->typ >= USER_MEMBER && $action === 'add' && $gallery_id > 0)
 	} else {
 		/** Iterate Filename if File with same name already exists in Upload Dir */
 		$upload_filepath = $upload_dirpath.DIRECTORY_SEPARATOR.$sourcefile['name'];
+		/** Check if a File with same name already exists - and iterate up */
 		if (is_file($upload_filepath))
 		{
 			/** File with same name already exists - iterate up */
 			$total_dirfilecount = count(glob($upload_dirpath."/*.".$sourcefile['fileextension']));
 			if ($total_dirfilecount > 0)
 			{
-				$sourcefile['filename'] .= (string)$total_dirfilecount+1; // Add +1 and update Filename
+				$sourcefile['filename'] .= (string)($total_dirfilecount+1); // Add +1 and update Filename
 				$upload_filepath = sprintf('%s/%s.%s', $upload_dirpath, $sourcefile['filename'], $sourcefile['fileextension']); // Redefine target filepath
-				zorgDebugger::log()->debug('Gallery Upload Directory filecount %d => new dest filepath: %s', [$total_dirfilecount, $upload_filepath]);
+				\zorgDebugger::log()->debug('Gallery Upload Directory filecount %d => new dest filepath: %s', [$total_dirfilecount, $upload_filepath]);
 			}
 			/** Directory Filecount failed */
 			else {
 				http_response_code(508); // Set response code 508 (Loop Detected) and exit.
 				exit('filecount');
 			}
-		} else {
-			http_response_code(424); // Set response code 424 (Failed Dependency) and exit.
-			exit('isfile');
 		}
 
 		/** Move Temporary File to actual Upload Directory */

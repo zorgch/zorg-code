@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">{if $sun == 'up' || $smarty.get.sun == 'up'}{assign var=daytime value=day}{else}{assign var=daytime value=night}{/if}
+<html lang="de">{assign var=daytime value=night}{if (!empty($sun) && $sun == 'up') || (!empty($smarty.get.sun) && $smarty.get.sun == 'up')}{assign var=daytime value=day}{/if}
 {assign var=dev value=false}
 {* Can be used for Album-Edit later: *}
-{if $smarty.get.album_id > 0}{assign var=album_id value=$smarty.get.album_id}{/if}
-{if $smarty.get.album_name != ''}{assign var=album_name value=$smarty.get.album_name}{/if}
+{if !empty($smarty.get.album_id) && $smarty.get.album_id > 0}{assign var=album_id value=$smarty.get.album_id}{/if}
+{if !empty($smarty.get.album_name)}{assign var=album_name value=$smarty.get.album_name}{/if}
 <head>
 	<meta charset="utf-8">
 	<title>{$tplroot.page_title}</title>
@@ -124,7 +124,7 @@
 	<header class="text-center">
 		<h1>zorg Gallery Maker</h1>
 		<p class="text-secondary text-small">Lad ems Pics ufe doooo</p>
-		<a class="text-small" href="{$smarty.const.SITE_URL}/gallery.php{if $album_id > 0}?show=albumThumbs&albID={$album_id}{/if}">↩ back to zorg</a>
+		<a class="text-small" href="{$smarty.const.SITE_URL}/gallery.php{if !empty($album_id) && $album_id > 0}?show=albumThumbs&albID={$album_id}{/if}">↩ back to zorg</a>
 		<hr>
 		{if $error.title <> ''}{include file="file:layout/elements/block_error.tpl"}{/if}
 	</header>
@@ -152,8 +152,8 @@
 			<div class="col-12 col-lg-5">
 				<label for="album-name" class="hidden">Neues Album erstellen:</label>
 				<div class="input-group">
-					<input type="text" name="album-name" id="album-name" class="input-lg" minlength="3" maxlength="50" placeholder="Neues Album erstellen…" autocomplete="off" {if $album_name != ''}value="{$album_name}"{else if $dev}value=""{/if}>
-					<button type="submit" id="create-album" name="create-album" class="button-primary button-lg" value="ok" {if $album_name == ''}disabled{/if}><i class="fa fa-plus"></i> Create</button>
+					<input type="text" name="album-name" id="album-name" class="input-lg" minlength="3" maxlength="50" placeholder="Neues Album erstellen…" autocomplete="off" {if !empty($album_name)}value="{$album_name}"{else if $dev}value=""{/if}>
+					<button type="submit" id="create-album" name="create-album" class="button-primary button-lg" value="ok" {if empty($album_name)}disabled{/if}><i class="fa fa-plus"></i> Create</button>
 				</div>
 			</div>
 		</div>
@@ -174,7 +174,7 @@
 			<div class="col">
 				{assign var=max_file_size_mb value=5}
 				<form id="drop-ems-pix-doooo" class="dropzone" method="post" enctype="multipart/form-data" action="/js/ajax/gallery/add-albumpic.php?action=add">
-					<input type="hidden" name="album_id" id="album_id" value="{if $album_id > 0}{$album_id}{/if}">
+					<input type="hidden" name="album_id" id="album_id" value="{if !empty($album_id) && $album_id > 0}{$album_id}{/if}">
 					<input type="hidden" name="MAX_FILE_SIZE" value="{$max_file_size_mb*1000*1000}" />
 					<div class="dz-message" data-dz-message>+ add pics</div>
 					<div class="fallback">
