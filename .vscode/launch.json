@@ -1,0 +1,58 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Listen for XDebug on Docker",
+			"type": "php",
+			"request": "launch",
+			"log": true,
+			"port": 9004,
+			"hostname": "localhost",
+			"pathMappings": {
+				//"/var/www/html": "${workspaceFolder}",
+				"/var/www/html/app": "${workspaceFolder}/app",
+				"/var/www/html/public": "${workspaceFolder}/public",
+				"/var/www/html/vendor": "${workspaceFolder}/vendor",
+			},
+			"xdebugSettings": {
+				"max_children": 256,
+				"max_data": 1024,
+				"max_depth": 6
+			}
+		},
+		{
+			"name": "Launch currently open script",
+			"type": "php",
+			"request": "launch",
+			"program": "${file}",
+			"cwd": "${fileDirname}",
+			"port": 0,
+			"runtimeArgs": [
+				"-dxdebug.start_with_request=yes"
+			],
+			"env": {
+				"XDEBUG_MODE": "debug,develop",
+				"XDEBUG_CONFIG": "client_port=${port}"
+			}
+		},
+		{
+			"name": "Launch Built-in web server",
+			"type": "php",
+			"request": "launch",
+			"runtimeArgs": [
+				"-dxdebug.mode=debug",
+				"-dxdebug.start_with_request=yes",
+				"-S",
+				"localhost:0"
+			],
+			"program": "",
+			"cwd": "${workspaceRoot}",
+			"port": 9003,
+			"serverReadyAction": {
+				"pattern": "Development Server \\(http://zorg.local:([0-9]+)\\) started",
+				"uriFormat": "http://zorg.local:%s",
+				"action": "openExternally"
+			}
+		}
+	]
+}
