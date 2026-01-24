@@ -274,6 +274,7 @@ class Telegram
 		 * Cleanup nested HTML-Tags, e.g. <a ...><i>text</i></a>
 		 * @link https://stackoverflow.com/a/47105562
 		 */
+    	$notificationText = str_replace("\n", '___NEWLINE___', $notificationText); // PRESERVE NEWLINES: Replace `\n` with a placeholder before DOMDocument processing
 		$dom = new DomDocument;
 		$internalErrors = libxml_use_internal_errors(true); // evaporate XML warning
 		$dom->loadHtml(mb_convert_encoding("<body>{$notificationText}</body>", 'HTML-ENTITIES', 'UTF-8'));
@@ -291,6 +292,7 @@ class Telegram
 				return sprintf('<%1$s %3$s>%2$s</%1$s>', $node->nodeName, $textContent, $attr);
 			}, $nodes)
 		);
+    	$notificationText = str_replace('___NEWLINE___', "\n", $notificationText); // RESTORE NEWLINES: Replace `___NEWLINE___` placeholders back to `\n`
 
 		/**
 		 * Add missing Server address in HTML-Links inside Notification Text
