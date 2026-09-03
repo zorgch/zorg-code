@@ -74,11 +74,11 @@ function get_apod($apod_date_input=NULL)
 		 *	    [copyright] => Francesco Sferlazza
 		 *	    [date] => 2018-08-01
 		 *	    [explanation] => Cosmic rays from outer space go through your body every second. Typically, they do you no harm [...]
-		 *	    [hdurl] => https://apod.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
+		 *	    [hdurl] => https://science.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
 		 *	    [media_type] => image
 		 *	    [service_version] => v1
 		 *	    [title] => Live: Cosmic Rays from Minnesota
-		 *	    [url] => https://apod.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
+		 *	    [url] => https://science.nasa.gov/apod/http://nusoft.fnal.gov/nova/public/img/FD-evt-echo.gif
 		 *	)
 		 */
 		zorgDebugger::log()->debug('date("ymd",$apod_date_input): %s', [date('ymd',strtotime($apod_date_input))]);
@@ -89,9 +89,10 @@ function get_apod($apod_date_input=NULL)
 		$new_apod_explanation = (isset($apod_data['explanation']) ? $apod_data['explanation'] : 'The best APODs have no words at all - the image says it all.');
 		$new_apod_copyright = (isset($apod_data['copyright']) ? $apod_data['copyright'] : 'Uncredited');
 		$new_apod_mediatype = (isset($apod_data['media_type']) ? $apod_data['media_type'] : '');
-		$new_apod_img_small = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['url']); // with fix for malformed url (APOD API issue)
-		$new_apod_img_large = str_replace('https://apod.nasa.gov/apod/http', 'http', $apod_data['hdurl']);  // with fix for malformed url (APOD API issue)
-		$new_apod_archive_url = APOD_SOURCE . 'ap'.$new_apod_date.'.html'; // E.g.: https://apod.nasa.gov/apod/ap180714.html
+		$apod_source_http_prefix = APOD_SOURCE . 'http';
+		$new_apod_img_small = str_replace(['https://apod.nasa.gov/apod/http', $apod_source_http_prefix], 'http', $apod_data['url']); // with fix for malformed url (APOD API issue)
+		$new_apod_img_large = str_replace(['https://apod.nasa.gov/apod/http', $apod_source_http_prefix], 'http', $apod_data['hdurl']);  // with fix for malformed url (APOD API issue)
+		$new_apod_archive_url = APOD_SOURCE . 'ap'.$new_apod_date.'.html'; // E.g.: https://science.nasa.gov/apod/ap180714.html
 		$new_apod_urlparts = pathinfo($new_apod_img_small);
 		zorgDebugger::log()->debug('pathinfo(): %s', [print_r($new_apod_urlparts,true)]);
 		$new_apod_fileext = $new_apod_urlparts['extension'];
